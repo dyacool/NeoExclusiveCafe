@@ -1,4 +1,4 @@
 <?php
-header("Location: /pages/users/user-dashboard.php");
+header("Location: /frontend/pages/home/user-dashboard.php");
 exit;
 ?>

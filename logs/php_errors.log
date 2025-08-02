@@ -6196,3 +6196,119 @@ Stack trace:
                   (o.delivery_date BETWEEN ? AND ?)
               ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
 [02-Aug-2025 04:20:23 Europe/Berlin] With parameters: start=2025-07-27, end=2025-09-07, showCompleted=false
+[02-Aug-2025 05:36:19 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 277
+[02-Aug-2025 05:36:19 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 277
+[02-Aug-2025 05:36:19 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  ORDER BY p.created_at DESC
+[02-Aug-2025 05:36:19 Europe/Berlin] Total featured products found: 6
+[02-Aug-2025 05:36:19 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[02-Aug-2025 05:36:19 Europe/Berlin] PHP Fatal error:  Uncaught Error: mysqli object is already closed in C:\xampp\htdocs\NeoCafe\frontend\user-includes\database.php:39
+Stack trace:
+#0 C:\xampp\htdocs\NeoCafe\frontend\user-includes\database.php(39): mysqli_close(Object(mysqli))
+#1 [internal function]: closeConnection()
+#2 {main}
+  thrown in C:\xampp\htdocs\NeoCafe\frontend\user-includes\database.php on line 39
+[02-Aug-2025 05:37:31 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 277
+[02-Aug-2025 05:37:31 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 277
+[02-Aug-2025 05:37:31 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  ORDER BY p.created_at DESC
+[02-Aug-2025 05:37:31 Europe/Berlin] Total featured products found: 6
+[02-Aug-2025 05:37:31 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[02-Aug-2025 05:37:31 Europe/Berlin] PHP Fatal error:  Uncaught Error: mysqli object is already closed in C:\xampp\htdocs\NeoCafe\frontend\user-includes\database.php:39
+Stack trace:
+#0 C:\xampp\htdocs\NeoCafe\frontend\user-includes\database.php(39): mysqli_close(Object(mysqli))
+#1 [internal function]: closeConnection()
+#2 {main}
+  thrown in C:\xampp\htdocs\NeoCafe\frontend\user-includes\database.php on line 39
+[02-Aug-2025 05:39:19 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 277
+[02-Aug-2025 05:39:19 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 277
+[02-Aug-2025 05:39:19 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  ORDER BY p.created_at DESC
+[02-Aug-2025 05:39:19 Europe/Berlin] Total featured products found: 6
+[02-Aug-2025 05:39:19 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[02-Aug-2025 05:39:19 Europe/Berlin] PHP Fatal error:  Uncaught Error: mysqli object is already closed in C:\xampp\htdocs\NeoCafe\frontend\user-includes\database.php:39
+Stack trace:
+#0 C:\xampp\htdocs\NeoCafe\frontend\user-includes\database.php(39): mysqli_close(Object(mysqli))
+#1 [internal function]: closeConnection()
+#2 {main}
+  thrown in C:\xampp\htdocs\NeoCafe\frontend\user-includes\database.php on line 39
+[02-Aug-2025 05:40:01 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 277
+[02-Aug-2025 05:40:01 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 277
+[02-Aug-2025 05:40:01 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  ORDER BY p.created_at DESC
+[02-Aug-2025 05:40:01 Europe/Berlin] Total featured products found: 6
+[02-Aug-2025 05:40:01 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[02-Aug-2025 05:40:01 Europe/Berlin] PHP Fatal error:  Uncaught Error: mysqli object is already closed in C:\xampp\htdocs\NeoCafe\frontend\user-includes\database.php:39
+Stack trace:
+#0 C:\xampp\htdocs\NeoCafe\frontend\user-includes\database.php(39): mysqli_close(Object(mysqli))
+#1 [internal function]: closeConnection()
+#2 {main}
+  thrown in C:\xampp\htdocs\NeoCafe\frontend\user-includes\database.php on line 39

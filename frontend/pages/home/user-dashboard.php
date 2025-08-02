@@ -239,7 +239,7 @@ $total_images = mysqli_num_rows($images_result);
                             <span class="icon arrow"></span>
                             </span>
                             <span class="button-text"> 
-                                <a href="/NeoExclusiveCafe/pages/users/user-products.php?filter=Featured">
+                                <a href="/NeoCafe/pages/users/user-products.php?filter=Featured">
                                 View More
                                 </a>
                             </span>
