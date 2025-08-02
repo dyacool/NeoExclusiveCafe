@@ -1,0 +1,393 @@
+.blog-container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 20px;
+  margin-top: 2rem; /* Added top margin for spacing from header */
+}
+
+.fade-in {
+  opacity: 0;
+  animation: fadeIn 1s ease forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.blog-container h1 {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #6f4e37; /* Coffee brown color */
+  font-size: 2.5rem;
+  font-family: "Playfair Display", serif;
+}
+
+.create-post-btn {
+  display: inline-block;
+  background-color: #007bff;
+  color: white;
+  padding: 0.8rem 1.5rem;
+  border-radius: 5px;
+  text-decoration: none;
+  margin-bottom: 2rem;
+  transition: background-color 0.3s ease;
+}
+
+.create-post-btn:hover {
+  background-color: #0056b3;
+}
+
+.instagram-feed {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.instagram-post {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+
+.instagram-post:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 20px rgba(111, 78, 55, 0.25);
+}
+
+.post-header {
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.user-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.username {
+  font-weight: 500;
+  font-size: 14px;
+  color: #333;
+}
+
+.post-date {
+  color: #666;
+  font-size: 14px;
+}
+
+.actions {
+  display: flex;
+  gap: 0.8rem;
+}
+
+.action-btn {
+  cursor: pointer;
+  text-decoration: none;
+  padding: 0px 5px;
+  border-radius: 50%;
+  transition: background-color 0.3s ease;
+  background-color: white;
+  border: #828282 1px solid;
+}
+
+.action-btn:hover {
+  background-color: #eee;
+  border: #676767 1px solid;
+  transform: translateY(-0.5px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.action-box {
+  width: 90px;
+  display: none;
+  position: absolute;
+  justify-content: space-between;
+  z-index: 7;
+  background: white;
+  border: 1px solid #eee;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  padding: 8px;
+  border-radius: 5px;
+  border: none;
+}
+
+.editBtn {
+  color: #676767;
+  text-decoration: none;
+  font-size: 16px;
+  margin-bottom: 5px;
+  border: none;
+  background-color: white;
+}
+
+.editBtn:hover {
+  transform: translateY(-1px);
+}
+
+.delete-btn {
+  color: #9a3131;
+  text-decoration: none;
+  font-size: 16px;
+  border: none;
+  background-color: white;
+}
+
+.delete-btn:hover {
+  transform: translateY(-1px);
+}
+
+.post-image {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+}
+
+.post-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.post-content {
+  padding: 1rem;
+}
+
+.function {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.post-title {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 18px;
+  text-align: justify;
+  font-weight: 600;
+}
+
+.caption-text {
+  color: #666;
+  margin-bottom: 1rem;
+  line-height: 1.6;
+  font-size: 14px;
+  text-align: justify;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+.read-more {
+  color: #2e4e30;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.read-more:hover {
+  text-decoration: underline;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+}
+
+.pagination a {
+  padding: 0.5rem 1rem;
+  background: white;
+  color: #333;
+  text-decoration: none;
+  border-radius: 5px;
+  transition: all 0.3s ease;
+}
+
+.pagination a:hover {
+  background-color: #fff8f0; /* Light cream color */
+  border-color: #c87e4f; /* Cinnamon color */
+  color: #c87e4f; /* Cinnamon color */
+}
+
+.pagination a.current {
+  background-color: #c87e4f; /* Cinnamon color */
+  border-color: #c87e4f; /* Cinnamon color */
+  color: white;
+}
+
+.no-posts {
+  text-align: center;
+  padding: 3rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin: 2rem 0;
+}
+
+.no-posts h2 {
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.no-posts p {
+  color: #666;
+}
+
+@media (max-width: 768px) {
+  .instagram-feed {
+    grid-template-columns: 1fr;
+  }
+
+  .blog-container h1 {
+    font-size: 2rem;
+  }
+
+  .pagination {
+    flex-wrap: wrap;
+  }
+}
+
+.create {
+  font-family: "Ovo", Courier, monospace;
+  font-size: 20px;
+  font-weight: 200;
+  text-align: center;
+  color: #ffffff;
+  background: #033813c7;
+  cursor: pointer;
+  align-items: center;
+  width: 170px;
+  height: 53px;
+  gap: 0px;
+  border-radius: 8px;
+  transition-duration: 0.2s;
+}
+
+.create:hover {
+  background-color: #04aa6d;
+  color: 033813C7;
+}
+.create {
+  margin-left: 80%;
+  margin-top: 100px;
+}
+
+/* Modal Background */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  align-items: center;
+}
+
+/* Modal Content */
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  height: auto;
+  min-height: 500px;
+  width: 500px;
+  text-align: center;
+  position: relative;
+  overflow-y: auto;
+}
+
+/* Close Button */
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* Label modal */
+.modal h2 {
+  font-family: "Ovo";
+  font-size: 30px;
+  margin-bottom: 20px;
+}
+
+.modal label {
+  font-family: "Ovo";
+  font-size: 25px;
+}
+
+#currentImageContainer {
+  margin: 10px 0;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background: #f9f9f9;
+}
+
+#currentImage {
+  max-width: 100%;
+  height: auto;
+  border-radius: 5px;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  gap: 10px;
+}
+
+.save-btn {
+  background: #04aa6d;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  flex: 1;
+}
+
+.save-btn:hover {
+  background: #037d4a;
+}
+
+textarea.modal-input {
+  text-align: justify;
+  font-size: 15px;
+  border-radius: 7px;
+  border: 0.5px solid;
+  padding: 10px;
+  width: 100%;
+  height: 130px;
+  resize: vertical;
+  min-height: 100px;
+  max-height: 300px;
+}
+
+input[type="file"].modal-input {
+  padding: 5px;
+  border: 1px dashed #ccc;
+  background: #f9f9f9;
+  cursor: pointer;
+}
+
+input[type="file"].modal-input:hover {
+  border-color: #04aa6d;
+  background: #f0f9f5;
+}

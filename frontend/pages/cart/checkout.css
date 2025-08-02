@@ -1,0 +1,1275 @@
+:root {
+  --primary-color: #256035;
+  --primary-dark: #1a4a28;
+  --primary-light: #e8f5e9;
+  --text-color: #111827;
+  --text-light: #6b7280;
+  --text-dark: #404040;
+  --border-color: #d1d5db;
+  --background-color: #f9fafb;
+  --white: #ffffff;
+  --light-gray: #efefef;
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+  --radius: 8px;
+  --transition: all 0.3s ease;
+}
+
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Inter", "Segoe UI", "Arial", sans-serif;
+}
+
+body.checkout-page {
+  background-color: var(--background-color);
+  color: var(--text-color);
+  line-height: 1.6;
+}
+
+.checkout-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.checkout-container h1 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: var(--text-color);
+  font-weight: 700;
+}
+
+.checkout-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 30px;
+}
+
+/* Left Column (Form Sections) */
+.checkout-left {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+/* Right Column (Order Summary) */
+.checkout-right {
+  background-color: var(--white);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+  height: fit-content;
+}
+
+/* Common section styles */
+.section-card {
+  background-color: var(--white);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--light-gray);
+}
+
+.section-card h2 {
+  color: var(--primary-dark);
+  font-size: 1.25rem;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--light-gray);
+  font-weight: 600;
+}
+
+/* User Information Section */
+.user-details {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.detail-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.detail-label {
+  min-width: 100px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.detail-value {
+  color: var(--text-color);
+}
+
+/* Shipping Options Section */
+.delivery-type {
+  display: flex;
+  gap: 20px;
+}
+
+.radio-option {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border: 2px solid var(--light-gray);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.radio-option:hover {
+  border-color: var(--primary-color);
+  background-color: rgba(37, 96, 53, 0.05);
+}
+
+.radio-option input[type="radio"] {
+  margin: 0;
+  accent-color: var(--primary-color);
+  width: 18px;
+  height: 18px;
+}
+
+.radio-option span {
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+/* Shipping Details Section */
+.delivery-content {
+  padding: 20px 0;
+}
+
+.calendar-section {
+  margin-bottom: 20px;
+  /* Make calendar smaller - 250px height */
+  max-height: 350px !important;
+  overflow: hidden;
+  width: 350px !important;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Make the calendar container smaller */
+#calendar,
+#delivery-calendar {
+  height: 350px !important;
+  width: 100% !important;
+  font-size: 0.75rem !important;
+}
+
+.datetime-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.address-section {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.address-section input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  font-size: 0.95rem;
+}
+
+.address-section input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(37, 96, 53, 0.1);
+}
+
+/* Order Summary Section */
+.summary-items {
+  margin-bottom: 24px;
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--light-gray);
+}
+
+.item-info h3 {
+  font-size: 1.05rem;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.quantity {
+  color: var(--text-light);
+  font-size: 0.9rem;
+}
+
+.item-price {
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.summary-totals {
+  margin-top: 24px;
+  padding-top: 20px;
+}
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  color: var(--text-dark);
+}
+
+.total-final {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--light-gray);
+  color: var(--text-color);
+}
+
+/* Payment Mode Section */
+.payment-options {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.payment-option {
+  flex: 1;
+  cursor: pointer;
+  border: 2px solid var(--light-gray);
+  border-radius: var(--radius);
+  padding: 20px;
+  transition: var(--transition);
+}
+
+.payment-option:hover {
+  border-color: var(--primary-color);
+  background-color: rgba(37, 96, 53, 0.05);
+}
+
+.payment-option-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.payment-text {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-color);
+  text-align: center;
+}
+
+.payment-option input[type="radio"] {
+  margin-bottom: 10px;
+  accent-color: var(--primary-color);
+  width: 18px;
+  height: 18px;
+}
+
+.payment-option:hover .payment-text {
+  color: var(--primary-color);
+}
+
+.payment-note {
+  background-color: rgba(37, 96, 53, 0.08);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-align: center;
+  font-size: 0.95rem;
+  color: var(--text-color);
+  border-left: 4px solid var(--primary-color);
+}
+
+/* Order Notes Section */
+.order-notes textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  resize: vertical;
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+
+.order-notes textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(37, 96, 53, 0.1);
+}
+
+/* Place Order Button */
+.place-order-btn {
+  width: 100%;
+  padding: 16px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  background-color: #256035;
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.place-order-btn:hover {
+  background-color: var(--primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.place-order-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .checkout-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .datetime-inputs {
+    grid-template-columns: 1fr;
+  }
+
+  .delivery-type {
+    flex-direction: column;
+  }
+
+  .payment-options {
+    flex-direction: column;
+  }
+
+  .detail-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+
+  .detail-label {
+    min-width: auto;
+  }
+
+  .address-section {
+    flex-direction: column;
+  }
+}
+
+/* Calendar styles */
+.calendar-container {
+  margin: 10px 0;
+  padding: 10px;
+  background: var(--light-gray);
+  border-radius: var(--radius);
+}
+
+/* Calendar header */
+.fc .fc-toolbar {
+  margin-bottom: 0.5em !important;
+}
+
+.fc .fc-toolbar-title {
+  font-size: 0.9rem !important;
+  font-weight: 600;
+}
+
+.fc .fc-button-primary {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  padding: 0.3em 0.5em !important;
+  font-size: 0.7rem !important;
+}
+
+.fc .fc-button-primary:hover {
+  background-color: var(--primary-dark);
+  border-color: var(--primary-dark);
+}
+
+.fc .fc-button-primary:disabled {
+  background-color: var(--text-light);
+  border-color: var(--text-light);
+}
+
+.fc .fc-prev-button,
+.fc .fc-next-button {
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fc .fc-prev-button:hover,
+.fc .fc-next-button:hover {
+  background-color: var(--primary-dark);
+}
+
+/* Calendar grid */
+.fc .fc-daygrid-day-frame {
+  padding: 1px !important;
+  min-height: 20px !important;
+}
+
+.fc .fc-daygrid-day-number {
+  font-size: 0.7em !important;
+  padding: 1px 2px !important;
+  color: var(--text-color);
+}
+
+.fc .fc-day-today {
+  background-color: rgba(37, 96, 53, 0.1) !important;
+}
+
+.fc .fc-day-past {
+  background-color: var(--light-gray);
+}
+
+.fc .fc-day-other .fc-daygrid-day-number {
+  color: var(--text-light);
+}
+
+/* Disabled dates (when limit reached) */
+.fc-day-disabled {
+  cursor: not-allowed !important;
+  background-color: rgba(211, 47, 47, 0.05) !important;
+}
+
+.fc-day-disabled .fc-daygrid-day-number {
+  color: var(--text-dark) !important;
+}
+
+/* Calendar borders */
+.fc-theme-standard td,
+.fc-theme-standard th,
+.fc-theme-standard .fc-scrollgrid {
+  border-color: var(--light-gray);
+}
+
+.fc th {
+  padding: 2px 0 !important;
+  font-size: 0.7em !important;
+  font-weight: 600;
+  color: var(--primary-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Calendar responsiveness */
+@media (max-width: 768px) {
+  .calendar-container {
+    padding: 5px;
+    margin: 5px 0;
+  }
+
+  .fc .fc-toolbar {
+    gap: 5px;
+  }
+
+  .fc .fc-toolbar-title {
+    font-size: 0.8em !important;
+  }
+
+  .fc .fc-button {
+    padding: 0.15em 0.3em !important;
+    font-size: 0.7em !important;
+  }
+}
+
+/* Tooltip styling */
+.fc-day-disabled[title]:hover:after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  background: var(--primary-dark);
+  color: white;
+  border-radius: 3px;
+  font-size: 10px;
+  white-space: nowrap;
+  z-index: 1000;
+}
+
+/* Selected date styling */
+.fc .fc-highlight {
+  background: rgba(37, 96, 53, 0.1) !important;
+}
+
+/* Not accepting orders styling */
+.not-accepting-orders {
+  position: relative;
+  background-color: #ffebee !important;
+}
+
+.not-accepting-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px !important;
+  color: #d32f2f;
+  pointer-events: none;
+}
+
+.not-accepting-orders .fc-daygrid-day-number {
+  color: #d32f2f !important;
+  font-weight: bold;
+  position: relative;
+  z-index: 2;
+}
+
+.not-accepting-orders:hover::before {
+  content: "Not Accepting Orders";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(211, 47, 47, 0.9);
+  color: white;
+  padding: 3px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  white-space: nowrap;
+  z-index: 1000;
+}
+
+.time-note {
+  display: block;
+  color: var(--text-light);
+  font-size: 0.8em;
+  margin-top: 4px;
+}
+
+/* Separate calendar styles */
+#pickup-calendar,
+#delivery-calendar {
+  margin-bottom: 16px;
+  /* Make calendar smaller - exactly 250px height */
+  height: 250px !important;
+  max-height: 250px !important;
+  font-size: 2em !important;
+  overflow: hidden !important;
+}
+
+/* Reduce the height of the calendar cells */
+.fc-daygrid-day {
+  height: 30px !important;
+}
+
+.fc-daygrid-day-events {
+  display: none !important; /* Hide events to save space */
+}
+
+.fc-daygrid-day-bg {
+  display: none !important; /* Hide background elements to save space */
+}
+
+.datetime-inputs .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+input[type="time"] {
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  font-size: 0.95rem;
+}
+
+input[type="time"]:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(37, 96, 53, 0.1);
+}
+
+input[type="time"]:invalid {
+  border-color: #dc3545;
+}
+
+/* Hide calendar icon from date inputs */
+input[type="text"][readonly] {
+  background-color: var(--white);
+  cursor: default;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  width: 100%;
+  font-size: 0.95rem;
+}
+
+input[type="text"][readonly]:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(37, 96, 53, 0.1);
+}
+
+/* Calendar day styling */
+.fc-day {
+  cursor: pointer;
+}
+
+.fc-day.not-accepting-orders,
+.fc-day.past-date {
+  cursor: not-allowed !important;
+}
+
+.fc-day:hover:not(.not-accepting-orders):not(.past-date) {
+  background-color: rgba(37, 96, 53, 0.1) !important;
+}
+
+.fc .fc-daygrid-day.fc-day-today {
+  background-color: rgba(37, 96, 53, 0.1) !important;
+}
+
+.fc .fc-button-primary {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+
+.fc .fc-button-primary:hover {
+  background-color: var(--primary-dark) !important;
+  border-color: var(--primary-dark) !important;
+}
+
+.fc .fc-button-primary:disabled {
+  background-color: var(--text-light) !important;
+  border-color: var(--text-light) !important;
+}
+
+/* Calendar date states */
+.fc-day {
+  background-color: var(--white) !important;
+}
+
+.fc-day.past-date {
+  background-color: var(--light-gray) !important;
+  color: var(--text-light) !important;
+  cursor: not-allowed !important;
+}
+
+.fc-day.not-accepting-orders,
+.fc-day.fc-day-disabled {
+  background-color: #ffcdd2 !important;
+  color: #c62828 !important;
+  cursor: not-allowed !important;
+}
+
+.fc-day:not(.past-date):not(.not-accepting-orders):not(.fc-day-disabled):hover {
+  background-color: rgba(37, 96, 53, 0.08) !important;
+  cursor: pointer !important;
+}
+
+.fc-day-today {
+  border: 2px solid var(--primary-color) !important;
+}
+
+/* Modal Styles */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  background-color: var(--white);
+  margin: 10% auto;
+  padding: 24px;
+  border-radius: var(--radius);
+  max-width: 500px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--light-gray);
+  padding-bottom: 16px;
+  margin-bottom: 20px;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.3rem;
+  color: var(--primary-dark);
+}
+
+.close-btn {
+  font-size: 1.8rem;
+  font-weight: bold;
+  cursor: pointer;
+  color: var(--text-light);
+}
+
+.close-btn:hover {
+  color: var(--text-dark);
+}
+
+.modal-body {
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: var(--text-dark);
+}
+
+.form-control {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  font-size: 0.95rem;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(37, 96, 53, 0.1);
+}
+
+.btn-success {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-weight: 500;
+  width: 100%;
+  transition: background-color 0.3s ease;
+}
+
+.btn-success:hover {
+  background-color: var(--primary-dark);
+}
+
+.btn-secondary {
+  background-color: var(--light-gray);
+  color: var(--text-dark);
+  border: 1px solid var(--border-color);
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background-color: var(--border-color);
+  color: var(--text-color);
+}
+
+/* E-commerce specific improvements */
+.checkout-container {
+  padding-top: 30px;
+  padding-bottom: 50px;
+}
+
+/* Progress indicator */
+.checkout-progress {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.progress-step {
+  display: flex;
+  align-items: center;
+  margin: 0 15px;
+}
+
+.step-number {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.step-text {
+  color: var(--text-dark);
+  font-weight: 500;
+}
+
+/* Secure checkout badge */
+.secure-checkout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+  color: var(--text-light);
+  font-size: 0.9rem;
+}
+
+.secure-checkout svg {
+  margin-right: 8px;
+  color: var(--primary-color);
+}
+
+/* Improve form inputs */
+input[type="tel"] {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  font-size: 0.95rem;
+}
+
+input[type="tel"]:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(37, 96, 53, 0.1);
+}
+
+/* Improve payment options */
+.payment-option {
+  position: relative;
+  padding-left: 40px;
+}
+
+.payment-option input[type="radio"] {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.payment-option-content {
+  align-items: flex-start;
+}
+
+/* Add payment icons */
+.payment-icon {
+  font-size: 1.5rem;
+  margin-bottom: 5px;
+  color: var(--primary-color);
+}
+
+/* Improve order summary */
+.summary-items {
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+.summary-items::-webkit-scrollbar {
+  width: 5px;
+}
+
+.summary-items::-webkit-scrollbar-track {
+  background: var(--light-gray);
+  border-radius: 10px;
+}
+
+.summary-items::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 10px;
+}
+
+.summary-items::-webkit-scrollbar-thumb:hover {
+  background: var(--text-light);
+}
+
+/* Improve total section */
+.total-final {
+  font-size: 1.3rem;
+  color: var(--primary-dark);
+}
+
+/* Calendar styles */
+.calendar-container {
+  margin: 10px 0;
+  padding: 10px;
+  background: #f7f9f7;
+  border-radius: 4px;
+}
+
+/* Calendar header */
+.fc .fc-toolbar {
+  margin-bottom: 1.5em;
+}
+
+.fc .fc-toolbar-title {
+  font-size: 1.2em;
+  font-weight: 500;
+}
+
+.fc .fc-button-primary {
+  background-color: #2f603c;
+  border-color: #2f603c;
+  padding: 0.5em 0.8em;
+}
+
+.fc .fc-button-primary:hover {
+  background-color: #1e472c;
+  border-color: #1e472c;
+}
+
+.fc .fc-button-primary:disabled {
+  background-color: #6c757d;
+  border-color: #6c757d;
+}
+
+.fc .fc-prev-button,
+.fc .fc-next-button {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fc .fc-prev-button:hover,
+.fc .fc-next-button:hover {
+  background-color: #1e472c;
+}
+
+/* Calendar grid */
+.fc .fc-daygrid-day-frame {
+  padding: 2px;
+}
+
+.fc .fc-daygrid-day-number {
+  font-size: 0.8em;
+  padding: 3px 6px;
+  color: #333;
+}
+
+.fc .fc-day-today {
+  background-color: rgba(47, 96, 60, 0.1) !important;
+}
+
+.fc .fc-day-past {
+  background-color: rgb(0, 0, 0);
+}
+
+.fc .fc-day-other .fc-daygrid-day-number {
+  color: #aaa;
+}
+
+/* Disabled dates (when limit reached) */
+.fc-day-disabled {
+  cursor: not-allowed !important;
+  background-color: rgba(211, 47, 47, 0.05) !important;
+}
+
+.fc-day-disabled .fc-daygrid-day-number {
+  color: black !important;
+}
+
+/* Calendar borders */
+.fc-theme-standard td,
+.fc-theme-standard th,
+.fc-theme-standard .fc-scrollgrid {
+  border-color: #e8ede8;
+}
+
+.fc th {
+  padding: 6px 0;
+  font-size: 0.8em;
+  font-weight: 500;
+  color: #2f603c;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Calendar responsiveness */
+@media (max-width: 768px) {
+  .calendar-container {
+    padding: 8px;
+    margin: 10px 0;
+  }
+
+  .fc .fc-toolbar {
+    gap: 8px;
+  }
+
+  .fc .fc-toolbar-title {
+    font-size: 0.9em;
+  }
+
+  .fc .fc-button {
+    padding: 0.2em 0.4em;
+    font-size: 0.8em;
+  }
+}
+
+/* Tooltip styling */
+.fc-day-disabled[title]:hover:after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  background: rgba(47, 96, 60, 0.9);
+  color: white;
+  border-radius: 3px;
+  font-size: 11px;
+  white-space: nowrap;
+  z-index: 1000;
+}
+
+/* Selected date styling */
+.fc .fc-highlight {
+  background: rgba(47, 96, 60, 0.1) !important;
+}
+
+/* Add to your CSS styles */
+.not-accepting-orders {
+  position: relative;
+  background-color: #ffebee !important;
+}
+
+.not-accepting-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 24px;
+  color: #d32f2f;
+  pointer-events: none;
+}
+
+.not-accepting-orders .fc-daygrid-day-number {
+  color: #d32f2f !important;
+  font-weight: bold;
+  position: relative;
+  z-index: 2;
+}
+
+.not-accepting-orders:hover::before {
+  content: "Not Accepting Orders";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(211, 47, 47, 0.9);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
+}
+
+.time-note {
+  display: block;
+  color: #666;
+  font-size: 0.8em;
+  margin-top: 4px;
+}
+
+/* Separate calendar styles */
+#pickup-calendar,
+#delivery-calendar {
+  margin-bottom: 20px;
+}
+
+.datetime-inputs .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+input[type="time"] {
+  padding: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  font-size: 1rem;
+}
+
+input[type="time"]:invalid {
+  border-color: #dc3545;
+}
+
+/* Hide calendar icon from date inputs */
+input[type="text"][readonly] {
+  background-color: #fff;
+  cursor: default;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  width: 100%;
+}
+
+input[type="text"][readonly]:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+/* Add these styles for the calendar */
+.fc-day {
+  cursor: pointer;
+}
+
+.fc-day.not-accepting-orders,
+.fc-day.past-date {
+  cursor: not-allowed !important;
+}
+
+.fc-day:hover:not(.not-accepting-orders):not(.past-date) {
+  background-color: rgba(47, 96, 60, 0.1) !important;
+}
+
+.fc .fc-daygrid-day.fc-day-today {
+  background-color: rgba(47, 96, 60, 0.1) !important;
+}
+
+.fc .fc-button-primary {
+  background-color: #2f603c !important;
+  border-color: #2f603c !important;
+}
+
+.fc .fc-button-primary:hover {
+  background-color: #1e472c !important;
+  border-color: #1e472c !important;
+}
+
+.fc .fc-button-primary:disabled {
+  background-color: #6c757d !important;
+  border-color: #6c757d !important;
+}
+
+/* Calendar date states */
+.fc-day {
+  background-color: #ffffff !important; /* Default white for all dates */
+}
+
+.fc-day.past-date {
+  background-color: #ffebee !important; /* Light pink for past dates */
+  color: #999594 !important;
+  cursor: not-allowed !important;
+}
+
+.fc-day.not-accepting-orders,
+.fc-day.fc-day-disabled {
+  background-color: #ffcdd2 !important; /* Light red for not accepting/full dates */
+  color: #c62828 !important;
+  cursor: not-allowed !important;
+}
+
+.fc-day:not(.past-date):not(.not-accepting-orders):not(.fc-day-disabled):hover {
+  background-color: #e9ecef !important; /* Slightly darker grey on hover */
+  color: rgb(0, 0, 0) !important;
+  cursor: pointer !important;
+}
+
+.fc-day-today {
+  border: 2px solid #2f603c !important; /* Green border for today */
+}
+
+/* Calendar navigation */
+.fc .fc-toolbar {
+  margin-bottom: 1.5em;
+}
+
+.fc .fc-button-primary {
+  background-color: #2f603c;
+  border-color: #2f603c;
+}
+
+.fc .fc-button-primary:hover {
+  background-color: #1e472c;
+  border-color: #1e472c;
+}
+
+.fc .fc-button-primary:disabled {
+  background-color: #6c757d;
+  border-color: #6c757d;
+}
+
+.fc .fc-prev-button,
+.fc .fc-next-button {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+}
+
+/* Fix navigation dropdown styles */
+.checkout-page .dropdown-menu {
+  padding: 4px 0;
+  display: none;
+  position: absolute;
+  background-color: var(--text-green);
+  min-width: 220px;
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+  left: calc(20% - 90px);
+  border-radius: 4px;
+}
+
+.checkout-page .dropdown-menu a {
+  color: var(--text-match);
+}
+
+.checkout-page .dropdown-menu a:hover {
+  color: #948573;
+    text-decoration: none; 
+
+}
+
+/* Ensure navigation has proper spacing */
+.checkout-page .nav-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+      text-decoration: none; 
+
+}
+
+.checkout-page .nav-left {
+  gap: 15px;
+      text-decoration: none; 
+
+}
+
+.checkout-page .nav-right {
+  gap: 15px;
+      text-decoration: none; 
+
+}

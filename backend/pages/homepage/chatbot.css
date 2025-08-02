@@ -1,0 +1,99 @@
+/* <div class="dashboard-right" id="knowledge-base-container">
+    <h2>Chatbot Knowledge Base</h2>
+    <p style="margin-bottom: 10px; color: #666;">Update the chatbot's knowledge to improve its responses. This information will be used by the AI to provide accurate and relevant answers.</p>
+    <form id="knowledge-form">
+        <textarea id="knowledge-content" name="content" class="faq-input" style="width:100%; min-height:200px;" placeholder="Enter information about your cafe, products, services, policies, etc..." required></textarea>
+        <button type="submit" class="update-btn" style="margin-top:10px;">Save Knowledge Base</button>
+    </form>
+</div> */
+
+#knowledge-preview h3 {
+  margin-top: 0;
+  color: #2f603c;
+  font-size: 1.3em;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+#knowledge-preview a {
+  color: #0078ff;
+  text-decoration: underline;
+  font-weight: bold;
+  cursor: pointer;
+  word-break: break-all;
+}
+
+#knowledge-preview a:hover {
+  text-decoration: none;
+}
+
+#knowledge-content {
+  height: 200px;
+  line-height: 1.5;
+}
+
+#knowledge-preview {
+  margin-top: 15px;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #ffffff;
+  height: 240px;
+  overflow-y: auto;
+  white-space: pre-line;
+}
+
+#knowledge-preview .prev-p {
+  text-align: justify;
+  font-size: 1em;
+}
+
+/* upper */
+.update-btn {
+  background: linear-gradient(to right, #244d9e, #3863b7, #4a73c5);
+  display: block;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+.update-btn:hover {
+  background: linear-gradient(to bottom, #3863b7, #244d9e);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+.dashboard-right .faq-input {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 15px;
+  text-align: justify;
+  height: 235px;
+}
+
+.dashboard-right p {
+  text-align: center;
+  color: #333;
+  font-weight: 400;
+  font-size: 1em;
+  margin-top: 10px;
+}
+
+.dashboard-right h1 {
+  text-align: center;
+  color: #333;
+  font-weight: 500;
+  font-size: 2em;
+  margin: 0 auto;
+}
+
+.dashboard-right {
+  flex: 1 1 0;
+  width: 100%;
+  background: #fffdff;
+  border-radius: 10px;
+  box-shadow: 3px 5px 10px rgba(35, 59, 153, 0.4);
+  padding: 18px 30px;
+}

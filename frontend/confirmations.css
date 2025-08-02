@@ -1,0 +1,28 @@
+.confirmation-popup {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 25px;
+    background-color: #4CAF50;
+    color: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.confirmation-popup.error {
+    background-color: #f44336;
+}
+
+.confirmation-popup.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.confirmation-popup.hide {
+    opacity: 0;
+    transform: translateY(-20px);
+} 

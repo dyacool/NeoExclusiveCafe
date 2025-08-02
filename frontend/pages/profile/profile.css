@@ -1,0 +1,858 @@
+/* Adding specific profile page styles with namespaced classes to avoid conflicts */
+.neo-profile-container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 2rem;
+}
+
+.neo-profile-header {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.5rem;
+}
+
+.neo-profile-orders {
+  background: #ffffff;
+  border-radius: 10px;
+
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+}
+
+.neo-profile-orders h2 {
+  margin: 0;
+  padding-bottom: 1rem;
+}
+
+.neo-profile-avatar {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  border: 3px solid #2c5a39;
+}
+
+.neo-profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.neo-profile-avatar img[src$="profile.svg"] {
+  padding: 15px;
+  object-fit: contain;
+  background-color: #ffffff;
+}
+
+.neo-profile-info {
+  width: 100%;
+  padding-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.neo-profile-info h1 {
+  margin: 0 0 0.5rem 0;
+  color: #2c5a39;
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.neo-profile-meta {
+  color: #2c5a39;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.neo-profile-meta p {
+  margin: 0.25rem 0;
+  color: #2c5a39;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.neo-profile-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.neo-stat-card {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid #e5e7eb;
+}
+
+.neo-stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  border-color: #2c5a39;
+}
+
+.neo-stat-number {
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: #2c5a39;
+  margin-bottom: 0.5rem;
+}
+
+.neo-stat-label {
+  color: #666666;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.neo-profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.neo-profile-btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.neo-profile-btn.primary-btn {
+  background-color: #2c5a39;
+  color: #ffffff;
+  border: 1px solid #2c5a39;
+  font-weight: 500;
+}
+
+.neo-profile-btn.primary-btn:hover {
+  background-color: #1b4332;
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(44, 90, 57, 0.2);
+}
+
+.neo-profile-btn.danger-btn {
+  background-color: #ff0000;
+  color: #ffffff;
+  border: 1px solid #ff0000;
+  font-weight: 500;
+}
+
+.neo-profile-btn.danger-btn:hover {
+  background-color: #cc0000;
+  color: #ffffff;
+  border-color: #cc0000;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(255, 0, 0, 0.2);
+}
+
+.neo-profile-btn.secondary-btn {
+  background-color: #ecf1ec;
+  color: #2c5a39;
+  border: 1px solid #2c5a39;
+}
+
+.neo-profile-btn.secondary-btn:hover {
+  background-color: #2c5a39;
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(44, 90, 57, 0.15);
+}
+
+@media (max-width: 768px) {
+  .neo-profile-container {
+    padding: 1rem;
+  }
+
+  .neo-profile-header {
+    padding: 1.5rem;
+  }
+
+  .neo-profile-avatar {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto; /* Changed from margin-right to auto margins */
+    border: 3px solid #2c5a39;
+  }
+
+  .neo-profile-meta p {
+    margin: 0.25rem 0;
+    color: #2c5a39;
+    line-height: 1.4;
+    text-align: center;
+  }
+
+  .neo-profile-actions {
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+
+  .neo-profile-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .neo-stat-card {
+    padding: 1rem;
+  }
+
+  .neo-stat-number {
+    font-size: 2rem;
+  }
+
+  .neo-modal-content {
+    width: 95%;
+    margin: 5% auto;
+    padding: 1.5rem;
+  }
+}
+
+.neo-profile-orders h2 {
+  font-size: 1.75rem;
+  font-weight: 500;
+  color: #2d3b36;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.neo-profile-orders h2:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -8px;
+  height: 3px;
+  width: 40px;
+  background-color: #5c8d76; /* Sage green */
+  border-radius: 2px;
+}
+
+/* Hide the table structure visually */
+.orders-table {
+  border: none;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.orders-table thead {
+  display: none; /* Hide the table header */
+}
+
+/* Style each order as a card */
+.orders-table tbody tr {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  background-color: #f8faf9;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.02);
+  transition: all 0.25s ease;
+  border-left: 3px solid #5c8d76; /* Sage green accent border */
+}
+
+.orders-table tbody tr:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 15px rgba(92, 141, 118, 0.1);
+}
+
+/* Reset all td styles */
+.orders-table td {
+  display: block;
+  padding: 0;
+  border: none;
+}
+
+/* Simple label + value pattern for all cells */
+.orders-table td::before {
+  display: block;
+  font-size: 0.8rem;
+  color: #6b7c74;
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+}
+
+/* Order Date - Row 1, Column 1 */
+.orders-table td:nth-child(1) {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.orders-table td:nth-child(1)::before {
+  content: "Order Date";
+}
+
+/* Order ID - Row 1, Column 2 */
+.orders-table td:nth-child(2) {
+  grid-column: 2;
+  grid-row: 1;
+  font-weight: 600;
+}
+
+.orders-table td:nth-child(2)::before {
+  content: "Order ID";
+}
+
+/* Status - Row 1, Column 3 */
+.orders-table td:nth-child(5) {
+  grid-column: 3;
+  grid-row: 1;
+  font-weight: 500;
+  color: #3a7561; /* Green for status */
+}
+
+.orders-table td:nth-child(5)::before {
+  content: "Status";
+}
+
+/* Total Items - Row 2, Column 1 */
+.orders-table td:nth-child(3) {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.orders-table td:nth-child(3)::before {
+  content: "Items";
+}
+
+/* Total Amount - Row 2, Column 2 */
+.orders-table td:nth-child(4) {
+  grid-column: 2;
+  grid-row: 2;
+  font-weight: 600;
+}
+
+.orders-table td:nth-child(4)::before {
+  content: "Total Amount";
+}
+
+/* Actions - Row 2, Column 3 */
+.orders-table td:nth-child(6) {
+  grid-column: 3;
+  grid-row: 2;
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+}
+
+/* Button styling */
+.btn-view {
+  display: inline-block;
+  padding: 0.6rem 1.25rem;
+  background-color: #2c5a39;
+  color: #ecf1ec;
+  border: none;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  text-align: center;
+  cursor: pointer;
+}
+
+.btn-view:hover {
+  background-color: #1b4332;
+  color: white;
+  box-shadow: 0 3px 10px rgba(92, 141, 118, 0.2);
+}
+
+/* Empty state styling */
+.orders-table td[colspan="4"] {
+  grid-column: 1 / span 3;
+  grid-row: 1 / span 2;
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: #6b7c74;
+  background-color: transparent;
+  font-size: 0.95rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .neo-profile-orders {
+    padding: 1.5rem;
+    border-radius: 12px;
+  }
+
+  .orders-table tbody tr {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 0.75rem;
+  }
+
+  /* Order Date - Mobile: Row 1, Column 1 */
+  .orders-table td:nth-child(1) {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  /* Order ID - Mobile: Row 1, Column 2 */
+  .orders-table td:nth-child(2) {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  /* Status - Mobile: Row 2, Column 1 */
+  .orders-table td:nth-child(5) {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  /* Total Items - Mobile: Row 2, Column 2 */
+  .orders-table td:nth-child(3) {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  /* Total Amount - Mobile: Row 3, Column 1 */
+  .orders-table td:nth-child(4) {
+    grid-column: 1;
+    grid-row: 3;
+  }
+
+  /* Actions - Mobile: Row 3, Column 2 */
+  .orders-table td:nth-child(6) {
+    grid-column: 2;
+    grid-row: 3;
+    justify-content: flex-end;
+  }
+
+  .neo-profile-orders h2 {
+    font-size: 1.5rem;
+  }
+}
+
+/* For very small screens */
+@media (max-width: 480px) {
+  .orders-table tbody tr {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(6, auto);
+  }
+
+  .orders-table td:nth-child(1),
+  .orders-table td:nth-child(2),
+  .orders-table td:nth-child(3),
+  .orders-table td:nth-child(4),
+  .orders-table td:nth-child(5),
+  .orders-table td:nth-child(6) {
+    grid-column: 1;
+  }
+
+  .orders-table td:nth-child(1) {
+    grid-row: 1;
+  }
+  .orders-table td:nth-child(2) {
+    grid-row: 2;
+  }
+  .orders-table td:nth-child(5) {
+    grid-row: 3;
+  }
+  .orders-table td:nth-child(3) {
+    grid-row: 4;
+  }
+  .orders-table td:nth-child(4) {
+    grid-row: 5;
+  }
+  .orders-table td:nth-child(6) {
+    grid-row: 6;
+    margin-top: 0.5rem;
+  }
+}
+
+/* Modal Styles */
+.neo-modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.5);
+  animation: fadeIn 0.3s;
+}
+
+.neo-modal-content {
+  background-color: #fff;
+  margin: 10% auto;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  width: 80%;
+  max-width: 700px;
+  position: relative;
+  animation: slideIn 0.3s;
+}
+
+.neo-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1.5rem;
+  color: #666;
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.neo-modal-close:hover {
+  color: #2c5a39;
+}
+
+.neo-modal-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.neo-spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #2c5a39;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+.neo-modal-error {
+  color: #e53935;
+  text-align: center;
+  padding: 1rem;
+}
+
+.neo-order-info {
+  margin-bottom: 1.5rem;
+}
+
+.neo-modal-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.neo-modal-table th,
+.neo-modal-table td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.neo-modal-table th {
+  background-color: #f8faf9;
+  font-weight: 600;
+  color: #2c5a39;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Enhanced Modal Styling */
+.neo-modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.5);
+  animation: fadeIn 0.3s ease;
+}
+
+.neo-modal-content {
+  background-color: white;
+  padding: 30px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 900px;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  margin: 0 auto;
+  top: 20%;
+}
+
+.neo-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1.5rem;
+  color: #6b7c74;
+  font-size: 1.8rem;
+  font-weight: 300;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.neo-modal-close:hover {
+  color: #2c5a39;
+  background-color: rgba(44, 90, 57, 0.1);
+  transform: rotate(90deg);
+}
+
+/* Loading spinner */
+.neo-modal-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+}
+
+.neo-spinner {
+  border: 4px solid rgba(44, 90, 57, 0.1);
+  border-top: 4px solid #2c5a39;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  margin: 0 auto 1.5rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Error message */
+.neo-modal-error {
+  color: #e53935;
+  text-align: center;
+  padding: 2rem 1rem;
+  background-color: rgba(229, 57, 53, 0.05);
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+.neo-modal-error p {
+  margin: 0.5rem 0;
+}
+
+/* Order details styling */
+#orderDetailsContent h2 {
+  color: #2c5a39;
+  font-size: 1.8rem;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+  border-bottom: 2px solid rgba(44, 90, 57, 0.1);
+  padding-bottom: 0.75rem;
+}
+
+#orderDetailsContent h3 {
+  color: #2d3b36;
+  font-size: 1.4rem;
+  margin: 1.5rem 0 1rem;
+  font-weight: 500;
+}
+
+.neo-order-info {
+  background-color: #f8faf9;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  border-left: 3px solid #5c8d76;
+}
+
+.neo-order-info p {
+  margin: 0.75rem 0;
+  color: #2d3b36;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.neo-order-info p strong {
+  color: #2c5a39;
+  font-weight: 600;
+  display: inline-block;
+  width: 140px;
+}
+
+/* Table styling */
+.neo-modal-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.neo-modal-table th,
+.neo-modal-table td {
+  padding: 1rem;
+  text-align: center;
+  border-bottom: 1px solid #edf2f0;
+}
+
+.neo-modal-table th {
+  background-color: #edf2f0;
+  color: #2c5a39;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+}
+
+.neo-modal-table tr:last-child td {
+  border-bottom: none;
+}
+
+.neo-modal-table tr:hover td {
+  background-color: rgba(92, 141, 118, 0.05);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .neo-modal-content {
+    width: 95%;
+    margin: 10% auto;
+    padding: 1.5rem;
+  }
+
+  .neo-order-info {
+    padding: 1rem;
+  }
+
+  .neo-order-info p strong {
+    display: block;
+    width: 100%;
+    margin-bottom: 0.25rem;
+  }
+
+  .neo-modal-table th,
+  .neo-modal-table td {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .neo-modal-content {
+    margin: 15% auto;
+    padding: 1.25rem;
+  }
+
+  #orderDetailsContent h2 {
+    font-size: 1.5rem;
+  }
+
+  #orderDetailsContent h3 {
+    font-size: 1.2rem;
+  }
+
+  .neo-modal-table {
+    display: block;
+    overflow-x: auto;
+  }
+}
+
+/* Order status indicators */
+.status-completed {
+  color: #2e7d32;
+  background-color: rgba(46, 125, 50, 0.1);
+  padding: 0.3rem 0.75rem;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.status-processing {
+  color: #1565c0;
+  background-color: rgba(21, 101, 192, 0.1);
+  padding: 0.3rem 0.75rem;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.status-pending {
+  color: #ed6c02;
+  background-color: rgba(237, 108, 2, 0.1);
+  padding: 0.3rem 0.75rem;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.status-cancelled {
+  color: #d32f2f;
+  background-color: rgba(211, 47, 47, 0.1);
+  padding: 0.3rem 0.75rem;
+  border-radius: 4px;
+  font-weight: 500;
+}

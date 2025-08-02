@@ -1,0 +1,117 @@
+@import url("https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,200;1,300;1,400;1,500;1,600;1,700;1,800&display=swap");
+* {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-decoration: none;
+  box-sizing: border-box;
+  font-family: "Spectral", serif;
+}
+
+body {
+  background: #ffffff;
+}
+
+.wrapper {
+  margin: 10px;
+}
+
+.wrapper .header {
+  width: calc(100% - 20px);
+  height: 75px;
+  display: flex;
+  position: fixed;
+  top: 10px;
+}
+
+.wrapper .header .menu {
+  width: 75px;
+  height: 100%;
+  background: #2f603c;
+  padding: 20px;
+  border-top-left-radius: 20px;
+  cursor: pointer;
+}
+
+.wrapper .header .menu div {
+  width: 35px;
+  height: 5px;
+  background: #f6e6cb;
+  margin: 5px 0;
+  border-radius: 5px;
+}
+
+.wrapper .header .top_nav {
+  width: calc(100% - 70px);
+  height: 100%;
+  background: #fff;
+  border-top-right-radius: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 20px;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+}
+
+.wrapper .header .top_nav .logo {
+  color: #2f603c;
+}
+
+.wrapper .sidebar {
+  position: fixed;
+  top: 70px;
+  left: 10px;
+  background: #2f603c;
+  width: 200px;
+  height: calc(100% - 80px);
+  border-bottom-left-radius: 20px;
+  transition: all 0.3s ease;
+}
+
+.wrapper .sidebar ul li a {
+  display: block;
+  padding: 20px;
+  position: relative;
+  margin-bottom: 1px;
+  color: #f6e6cb;
+  white-space: nowrap;
+  font-size: 18px;
+}
+
+.wrapper .sidebar ul li a:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  background: #f6e6cb;
+  display: none;
+}
+
+.wrapper .sidebar ul li a span.title {
+  display: inline-block;
+}
+
+.wrapper .sidebar ul li a:hover,
+.wrapper .sidebar ul li a.active {
+  background: #437c52;
+  color: #fff;
+}
+
+.wrapper .sidebar ul li a:hover:before,
+.wrapper .sidebar ul li a.active:before {
+  display: block;
+}
+
+.wrapper.collapse .sidebar {
+  width: 75px;
+}
+
+.wrapper.collapse .sidebar ul li a {
+  text-align: center;
+}
+
+.wrapper.collapse .sidebar ul li a span.title {
+  display: none;
+}

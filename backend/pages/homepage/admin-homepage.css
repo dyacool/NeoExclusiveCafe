@@ -1,0 +1,460 @@
+@import url("https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,200;1,300;1,400;1,500;1,600;1,700;1,800&display=swap");
+
+* {
+  font-family: "Spectral", serif;
+}
+
+.wrapper {
+  display: block;
+  max-width: 100%;
+  background-color: #f8f8f8;
+}
+
+h2 {
+  color: #256035;
+  font-size: 32px;
+  margin-bottom: 15px;
+}
+
+.Main {
+  padding: 20px;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+.main-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+h3 {
+  font-size: 24px;
+  margin-bottom: 15px;
+}
+
+/* FullCalendar custom styles */
+.fc-event {
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 4px;
+  margin: 2px 0;
+}
+
+.fc-event.pickup {
+  background-color: #4caf50;
+  border-color: #4caf50;
+}
+
+.fc-event.delivery {
+  background-color: #2196f3;
+  border-color: #2196f3;
+}
+
+.fc-toolbar-title {
+  font-size: 1.5em;
+  color: #333;
+}
+
+.fc-button-primary {
+  background-color: #4caf50 !important;
+  border-color: #4caf50 !important;
+}
+
+.fc-button-primary:hover {
+  background-color: #45a049 !important;
+  border-color: #45a049 !important;
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+  .dashboard-content {
+    flex-direction: column;
+  }
+
+  .calendar-section,
+  .pending-orders-section {
+    width: 100%;
+  }
+
+  .pending-orders-controls {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .search-box input {
+    width: 100%;
+  }
+}
+
+.pending-orders-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.pending-orders-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.search-box input {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 200px;
+}
+
+.refresh-btn {
+  padding: 8px 15px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.refresh-btn:hover {
+  background-color: #45a049;
+}
+
+.refresh-icon {
+  font-size: 16px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.accept-btn {
+  padding: 6px 12px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.accept-btn:hover {
+  background-color: #45a049;
+}
+
+.decline-btn {
+  padding: 6px 12px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.decline-btn:hover {
+  background-color: #d32f2f;
+}
+
+/* Remove the old complete-btn styles */
+.complete-btn {
+  display: none;
+}
+
+/* Add these styles to your admin-homepage.css file */
+
+/* Calendar Event Styling */
+.fc-event {
+  border-radius: 4px;
+  padding: 2px 0;
+  border-left-width: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.fc-event-title {
+  font-weight: bold;
+  font-size: 0.85em;
+  white-space: normal;
+  padding: 0 4px;
+}
+
+.fc-event-title small {
+  opacity: 0.8;
+  font-size: 0.9em;
+}
+
+/* Order Modal Styling */
+.order-details-modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  background-color: #fff;
+  margin: 10% auto;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  width: 80%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: -10px;
+}
+
+.close:hover {
+  color: #000;
+}
+
+/* Order Detail Styling */
+.order-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+}
+
+.order-detail-header h3 {
+  margin: 0;
+}
+
+.order-type {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.order-type.delivery {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.order-type.pickup {
+  background-color: #e3f2fd;
+  color: #1565c0;
+}
+
+.order-detail-content {
+  margin-bottom: 20px;
+}
+
+.order-detail-content p {
+  margin: 8px 0;
+}
+
+.order-detail-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+.view-full-details-btn,
+.update-status-btn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+
+.view-full-details-btn {
+  background-color: #e3f2fd;
+  color: #1565c0;
+}
+
+.update-status-btn {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.view-full-details-btn:hover,
+.update-status-btn:hover {
+  filter: brightness(0.95);
+}
+
+/* Status Update Form */
+.status-update-form {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px dashed #ddd;
+}
+
+.status-update-form h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.status-update-form select {
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.status-update-form button {
+  padding: 8px 15px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.status-update-form button:hover {
+  background-color: #388e3c;
+}
+
+/* Event tooltip */
+.event-tooltip {
+  padding: 8px;
+  line-height: 1.4;
+}
+
+.event-tooltip p {
+  margin: 4px 0;
+}
+
+/* Calendar order styling */
+.fc-event {
+  cursor: pointer;
+  border-left: 4px solid #6c757d;
+  padding: 2px 4px;
+}
+
+.order-status-pending {
+  border-left-color: #ffc107 !important;
+  background-color: rgba(255, 193, 7, 0.1);
+}
+
+.order-status-accepted {
+  border-left-color: #28a745 !important;
+  background-color: rgba(40, 167, 69, 0.1);
+}
+
+.order-status-completed {
+  border-left-color: #17a2b8 !important;
+  background-color: rgba(23, 162, 184, 0.1);
+}
+
+.order-status-declined {
+  border-left-color: #dc3545 !important;
+  background-color: rgba(220, 53, 69, 0.1);
+}
+
+.fc-event-title {
+  font-weight: 600;
+  font-size: 0.85em;
+}
+
+.order-time {
+  font-size: 0.8em;
+  opacity: 0.8;
+}
+
+/* Order detail modal styling */
+.order-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.order-status {
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  font-weight: 600;
+}
+
+.order-status.pending {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.order-status.accepted {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.order-status.completed {
+  background-color: #d1ecf1;
+  color: #0c5460;
+}
+
+.order-status.declined {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.order-detail-section {
+  margin-bottom: 20px;
+}
+
+.order-items-section {
+  margin-bottom: 20px;
+}
+
+.order-items-list {
+  list-style: none;
+  padding: 0;
+}
+
+.order-items-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.order-total {
+  text-align: right;
+  font-size: 1.1em;
+  margin-bottom: 20px;
+}
+
+.order-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.complete-btn {
+  background-color: #17a2b8;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.complete-btn:hover {
+  background-color: #138496;
+}

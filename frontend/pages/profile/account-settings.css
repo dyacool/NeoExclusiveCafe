@@ -1,0 +1,247 @@
+body {
+  background-color: #f8f9fa;
+  font-family: "Arial", sans-serif;
+}
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 30px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  opacity: 0;
+  animation: fadeIn 1.5s ease forwards;
+}
+
+h1 {
+  font-size: 2.5em;
+  font-weight: 700;
+  color: #444;
+  text-shadow: 1px 1px 2px #6c6c6c;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+h2 {
+  font-size: 2em;
+  font-weight: 600;
+  color: #444;
+  text-shadow: 1px 1px 2px #6c6c6c;
+  margin: 30px 0;
+  border-bottom: 2px solid #8d8d8d;
+  padding-bottom: 10px;
+  text-align: center;
+}
+
+.form-group {
+  margin-bottom: 25px;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #555;
+  text-align: left;
+}
+input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 16px;
+  transition: border-color 0.3s ease;
+  box-sizing: border-box;
+}
+
+input:focus {
+  outline: none;
+  border-color: #2c5a39;
+  box-shadow: 0 0 0 3px rgba(132, 192, 142, 0.1);
+}
+
+input[readonly] {
+  background-color: #f8f9fa;
+  cursor: not-allowed;
+  border: 1px solid #8aa191;
+  color: #6c757d;
+}
+
+.message {
+  padding: 15px;
+  margin-bottom: 25px;
+  border-radius: 6px;
+  font-weight: 500;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.profile-section {
+  margin-bottom: 40px;
+  padding: 25px;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  background-color: #fff;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.section-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+.section-header i {
+  margin-right: 10px;
+  color: #007bff;
+}
+@media (max-width: 768px) {
+  .container {
+    margin: 20px;
+    padding: 20px;
+  }
+  .profile-section,
+  .password-section {
+    padding: 15px;
+  }
+  .form-group {
+    max-width: 100%;
+  }
+  input {
+    padding: 10px;
+  }
+  .btn {
+    width: 100%;
+    max-width: none;
+  }
+}
+.profile-picture-section {
+  text-align: center;
+  margin-bottom: 10px;
+  padding: 25px 10px;
+}
+
+.current-profile-picture {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  margin: 0 auto 20px;
+  overflow: hidden;
+  border: 3px solid #2c5a39;
+  background-color: #f0f0f0;
+}
+
+.current-profile-picture img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.current-profile-picture img[src$="profile.svg"] {
+  padding: 15px;
+  object-fit: contain;
+  background-color: #ffffff;
+}
+
+.custom-file-upload {
+  display: inline-block;
+  padding: 12px 24px;
+  background-color: #2c5a39;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 10px;
+}
+
+.custom-file-upload:hover {
+  background-color: #1b4332;
+  transform: translateY(-2px);
+}
+
+.custom-file-upload i {
+  margin-right: 8px;
+}
+
+.file-info {
+  display: block;
+  color: #666;
+  margin-top: 8px;
+  font-size: 0.9em;
+}
+
+.modal-content {
+  background-color: #fff;
+  margin: 15% auto;
+  padding: 40px 60px;
+  border-radius: 8px;
+  width: 80%;
+  max-width: 500px;
+}
+
+.close {
+  float: right;
+  cursor: pointer;
+  font-size: 24px;
+  height: auto;
+  padding: 0 12px;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+}
+
+.close:hover {
+  transform: translateY(-1px) rotate(90deg);
+  transition: transform 0.3s ease;
+}
+
+.btn {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.change-btn,
+.changepw-btn {
+  background-color: #2c5a39;
+  color: #fff;
+}
+
+.change-btn:hover,
+.changepw-btn:hover {
+  background-color: #1b4332;
+}

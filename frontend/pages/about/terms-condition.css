@@ -1,0 +1,109 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+.header h1 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    color: black;
+}
+
+.logo img {
+    width: 40px;
+    height: 40px;
+}
+
+nav ul {
+    display: flex;
+    list-style: none;
+    gap: 20px;
+}
+
+nav ul li a {
+    text-decoration: none;
+    color: white;
+}
+
+.search-cart-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.search-cart-profile input {
+    padding: 5px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.search-cart-profile button {
+    background-color: #2f4f4f;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    cursor: pointer;
+}
+
+main {
+    display: flex;
+    padding: 20px;
+}
+
+.contact {
+    width: 30%;
+    padding: 20px;
+}
+
+.image-placeholder {
+    width: 50%;
+    height: 460px;
+    background-color: #eee;
+    border: 2px solid #ccc;
+    margin-bottom: 20px;
+}
+
+.agree-disagree {
+    align-items: center;
+    margin-top: 20px;
+}
+
+.upload-form {
+    position: absolute; 
+    bottom: 10px; 
+    left: 10px;
+}
+
+.social a {
+    margin-right: 10px;
+    font-size: 20px;
+}
+
+.terms-conditions {
+    width: 70%;
+    padding: 20px;
+}
+
+.termscondi-box {
+    border: 1px solid #ccc;
+    background-color: #f0f5f0;
+    padding: 20px;
+    min-height: 250px;
+}
+
+
+footer {
+    text-align: center;
+    position: fixed; 
+    bottom: 0; width: 100%; 
+    text-align: center; 
+    padding: 10px;
+}
+
+footer a {
+    margin: 0 10px;
+    color: #333;
+    text-decoration: none;
+}

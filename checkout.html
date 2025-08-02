@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Neo Exclusive Cafe</title>
+    <link rel="stylesheet" href="css/users/checkout.css">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.0/main.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="checkout-container">
+        <!-- Customer Details Section -->
+        <div class="customer-details">
+            <h2>Customer Details</h2>
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" placeholder="John Doe">
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" placeholder="john@example.com">
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" placeholder="(123) 456-7890">
+            </div>
+        </div>
+
+        <!-- Shipping Options Section -->
+        <div class="shipping-options">
+            <h2>Shipping Options</h2>
+            <div class="radio-group">
+                <div class="radio-option">
+                    <input type="radio" id="pickup" name="shipping-method" checked>
+                    <label for="pickup">Pick Up</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="delivery" name="shipping-method">
+                    <label for="delivery">Delivery</label>
+                </div>
+            </div>
+
+            <!-- Pickup Options -->
+            <div id="pickup-options" class="option-details">
+                <div class="form-group">
+                    <label for="date">Pickup Date</label>
+                    <input type="date" id="date">
+                </div>
+                <div class="form-group">
+                    <label for="time">Pickup Time</label>
+                    <input type="time" id="time">
+                </div>
+            </div>
+
+            <!-- Delivery Options -->
+            <div id="delivery-options" class="option-details" style="display: none;">
+                <div id="delivery-address-display" style="display: none;"></div>
+                <button id="setLocationBtn" class="btn btn-secondary">Set Location</button>
+                <div class="form-group">
+                    <label for="delivery-date">Delivery Date</label>
+                    <input type="date" id="delivery-date">
+                </div>
+                <div class="form-group">
+                    <label for="delivery-time">Delivery Time</label>
+                    <input type="time" id="delivery-time">
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendar Section -->
+        <div class="calendar-section">
+            <h2>Select Date</h2>
+            <div id="calendar"></div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="order-summary">
+            <h2>Order Summary</h2>
+            <div class="order-items">
+                <div class="order-item">
+                    <div class="item-info">
+                        <h4>Cappuccino</h4>
+                        <p>Medium, Extra shot</p>
+                    </div>
+                    <div class="item-quantity">1</div>
+                    <div class="item-price">$4.50</div>
+                </div>
+                <div class="order-item">
+                    <div class="item-info">
+                        <h4>Chocolate Croissant</h4>
+                        <p>Fresh baked</p>
+                    </div>
+                    <div class="item-quantity">2</div>
+                    <div class="item-price">$3.75</div>
+                </div>
+            </div>
+            <div class="order-totals">
+                <div class="total-row">
+                    <span>Subtotal</span>
+                    <span id="subtotal">$12.00</span>
+                </div>
+                <div class="total-row">
+                    <span>Tax</span>
+                    <span id="tax">$0.96</span>
+                </div>
+                <div class="total-row">
+                    <span>Delivery Fee</span>
+                    <span id="delivery-fee">$0.00</span>
+                </div>
+                <div class="total-row total-final">
+                    <span>Total</span>
+                    <span id="total">$12.96</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Details -->
+        <div class="payment-details">
+            <h2>Payment Method</h2>
+            <div class="payment-options">
+                <div class="radio-option">
+                    <input type="radio" id="card-payment" name="payment-method" value="card">
+                    <label for="card-payment">Credit/Debit Card</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="cash-payment" name="payment-method" value="cash">
+                    <label for="cash-payment">Cash on Delivery/Pickup</label>
+                </div>
+            </div>
+
+            <div id="card-payment-form" style="display: none;">
+                <div class="form-group">
+                    <label for="card-name">Name on Card</label>
+                    <input type="text" id="card-name" placeholder="John Doe">
+                </div>
+                <div class="form-group">
+                    <label for="card-number">Card Number</label>
+                    <input type="text" id="card-number" placeholder="**** **** **** ****">
+                </div>
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label for="card-expiry">Expiry Date</label>
+                        <input type="text" id="card-expiry" placeholder="MM/YY">
+                    </div>
+                    <div class="form-group half">
+                        <label for="card-cvv">CVV</label>
+                        <input type="text" id="card-cvv" placeholder="123">
+                    </div>
+                </div>
+            </div>
+
+            <button class="checkout-btn">Complete Order</button>
+        </div>
+    </div>
+
+    <!-- Location Modal -->
+    <div id="locationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Set Delivery Location</h3>
+                <span class="close-btn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="delivery-form">
+                    <div class="form-group">
+                        <label for="street">Street Address</label>
+                        <input type="text" id="street" placeholder="123 Main St">
+                    </div>
+                    <div class="form-group">
+                        <label for="city">City</label>
+                        <input type="text" id="city" placeholder="New York">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label for="state">State</label>
+                            <input type="text" id="state" placeholder="NY">
+                        </div>
+                        <div class="form-group half">
+                            <label for="zip">ZIP Code</label>
+                            <input type="text" id="zip" placeholder="10001">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelBtn" class="btn btn-secondary">Cancel</button>
+                <button id="saveAddressBtn" class="btn btn-primary">Save Address</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.0/main.min.js"></script>
+    <script src="js/checkout.js"></script>
+</body>
+</html> 

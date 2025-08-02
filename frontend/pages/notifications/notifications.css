@@ -1,0 +1,165 @@
+/* Base styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+    background-color: #f9f9f9;
+    line-height: 1.6;
+}
+
+.neo-profile-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+/* Section title */
+.section-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 3px solid #5c8d76;
+    display: block;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    width: fit-content;
+}
+
+/* Notifications list */
+.notifications-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+/* Notification card - styled like the orders in the image */
+.notification-card {
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    padding: 1.5rem;
+    border-left: 4px solid #5c8d76;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1.25rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.notification-card.unread {
+    border-left-color: #6b46c1;
+    background-color: #f9f8ff;
+}
+
+/* Notification info sections */
+.notification-info {
+    margin-bottom: 0.75rem;
+}
+
+.notification-label {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 0.25rem;
+}
+
+.notification-value {
+    font-size: 1rem;
+    color: #333;
+    font-weight: 500;
+}
+
+.notification-title {
+    font-weight: 600;
+}
+
+/* Status badge */
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.status-badge.read {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.status-badge.unread {
+    background-color: #e3f2fd;
+    color: #1565c0;
+}
+
+/* View details button */
+.notification-action {
+    grid-column: 3;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.view-details-btn {
+    background-color: #2e6b47;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    text-decoration: none;
+    display: inline-block;
+    transition: background-color 0.2s;
+}
+
+.view-details-btn:hover {
+    background-color: #1e5535;
+}
+
+/* Mark all as read button */
+.mark-all-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1rem;
+}
+
+.mark-all-btn {
+    background-color: #2e6b47;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.mark-all-btn:hover {
+    background-color: #553c9a;
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #777;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    border-left: 4px solid #ddd;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .notification-card {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    
+    .notification-action {
+        grid-column: 1;
+        justify-content: flex-start;
+        margin-top: 0.5rem;
+    }
+}
