@@ -1,22 +1,24 @@
 <?php
-session_start();
+// Don't start session if it's already active
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /NeoExclusiveCafe/pages/auth/login-signup.php");
+    header("Location: /frontend/login/user/login-signup.php");
     exit();
 }
 $page_title = "Neo Cafe's Corner";
 $additional_css = [
-    "/NeoExclusiveCafe/css/users/blog-list.css"
+    "/frontend/pages/blog/blog-list.css"
 ];
 $additional_js = [
-    "/NeoExclusiveCafe/js/blog.js"
+    "/frontend/pages/blog/blog.js"
 ];
 
 // Font for headings
 $head_extra = '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">';
 
 require_once "../../user-includes/user-header.php";
-require_once "../../user-includes/database.php";
 
 // Pagination settings
 $posts_per_page = 9;
@@ -39,7 +41,7 @@ $total_pages = ceil($total_posts / $posts_per_page);
 ?>
 
 
-    <button class="cta" onclick="window.location.href='/NeoExclusiveCafe/pages/users/blog-page.php'">
+            <button class="cta" onclick="window.location.href='/frontend/pages/blog/create-blog.php'">
             <svg
                 id="arrow-horizontal"
                 xmlns="http://www.w3.org/2000/svg"
@@ -76,7 +78,7 @@ $total_pages = ceil($total_posts / $posts_per_page);
                     
                     <?php if (!empty($post['image_path'])): ?>
                         <div class="post-image">
-                            <img src="/NeoExclusiveCafe/assets/uploaded-images-admin/<?php echo htmlspecialchars($post['image_path']); ?>" 
+                            <img src="/assets/uploaded-images-admin/<?php echo htmlspecialchars($post['image_path']); ?>" 
                                 alt="<?php echo htmlspecialchars($post['title']); ?>">
                         </div>
                     <?php endif; ?>

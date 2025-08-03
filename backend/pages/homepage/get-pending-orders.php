@@ -11,7 +11,7 @@ $suppress_db_debug = true;
 
 // Include necessary files
 require_once "../../php/includes/database.php";
-require_once "../../php/includes/admin-auth.php";
+require_once __DIR__ . "/../../login/admin/admin-auth.php";
 
 // Function to handle errors and return valid JSON
 function handleError($message, $debug = []) {

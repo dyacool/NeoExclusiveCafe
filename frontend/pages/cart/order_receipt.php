@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once __DIR__ . '/php/auth/vendor/autoload.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/NeoExclusiveCafe/php/includes/database.php';
+require_once '../../user-includes/database.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;

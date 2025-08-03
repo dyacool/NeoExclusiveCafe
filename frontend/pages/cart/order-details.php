@@ -1,9 +1,9 @@
 <?php
 session_start();
-require_once $_SERVER['DOCUMENT_ROOT'] . '/NeoExclusiveCafe/php/includes/database.php';
+require_once '../../user-includes/database.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: ../../pages/auth/login-signup.php');
+    header('Location: ../../login/user/login-signup.php');
     exit();
 }
 
@@ -60,7 +60,7 @@ $items_stmt->close();
     </style>
 </head>
 <body>
-<?php include $_SERVER['DOCUMENT_ROOT'] . "/NeoExclusiveCafe/php/includes/customer-navigation.php"; ?>
+<?php include '../../user-includes/navbar/customer-navigation.php'; ?>
 <div class="order-details-container">
     <h2>Order Details - #<?php echo htmlspecialchars($order['order_id']); ?></h2>
     <div class="order-info">
@@ -115,7 +115,7 @@ $items_stmt->close();
             </tr>
         </tfoot>
     </table>
-    <a href="/NeoExclusiveCafe/pages/users/profile.php" class="back-link">&larr; Back to Profile</a>
+    <a href="../profile/profile.php" class="back-link">&larr; Back to Profile</a>
 </div>
 </body>
 </html>

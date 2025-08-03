@@ -10,10 +10,12 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once __DIR__ . "/../../backend/pages/admin-includes/config.php";
-require_once __DIR__ . "/../../backend/pages/admin-includes/database.php";
+require_once __DIR__ . "/database.php";
 
-// Define preview mode
+// Define preview mode - check for both user and admin sessions
 $is_preview_mode = !isset($_SESSION['user_id']) && !isset($_SESSION['admin_id']);
+$is_user_logged_in = isset($_SESSION['user_id']) && isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'user';
+$is_admin_logged_in = isset($_SESSION['admin_id']) && isset($_SESSION['admin_role']) && $_SESSION['admin_role'] === 'admin';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -26,28 +28,7 @@ $is_preview_mode = !isset($_SESSION['user_id']) && !isset($_SESSION['admin_id'])
     <link rel="stylesheet" href="/frontend/user-includes/navbar/customer-navigation.css">
     <link rel="stylesheet" href="/frontend/user-includes/footer.css">
     <style>
-        /* Add preview mode banner */
-        .preview-banner {
-            background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
-            color: white;
-            text-align: center;
-            padding: 10px;
-            font-size: 14px;
-            position: relative;
-            z-index: 1001;
-        }
-
-        .preview-banner a {
-            color: white;
-            text-decoration: underline;
-            font-weight: bold;
-            margin-left: 5px;
-        }
-
-        .preview-banner a:hover {
-            opacity: 0.9;
-        }
-
+        /* Chat button styles */
         .chat-button {
             position: fixed;
             bottom: 20px;
@@ -265,8 +246,8 @@ $is_preview_mode = !isset($_SESSION['user_id']) && !isset($_SESSION['admin_id'])
         }
     </style>
     <?php if (isset($additional_css)): ?>
-        <?php foreach ($additional_css as $css_file): ?>
-            <link rel="stylesheet" href="<?php echo $css_file; ?>">
+        <?php foreach ($additional_css as $css): ?>
+            <link rel="stylesheet" href="<?php echo $css; ?>">
         <?php endforeach; ?>
     <?php endif; ?>
     <?php if (isset($head_extra)): ?>
@@ -378,7 +359,7 @@ $is_preview_mode = !isset($_SESSION['user_id']) && !isset($_SESSION['admin_id'])
                 const formData = new FormData();
                 formData.append('message', message);
                 
-                fetch('../../php/includes/chatbot.php', {
+                fetch('../../backend/pages/admin-includes/chatbot.php', {
                     method: 'POST',
                     body: formData,
                     headers: {

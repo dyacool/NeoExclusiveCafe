@@ -1,7 +1,7 @@
 <?php
 session_start();
-require_once $_SERVER['DOCUMENT_ROOT'] . '/NeoExclusiveCafe/php/includes/database.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/NeoExclusiveCafe/php/includes/mailer.php';
+require_once '../../user-includes/database.php';
+require_once '../../backend/config/mailer/mailer.php';
 
 // Ensure no output before JSON response
 ob_start();
@@ -46,8 +46,9 @@ try {
     }
     
     if (!isset($_SESSION['user_id'])) {
-        throw new Exception('User not logged in');
-    }
+    header('Location: ../../login/user/login-signup.php');
+    exit();
+}
     
     // Get admin email from database
     $admin_query = "SELECT email FROM users WHERE is_admin = 1 LIMIT 1";
@@ -382,7 +383,7 @@ try {
     echo json_encode([
         'success' => true, 
         'order_id' => $order_id,
-        'receipt_url' => '/NeoExclusiveCafe/order_receipt.php?order_id=' . $order_id
+        'receipt_url' => 'order_receipt.php?order_id=' . $order_id
     ]);
     
 } catch (Exception $e) {

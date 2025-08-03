@@ -29,7 +29,7 @@ if ($result->num_rows > 0) {
 $conn->close();
 ?>
 
-<link rel="stylesheet" href="/NeoExclusiveCafe/css/users/footer.css">
+    <link rel="stylesheet" href="/frontend/user-includes/footer.css">
 
 <footer>
     <div class="contact-info">

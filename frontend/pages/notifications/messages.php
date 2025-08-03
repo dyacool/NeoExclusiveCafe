@@ -1,10 +1,13 @@
 <?php
-session_start();
-require_once '../../php/includes/database.php'; // Adjust path as needed
+// Don't start session if it's already active
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+require_once '../../user-includes/database.php'; // Adjust path as needed
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
-    header('Location: ../../pages/auth/login-signup.php');
+    header('Location: ../../login/user/login-signup.php');
     exit;
 }
 

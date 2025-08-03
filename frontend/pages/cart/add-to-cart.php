@@ -1,11 +1,12 @@
 <?php
 session_start();
-header('Content-Type: application/json');
 
 if (!isset($_SESSION["user_id"])) {
-    echo json_encode(["success" => false, "error" => "User not logged in"]);
+    header("Location: ../../login/user/login-signup.php");
     exit();
 }
+
+header('Content-Type: application/json');
 
 if (!isset($_POST["product_id"])) {
     echo json_encode(["success" => false, "error" => "Product ID not provided"]);

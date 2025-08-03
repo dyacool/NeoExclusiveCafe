@@ -3,8 +3,8 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Check if user is logged in as admin
-if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
+// Check if user is logged in as admin using new session keys
+if (!isset($_SESSION["admin_id"]) || !isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true || $_SESSION["admin_role"] !== "admin") {
     header("Location: /login/admin/admin-login.php");
     exit();
 }
@@ -15,7 +15,7 @@ require_once __DIR__ . "/../admin-includes/navbar/navbar.php";
 
 // Fetch admin information
 $stmt = $conn->prepare("SELECT username, firstname, lastname, email FROM users WHERE id = ? AND is_admin = TRUE");
-$stmt->bind_param("i", $_SESSION["user_id"]);
+$stmt->bind_param("i", $_SESSION["admin_id"]);
 $stmt->execute();
 $result = $stmt->get_result();
 $admin = $result->fetch_assoc();
@@ -34,13 +34,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Update admin information
     $stmt = $conn->prepare("UPDATE users SET username = ?, firstname = ?, lastname = ?, email = ? WHERE id = ? AND is_admin = TRUE");
-    $stmt->bind_param("ssssi", $username, $firstname, $lastname, $email, $_SESSION["user_id"]);
+    $stmt->bind_param("ssssi", $username, $firstname, $lastname, $email, $_SESSION["admin_id"]);
     
     if ($stmt->execute()) {
         $success_message = "Profile updated successfully!";
         // Refresh admin data
         $stmt = $conn->prepare("SELECT username, firstname, lastname, email FROM users WHERE id = ? AND is_admin = TRUE");
-        $stmt->bind_param("i", $_SESSION["user_id"]);
+        $stmt->bind_param("i", $_SESSION["admin_id"]);
         $stmt->execute();
         $result = $stmt->get_result();
         $admin = $result->fetch_assoc();

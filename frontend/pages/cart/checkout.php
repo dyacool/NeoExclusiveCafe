@@ -3,9 +3,9 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Require login for checkout
-if (!isset($_SESSION['user_id'])) {
-    header("Location: ../../pages/auth/login-signup.php");
+// Require login for checkout - check for user role
+if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'user') {
+    header("Location: ../../login/user/login-signup.php");
     exit();
 }
 
@@ -20,12 +20,12 @@ require_once "../../user-includes/user-header.php";
 error_log("Session data at start: " . print_r($_SESSION, true));
 
 // Include database connection
-require_once $_SERVER['DOCUMENT_ROOT'] . '/NeoExclusiveCafe/php/includes/database.php';
+require_once '../../user-includes/database.php';
 
 // Initialize user array with default values
 $user = array(
-    'firstname' => '',
-    'lastname' => '',
+    'firstname' => $_SESSION['user_firstname'] ?? '',
+    'lastname' => $_SESSION['user_lastname'] ?? '',
     'email' => null
 );
 
@@ -105,7 +105,7 @@ error_log("Subtotal: " . $subtotal);
 // If still no items selected, redirect back to cart
 if (empty($selected_cart_ids)) {
     error_log("No cart items found - redirecting to cart");
-    header("Location: /NeoExclusiveCafe/pages/users/cart.php");
+    header("Location: cart.php");
     exit();
 }
 
@@ -588,7 +588,7 @@ $debug_info = [
   </script>
 </head>
 <body class="checkout-page">
-<?php include $_SERVER['DOCUMENT_ROOT'] . "/NeoExclusiveCafe/php/includes/customer-navigation.php"; ?>
+<?php include '../../user-includes/navbar/customer-navigation.php'; ?>
 
 <div class="checkout-container">
     <form id="checkout-form">
@@ -806,7 +806,7 @@ $debug_info = [
 <!-- Add jQuery -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <!-- Add Address Selector Script -->
-<script src="/NeoExclusiveCafe/js/users/ph-address-selector.js"></script>
+<script src="../../js/users/ph-address-selector.js"></script>
 
 <script>
 // Modal functionality
@@ -859,7 +859,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <script src="../../js/users/checkout.js"></script>
 
 <?php
-include $_SERVER['DOCUMENT_ROOT'] . '/NeoExclusiveCafe/php/includes/user-footer.php';
+include '../../user-includes/footer.php';
 ?>
 </body>
 </html>

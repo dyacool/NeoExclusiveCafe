@@ -17,7 +17,7 @@ $errorMessage = "";
 $successMessage = "";
 
 if (isset($_POST["reset_password"])) {
-    $admin_id = $_SESSION['user_id'];
+    $admin_id = $_SESSION['admin_id'];
     $current_password = $_POST["current_password"];
     $new_password = $_POST["new_password"];
     $confirm_password = $_POST["confirm_password"];

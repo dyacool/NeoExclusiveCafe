@@ -2,11 +2,11 @@
 session_start();
 
 // Include database connection
-require_once $_SERVER['DOCUMENT_ROOT'] . "/NeoExclusiveCafe/php/includes/database.php";
+require_once '../../user-includes/database.php';
 
 // Check if user is logged in
 if (!isset($_SESSION["user_id"])) {
-    header("Location: /NeoExclusiveCafe/pages/auth/login-signup.php");
+    header("Location: ../../login/user/login-signup.php");
     exit();
 }
 
@@ -18,7 +18,7 @@ $user_id = $_SESSION['user_id'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../../css/users/cart.css" />
-    <link rel="stylesheet" href="/NeoExclusiveCafe/css/users/confirmations.css" />
+    <link rel="stylesheet" href="../../confirmations.css" />
     <title>Shopping Cart</title>
     <style>
         .confirmation-modal {
@@ -126,7 +126,7 @@ $user_id = $_SESSION['user_id'];
                         $subtotal = 0;
                         $cart_items = [];
                         while ($row = $result->fetch_assoc()):
-                            $imageUrl = $row['image_url'] ? "../../" . $row['image_url'] : "/NeoExclusiveCafe/assets/default-product.jpg";
+                            $imageUrl = $row['image_url'] ? "../../assets/" . $row['image_url'] : "../../assets/images/no-image.jpg";
                             $item_total = $row['price'] * $row['quantity'];
                             $subtotal += $item_total;
                             $cart_items[] = $row['cart_id'];
@@ -167,7 +167,7 @@ $user_id = $_SESSION['user_id'];
         <?php else: ?>
             <div class="empty-cart">
                 <p>Your cart is empty</p>
-                <a href="/NeoExclusiveCafe/pages/users/product-dashboard.php" class="continue-shopping">Continue Shopping</a>
+                <a href="/frontend/pages/products/product-dashboard.php" class="continue-shopping">Continue Shopping</a>
             </div>
         <?php endif; ?>
     </div>

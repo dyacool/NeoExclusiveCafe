@@ -426,20 +426,35 @@ require_once "../user-includes/navbar/customer-navigation.php";
         const quantityInput = button.parentElement.querySelector('input');
         const quantity = quantityInput ? parseInt(quantityInput.value) : 1;
 
-        fetch("../../php/users/add-to-cart.php", {
+        fetch("../pages/cart/add-to-cart.php", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: `product_id=${productId}&quantity=${quantity}`
         })
-        .then(response => response.json())
+        .then(response => {
+            // Check if response is a redirect (status 302) or if content-type is not JSON
+            const contentType = response.headers.get('content-type');
+            if (response.redirected || response.status === 302 || (contentType && !contentType.includes('application/json'))) {
+                // If it's a redirect, follow it
+                window.location.href = response.url;
+                return;
+            }
+            return response.json();
+        })
         .then(data => {
-            if (data.success) {
+            if (data && data.success) {
                 alert("Product added to cart successfully!");
-            } else {
+            } else if (data) {
                 alert("Error: " + data.error);
             }
         })
-        .catch(error => console.error("Error:", error));
+        .catch(error => {
+            console.error("Error:", error);
+            // Don't show error message if it's a redirect (user will be redirected to login)
+            if (!error.message.includes('redirect')) {
+                alert("An error occurred while adding to cart");
+            }
+        });
     }
 
     function openProductModal(product) {
@@ -468,7 +483,7 @@ require_once "../user-includes/navbar/customer-navigation.php";
 
         // Set up images
         if (product.images && product.images.length > 0) {
-            mainImage.src = '../../' + product.images[0];
+                            mainImage.src = '../../assets/' + product.images[0];
             
             // Clear existing thumbnails
             thumbnails.innerHTML = '';
@@ -476,7 +491,7 @@ require_once "../user-includes/navbar/customer-navigation.php";
             // Add all images as thumbnails
             product.images.forEach((image, index) => {
                 const thumb = document.createElement('img');
-                thumb.src = '../../' + image;
+                                        thumb.src = '../../assets/' + image;
                 thumb.alt = `${product.name} view ${index + 1}`;
                 thumb.onclick = () => mainImage.src = thumb.src;
                 thumbnails.appendChild(thumb);

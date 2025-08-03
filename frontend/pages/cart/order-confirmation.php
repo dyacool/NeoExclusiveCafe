@@ -33,7 +33,7 @@ function logError($message, $data = null) {
 }
 
 if (!isset($_SESSION["user_id"])) {
-    header("Location: /NeoExclusiveCafe/pages/auth/login-signup.php");
+    header("Location: ../../login/user/login-signup.php");
     exit();
 }
 
@@ -698,8 +698,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </div>
                 
                 <div class="buttons">
-                    <a href="/NeoExclusiveCafe/pages/users/user-dashboard.php">Return to Dashboard</a>
-                    <a href="/NeoExclusiveCafe/pages/users/product-dashboard.php">Continue Shopping</a>
+                    <a href="/frontend/pages/home/user-dashboard.php">Return to Dashboard</a>
+                    <a href="/frontend/pages/products/product-dashboard.php">Continue Shopping</a>
                 </div>
             </div>
         <?php else: ?>

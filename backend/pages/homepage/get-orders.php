@@ -12,7 +12,7 @@ ini_set('error_log', __DIR__ . '/../../../logs/php_errors.log');
 
 // Include necessary files
 require_once __DIR__ . "/../admin-includes/database.php";
-require_once __DIR__ . "/../../../login/admin/admin-auth.php";
+require_once __DIR__ . "/../../login/admin/admin-auth.php";
 
 // Set content type to JSON
 header('Content-Type: application/json');

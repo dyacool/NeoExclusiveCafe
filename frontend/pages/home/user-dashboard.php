@@ -152,7 +152,7 @@ $total_images = mysqli_num_rows($images_result);
         
             <div class="hero-carousel">
                 <?php while ($image = mysqli_fetch_assoc($images_result)): ?>
-                    <div class="hero-slide" style="background-image: url('/<?php echo htmlspecialchars($image['image_url']); ?>');">
+                    <div class="hero-slide" style="background-image: url('/assets/<?php echo htmlspecialchars($image['image_url']); ?>');">
                     </div>
                 <?php endwhile; ?>
             </div>
@@ -198,7 +198,7 @@ $total_images = mysqli_num_rows($images_result);
                                 data-status="<?php echo htmlspecialchars($product['status_name']); ?>"
                                 onclick="openProductModal(<?php echo htmlspecialchars(json_encode($productData), ENT_QUOTES, 'UTF-8'); ?>)">
                                 <div class="product-image">
-                                    <img src="/<?php echo htmlspecialchars($product['image_url']); ?>" 
+                                    <img src="/assets/<?php echo htmlspecialchars($product['image_url']); ?>" 
                                         alt="<?php echo htmlspecialchars($product['name']); ?>"
                                         loading="lazy">
                                 </div>
@@ -239,7 +239,7 @@ $total_images = mysqli_num_rows($images_result);
                             <span class="icon arrow"></span>
                             </span>
                             <span class="button-text"> 
-                                <a href="/NeoCafe/pages/users/user-products.php?filter=Featured">
+                                <a href="/frontend/pages/products/product-dashboard.php?filter=Featured">
                                 View More
                                 </a>
                             </span>
@@ -346,7 +346,7 @@ $total_images = mysqli_num_rows($images_result);
                 </header>
                 <div class="blog-container" data-aos="fade-up">
                     <div class="blog-section animate-fade-in-left">
-                        <a href="product-dashboard.php" class="blog-link">
+                        <a href="/frontend/pages/products/product-dashboard.php" class="blog-link">
                             <img src="/assets/images/IMG_1171.jpg" alt="Weekly Available">
                             <div class="section-title">
                                 <span>PRODUCTS</span>
@@ -476,15 +476,30 @@ window.addToCart = function(productId, button) {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: `product_id=${productId}&quantity=${quantity}`
     })
-    .then(response => response.json())
+    .then(response => {
+        // Check if response is a redirect (status 302) or if content-type is not JSON
+        const contentType = response.headers.get('content-type');
+        if (response.redirected || response.status === 302 || (contentType && !contentType.includes('application/json'))) {
+            // If it's a redirect, follow it
+            window.location.href = response.url;
+            return;
+        }
+        return response.json();
+    })
     .then(data => {
-        if (data.success) {
+        if (data && data.success) {
             alert("Product added to cart successfully!");
-        } else {
+        } else if (data) {
             alert("Error: " + data.error);
         }
     })
-    .catch(error => console.error("Error:", error));
+    .catch(error => {
+        console.error("Error:", error);
+        // Don't show error message if it's a redirect (user will be redirected to login)
+        if (!error.message.includes('redirect')) {
+            alert("An error occurred while adding to cart");
+        }
+    });
 }
 
 window.openProductModal = function(product) {
@@ -513,7 +528,7 @@ window.openProductModal = function(product) {
 
     // Set up images
     if (product.images && product.images.length > 0) {
-        mainImage.src = '/' + product.images[0];
+                    mainImage.src = '/assets/' + product.images[0];
         
         // Clear existing thumbnails
         thumbnails.innerHTML = '';
@@ -521,7 +536,7 @@ window.openProductModal = function(product) {
         // Add all images as thumbnails
         product.images.forEach((image, index) => {
             const thumb = document.createElement('img');
-            thumb.src = '/' + image;
+                            thumb.src = '/assets/' + image;
             thumb.alt = `${product.name} view ${index + 1}`;
             thumb.onclick = () => mainImage.src = thumb.src;
             thumbnails.appendChild(thumb);
@@ -547,16 +562,31 @@ window.openProductModal = function(product) {
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
                 body: `product_id=${product.id}&quantity=${quantity}`
             })
-            .then(response => response.json())
+            .then(response => {
+                // Check if response is a redirect (status 302) or if content-type is not JSON
+                const contentType = response.headers.get('content-type');
+                if (response.redirected || response.status === 302 || (contentType && !contentType.includes('application/json'))) {
+                    // If it's a redirect, follow it
+                    window.location.href = response.url;
+                    return;
+                }
+                return response.json();
+            })
             .then(data => {
-                if (data.success) {
+                if (data && data.success) {
                     alert("Product added to cart successfully!");
                     closeProductModal();
-                } else {
+                } else if (data) {
                     alert("Error: " + data.error);
                 }
             })
-            .catch(error => console.error("Error:", error));
+            .catch(error => {
+                console.error("Error:", error);
+                // Don't show error message if it's a redirect (user will be redirected to login)
+                if (!error.message.includes('redirect')) {
+                    alert("An error occurred while adding to cart");
+                }
+            });
         };
     }
 

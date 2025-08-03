@@ -26,16 +26,10 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Check if user is logged in
-if (!isset($_SESSION['user_id'])) {
+// Check if user is logged in as admin
+if (!isset($_SESSION['admin_id']) || !isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true || $_SESSION['admin_role'] !== 'admin') {
     header("Location: /login/admin/admin-login.php");
     exit();
-}
-
-    // Check if user is admin
-if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] != 1) {
-    header("Location: /login/admin/admin-login.php?error=unauthorized");
-        exit();
 }
 
 // Check if the carousel_images table exists, create it if it doesn't
@@ -110,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $insert_query = "INSERT INTO carousel_images (image_url, title, display_order, is_active, created_by) 
                                 VALUES (?, ?, ?, ?, ?)";
                 $insert_stmt = mysqli_prepare($conn, $insert_query);
-                mysqli_stmt_bind_param($insert_stmt, "ssiis", $image_url, $title, $display_order, $is_active, $_SESSION['user_id']);
+                mysqli_stmt_bind_param($insert_stmt, "ssiis", $image_url, $title, $display_order, $is_active, $_SESSION['admin_id']);
                 
                 if (mysqli_stmt_execute($insert_stmt)) {
                     $success_message = "Image added successfully!";
@@ -158,7 +152,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $update_query = "UPDATE carousel_images SET image_url = ?, title = ?, display_order = ?, 
                                     is_active = ?, updated_by = ? WHERE id = ?";
                     $update_stmt = mysqli_prepare($conn, $update_query);
-                    mysqli_stmt_bind_param($update_stmt, "ssiisi", $image_url, $title, $display_order, $is_active, $_SESSION['user_id'], $image_id);
+                    mysqli_stmt_bind_param($update_stmt, "ssiisi", $image_url, $title, $display_order, $is_active, $_SESSION['admin_id'], $image_id);
                 } else {
                     $error_message = "Failed to upload image.";
                 }
@@ -167,7 +161,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $update_query = "UPDATE carousel_images SET title = ?, display_order = ?, is_active = ?, 
                                 updated_by = ? WHERE id = ?";
                 $update_stmt = mysqli_prepare($conn, $update_query);
-                mysqli_stmt_bind_param($update_stmt, "siisi", $title, $display_order, $is_active, $_SESSION['user_id'], $image_id);
+                mysqli_stmt_bind_param($update_stmt, "siisi", $title, $display_order, $is_active, $_SESSION['admin_id'], $image_id);
             }
             
             if (isset($update_stmt) && mysqli_stmt_execute($update_stmt)) {
@@ -185,7 +179,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         $update_query = "UPDATE carousel_images SET is_active = ?, updated_by = ? WHERE id = ?";
         $update_stmt = mysqli_prepare($conn, $update_query);
-        mysqli_stmt_bind_param($update_stmt, "isi", $new_status, $_SESSION['user_id'], $image_id);
+        mysqli_stmt_bind_param($update_stmt, "isi", $new_status, $_SESSION['admin_id'], $image_id);
         
         if (mysqli_stmt_execute($update_stmt)) {
             $status_text = $new_status ? "activated" : "deactivated";

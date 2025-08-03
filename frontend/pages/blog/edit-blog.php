@@ -1,17 +1,18 @@
 <?php
 ob_start();
-session_start();
-require_once "../../user-includes/database.php";
-
+// Don't start session if it's already active
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 $page_title = "Edit Post";
 $additional_css = [
-    "/NeoExclusiveCafe/css/users/edit-blog.css",
-    "/NeoExclusiveCafe/css/users/back-button.css"
+    "/frontend/pages/blog/edit-blog.css",
+    "/frontend/pages/blog/back-button.css"
 ];
 
 // Process all redirects first
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /NeoExclusiveCafe/pages/auth/login-signup.php");
+    header("Location: /frontend/login/user/login-signup.php");
     exit();
 }
 
@@ -217,7 +218,5 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-<?php require_once "../../php/includes/user-footer.php"; ?>
+<?php require_once "../../user-includes/footer.php"; ?>
 <?php ob_end_flush(); ?>
-
-<?php require_once "../../php/includes/user-footer.php"; ?>

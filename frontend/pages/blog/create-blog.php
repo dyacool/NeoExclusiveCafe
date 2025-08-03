@@ -2,17 +2,16 @@
 ob_start();
 $page_title = "Create Blog Post - NeoExclusiveCafe";
 $additional_css = [
-    "/NeoExclusiveCafe/css/users/create-blog.css",
-    "/NeoExclusiveCafe/css/users/back-button.css"
+    "/frontend/pages/blog/create-blog.css",
+    "/frontend/pages/blog/back-button.css"
 
 ];
 
 require_once "../../user-includes/user-header.php";
-require_once "../../user-includes/database.php";
 
 // Redirect if not logged in
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /NeoExclusiveCafe/pages/auth/login-signup.php");
+    header("Location: /frontend/login/user/login-signup.php");
     exit();
 }
 
@@ -210,7 +209,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         });
     });
 </script>
-<?php require_once "../../php/includes/user-footer.php"; ?>
+<?php require_once "../../user-includes/footer.php"; ?>
 <?php ob_end_flush(); ?>
-
-<?php require_once "../../php/includes/user-footer.php"; ?>

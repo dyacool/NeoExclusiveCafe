@@ -1,6 +1,9 @@
 <?php
 
-session_start();
+// Don't start session if it's already active
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 if (!isset($_SESSION["user_id"])) {
     if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
@@ -9,13 +12,13 @@ if (!isset($_SESSION["user_id"])) {
         echo json_encode(["status" => "error", "message" => "User not logged in"]);
     } else {
         // Otherwise, redirect to the login page
-        header("Location: /pages/auth/login-signup.php");
+        header("Location: /frontend/login/user/login-signup.php");
     }
     exit();
 }
 
-require_once '../../php/includes/database.php'; // Include the database connection
-require_once '../../php/includes/class-notif.php'; // Include the Notification class
+require_once '../../user-includes/database.php'; // Include the database connection
+require_once 'class-notif.php'; // Include the Notification class
 
 try {
     $userId = $_SESSION['user_id']; // Get the logged-in user's ID

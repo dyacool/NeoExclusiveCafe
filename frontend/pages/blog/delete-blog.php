@@ -1,6 +1,9 @@
 <?php
-require_once "../includes/database.php";
-session_start();
+// Don't start session if it's already active
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+require_once "../../user-includes/database.php";
 
 // Set the content type to JSON
 header('Content-Type: application/json');

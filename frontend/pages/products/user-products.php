@@ -49,10 +49,10 @@ if ($conn->connect_error) {
 
         <div class="filter-container">
             <div class="sort-container">
-                <button class="filter-button <?php echo $filter == 'all' ? 'active' : ''; ?>" onclick="filterProducts('all', this)">All</button>
-                <button class="filter-button <?php echo $filter == 'Available' ? 'active' : ''; ?>" onclick="filterProducts('Available', this)">Available</button>
-                <button class="filter-button <?php echo $filter == 'Unavailable' ? 'active' : ''; ?>" onclick="filterProducts('Unavailable', this)">Unavailable</button>
-                <button class="filter-button <?php echo $filter == 'Featured' ? 'active' : ''; ?>" onclick="filterProducts('Featured', this)">Featured</button>
+                <button class="filter-button active" data-filter="all" type="button" onclick="handleFilterClick(event, 'all', this)">All</button>
+                <button class="filter-button" data-filter="Available" type="button" onclick="handleFilterClick(event, 'Available', this)">Available</button>
+                <button class="filter-button" data-filter="Unavailable" type="button" onclick="handleFilterClick(event, 'Unavailable', this)">Unavailable</button>
+                <button class="filter-button" data-filter="Featured" type="button" onclick="handleFilterClick(event, 'Featured', this)">Featured</button>
             </div>
         </div>
 
@@ -101,10 +101,11 @@ if ($conn->connect_error) {
                         $isUnavailable = $row['status_id'] == 3 || $row['quantity'] <= 0;
                         $statusClass = strtolower(str_replace(' ', '-', $row['status_name']));
                         
+                        $productDataJson = htmlspecialchars(json_encode($productData), ENT_QUOTES, 'UTF-8');
                         echo "<div class='product-card {$featuredClass}' data-status='" . htmlspecialchars($row['status_name']) . "' 
-                              onclick='openProductModal(" . json_encode($productData) . ")'>
+                              data-product='" . $productDataJson . "' onclick='openProductModalFromData(this)'>
                                 <div class='product-image'>
-                                    <img src='../../../" . htmlspecialchars($row['image_url'] ?: 'assets/images/no-image.jpg') . "' alt='" . htmlspecialchars($row['name']) . "'>";
+                                    <img src='../../../assets/" . htmlspecialchars($row['image_url'] ?: 'images/no-image.jpg') . "' alt='" . htmlspecialchars($row['name']) . "'>";
                         if ($row['is_featured']) {
                             echo "<span class='featured-badge'>Featured</span>";
                         }
@@ -175,6 +176,14 @@ if ($conn->connect_error) {
 
 <script>
     let productModalOpen = false;
+
+    function handleFilterClick(event, status, button) {
+        event.preventDefault();
+        event.stopPropagation();
+        console.log('Filter button clicked:', status);
+        filterProducts(status, button);
+        return false;
+    }
 
     function filterProducts(status, button) {
         // Update active state of buttons
@@ -267,29 +276,56 @@ if ($conn->connect_error) {
         const quantityInput = button ? button.parentElement.querySelector('input') : null;
         const finalQuantity = quantity || (quantityInput ? parseInt(quantityInput.value) : 1);
 
-        fetch("/NeoExclusiveCafe/php/users/add-to-cart.php", {
+        fetch("../../pages/cart/add-to-cart.php", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: `product_id=${productId}&quantity=${finalQuantity}`
         })
         .then(response => {
+            // Check if response is a redirect (status 302) or if content-type is not JSON
+            const contentType = response.headers.get('content-type');
+            if (response.redirected || response.status === 302 || (contentType && !contentType.includes('application/json'))) {
+                // If it's a redirect, follow it
+                window.location.href = response.url;
+                return;
+            }
+            
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
             return response.json();
         })
         .then(data => {
-            if (data.success) {
+            if (data && data.success) {
                 showConfirmation("Product added to cart successfully!");
                 if (productModalOpen) closeProductModal();
-            } else {
+            } else if (data) {
                 showConfirmation("Error: " + (data.error || "Unknown error"), true);
             }
         })
         .catch(error => {
             console.error("Error:", error);
-            showConfirmation("An error occurred while adding to cart", true);
+            // Don't show error message if it's a redirect (user will be redirected to login)
+            if (!error.message.includes('redirect')) {
+                showConfirmation("An error occurred while adding to cart", true);
+            }
         });
+    }
+
+    function openProductModalFromData(cardElement) {
+        try {
+            const productData = cardElement.getAttribute('data-product');
+            if (!productData) {
+                console.error('No product data found');
+                return;
+            }
+
+            const product = JSON.parse(productData);
+            openProductModal(product);
+        } catch (error) {
+            console.error('Error parsing product data:', error);
+            showConfirmation('An error occurred while opening the product details', true);
+        }
     }
 
     function openProductModal(product) {
@@ -325,12 +361,12 @@ if ($conn->connect_error) {
 
             // Set up images
             if (product.images && Array.isArray(product.images) && product.images.length > 0) {
-                mainImage.src = '../../../' + product.images[0];
+                mainImage.src = '../../../assets/' + product.images[0];
                 thumbnails.innerHTML = '';
                 product.images.forEach((image, index) => {
                     if (image) {
                         const thumb = document.createElement('img');
-                        thumb.src = '../../../' + image;
+                        thumb.src = '../../../assets/' + image;
                         thumb.alt = `${product.name || 'Product'} view ${index + 1}`;
                         thumb.onclick = () => mainImage.src = thumb.src;
                         thumbnails.appendChild(thumb);
@@ -384,38 +420,43 @@ if ($conn->connect_error) {
     document.addEventListener('DOMContentLoaded', function() {
         const urlParams = new URLSearchParams(window.location.search);
         const filter = urlParams.get('filter');
+        
+        // Filter buttons now use onclick handlers instead of event listeners
+        
+        // Apply initial filter if URL parameter exists
         if (filter) {
-            filterProducts(filter);
+            const filterButton = document.querySelector(`[data-filter="${filter}"]`);
+            if (filterButton) {
+                filterProducts(filter, filterButton);
+            }
         }
+        
         // Modify the Add to Cart button setup for product cards
         document.querySelectorAll('.add-to-cart:not(.unavailable)').forEach(btn => {
             btn.onclick = function(e) {
                 try {
                     e.stopPropagation();
                     const card = btn.closest('.product-card');
-                    const onclick = card ? card.getAttribute('onclick') : null;
-                    if (!onclick) return;
+                    const productData = card ? card.getAttribute('data-product') : null;
+                    if (!productData) return;
                     
-                    const match = onclick.match(/openProductModal\((.*)\)/);
-                    if (!match) return;
-                    
-                    let productData;
+                    let product;
                     try {
-                        productData = JSON.parse(match[1]);
+                        product = JSON.parse(productData);
                     } catch (parseError) {
                         console.error('Error parsing product data:', parseError);
                         return;
                     }
 
-                    if (!productData || !productData.id) {
-                        console.error('Invalid product data:', productData);
+                    if (!product || !product.id) {
+                        console.error('Invalid product data:', product);
                         return;
                     }
 
                     const quantityInput = btn.parentElement.querySelector('input');
                     const quantity = quantityInput ? parseInt(quantityInput.value) : 1;
                     
-                    addToCart(productData.id, null, quantity);
+                    addToCart(product.id, null, quantity);
                 } catch (error) {
                     console.error('Error in Add to Cart click handler:', error);
                     showConfirmation('An error occurred while adding to cart', true);

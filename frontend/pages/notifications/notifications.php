@@ -1,10 +1,13 @@
 <?php
 require_once '../../user-includes/database.php';
-require_once '../../php/includes/class-notif.php'; 
+require_once 'class-notif.php'; 
 
-session_start();
+// Don't start session if it's already active
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 if (!isset($_SESSION["user_id"])) {
-    header('Location: ../../pages/auth/login-signup.php');
+    header('Location: ../../login/user/login-signup.php');
     exit();
 }
 
@@ -23,7 +26,7 @@ $notifications = $notification->getAllNotifications($user_id);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notifications</title>
-    <link rel="stylesheet" href="../../css/users/notifications.css" />
+    <link rel="stylesheet" href="notifications.css" />
 </head>
 <body>
 
@@ -85,7 +88,7 @@ $notifications = $notification->getAllNotifications($user_id);
         const markAllReadBtn = document.getElementById('markAllRead');
         if (markAllReadBtn) {
             markAllReadBtn.addEventListener('click', function() {
-                fetch("../../php/users/mark-notif.php", { method: 'POST' })
+                fetch("mark-notif.php", { method: 'POST' })
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === 'success') {

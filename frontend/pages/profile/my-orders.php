@@ -5,7 +5,7 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-require_once $_SERVER['DOCUMENT_ROOT'] . "/NeoExclusiveCafe/php/includes/database.php";
+require_once '../../user-includes/database.php';
 
 $user_id = $_SESSION['user_id'];
 
@@ -43,7 +43,7 @@ $result = mysqli_stmt_get_result($stmt);
     <link rel="stylesheet" href="../../css/users/my-orders.css" />
 </head>
 <body>
-<?php include $_SERVER['DOCUMENT_ROOT'] . "/NeoExclusiveCafe/php/includes/customer-navigation.php"; ?>
+<?php include '../../user-includes/navbar/customer-navigation.php'; ?>
 
 <div class="orders-container">
     <h1>My Orders</h1>
@@ -64,7 +64,7 @@ $result = mysqli_stmt_get_result($stmt);
                     <td><?php echo htmlspecialchars($order['status']); ?></td>
                     <td><?php echo htmlspecialchars(date("F j, Y, g:i a", strtotime($order['order_date']))); ?></td>
                     <td>
-                        <a href="/NeoExclusiveCafe/pages/users/order-details.php?order_id=<?php echo $order['order_id']; ?>" class="btn-view">View Details</a>
+                        <a href="../cart/order-details.php?order_id=<?php echo $order['order_id']; ?>" class="btn-view">View Details</a>
                     </td>
                 </tr>
                 <?php endwhile; ?>

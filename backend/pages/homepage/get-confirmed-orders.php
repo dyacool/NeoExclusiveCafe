@@ -9,7 +9,7 @@ if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
 
 // Include database connection
 require_once "../../php/includes/database.php";
-require_once "../../php/includes/admin-auth.php";
+require_once __DIR__ . "/../../login/admin/admin-auth.php";
 
 
 require_once $_SERVER['DOCUMENT_ROOT'] . "/NeoExclusiveCafe/php/includes/database.php";

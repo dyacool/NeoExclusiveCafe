@@ -1,6 +1,6 @@
 <?php
-require_once '../../php/includes/class-notif.php'; // Include the Notification class
-require_once '../../php/includes/database.php'; // Include the database connection
+require_once 'class-notif.php'; // Include the Notification class
+require_once '../../user-includes/database.php'; // Include the database connection
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {

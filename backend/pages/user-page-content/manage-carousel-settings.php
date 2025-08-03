@@ -13,16 +13,10 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Check if user is logged in
-if (!isset($_SESSION['user_id'])) {
+// Check if user is logged in as admin
+if (!isset($_SESSION['admin_id']) || !isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true || $_SESSION['admin_role'] !== 'admin') {
     header("Location: /login/admin/admin-login.php");
     exit();
-}
-
-    // Check if user is admin
-if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] != 1) {
-    header("Location: /login/admin/admin-login.php?error=unauthorized");
-        exit();
 }
 
 // Check if the carousel_settings table exists, create it if it doesn't
@@ -52,7 +46,7 @@ if (mysqli_num_rows($table_check_result) == 0) {
                           VALUES ('Welcome to Neo Exclusive Cafe', 'Discover our premium coffee selection and delicious pastries', 
                           'Explore Menu', '/frontend/pages/products/product-dashboard.php', ?)";
         $default_stmt = mysqli_prepare($conn, $default_insert);
-        mysqli_stmt_bind_param($default_stmt, "s", $_SESSION['user_id']);
+        mysqli_stmt_bind_param($default_stmt, "s", $_SESSION['admin_id']);
         mysqli_stmt_execute($default_stmt);
     } else {
         echo "<div class='alert alert-danger'>Error creating table: " . mysqli_error($conn) . "</div>";
@@ -76,13 +70,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_settings'])) {
         $update_query = "UPDATE carousel_settings SET title = ?, description = ?, button_text = ?, 
                         button_link = ?, updated_by = ? WHERE id = 1";
         $update_stmt = mysqli_prepare($conn, $update_query);
-        mysqli_stmt_bind_param($update_stmt, "sssss", $title, $description, $button_text, $button_link, $_SESSION['user_id']);
+        mysqli_stmt_bind_param($update_stmt, "sssss", $title, $description, $button_text, $button_link, $_SESSION['admin_id']);
     } else {
         // Insert new settings
         $insert_query = "INSERT INTO carousel_settings (title, description, button_text, button_link, created_by) 
                         VALUES (?, ?, ?, ?, ?)";
         $update_stmt = mysqli_prepare($conn, $insert_query);
-        mysqli_stmt_bind_param($update_stmt, "sssss", $title, $description, $button_text, $button_link, $_SESSION['user_id']);
+        mysqli_stmt_bind_param($update_stmt, "sssss", $title, $description, $button_text, $button_link, $_SESSION['admin_id']);
     }
     
     if (mysqli_stmt_execute($update_stmt)) {

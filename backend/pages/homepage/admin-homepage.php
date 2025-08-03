@@ -3,10 +3,9 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-$project_root = dirname(dirname(dirname(__DIR__))); // Go up 3 levels to reach project root
-require_once $project_root . "/backend/pages/admin-includes/config.php";
-require_once $project_root . "/backend/pages/admin-includes/database.php";
-require_once $project_root . "/login/admin/admin-auth.php";
+require_once __DIR__ . "/../admin-includes/config.php";
+require_once __DIR__ . "/../admin-includes/database.php";
+require_once __DIR__ . "/../../login/admin/admin-auth.php";
 
 // Fetch statistics
 $stats = [];

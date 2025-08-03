@@ -1,13 +1,21 @@
 <?php
-// Get user information if logged in
+// Get user information if logged in - check for both user and admin sessions
 $user = null;
-if (isset($_SESSION['user_id'])) {
-    $user_query = "SELECT firstname, lastname FROM users WHERE id = ?";
-    $user_stmt = mysqli_prepare($conn, $user_query);
-    mysqli_stmt_bind_param($user_stmt, "i", $_SESSION['user_id']);
-    mysqli_stmt_execute($user_stmt);
-    $user_result = mysqli_stmt_get_result($user_stmt);
-    $user = mysqli_fetch_assoc($user_result);
+$is_user_logged_in = isset($_SESSION['user_id']) && isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'user';
+$is_admin_logged_in = isset($_SESSION['admin_id']) && isset($_SESSION['admin_role']) && $_SESSION['admin_role'] === 'admin';
+
+if ($is_user_logged_in) {
+    // Use session data for user
+    $user = [
+        'firstname' => $_SESSION['user_firstname'] ?? '',
+        'lastname' => $_SESSION['user_lastname'] ?? ''
+    ];
+} elseif ($is_admin_logged_in) {
+    // Use session data for admin
+    $user = [
+        'firstname' => $_SESSION['admin_firstname'] ?? '',
+        'lastname' => $_SESSION['admin_lastname'] ?? ''
+    ];
 }
 
 $current_page = basename($_SERVER['PHP_SELF']);
@@ -18,7 +26,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <!-- Page Entry Animation Container -->
     <div class="page-entry-animation">
         <div class="logo-animation">
-            <img src="../../../assets/images/user-logo.png" alt="NeoCafe Logo" class="animated-logo">
+            <img src="/assets/images/user-logo.png" alt="NeoCafe Logo" class="animated-logo">
         </div>
     </div>
 
@@ -37,7 +45,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     <span class="link-text">Home</span>
                     <span class="link-underline"></span>
                 </a>
-                <a href="../../../frontend/pages/products/product-dashboard.php" class="nav-link <?php echo $current_page === 'product-dashboard.php' ? 'active' : ''; ?>">
+                <a href="/frontend/pages/products/product-dashboard.php" class="nav-link <?php echo $current_page === 'product-dashboard.php' ? 'active' : ''; ?>">
                     <span class="link-text">Products</span>
                     <span class="link-underline"></span>
                 </a>
@@ -53,7 +61,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
             <div class="nav-center">
                 <a href="../../../frontend/pages/home/user-dashboard.php" class="logo-container">
-                    <img src="../../../assets/images/user-logo.png" alt="NeoCafe Logo" class="logo">
+                    <img src="/assets/images/user-logo.png" alt="NeoCafe Logo" class="logo">
                 </a>
             </div>
 
@@ -63,7 +71,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                     </button>
                 </div>
-                <a href="../../../frontend/pages/cart/cart.php" class="cart-link">
+                <a href="<?php echo isset($_SESSION['user_id']) ? '../../../frontend/pages/cart/cart.php' : '../../../frontend/login/user/login-signup.php'; ?>" class="cart-link">
                     <div class="icon-wrapper">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="icon cart-icon">
                             <path d="M5 8h14l1 13H4L5 8z"></path>
@@ -103,20 +111,25 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
                 <?php if ($user): ?>
                     <div class="profile-container">
-                        <a href="../../../frontend/pages/profile/account-settings.php" class="profile-link" id="profile-trigger">
+                        <a href="<?php echo $is_admin_logged_in ? '/backend/pages/homepage/admin-homepage.php' : '../../../frontend/pages/profile/account-settings.php'; ?>" class="profile-link" id="profile-trigger">
                             <div class="profile-avatar">
                                 <span class="profile-initial"><?php echo substr(htmlspecialchars($user['firstname']), 0, 1); ?></span>
                             </div>
                             <span class="profile-name"><?php echo htmlspecialchars($user['firstname']); ?></span>
                         </a>
                         <div class="dropdown-menu">
-                            <a href="../../../frontend/pages/profile/account-settings.php">Account Settings</a>
-                            <a href="../../../frontend/pages/blog/blog-list.php">View Post</a>
-                            <a href="../../../login/user/logout.php">Logout</a>
+                            <?php if ($is_admin_logged_in): ?>
+                                <a href="/backend/pages/homepage/admin-homepage.php">Admin Panel</a>
+                                <a href="/backend/login/admin/logout.php">Logout</a>
+                            <?php else: ?>
+                                <a href="/frontend/pages/profile/account-settings.php">Account Settings</a>
+                                <a href="/frontend/pages/blog/blog-list.php">View Post</a>
+                                <a href="/frontend/login/user/logout.php">Logout</a>
+                            <?php endif; ?>
                         </div>
                     </div>
                 <?php else: ?>
-                    <a href="../../../login/user/login-signup.php" class="login-link">
+                    <a href="../../login/user/login-signup.php" class="login-link">
                         <span>Login</span>
                     </a>
                 <?php endif; ?>
@@ -240,7 +253,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             
             // ===== NOTIFICATIONS =====
             function fetchNotifications() {
-                fetch('../../../frontend/pages/notifications/fetch-notif.php')
+                fetch('../../pages/notifications/fetch-notif.php')
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');

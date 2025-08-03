@@ -1,15 +1,13 @@
 <?php
-session_start(); // Start the session to access session variables
+// Don't start session if it's already active
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
-if (!isset($_SESSION["user_id"])) {
-    if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
-        // If the request is an AJAX request, return a 401 response
-        http_response_code(401);
-        echo json_encode(["status" => "error", "message" => "User not logged in"]);
-    } else {
-        // Otherwise, redirect to the login page
-        header("Location: /NeoExclusiveCafe/login/user/login.php");
-    }
+if (!isset($_SESSION["user_id"]) || !isset($_SESSION["user_role"]) || $_SESSION["user_role"] !== "user") {
+    // Always return JSON for AJAX requests, even when not logged in
+    header('Content-Type: application/json');
+    echo json_encode(["status" => "error", "message" => "User not logged in", "count" => 0]);
     exit();
 }
 
@@ -44,7 +42,7 @@ try {
         $enrichedNotifications[] = $notifData;
     }
 
-    echo json_encode(["status" => "success", "notifications" => $enrichedNotifications]);
+    echo json_encode(["status" => "success", "count" => count($enrichedNotifications), "notifications" => $enrichedNotifications]);
 } catch (Exception $e) {
     http_response_code(500); // Internal Server Error
     echo json_encode(["status" => "error", "message" => "Failed to fetch notifications"]);

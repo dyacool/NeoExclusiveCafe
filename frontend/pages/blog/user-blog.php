@@ -1,20 +1,22 @@
 <?php
 // Redirect if not logged in
-session_start();
+// Don't start session if it's already active
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 if (!isset($_SESSION['user_id'])) {
-    header("Location: ../../pages/auth/login-signup.php");
+    header("Location: ../../login/user/login-signup.php");
     exit();
 }
 $page_title = "Neo Cafe's Corner";
 $additional_css = [
-    "/NeoExclusiveCafe/css/users/user-blog.css"
+    "/frontend/pages/blog/user-blog.css"
 ];
 $additional_js = [
-    "/NeoExclusiveCafe/js/users/user-blog.js"
+    "/frontend/pages/blog/user-blog.js"
 ];
 
 require_once "../../user-includes/user-header.php";
-require_once "../../user-includes/database.php";
 
 // Pagination settings
 $posts_per_page = 9;
@@ -41,7 +43,7 @@ $total_posts = $total_row['total'];
 $total_pages = ceil($total_posts / $posts_per_page);
 ?>
 
-<button class="cta" onclick="window.location.href='/NeoExclusiveCafe/pages/users/blog-page.php'">
+        <button class="cta" onclick="window.location.href='/frontend/pages/blog/create-blog.php'">
     <svg
         id="arrow-horizontal"
         xmlns="http://www.w3.org/2000/svg"
@@ -144,7 +146,7 @@ $total_pages = ceil($total_posts / $posts_per_page);
             <?php if (isset($_SESSION['user_id'])): ?>
                 <a href="create-blog.php" class="create-post-btn">Create Your First Post</a>
             <?php else: ?>
-                <p>Please <a href="/NeoExclusiveCafe/pages/auth/login-signup.php">log in</a> to create a post.</p>
+                <p>Please <a href="/frontend/login/user/login-signup.php">log in</a> to create a post.</p>
             <?php endif; ?>
         </div>
     <?php endif; ?>
@@ -182,7 +184,7 @@ $total_pages = ceil($total_posts / $posts_per_page);
 
     function deletePost(postId) {
         if (confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
-            fetch("../../php/users/delete-blog.php", {
+            fetch("delete-blog.php", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',

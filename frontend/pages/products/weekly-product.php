@@ -59,7 +59,7 @@ if ($conn->connect_error) {
 </div>
 
 <div class="wrapper">
-    <button class="cta" onclick="window.location.href='../../pages/products/product-dashboard.php'">
+    <button class="cta" onclick="window.location.href='/frontend/pages/products/product-dashboard.php'">
             <svg
                 id="arrow-horizontal"
                 xmlns="http://www.w3.org/2000/svg"
@@ -136,7 +136,7 @@ if ($conn->connect_error) {
                               data-product='" . htmlspecialchars($jsonData, ENT_QUOTES, 'UTF-8') . "'
                               onclick='handleProductClick(this)'>";
                         echo "<div class='product-image'>
-                                    <img src='/" . htmlspecialchars($row['image_url'] ?: 'assets/images/no-image.jpg') . "' alt='" . htmlspecialchars($row['name']) . "' width='50'>";
+                                    <img src='../../../assets/" . htmlspecialchars($row['image_url'] ?: 'images/no-image.jpg') . "' alt='" . htmlspecialchars($row['name']) . "' width='50'>";
                         if ($row['is_featured']) {
                             echo "<span class='featured-badge'>Featured</span>";
                         }
@@ -300,27 +300,38 @@ if ($conn->connect_error) {
         const quantityInput = button ? button.parentElement.querySelector('input') : null;
         const finalQuantity = quantity || (quantityInput ? parseInt(quantityInput.value) : 1);
 
-        fetch("../../../php/users/add-to-cart.php", {
+        fetch("../../pages/cart/add-to-cart.php", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: `product_id=${productId}&quantity=${finalQuantity}`
         })
         .then(response => {
+            // Check if response is a redirect (status 302) or if content-type is not JSON
+            const contentType = response.headers.get('content-type');
+            if (response.redirected || response.status === 302 || (contentType && !contentType.includes('application/json'))) {
+                // If it's a redirect, follow it
+                window.location.href = response.url;
+                return;
+            }
+            
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
             return response.json();
         })
         .then(data => {
-            if (data.success) {
+            if (data && data.success) {
                 showConfirmation("Product added to cart successfully!");
-            } else {
+            } else if (data) {
                 showConfirmation("Error: " + (data.error || "Unknown error"), true);
             }
         })
         .catch(error => {
             console.error("Error:", error);
-            showConfirmation("An error occurred while adding to cart", true);
+            // Don't show error message if it's a redirect (user will be redirected to login)
+            if (!error.message.includes('redirect')) {
+                showConfirmation("An error occurred while adding to cart", true);
+            }
         });
     }
 
@@ -370,7 +381,7 @@ if ($conn->connect_error) {
 
             // Set up images
             if (product.images && Array.isArray(product.images) && product.images.length > 0) {
-                mainImage.src = '/' + product.images[0];
+                mainImage.src = '../../../assets/' + product.images[0];
                 
                 // Clear existing thumbnails
                 thumbnails.innerHTML = '';
@@ -379,14 +390,14 @@ if ($conn->connect_error) {
                 product.images.forEach((image, index) => {
                     if (image) {
                         const thumb = document.createElement('img');
-                        thumb.src = '/' + image;
+                        thumb.src = '../../../assets/' + image;
                         thumb.alt = `${product.name || 'Product'} view ${index + 1}`;
                         thumb.onclick = () => mainImage.src = thumb.src;
                         thumbnails.appendChild(thumb);
                     }
                 });
             } else {
-                mainImage.src = '/assets/images/no-image.jpg';
+                mainImage.src = '../../../assets/images/no-image.jpg';
                 thumbnails.innerHTML = '';
             }
 
@@ -431,15 +442,15 @@ if ($conn->connect_error) {
     // Add error handling for notifications
     async function fetchNotifications() {
         try {
-            const response = await fetch('../../../php/users/get-notifications.php');
+            const response = await fetch('../../pages/notifications/fetch-notif.php');
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
             const data = await response.json();
-            if (data.success) {
+            if (data.status === 'success') {
                 updateNotificationCount(data.count || 0);
             } else {
-                console.error('Error fetching notifications:', data.error);
+                console.error('Error fetching notifications:', data.message);
             }
         } catch (error) {
             console.error('Error fetching notifications:', error);

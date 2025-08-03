@@ -1,19 +1,21 @@
 <?php
-session_start();
+// Don't start session if it's already active
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 if (!isset($_SESSION['user_id'])) {
-    header("Location: ../../pages/auth/login-signup.php");
+    header("Location: ../../login/user/login-signup.php");
     exit();
 }
 $page_title = "My Posts";
 $additional_css = [
-    "/NeoExclusiveCafe/css/users/user-blog.css"
+    "/frontend/pages/blog/user-blog.css"
 ];
 $additional_js = [
-    "/NeoExclusiveCafe/js/users/user-blog.js"
+    "/frontend/pages/blog/user-blog.js"
 ];
 
 require_once "../../user-includes/user-header.php";
-require_once "../../user-includes/database.php";
 
 
 // Pagination settings
@@ -160,7 +162,7 @@ $total_pages = ceil($total_posts / $posts_per_page);
 
 function deletePost(postId) {
     if (confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
-        fetch("../../php/users/delete-blog.php", {
+        fetch("delete-blog.php", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',

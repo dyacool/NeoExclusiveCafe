@@ -1,20 +1,22 @@
 <?php
 // Redirect if not logged in
-session_start();
+// Don't start session if it's already active
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /NeoExclusiveCafe/pages/auth/login-signup.php");
+    header("Location: /frontend/login/user/login-signup.php");
     exit();
 }
 $page_title = "View Blog Post";
 $additional_css = [
-    "/NeoExclusiveCafe/css/users/view-blog.css"
+    "/frontend/pages/blog/view-blog.css"
 ];
 
 // Font for headings
 $head_extra = '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">';
 
 require_once "../../user-includes/user-header.php";
-require_once "../../user-includes/database.php";
 
 // Get the blog post ID from URL
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
@@ -55,7 +57,7 @@ $post = mysqli_fetch_assoc($result);
 
         <?php if (!empty($post['image_path'])): ?>
         <div class="post-image">
-            <img src="/NeoExclusiveCafe/assets/uploaded-images-admin/<?php echo htmlspecialchars($post['image_path']); ?>" 
+            <img src="/assets/uploaded-images-admin/<?php echo htmlspecialchars($post['image_path']); ?>" 
                  alt="<?php echo htmlspecialchars($post['title']); ?>">
         </div>
         <?php endif; ?>
@@ -66,4 +68,4 @@ $post = mysqli_fetch_assoc($result);
     </article>
 </div>
 
-<?php require_once "../../php/includes/user-footer.php"; ?>
+<?php require_once "../../user-includes/footer.php"; ?>

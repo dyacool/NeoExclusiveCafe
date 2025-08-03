@@ -34,15 +34,19 @@ try {
 // Function to safely close the database connection
 function closeConnection() {
     global $conn;
-    if (isset($conn) && $conn instanceof mysqli && !empty($conn->connect_errno) === false) {
+    if (isset($conn) && $conn instanceof mysqli) {
         try {
-            mysqli_close($conn);
+            // Check if connection is still valid without using ping()
+            if (!$conn->connect_error) {
+                mysqli_close($conn);
+            }
         } catch (Exception $e) {
-            error_log("Error closing database connection: " . $e->getMessage());
+            // Silently ignore connection close errors
+            error_log("Database connection already closed or invalid");
         }
     }
 }
 
-// Register shutdown function to ensure connection is closed
-register_shutdown_function('closeConnection');
+// Note: Removed automatic shutdown function to prevent conflicts
+// Connections will be closed automatically by PHP when the script ends
 ?> 
