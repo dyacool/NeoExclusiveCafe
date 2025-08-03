@@ -10181,3 +10181,2320 @@ Stack trace:
                   (o.delivery_date BETWEEN ? AND ?)
               ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
 [04-Aug-2025 00:09:50 Europe/Berlin] With parameters: start=2025-07-27, end=2025-09-07, showCompleted=false
+[04-Aug-2025 00:14:38 Europe/Berlin] Processing dates: start=2025-07-27, end=2025-09-07
+[04-Aug-2025 00:14:38 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[04-Aug-2025 00:14:38 Europe/Berlin] With parameters: start=2025-07-27, end=2025-09-07, showCompleted=false
+[04-Aug-2025 00:27:04 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:27:04 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:27:04 Europe/Berlin] JSON encode error for product 23: Malformed UTF-8 characters, possibly incorrectly encoded
+[04-Aug-2025 00:27:04 Europe/Berlin] JSON encode error for product 19: Malformed UTF-8 characters, possibly incorrectly encoded
+[04-Aug-2025 00:27:04 Europe/Berlin] JSON encode error for product 26: Malformed UTF-8 characters, possibly incorrectly encoded
+[04-Aug-2025 00:28:33 Europe/Berlin] Processing dates: start=2025-07-27, end=2025-09-07
+[04-Aug-2025 00:28:33 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[04-Aug-2025 00:28:33 Europe/Berlin] With parameters: start=2025-07-27, end=2025-09-07, showCompleted=false
+[04-Aug-2025 00:31:32 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:31:32 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:31:32 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  ORDER BY p.created_at DESC
+[04-Aug-2025 00:31:32 Europe/Berlin] Total featured products found: 6
+[04-Aug-2025 00:31:32 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[04-Aug-2025 00:31:38 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:31:38 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:31:41 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:31:41 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:31:41 Europe/Berlin] JSON encode error for product 23: Malformed UTF-8 characters, possibly incorrectly encoded
+[04-Aug-2025 00:31:41 Europe/Berlin] JSON encode error for product 19: Malformed UTF-8 characters, possibly incorrectly encoded
+[04-Aug-2025 00:31:41 Europe/Berlin] JSON encode error for product 26: Malformed UTF-8 characters, possibly incorrectly encoded
+[04-Aug-2025 00:31:43 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:31:43 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:31:44 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:31:44 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:32:02 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:32:02 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:33:51 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:33:51 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:34:27 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:34:27 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:34:27 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:34:27 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:40:00 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:40:00 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:40:16 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:40:16 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:40:16 Europe/Berlin] Session data at start: Array
+(
+    [user_id] => 3
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Dya
+    [user_lastname] => Yin
+    [user_role] => user
+)
+
+[04-Aug-2025 00:40:16 Europe/Berlin] Final user data: Array
+(
+    [firstname] => Dya
+    [lastname] => Yin
+    [email] => dyayin12@gmail.com
+)
+
+[04-Aug-2025 00:40:16 Europe/Berlin] Selected cart IDs: Array
+(
+    [0] => 102
+    [1] => 101
+)
+
+[04-Aug-2025 00:40:16 Europe/Berlin] Subtotal: 290
+[04-Aug-2025 00:40:16 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Garlic Pandesal - 10 Pieces
+            [price] => 70.00
+            [quantity] => 1
+            [cart_id] => 101
+        )
+
+    [1] => Array
+        (
+            [name] => Sesame Sourdough Batard
+            [price] => 220.00
+            [quantity] => 1
+            [cart_id] => 102
+        )
+
+)
+
+[04-Aug-2025 00:40:16 Europe/Berlin] Cart total: 290
+[04-Aug-2025 00:40:16 Europe/Berlin] User data at display point: Array
+(
+    [firstname] => Dya
+    [lastname] => Yin
+)
+
+[04-Aug-2025 00:40:16 Europe/Berlin] Session data at display point: Array
+(
+    [user_id] => 3
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Dya
+    [user_lastname] => Yin
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Dya
+            [lastname] => Yin
+            [email] => dyayin12@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 102
+            [1] => 101
+        )
+
+    [subtotal] => 290
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal - 10 Pieces
+                    [price] => 70.00
+                    [quantity] => 1
+                    [cart_id] => 101
+                )
+
+            [1] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 1
+                    [cart_id] => 102
+                )
+
+        )
+
+    [cart_total] => 290
+)
+
+[04-Aug-2025 00:42:31 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:42:31 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:42:31 Europe/Berlin] Session data at start: Array
+(
+    [user_id] => 3
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Dya
+    [user_lastname] => Yin
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Dya
+            [lastname] => Yin
+            [email] => dyayin12@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 102
+            [1] => 101
+        )
+
+    [subtotal] => 290
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal - 10 Pieces
+                    [price] => 70.00
+                    [quantity] => 1
+                    [cart_id] => 101
+                )
+
+            [1] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 1
+                    [cart_id] => 102
+                )
+
+        )
+
+    [cart_total] => 290
+)
+
+[04-Aug-2025 00:42:31 Europe/Berlin] Final user data: Array
+(
+    [firstname] => Dya
+    [lastname] => Yin
+    [email] => dyayin12@gmail.com
+)
+
+[04-Aug-2025 00:42:31 Europe/Berlin] Selected cart IDs: Array
+(
+    [0] => 102
+    [1] => 101
+)
+
+[04-Aug-2025 00:42:31 Europe/Berlin] Subtotal: 290
+[04-Aug-2025 00:42:31 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Garlic Pandesal - 10 Pieces
+            [price] => 70.00
+            [quantity] => 1
+            [cart_id] => 101
+        )
+
+    [1] => Array
+        (
+            [name] => Sesame Sourdough Batard
+            [price] => 220.00
+            [quantity] => 1
+            [cart_id] => 102
+        )
+
+)
+
+[04-Aug-2025 00:42:31 Europe/Berlin] Cart total: 290
+[04-Aug-2025 00:42:31 Europe/Berlin] User data at display point: Array
+(
+    [firstname] => Dya
+    [lastname] => Yin
+)
+
+[04-Aug-2025 00:42:31 Europe/Berlin] Session data at display point: Array
+(
+    [user_id] => 3
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Dya
+    [user_lastname] => Yin
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Dya
+            [lastname] => Yin
+            [email] => dyayin12@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 102
+            [1] => 101
+        )
+
+    [subtotal] => 290
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal - 10 Pieces
+                    [price] => 70.00
+                    [quantity] => 1
+                    [cart_id] => 101
+                )
+
+            [1] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 1
+                    [cart_id] => 102
+                )
+
+        )
+
+    [cart_total] => 290
+)
+
+[04-Aug-2025 00:43:42 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:43:42 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:43:42 Europe/Berlin] Session data at start: Array
+(
+    [user_id] => 3
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Dya
+    [user_lastname] => Yin
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Dya
+            [lastname] => Yin
+            [email] => dyayin12@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 102
+            [1] => 101
+        )
+
+    [subtotal] => 290
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal - 10 Pieces
+                    [price] => 70.00
+                    [quantity] => 1
+                    [cart_id] => 101
+                )
+
+            [1] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 1
+                    [cart_id] => 102
+                )
+
+        )
+
+    [cart_total] => 290
+)
+
+[04-Aug-2025 00:43:42 Europe/Berlin] Final user data: Array
+(
+    [firstname] => Dya
+    [lastname] => Yin
+    [email] => dyayin12@gmail.com
+)
+
+[04-Aug-2025 00:43:42 Europe/Berlin] Selected cart IDs: Array
+(
+    [0] => 102
+    [1] => 101
+)
+
+[04-Aug-2025 00:43:42 Europe/Berlin] Subtotal: 290
+[04-Aug-2025 00:43:42 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Garlic Pandesal - 10 Pieces
+            [price] => 70.00
+            [quantity] => 1
+            [cart_id] => 101
+        )
+
+    [1] => Array
+        (
+            [name] => Sesame Sourdough Batard
+            [price] => 220.00
+            [quantity] => 1
+            [cart_id] => 102
+        )
+
+)
+
+[04-Aug-2025 00:43:42 Europe/Berlin] Cart total: 290
+[04-Aug-2025 00:43:42 Europe/Berlin] User data at display point: Array
+(
+    [firstname] => Dya
+    [lastname] => Yin
+)
+
+[04-Aug-2025 00:43:42 Europe/Berlin] Session data at display point: Array
+(
+    [user_id] => 3
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Dya
+    [user_lastname] => Yin
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Dya
+            [lastname] => Yin
+            [email] => dyayin12@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 102
+            [1] => 101
+        )
+
+    [subtotal] => 290
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal - 10 Pieces
+                    [price] => 70.00
+                    [quantity] => 1
+                    [cart_id] => 101
+                )
+
+            [1] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 1
+                    [cart_id] => 102
+                )
+
+        )
+
+    [cart_total] => 290
+)
+
+[04-Aug-2025 00:44:55 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:44:55 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:44:55 Europe/Berlin] Session data at start: Array
+(
+    [user_id] => 3
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Dya
+    [user_lastname] => Yin
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Dya
+            [lastname] => Yin
+            [email] => dyayin12@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 102
+            [1] => 101
+        )
+
+    [subtotal] => 290
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal - 10 Pieces
+                    [price] => 70.00
+                    [quantity] => 1
+                    [cart_id] => 101
+                )
+
+            [1] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 1
+                    [cart_id] => 102
+                )
+
+        )
+
+    [cart_total] => 290
+)
+
+[04-Aug-2025 00:44:55 Europe/Berlin] Final user data: Array
+(
+    [firstname] => Dya
+    [lastname] => Yin
+    [email] => dyayin12@gmail.com
+)
+
+[04-Aug-2025 00:44:55 Europe/Berlin] Selected cart IDs: Array
+(
+    [0] => 102
+    [1] => 101
+)
+
+[04-Aug-2025 00:44:55 Europe/Berlin] Subtotal: 290
+[04-Aug-2025 00:44:55 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Garlic Pandesal - 10 Pieces
+            [price] => 70.00
+            [quantity] => 1
+            [cart_id] => 101
+        )
+
+    [1] => Array
+        (
+            [name] => Sesame Sourdough Batard
+            [price] => 220.00
+            [quantity] => 1
+            [cart_id] => 102
+        )
+
+)
+
+[04-Aug-2025 00:44:55 Europe/Berlin] Cart total: 290
+[04-Aug-2025 00:44:55 Europe/Berlin] User data at display point: Array
+(
+    [firstname] => Dya
+    [lastname] => Yin
+)
+
+[04-Aug-2025 00:44:55 Europe/Berlin] Session data at display point: Array
+(
+    [user_id] => 3
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Dya
+    [user_lastname] => Yin
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Dya
+            [lastname] => Yin
+            [email] => dyayin12@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 102
+            [1] => 101
+        )
+
+    [subtotal] => 290
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal - 10 Pieces
+                    [price] => 70.00
+                    [quantity] => 1
+                    [cart_id] => 101
+                )
+
+            [1] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 1
+                    [cart_id] => 102
+                )
+
+        )
+
+    [cart_total] => 290
+)
+
+[04-Aug-2025 00:47:51 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:47:51 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:47:51 Europe/Berlin] Session data at start: Array
+(
+    [user_id] => 3
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Dya
+    [user_lastname] => Yin
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Dya
+            [lastname] => Yin
+            [email] => dyayin12@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 102
+            [1] => 101
+        )
+
+    [subtotal] => 290
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal - 10 Pieces
+                    [price] => 70.00
+                    [quantity] => 1
+                    [cart_id] => 101
+                )
+
+            [1] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 1
+                    [cart_id] => 102
+                )
+
+        )
+
+    [cart_total] => 290
+)
+
+[04-Aug-2025 00:47:51 Europe/Berlin] Final user data: Array
+(
+    [firstname] => Dya
+    [lastname] => Yin
+    [email] => dyayin12@gmail.com
+)
+
+[04-Aug-2025 00:47:51 Europe/Berlin] Selected cart IDs: Array
+(
+    [0] => 102
+    [1] => 101
+)
+
+[04-Aug-2025 00:47:51 Europe/Berlin] Subtotal: 290
+[04-Aug-2025 00:47:51 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Garlic Pandesal - 10 Pieces
+            [price] => 70.00
+            [quantity] => 1
+            [cart_id] => 101
+        )
+
+    [1] => Array
+        (
+            [name] => Sesame Sourdough Batard
+            [price] => 220.00
+            [quantity] => 1
+            [cart_id] => 102
+        )
+
+)
+
+[04-Aug-2025 00:47:51 Europe/Berlin] Cart total: 290
+[04-Aug-2025 00:47:51 Europe/Berlin] User data at display point: Array
+(
+    [firstname] => Dya
+    [lastname] => Yin
+)
+
+[04-Aug-2025 00:47:51 Europe/Berlin] Session data at display point: Array
+(
+    [user_id] => 3
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Dya
+    [user_lastname] => Yin
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Dya
+            [lastname] => Yin
+            [email] => dyayin12@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 102
+            [1] => 101
+        )
+
+    [subtotal] => 290
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal - 10 Pieces
+                    [price] => 70.00
+                    [quantity] => 1
+                    [cart_id] => 101
+                )
+
+            [1] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 1
+                    [cart_id] => 102
+                )
+
+        )
+
+    [cart_total] => 290
+)
+
+[04-Aug-2025 00:49:28 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:49:28 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:49:28 Europe/Berlin] Session data at start: Array
+(
+    [user_id] => 3
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Dya
+    [user_lastname] => Yin
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Dya
+            [lastname] => Yin
+            [email] => dyayin12@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 102
+            [1] => 101
+        )
+
+    [subtotal] => 290
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal - 10 Pieces
+                    [price] => 70.00
+                    [quantity] => 1
+                    [cart_id] => 101
+                )
+
+            [1] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 1
+                    [cart_id] => 102
+                )
+
+        )
+
+    [cart_total] => 290
+)
+
+[04-Aug-2025 00:49:28 Europe/Berlin] Final user data: Array
+(
+    [firstname] => Dya
+    [lastname] => Yin
+    [email] => dyayin12@gmail.com
+)
+
+[04-Aug-2025 00:49:28 Europe/Berlin] Selected cart IDs: Array
+(
+    [0] => 102
+    [1] => 101
+)
+
+[04-Aug-2025 00:49:28 Europe/Berlin] Subtotal: 290
+[04-Aug-2025 00:49:28 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Garlic Pandesal - 10 Pieces
+            [price] => 70.00
+            [quantity] => 1
+            [cart_id] => 101
+        )
+
+    [1] => Array
+        (
+            [name] => Sesame Sourdough Batard
+            [price] => 220.00
+            [quantity] => 1
+            [cart_id] => 102
+        )
+
+)
+
+[04-Aug-2025 00:49:28 Europe/Berlin] Cart total: 290
+[04-Aug-2025 00:49:28 Europe/Berlin] User data at display point: Array
+(
+    [firstname] => Dya
+    [lastname] => Yin
+)
+
+[04-Aug-2025 00:49:28 Europe/Berlin] Session data at display point: Array
+(
+    [user_id] => 3
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Dya
+    [user_lastname] => Yin
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Dya
+            [lastname] => Yin
+            [email] => dyayin12@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 102
+            [1] => 101
+        )
+
+    [subtotal] => 290
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal - 10 Pieces
+                    [price] => 70.00
+                    [quantity] => 1
+                    [cart_id] => 101
+                )
+
+            [1] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 1
+                    [cart_id] => 102
+                )
+
+        )
+
+    [cart_total] => 290
+)
+
+[04-Aug-2025 00:51:32 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:51:32 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:51:32 Europe/Berlin] Session data at start: Array
+(
+    [user_id] => 3
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Dya
+    [user_lastname] => Yin
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Dya
+            [lastname] => Yin
+            [email] => dyayin12@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 102
+            [1] => 101
+        )
+
+    [subtotal] => 290
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal - 10 Pieces
+                    [price] => 70.00
+                    [quantity] => 1
+                    [cart_id] => 101
+                )
+
+            [1] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 1
+                    [cart_id] => 102
+                )
+
+        )
+
+    [cart_total] => 290
+)
+
+[04-Aug-2025 00:51:32 Europe/Berlin] Final user data: Array
+(
+    [firstname] => Dya
+    [lastname] => Yin
+    [email] => dyayin12@gmail.com
+)
+
+[04-Aug-2025 00:51:32 Europe/Berlin] Selected cart IDs: Array
+(
+    [0] => 102
+    [1] => 101
+)
+
+[04-Aug-2025 00:51:32 Europe/Berlin] Subtotal: 290
+[04-Aug-2025 00:51:32 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Garlic Pandesal - 10 Pieces
+            [price] => 70.00
+            [quantity] => 1
+            [cart_id] => 101
+        )
+
+    [1] => Array
+        (
+            [name] => Sesame Sourdough Batard
+            [price] => 220.00
+            [quantity] => 1
+            [cart_id] => 102
+        )
+
+)
+
+[04-Aug-2025 00:51:32 Europe/Berlin] Cart total: 290
+[04-Aug-2025 00:51:32 Europe/Berlin] User data at display point: Array
+(
+    [firstname] => Dya
+    [lastname] => Yin
+)
+
+[04-Aug-2025 00:51:32 Europe/Berlin] Session data at display point: Array
+(
+    [user_id] => 3
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Dya
+    [user_lastname] => Yin
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Dya
+            [lastname] => Yin
+            [email] => dyayin12@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 102
+            [1] => 101
+        )
+
+    [subtotal] => 290
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal - 10 Pieces
+                    [price] => 70.00
+                    [quantity] => 1
+                    [cart_id] => 101
+                )
+
+            [1] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 1
+                    [cart_id] => 102
+                )
+
+        )
+
+    [cart_total] => 290
+)
+
+[04-Aug-2025 00:51:55 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:51:55 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:51:55 Europe/Berlin] Session data at start: Array
+(
+    [user_id] => 3
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Dya
+    [user_lastname] => Yin
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Dya
+            [lastname] => Yin
+            [email] => dyayin12@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 102
+            [1] => 101
+        )
+
+    [subtotal] => 290
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal - 10 Pieces
+                    [price] => 70.00
+                    [quantity] => 1
+                    [cart_id] => 101
+                )
+
+            [1] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 1
+                    [cart_id] => 102
+                )
+
+        )
+
+    [cart_total] => 290
+)
+
+[04-Aug-2025 00:51:55 Europe/Berlin] Final user data: Array
+(
+    [firstname] => Dya
+    [lastname] => Yin
+    [email] => dyayin12@gmail.com
+)
+
+[04-Aug-2025 00:51:55 Europe/Berlin] Selected cart IDs: Array
+(
+    [0] => 102
+    [1] => 101
+)
+
+[04-Aug-2025 00:51:55 Europe/Berlin] Subtotal: 290
+[04-Aug-2025 00:51:55 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Garlic Pandesal - 10 Pieces
+            [price] => 70.00
+            [quantity] => 1
+            [cart_id] => 101
+        )
+
+    [1] => Array
+        (
+            [name] => Sesame Sourdough Batard
+            [price] => 220.00
+            [quantity] => 1
+            [cart_id] => 102
+        )
+
+)
+
+[04-Aug-2025 00:51:55 Europe/Berlin] Cart total: 290
+[04-Aug-2025 00:51:55 Europe/Berlin] User data at display point: Array
+(
+    [firstname] => Dya
+    [lastname] => Yin
+)
+
+[04-Aug-2025 00:51:55 Europe/Berlin] Session data at display point: Array
+(
+    [user_id] => 3
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Dya
+    [user_lastname] => Yin
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Dya
+            [lastname] => Yin
+            [email] => dyayin12@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 102
+            [1] => 101
+        )
+
+    [subtotal] => 290
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal - 10 Pieces
+                    [price] => 70.00
+                    [quantity] => 1
+                    [cart_id] => 101
+                )
+
+            [1] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 1
+                    [cart_id] => 102
+                )
+
+        )
+
+    [cart_total] => 290
+)
+
+[04-Aug-2025 00:52:03 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:52:03 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:52:03 Europe/Berlin] Session data at start: Array
+(
+    [user_id] => 3
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Dya
+    [user_lastname] => Yin
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Dya
+            [lastname] => Yin
+            [email] => dyayin12@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 102
+            [1] => 101
+        )
+
+    [subtotal] => 290
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal - 10 Pieces
+                    [price] => 70.00
+                    [quantity] => 1
+                    [cart_id] => 101
+                )
+
+            [1] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 1
+                    [cart_id] => 102
+                )
+
+        )
+
+    [cart_total] => 290
+)
+
+[04-Aug-2025 00:52:03 Europe/Berlin] Final user data: Array
+(
+    [firstname] => Dya
+    [lastname] => Yin
+    [email] => dyayin12@gmail.com
+)
+
+[04-Aug-2025 00:52:03 Europe/Berlin] Selected cart IDs: Array
+(
+    [0] => 102
+    [1] => 101
+)
+
+[04-Aug-2025 00:52:03 Europe/Berlin] Subtotal: 290
+[04-Aug-2025 00:52:03 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Garlic Pandesal - 10 Pieces
+            [price] => 70.00
+            [quantity] => 1
+            [cart_id] => 101
+        )
+
+    [1] => Array
+        (
+            [name] => Sesame Sourdough Batard
+            [price] => 220.00
+            [quantity] => 1
+            [cart_id] => 102
+        )
+
+)
+
+[04-Aug-2025 00:52:03 Europe/Berlin] Cart total: 290
+[04-Aug-2025 00:52:03 Europe/Berlin] User data at display point: Array
+(
+    [firstname] => Dya
+    [lastname] => Yin
+)
+
+[04-Aug-2025 00:52:03 Europe/Berlin] Session data at display point: Array
+(
+    [user_id] => 3
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Dya
+    [user_lastname] => Yin
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Dya
+            [lastname] => Yin
+            [email] => dyayin12@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 102
+            [1] => 101
+        )
+
+    [subtotal] => 290
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal - 10 Pieces
+                    [price] => 70.00
+                    [quantity] => 1
+                    [cart_id] => 101
+                )
+
+            [1] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 1
+                    [cart_id] => 102
+                )
+
+        )
+
+    [cart_total] => 290
+)
+
+[04-Aug-2025 00:53:08 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:53:08 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:53:08 Europe/Berlin] Session data at start: Array
+(
+    [user_id] => 3
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Dya
+    [user_lastname] => Yin
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Dya
+            [lastname] => Yin
+            [email] => dyayin12@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 102
+            [1] => 101
+        )
+
+    [subtotal] => 290
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal - 10 Pieces
+                    [price] => 70.00
+                    [quantity] => 1
+                    [cart_id] => 101
+                )
+
+            [1] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 1
+                    [cart_id] => 102
+                )
+
+        )
+
+    [cart_total] => 290
+)
+
+[04-Aug-2025 00:53:08 Europe/Berlin] Final user data: Array
+(
+    [firstname] => Dya
+    [lastname] => Yin
+    [email] => dyayin12@gmail.com
+)
+
+[04-Aug-2025 00:53:08 Europe/Berlin] Selected cart IDs: Array
+(
+    [0] => 102
+    [1] => 101
+)
+
+[04-Aug-2025 00:53:08 Europe/Berlin] Subtotal: 290
+[04-Aug-2025 00:53:08 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Garlic Pandesal - 10 Pieces
+            [price] => 70.00
+            [quantity] => 1
+            [cart_id] => 101
+        )
+
+    [1] => Array
+        (
+            [name] => Sesame Sourdough Batard
+            [price] => 220.00
+            [quantity] => 1
+            [cart_id] => 102
+        )
+
+)
+
+[04-Aug-2025 00:53:08 Europe/Berlin] Cart total: 290
+[04-Aug-2025 00:53:08 Europe/Berlin] User data at display point: Array
+(
+    [firstname] => Dya
+    [lastname] => Yin
+)
+
+[04-Aug-2025 00:53:08 Europe/Berlin] Session data at display point: Array
+(
+    [user_id] => 3
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Dya
+    [user_lastname] => Yin
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Dya
+            [lastname] => Yin
+            [email] => dyayin12@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 102
+            [1] => 101
+        )
+
+    [subtotal] => 290
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal - 10 Pieces
+                    [price] => 70.00
+                    [quantity] => 1
+                    [cart_id] => 101
+                )
+
+            [1] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 1
+                    [cart_id] => 102
+                )
+
+        )
+
+    [cart_total] => 290
+)
+
+[04-Aug-2025 00:54:12 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:54:12 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:54:12 Europe/Berlin] Session data at start: Array
+(
+    [user_id] => 3
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Dya
+    [user_lastname] => Yin
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Dya
+            [lastname] => Yin
+            [email] => dyayin12@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 102
+            [1] => 101
+        )
+
+    [subtotal] => 290
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal - 10 Pieces
+                    [price] => 70.00
+                    [quantity] => 1
+                    [cart_id] => 101
+                )
+
+            [1] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 1
+                    [cart_id] => 102
+                )
+
+        )
+
+    [cart_total] => 290
+)
+
+[04-Aug-2025 00:54:12 Europe/Berlin] Final user data: Array
+(
+    [firstname] => Dya
+    [lastname] => Yin
+    [email] => dyayin12@gmail.com
+)
+
+[04-Aug-2025 00:54:12 Europe/Berlin] Selected cart IDs: Array
+(
+    [0] => 102
+    [1] => 101
+)
+
+[04-Aug-2025 00:54:12 Europe/Berlin] Subtotal: 290
+[04-Aug-2025 00:54:12 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Garlic Pandesal - 10 Pieces
+            [price] => 70.00
+            [quantity] => 1
+            [cart_id] => 101
+        )
+
+    [1] => Array
+        (
+            [name] => Sesame Sourdough Batard
+            [price] => 220.00
+            [quantity] => 1
+            [cart_id] => 102
+        )
+
+)
+
+[04-Aug-2025 00:54:12 Europe/Berlin] Cart total: 290
+[04-Aug-2025 00:54:12 Europe/Berlin] User data at display point: Array
+(
+    [firstname] => Dya
+    [lastname] => Yin
+)
+
+[04-Aug-2025 00:54:12 Europe/Berlin] Session data at display point: Array
+(
+    [user_id] => 3
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Dya
+    [user_lastname] => Yin
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Dya
+            [lastname] => Yin
+            [email] => dyayin12@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 102
+            [1] => 101
+        )
+
+    [subtotal] => 290
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal - 10 Pieces
+                    [price] => 70.00
+                    [quantity] => 1
+                    [cart_id] => 101
+                )
+
+            [1] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 1
+                    [cart_id] => 102
+                )
+
+        )
+
+    [cart_total] => 290
+)
+
+[04-Aug-2025 00:56:29 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:56:29 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:56:29 Europe/Berlin] Session data at start: Array
+(
+    [user_id] => 3
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Dya
+    [user_lastname] => Yin
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Dya
+            [lastname] => Yin
+            [email] => dyayin12@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 102
+            [1] => 101
+        )
+
+    [subtotal] => 290
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal - 10 Pieces
+                    [price] => 70.00
+                    [quantity] => 1
+                    [cart_id] => 101
+                )
+
+            [1] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 1
+                    [cart_id] => 102
+                )
+
+        )
+
+    [cart_total] => 290
+)
+
+[04-Aug-2025 00:56:29 Europe/Berlin] Final user data: Array
+(
+    [firstname] => Dya
+    [lastname] => Yin
+    [email] => dyayin12@gmail.com
+)
+
+[04-Aug-2025 00:56:29 Europe/Berlin] Selected cart IDs: Array
+(
+    [0] => 102
+    [1] => 101
+)
+
+[04-Aug-2025 00:56:29 Europe/Berlin] Subtotal: 290
+[04-Aug-2025 00:56:29 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Garlic Pandesal - 10 Pieces
+            [price] => 70.00
+            [quantity] => 1
+            [cart_id] => 101
+        )
+
+    [1] => Array
+        (
+            [name] => Sesame Sourdough Batard
+            [price] => 220.00
+            [quantity] => 1
+            [cart_id] => 102
+        )
+
+)
+
+[04-Aug-2025 00:56:29 Europe/Berlin] Cart total: 290
+[04-Aug-2025 00:56:29 Europe/Berlin] User data at display point: Array
+(
+    [firstname] => Dya
+    [lastname] => Yin
+)
+
+[04-Aug-2025 00:56:29 Europe/Berlin] Session data at display point: Array
+(
+    [user_id] => 3
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Dya
+    [user_lastname] => Yin
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Dya
+            [lastname] => Yin
+            [email] => dyayin12@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 102
+            [1] => 101
+        )
+
+    [subtotal] => 290
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal - 10 Pieces
+                    [price] => 70.00
+                    [quantity] => 1
+                    [cart_id] => 101
+                )
+
+            [1] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 1
+                    [cart_id] => 102
+                )
+
+        )
+
+    [cart_total] => 290
+)
+
+[04-Aug-2025 00:58:01 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:58:01 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:58:01 Europe/Berlin] Session data at start: Array
+(
+    [user_id] => 3
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Dya
+    [user_lastname] => Yin
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Dya
+            [lastname] => Yin
+            [email] => dyayin12@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 102
+            [1] => 101
+        )
+
+    [subtotal] => 290
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal - 10 Pieces
+                    [price] => 70.00
+                    [quantity] => 1
+                    [cart_id] => 101
+                )
+
+            [1] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 1
+                    [cart_id] => 102
+                )
+
+        )
+
+    [cart_total] => 290
+)
+
+[04-Aug-2025 00:58:01 Europe/Berlin] Final user data: Array
+(
+    [firstname] => Dya
+    [lastname] => Yin
+    [email] => dyayin12@gmail.com
+)
+
+[04-Aug-2025 00:58:01 Europe/Berlin] Selected cart IDs: Array
+(
+    [0] => 102
+    [1] => 101
+)
+
+[04-Aug-2025 00:58:01 Europe/Berlin] Subtotal: 290
+[04-Aug-2025 00:58:01 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Garlic Pandesal - 10 Pieces
+            [price] => 70.00
+            [quantity] => 1
+            [cart_id] => 101
+        )
+
+    [1] => Array
+        (
+            [name] => Sesame Sourdough Batard
+            [price] => 220.00
+            [quantity] => 1
+            [cart_id] => 102
+        )
+
+)
+
+[04-Aug-2025 00:58:01 Europe/Berlin] Cart total: 290
+[04-Aug-2025 00:58:01 Europe/Berlin] User data at display point: Array
+(
+    [firstname] => Dya
+    [lastname] => Yin
+)
+
+[04-Aug-2025 00:58:01 Europe/Berlin] Session data at display point: Array
+(
+    [user_id] => 3
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Dya
+    [user_lastname] => Yin
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Dya
+            [lastname] => Yin
+            [email] => dyayin12@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 102
+            [1] => 101
+        )
+
+    [subtotal] => 290
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal - 10 Pieces
+                    [price] => 70.00
+                    [quantity] => 1
+                    [cart_id] => 101
+                )
+
+            [1] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 1
+                    [cart_id] => 102
+                )
+
+        )
+
+    [cart_total] => 290
+)
+
+[04-Aug-2025 00:58:21 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:58:21 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 00:58:21 Europe/Berlin] Session data at start: Array
+(
+    [user_id] => 3
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Dya
+    [user_lastname] => Yin
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Dya
+            [lastname] => Yin
+            [email] => dyayin12@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 102
+            [1] => 101
+        )
+
+    [subtotal] => 290
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal - 10 Pieces
+                    [price] => 70.00
+                    [quantity] => 1
+                    [cart_id] => 101
+                )
+
+            [1] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 1
+                    [cart_id] => 102
+                )
+
+        )
+
+    [cart_total] => 290
+)
+
+[04-Aug-2025 00:58:21 Europe/Berlin] Final user data: Array
+(
+    [firstname] => Dya
+    [lastname] => Yin
+    [email] => dyayin12@gmail.com
+)
+
+[04-Aug-2025 00:58:21 Europe/Berlin] Selected cart IDs: Array
+(
+    [0] => 102
+    [1] => 101
+)
+
+[04-Aug-2025 00:58:21 Europe/Berlin] Subtotal: 290
+[04-Aug-2025 00:58:21 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Garlic Pandesal - 10 Pieces
+            [price] => 70.00
+            [quantity] => 1
+            [cart_id] => 101
+        )
+
+    [1] => Array
+        (
+            [name] => Sesame Sourdough Batard
+            [price] => 220.00
+            [quantity] => 1
+            [cart_id] => 102
+        )
+
+)
+
+[04-Aug-2025 00:58:21 Europe/Berlin] Cart total: 290
+[04-Aug-2025 00:58:21 Europe/Berlin] User data at display point: Array
+(
+    [firstname] => Dya
+    [lastname] => Yin
+)
+
+[04-Aug-2025 00:58:21 Europe/Berlin] Session data at display point: Array
+(
+    [user_id] => 3
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Dya
+    [user_lastname] => Yin
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Dya
+            [lastname] => Yin
+            [email] => dyayin12@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 102
+            [1] => 101
+        )
+
+    [subtotal] => 290
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal - 10 Pieces
+                    [price] => 70.00
+                    [quantity] => 1
+                    [cart_id] => 101
+                )
+
+            [1] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 1
+                    [cart_id] => 102
+                )
+
+        )
+
+    [cart_total] => 290
+)
+
+[04-Aug-2025 01:01:15 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 01:01:15 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 01:01:15 Europe/Berlin] Session data at start: Array
+(
+    [user_id] => 3
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Dya
+    [user_lastname] => Yin
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Dya
+            [lastname] => Yin
+            [email] => dyayin12@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 102
+            [1] => 101
+        )
+
+    [subtotal] => 290
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal - 10 Pieces
+                    [price] => 70.00
+                    [quantity] => 1
+                    [cart_id] => 101
+                )
+
+            [1] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 1
+                    [cart_id] => 102
+                )
+
+        )
+
+    [cart_total] => 290
+)
+
+[04-Aug-2025 01:01:15 Europe/Berlin] Final user data: Array
+(
+    [firstname] => Dya
+    [lastname] => Yin
+    [email] => dyayin12@gmail.com
+)
+
+[04-Aug-2025 01:01:15 Europe/Berlin] Selected cart IDs: Array
+(
+    [0] => 102
+    [1] => 101
+)
+
+[04-Aug-2025 01:01:15 Europe/Berlin] Subtotal: 290
+[04-Aug-2025 01:01:15 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Garlic Pandesal - 10 Pieces
+            [price] => 70.00
+            [quantity] => 1
+            [cart_id] => 101
+        )
+
+    [1] => Array
+        (
+            [name] => Sesame Sourdough Batard
+            [price] => 220.00
+            [quantity] => 1
+            [cart_id] => 102
+        )
+
+)
+
+[04-Aug-2025 01:01:15 Europe/Berlin] Cart total: 290
+[04-Aug-2025 01:01:15 Europe/Berlin] User data at display point: Array
+(
+    [firstname] => Dya
+    [lastname] => Yin
+)
+
+[04-Aug-2025 01:01:15 Europe/Berlin] Session data at display point: Array
+(
+    [user_id] => 3
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Dya
+    [user_lastname] => Yin
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Dya
+            [lastname] => Yin
+            [email] => dyayin12@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 102
+            [1] => 101
+        )
+
+    [subtotal] => 290
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal - 10 Pieces
+                    [price] => 70.00
+                    [quantity] => 1
+                    [cart_id] => 101
+                )
+
+            [1] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 1
+                    [cart_id] => 102
+                )
+
+        )
+
+    [cart_total] => 290
+)
+
+[04-Aug-2025 01:02:58 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 01:02:58 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 01:02:58 Europe/Berlin] Session data at start: Array
+(
+    [user_id] => 3
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Dya
+    [user_lastname] => Yin
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Dya
+            [lastname] => Yin
+            [email] => dyayin12@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 102
+            [1] => 101
+        )
+
+    [subtotal] => 290
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal - 10 Pieces
+                    [price] => 70.00
+                    [quantity] => 1
+                    [cart_id] => 101
+                )
+
+            [1] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 1
+                    [cart_id] => 102
+                )
+
+        )
+
+    [cart_total] => 290
+)
+
+[04-Aug-2025 01:02:58 Europe/Berlin] Final user data: Array
+(
+    [firstname] => Dya
+    [lastname] => Yin
+    [email] => dyayin12@gmail.com
+)
+
+[04-Aug-2025 01:02:58 Europe/Berlin] Selected cart IDs: Array
+(
+    [0] => 102
+    [1] => 101
+)
+
+[04-Aug-2025 01:02:58 Europe/Berlin] Subtotal: 290
+[04-Aug-2025 01:02:58 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Garlic Pandesal - 10 Pieces
+            [price] => 70.00
+            [quantity] => 1
+            [cart_id] => 101
+        )
+
+    [1] => Array
+        (
+            [name] => Sesame Sourdough Batard
+            [price] => 220.00
+            [quantity] => 1
+            [cart_id] => 102
+        )
+
+)
+
+[04-Aug-2025 01:02:58 Europe/Berlin] Cart total: 290
+[04-Aug-2025 01:02:58 Europe/Berlin] User data at display point: Array
+(
+    [firstname] => Dya
+    [lastname] => Yin
+)
+
+[04-Aug-2025 01:02:58 Europe/Berlin] Session data at display point: Array
+(
+    [user_id] => 3
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Dya
+    [user_lastname] => Yin
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Dya
+            [lastname] => Yin
+            [email] => dyayin12@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 102
+            [1] => 101
+        )
+
+    [subtotal] => 290
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal - 10 Pieces
+                    [price] => 70.00
+                    [quantity] => 1
+                    [cart_id] => 101
+                )
+
+            [1] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 1
+                    [cart_id] => 102
+                )
+
+        )
+
+    [cart_total] => 290
+)
+
+[04-Aug-2025 01:15:04 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 01:15:04 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[04-Aug-2025 01:15:04 Europe/Berlin] Session data at start: Array
+(
+    [user_id] => 3
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Dya
+    [user_lastname] => Yin
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Dya
+            [lastname] => Yin
+            [email] => dyayin12@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 102
+            [1] => 101
+        )
+
+    [subtotal] => 290
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal - 10 Pieces
+                    [price] => 70.00
+                    [quantity] => 1
+                    [cart_id] => 101
+                )
+
+            [1] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 1
+                    [cart_id] => 102
+                )
+
+        )
+
+    [cart_total] => 290
+)
+
+[04-Aug-2025 01:15:04 Europe/Berlin] Final user data: Array
+(
+    [firstname] => Dya
+    [lastname] => Yin
+    [email] => dyayin12@gmail.com
+)
+
+[04-Aug-2025 01:15:04 Europe/Berlin] Selected cart IDs: Array
+(
+    [0] => 102
+    [1] => 101
+)
+
+[04-Aug-2025 01:15:04 Europe/Berlin] Subtotal: 290
+[04-Aug-2025 01:15:04 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Garlic Pandesal - 10 Pieces
+            [price] => 70.00
+            [quantity] => 1
+            [cart_id] => 101
+        )
+
+    [1] => Array
+        (
+            [name] => Sesame Sourdough Batard
+            [price] => 220.00
+            [quantity] => 1
+            [cart_id] => 102
+        )
+
+)
+
+[04-Aug-2025 01:15:04 Europe/Berlin] Cart total: 290
+[04-Aug-2025 01:15:04 Europe/Berlin] User data at display point: Array
+(
+    [firstname] => Dya
+    [lastname] => Yin
+)
+
+[04-Aug-2025 01:15:04 Europe/Berlin] Session data at display point: Array
+(
+    [user_id] => 3
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Dya
+    [user_lastname] => Yin
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Dya
+            [lastname] => Yin
+            [email] => dyayin12@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 102
+            [1] => 101
+        )
+
+    [subtotal] => 290
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal - 10 Pieces
+                    [price] => 70.00
+                    [quantity] => 1
+                    [cart_id] => 101
+                )
+
+            [1] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 1
+                    [cart_id] => 102
+                )
+
+        )
+
+    [cart_total] => 290
+)
+

@@ -9,7 +9,7 @@ if (!isset($_SESSION["user_id"])) {
     header("Location: ../../login/user/login-signup.php");
     exit();
 }
-
+require_once '../../user-includes/navbar/customer-navigation.php';
 $user_id = $_SESSION['user_id'];
 ?>
 <!DOCTYPE html>
@@ -17,7 +17,7 @@ $user_id = $_SESSION['user_id'];
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../../css/users/cart.css" />
+    <link rel="stylesheet" href="cart.css" />
     <link rel="stylesheet" href="../../confirmations.css" />
     <title>Shopping Cart</title>
     <style>
@@ -126,7 +126,7 @@ $user_id = $_SESSION['user_id'];
                         $subtotal = 0;
                         $cart_items = [];
                         while ($row = $result->fetch_assoc()):
-                            $imageUrl = $row['image_url'] ? "../../assets/" . $row['image_url'] : "../../assets/images/no-image.jpg";
+                            $imageUrl = $row['image_url'] ? "/assets/" . $row['image_url'] : "/assets/images/no-image.jpg";
                             $item_total = $row['price'] * $row['quantity'];
                             $subtotal += $item_total;
                             $cart_items[] = $row['cart_id'];

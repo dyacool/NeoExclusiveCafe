@@ -11,7 +11,7 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role']) || $_SESSION[
 
 $page_title = "Checkout";
 $additional_css = [
-    "../../css/users/checkout.css"
+    "checkout.css"
 ];
 
 require_once "../../user-includes/user-header.php";
@@ -176,7 +176,7 @@ $debug_info = [
   <script>
     console.log('PHP Debug Information:', <?php echo json_encode($debug_info); ?>);
   </script>
-  <link rel="stylesheet" href="../../css/users/checkout.css">
+  <link rel="stylesheet" href="checkout.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -339,7 +339,7 @@ $debug_info = [
             const startStr = start.toISOString().split('T')[0];
             const endStr = end.toISOString().split('T')[0];
             
-            fetch("../../php/admin/get-date-limits.php?start=${startStr}&end=${endStr}", {
+            fetch("../../../backend/pages/homepage/get-date-limits.php?start=${startStr}&end=${endStr}", {
                 headers: {
                     'Accept': 'application/json'
                 }
@@ -638,8 +638,10 @@ $debug_info = [
                     <span class="detail-label">Contact:</span>
                     <input type="tel" id="contact_number" name="contact_number" 
                            placeholder="Enter your contact number" required 
-                           pattern="[0-9]{11}" 
-                           title="Please enter a valid 11-digit phone number">
+                           pattern="(\+63|0)9\d{9}"
+                           title="Please enter a valid 11-digit phone number"
+                           maxlength="13"
+                           inputmode="numeric">
                 </div>
             </div>
         </div>
@@ -806,7 +808,7 @@ $debug_info = [
 <!-- Add jQuery -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <!-- Add Address Selector Script -->
-<script src="../../js/users/ph-address-selector.js"></script>
+<script src="ph-address-selector.js"></script>
 
 <script>
 // Modal functionality
@@ -854,9 +856,23 @@ document.addEventListener('DOMContentLoaded', function() {
         modal.style.display = 'none';
     });
 });
-</script>
 
-<script src="../../js/users/checkout.js"></script>
+const phoneInput = document.getElementById('contact_number');
+
+phoneInput.addEventListener('input', function () {
+    // Always allow only numbers and optional leading +
+    this.value = this.value.replace(/[^\d+]/g, '');
+
+    // Check prefix and set maxlength accordingly
+    if (this.value.startsWith('+63')) {
+      this.maxLength = 13;  // +63 + 9-digit number
+    } else if (this.value.startsWith('0')) {
+      this.maxLength = 11;  // 0 + 10-digit number
+    } else {
+      this.maxLength = 13; // default to max possible
+    }
+  });
+</script>
 
 <?php
 include '../../user-includes/footer.php';

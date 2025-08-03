@@ -105,6 +105,7 @@ body.checkout-page {
   color: var(--text-color);
 }
 
+
 /* Shipping Options Section */
 .delivery-type {
   display: flex;
