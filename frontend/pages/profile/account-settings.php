@@ -10,8 +10,10 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 // Get the values directly from the session and database
-$username = $_SESSION['username'];
 $user_id = $_SESSION['user_id'];
+
+// Check if username exists in session, otherwise get it from database
+$username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
 
 // Get user details from database
 $query = "SELECT * FROM users WHERE id = ?";
@@ -27,6 +29,11 @@ echo "<!-- Debug: User data from DB = " . print_r($row, true) . " -->";
 $email = $row['email'];
 $firstname = $row['firstname'];
 $lastname = $row['lastname'];
+
+// Get username from database if not in session
+if (empty($username) && isset($row['username'])) {
+    $username = $row['username'];
+}
 
 $message = "";
 $error = "";

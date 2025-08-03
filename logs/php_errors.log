@@ -9723,3 +9723,461 @@ Stack trace:
 [03-Aug-2025 11:17:01 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
 [03-Aug-2025 11:17:14 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
 [03-Aug-2025 11:17:14 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:19:57 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:19:57 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:19:57 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  ORDER BY p.created_at DESC
+[03-Aug-2025 11:19:57 Europe/Berlin] Total featured products found: 6
+[03-Aug-2025 11:19:57 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[03-Aug-2025 11:20:16 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:20:16 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:20:16 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  ORDER BY p.created_at DESC
+[03-Aug-2025 11:20:16 Europe/Berlin] Total featured products found: 6
+[03-Aug-2025 11:20:16 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[03-Aug-2025 11:20:20 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:20:20 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:20:24 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:20:24 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:20:24 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  ORDER BY p.created_at DESC
+[03-Aug-2025 11:20:24 Europe/Berlin] Total featured products found: 6
+[03-Aug-2025 11:20:24 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[03-Aug-2025 11:20:26 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:20:26 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:20:27 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:20:27 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:20:27 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  ORDER BY p.created_at DESC
+[03-Aug-2025 11:20:27 Europe/Berlin] Total featured products found: 6
+[03-Aug-2025 11:20:27 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[03-Aug-2025 11:20:29 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:20:29 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:20:29 Europe/Berlin] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\NeoCafe\frontend\pages\profile\account-settings.php on line 187
+[03-Aug-2025 11:21:01 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:21:01 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:21:06 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:21:06 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:21:06 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  ORDER BY p.created_at DESC
+[03-Aug-2025 11:21:06 Europe/Berlin] Total featured products found: 6
+[03-Aug-2025 11:21:06 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[03-Aug-2025 11:21:08 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:21:08 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:21:11 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:21:11 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:21:13 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:21:13 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:21:14 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:21:14 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:21:17 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:21:17 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:21:22 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:21:22 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:21:27 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:21:27 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:21:27 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  ORDER BY p.created_at DESC
+[03-Aug-2025 11:21:27 Europe/Berlin] Total featured products found: 6
+[03-Aug-2025 11:21:27 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[03-Aug-2025 11:21:32 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:21:32 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:21:43 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:21:43 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:22:12 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:22:12 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:23:12 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:23:12 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:23:14 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:23:14 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:23:38 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:23:38 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:23:57 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:23:57 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:24:14 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:24:14 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:24:56 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:24:56 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:25:08 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:25:08 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:25:14 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:25:14 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:25:23 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:25:23 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:25:28 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:25:28 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:25:55 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:25:55 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:26:04 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:26:04 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:26:06 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:26:06 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:26:09 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:26:09 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:26:11 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:26:11 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:26:13 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:26:13 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:26:30 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:26:30 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:26:35 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:26:35 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:26:40 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:26:40 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:26:41 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:26:41 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:26:43 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:26:43 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:26:44 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:26:44 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:26:45 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:26:45 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:28:06 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:28:06 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:28:08 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 11:28:08 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 12:17:19 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 12:17:19 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 12:17:23 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 12:17:23 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 12:17:24 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 12:17:24 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 12:17:26 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 12:17:26 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 12:17:30 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 12:17:30 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 12:17:47 Europe/Berlin] Processing dates: start=2025-07-27, end=2025-09-07
+[03-Aug-2025 12:17:47 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[03-Aug-2025 12:17:47 Europe/Berlin] With parameters: start=2025-07-27, end=2025-09-07, showCompleted=false
+[03-Aug-2025 12:18:36 Europe/Berlin] Processing dates: start=2025-07-27, end=2025-09-07
+[03-Aug-2025 12:18:36 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[03-Aug-2025 12:18:36 Europe/Berlin] With parameters: start=2025-07-27, end=2025-09-07, showCompleted=false
+[03-Aug-2025 14:11:48 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 14:11:48 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 14:12:17 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 14:12:17 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 14:12:21 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 14:12:21 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 14:12:23 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 14:12:23 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 14:13:44 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 14:13:44 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 14:13:47 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 14:13:47 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 14:13:51 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 14:13:51 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 14:13:53 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 14:13:53 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 14:17:00 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 14:17:00 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 14:46:57 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 14:46:57 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:06:24 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:06:24 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:11:05 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:11:05 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:13:19 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:13:19 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:13:20 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:13:20 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:26:53 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:26:53 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:27:01 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:27:01 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:27:03 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:27:03 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:28:23 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:28:23 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:34:26 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:34:26 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:34:29 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:34:29 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:34:32 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:34:32 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:34:34 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:34:34 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:35:31 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:35:31 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:35:31 Europe/Berlin] PHP Warning:  require_once(../../php/includes/user-footer.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\pages\blog\view-blog.php on line 129
+[03-Aug-2025 15:35:31 Europe/Berlin] PHP Fatal error:  Uncaught Error: Failed opening required '../../php/includes/user-footer.php' (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\pages\blog\view-blog.php:129
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\NeoCafe\frontend\pages\blog\view-blog.php on line 129
+[03-Aug-2025 15:35:33 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:35:33 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:35:35 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:35:35 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:35:36 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:35:36 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:35:40 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:35:40 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:35:41 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:35:41 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:35:41 Europe/Berlin] JSON encode error for product 23: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 15:35:41 Europe/Berlin] JSON encode error for product 19: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 15:35:41 Europe/Berlin] JSON encode error for product 26: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 15:36:14 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:36:14 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:36:14 Europe/Berlin] JSON encode error for product 23: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 15:36:14 Europe/Berlin] JSON encode error for product 19: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 15:36:14 Europe/Berlin] JSON encode error for product 26: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 15:37:15 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:37:15 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:37:15 Europe/Berlin] JSON encode error for product 23: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 15:37:15 Europe/Berlin] JSON encode error for product 19: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 15:37:15 Europe/Berlin] JSON encode error for product 26: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 15:39:44 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:39:44 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 15:39:44 Europe/Berlin] JSON encode error for product 23: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 15:39:44 Europe/Berlin] JSON encode error for product 19: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 15:39:44 Europe/Berlin] JSON encode error for product 26: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:18:54 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 16:18:54 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 16:18:54 Europe/Berlin] JSON encode error for product 23: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:18:54 Europe/Berlin] JSON encode error for product 19: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:18:54 Europe/Berlin] JSON encode error for product 26: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:19:53 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 16:19:53 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 16:19:53 Europe/Berlin] JSON encode error for product 23: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:19:53 Europe/Berlin] JSON encode error for product 19: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:19:53 Europe/Berlin] JSON encode error for product 26: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:20:05 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 16:20:05 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 16:20:14 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 16:20:14 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 16:20:14 Europe/Berlin] JSON encode error for product 23: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:20:14 Europe/Berlin] JSON encode error for product 19: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:20:14 Europe/Berlin] JSON encode error for product 26: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:20:17 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 16:20:17 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 16:20:28 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 16:20:28 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 16:20:28 Europe/Berlin] JSON encode error for product 23: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:20:28 Europe/Berlin] JSON encode error for product 19: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:20:28 Europe/Berlin] JSON encode error for product 26: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:20:28 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 16:20:28 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 16:20:28 Europe/Berlin] JSON encode error for product 23: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:20:28 Europe/Berlin] JSON encode error for product 19: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:20:28 Europe/Berlin] JSON encode error for product 26: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:25:45 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 16:25:45 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 16:25:45 Europe/Berlin] JSON encode error for product 23: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:25:45 Europe/Berlin] JSON encode error for product 19: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:25:45 Europe/Berlin] JSON encode error for product 26: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:25:54 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 16:25:54 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 16:25:56 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 16:25:56 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 16:27:33 Europe/Berlin] Processing dates: start=2025-07-27, end=2025-09-07
+[03-Aug-2025 16:27:33 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[03-Aug-2025 16:27:33 Europe/Berlin] With parameters: start=2025-07-27, end=2025-09-07, showCompleted=false
+[03-Aug-2025 16:28:17 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 16:28:17 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 16:28:18 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 16:28:18 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 16:28:18 Europe/Berlin] JSON encode error for product 23: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:28:18 Europe/Berlin] JSON encode error for product 19: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:28:18 Europe/Berlin] JSON encode error for product 26: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:31:47 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 16:31:47 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 16:31:47 Europe/Berlin] JSON encode error for product 23: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:31:47 Europe/Berlin] JSON encode error for product 19: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:31:47 Europe/Berlin] JSON encode error for product 26: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:32:50 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 16:32:50 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 16:32:50 Europe/Berlin] JSON encode error for product 23: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:32:50 Europe/Berlin] JSON encode error for product 19: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:32:50 Europe/Berlin] JSON encode error for product 26: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:34:04 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 16:34:04 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 16:34:04 Europe/Berlin] JSON encode error for product 23: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:34:04 Europe/Berlin] JSON encode error for product 19: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:34:04 Europe/Berlin] JSON encode error for product 26: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:35:47 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 16:35:47 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 16:35:47 Europe/Berlin] JSON encode error for product 23: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:35:47 Europe/Berlin] JSON encode error for product 19: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:35:47 Europe/Berlin] JSON encode error for product 26: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:36:16 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 16:36:16 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[03-Aug-2025 16:36:16 Europe/Berlin] JSON encode error for product 23: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:36:16 Europe/Berlin] JSON encode error for product 19: Malformed UTF-8 characters, possibly incorrectly encoded
+[03-Aug-2025 16:36:16 Europe/Berlin] JSON encode error for product 26: Malformed UTF-8 characters, possibly incorrectly encoded
+[04-Aug-2025 00:09:50 Europe/Berlin] Processing dates: start=2025-07-27, end=2025-09-07
+[04-Aug-2025 00:09:50 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[04-Aug-2025 00:09:50 Europe/Berlin] With parameters: start=2025-07-27, end=2025-09-07, showCompleted=false

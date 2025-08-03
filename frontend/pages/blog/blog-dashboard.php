@@ -47,14 +47,14 @@ if (!$is_preview_mode && (!isset($_SESSION['is_verified']) || $_SESSION['is_veri
             <p class="subtitle">Welcome to Neo Cafe's Blog Page! Discover stories, tips, and reviews straight from the bakery and our beloved customers.</p>
             
             <div class="container">
-                <a href="" class="image-link">
+                <a href="blog-list.php" class="image-link">
                     <div class="image-container">
                         <img src="../../../assets/images/20211115_233558.jpg" alt="Neo Cafe's Corner">
                         <div class="image-title">NEO CAFE'S CORNER</div>
                     </div>
                 </a>
                 
-                <a href="" class="image-link">
+                <a href="user-blog.php" class="image-link">
                     <div class="image-container">
                         <img src="../../../assets/images/carousel/1746967636_44186560_Unknown.JPG" alt="Customer Reviews">
                         <div class="image-title">

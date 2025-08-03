@@ -136,7 +136,7 @@ if ($conn->connect_error) {
                               data-product='" . htmlspecialchars($jsonData, ENT_QUOTES, 'UTF-8') . "'
                               onclick='handleProductClick(this)'>";
                         echo "<div class='product-image'>
-                                    <img src='../../../assets/" . htmlspecialchars($row['image_url'] ?: 'images/no-image.jpg') . "' alt='" . htmlspecialchars($row['name']) . "' width='50'>";
+                                    <img src='/assets/" . htmlspecialchars($row['image_url'] ?: 'images/no-image.jpg') . "' alt='" . htmlspecialchars($row['name']) . "' width='50'>";
                         if ($row['is_featured']) {
                             echo "<span class='featured-badge'>Featured</span>";
                         }
@@ -381,7 +381,7 @@ if ($conn->connect_error) {
 
             // Set up images
             if (product.images && Array.isArray(product.images) && product.images.length > 0) {
-                mainImage.src = '../../../assets/' + product.images[0];
+                mainImage.src = '/assets/' + product.images[0];
                 
                 // Clear existing thumbnails
                 thumbnails.innerHTML = '';
@@ -390,14 +390,14 @@ if ($conn->connect_error) {
                 product.images.forEach((image, index) => {
                     if (image) {
                         const thumb = document.createElement('img');
-                        thumb.src = '../../../assets/' + image;
+                        thumb.src = '/assets/' + image;
                         thumb.alt = `${product.name || 'Product'} view ${index + 1}`;
                         thumb.onclick = () => mainImage.src = thumb.src;
                         thumbnails.appendChild(thumb);
                     }
                 });
             } else {
-                mainImage.src = '../../../assets/images/no-image.jpg';
+                mainImage.src = '/assets/images/no-image.jpg';
                 thumbnails.innerHTML = '';
             }
 

@@ -55,7 +55,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $timestamp = time();
         $cleanProductName = preg_replace('/[^a-zA-Z0-9-_]/', '_', $name);
         $folderName = $cleanProductName . '_' . $timestamp;
-        $productFolder = __DIR__ . "/../../assets/product-images/" . $folderName . "/";
+        $productFolder = __DIR__ . "/../../../assets/product-images/" . $folderName . "/";
         
         if (!file_exists($productFolder)) {
             mkdir($productFolder, 0777, true);
@@ -98,7 +98,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     
                     if (move_uploaded_file($tmp_name, $filePath)) {
                         // Store relative path in database without special characters
-                        $dbImagePath = "product-images/" . $folderName . "/" . $cleanFileName;
+                        $dbImagePath = "/../../assets/product-images/" . $folderName . "/" . $cleanFileName;
                         $stmt = $conn->prepare("INSERT INTO product_images (product_id, image_url, is_primary) VALUES (?, ?, 0)");
                         $stmt->bind_param("is", $product_id, $dbImagePath);
                         $stmt->execute();

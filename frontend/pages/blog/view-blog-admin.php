@@ -8,9 +8,13 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: /frontend/login/user/login-signup.php");
     exit();
 }
+
+// Database connection
+require_once "../../user-includes/database.php";
+
 $page_title = "View Blog Post";
 $additional_css = [
-    "/frontend/pages/blog/view-blog.css"
+    "view-blog.css"
 ];
 
 // Font for headings
@@ -57,8 +61,20 @@ $post = mysqli_fetch_assoc($result);
 
         <?php if (!empty($post['image_path'])): ?>
         <div class="post-image">
-            <img src="/assets/uploaded-images-admin/<?php echo htmlspecialchars($post['image_path']); ?>" 
-                 alt="<?php echo htmlspecialchars($post['title']); ?>">
+            <?php
+            $image_path = '../../assets/uploaded-images-admin/' . $post['image_path'];
+            // Check if the file actually exists
+            $file_path = $_SERVER['DOCUMENT_ROOT'] . '/NeoCafe/' . str_replace('../../', '', $image_path);
+            if (file_exists($file_path)) {
+            ?>
+                <img src="<?= htmlspecialchars($image_path) ?>" 
+                     alt="<?php echo htmlspecialchars($post['title']); ?>" onerror="this.style.display='none';">
+            <?php
+            } else {
+                // File doesn't exist, don't show the image
+                echo "<!-- Image file not found: " . htmlspecialchars($file_path) . " -->";
+            }
+            ?>
         </div>
         <?php endif; ?>
 

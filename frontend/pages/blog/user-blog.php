@@ -8,15 +8,20 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: ../../login/user/login-signup.php");
     exit();
 }
+
+// Database connection
+require_once "../../user-includes/database.php";
+
 $page_title = "Neo Cafe's Corner";
 $additional_css = [
-    "/frontend/pages/blog/user-blog.css"
+    "user-blog.css"
 ];
 $additional_js = [
-    "/frontend/pages/blog/user-blog.js"
+    "user-blog.js"
 ];
 
 require_once "../../user-includes/user-header.php";
+require_once "../../user-includes/navbar/customer-navigation.php";
 
 // Pagination settings
 $posts_per_page = 9;
@@ -42,8 +47,7 @@ $total_row = mysqli_fetch_assoc($count_result);
 $total_posts = $total_row['total'];
 $total_pages = ceil($total_posts / $posts_per_page);
 ?>
-
-        <button class="cta" onclick="window.location.href='/frontend/pages/blog/create-blog.php'">
+    <button class="cta" onclick="window.location.href='/frontend/pages/blog/blog-dashboard.php'">
     <svg
         id="arrow-horizontal"
         xmlns="http://www.w3.org/2000/svg"
@@ -108,7 +112,34 @@ $total_pages = ceil($total_posts / $posts_per_page);
                     
                     <?php if (!empty($post['image_path'])): ?>
                     <div class="post-image">
-                        <img src="<?= htmlspecialchars($post['image_path'] ?: '../../assets/images/default-blog.png') ?>" alt="Blog Image" width="50" />
+                        <?php 
+                        // Handle different path formats in the database
+                        $image_path = $post['image_path'];
+                        if (strpos($image_path, 'uploads/blog/') === 0) {
+                            // Remove the incorrect prefix and use the correct path
+                            $image_path = '../../assets/uploaded-images-users/' . basename($image_path);
+                        } elseif (strpos($image_path, 'assets/uploaded-images-users/') === 0) {
+                            // Path already has the correct prefix, just add the relative path
+                            $image_path = '../../' . $image_path;
+                        } elseif (strpos($image_path, 'blog_') === 0 || strpos($image_path, '6823') === 0) {
+                            // These are user blog images without path prefix
+                            $image_path = '../../assets/uploaded-images-users/' . $image_path;
+                        } else {
+                            // Default case - assume it's a user image
+                            $image_path = '../../assets/uploaded-images-users/' . $image_path;
+                        }
+                        
+                        // Check if the file actually exists
+                        $file_path = $_SERVER['DOCUMENT_ROOT'] . '/NeoCafe/' . str_replace('../../', '', $image_path);
+                        if (file_exists($file_path)) {
+                        ?>
+                            <img src="<?= htmlspecialchars($image_path) ?>" alt="Blog Image" width="50" onerror="this.style.display='none';" />
+                        <?php 
+                        } else {
+                            // File doesn't exist, don't show the image
+                            echo "<!-- Image file not found: " . htmlspecialchars($file_path) . " -->";
+                        }
+                        ?>
                     </div>
                     <?php endif; ?>
                     

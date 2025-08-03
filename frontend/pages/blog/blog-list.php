@@ -7,18 +7,23 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: /frontend/login/user/login-signup.php");
     exit();
 }
+
+// Database connection
+require_once "../../user-includes/database.php";
+
 $page_title = "Neo Cafe's Corner";
 $additional_css = [
-    "/frontend/pages/blog/blog-list.css"
+    "blog-list.css"
 ];
 $additional_js = [
-    "/frontend/pages/blog/blog.js"
+    "blog.js"
 ];
 
 // Font for headings
 $head_extra = '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">';
 
 require_once "../../user-includes/user-header.php";
+require_once "../../user-includes/navbar/customer-navigation.php";
 
 // Pagination settings
 $posts_per_page = 9;
@@ -41,7 +46,7 @@ $total_pages = ceil($total_posts / $posts_per_page);
 ?>
 
 
-            <button class="cta" onclick="window.location.href='/frontend/pages/blog/create-blog.php'">
+            <button class="cta" onclick="window.location.href='/frontend/pages/blog/blog-dashboard.php'">
             <svg
                 id="arrow-horizontal"
                 xmlns="http://www.w3.org/2000/svg"
@@ -78,8 +83,20 @@ $total_pages = ceil($total_posts / $posts_per_page);
                     
                     <?php if (!empty($post['image_path'])): ?>
                         <div class="post-image">
-                            <img src="/assets/uploaded-images-admin/<?php echo htmlspecialchars($post['image_path']); ?>" 
-                                alt="<?php echo htmlspecialchars($post['title']); ?>">
+                            <?php
+                            $image_path = '../../assets/uploaded-images-admin/' . $post['image_path'];
+                            // Check if the file actually exists
+                            $file_path = $_SERVER['DOCUMENT_ROOT'] . '/NeoCafe/' . str_replace('../../', '', $image_path);
+                            if (file_exists($file_path)) {
+                            ?>
+                                <img src="<?= htmlspecialchars($image_path) ?>" 
+                                    alt="<?php echo htmlspecialchars($post['title']); ?>" onerror="this.style.display='none';">
+                            <?php
+                            } else {
+                                // File doesn't exist, don't show the image
+                                echo "<!-- Image file not found: " . htmlspecialchars($file_path) . " -->";
+                            }
+                            ?>
                         </div>
                     <?php endif; ?>
                     

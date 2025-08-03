@@ -139,31 +139,16 @@
                                     $statusClass = strtolower(str_replace(' ', '-', $row['status_name']));
 
                                     // Construct image path
-                                    $imagePath = '/assets/images/no-image.jpg';
+                                    $imagePath = '';
                                     if (!empty($row['image_url'])) {
-                                        // Split path into directory and filename
-                                        $pathParts = pathinfo($row['image_url']);
-                                        $dirPath = $pathParts['dirname'];
-                                        $fileName = $pathParts['basename'];
-                                        
-                                        // URL encode each path segment separately
-                                        $encodedPath = implode('/', array_map('rawurlencode', explode('/', $dirPath)));
-                                        $encodedFileName = rawurlencode($fileName);
-                                        
-                                        // Combine encoded parts - remove extra /assets/ prefix since it's already in the DB path
-                                        $imagePath = '/' . $encodedPath . '/' . $encodedFileName;
-                                        
-                                        // Verify file exists using relative path from project root
-                                        $fullPath = __DIR__ . '/../../..' . $imagePath;
-                                        if (!file_exists($fullPath)) {
-                                            $imagePath = '/assets/images/no-image.jpg';
-                                        }
+                                        // Use the same path structure as weekly-product.php
+                                        $imagePath = '/assets/' . $row['image_url'];
                                     }
 
                                     echo "<tr data-status='" . $row['status_name'] . "' data-name='" . strtolower($row['name']) . "' data-sku='" . strtolower($row['sku']) . "'>
                                             <td>
                                                 <div class='product-image-container'>
-                                                    <img class='product-image' src='" . htmlspecialchars($imagePath) . "' alt='" . htmlspecialchars($row['name']) . "' loading='lazy' onerror=\"this.src='/assets/images/no-image.jpg'\">
+                                                    <img class='product-image' src='" . htmlspecialchars($imagePath) . "' alt='" . htmlspecialchars($row['name']) . "' loading='lazy'>
                                                     " . ($row['is_featured'] ? "<span class='featured-badge'>★</span>" : "") . "
                                                 </div>
                                             </td>

@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Generate unique filename
             $extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
             $filename = uniqid() . '.' . $extension;
-            $upload_path = "uploads/blog/" . $filename;
+            $upload_path = "assets/uploaded-images-users/" . $filename;
             $full_path = "../../" . $upload_path;
 
             // Create directory if it doesn't exist
@@ -135,7 +135,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <label class="media" for="image">
                             <?php if ($post['image_path']): ?>
                                 <div class="upload-text">Click to upload new image</div>
-                                <img class="image-preview preview-active" src="../../<?php echo htmlspecialchars($post['image_path']); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>">
+                                <?php 
+                                // Handle different path formats in the database
+                                $image_path = $post['image_path'];
+                                if (strpos($image_path, 'uploads/blog/') === 0) {
+                                    // Remove the incorrect prefix and use the correct path
+                                    $image_path = '../../assets/uploaded-images-users/' . basename($image_path);
+                                } elseif (strpos($image_path, 'assets/uploaded-images-users/') === 0) {
+                                    // Path already has the correct prefix, just add the relative path
+                                    $image_path = '../../' . $image_path;
+                                } elseif (strpos($image_path, 'blog_') === 0 || strpos($image_path, '6823') === 0) {
+                                    // These are user blog images without path prefix
+                                    $image_path = '../../assets/uploaded-images-users/' . $image_path;
+                                } else {
+                                    // Default case - assume it's a user image
+                                    $image_path = '../../assets/uploaded-images-users/' . $image_path;
+                                }
+                                
+                                // Check if the file actually exists
+                                $file_path = $_SERVER['DOCUMENT_ROOT'] . '/NeoCafe/' . str_replace('../../', '', $image_path);
+                                if (file_exists($file_path)) {
+                                ?>
+                                    <img class="image-preview preview-active" src="<?= htmlspecialchars($image_path) ?>" alt="<?php echo htmlspecialchars($post['title']); ?>" onerror="this.style.display='none';">
+                                <?php 
+                                } else {
+                                    // File doesn't exist, show placeholder
+                                    echo '<div class="upload-text">Click to upload new image</div>';
+                                    echo '<img class="image-preview" src="/placeholder.svg">';
+                                }
+                                ?>
                             <?php else: ?>
                                 <div class="upload-text">Click to upload new image</div>
                                 <img class="image-preview" src="/placeholder.svg">

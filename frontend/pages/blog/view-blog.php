@@ -3,12 +3,12 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-require_once "../../php/includes/preview-mode.php";
+require_once "../../user-includes/preview-mode.php";
 require_once "../../user-includes/database.php";
 
 $page_title = "View Blog";
 $additional_css = [
-    "../../css/users/view-blog.css"
+    "view-blog.css"
 ];
 
 // Font for headings
@@ -56,11 +56,38 @@ $post = mysqli_fetch_assoc($result);
             <h1 class="post-title"><?php echo htmlspecialchars($post['title']); ?></h1>
         </header>
 
-        <?php if (!empty($post['image_path'])): ?>
-        <div class="post-image">
-            <img src="<?= htmlspecialchars($post['image_path'] ?: '../../assets/images/default-blog.png') ?>" alt="Blog Image" width="50" />
-        </div>
-        <?php endif; ?>
+                              <?php if (!empty($post['image_path'])): ?>
+                      <div class="post-image">
+                          <?php 
+                          // Handle different path formats in the database
+                          $image_path = $post['image_path'];
+                          if (strpos($image_path, 'uploads/blog/') === 0) {
+                              // Remove the incorrect prefix and use the correct path
+                              $image_path = '../../assets/uploaded-images-users/' . basename($image_path);
+                          } elseif (strpos($image_path, 'assets/uploaded-images-users/') === 0) {
+                              // Path already has the correct prefix, just add the relative path
+                              $image_path = '../../' . $image_path;
+                          } elseif (strpos($image_path, 'blog_') === 0 || strpos($image_path, '6823') === 0) {
+                              // These are user blog images without path prefix
+                              $image_path = '../../assets/uploaded-images-users/' . $image_path;
+                          } else {
+                              // Default case - assume it's a user image
+                              $image_path = '../../assets/uploaded-images-users/' . $image_path;
+                          }
+                          
+                          // Check if the file actually exists
+                          $file_path = $_SERVER['DOCUMENT_ROOT'] . '/NeoCafe/' . str_replace('../../', '', $image_path);
+                          if (file_exists($file_path)) {
+                          ?>
+                              <img src="<?= htmlspecialchars($image_path) ?>" alt="Blog Image" width="50" onerror="this.style.display='none';" />
+                          <?php 
+                          } else {
+                              // File doesn't exist, don't show the image
+                              echo "<!-- Image file not found: " . htmlspecialchars($file_path) . " -->";
+                          }
+                          ?>
+                      </div>
+                      <?php endif; ?>
 
         <div class="post-content">
             <?php echo nl2br(htmlspecialchars($post['content'])); ?>
