@@ -121,7 +121,7 @@
                             $sql = "SELECT 
                                         p.id, p.sku, p.name, p.price, p.status_id, ps.name AS status_name, 
                                         pi.image_url, p.is_featured, p.show_when_unavailable, p.hide_when_unavailable,
-                                        p.quantity 
+                                        p.quantity, p.days_to_make 
                                     FROM products p
                                     LEFT JOIN product_statuses ps ON p.status_id = ps.id
                                     LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
@@ -145,6 +145,7 @@
                                         $imagePath = '/assets/' . $row['image_url'];
                                     }
 
+                                    $days_to_make = isset($row['days_to_make']) ? $row['days_to_make'] : null;
                                     echo "<tr data-status='" . $row['status_name'] . "' data-name='" . strtolower($row['name']) . "' data-sku='" . strtolower($row['sku']) . "'>
                                             <td>
                                                 <div class='product-image-container'>
@@ -178,6 +179,9 @@
                                                 </div>
                                             </td>
                                             <td>
+                                                <span class='days-to-make-text'>" . ($days_to_make ? $days_to_make . " days" : "Not set") . "</span>
+                                            </td>
+                                            <td>
                                                 <div class='action-buttons'>
                                                     <button class='btn-action btn-edit' onclick=\"openEditModal(
                                                         '" . $row["id"] . "',     
@@ -187,7 +191,8 @@
                                                         " . ($row["is_featured"] ? "true" : "false") . ",
                                                         " . ($row["show_when_unavailable"] ? "true" : "false") . ",
                                                         " . ($row["hide_when_unavailable"] ? "true" : "false") . ",
-                                                        " . $quantity . "
+                                                        " . $quantity . ",
+                                                        " . ($days_to_make ? $days_to_make : "null") . "
                                                     )\" title='Edit Product'>
                                                         <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>
                                                             <path d='M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7'></path>
@@ -205,7 +210,7 @@
                                         </tr>";
                                 }
                             } else {
-                                echo "<tr class='no-results'><td colspan='6'>
+                                echo "<tr class='no-results'><td colspan='7'>
                                         <div class='empty-state'>
                                             <svg width='48' height='48' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>
                                                 <circle cx='11' cy='11' r='8'></circle>
@@ -309,6 +314,13 @@
                     <input type="number" id="editProductQuantity" min="0" step="1" required>
                 </div>
             </div>
+
+                <div class="form-row">
+        <div class="form-group">
+            <label for="editProductDaysToMake">Days to Make</label>
+            <input type="number" id="editProductDaysToMake" min="1" step="1" placeholder="Enter number of days (optional)">
+        </div>
+    </div>
 
             <div class="form-row">
                 <div class="form-group">

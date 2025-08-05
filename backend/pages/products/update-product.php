@@ -30,6 +30,16 @@ try {
     $price = filter_var($_POST['price'], FILTER_VALIDATE_FLOAT);
     $status_id = filter_var($_POST['status_id'], FILTER_VALIDATE_INT);
     $quantity = filter_var($_POST['quantity'], FILTER_VALIDATE_INT);
+    
+    // Handle days_to_make - allow empty/null values since column is DEFAULT NULL
+    $days_to_make = null;
+    if (isset($_POST['days_to_make']) && $_POST['days_to_make'] !== '') {
+        $days_to_make = filter_var($_POST['days_to_make'], FILTER_VALIDATE_INT);
+        if ($days_to_make === false) {
+            throw new Exception('Invalid days to make value');
+        }
+    }
+    
     $is_featured = isset($_POST['is_featured']) ? 1 : 0;
     $show_when_unavailable = isset($_POST['show_when_unavailable']) ? 1 : 0;
     $hide_when_unavailable = isset($_POST['hide_when_unavailable']) ? 1 : 0;
@@ -38,28 +48,55 @@ try {
         throw new Exception('Invalid input data');
     }
 
-    // Update product in database
-    $stmt = $conn->prepare("UPDATE products SET 
-        name = ?, 
-        price = ?, 
-        status_id = ?, 
-        quantity = ?,
-        is_featured = ?,
-        show_when_unavailable = ?,
-        hide_when_unavailable = ?,
-        updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?");
-
-    $stmt->bind_param("sdiiiiis", 
-        $name, 
-        $price, 
-        $status_id, 
-        $quantity,
-        $is_featured,
-        $show_when_unavailable,
-        $hide_when_unavailable,
-        $id
-    );
+    // Use a different approach for nullable days_to_make
+    if ($days_to_make === null) {
+        $stmt = $conn->prepare("UPDATE products SET 
+            name = ?, 
+            price = ?, 
+            status_id = ?, 
+            quantity = ?,
+            days_to_make = NULL,
+            is_featured = ?,
+            show_when_unavailable = ?,
+            hide_when_unavailable = ?,
+            updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?");
+        
+        $stmt->bind_param("sdiiiiis", 
+            $name, 
+            $price, 
+            $status_id, 
+            $quantity,
+            $is_featured,
+            $show_when_unavailable,
+            $hide_when_unavailable,
+            $id
+        );
+    } else {
+        $stmt = $conn->prepare("UPDATE products SET 
+            name = ?, 
+            price = ?, 
+            status_id = ?, 
+            quantity = ?,
+            days_to_make = ?,
+            is_featured = ?,
+            show_when_unavailable = ?,
+            hide_when_unavailable = ?,
+            updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?");
+        
+        $stmt->bind_param("sdiiiiiii", 
+            $name, 
+            $price, 
+            $status_id, 
+            $quantity,
+            $days_to_make,
+            $is_featured,
+            $show_when_unavailable,
+            $hide_when_unavailable,
+            $id
+        );
+    }
 
     if ($stmt->execute()) {
         echo json_encode(['success' => true]);

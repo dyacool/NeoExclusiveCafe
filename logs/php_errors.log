@@ -13304,3 +13304,24 @@ Stack trace:
 [05-Aug-2025 13:46:35 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
 [05-Aug-2025 13:46:37 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
 [05-Aug-2025 13:46:37 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[05-Aug-2025 16:40:36 Europe/Berlin] Processing dates: start=2025-07-27, end=2025-09-07
+[05-Aug-2025 16:40:36 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[05-Aug-2025 16:40:36 Europe/Berlin] With parameters: start=2025-07-27, end=2025-09-07, showCompleted=false

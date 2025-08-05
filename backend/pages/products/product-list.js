@@ -214,13 +214,15 @@ function openEditModal(
   isFeature,
   showWhenUnavailable,
   hideWhenUnavailable,
-  quantity
+  quantity,
+  daysToMake
 ) {
   // Populate form fields
   document.getElementById("editProductId").value = id;
   document.getElementById("editProductName").value = name;
   document.getElementById("editProductPrice").value = price;
   document.getElementById("editProductQuantity").value = quantity;
+  document.getElementById("editProductDaysToMake").value = daysToMake || "";
   document.getElementById("editProductStatus").value = status;
   document.getElementById("editIsFeature").value = isFeature ? "1" : "0";
 
@@ -252,6 +254,7 @@ function handleFormSubmit(event) {
     name: document.getElementById("editProductName").value,
     price: document.getElementById("editProductPrice").value,
     quantity: document.getElementById("editProductQuantity").value,
+    days_to_make: document.getElementById("editProductDaysToMake").value,
     status_id: document.getElementById("editProductStatus").value,
     is_featured: document.getElementById("editIsFeature").value === "1",
     show_when_unavailable:
@@ -272,7 +275,19 @@ function handleFormSubmit(event) {
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams(formData),
   })
-    .then((response) => response.json())
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.text().then(text => {
+        try {
+          return JSON.parse(text);
+        } catch (e) {
+          console.error("Response text:", text);
+          throw new Error("Invalid JSON response from server");
+        }
+      });
+    })
     .then((data) => {
       if (data.success) {
         showNotification("Product updated successfully!", "success");
@@ -285,7 +300,7 @@ function handleFormSubmit(event) {
     .catch((error) => {
       console.error("Error:", error);
       showNotification(
-        "An error occurred while updating the product.",
+        "An error occurred while updating the product: " + error.message,
         "error"
       );
     })
@@ -364,7 +379,7 @@ function toggleEmptyState(show) {
     const emptyRow = document.createElement("tr");
     emptyRow.className = "no-results";
     emptyRow.innerHTML = `
-            <td colspan="6">
+            <td colspan="7">
                 <div class="empty-state">
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="11" cy="11" r="8"></circle>

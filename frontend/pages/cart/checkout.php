@@ -173,9 +173,7 @@ $debug_info = [
 <head>
   <meta charset="UTF-8">
   <title>Checkout Page</title>
-  <script>
-    console.log('PHP Debug Information:', <?php echo json_encode($debug_info); ?>);
-  </script>
+
   <link rel="stylesheet" href="checkout.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
@@ -390,15 +388,13 @@ $debug_info = [
                                     });
                                 }
                             });
-                        } else {
-                            console.error('Server returned error:', data.error);
                         }
                     } catch (e) {
-                        console.error('Error parsing response:', e);
+                        // Error parsing response
                     }
                 })
                 .catch(error => {
-                    console.error('Error fetching date limits:', error);
+                    // Error fetching date limits
                 });
         }
 
@@ -419,7 +415,7 @@ $debug_info = [
                     deliveryCalendar.render();
                 }
             } catch (error) {
-                console.error('Error rendering calendar:', error);
+                // Error rendering calendar
             }
             
             const shippingFee = isPickup ? 0 : 50;
@@ -478,13 +474,8 @@ $debug_info = [
             initializeTimeInputs();
             updateVisibility();
         } catch (error) {
-            console.error('Error during initialization:', error);
+            // Error during initialization
         }
-
-        // Debug cart data before form submission
-        console.log('Cart Items:', <?php echo json_encode($cart_items); ?>);
-        console.log('Cart Total:', <?php echo json_encode($cart_total); ?>);
-        console.log('Selected Cart IDs:', <?php echo json_encode($selected_cart_ids); ?>);
 
         // Form submission handler
         const checkoutForm = document.getElementById('checkout-form');
@@ -493,22 +484,15 @@ $debug_info = [
                 e.preventDefault();
                 
                 try {
-                    // Debug form data
-                    console.log('Form submission started');
-                    
                     // Get all form data
                     const formData = new FormData(this);
                     
-                    // Add cart items and user info - with debug logging
+                    // Add cart items and user info
                     const cartItems = <?php echo json_encode($cart_items); ?>;
                     const cartTotal = <?php echo json_encode($cart_total); ?>;
-                    console.log('Cart Items in submission:', cartItems);
-                    console.log('Cart Total in submission:', cartTotal);
                     
                     const userEmail = <?php echo json_encode($user['email']); ?>;
                     const userName = <?php echo json_encode($user['firstname'] . ' ' . $user['lastname']); ?>;
-                    console.log('User Email:', userEmail);
-                    console.log('User Name:', userName);
                     
                     // Validate cart items
                     if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
@@ -522,10 +506,7 @@ $debug_info = [
                     formData.append('user_name', userName);
                     formData.append('user_email', userEmail);
                     
-                    // Debug formData
-                    for (let pair of formData.entries()) {
-                        console.log(pair[0] + ': ' + pair[1]);
-                    }
+
                     
                     // Add delivery/pickup information
                     const isDelivery = document.getElementById('delivery').checked;
@@ -549,20 +530,17 @@ $debug_info = [
                         submitButton.disabled = true;
                     }
                     
-                    console.log('Sending form data to server...');
                     const response = await fetch("../../php/users/process_order.php", {
                         method: 'POST',
                         body: formData
                     });
                     
                     const responseText = await response.text();
-                    console.log('Server response:', responseText);
                     
                     let result;
                     try {
                         result = JSON.parse(responseText);
                     } catch (parseError) {
-                        console.error('Failed to parse response:', responseText);
                         throw new Error('Invalid server response');
                     }
                     
@@ -573,7 +551,6 @@ $debug_info = [
                         throw new Error(result.message || 'Failed to place order');
                     }
                 } catch (error) {
-                    console.error('Error:', error);
                     alert('An error occurred while placing your order: ' + error.message);
                 } finally {
                     // Re-enable submit button

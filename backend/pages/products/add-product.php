@@ -40,13 +40,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $price = $_POST['price'];
     $status_id = $_POST['status_id'];
     $quantity = $_POST['quantity']; // Added this line to get quantity
+    // Handle days_to_make - allow empty/null values since column is DEFAULT NULL
+    $days_to_make = null;
+    if (isset($_POST['days_to_make']) && $_POST['days_to_make'] !== '') {
+        $days_to_make = filter_var($_POST['days_to_make'], FILTER_VALIDATE_INT);
+        if ($days_to_make === false) {
+            echo "Error: Invalid days to make value";
+            exit();
+        }
+    }
     $is_featured = isset($_POST['is_featured']) ? 1 : 0;
     $show_when_unavailable = isset($_POST['show_when_unavailable']) ? 1 : 0;
     $hide_when_unavailable = isset($_POST['hide_when_unavailable']) ? 1 : 0;
 
-    $stmt = $conn->prepare("INSERT INTO products (sku, name, description, price, status_id, quantity, is_featured, show_when_unavailable, hide_when_unavailable) 
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("sssdiiiis", $sku, $name, $description, $price, $status_id, $quantity, $is_featured, $show_when_unavailable, $hide_when_unavailable);
+    // Use different approach for nullable days_to_make
+    if ($days_to_make === null) {
+        $stmt = $conn->prepare("INSERT INTO products (sku, name, description, price, status_id, quantity, days_to_make, is_featured, show_when_unavailable, hide_when_unavailable) 
+                                VALUES (?, ?, ?, ?, ?, ?, NULL, ?, ?, ?)");
+        $stmt->bind_param("sssdiiiii", $sku, $name, $description, $price, $status_id, $quantity, $is_featured, $show_when_unavailable, $hide_when_unavailable);
+    } else {
+        $stmt = $conn->prepare("INSERT INTO products (sku, name, description, price, status_id, quantity, days_to_make, is_featured, show_when_unavailable, hide_when_unavailable) 
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("sssdiiiiis", $sku, $name, $description, $price, $status_id, $quantity, $days_to_make, $is_featured, $show_when_unavailable, $hide_when_unavailable);
+    }
     
     if ($stmt->execute()) {
         $product_id = $stmt->insert_id;
@@ -234,6 +250,10 @@ $conn->close();
                     <!-- Added Quantity Available For Pre-Order field -->
                     <label>Quantity Available For Pre-Order:</label>
                     <input class="quantity" type="number" name="quantity" min="0" step="1" value="0" required>
+
+                    <!-- Added Days to Make field -->
+                    <label>Days to Make:</label>
+                    <input class="days-to-make" type="number" name="days_to_make" min="1" step="1" placeholder="Enter number of days " required>
 
                     <label>Visibility</label>
                     <div class="checkbox-group">

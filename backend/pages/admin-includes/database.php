@@ -6,7 +6,8 @@ if (headers_sent()) {
         !strpos($_SERVER['SCRIPT_NAME'], '/admin/get-pending-orders.php') && 
         !strpos($_SERVER['SCRIPT_NAME'], '/admin/accept-order.php') &&
         !strpos($_SERVER['SCRIPT_NAME'], '/admin/decline-order.php') &&
-        !strpos($_SERVER['SCRIPT_NAME'], '/admin/minimal-orders.php')) {
+        !strpos($_SERVER['SCRIPT_NAME'], '/admin/minimal-orders.php') &&
+        !strpos($_SERVER['SCRIPT_NAME'], '/products/update-product.php')) {
         
         echo "<!-- Headers already sent, could not set content type -->";
     }
@@ -15,7 +16,8 @@ if (headers_sent()) {
     if (strpos($_SERVER['SCRIPT_NAME'], '/admin/get-pending-orders.php') || 
         strpos($_SERVER['SCRIPT_NAME'], '/admin/accept-order.php') ||
         strpos($_SERVER['SCRIPT_NAME'], '/admin/decline-order.php') ||
-        strpos($_SERVER['SCRIPT_NAME'], '/admin/minimal-orders.php')) {
+        strpos($_SERVER['SCRIPT_NAME'], '/admin/minimal-orders.php') ||
+        strpos($_SERVER['SCRIPT_NAME'], '/products/update-product.php')) {
         
         // For API endpoints, force JSON content type
         header('Content-Type: application/json');
@@ -39,7 +41,8 @@ if (!isset($suppress_db_debug) &&
     !strpos($_SERVER['SCRIPT_NAME'], '/admin/get-pending-orders.php') && 
     !strpos($_SERVER['SCRIPT_NAME'], '/admin/accept-order.php') &&
     !strpos($_SERVER['SCRIPT_NAME'], '/admin/decline-order.php') &&
-    !strpos($_SERVER['SCRIPT_NAME'], '/admin/minimal-orders.php')) {
+    !strpos($_SERVER['SCRIPT_NAME'], '/admin/minimal-orders.php') &&
+    !strpos($_SERVER['SCRIPT_NAME'], '/products/update-product.php')) {
     // echo $debug_info;
 }
 
