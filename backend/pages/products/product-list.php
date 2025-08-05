@@ -55,7 +55,7 @@
                         <span class="filter-count" id="count-all">0</span>
                         All Products
                     </button>
-                    <button class="filter-btn" onclick="filterProducts('Bread of the Week', this)" data-filter="featured">
+                    <button class="filter-btn" onclick="filterProducts('Delivery', this)" data-filter="featured">
                         <span class="filter-count" id="count-featured">0</span>
                         Featured
                     </button>
@@ -314,8 +314,8 @@
                 <div class="form-group">
                     <label for="editProductStatus">Status</label>
                     <select id="editProductStatus">
-                        <option value="1">Bread of the Week</option>
-                        <option value="2">Available</option>
+                        <option value="1">Delivery</option>
+                        <option value="2">Pickup</option>
                         <option value="3">Unavailable</option>
                     </select>
                 </div>

@@ -226,8 +226,8 @@ $conn->close();
 
                     <label>Status:</label>
                     <select class="statusGrp" name="status_id">
-                        <option value="1">Bread of the Week</option>
-                        <option value="2">Available</option>
+                        <option value="1">Delivery</option>
+                        <option value="2">Pickup</option>
                         <option value="3">Unavailable</option>
                     </select>
 

@@ -50,7 +50,7 @@ if ($conn->connect_error) {
         <div class="filter-container">
             <div class="sort-container">
                 <button class="filter-button active" data-filter="all" type="button" onclick="handleFilterClick(event, 'all', this)">All</button>
-                <button class="filter-button" data-filter="Available" type="button" onclick="handleFilterClick(event, 'Available', this)">Available</button>
+                <button class="filter-button" data-filter="Pickup" type="button" onclick="handleFilterClick(event, 'Pickup', this)">Pickup</button>
                 <button class="filter-button" data-filter="Unavailable" type="button" onclick="handleFilterClick(event, 'Unavailable', this)">Unavailable</button>
                 <button class="filter-button" data-filter="Featured" type="button" onclick="handleFilterClick(event, 'Featured', this)">Featured</button>
             </div>
@@ -65,7 +65,7 @@ if ($conn->connect_error) {
                         LEFT JOIN product_statuses ps ON p.status_id = ps.id
                         LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
                         WHERE p.deleted_at IS NULL 
-                        AND ps.name != 'Bread of the Week'
+                        AND ps.name != 'Delivery'
                         AND (p.status_id != 3 
                             OR (p.status_id = 3 AND p.show_when_unavailable = 1))
                         ORDER BY p.is_featured DESC, p.status_id ASC";
@@ -98,7 +98,7 @@ if ($conn->connect_error) {
                         ];
                         
                         $featuredClass = $row['is_featured'] ? 'featured-product' : '';
-                        $isUnavailable = $row['status_id'] == 3 || $row['quantity'] <= 0;
+                        $isUnavailable = $row['status_name'] == 'Unavailable' || $row['quantity'] <= 0;
                         $statusClass = strtolower(str_replace(' ', '-', $row['status_name']));
                         
                         $productDataJson = htmlspecialchars(json_encode($productData), ENT_QUOTES, 'UTF-8');
@@ -124,7 +124,7 @@ if ($conn->connect_error) {
                                     <input type='number' value='1' min='1' max='" . $row['quantity'] . "' onclick='event.stopPropagation()' onchange='validateQuantity(this)'>
                                     <button type='button' onclick='event.stopPropagation(); updateQuantity(this, 1)'>+</button>
                                 </div>";
-                            echo "<button class='add-to-cart' onclick='event.stopPropagation(); addToCart(" . $row['id'] . ", this)'>Add to Cart</button>";
+                            echo "<button class='add-to-cart' onclick='event.stopPropagation(); console.log(\"Add to Cart button clicked for product ID: " . $row['id'] . "\"); addToCart(" . $row['id'] . ", this)'>Add to Cart</button>";
                         
                         } else {
                             echo "<button class='add-to-cart unavailable' disabled>Currently Unavailable</button>";
@@ -175,6 +175,7 @@ if ($conn->connect_error) {
 </div>
 
 <script>
+    console.log('User products page JavaScript loaded');
     let productModalOpen = false;
 
     function handleFilterClick(event, status, button) {
@@ -199,10 +200,9 @@ if ($conn->connect_error) {
                 card.style.display = "block";
             } else if (status === "Featured") {
                 card.style.display = card.classList.contains('featured-product') ? "block" : "none";
-            } else if (status === "Available") {
-                // Show products that don't have "Not Available" status
-                const statusBadge = card.querySelector('.status-badge');
-                card.style.display = statusBadge.textContent !== "Not Available" ? "block" : "none";
+            } else if (status === "Pickup") {
+                // Show products with "Pick Up" status
+                card.style.display = card.getAttribute("data-status") === "Pick Up" ? "block" : "none";
             } else if (status === "Unavailable") {
                 // Show products that have "Not Available" status
                 const statusBadge = card.querySelector('.status-badge');
@@ -273,8 +273,12 @@ if ($conn->connect_error) {
     }
 
     function addToCart(productId, button, quantity = null) {
+        console.log('addToCart called with:', { productId, button, quantity });
+        
         const quantityInput = button ? button.parentElement.querySelector('input') : null;
         const finalQuantity = quantity || (quantityInput ? parseInt(quantityInput.value) : 1);
+        
+        console.log('Final quantity:', finalQuantity);
 
         fetch("../../pages/cart/add-to-cart.php", {
             method: "POST",
@@ -282,10 +286,16 @@ if ($conn->connect_error) {
             body: `product_id=${productId}&quantity=${finalQuantity}`
         })
         .then(response => {
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+            
             // Check if response is a redirect (status 302) or if content-type is not JSON
             const contentType = response.headers.get('content-type');
+            console.log('Content type:', contentType);
+            
             if (response.redirected || response.status === 302 || (contentType && !contentType.includes('application/json'))) {
                 // If it's a redirect, follow it
+                console.log('Redirecting to:', response.url);
                 window.location.href = response.url;
                 return;
             }
@@ -296,15 +306,20 @@ if ($conn->connect_error) {
             return response.json();
         })
         .then(data => {
+            console.log('Response data:', data);
+            
             if (data && data.success) {
+                console.log('Product added successfully');
                 showConfirmation("Product added to cart successfully!");
                 if (productModalOpen) closeProductModal();
             } else if (data) {
+                console.log('Error in response:', data.error);
                 showConfirmation("Error: " + (data.error || "Unknown error"), true);
             }
         })
         .catch(error => {
-            console.error("Error:", error);
+            console.error("Fetch error:", error);
+            console.error("Error message:", error.message);
             // Don't show error message if it's a redirect (user will be redirected to login)
             if (!error.message.includes('redirect')) {
                 showConfirmation("An error occurred while adding to cart", true);

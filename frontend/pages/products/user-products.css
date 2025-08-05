@@ -137,7 +137,7 @@
   cursor: pointer;
 }
 
-.product-card[data-status="Bread of the Week"] .product-image {
+.product-card[data-status="Delivery"] .product-image {
   /* Using standard height */
   height: 200px;
 }
@@ -246,16 +246,36 @@ h3 {
   margin: 15px 0;
 }
 
-.status-bread-of-the-week {
+.status-delivery {
   color: rgb(104, 123, 83);
 }
 
-.status-available {
+.status-pickup {
   color: var(--available-color);
 }
 
 .status-unavailable {
   color: var(--unavailable-color);
+}
+
+/* Additional status classes for the new status names */
+.status-available {
+  color: var(--available-color);
+}
+
+.status-bread-of-the-week {
+  color: rgb(104, 123, 83);
+}
+
+/* Ensure add-to-cart buttons are clickable */
+.add-to-cart {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+.add-to-cart:not(.unavailable) {
+  pointer-events: auto !important;
+  cursor: pointer !important;
 }
 
 .add-to-cart {
@@ -430,28 +450,28 @@ h2 {
 }
 
 @media (max-width: 768px) {
-  .product-card[data-status="Bread of the Week"] {
+  .product-card[data-status="Delivery"] {
     grid-column: span 1;
     grid-row: span 1;
   }
 
-  .product-card[data-status="Bread of the Week"] .product-image {
+  .product-card[data-status="Delivery"] .product-image {
     height: 200px;
   }
 
-  .product-card[data-status="Bread of the Week"] .product-info h3 {
+  .product-card[data-status="Delivery"] .product-info h3 {
     font-size: 1.2em;
   }
 
-  .product-card[data-status="Bread of the Week"] .price {
+  .product-card[data-status="Delivery"] .price {
     font-size: 1.3em;
   }
 
-  .product-card[data-status="Bread of the Week"] .status-badge {
+  .product-card[data-status="Delivery"] .status-badge {
     font-size: 0.8em;
   }
 
-  .product-card[data-status="Bread of the Week"] .add-to-cart {
+  .product-card[data-status="Delivery"] .add-to-cart {
     font-size: 1em;
   }
 

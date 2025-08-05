@@ -36,7 +36,7 @@ require_once __DIR__ . "/../../user-includes/database.php";
                 <a href="weekly-product.php" class="blog-link">
                         <img src="../../../assets/images/43384560.jpg" alt="Weekly Available">
                         <div class="section-title">
-                            <span>WEEKLY SPECIALS</span>
+                            <span>DELIVERY</span>
                         </div>
                     </a>
                 </div>
@@ -45,7 +45,7 @@ require_once __DIR__ . "/../../user-includes/database.php";
                     <a href="user-products.php" class="blog-link">
                         <img src="../../../assets/images/43387632.JPG" alt="All Products">
                         <div class="section-title">
-                            <span>ALL PRODUCTS</span>
+                            <span>PICK UP</span>
                         </div>
                     </a>
                 </div>

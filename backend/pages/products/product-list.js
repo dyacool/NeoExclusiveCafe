@@ -331,8 +331,8 @@ function updateFilterCounts() {
   );
   const counts = {
     all: rows.length,
-    "Bread of the Week": 0,
-    Available: 0,
+    "Delivery": 0,
+    "Pickup": 0,
     Unavailable: 0,
   };
 
@@ -346,8 +346,8 @@ function updateFilterCounts() {
   // Update count displays
   document.getElementById("count-all").textContent = counts.all;
   document.getElementById("count-featured").textContent =
-    counts["Bread of the Week"];
-  document.getElementById("count-available").textContent = counts["Available"];
+    counts["Delivery"];
+  document.getElementById("count-available").textContent = counts["Pickup"];
   document.getElementById("count-unavailable").textContent =
     counts["Unavailable"];
 }

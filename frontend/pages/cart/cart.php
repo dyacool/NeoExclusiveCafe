@@ -61,6 +61,78 @@ $user_id = $_SESSION['user_id'];
         .cancel-btn {
             background-color: #e0e0e0;
         }
+        
+        .cart-section {
+            margin-bottom: 30px;
+        }
+        
+        .section-header {
+            background: linear-gradient(135deg, #256035, #1a4a2a);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px 8px 0 0;
+            margin-bottom: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .section-header h3 {
+            margin: 0;
+            font-size: 1.3em;
+        }
+        
+        .section-select-all {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .section-select-all input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: white;
+        }
+        
+        .section-select-all label {
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .cart-table {
+            border-radius: 0 0 8px 8px;
+        }
+        
+        .cart-table.pickup-table {
+            border-top: 3px solid #256035;
+        }
+        
+        .cart-table.delivery-table {
+            border-top: 3px solid #e67e22;
+        }
+        
+        .no-items-message {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+            font-style: italic;
+            background: #f9f9f9;
+            border-radius: 0 0 8px 8px;
+        }
+        
+                 .mixed-selection-warning {
+             background-color: #fff3cd;
+             border: 1px solid #ffeaa7;
+             color: #856404;
+             padding: 12px;
+             border-radius: 5px;
+             margin: 10px 0;
+             display: none;
+         }
+         
+
     </style>
 </head>
 <body>
@@ -88,28 +160,57 @@ $user_id = $_SESSION['user_id'];
             Orders must be placed at least 24 hours in advance.
         </p>
 
+        <div id="mixedSelectionWarning" class="mixed-selection-warning">
+            <strong>⚠️ Mixed Selection Warning:</strong> You cannot mix Pickup and Delivery products in the same order. Please select items from only one category.
+        </div>
+
         <?php
         $stmt = $conn->prepare("
             SELECT c.id AS cart_id, c.quantity, c.price,
                    p.id AS product_id, p.name AS product_name, p.quantity as product_stock,
-                   pi.image_url
+                   pi.image_url, ps.name as status_name
             FROM cart c
             JOIN products p ON c.product_id = p.id
             LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
+            LEFT JOIN product_statuses ps ON p.status_id = ps.id
             WHERE c.user_id = ?
+            ORDER BY ps.name = 'Pickup' DESC, p.name ASC
         ");
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
         $result = $stmt->get_result();
 
-        if ($result->num_rows > 0): ?>
-        <form method="POST" action="checkout.php" id="cartForm">
-            <div class="select-all-container">
-                <input type="checkbox" id="selectAll" class="item-checkbox">
-                <label for="selectAll">Select All Items</label>
-            </div>
+
+        
+        if ($result->num_rows > 0): 
+            // Reset the result pointer to use the data again
+            $result->data_seek(0);
             
-                <table class="cart-table">
+            // Separate items by status
+            $pickup_items = [];
+            $delivery_items = [];
+            
+            while ($row = $result->fetch_assoc()) {
+                if ($row['status_name'] === 'Pick Up') {
+                    $pickup_items[] = $row;
+                } elseif ($row['status_name'] === 'Delivery') {
+                    $delivery_items[] = $row;
+                }
+            }
+        ?>
+        <form method="POST" action="checkout.php" id="cartForm">
+            <!-- Pickup Products Section -->
+            <div class="cart-section">
+                <div class="section-header">
+                    <h3>Pickup</h3>
+                    <div class="section-select-all">
+                        <input type="checkbox" id="selectAllPickup" class="section-checkbox" data-section="pickup">
+                        <label for="selectAllPickup">Select All Pickup</label>
+                    </div>
+                </div>
+                
+                <?php if (!empty($pickup_items)): ?>
+                <table class="cart-table pickup-table">
                     <thead>
                         <tr>
                             <th>Select</th>
@@ -123,17 +224,13 @@ $user_id = $_SESSION['user_id'];
                     </thead>
                     <tbody>
                         <?php
-                        $subtotal = 0;
-                        $cart_items = [];
-                        while ($row = $result->fetch_assoc()):
+                        foreach ($pickup_items as $row):
                             $imageUrl = $row['image_url'] ? "/assets/" . $row['image_url'] : "/assets/images/no-image.jpg";
                             $item_total = $row['price'] * $row['quantity'];
-                            $subtotal += $item_total;
-                            $cart_items[] = $row['cart_id'];
                         ?>
-                        <tr data-cart-id="<?= $row['cart_id'] ?>" data-product-id="<?= $row['product_id'] ?>" data-stock="<?= $row['product_stock'] ?>" data-price="<?= $row['price'] ?>" data-quantity="<?= $row['quantity'] ?>">
+                        <tr data-cart-id="<?= $row['cart_id'] ?>" data-product-id="<?= $row['product_id'] ?>" data-stock="<?= $row['product_stock'] ?>" data-price="<?= $row['price'] ?>" data-quantity="<?= $row['quantity'] ?>" data-status="pickup">
                             <td>
-                                <input type="checkbox" name="selected_cart_ids[]" value="<?= $row['cart_id'] ?>" class="item-checkbox" data-total="<?= $item_total ?>">
+                                <input type="checkbox" name="selected_cart_ids[]" value="<?= $row['cart_id'] ?>" class="item-checkbox pickup-checkbox" data-total="<?= $item_total ?>" data-status="pickup">
                             </td>
                             <td><img src="<?= $imageUrl ?>" alt="<?= htmlspecialchars($row['product_name']) ?>" style="width: 60px; height: 60px; object-fit: cover;"></td>
                             <td><?= htmlspecialchars($row['product_name']) ?></td>
@@ -152,9 +249,75 @@ $user_id = $_SESSION['user_id'];
                                 </button>
                             </td>
                         </tr>
-                        <?php endwhile; ?>
+                        <?php endforeach; ?>
                     </tbody>
                 </table>
+                <?php else: ?>
+                <div class="no-items-message">
+                    No pickup products in your cart
+                </div>
+                <?php endif; ?>
+            </div>
+
+            <!-- Delivery Products Section -->
+            <div class="cart-section">
+                <div class="section-header">
+                    <h3>Delivery</h3>
+                    <div class="section-select-all">
+                        <input type="checkbox" id="selectAllDelivery" class="section-checkbox" data-section="delivery">
+                        <label for="selectAllDelivery">Select All Delivery</label>
+                    </div>
+                </div>
+                
+                <?php if (!empty($delivery_items)): ?>
+                <table class="cart-table delivery-table">
+                    <thead>
+                        <tr>
+                            <th>Select</th>
+                            <th></th>
+                            <th>Product Name</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Total</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        foreach ($delivery_items as $row):
+                            $imageUrl = $row['image_url'] ? "/assets/" . $row['image_url'] : "/assets/images/no-image.jpg";
+                            $item_total = $row['price'] * $row['quantity'];
+                        ?>
+                        <tr data-cart-id="<?= $row['cart_id'] ?>" data-product-id="<?= $row['product_id'] ?>" data-stock="<?= $row['product_stock'] ?>" data-price="<?= $row['price'] ?>" data-quantity="<?= $row['quantity'] ?>" data-status="delivery">
+                            <td>
+                                <input type="checkbox" name="selected_cart_ids[]" value="<?= $row['cart_id'] ?>" class="item-checkbox delivery-checkbox" data-total="<?= $item_total ?>" data-status="delivery">
+                            </td>
+                            <td><img src="<?= $imageUrl ?>" alt="<?= htmlspecialchars($row['product_name']) ?>" style="width: 60px; height: 60px; object-fit: cover;"></td>
+                            <td><?= htmlspecialchars($row['product_name']) ?></td>
+                            <td>
+                                <div class="quantity-controls">
+                                    <button class="quantity-btn" type="button" onclick="updateQuantity(<?= $row['cart_id'] ?>, <?= $row['quantity'] - 1 ?>)">-</button>
+                                    <span class="quantity"><?= $row['quantity'] ?></span>
+                                    <button class="quantity-btn" type="button" onclick="updateQuantity(<?= $row['cart_id'] ?>, <?= $row['quantity'] + 1 ?>)">+</button>
+                                </div>
+                            </td>
+                            <td>₱<?= number_format($row['price'], 2) ?></td>
+                            <td class="item-total">₱<?= number_format($item_total, 2) ?></td>
+                            <td>
+                                <button class="remove-btn" type="button" onclick="showConfirmationModal(<?= $row['cart_id'] ?>)">
+                                    <svg viewBox="0 0 448 512" class="svgIcon"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"></path></svg>
+                                </button>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+                <?php else: ?>
+                <div class="no-items-message">
+                    No delivery products in your cart
+                </div>
+                <?php endif; ?>
+            </div>
 
             <div class="cart-summary">
                 <div class="cart-total"><h3>Subtotal: ₱<span id="displaySubtotal">0.00</span></h3></div>
@@ -201,24 +364,102 @@ function closeConfirmationModal() {
     currentCartId = null;
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize select all checkbox
-    const selectAllCheckbox = document.getElementById('selectAll');
-    const itemCheckboxes = document.querySelectorAll('.item-checkbox:not(#selectAll)');
+function checkMixedSelection() {
+    const pickupChecked = document.querySelectorAll('.pickup-checkbox:checked').length > 0;
+    const deliveryChecked = document.querySelectorAll('.delivery-checkbox:checked').length > 0;
+    const warning = document.getElementById('mixedSelectionWarning');
     
-    // Set up event listeners
-    selectAllCheckbox.addEventListener('change', function() {
-        itemCheckboxes.forEach(checkbox => {
-            checkbox.checked = selectAllCheckbox.checked;
+    if (pickupChecked && deliveryChecked) {
+        warning.style.display = 'block';
+        return true; // Mixed selection detected
+    } else {
+        warning.style.display = 'none';
+        return false; // No mixed selection
+    }
+}
+
+function preventMixedSelection(clickedCheckbox) {
+    const isPickup = clickedCheckbox.classList.contains('pickup-checkbox');
+    const isDelivery = clickedCheckbox.classList.contains('delivery-checkbox');
+    
+    if (isPickup) {
+        // If user is trying to check a pickup item, check if delivery items are already selected
+        const deliveryChecked = document.querySelectorAll('.delivery-checkbox:checked').length > 0;
+        if (deliveryChecked) {
+            showConfirmation('⚠️ Mixed Selection Warning: You cannot mix Pickup and Delivery products in the same order. Please uncheck delivery items first.', true);
+            clickedCheckbox.checked = false;
+            return false;
+        }
+    } else if (isDelivery) {
+        // If user is trying to check a delivery item, check if pickup items are already selected
+        const pickupChecked = document.querySelectorAll('.pickup-checkbox:checked').length > 0;
+        if (pickupChecked) {
+            showConfirmation('⚠️ Mixed Selection Warning: You cannot mix Pickup and Delivery products in the same order. Please uncheck pickup items first.', true);
+            clickedCheckbox.checked = false;
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize section checkboxes
+    const selectAllPickup = document.getElementById('selectAllPickup');
+    const selectAllDelivery = document.getElementById('selectAllDelivery');
+    const pickupCheckboxes = document.querySelectorAll('.pickup-checkbox');
+    const deliveryCheckboxes = document.querySelectorAll('.delivery-checkbox');
+    
+    // Set up section select all event listeners
+    selectAllPickup.addEventListener('change', function() {
+        if (this.checked) {
+            // Check if delivery items are already selected
+            const deliveryChecked = document.querySelectorAll('.delivery-checkbox:checked').length > 0;
+            if (deliveryChecked) {
+                showConfirmation('⚠️ Mixed Selection Warning: You cannot mix Pickup and Delivery products in the same order. Please uncheck delivery items first.', true);
+                this.checked = false;
+                return;
+            }
+        }
+        
+        pickupCheckboxes.forEach(checkbox => {
+            checkbox.checked = selectAllPickup.checked;
         });
         updateSubtotal();
+        checkMixedSelection();
+    });
+    
+    selectAllDelivery.addEventListener('change', function() {
+        if (this.checked) {
+            // Check if pickup items are already selected
+            const pickupChecked = document.querySelectorAll('.pickup-checkbox:checked').length > 0;
+            if (pickupChecked) {
+                showConfirmation('⚠️ Mixed Selection Warning: You cannot mix Pickup and Delivery products in the same order. Please uncheck pickup items first.', true);
+                this.checked = false;
+                return;
+            }
+        }
+        
+        deliveryCheckboxes.forEach(checkbox => {
+            checkbox.checked = selectAllDelivery.checked;
+        });
+        updateSubtotal();
+        checkMixedSelection();
     });
     
     // Setup individual checkbox listeners
-    itemCheckboxes.forEach(checkbox => {
+    const allItemCheckboxes = document.querySelectorAll('.item-checkbox');
+    allItemCheckboxes.forEach(checkbox => {
         checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                // Check if this would create a mixed selection
+                if (!preventMixedSelection(this)) {
+                    return; // Checkbox was unchecked by preventMixedSelection
+                }
+            }
             updateSubtotal();
-            updateSelectAllCheckbox();
+            updateSectionCheckboxes();
+            checkMixedSelection();
         });
     });
 
@@ -234,19 +475,24 @@ document.addEventListener('DOMContentLoaded', function() {
     updateSubtotal();
 });
 
-function updateSelectAllCheckbox() {
-    const selectAllCheckbox = document.getElementById('selectAll');
-    const itemCheckboxes = document.querySelectorAll('.item-checkbox:not(#selectAll)');
-    const checkedBoxes = document.querySelectorAll('.item-checkbox:not(#selectAll):checked');
+function updateSectionCheckboxes() {
+    const pickupCheckboxes = document.querySelectorAll('.pickup-checkbox');
+    const deliveryCheckboxes = document.querySelectorAll('.delivery-checkbox');
+    const selectAllPickup = document.getElementById('selectAllPickup');
+    const selectAllDelivery = document.getElementById('selectAllDelivery');
     
-    selectAllCheckbox.checked = checkedBoxes.length === itemCheckboxes.length;
+    const checkedPickup = document.querySelectorAll('.pickup-checkbox:checked');
+    const checkedDelivery = document.querySelectorAll('.delivery-checkbox:checked');
+    
+    selectAllPickup.checked = checkedPickup.length === pickupCheckboxes.length && pickupCheckboxes.length > 0;
+    selectAllDelivery.checked = checkedDelivery.length === deliveryCheckboxes.length && deliveryCheckboxes.length > 0;
 }
 
 function updateSubtotal() {
     let subtotal = 0;
     const selectedCartIds = [];
     
-    document.querySelectorAll('.item-checkbox:not(#selectAll):checked').forEach(checkbox => {
+    document.querySelectorAll('.item-checkbox:checked').forEach(checkbox => {
         const row = checkbox.closest('tr');
         const price = parseFloat(row.dataset.price);
         const quantity = parseInt(row.dataset.quantity);
@@ -267,9 +513,15 @@ function validateCart() {
     }
     
     // Check if any item is selected
-    const selectedItems = document.querySelectorAll('.item-checkbox:not(#selectAll):checked');
+    const selectedItems = document.querySelectorAll('.item-checkbox:checked');
     if (selectedItems.length === 0) {
         showConfirmation('Please select at least one item to checkout', true);
+        return false;
+    }
+
+    // Check for mixed selection
+    if (checkMixedSelection()) {
+        showConfirmation('You cannot mix Pickup and Delivery products in the same order. Please select items from only one category.', true);
         return false;
     }
 
@@ -303,7 +555,7 @@ function updateQuantity(cartId, newQuantity) {
         return;
     }
 
-    fetch("../../php/users/update-cart.php", {
+    fetch("update-cart.php", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: `cart_id=${cartId}&quantity=${newQuantity}`
@@ -320,7 +572,7 @@ function updateQuantity(cartId, newQuantity) {
 }
 
 function removeItem(cartId) {
-    fetch("../../php/users/remove-from-cart.php", {
+    fetch("remove-from-cart.php", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: `cart_id=${cartId}`

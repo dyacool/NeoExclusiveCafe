@@ -76,7 +76,7 @@ if ($conn->connect_error) {
             </svg>
             <span class="hover-underline-animation"> Go Back </span>
         </button>   
-    <h1 class="prdct-title">Bread of the Week</h1>
+    <h1 class="prdct-title">Delivery Products</h1>
     <div class="main-container fade-in">
         <div class="products-grid" id="productsGrid">
             <?php
@@ -87,7 +87,7 @@ if ($conn->connect_error) {
                         LEFT JOIN product_statuses ps ON p.status_id = ps.id
                         LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
                         WHERE p.deleted_at IS NULL 
-                        AND ps.name = 'Bread of the Week'
+                        AND ps.name = 'Delivery'
                         AND (p.status_id != 3 
                             OR (p.status_id = 3 AND p.show_when_unavailable = 1))
                         ORDER BY p.is_featured DESC, p.status_id ASC";
@@ -163,7 +163,7 @@ if ($conn->connect_error) {
                         echo "</div></div>";
                     }
                 } else {
-                    echo "<div class='no-products'>No Bread of the Week products available at the moment.</div>";
+                    echo "<div class='no-products'>No Delivery products available at the moment.</div>";
                 }
                 $conn->close();
             ?>
