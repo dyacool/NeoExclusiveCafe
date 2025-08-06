@@ -40,29 +40,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $price = $_POST['price'];
     $status_id = $_POST['status_id'];
     $quantity = $_POST['quantity']; // Added this line to get quantity
-    // Handle days_to_make - allow empty/null values since column is DEFAULT NULL
-    $days_to_make = null;
-    if (isset($_POST['days_to_make']) && $_POST['days_to_make'] !== '') {
-        $days_to_make = filter_var($_POST['days_to_make'], FILTER_VALIDATE_INT);
-        if ($days_to_make === false) {
-            echo "Error: Invalid days to make value";
-            exit();
-        }
-    }
     $is_featured = isset($_POST['is_featured']) ? 1 : 0;
     $show_when_unavailable = isset($_POST['show_when_unavailable']) ? 1 : 0;
     $hide_when_unavailable = isset($_POST['hide_when_unavailable']) ? 1 : 0;
 
-    // Use different approach for nullable days_to_make
-    if ($days_to_make === null) {
-        $stmt = $conn->prepare("INSERT INTO products (sku, name, description, price, status_id, quantity, days_to_make, is_featured, show_when_unavailable, hide_when_unavailable) 
-                                VALUES (?, ?, ?, ?, ?, ?, NULL, ?, ?, ?)");
-        $stmt->bind_param("sssdiiiii", $sku, $name, $description, $price, $status_id, $quantity, $is_featured, $show_when_unavailable, $hide_when_unavailable);
-    } else {
-        $stmt = $conn->prepare("INSERT INTO products (sku, name, description, price, status_id, quantity, days_to_make, is_featured, show_when_unavailable, hide_when_unavailable) 
-                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("sssdiiiiis", $sku, $name, $description, $price, $status_id, $quantity, $days_to_make, $is_featured, $show_when_unavailable, $hide_when_unavailable);
+    // Handle available days - only process if status is Delivery
+    $available_days = [];
+    if (isset($_POST['available_days']) && is_array($_POST['available_days'])) {
+        $available_days = $_POST['available_days'];
     }
+
+    // Insert product without days_to_make field
+    $stmt = $conn->prepare("INSERT INTO products (sku, name, description, price, status_id, quantity, is_featured, show_when_unavailable, hide_when_unavailable) 
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("sssdiiiii", $sku, $name, $description, $price, $status_id, $quantity, $is_featured, $show_when_unavailable, $hide_when_unavailable);
     
     if ($stmt->execute()) {
         $product_id = $stmt->insert_id;
@@ -121,6 +112,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     }
                 }
             }
+        }
+
+        // Insert available days into product_day table only if status is Delivery
+        if ($status_id == 2 && !empty($available_days)) {
+            $day_stmt = $conn->prepare("INSERT INTO product_day (product_id, day_of_week) VALUES (?, ?)");
+            foreach ($available_days as $day) {
+                $day_stmt->bind_param("is", $product_id, $day);
+                $day_stmt->execute();
+            }
+            $day_stmt->close();
         }
 
         // Set success message in session
@@ -241,19 +242,48 @@ $conn->close();
                     <input class="price" type="text" name="price" required pattern="^\d*\.?\d*$" oninput="this.value = this.value.replace(/[^0-9.]/g, '')">
 
                     <label>Status:</label>
-                    <select class="statusGrp" name="status_id">
-                        <option value="1">Delivery</option>
-                        <option value="2">Pickup</option>
-                        <option value="3">Unavailable</option>
-                    </select>
+                                         <select class="statusGrp" name="status_id">
+                         <option value="1">Pick Up</option>
+                         <option value="2">Delivery</option>
+                         <option value="3">Unavailable</option>
+                     </select>
 
                     <!-- Added Quantity Available For Pre-Order field -->
                     <label>Quantity Available For Pre-Order:</label>
                     <input class="quantity" type="number" name="quantity" min="0" step="1" value="0" required>
 
-                    <!-- Added Days to Make field -->
-                    <label>Days to Make:</label>
-                    <input class="days-to-make" type="number" name="days_to_make" min="1" step="1" placeholder="Enter number of days " required>
+                    <!-- Added Available Days field -->
+                    <label>Available Days:</label>
+                    <div class="checkbox-group days-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="available_days[]" id="sunday" value="Sunday">
+                            <label class="cb-itm" for="sunday" style="display: inline;">Sunday</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="available_days[]" id="monday" value="Monday">
+                            <label class="cb-itm" for="monday" style="display: inline;">Monday</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="available_days[]" id="tuesday" value="Tuesday">
+                            <label class="cb-itm" for="tuesday" style="display: inline;">Tuesday</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="available_days[]" id="wednesday" value="Wednesday">
+                            <label class="cb-itm" for="wednesday" style="display: inline;">Wednesday</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="available_days[]" id="thursday" value="Thursday">
+                            <label class="cb-itm" for="thursday" style="display: inline;">Thursday</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="available_days[]" id="friday" value="Friday">
+                            <label class="cb-itm" for="friday" style="display: inline;">Friday</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="available_days[]" id="saturday" value="Saturday">
+                            <label class="cb-itm" for="saturday" style="display: inline;">Saturday</label>
+                        </div>
+                    </div>
 
                     <label>Visibility</label>
                     <div class="checkbox-group">
@@ -296,10 +326,35 @@ $conn->close();
                 }, 500);
             }, 500);
         }
+
+        // Initialize available days visibility based on initial status
+        toggleAvailableDaysVisibility();
+
+        // Add event listener to status dropdown
+        const statusSelect = document.querySelector('select[name="status_id"]');
+        if (statusSelect) {
+            statusSelect.addEventListener('change', toggleAvailableDaysVisibility);
+        }
     });
 
     // Global variables to track uploaded files
     let additionalImagesArray = [];
+
+    // Function to toggle available days visibility based on status
+    function toggleAvailableDaysVisibility() {
+        const statusSelect = document.querySelector('select[name="status_id"]');
+        const availableDaysContainer = document.querySelector('.checkbox-group.days-group');
+        
+        if (statusSelect && availableDaysContainer) {
+            const selectedStatus = statusSelect.options[statusSelect.selectedIndex].text;
+            
+            if (selectedStatus === 'Delivery') {
+                availableDaysContainer.style.display = 'block';
+            } else {
+                availableDaysContainer.style.display = 'none';
+            }
+        }
+    }
 
     // Primary image handling
     document.getElementById('primaryImageInput').addEventListener('change', function(event) {

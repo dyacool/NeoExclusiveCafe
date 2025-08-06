@@ -82,14 +82,17 @@ if ($conn->connect_error) {
             <?php
                 $sql = "SELECT 
                             p.id, p.name, p.price, p.description, p.status_id, p.is_featured,
-                            ps.name AS status_name, pi.image_url, p.quantity, p.show_when_unavailable 
+                            ps.name AS status_name, pi.image_url, p.quantity, p.show_when_unavailable,
+                            GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
                         FROM products p
                         LEFT JOIN product_statuses ps ON p.status_id = ps.id
                         LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
+                        LEFT JOIN product_day pd ON p.id = pd.product_id
                         WHERE p.deleted_at IS NULL 
                         AND ps.name = 'Delivery'
                         AND (p.status_id != 3 
                             OR (p.status_id = 3 AND p.show_when_unavailable = 1))
+                        GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, ps.name, pi.image_url, p.quantity, p.show_when_unavailable
                         ORDER BY p.is_featured DESC, p.status_id ASC";
         
                 $result = $conn->query($sql);
@@ -116,7 +119,8 @@ if ($conn->connect_error) {
                             'images' => array_filter($images), // Remove any null/empty values
                             'is_featured' => (bool)$row['is_featured'],
                             'quantity' => (int)$row['quantity'],
-                            'show_when_unavailable' => (bool)$row['show_when_unavailable']
+                            'show_when_unavailable' => (bool)$row['show_when_unavailable'],
+                            'available_days' => $row['available_days'] ? explode(', ', $row['available_days']) : []
                         ];
                         
                         // Encode the data for JavaScript

@@ -8,6 +8,30 @@
     // Include config file for base URL
     require_once __DIR__ . "/../admin-includes/config.php";
 
+    // Function to format available days in compact format
+    function formatAvailableDays($availableDays) {
+        if (empty($availableDays)) return "Not set";
+        
+        $dayMap = [
+            'Sunday' => 'S',
+            'Monday' => 'M', 
+            'Tuesday' => 'T',
+            'Wednesday' => 'W',
+            'Thursday' => 'Th',
+            'Friday' => 'F',
+            'Saturday' => 'Sa'
+        ];
+        
+        $days = explode(', ', $availableDays);
+        $formattedDays = [];
+        
+        foreach ($days as $day) {
+            $formattedDays[] = isset($dayMap[$day]) ? $dayMap[$day] : $day;
+        }
+        
+        return implode(', ', $formattedDays);
+    }
+
     // Pagination settings
     $items_per_page = 12;
     $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -55,13 +79,17 @@
                         <span class="filter-count" id="count-all">0</span>
                         All Products
                     </button>
-                    <button class="filter-btn" onclick="filterProducts('Delivery', this)" data-filter="featured">
+                    <button class="filter-btn" onclick="filterProducts('Pick Up', this)" data-filter="pickup">
+                        <span class="filter-count" id="count-pickup">0</span>
+                        Pickup
+                    </button>
+                    <button class="filter-btn" onclick="filterProducts('Delivery', this)" data-filter="delivery">
+                        <span class="filter-count" id="count-delivery">0</span>
+                        Delivery
+                    </button>
+                    <button class="filter-btn" onclick="filterProducts('featured', this)" data-filter="featured">
                         <span class="filter-count" id="count-featured">0</span>
                         Featured
-                    </button>
-                    <button class="filter-btn" onclick="filterProducts('Available', this)" data-filter="available">
-                        <span class="filter-count" id="count-available">0</span>
-                        Available
                     </button>
                     <button class="filter-btn" onclick="filterProducts('Unavailable', this)" data-filter="unavailable">
                         <span class="filter-count" id="count-unavailable">0</span>
@@ -121,13 +149,39 @@
                             $sql = "SELECT 
                                         p.id, p.sku, p.name, p.price, p.status_id, ps.name AS status_name, 
                                         pi.image_url, p.is_featured, p.show_when_unavailable, p.hide_when_unavailable,
-                                        p.quantity, p.days_to_make 
+                                        p.quantity,
+                                        GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
                                     FROM products p
                                     LEFT JOIN product_statuses ps ON p.status_id = ps.id
                                     LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
+                                    LEFT JOIN product_day pd ON p.id = pd.product_id
                                     WHERE p.deleted_at IS NULL
+                                    GROUP BY p.id, p.sku, p.name, p.price, p.status_id, ps.name, pi.image_url, p.is_featured, p.show_when_unavailable, p.hide_when_unavailable, p.quantity
                                     ORDER BY p.created_at DESC
                                     LIMIT $items_per_page OFFSET $offset";
+                                    
+                            // Also get all products for JavaScript filtering (without pagination)
+                            $all_products_sql = "SELECT 
+                                                    p.id, p.sku, p.name, p.price, p.status_id, ps.name AS status_name, 
+                                                    pi.image_url, p.is_featured, p.show_when_unavailable, p.hide_when_unavailable,
+                                                    p.quantity,
+                                                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                                                FROM products p
+                                                LEFT JOIN product_statuses ps ON p.status_id = ps.id
+                                                LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
+                                                LEFT JOIN product_day pd ON p.id = pd.product_id
+                                                WHERE p.deleted_at IS NULL
+                                                GROUP BY p.id, p.sku, p.name, p.price, p.status_id, ps.name, pi.image_url, p.is_featured, p.show_when_unavailable, p.hide_when_unavailable, p.quantity
+                                                ORDER BY p.created_at DESC";
+                                    
+                            $all_products_result = $conn->query($all_products_sql);
+                            $all_products_data = [];
+                            
+                            if ($all_products_result->num_rows > 0) {
+                                while ($row = $all_products_result->fetch_assoc()) {
+                                    $all_products_data[] = $row;
+                                }
+                            }
                                     
                             $result = $conn->query($sql);
 
@@ -145,7 +199,6 @@
                                         $imagePath = '/assets/' . $row['image_url'];
                                     }
 
-                                    $days_to_make = isset($row['days_to_make']) ? $row['days_to_make'] : null;
                                     echo "<tr data-status='" . $row['status_name'] . "' data-name='" . strtolower($row['name']) . "' data-sku='" . strtolower($row['sku']) . "'>
                                             <td>
                                                 <div class='product-image-container'>
@@ -178,9 +231,9 @@
                                                     </span>
                                                 </div>
                                             </td>
-                                            <td>
-                                                <span class='days-to-make-text'>" . ($days_to_make ? $days_to_make . " days" : "Not set") . "</span>
-                                            </td>
+                                                                                         <td>
+                                                 <span class='available-days-text'>" . formatAvailableDays($row['available_days']) . "</span>
+                                             </td>
                                             <td>
                                                 <div class='action-buttons'>
                                                     <button class='btn-action btn-edit' onclick=\"openEditModal(
@@ -192,7 +245,8 @@
                                                         " . ($row["show_when_unavailable"] ? "true" : "false") . ",
                                                         " . ($row["hide_when_unavailable"] ? "true" : "false") . ",
                                                         " . $quantity . ",
-                                                        " . ($days_to_make ? $days_to_make : "null") . "
+                                                        '" . addslashes($row['available_days']) . "',
+                                                        '" . addslashes($row['status_name']) . "'
                                                     )\" title='Edit Product'>
                                                         <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>
                                                             <path d='M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7'></path>
@@ -282,6 +336,11 @@
     </div>
 </div>
 
+<!-- Hidden container with all products data for JavaScript -->
+<div id="allProductsData" style="display: none;">
+    <?php echo json_encode($all_products_data); ?>
+</div>
+
 <!-- Edit Product Modal -->
 <div id="editModal" class="modal">
     <div class="modal-overlay"></div>
@@ -296,64 +355,162 @@
             </button>
         </div>
         
-        <form id="editProductForm" class="modal-form">
-            <input type="hidden" id="editProductId">
-            
-            <div class="form-group">
-                <label for="editProductName">Product Name</label>
-                <input type="text" id="editProductName" required>
+        <div class="modal-content-wrapper">
+            <!-- Left Side - Image Management -->
+            <div class="modal-left-panel">
+                <div class="image-management-section">
+                    <h3>Product Images</h3>
+                    
+                    <!-- Primary Image Section -->
+                    <div class="primary-image-section">
+                        <label>Primary Image</label>
+                        <div class="primary-image-container" id="editPrimaryImageContainer">
+                            <div class="image-placeholder" id="editPrimaryPlaceholder">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                    <polyline points="21,15 16,10 5,21"></polyline>
+                                </svg>
+                                <span>No primary image</span>
+                            </div>
+                        </div>
+                        <div class="image-actions">
+                            <input type="file" id="editPrimaryImageInput" accept="image/*" style="display: none;">
+                            <button type="button" class="btn btn-secondary" onclick="document.getElementById('editPrimaryImageInput').click()">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7,10 12,15 17,10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                Upload Primary
+                            </button>
+                            <button type="button" class="btn btn-danger" id="editRemovePrimaryBtn" style="display: none;" onclick="removePrimaryImage()">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3,6 5,6 21,6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Additional Images Section -->
+                    <div class="additional-images-section">
+                        <label>Additional Images (Max 3)</label>
+                        <div class="additional-images-container" id="editAdditionalImagesContainer">
+                            <div class="image-placeholder" id="editAdditionalPlaceholder">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                    <polyline points="21,15 16,10 5,21"></polyline>
+                                </svg>
+                                <span>No additional images</span>
+                            </div>
+                        </div>
+                        <div class="image-actions">
+                            <input type="file" id="editAdditionalImagesInput" accept="image/*" multiple style="display: none;">
+                            <button type="button" class="btn btn-secondary" onclick="document.getElementById('editAdditionalImagesInput').click()">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7,10 12,15 17,10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                Add Images
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="editProductPrice">Price (₱)</label>
-                    <input type="number" id="editProductPrice" step="0.01" required>
-                </div>
-                <div class="form-group">
-                    <label for="editProductQuantity">Stock Quantity</label>
-                    <input type="number" id="editProductQuantity" min="0" step="1" required>
-                </div>
-            </div>
+            <!-- Right Side - Form Fields -->
+            <div class="modal-right-panel">
+                <form id="editProductForm" class="modal-form">
+                    <input type="hidden" id="editProductId">
+                    
+                    <div class="form-group">
+                        <label for="editProductName">Product Name</label>
+                        <input type="text" id="editProductName" required>
+                    </div>
 
-                <div class="form-row">
-        <div class="form-group">
-            <label for="editProductDaysToMake">Days to Make</label>
-            <input type="number" id="editProductDaysToMake" min="1" step="1" placeholder="Enter number of days (optional)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editProductPrice">Price (₱)</label>
+                            <input type="number" id="editProductPrice" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editProductQuantity">Stock Quantity</label>
+                            <input type="number" id="editProductQuantity" min="0" step="1" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editProductStatus">Status</label>
+                            <select id="editProductStatus">
+                                <option value="1">Pick Up</option>
+                                <option value="2">Delivery</option>
+                                <option value="3">Unavailable</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="editIsFeature">Featured Product</label>
+                            <select id="editIsFeature">
+                                <option value="0">Not Featured</option>
+                                <option value="1">Featured</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editVisibilityOption">Visibility When Unavailable</label>
+                        <select id="editVisibilityOption">
+                            <option value="default">Default (Hidden)</option>
+                            <option value="show">Show When Unavailable</option>
+                            <option value="hide">Hide When Unavailable</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Available Days:</label>
+                        <div class="checkbox-group days-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" name="edit_available_days[]" id="edit_sunday" value="Sunday">
+                                <label for="edit_sunday" style="display: inline;">Sunday</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" name="edit_available_days[]" id="edit_monday" value="Monday">
+                                <label for="edit_monday" style="display: inline;">Monday</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" name="edit_available_days[]" id="edit_tuesday" value="Tuesday">
+                                <label for="edit_tuesday" style="display: inline;">Tuesday</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" name="edit_available_days[]" id="edit_wednesday" value="Wednesday">
+                                <label for="edit_wednesday" style="display: inline;">Wednesday</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" name="edit_available_days[]" id="edit_thursday" value="Thursday">
+                                <label for="edit_thursday" style="display: inline;">Thursday</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" name="edit_available_days[]" id="edit_friday" value="Friday">
+                                <label for="edit_friday" style="display: inline;">Friday</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" name="edit_available_days[]" id="edit_saturday" value="Saturday">
+                                <label for="edit_saturday" style="display: inline;">Saturday</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
         </div>
-    </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="editProductStatus">Status</label>
-                    <select id="editProductStatus">
-                        <option value="1">Delivery</option>
-                        <option value="2">Pickup</option>
-                        <option value="3">Unavailable</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="editIsFeature">Featured Product</label>
-                    <select id="editIsFeature">
-                        <option value="0">Not Featured</option>
-                        <option value="1">Featured</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label for="editVisibilityOption">Visibility When Unavailable</label>
-                <select id="editVisibilityOption">
-                    <option value="default">Default (Hidden)</option>
-                    <option value="show">Show When Unavailable</option>
-                    <option value="hide">Hide When Unavailable</option>
-                </select>
-            </div>
-
-            <div class="modal-actions">
-                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                <button type="submit" class="btn btn-primary">Save Changes</button>
-            </div>
-        </form>
     </div>
 </div>
 

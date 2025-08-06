@@ -7,7 +7,16 @@ if (headers_sent()) {
         !strpos($_SERVER['SCRIPT_NAME'], '/admin/accept-order.php') &&
         !strpos($_SERVER['SCRIPT_NAME'], '/admin/decline-order.php') &&
         !strpos($_SERVER['SCRIPT_NAME'], '/admin/minimal-orders.php') &&
-        !strpos($_SERVER['SCRIPT_NAME'], '/products/update-product.php')) {
+        !strpos($_SERVER['SCRIPT_NAME'], '/products/update-product.php') &&
+        !strpos($_SERVER['SCRIPT_NAME'], '/products/get-product-images.php') &&
+        !strpos($_SERVER['SCRIPT_NAME'], '/products/remove-product-image.php') &&
+        !strpos($_SERVER['SCRIPT_NAME'], '/products/upload-product-image.php') &&
+    !strpos($_SERVER['SCRIPT_NAME'], '/products/upload-temp-image.php') &&
+    !strpos($_SERVER['SCRIPT_NAME'], '/products/cleanup-temp-images.php') &&
+    !strpos($_SERVER['SCRIPT_NAME'], '/products/move-temp-to-permanent.php') &&
+    !strpos($_SERVER['SCRIPT_NAME'], '/products/remove-individual-image.php') &&
+    !strpos($_SERVER['SCRIPT_NAME'], '/products/restore-removed-images.php') &&
+    !strpos($_SERVER['SCRIPT_NAME'], '/products/delete-removed-images.php')) {
         
         echo "<!-- Headers already sent, could not set content type -->";
     }
@@ -17,7 +26,16 @@ if (headers_sent()) {
         strpos($_SERVER['SCRIPT_NAME'], '/admin/accept-order.php') ||
         strpos($_SERVER['SCRIPT_NAME'], '/admin/decline-order.php') ||
         strpos($_SERVER['SCRIPT_NAME'], '/admin/minimal-orders.php') ||
-        strpos($_SERVER['SCRIPT_NAME'], '/products/update-product.php')) {
+        strpos($_SERVER['SCRIPT_NAME'], '/products/update-product.php') ||
+        strpos($_SERVER['SCRIPT_NAME'], '/products/get-product-images.php') ||
+        strpos($_SERVER['SCRIPT_NAME'], '/products/remove-product-image.php') ||
+        strpos($_SERVER['SCRIPT_NAME'], '/products/upload-product-image.php') ||
+        strpos($_SERVER['SCRIPT_NAME'], '/products/upload-temp-image.php') ||
+        strpos($_SERVER['SCRIPT_NAME'], '/products/cleanup-temp-images.php') ||
+        strpos($_SERVER['SCRIPT_NAME'], '/products/move-temp-to-permanent.php') ||
+        strpos($_SERVER['SCRIPT_NAME'], '/products/remove-individual-image.php') ||
+        strpos($_SERVER['SCRIPT_NAME'], '/products/restore-removed-images.php') ||
+        strpos($_SERVER['SCRIPT_NAME'], '/products/delete-removed-images.php')) {
         
         // For API endpoints, force JSON content type
         header('Content-Type: application/json');

@@ -70,14 +70,17 @@ require_once __DIR__ . "/../../user-includes/user-header.php";
 $featured_query = "SELECT DISTINCT p.*, 
                     COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
                     ps.name as status_name,
-                    p.quantity as stock
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
                   FROM crud.products p 
                   LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
                   LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
                   WHERE p.is_featured = 1 
                   AND p.deleted_at IS NULL
                   AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
                   AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
                   ORDER BY p.created_at DESC";
 
 $featured_stmt = mysqli_prepare($conn, $featured_query);
@@ -191,7 +194,8 @@ $total_images = mysqli_num_rows($images_result);
                                 'images' => $product['images'],
                                 'is_featured' => (bool)$product['is_featured'],
                                 'quantity' => $product['stock'],
-                                'show_when_unavailable' => (bool)($product['hide_when_unavailable'] == 0)
+                                'show_when_unavailable' => (bool)($product['hide_when_unavailable'] == 0),
+                                'available_days' => $product['available_days'] ? explode(', ', $product['available_days']) : []
                             ];
                         ?>
                             <div class="product-card featured-product" 
