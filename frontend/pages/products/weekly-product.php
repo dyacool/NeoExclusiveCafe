@@ -77,6 +77,23 @@ if ($conn->connect_error) {
             <span class="hover-underline-animation"> Go Back </span>
         </button>   
     <h1 class="prdct-title">Delivery Products</h1>
+    
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <label for="productFilter">Filter Products:</label>
+        <select id="productFilter" onchange="filterProducts()">
+            <option value="all">All Delivery Products</option>
+            <option value="sunday">Sunday</option>
+            <option value="monday">Monday</option>
+            <option value="tuesday">Tuesday</option>
+            <option value="wednesday">Wednesday</option>
+            <option value="thursday">Thursday</option>
+            <option value="friday">Friday</option>
+            <option value="saturday">Saturday</option>
+            <option value="unavailable">Unavailable</option>
+        </select>
+    </div>
+    
     <div class="main-container fade-in">
         <div class="products-grid" id="productsGrid">
             <?php
@@ -89,9 +106,9 @@ if ($conn->connect_error) {
                         LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
                         LEFT JOIN product_day pd ON p.id = pd.product_id
                         WHERE p.deleted_at IS NULL 
-                        AND ps.name = 'Delivery'
-                        AND (p.status_id != 3 
-                            OR (p.status_id = 3 AND p.show_when_unavailable = 1))
+                        AND (ps.name = 'Delivery' OR ps.name = 'Unavailable Delivery' OR ps.name = 'Unavailable Pick Up')
+                        AND (p.status_id NOT IN (4, 5) 
+                            OR (p.status_id IN (4, 5) AND p.show_when_unavailable = 1))
                         GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, ps.name, pi.image_url, p.quantity, p.show_when_unavailable
                         ORDER BY p.is_featured DESC, p.status_id ASC";
         
@@ -131,12 +148,13 @@ if ($conn->connect_error) {
                         }
                         
                         $featuredClass = $row['is_featured'] ? 'featured-product' : '';
-                        $isUnavailable = $row['status_id'] == 3 || $row['quantity'] <= 0;
+                        $isUnavailable = in_array($row['status_id'], [4, 5]) || $row['quantity'] <= 0;
                         $statusClass = strtolower(str_replace(' ', '-', $row['status_name'] ?? 'unknown'));
                         
                         // Use data attribute instead of onclick to prevent escaping issues
                         echo "<div class='product-card {$featuredClass}' 
                               data-status='" . htmlspecialchars($row['status_name'] ?? 'Unknown') . "'
+                              data-available-days='" . htmlspecialchars($row['available_days'] ?? '') . "'
                               data-product='" . htmlspecialchars($jsonData, ENT_QUOTES, 'UTF-8') . "'
                               onclick='handleProductClick(this)'>";
                         echo "<div class='product-image'>
@@ -150,8 +168,19 @@ if ($conn->connect_error) {
                                     <p class='price'>₱" . number_format($row['price'], 2) . "</p>
                                     <div class= 'product-availability'>
                                         <span class='status-badge status-{$statusClass}'>" . ($isUnavailable ? "Not Available" : htmlspecialchars($row['status_name'])) . "</span>
-                                        <p class='stock'>Stock: " . $row['quantity'] . "</p>
-                                    </div>";
+                                        <p class='stock'>Stock: " . $row['quantity'] . "</p>";
+                        
+                        // Display available days if product is not unavailable
+                        if (!$isUnavailable && !empty($row['available_days'])) {
+                            $abbreviated_days = str_replace(
+                                ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+                                ['S', 'M', 'T', 'W', 'Th', 'F', 'Sa'],
+                                $row['available_days']
+                            );
+                            echo "<p class='available-days'>Available: " . htmlspecialchars($abbreviated_days) . "</p>";
+                        }
+                        
+                        echo "</div>";
 
                         if (!$isUnavailable) {
                             echo "<div class='quantity-controls'>
@@ -194,6 +223,7 @@ if ($conn->connect_error) {
                 <div class="prdct-qty">
                     <span class="status-badge" id="modalProductStatus"></span>
                     <p class="stock" id="modalProductStock"></p>
+                    <p class="available-days" id="modalProductAvailableDays" style="display: none;"></p>
                 </div>
                 <h3 class="dscrptn">Description:</h3>
                 <div class="description" id="modalProductDescription"></div>
@@ -211,17 +241,26 @@ if ($conn->connect_error) {
 <script>
     let pendingCartAction = null;
 
-    function filterProducts(status) {
+    function filterProducts() {
+        const filterValue = document.getElementById('productFilter').value;
         let cards = document.querySelectorAll(".product-card");
+        
         cards.forEach(card => {
-            if (status === "all") {
+            if (filterValue === "all") {
                 card.style.display = "block";
-            } else if (status === "Featured") {
-                card.style.display = card.classList.contains('featured-product') ? "block" : "none";
-            } else if (card.getAttribute("data-status") === status) {
-                card.style.display = "block";
+            } else if (filterValue === "unavailable") {
+                const statusName = card.getAttribute("data-status");
+                // Show both Unavailable Delivery and Unavailable Pick Up products
+                card.style.display = (statusName === "Unavailable Pick Up" || statusName === "Unavailable Delivery") ? "block" : "none";
             } else {
-                card.style.display = "none";
+                // Filter by available days - only show products that are not unavailable
+                const statusName = card.getAttribute("data-status");
+                const availableDays = card.getAttribute("data-available-days") || "";
+                const dayToCheck = filterValue.charAt(0).toUpperCase() + filterValue.slice(1); // Capitalize first letter
+                
+                // Only show products that are not unavailable and have the specified day available
+                const isUnavailable = statusName === "Unavailable Pick Up" || statusName === "Unavailable Delivery";
+                card.style.display = (!isUnavailable && availableDays.includes(dayToCheck)) ? "block" : "none";
             }
         });
     }
@@ -368,16 +407,35 @@ if ($conn->connect_error) {
             const productStatus = document.getElementById('modalProductStatus');
             const productDescription = document.getElementById('modalProductDescription');
             const productStock = document.getElementById('modalProductStock');
+            const productAvailableDays = document.getElementById('modalProductAvailableDays');
             const quantityInput = document.getElementById('modalQuantity');
             const addToCartBtn = document.getElementById('modalAddToCart');
 
             // Set main content with fallbacks
             productName.textContent = product.name || 'Unknown Product';
             productPrice.textContent = '₱' + (parseFloat(product.price) || 0).toFixed(2);
-            productStatus.textContent = (!product.quantity || product.quantity <= 0 || product.status === 'Unavailable') ? 'Not Available' : (product.status || 'Unknown');
+            productStatus.textContent = (!product.quantity || product.quantity <= 0 || product.status === 'Unavailable Pick Up' || product.status === 'Unavailable Delivery') ? 'Not Available' : (product.status || 'Unknown');
             productStatus.className = 'status-badge status-' + (product.status || '').toLowerCase().replace(' ', '-');
             productDescription.textContent = product.description || 'No description available';
             productStock.textContent = 'Stock: ' + (product.quantity || 0);
+            
+            // Handle available days in modal
+            if (product.available_days && product.available_days.length > 0 && product.status !== 'Unavailable Pick Up' && product.status !== 'Unavailable Delivery' && product.quantity > 0) {
+                const dayAbbreviations = {
+                    'Sunday': 'S',
+                    'Monday': 'M', 
+                    'Tuesday': 'T',
+                    'Wednesday': 'W',
+                    'Thursday': 'Th',
+                    'Friday': 'F',
+                    'Saturday': 'Sa'
+                };
+                const abbreviatedDays = product.available_days.map(day => dayAbbreviations[day] || day);
+                productAvailableDays.textContent = 'Available: ' + abbreviatedDays.join(', ');
+                productAvailableDays.style.display = 'block';
+            } else {
+                productAvailableDays.style.display = 'none';
+            }
 
             // Set quantity input max value
             quantityInput.max = product.quantity || 0;
@@ -406,7 +464,7 @@ if ($conn->connect_error) {
             }
 
             // Set up Add to Cart button
-            const isUnavailable = !product.quantity || product.quantity <= 0 || product.status === 'Unavailable';
+            const isUnavailable = !product.quantity || product.quantity <= 0 || product.status === 'Unavailable Pick Up' || product.status === 'Unavailable Delivery';
             if (isUnavailable) {
                 addToCartBtn.disabled = true;
                 addToCartBtn.textContent = 'Not Available';
@@ -551,6 +609,56 @@ if ($conn->connect_error) {
     input[type="number"]::-webkit-inner-spin-button {
         -webkit-appearance: none;
         margin: 0;
+    }
+
+    /* Filter Section Styles */
+    .filter-section {
+        margin: 20px 0;
+        text-align: center;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .filter-section label {
+        font-weight: 600;
+        color: #333;
+        margin-right: 10px;
+        font-size: 16px;
+    }
+
+    .filter-section select {
+        padding: 8px 12px;
+        border: 2px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+        background: white;
+        color: #333;
+        cursor: pointer;
+        transition: border-color 0.3s ease;
+        min-width: 200px;
+    }
+
+    .filter-section select:focus {
+        outline: none;
+        border-color: #4CAF50;
+        box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+    }
+
+    .filter-section select:hover {
+        border-color: #4CAF50;
+    }
+
+    /* Available Days Styles */
+    .available-days {
+        font-size: 12px;
+        color: #666;
+        margin: 5px 0 0 0;
+    }
+
+    .product-availability {
+        margin-bottom: 10px;
     }
 
 </style>

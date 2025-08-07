@@ -31,6 +31,18 @@ function filterProducts(status, button) {
     .forEach((btn) => btn.classList.remove("active"));
   button.classList.add("active");
 
+  // Show/hide unavailable type dropdown
+  const unavailableDropdown = document.getElementById("unavailableTypeDropdown");
+  if (unavailableDropdown) {
+    if (status === "Unavailable") {
+      unavailableDropdown.style.display = "inline-block";
+    } else {
+      unavailableDropdown.style.display = "none";
+      // Reset dropdown to default when switching away from unavailable
+      unavailableDropdown.value = "all-unavailable";
+    }
+  }
+
   // Filter products from all products data
   let filteredProducts = [];
   
@@ -38,8 +50,13 @@ function filterProducts(status, button) {
     filteredProducts = allProductsData;
   } else if (status === "featured") {
     filteredProducts = allProductsData.filter(product => product.is_featured == 1);
+  } else if (status === "Unavailable") {
+    // For unavailable filter, show all unavailable products initially
+    filteredProducts = allProductsData.filter(product => 
+      product.status_name === "Unavailable Pick Up" || product.status_name === "Unavailable Delivery"
+    );
   } else {
-    // For status-based filters (Pick Up, Delivery, Unavailable)
+    // For status-based filters (Pick Up, Delivery)
     filteredProducts = allProductsData.filter(product => product.status_name === status);
   }
 
@@ -76,6 +93,56 @@ function filterProducts(status, button) {
   const paginationContainer = document.querySelector(".pagination-container");
   if (paginationContainer) {
     paginationContainer.style.display = status === "all" ? "flex" : "none";
+  }
+}
+
+// Function to filter unavailable products by type (Delivery or Pick Up)
+function filterUnavailableByType() {
+  const dropdown = document.getElementById("unavailableTypeDropdown");
+  const selectedValue = dropdown.value;
+  
+  let filteredProducts = [];
+  
+  if (selectedValue === "all-unavailable") {
+    // Show all unavailable products
+    filteredProducts = allProductsData.filter(product => 
+      product.status_name === "Unavailable Pick Up" || product.status_name === "Unavailable Delivery"
+    );
+  } else if (selectedValue === "unavailable-delivery") {
+    // Show only unavailable delivery products
+    filteredProducts = allProductsData.filter(product => product.status_name === "Unavailable Delivery");
+  } else if (selectedValue === "unavailable-pickup") {
+    // Show only unavailable pick up products
+    filteredProducts = allProductsData.filter(product => product.status_name === "Unavailable Pick Up");
+  }
+
+  // Clear current table
+  const tbody = document.getElementById("productTableBody");
+  tbody.innerHTML = "";
+
+  // Add filtered products to table
+  if (filteredProducts.length > 0) {
+    filteredProducts.forEach((product) => {
+      const row = createProductRow(product);
+      tbody.appendChild(row);
+    });
+  } else {
+    // Show empty state
+    const emptyRow = document.createElement("tr");
+    emptyRow.className = "no-results";
+    emptyRow.innerHTML = `
+      <td colspan="7">
+        <div class="empty-state">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+          <h3>No products found</h3>
+          <p>Try adjusting your filter criteria.</p>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(emptyRow);
   }
 }
 
@@ -408,13 +475,22 @@ function openEditModal(
   document.getElementById("editProductPrice").value = price;
   document.getElementById("editProductQuantity").value = quantity;
   document.getElementById("editProductStatus").value = status;
-  document.getElementById("editIsFeature").value = isFeature ? "1" : "0";
+  // Ensure isFeature is properly converted to boolean (handle both boolean and string values)
+  const isFeatureBool = isFeature === true || isFeature === "true" || isFeature === 1 || isFeature === "1";
+  
+  const featuredSelect = document.getElementById("editIsFeature");
+  if (featuredSelect) {
+    featuredSelect.value = isFeatureBool ? "1" : "0";
+  }
 
-  // Set visibility option
+  // Set visibility option (handle both boolean and string values)
   const visibilitySelect = document.getElementById("editVisibilityOption");
-  if (showWhenUnavailable) {
+  const showWhenUnavailableBool = showWhenUnavailable === true || showWhenUnavailable === "true" || showWhenUnavailable === 1 || showWhenUnavailable === "1";
+  const hideWhenUnavailableBool = hideWhenUnavailable === true || hideWhenUnavailable === "true" || hideWhenUnavailable === 1 || hideWhenUnavailable === "1";
+  
+  if (showWhenUnavailableBool) {
     visibilitySelect.value = "show";
-  } else if (hideWhenUnavailable) {
+  } else if (hideWhenUnavailableBool) {
     visibilitySelect.value = "hide";
   } else {
     visibilitySelect.value = "default";
@@ -712,6 +788,11 @@ function updateFilterCounts() {
     // Count featured products
     if (product.is_featured == 1) {
       counts.featured++;
+    }
+    
+    // Count unavailable products (both Unavailable Pick Up and Unavailable Delivery)
+    if (status === "Unavailable Pick Up" || status === "Unavailable Delivery") {
+      counts["Unavailable"]++;
     }
   });
 

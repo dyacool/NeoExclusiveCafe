@@ -40,9 +40,9 @@ try {
         $available_days = $input['available_days'];
     }
     
-    $is_featured = isset($input['is_featured']) ? 1 : 0;
-    $show_when_unavailable = isset($input['show_when_unavailable']) ? 1 : 0;
-    $hide_when_unavailable = isset($input['hide_when_unavailable']) ? 1 : 0;
+    $is_featured = isset($input['is_featured']) && $input['is_featured'] ? 1 : 0;
+    $show_when_unavailable = isset($input['show_when_unavailable']) && $input['show_when_unavailable'] ? 1 : 0;
+    $hide_when_unavailable = isset($input['hide_when_unavailable']) && $input['hide_when_unavailable'] ? 1 : 0;
 
     if ($id === false || empty($name) || $price === false || $status_id === false || $quantity === false) {
         throw new Exception('Invalid input data');
@@ -72,8 +72,34 @@ try {
     );
 
     if ($stmt->execute()) {
+        // Check if quantity is 0 and automatically set status to appropriate unavailable status
+        if ($quantity <= 0) {
+            $new_status_id = 0;
+            
+            // Determine the appropriate unavailable status based on current status
+            if ($status_id == 1) {
+                // Currently Delivery - set to Unavailable Delivery (ID 5)
+                $new_status_id = 5;
+            } else if ($status_id == 2) {
+                // Currently Pick Up - set to Unavailable Pick Up (ID 4)
+                $new_status_id = 4;
+            } else {
+                // For any other status, default to Unavailable Delivery (ID 5)
+                $new_status_id = 5;
+            }
+            
+            // Only update if the new status is different from current
+            if ($new_status_id != $status_id) {
+                $auto_status_sql = "UPDATE products SET status_id = ? WHERE id = ?";
+                $auto_status_stmt = $conn->prepare($auto_status_sql);
+                $auto_status_stmt->bind_param("ii", $new_status_id, $id);
+                $auto_status_stmt->execute();
+                $auto_status_stmt->close();
+            }
+        }
+        
         // Update available days in product_day table only if status is Delivery
-        if ($status_id == 2) {
+        if ($status_id == 1) {
             // First, delete existing days for this product
             $delete_stmt = $conn->prepare("DELETE FROM product_day WHERE product_id = ?");
             $delete_stmt->bind_param("i", $id);

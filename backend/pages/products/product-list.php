@@ -95,6 +95,11 @@
                         <span class="filter-count" id="count-unavailable">0</span>
                         Unavailable
                     </button>
+                    <select id="unavailableTypeDropdown" class="unavailable-type-dropdown" style="display: none;" onchange="filterUnavailableByType()">
+                        <option value="all-unavailable">All Unavailable</option>
+                        <option value="unavailable-delivery">Unavailable Delivery</option>
+                        <option value="unavailable-pickup">Unavailable Pick Up</option>
+                    </select>
                 </div>
             </div>
         </div>
@@ -241,9 +246,9 @@
                                                         '" . addslashes($row["name"]) . "', 
                                                         '" . $row["price"] . "', 
                                                         '" . $status_id . "',
-                                                        " . ($row["is_featured"] ? "true" : "false") . ",
-                                                        " . ($row["show_when_unavailable"] ? "true" : "false") . ",
-                                                        " . ($row["hide_when_unavailable"] ? "true" : "false") . ",
+                                                        '" . ($row["is_featured"] ? "true" : "false") . "',
+                                                        '" . ($row["show_when_unavailable"] ? "true" : "false") . "',
+                                                        '" . ($row["hide_when_unavailable"] ? "true" : "false") . "',
                                                         " . $quantity . ",
                                                         '" . addslashes($row['available_days']) . "',
                                                         '" . addslashes($row['status_name']) . "'
@@ -449,7 +454,9 @@
                             <select id="editProductStatus">
                                 <option value="1">Pick Up</option>
                                 <option value="2">Delivery</option>
-                                <option value="3">Unavailable</option>
+                                <option value="3">Available Today</option>
+                                <option value="4">Unavailable Pick Up</option>
+                                <option value="5">Unavailable Delivery</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -515,5 +522,11 @@
 </div>
 
 <?php $conn->close(); ?>
+
+<!-- Hidden container for all products data -->
+<script id="allProductsData" type="application/json">
+<?php echo json_encode($all_products_data); ?>
+</script>
+
 </body>
 </html>

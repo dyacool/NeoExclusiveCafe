@@ -119,6 +119,15 @@ $isAdmin = isset($_SESSION['isAdmin']) && $_SESSION['isAdmin'] == 1;
                     </li>
                     
                     <li class="nav-item">
+                        <a href="../calendar/calendar.php" class="nav-link">
+                            <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                            </svg>
+                            <span class="nav-text">Calendar</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
                         <a href="../orders/order-list.php" class="nav-link">
                             <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="9" cy="21" r="1"></circle>

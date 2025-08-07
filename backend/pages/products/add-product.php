@@ -115,7 +115,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         // Insert available days into product_day table only if status is Delivery
-        if ($status_id == 2 && !empty($available_days)) {
+        if ($status_id == 1 && !empty($available_days)) {
             $day_stmt = $conn->prepare("INSERT INTO product_day (product_id, day_of_week) VALUES (?, ?)");
             foreach ($available_days as $day) {
                 $day_stmt->bind_param("is", $product_id, $day);
@@ -241,10 +241,10 @@ $conn->close();
                     <label>Price:</label>
                     <input class="price" type="text" name="price" required pattern="^\d*\.?\d*$" oninput="this.value = this.value.replace(/[^0-9.]/g, '')">
 
-                    <label>Status:</label>
-                                         <select class="statusGrp" name="status_id">
-                         <option value="1">Pick Up</option>
-                         <option value="2">Delivery</option>
+                                         <label>Status:</label>
+                     <select class="statusGrp" name="status_id">
+                         <option value="1">Delivery</option>
+                         <option value="2">Pick Up</option>
                          <option value="3">Unavailable</option>
                      </select>
 
@@ -340,21 +340,21 @@ $conn->close();
     // Global variables to track uploaded files
     let additionalImagesArray = [];
 
-    // Function to toggle available days visibility based on status
-    function toggleAvailableDaysVisibility() {
-        const statusSelect = document.querySelector('select[name="status_id"]');
-        const availableDaysContainer = document.querySelector('.checkbox-group.days-group');
-        
-        if (statusSelect && availableDaysContainer) {
-            const selectedStatus = statusSelect.options[statusSelect.selectedIndex].text;
-            
-            if (selectedStatus === 'Delivery') {
-                availableDaysContainer.style.display = 'block';
-            } else {
-                availableDaysContainer.style.display = 'none';
-            }
-        }
-    }
+         // Function to toggle available days visibility based on status
+     function toggleAvailableDaysVisibility() {
+         const statusSelect = document.querySelector('select[name="status_id"]');
+         const availableDaysContainer = document.querySelector('.checkbox-group.days-group');
+         
+         if (statusSelect && availableDaysContainer) {
+             const selectedValue = statusSelect.value;
+             
+             if (selectedValue === '1') { // Delivery
+                 availableDaysContainer.style.display = 'block';
+             } else {
+                 availableDaysContainer.style.display = 'none';
+             }
+         }
+     }
 
     // Primary image handling
     document.getElementById('primaryImageInput').addEventListener('change', function(event) {

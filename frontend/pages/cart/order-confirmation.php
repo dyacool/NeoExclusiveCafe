@@ -394,6 +394,40 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 if (!$update_stock_stmt->execute()) {
                     throw new Exception("Failed to update stock: " . $update_stock_stmt->error);
                 }
+                
+                // Check if product quantity reached 0 and update status to appropriate unavailable status
+                $check_quantity_sql = "SELECT p.quantity, p.status_id FROM products p WHERE p.id = ?";
+                $check_quantity_stmt = $conn->prepare($check_quantity_sql);
+                $check_quantity_stmt->bind_param("i", $item['product_id']);
+                $check_quantity_stmt->execute();
+                $quantity_result = $check_quantity_stmt->get_result();
+                $product_info = $quantity_result->fetch_assoc();
+                $current_quantity = $product_info['quantity'];
+                $current_status_id = $product_info['status_id'];
+                $check_quantity_stmt->close();
+                
+                // If quantity is 0, set status to appropriate unavailable status based on current type
+                if ($current_quantity <= 0) {
+                    $new_status_id = 0;
+                    
+                    // Determine the appropriate unavailable status based on current status
+                    if ($current_status_id == 1) {
+                        // Currently Pick Up - set to Unavailable Pick Up (ID 4)
+                        $new_status_id = 4;
+                    } else if ($current_status_id == 2) {
+                        // Currently Delivery - set to Unavailable Delivery (ID 5)
+                        $new_status_id = 5;
+                    } else {
+                        // For any other status, default to Unavailable Delivery (ID 5)
+                        $new_status_id = 5;
+                    }
+                    
+                    $update_status_sql = "UPDATE products SET status_id = ? WHERE id = ?";
+                    $update_status_stmt = $conn->prepare($update_status_sql);
+                    $update_status_stmt->bind_param("ii", $new_status_id, $item['product_id']);
+                    $update_status_stmt->execute();
+                    $update_status_stmt->close();
+                }
             }
             
             // Delete cart items

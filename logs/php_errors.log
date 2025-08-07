@@ -13409,3 +13409,2027 @@ Stack trace:
 [06-Aug-2025 12:53:37 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
 [06-Aug-2025 15:17:27 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
 [06-Aug-2025 15:17:27 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[06-Aug-2025 16:43:34 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[06-Aug-2025 16:43:34 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[06-Aug-2025 16:43:34 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[06-Aug-2025 16:43:34 Europe/Berlin] Total featured products found: 10
+[06-Aug-2025 16:43:34 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[06-Aug-2025 16:59:22 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[06-Aug-2025 16:59:22 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[06-Aug-2025 16:59:23 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[06-Aug-2025 16:59:23 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[06-Aug-2025 16:59:23 Europe/Berlin] JSON encode error for product 12: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 16:59:23 Europe/Berlin] JSON encode error for product 22: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 16:59:23 Europe/Berlin] JSON encode error for product 13: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 16:59:23 Europe/Berlin] JSON encode error for product 16: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 16:59:23 Europe/Berlin] JSON encode error for product 17: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 16:59:23 Europe/Berlin] JSON encode error for product 18: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 16:59:23 Europe/Berlin] JSON encode error for product 21: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:28:43 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[06-Aug-2025 17:28:43 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[06-Aug-2025 17:28:44 Europe/Berlin] JSON encode error for product 12: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:28:44 Europe/Berlin] JSON encode error for product 22: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:28:44 Europe/Berlin] JSON encode error for product 13: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:28:44 Europe/Berlin] JSON encode error for product 16: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:28:44 Europe/Berlin] JSON encode error for product 17: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:28:44 Europe/Berlin] JSON encode error for product 18: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:28:44 Europe/Berlin] JSON encode error for product 21: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:34:00 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[06-Aug-2025 17:34:00 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[06-Aug-2025 17:34:02 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[06-Aug-2025 17:34:02 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[06-Aug-2025 17:34:05 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[06-Aug-2025 17:34:05 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[06-Aug-2025 17:34:36 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[06-Aug-2025 17:34:36 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[06-Aug-2025 17:34:36 Europe/Berlin] JSON encode error for product 12: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:34:36 Europe/Berlin] JSON encode error for product 22: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:34:36 Europe/Berlin] JSON encode error for product 13: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:34:36 Europe/Berlin] JSON encode error for product 16: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:34:36 Europe/Berlin] JSON encode error for product 17: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:34:36 Europe/Berlin] JSON encode error for product 18: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:34:36 Europe/Berlin] JSON encode error for product 21: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:34:59 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[06-Aug-2025 17:34:59 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[06-Aug-2025 17:34:59 Europe/Berlin] JSON encode error for product 12: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:34:59 Europe/Berlin] JSON encode error for product 22: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:34:59 Europe/Berlin] JSON encode error for product 13: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:34:59 Europe/Berlin] JSON encode error for product 16: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:34:59 Europe/Berlin] JSON encode error for product 17: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:34:59 Europe/Berlin] JSON encode error for product 18: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:34:59 Europe/Berlin] JSON encode error for product 21: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:35:02 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[06-Aug-2025 17:35:02 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[06-Aug-2025 17:35:03 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[06-Aug-2025 17:35:03 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[06-Aug-2025 17:35:20 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[06-Aug-2025 17:35:20 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[06-Aug-2025 17:37:53 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[06-Aug-2025 17:37:53 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[06-Aug-2025 17:37:53 Europe/Berlin] JSON encode error for product 12: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:37:53 Europe/Berlin] JSON encode error for product 22: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:37:53 Europe/Berlin] JSON encode error for product 13: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:37:53 Europe/Berlin] JSON encode error for product 16: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:37:53 Europe/Berlin] JSON encode error for product 17: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:37:53 Europe/Berlin] JSON encode error for product 18: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:37:53 Europe/Berlin] JSON encode error for product 21: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:37:56 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[06-Aug-2025 17:37:56 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[06-Aug-2025 17:37:57 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[06-Aug-2025 17:37:57 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[06-Aug-2025 17:37:57 Europe/Berlin] JSON encode error for product 12: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:37:57 Europe/Berlin] JSON encode error for product 22: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:37:57 Europe/Berlin] JSON encode error for product 13: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:37:57 Europe/Berlin] JSON encode error for product 16: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:37:57 Europe/Berlin] JSON encode error for product 17: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:37:57 Europe/Berlin] JSON encode error for product 18: Malformed UTF-8 characters, possibly incorrectly encoded
+[06-Aug-2025 17:37:57 Europe/Berlin] JSON encode error for product 21: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 01:42:42 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 01:42:42 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 01:42:42 Europe/Berlin] JSON encode error for product 12: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 01:42:42 Europe/Berlin] JSON encode error for product 22: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 01:42:42 Europe/Berlin] JSON encode error for product 13: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 01:42:42 Europe/Berlin] JSON encode error for product 16: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 01:42:42 Europe/Berlin] JSON encode error for product 17: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 01:42:42 Europe/Berlin] JSON encode error for product 18: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 01:42:42 Europe/Berlin] JSON encode error for product 21: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 01:44:12 Europe/Berlin] Processing dates: start=2025-07-27, end=2025-09-07
+[07-Aug-2025 01:44:12 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 01:44:12 Europe/Berlin] With parameters: start=2025-07-27, end=2025-09-07, showCompleted=false
+[07-Aug-2025 01:44:49 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 01:44:49 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 01:44:49 Europe/Berlin] JSON encode error for product 12: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 01:44:49 Europe/Berlin] JSON encode error for product 22: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 01:44:49 Europe/Berlin] JSON encode error for product 13: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 01:44:49 Europe/Berlin] JSON encode error for product 16: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 01:44:49 Europe/Berlin] JSON encode error for product 17: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 01:44:49 Europe/Berlin] JSON encode error for product 18: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 01:44:49 Europe/Berlin] JSON encode error for product 21: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 01:44:51 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 01:44:51 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 01:44:52 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 01:44:52 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 01:44:59 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 01:44:59 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 01:44:59 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[07-Aug-2025 01:44:59 Europe/Berlin] Total featured products found: 10
+[07-Aug-2025 01:44:59 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[07-Aug-2025 01:45:06 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 01:45:06 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 01:50:09 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 01:50:09 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 01:50:15 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 01:50:15 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 01:50:15 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 01:50:15 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 01:50:16 Europe/Berlin] JSON encode error for product 12: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 01:50:16 Europe/Berlin] JSON encode error for product 22: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 01:50:16 Europe/Berlin] JSON encode error for product 13: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 01:50:16 Europe/Berlin] JSON encode error for product 16: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 01:50:16 Europe/Berlin] JSON encode error for product 17: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 01:50:16 Europe/Berlin] JSON encode error for product 18: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 01:50:16 Europe/Berlin] JSON encode error for product 21: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:06:23 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:06:23 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:14:56 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:14:56 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:14:57 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:14:57 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:14:57 Europe/Berlin] JSON encode error for product 12: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:14:57 Europe/Berlin] JSON encode error for product 22: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:14:57 Europe/Berlin] JSON encode error for product 13: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:14:57 Europe/Berlin] JSON encode error for product 16: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:14:57 Europe/Berlin] JSON encode error for product 17: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:14:57 Europe/Berlin] JSON encode error for product 18: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:14:57 Europe/Berlin] JSON encode error for product 21: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:16:38 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:16:38 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:16:38 Europe/Berlin] JSON encode error for product 12: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:16:38 Europe/Berlin] JSON encode error for product 18: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:16:38 Europe/Berlin] JSON encode error for product 22: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:16:38 Europe/Berlin] JSON encode error for product 16: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:16:38 Europe/Berlin] JSON encode error for product 17: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:16:38 Europe/Berlin] JSON encode error for product 21: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:16:59 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:16:59 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:16:59 Europe/Berlin] JSON encode error for product 12: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:16:59 Europe/Berlin] JSON encode error for product 18: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:16:59 Europe/Berlin] JSON encode error for product 22: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:16:59 Europe/Berlin] JSON encode error for product 16: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:16:59 Europe/Berlin] JSON encode error for product 17: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:16:59 Europe/Berlin] JSON encode error for product 21: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:17:45 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:17:45 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:17:45 Europe/Berlin] JSON encode error for product 12: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:17:45 Europe/Berlin] JSON encode error for product 22: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:17:45 Europe/Berlin] JSON encode error for product 16: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:17:45 Europe/Berlin] JSON encode error for product 17: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:17:45 Europe/Berlin] JSON encode error for product 21: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:31:56 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:31:56 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:31:56 Europe/Berlin] JSON encode error for product 12: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:31:56 Europe/Berlin] JSON encode error for product 22: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:31:56 Europe/Berlin] JSON encode error for product 16: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:31:56 Europe/Berlin] JSON encode error for product 17: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:31:56 Europe/Berlin] JSON encode error for product 21: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:32:39 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:32:39 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:32:39 Europe/Berlin] JSON encode error for product 12: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:32:39 Europe/Berlin] JSON encode error for product 22: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:32:39 Europe/Berlin] JSON encode error for product 16: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:32:39 Europe/Berlin] JSON encode error for product 17: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:32:39 Europe/Berlin] JSON encode error for product 21: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:32:40 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:32:40 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:32:40 Europe/Berlin] JSON encode error for product 12: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:32:40 Europe/Berlin] JSON encode error for product 22: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:32:40 Europe/Berlin] JSON encode error for product 16: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:32:40 Europe/Berlin] JSON encode error for product 17: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:32:40 Europe/Berlin] JSON encode error for product 21: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:47:08 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:47:08 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:47:09 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:47:09 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:48:50 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:48:50 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:48:51 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:48:51 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:48:51 Europe/Berlin] JSON encode error for product 12: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:48:51 Europe/Berlin] JSON encode error for product 22: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:48:51 Europe/Berlin] JSON encode error for product 16: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:48:51 Europe/Berlin] JSON encode error for product 17: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:48:51 Europe/Berlin] JSON encode error for product 21: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:50:42 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:50:42 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:50:42 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[07-Aug-2025 02:50:42 Europe/Berlin] Total featured products found: 9
+[07-Aug-2025 02:50:42 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[07-Aug-2025 02:50:45 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:50:45 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:50:47 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:50:47 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:50:47 Europe/Berlin] JSON encode error for product 12: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:50:47 Europe/Berlin] JSON encode error for product 22: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:50:47 Europe/Berlin] JSON encode error for product 16: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:50:47 Europe/Berlin] JSON encode error for product 17: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:50:47 Europe/Berlin] JSON encode error for product 21: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:51:38 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:51:38 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:51:38 Europe/Berlin] JSON encode error for product 12: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:51:38 Europe/Berlin] JSON encode error for product 22: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:51:38 Europe/Berlin] JSON encode error for product 16: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:51:38 Europe/Berlin] JSON encode error for product 21: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 02:53:36 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:53:36 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:53:37 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:53:37 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:53:51 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 02:53:51 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 03:53:44 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 03:53:44 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 03:53:44 Europe/Berlin] JSON encode error for product 12: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 03:53:44 Europe/Berlin] JSON encode error for product 22: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 03:53:44 Europe/Berlin] JSON encode error for product 21: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 03:53:45 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 03:53:45 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 03:53:45 Europe/Berlin] JSON encode error for product 12: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 03:53:45 Europe/Berlin] JSON encode error for product 22: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 03:53:45 Europe/Berlin] JSON encode error for product 21: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 05:18:56 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 05:18:56 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 05:18:56 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[07-Aug-2025 05:18:56 Europe/Berlin] Total featured products found: 11
+[07-Aug-2025 05:18:56 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[07-Aug-2025 05:19:11 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 05:19:11 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 05:19:12 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 05:19:12 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 05:19:12 Europe/Berlin] JSON encode error for product 12: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 05:19:12 Europe/Berlin] JSON encode error for product 22: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 05:19:12 Europe/Berlin] JSON encode error for product 21: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 05:24:01 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 05:24:01 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 05:24:01 Europe/Berlin] JSON encode error for product 12: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 05:24:01 Europe/Berlin] JSON encode error for product 22: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 05:24:01 Europe/Berlin] JSON encode error for product 16: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 05:24:01 Europe/Berlin] JSON encode error for product 17: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 05:24:01 Europe/Berlin] JSON encode error for product 21: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 05:24:43 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 05:24:43 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 05:24:43 Europe/Berlin] JSON encode error for product 12: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 05:24:43 Europe/Berlin] JSON encode error for product 21: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 05:24:43 Europe/Berlin] JSON encode error for product 22: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 05:24:43 Europe/Berlin] JSON encode error for product 16: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 05:24:43 Europe/Berlin] JSON encode error for product 17: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 06:25:01 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 06:25:01 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 06:25:01 Europe/Berlin] JSON encode error for product 12: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 06:25:01 Europe/Berlin] JSON encode error for product 21: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 06:25:01 Europe/Berlin] JSON encode error for product 16: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 06:25:01 Europe/Berlin] JSON encode error for product 17: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 06:25:01 Europe/Berlin] JSON encode error for product 22: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 06:25:04 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 06:25:04 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 06:25:04 Europe/Berlin] JSON encode error for product 12: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 06:25:04 Europe/Berlin] JSON encode error for product 21: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 06:25:04 Europe/Berlin] JSON encode error for product 16: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 06:25:04 Europe/Berlin] JSON encode error for product 17: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 06:25:04 Europe/Berlin] JSON encode error for product 22: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 06:25:06 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 06:25:06 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 06:25:07 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 06:25:07 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 06:25:07 Europe/Berlin] JSON encode error for product 12: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 06:25:07 Europe/Berlin] JSON encode error for product 21: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 06:25:07 Europe/Berlin] JSON encode error for product 16: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 06:25:07 Europe/Berlin] JSON encode error for product 17: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 06:25:07 Europe/Berlin] JSON encode error for product 22: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 06:25:42 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 06:25:42 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 06:25:42 Europe/Berlin] JSON encode error for product 12: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 06:25:42 Europe/Berlin] JSON encode error for product 21: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 06:25:42 Europe/Berlin] JSON encode error for product 16: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 06:25:42 Europe/Berlin] JSON encode error for product 17: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 06:25:42 Europe/Berlin] JSON encode error for product 22: Malformed UTF-8 characters, possibly incorrectly encoded
+[07-Aug-2025 06:26:03 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 06:26:03 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 06:26:06 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 06:26:06 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 06:26:11 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 06:26:11 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 06:50:33 Europe/Berlin] Processing dates: start=2025-07-27, end=2025-09-07
+[07-Aug-2025 06:50:33 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 06:50:33 Europe/Berlin] With parameters: start=2025-07-27, end=2025-09-07, showCompleted=false
+[07-Aug-2025 06:58:03 Europe/Berlin] Processing dates: start=2025-07-31, end=2025-08-30
+[07-Aug-2025 06:58:03 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 06:58:03 Europe/Berlin] With parameters: start=2025-07-31, end=2025-08-30, showCompleted=false
+[07-Aug-2025 06:58:18 Europe/Berlin] Processing dates: start=2025-07-31, end=2025-08-30
+[07-Aug-2025 06:58:18 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 06:58:18 Europe/Berlin] With parameters: start=2025-07-31, end=2025-08-30, showCompleted=false
+[07-Aug-2025 06:58:21 Europe/Berlin] Processing dates: start=2025-06-30, end=2025-07-30
+[07-Aug-2025 06:58:21 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 06:58:21 Europe/Berlin] With parameters: start=2025-06-30, end=2025-07-30, showCompleted=false
+[07-Aug-2025 06:58:22 Europe/Berlin] Processing dates: start=2025-07-31, end=2025-08-30
+[07-Aug-2025 06:58:22 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 06:58:22 Europe/Berlin] With parameters: start=2025-07-31, end=2025-08-30, showCompleted=false
+[07-Aug-2025 06:58:23 Europe/Berlin] Processing dates: start=2025-06-30, end=2025-07-30
+[07-Aug-2025 06:58:23 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 06:58:23 Europe/Berlin] With parameters: start=2025-06-30, end=2025-07-30, showCompleted=false
+[07-Aug-2025 06:58:24 Europe/Berlin] Processing dates: start=2025-05-31, end=2025-06-29
+[07-Aug-2025 06:58:24 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 06:58:24 Europe/Berlin] With parameters: start=2025-05-31, end=2025-06-29, showCompleted=false
+[07-Aug-2025 06:58:25 Europe/Berlin] Processing dates: start=2025-04-30, end=2025-05-30
+[07-Aug-2025 06:58:25 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 06:58:25 Europe/Berlin] With parameters: start=2025-04-30, end=2025-05-30, showCompleted=false
+[07-Aug-2025 06:58:27 Europe/Berlin] Processing dates: start=2025-03-31, end=2025-04-29
+[07-Aug-2025 06:58:27 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 06:58:27 Europe/Berlin] With parameters: start=2025-03-31, end=2025-04-29, showCompleted=false
+[07-Aug-2025 06:58:27 Europe/Berlin] Processing dates: start=2025-02-28, end=2025-03-30
+[07-Aug-2025 06:58:27 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 06:58:27 Europe/Berlin] With parameters: start=2025-02-28, end=2025-03-30, showCompleted=false
+[07-Aug-2025 06:58:27 Europe/Berlin] Processing dates: start=2025-01-31, end=2025-02-27
+[07-Aug-2025 06:58:27 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 06:58:27 Europe/Berlin] With parameters: start=2025-01-31, end=2025-02-27, showCompleted=false
+[07-Aug-2025 06:58:28 Europe/Berlin] Processing dates: start=2024-12-31, end=2025-01-30
+[07-Aug-2025 06:58:28 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 06:58:28 Europe/Berlin] With parameters: start=2024-12-31, end=2025-01-30, showCompleted=false
+[07-Aug-2025 06:58:28 Europe/Berlin] Processing dates: start=2024-11-30, end=2024-12-30
+[07-Aug-2025 06:58:28 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 06:58:28 Europe/Berlin] With parameters: start=2024-11-30, end=2024-12-30, showCompleted=false
+[07-Aug-2025 06:58:28 Europe/Berlin] Processing dates: start=2024-10-31, end=2024-11-29
+[07-Aug-2025 06:58:28 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 06:58:28 Europe/Berlin] With parameters: start=2024-10-31, end=2024-11-29, showCompleted=false
+[07-Aug-2025 06:58:29 Europe/Berlin] Processing dates: start=2024-11-30, end=2024-12-30
+[07-Aug-2025 06:58:29 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 06:58:29 Europe/Berlin] With parameters: start=2024-11-30, end=2024-12-30, showCompleted=false
+[07-Aug-2025 06:58:29 Europe/Berlin] Processing dates: start=2024-12-31, end=2025-01-30
+[07-Aug-2025 06:58:29 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 06:58:29 Europe/Berlin] With parameters: start=2024-12-31, end=2025-01-30, showCompleted=false
+[07-Aug-2025 06:58:29 Europe/Berlin] Processing dates: start=2025-01-31, end=2025-02-27
+[07-Aug-2025 06:58:29 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 06:58:29 Europe/Berlin] With parameters: start=2025-01-31, end=2025-02-27, showCompleted=false
+[07-Aug-2025 06:58:30 Europe/Berlin] Processing dates: start=2025-02-28, end=2025-03-30
+[07-Aug-2025 06:58:30 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 06:58:30 Europe/Berlin] With parameters: start=2025-02-28, end=2025-03-30, showCompleted=false
+[07-Aug-2025 06:58:30 Europe/Berlin] Processing dates: start=2025-03-31, end=2025-04-29
+[07-Aug-2025 06:58:30 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 06:58:30 Europe/Berlin] With parameters: start=2025-03-31, end=2025-04-29, showCompleted=false
+[07-Aug-2025 06:58:30 Europe/Berlin] Processing dates: start=2025-04-30, end=2025-05-30
+[07-Aug-2025 06:58:30 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 06:58:30 Europe/Berlin] With parameters: start=2025-04-30, end=2025-05-30, showCompleted=false
+[07-Aug-2025 06:58:30 Europe/Berlin] Processing dates: start=2025-05-31, end=2025-06-29
+[07-Aug-2025 06:58:30 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 06:58:30 Europe/Berlin] With parameters: start=2025-05-31, end=2025-06-29, showCompleted=false
+[07-Aug-2025 06:58:30 Europe/Berlin] Processing dates: start=2025-06-30, end=2025-07-30
+[07-Aug-2025 06:58:30 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 06:58:30 Europe/Berlin] With parameters: start=2025-06-30, end=2025-07-30, showCompleted=false
+[07-Aug-2025 06:58:30 Europe/Berlin] Processing dates: start=2025-07-31, end=2025-08-30
+[07-Aug-2025 06:58:30 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 06:58:30 Europe/Berlin] With parameters: start=2025-07-31, end=2025-08-30, showCompleted=false
+[07-Aug-2025 06:58:31 Europe/Berlin] Processing dates: start=2025-08-31, end=2025-09-29
+[07-Aug-2025 06:58:31 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 06:58:31 Europe/Berlin] With parameters: start=2025-08-31, end=2025-09-29, showCompleted=false
+[07-Aug-2025 07:15:57 Europe/Berlin] Processing dates: start=2025-07-31, end=2025-08-30
+[07-Aug-2025 07:15:57 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:15:57 Europe/Berlin] With parameters: start=2025-07-31, end=2025-08-30, showCompleted=false
+[07-Aug-2025 07:16:00 Europe/Berlin] Processing dates: start=2025-06-30, end=2025-07-30
+[07-Aug-2025 07:16:00 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:16:00 Europe/Berlin] With parameters: start=2025-06-30, end=2025-07-30, showCompleted=false
+[07-Aug-2025 07:16:01 Europe/Berlin] Processing dates: start=2025-05-31, end=2025-06-29
+[07-Aug-2025 07:16:01 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:16:01 Europe/Berlin] With parameters: start=2025-05-31, end=2025-06-29, showCompleted=false
+[07-Aug-2025 07:16:02 Europe/Berlin] Processing dates: start=2025-04-30, end=2025-05-30
+[07-Aug-2025 07:16:02 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:16:02 Europe/Berlin] With parameters: start=2025-04-30, end=2025-05-30, showCompleted=false
+[07-Aug-2025 07:16:02 Europe/Berlin] Processing dates: start=2025-03-31, end=2025-04-29
+[07-Aug-2025 07:16:02 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:16:02 Europe/Berlin] With parameters: start=2025-03-31, end=2025-04-29, showCompleted=false
+[07-Aug-2025 07:16:04 Europe/Berlin] Processing dates: start=2025-04-30, end=2025-05-30
+[07-Aug-2025 07:16:04 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:16:04 Europe/Berlin] With parameters: start=2025-04-30, end=2025-05-30, showCompleted=false
+[07-Aug-2025 07:17:38 Europe/Berlin] Processing dates: start=2025-07-31, end=2025-08-30
+[07-Aug-2025 07:17:38 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:17:38 Europe/Berlin] With parameters: start=2025-07-31, end=2025-08-30, showCompleted=false
+[07-Aug-2025 07:17:40 Europe/Berlin] Processing dates: start=2025-06-30, end=2025-07-30
+[07-Aug-2025 07:17:40 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:17:40 Europe/Berlin] With parameters: start=2025-06-30, end=2025-07-30, showCompleted=false
+[07-Aug-2025 07:17:41 Europe/Berlin] Processing dates: start=2025-05-31, end=2025-06-29
+[07-Aug-2025 07:17:41 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:17:41 Europe/Berlin] With parameters: start=2025-05-31, end=2025-06-29, showCompleted=false
+[07-Aug-2025 07:17:41 Europe/Berlin] Processing dates: start=2025-04-30, end=2025-05-30
+[07-Aug-2025 07:17:41 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:17:41 Europe/Berlin] With parameters: start=2025-04-30, end=2025-05-30, showCompleted=false
+[07-Aug-2025 07:19:27 Europe/Berlin] Processing dates: start=2025-07-31, end=2025-08-30
+[07-Aug-2025 07:19:27 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:19:27 Europe/Berlin] With parameters: start=2025-07-31, end=2025-08-30, showCompleted=false
+[07-Aug-2025 07:19:28 Europe/Berlin] Processing dates: start=2025-06-30, end=2025-07-30
+[07-Aug-2025 07:19:28 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:19:28 Europe/Berlin] With parameters: start=2025-06-30, end=2025-07-30, showCompleted=false
+[07-Aug-2025 07:19:29 Europe/Berlin] Processing dates: start=2025-05-31, end=2025-06-29
+[07-Aug-2025 07:19:29 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:19:29 Europe/Berlin] With parameters: start=2025-05-31, end=2025-06-29, showCompleted=false
+[07-Aug-2025 07:19:30 Europe/Berlin] Processing dates: start=2025-04-30, end=2025-05-30
+[07-Aug-2025 07:19:30 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:19:30 Europe/Berlin] With parameters: start=2025-04-30, end=2025-05-30, showCompleted=false
+[07-Aug-2025 07:20:30 Europe/Berlin] Processing dates: start=2025-07-31, end=2025-08-30
+[07-Aug-2025 07:20:30 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:20:30 Europe/Berlin] With parameters: start=2025-07-31, end=2025-08-30, showCompleted=false
+[07-Aug-2025 07:20:46 Europe/Berlin] Processing dates: start=2025-07-31, end=2025-08-30
+[07-Aug-2025 07:20:46 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:20:46 Europe/Berlin] With parameters: start=2025-07-31, end=2025-08-30, showCompleted=false
+[07-Aug-2025 07:32:05 Europe/Berlin] Processing dates: start=2025-07-31, end=2025-08-30
+[07-Aug-2025 07:32:05 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:32:05 Europe/Berlin] With parameters: start=2025-07-31, end=2025-08-30, showCompleted=false
+[07-Aug-2025 07:32:07 Europe/Berlin] Processing dates: start=2025-06-30, end=2025-07-30
+[07-Aug-2025 07:32:07 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:32:07 Europe/Berlin] With parameters: start=2025-06-30, end=2025-07-30, showCompleted=false
+[07-Aug-2025 07:32:09 Europe/Berlin] Processing dates: start=2025-05-31, end=2025-06-29
+[07-Aug-2025 07:32:09 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:32:09 Europe/Berlin] With parameters: start=2025-05-31, end=2025-06-29, showCompleted=false
+[07-Aug-2025 07:32:10 Europe/Berlin] Processing dates: start=2025-06-30, end=2025-07-30
+[07-Aug-2025 07:32:10 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:32:10 Europe/Berlin] With parameters: start=2025-06-30, end=2025-07-30, showCompleted=false
+[07-Aug-2025 07:32:10 Europe/Berlin] Processing dates: start=2025-07-31, end=2025-08-30
+[07-Aug-2025 07:32:10 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:32:10 Europe/Berlin] With parameters: start=2025-07-31, end=2025-08-30, showCompleted=false
+[07-Aug-2025 07:32:11 Europe/Berlin] Processing dates: start=2025-08-31, end=2025-09-29
+[07-Aug-2025 07:32:11 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:32:11 Europe/Berlin] With parameters: start=2025-08-31, end=2025-09-29, showCompleted=false
+[07-Aug-2025 07:32:11 Europe/Berlin] Processing dates: start=2025-07-31, end=2025-08-30
+[07-Aug-2025 07:32:11 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:32:11 Europe/Berlin] With parameters: start=2025-07-31, end=2025-08-30, showCompleted=false
+[07-Aug-2025 07:32:11 Europe/Berlin] Processing dates: start=2025-06-30, end=2025-07-30
+[07-Aug-2025 07:32:11 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:32:11 Europe/Berlin] With parameters: start=2025-06-30, end=2025-07-30, showCompleted=false
+[07-Aug-2025 07:32:12 Europe/Berlin] Processing dates: start=2025-05-31, end=2025-06-29
+[07-Aug-2025 07:32:12 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:32:12 Europe/Berlin] With parameters: start=2025-05-31, end=2025-06-29, showCompleted=false
+[07-Aug-2025 07:32:12 Europe/Berlin] Processing dates: start=2025-04-30, end=2025-05-30
+[07-Aug-2025 07:32:12 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:32:12 Europe/Berlin] With parameters: start=2025-04-30, end=2025-05-30, showCompleted=false
+[07-Aug-2025 07:36:51 Europe/Berlin] Processing dates: start=2025-07-31, end=2025-08-30
+[07-Aug-2025 07:36:51 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:36:51 Europe/Berlin] With parameters: start=2025-07-31, end=2025-08-30, showCompleted=false
+[07-Aug-2025 07:36:53 Europe/Berlin] Processing dates: start=2025-06-30, end=2025-07-30
+[07-Aug-2025 07:36:53 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:36:53 Europe/Berlin] With parameters: start=2025-06-30, end=2025-07-30, showCompleted=false
+[07-Aug-2025 07:36:54 Europe/Berlin] Processing dates: start=2025-05-31, end=2025-06-29
+[07-Aug-2025 07:36:54 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:36:54 Europe/Berlin] With parameters: start=2025-05-31, end=2025-06-29, showCompleted=false
+[07-Aug-2025 07:36:54 Europe/Berlin] Processing dates: start=2025-04-30, end=2025-05-30
+[07-Aug-2025 07:36:54 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:36:54 Europe/Berlin] With parameters: start=2025-04-30, end=2025-05-30, showCompleted=false
+[07-Aug-2025 07:36:55 Europe/Berlin] Processing dates: start=2025-03-31, end=2025-04-29
+[07-Aug-2025 07:36:55 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:36:55 Europe/Berlin] With parameters: start=2025-03-31, end=2025-04-29, showCompleted=false
+[07-Aug-2025 07:36:56 Europe/Berlin] Processing dates: start=2025-04-30, end=2025-05-30
+[07-Aug-2025 07:36:56 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:36:56 Europe/Berlin] With parameters: start=2025-04-30, end=2025-05-30, showCompleted=false
+[07-Aug-2025 07:37:01 Europe/Berlin] Processing dates: start=2025-04-30, end=2025-05-30
+[07-Aug-2025 07:37:01 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:37:01 Europe/Berlin] With parameters: start=2025-04-30, end=2025-05-30, showCompleted=false
+[07-Aug-2025 07:37:04 Europe/Berlin] Processing dates: start=2025-05-31, end=2025-06-29
+[07-Aug-2025 07:37:04 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:37:04 Europe/Berlin] With parameters: start=2025-05-31, end=2025-06-29, showCompleted=false
+[07-Aug-2025 07:51:58 Europe/Berlin] Processing dates: start=2025-07-31, end=2025-08-30
+[07-Aug-2025 07:51:58 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:51:58 Europe/Berlin] With parameters: start=2025-07-31, end=2025-08-30, showCompleted=false
+[07-Aug-2025 07:51:59 Europe/Berlin] Processing dates: start=2025-07-31, end=2025-08-30
+[07-Aug-2025 07:51:59 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) IN (LOWER('pending'), LOWER('picked-up'), LOWER('delivered')) ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:51:59 Europe/Berlin] With parameters: start=2025-07-31, end=2025-08-30, showCompleted=true
+[07-Aug-2025 07:52:02 Europe/Berlin] Processing dates: start=2025-06-30, end=2025-07-30
+[07-Aug-2025 07:52:02 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) IN (LOWER('pending'), LOWER('picked-up'), LOWER('delivered')) ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:52:02 Europe/Berlin] With parameters: start=2025-06-30, end=2025-07-30, showCompleted=true
+[07-Aug-2025 07:52:02 Europe/Berlin] Processing dates: start=2025-05-31, end=2025-06-29
+[07-Aug-2025 07:52:02 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) IN (LOWER('pending'), LOWER('picked-up'), LOWER('delivered')) ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:52:02 Europe/Berlin] With parameters: start=2025-05-31, end=2025-06-29, showCompleted=true
+[07-Aug-2025 07:52:03 Europe/Berlin] Processing dates: start=2025-04-30, end=2025-05-30
+[07-Aug-2025 07:52:03 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) IN (LOWER('pending'), LOWER('picked-up'), LOWER('delivered')) ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:52:03 Europe/Berlin] With parameters: start=2025-04-30, end=2025-05-30, showCompleted=true
+[07-Aug-2025 07:52:07 Europe/Berlin] Processing dates: start=2025-04-30, end=2025-05-30
+[07-Aug-2025 07:52:07 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:52:07 Europe/Berlin] With parameters: start=2025-04-30, end=2025-05-30, showCompleted=false
+[07-Aug-2025 07:52:08 Europe/Berlin] Processing dates: start=2025-05-31, end=2025-06-29
+[07-Aug-2025 07:52:08 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:52:08 Europe/Berlin] With parameters: start=2025-05-31, end=2025-06-29, showCompleted=false
+[07-Aug-2025 07:52:09 Europe/Berlin] Processing dates: start=2025-04-30, end=2025-05-30
+[07-Aug-2025 07:52:09 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:52:09 Europe/Berlin] With parameters: start=2025-04-30, end=2025-05-30, showCompleted=false
+[07-Aug-2025 07:52:09 Europe/Berlin] Processing dates: start=2025-04-30, end=2025-05-30
+[07-Aug-2025 07:52:09 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) IN (LOWER('pending'), LOWER('picked-up'), LOWER('delivered')) ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:52:09 Europe/Berlin] With parameters: start=2025-04-30, end=2025-05-30, showCompleted=true
+[07-Aug-2025 07:52:11 Europe/Berlin] Processing dates: start=2025-04-30, end=2025-05-30
+[07-Aug-2025 07:52:11 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:52:11 Europe/Berlin] With parameters: start=2025-04-30, end=2025-05-30, showCompleted=false
+[07-Aug-2025 07:52:12 Europe/Berlin] Processing dates: start=2025-05-31, end=2025-06-29
+[07-Aug-2025 07:52:12 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:52:12 Europe/Berlin] With parameters: start=2025-05-31, end=2025-06-29, showCompleted=false
+[07-Aug-2025 07:52:12 Europe/Berlin] Processing dates: start=2025-06-30, end=2025-07-30
+[07-Aug-2025 07:52:12 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:52:12 Europe/Berlin] With parameters: start=2025-06-30, end=2025-07-30, showCompleted=false
+[07-Aug-2025 07:52:12 Europe/Berlin] Processing dates: start=2025-07-31, end=2025-08-30
+[07-Aug-2025 07:52:12 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:52:12 Europe/Berlin] With parameters: start=2025-07-31, end=2025-08-30, showCompleted=false
+[07-Aug-2025 07:52:13 Europe/Berlin] Processing dates: start=2025-08-31, end=2025-09-29
+[07-Aug-2025 07:52:13 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:52:13 Europe/Berlin] With parameters: start=2025-08-31, end=2025-09-29, showCompleted=false
+[07-Aug-2025 07:52:14 Europe/Berlin] Processing dates: start=2025-07-31, end=2025-08-30
+[07-Aug-2025 07:52:14 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:52:14 Europe/Berlin] With parameters: start=2025-07-31, end=2025-08-30, showCompleted=false
+[07-Aug-2025 07:52:15 Europe/Berlin] Processing dates: start=2025-06-30, end=2025-07-30
+[07-Aug-2025 07:52:15 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Aug-2025 07:52:15 Europe/Berlin] With parameters: start=2025-06-30, end=2025-07-30, showCompleted=false
+[07-Aug-2025 10:23:45 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 10:23:45 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 10:23:45 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[07-Aug-2025 10:23:45 Europe/Berlin] Total featured products found: 10
+[07-Aug-2025 10:23:45 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[07-Aug-2025 10:26:17 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 10:26:17 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 10:26:18 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 10:26:18 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 10:26:18 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[07-Aug-2025 10:26:18 Europe/Berlin] Total featured products found: 10
+[07-Aug-2025 10:26:18 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[07-Aug-2025 10:55:28 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 10:55:28 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 258
+[07-Aug-2025 10:55:28 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[07-Aug-2025 10:55:28 Europe/Berlin] Total featured products found: 10
+[07-Aug-2025 10:55:28 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
