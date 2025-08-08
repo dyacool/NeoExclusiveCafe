@@ -16,7 +16,8 @@ if (headers_sent()) {
     !strpos($_SERVER['SCRIPT_NAME'], '/products/move-temp-to-permanent.php') &&
     !strpos($_SERVER['SCRIPT_NAME'], '/products/remove-individual-image.php') &&
     !strpos($_SERVER['SCRIPT_NAME'], '/products/restore-removed-images.php') &&
-    !strpos($_SERVER['SCRIPT_NAME'], '/products/delete-removed-images.php')) {
+    !strpos($_SERVER['SCRIPT_NAME'], '/products/delete-removed-images.php') &&
+    !strpos($_SERVER['SCRIPT_NAME'], '/calendar/update-limit.php')) {
         
         echo "<!-- Headers already sent, could not set content type -->";
     }
@@ -35,7 +36,8 @@ if (headers_sent()) {
         strpos($_SERVER['SCRIPT_NAME'], '/products/move-temp-to-permanent.php') ||
         strpos($_SERVER['SCRIPT_NAME'], '/products/remove-individual-image.php') ||
         strpos($_SERVER['SCRIPT_NAME'], '/products/restore-removed-images.php') ||
-        strpos($_SERVER['SCRIPT_NAME'], '/products/delete-removed-images.php')) {
+        strpos($_SERVER['SCRIPT_NAME'], '/products/delete-removed-images.php') ||
+        strpos($_SERVER['SCRIPT_NAME'], '/calendar/update-limit.php')) {
         
         // For API endpoints, force JSON content type
         header('Content-Type: application/json');
@@ -60,7 +62,8 @@ if (!isset($suppress_db_debug) &&
     !strpos($_SERVER['SCRIPT_NAME'], '/admin/accept-order.php') &&
     !strpos($_SERVER['SCRIPT_NAME'], '/admin/decline-order.php') &&
     !strpos($_SERVER['SCRIPT_NAME'], '/admin/minimal-orders.php') &&
-    !strpos($_SERVER['SCRIPT_NAME'], '/products/update-product.php')) {
+    !strpos($_SERVER['SCRIPT_NAME'], '/products/update-product.php') &&
+    !strpos($_SERVER['SCRIPT_NAME'], '/calendar/update-limit.php')) {
     // echo $debug_info;
 }
 

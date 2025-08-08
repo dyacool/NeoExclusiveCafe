@@ -66,22 +66,38 @@ $stats['in_progress'] = $progress_result->fetch_assoc()['in_progress'];
 
         .main-container {
             display: flex;
-            flex-direction: column;
             padding: 20px;
             margin-top: 20px; 
+            width: 100%;
         }
 
         .container2{
-            display: flex;
+            display: block;
             flex-direction: row;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .container1 .content {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
             justify-content: space-between;
             gap: 20px;
+        }
+
+        .container1 {
+            display: flex;
+            flex-direction: column;
+            flex-wrap: wrap;
+            gap: 20px;
+            width: 20%;
         }
 
         /* Date Limit Controls */
         .date-limit-controls {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             gap: 15px;
             align-items: center;
         }
@@ -128,6 +144,10 @@ $stats['in_progress'] = $progress_result->fetch_assoc()['in_progress'];
                 margin-left: 0;
             }
 
+            .container1 {
+                width: 100%;
+            }
+
             .dashboard-header {
                 flex-direction: column;
                 gap: 20px;
@@ -164,6 +184,13 @@ $stats['in_progress'] = $progress_result->fetch_assoc()['in_progress'];
                 width: 95%;
                 margin: 20% auto;
             }
+            
+            /* Ensure calendar header is visible */
+            #calendar .header {
+                display: flex !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+            }
         }
 
         .modal-content {
@@ -193,10 +220,11 @@ $stats['in_progress'] = $progress_result->fetch_assoc()['in_progress'];
             .dashboard-flex {
                 flex-direction: column;
             }
-            .dashboard-right, .dashboard-left {
-                width: 100%;
-                min-width: 0;
-            }
+            .dashboard-right,         .dashboard-left {
+            width: 100%;
+            min-width: 0;
+            flex: 1;
+        }
         }
 
         @keyframes fadeIn {
@@ -221,6 +249,7 @@ $stats['in_progress'] = $progress_result->fetch_assoc()['in_progress'];
             border-radius: 8px;
             padding: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            width: 100%;
         }
 
         .top-controls {
@@ -278,6 +307,7 @@ $stats['in_progress'] = $progress_result->fetch_assoc()['in_progress'];
 
         .calendar-container {
             margin-top: 20px;
+            width: 100%;
         }
 
         /* Modal Styles */

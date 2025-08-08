@@ -8,7 +8,30 @@ ob_start();
 
 // Include necessary files
 require_once "../admin-includes/database.php";
-require_once __DIR__ . "/../../login/admin/admin-auth.php";
+
+// Start session and check admin authentication
+session_start();
+
+// Debug: Log session information
+error_log("Session data: " . print_r($_SESSION, true));
+error_log("Session ID: " . session_id());
+error_log("Session name: " . session_name());
+error_log("Session status: " . session_status());
+
+if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
+    header('Content-Type: application/json');
+    echo json_encode([
+        'success' => false, 
+        'error' => 'Unauthorized access',
+        'session_info' => [
+            'session_id' => session_id(),
+            'is_admin_set' => isset($_SESSION["is_admin"]),
+            'is_admin_value' => $_SESSION["is_admin"] ?? 'not set',
+            'admin_id' => $_SESSION["admin_id"] ?? 'not set'
+        ]
+    ]);
+    exit();
+}
 
 // Set content type to JSON
 header('Content-Type: application/json');
@@ -26,7 +49,14 @@ function handleError($message, $debug = []) {
 }
 
 try {
-    $data = json_decode(file_get_contents('php://input'), true);
+    // Debug: Log the raw input
+    $raw_input = file_get_contents('php://input');
+    error_log("Raw input: " . $raw_input);
+    
+    $data = json_decode($raw_input, true);
+    
+    // Debug: Log the received data
+    error_log("Received data: " . print_r($data, true));
     
     if (!isset($data['type']) || !isset($data['limit'])) {
         handleError('Missing required parameters');
@@ -39,6 +69,7 @@ try {
     }
 
     // Start transaction
+    error_log("Starting database transaction");
     $conn->begin_transaction();
 
     try {
@@ -62,8 +93,9 @@ try {
             
             // Validate that the date is not in the past
             $currentDate = date('Y-m-d');
+            error_log("Comparing dates: input=$date, current=$currentDate");
             if ($date < $currentDate) {
-                handleError('Cannot set limits for past dates');
+                handleError("Cannot set limits for past dates. Input date: $date, Current date: $currentDate. Please select today or a future date.");
             }
             
             // Update or insert date limit

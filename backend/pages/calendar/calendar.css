@@ -1,8 +1,8 @@
 /* Enhanced Calendar CSS */
 #calendar { 
     width: 100%; 
-    max-width: 1200px;
-    margin: auto; 
+    max-width: none;
+    margin: 0; 
     text-align: center; 
     background: white;
     border-radius: 8px;
@@ -38,6 +38,14 @@
     font-size: 24px;
     font-weight: bold;
 }
+
+.dashboard-container {
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+    align-items: center;
+    width: 100%;
+}   
 
 .days {
     display: grid; 
@@ -188,7 +196,7 @@
 /* Responsive design */
 @media (max-width: 1200px) {
     #calendar {
-        max-width: 1000px;
+        max-width: none;
     }
     
     .day {
@@ -213,7 +221,7 @@
 
 @media (max-width: 768px) {
     #calendar {
-        width: 95%;
+        width: 100%;
         max-width: none;
     }
     
@@ -229,16 +237,34 @@
     }
     
     .header {
-        padding: 10px 15px;
+        padding: 15px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #2f603c;
+        color: black;
+        position: relative;
+        z-index: 10;
     }
     
     #monthYear {
-        font-size: 16px;
+        font-size: 18px;
+        font-weight: bold;
     }
     
     .header button {
-        font-size: 18px;
-        padding: 5px 10px;
+        font-size: 20px;
+        padding: 8px 12px;
+        background: none;
+        border: none;
+        color: black;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background-color 0.3s;
+    }
+    
+    .header button:hover {
+        background: rgba(255,255,255,0.2);
     }
 }
 
@@ -256,5 +282,18 @@
     
     .day > span:first-child {
         font-size: 14px;
+    }
+    
+    .header {
+        padding: 12px 15px;
+    }
+    
+    #monthYear {
+        font-size: 16px;
+    }
+    
+    .header button {
+        font-size: 18px;
+        padding: 6px 10px;
     }
 }
