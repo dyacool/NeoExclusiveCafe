@@ -44,7 +44,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $show_when_unavailable = isset($_POST['show_when_unavailable']) ? 1 : 0;
     $hide_when_unavailable = isset($_POST['hide_when_unavailable']) ? 1 : 0;
 
-    // Handle available days - only process if status is Delivery
+    // Handle available days - process for both Delivery and Pick Up
     $available_days = [];
     if (isset($_POST['available_days']) && is_array($_POST['available_days'])) {
         $available_days = $_POST['available_days'];
@@ -114,8 +114,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         }
 
-        // Insert available days into product_day table only if status is Delivery
-        if ($status_id == 1 && !empty($available_days)) {
+        // Insert available days into product_day table for both Delivery and Pick Up
+        if (($status_id == 1 || $status_id == 2) && !empty($available_days)) {
             $day_stmt = $conn->prepare("INSERT INTO product_day (product_id, day_of_week) VALUES (?, ?)");
             foreach ($available_days as $day) {
                 $day_stmt->bind_param("is", $product_id, $day);
@@ -348,7 +348,7 @@ $conn->close();
          if (statusSelect && availableDaysContainer) {
              const selectedValue = statusSelect.value;
              
-             if (selectedValue === '1') { // Delivery
+             if (selectedValue === '1' || selectedValue === '2') { // Delivery or Pick Up
                  availableDaysContainer.style.display = 'block';
              } else {
                  availableDaysContainer.style.display = 'none';

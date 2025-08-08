@@ -51,10 +51,25 @@ function filterProducts(status, button) {
   } else if (status === "featured") {
     filteredProducts = allProductsData.filter(product => product.is_featured == 1);
   } else if (status === "Unavailable") {
-    // For unavailable filter, show all unavailable products initially
+    // For unavailable filter, show all products with unavailable_status_id
     filteredProducts = allProductsData.filter(product => 
-      product.status_name === "Unavailable Pick Up" || product.status_name === "Unavailable Delivery"
+      product.unavailable_status_id !== null
     );
+  } else if (status === "Available Today") {
+    // For available today filter, show products that are available today
+    const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+    filteredProducts = allProductsData.filter(product => {
+      // Check if product has "Available Today" status (status_id = 3)
+      if (product.status_id == 3) {
+        return true;
+      }
+      // Check if product has available days and today is included
+      if (product.available_days && product.available_days.trim() !== '') {
+        const availableDays = product.available_days.split(', ').map(day => day.trim());
+        return availableDays.includes(today);
+      }
+      return false;
+    });
   } else {
     // For status-based filters (Pick Up, Delivery)
     filteredProducts = allProductsData.filter(product => product.status_name === status);
@@ -106,14 +121,23 @@ function filterUnavailableByType() {
   if (selectedValue === "all-unavailable") {
     // Show all unavailable products
     filteredProducts = allProductsData.filter(product => 
-      product.status_name === "Unavailable Pick Up" || product.status_name === "Unavailable Delivery"
+      product.unavailable_status_id !== null
     );
   } else if (selectedValue === "unavailable-delivery") {
     // Show only unavailable delivery products
-    filteredProducts = allProductsData.filter(product => product.status_name === "Unavailable Delivery");
+    filteredProducts = allProductsData.filter(product => 
+      product.unavailable_status_id === 2 // Unavailable Delivery
+    );
   } else if (selectedValue === "unavailable-pickup") {
     // Show only unavailable pick up products
-    filteredProducts = allProductsData.filter(product => product.status_name === "Unavailable Pick Up");
+    filteredProducts = allProductsData.filter(product => 
+      product.unavailable_status_id === 1 // Unavailable Pick Up
+    );
+  } else if (selectedValue === "unavailable-today") {
+    // Show only unavailable today products
+    filteredProducts = allProductsData.filter(product => 
+      product.unavailable_status_id === 3 // Unavailable Today
+    );
   }
 
   // Clear current table
@@ -170,7 +194,7 @@ function formatAvailableDays(availableDays) {
 function createProductRow(product) {
   const quantity = parseInt(product.quantity) || 0;
   const quantityClass = quantity <= 5 ? 'low-stock' : (quantity <= 10 ? 'medium-stock' : 'good-stock');
-  const statusClass = product.status_name.toLowerCase().replace(' ', '-');
+  const statusClass = (product.status_name || 'Unknown').toLowerCase().replace(' ', '-');
   
   // Construct image path
   let imagePath = '';
@@ -179,7 +203,7 @@ function createProductRow(product) {
   }
   
   const row = document.createElement('tr');
-  row.setAttribute('data-status', product.status_name);
+  row.setAttribute('data-status', product.status_name || 'Unknown');
   row.setAttribute('data-name', product.name.toLowerCase());
   row.setAttribute('data-sku', product.sku.toLowerCase());
   
@@ -203,7 +227,7 @@ function createProductRow(product) {
     </td>
     <td>
       <div class='status-container'>
-        <span class='status-badge status-${statusClass}'>${product.status_name}</span>
+                                                            <span class='status-badge status-${statusClass}'>${product.status_name || 'Unknown'}</span>
         <span class='stock-badge ${quantityClass}'>
           <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>
             <path d='M20 7h-9'></path>
@@ -230,7 +254,7 @@ function createProductRow(product) {
           ${product.hide_when_unavailable == 1 ? "true" : "false"},
           ${quantity},
           '${(product.available_days || "").replace(/'/g, "\\'")}',
-          '${product.status_name.replace(/'/g, "\\'")}'
+          '${(product.status_name || "Unknown").replace(/'/g, "\\'")}'
         )" title='Edit Product'>
           <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>
             <path d='M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7'></path>
@@ -449,7 +473,9 @@ function openEditModal(
   hideWhenUnavailable,
   quantity,
   availableDays,
-  statusName
+  statusName,
+  unavailableStatusId,
+  unavailableStatusName
 ) {
   // Debug: Log the status values
   console.log("Status ID passed:", status);
@@ -466,7 +492,9 @@ function openEditModal(
     hideWhenUnavailable: hideWhenUnavailable,
     quantity: quantity,
     availableDays: availableDays,
-    statusName: statusName
+    statusName: statusName,
+    unavailableStatusId: unavailableStatusId,
+    unavailableStatusName: unavailableStatusName
   };
   
   // Populate form fields
@@ -496,6 +524,26 @@ function openEditModal(
     visibilitySelect.value = "default";
   }
 
+  // Set availability radio buttons
+  const availableRadio = document.getElementById("editAvailable");
+  const unavailableRadio = document.getElementById("editUnavailable");
+  const unavailableTypeContainer = document.getElementById("editUnavailableTypeContainer");
+  const unavailableTypeSelect = document.getElementById("editUnavailableType");
+  
+  if (unavailableStatusId && unavailableStatusId !== 'null') {
+    // Product is unavailable
+    unavailableRadio.checked = true;
+    availableRadio.checked = false;
+    unavailableTypeContainer.style.display = 'block';
+    unavailableTypeSelect.value = unavailableStatusId;
+  } else {
+    // Product is available
+    availableRadio.checked = true;
+    unavailableRadio.checked = false;
+    unavailableTypeContainer.style.display = 'none';
+    unavailableTypeSelect.value = '';
+  }
+
   // Set available days checkboxes
   const availableDaysArray = availableDays ? availableDays.split(', ') : [];
   const dayCheckboxes = {
@@ -521,10 +569,10 @@ function openEditModal(
     }
   });
 
-  // Show/hide available days checkboxes based on product status
+  // Show available days checkboxes for both Delivery and Pick Up products
   const availableDaysContainer = document.querySelector('.checkbox-group.days-group');
   if (availableDaysContainer) {
-    if (statusName === 'Delivery') {
+    if (statusName === 'Delivery' || statusName === 'Pick Up') {
       availableDaysContainer.style.display = 'block';
     } else {
       availableDaysContainer.style.display = 'none';
@@ -539,10 +587,85 @@ function openEditModal(
     statusSelect.addEventListener('change', function() {
       const selectedStatus = this.options[this.selectedIndex].text;
       if (availableDaysContainer) {
-        if (selectedStatus === 'Delivery') {
+        if (selectedStatus === 'Delivery' || selectedStatus === 'Pick Up') {
           availableDaysContainer.style.display = 'block';
         } else {
           availableDaysContainer.style.display = 'none';
+        }
+      }
+      
+      // Update unavailable type if "Unavailable" radio is checked
+      if (unavailableRadio && unavailableRadio.checked) {
+        const currentStatus = this.value;
+        let unavailableTypeId = null;
+        
+        if (currentStatus === '1') { // Pick Up
+          unavailableTypeId = '1'; // Unavailable Pick Up
+        } else if (currentStatus === '2') { // Delivery
+          unavailableTypeId = '2'; // Unavailable Delivery
+        } else if (currentStatus === '3') { // Available Today
+          unavailableTypeId = '3'; // Unavailable Today
+        }
+        
+        if (unavailableTypeId) {
+          unavailableTypeSelect.value = unavailableTypeId;
+        }
+        
+        // Update the message to show what type will be set
+        const messageElement = unavailableTypeContainer.querySelector('small');
+        if (messageElement && unavailableRadio.checked) {
+          let statusText = '';
+          if (currentStatus === '1') statusText = 'Pick Up';
+          else if (currentStatus === '2') statusText = 'Delivery';
+          else if (currentStatus === '3') statusText = 'Available Today';
+          
+          messageElement.textContent = `Will be set to: Unavailable ${statusText}`;
+        }
+      }
+    });
+  }
+
+  // Add event listeners for availability radio buttons
+  if (availableRadio && unavailableRadio) {
+    availableRadio.addEventListener('change', function() {
+      if (this.checked) {
+        unavailableTypeContainer.style.display = 'none';
+        // Reset unavailable type when switching to available
+        unavailableTypeSelect.value = '';
+      }
+    });
+    
+    unavailableRadio.addEventListener('change', function() {
+      if (this.checked) {
+        // Auto-set unavailable type based on current product status
+        const statusSelect = document.getElementById("editProductStatus");
+        const currentStatus = statusSelect.value;
+        
+        let unavailableTypeId = null;
+        
+        if (currentStatus === '1') { // Pick Up
+          unavailableTypeId = '1'; // Unavailable Pick Up
+        } else if (currentStatus === '2') { // Delivery
+          unavailableTypeId = '2'; // Unavailable Delivery
+        } else if (currentStatus === '3') { // Available Today
+          unavailableTypeId = '3'; // Unavailable Today
+        }
+        
+        // Set the unavailable type and show the container with auto-determination message
+        if (unavailableTypeId) {
+          unavailableTypeSelect.value = unavailableTypeId;
+        }
+        unavailableTypeContainer.style.display = 'block';
+        
+        // Update the message to show what type will be set
+        const messageElement = unavailableTypeContainer.querySelector('small');
+        if (messageElement) {
+          let statusText = '';
+          if (currentStatus === '1') statusText = 'Pick Up';
+          else if (currentStatus === '2') statusText = 'Delivery';
+          else if (currentStatus === '3') statusText = 'Available Today';
+          
+          messageElement.textContent = `Will be set to: Unavailable ${statusText}`;
         }
       }
     });
@@ -577,9 +700,9 @@ function handleFormSubmit(event) {
   const statusSelect = document.getElementById("editProductStatus");
   const selectedStatus = statusSelect.options[statusSelect.selectedIndex].text;
   
-  // Collect available days from checkboxes only if status is Delivery
+  // Collect available days from checkboxes for both Delivery and Pick Up
   const availableDays = [];
-  if (selectedStatus === 'Delivery') {
+  if (selectedStatus === 'Delivery' || selectedStatus === 'Pick Up') {
     const dayCheckboxes = {
       'edit_sunday': 'Sunday',
       'edit_monday': 'Monday',
@@ -598,6 +721,10 @@ function handleFormSubmit(event) {
     });
   }
 
+  // Get availability radio button values
+  const isAvailable = document.getElementById("editAvailable").checked;
+  const unavailableTypeId = document.getElementById("editUnavailableType").value || null;
+  
   const formData = {
     id: document.getElementById("editProductId").value,
     name: document.getElementById("editProductName").value,
@@ -610,6 +737,8 @@ function handleFormSubmit(event) {
     hide_when_unavailable:
       document.getElementById("editVisibilityOption").value === "hide",
     available_days: availableDays,
+    is_available: isAvailable,
+    unavailable_status_id: isAvailable ? null : unavailableTypeId,
     pending_image_changes: pendingImageChanges
   };
 
@@ -774,6 +903,7 @@ function updateFilterCounts() {
     "Delivery": 0,
     featured: 0,
     "Unavailable": 0,
+    "Available Today": 0,
   };
 
   // Count from all products data
@@ -790,10 +920,25 @@ function updateFilterCounts() {
       counts.featured++;
     }
     
-    // Count unavailable products (both Unavailable Pick Up and Unavailable Delivery)
-    if (status === "Unavailable Pick Up" || status === "Unavailable Delivery") {
+    // Count unavailable products (products with unavailable_status_id)
+    if (product.unavailable_status_id !== null) {
       counts["Unavailable"]++;
     }
+    
+    // Count available today products
+    const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+    // Count products with "Available Today" status (status_id = 3)
+    if (product.status_id == 3) {
+      counts["Available Today"]++;
+    }
+    // Count products with today in their available days
+    else if (product.available_days && product.available_days.trim() !== '') {
+      const availableDays = product.available_days.split(', ').map(day => day.trim());
+      if (availableDays.includes(today)) {
+        counts["Available Today"]++;
+      }
+    }
+
   });
 
   // Update count displays
@@ -802,6 +947,8 @@ function updateFilterCounts() {
   document.getElementById("count-delivery").textContent = counts["Delivery"];
   document.getElementById("count-featured").textContent = counts.featured;
   document.getElementById("count-unavailable").textContent = counts["Unavailable"];
+  document.getElementById("count-available-today").textContent = counts["Available Today"];
+
 }
 
 
@@ -1539,7 +1686,7 @@ function resetFormToOriginal() {
   // Reset available days visibility based on original status
   const availableDaysContainer = document.querySelector('.checkbox-group.days-group');
   if (availableDaysContainer) {
-    if (originalFormData.statusName === 'Delivery') {
+    if (originalFormData.statusName === 'Delivery' || originalFormData.statusName === 'Pick Up') {
       availableDaysContainer.style.display = 'block';
     } else {
       availableDaysContainer.style.display = 'none';

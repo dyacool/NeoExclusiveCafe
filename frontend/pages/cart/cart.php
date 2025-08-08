@@ -11,6 +11,34 @@ if (!isset($_SESSION["user_id"])) {
 }
 require_once '../../user-includes/navbar/customer-navigation.php';
 $user_id = $_SESSION['user_id'];
+
+// Function to convert day names to abbreviations
+function getDayAbbreviations($availableDays) {
+    if (empty($availableDays)) {
+        return '';
+    }
+    
+    $dayMap = [
+        'Sunday' => 'S',
+        'Monday' => 'M',
+        'Tuesday' => 'T',
+        'Wednesday' => 'W',
+        'Thursday' => 'Th',
+        'Friday' => 'F',
+        'Saturday' => 'Sa'
+    ];
+    
+    $days = explode(', ', $availableDays);
+    $abbreviations = [];
+    
+    foreach ($days as $day) {
+        if (isset($dayMap[trim($day)])) {
+            $abbreviations[] = $dayMap[trim($day)];
+        }
+    }
+    
+    return implode(', ', $abbreviations);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -101,6 +129,88 @@ $user_id = $_SESSION['user_id'];
             cursor: pointer;
         }
         
+        .section-controls {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .days-filter {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .days-filter label {
+            color: white;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .days-filter select {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .days-column {
+            text-align: center;
+            font-weight: 500;
+            color: #2f603c;
+        }
+        
+        .day-abbreviations {
+            font-size: 13px;
+            white-space: nowrap;
+        }
+        
+        /* Smart filtering visual feedback */
+        .cart-table tbody tr.filtered-out {
+            opacity: 0.3;
+            background-color: #f8f8f8;
+        }
+        
+        .cart-table tbody tr:not(.filtered-out) {
+            background-color: #f0fff0;
+            border-left: 3px solid #4CAF50;
+        }
+        
+        .cart-table tbody tr:not(.filtered-out) .days-column {
+            background-color: #e8f5e8;
+            font-weight: bold;
+        }
+        
+
+        
+        /* Mobile responsive styles */
+        @media (max-width: 768px) {
+            .section-controls {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+            
+            .days-filter {
+                justify-content: center;
+            }
+            
+            .days-filter select {
+                flex: 1;
+                max-width: 200px;
+            }
+            
+            .days-column {
+                font-size: 12px;
+            }
+            
+            .day-abbreviations {
+                font-size: 11px;
+            }
+        }
+        
         .cart-table {
             border-radius: 0 0 8px 8px;
         }
@@ -168,12 +278,15 @@ $user_id = $_SESSION['user_id'];
         $stmt = $conn->prepare("
             SELECT c.id AS cart_id, c.quantity, c.price,
                    p.id AS product_id, p.name AS product_name, p.quantity as product_stock,
-                   pi.image_url, ps.name as status_name
+                   pi.image_url, ps.name as status_name,
+                   GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
             FROM cart c
             JOIN products p ON c.product_id = p.id
             LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
             LEFT JOIN product_statuses ps ON p.status_id = ps.id
+            LEFT JOIN product_day pd ON p.id = pd.product_id
             WHERE c.user_id = ?
+            GROUP BY c.id, c.quantity, c.price, p.id, p.name, p.quantity, pi.image_url, ps.name
             ORDER BY ps.name = 'Pickup' DESC, p.name ASC
         ");
         $stmt->bind_param("i", $user_id);
@@ -203,10 +316,26 @@ $user_id = $_SESSION['user_id'];
             <div class="cart-section">
                 <div class="section-header">
                     <h3>Pickup</h3>
-                    <div class="section-select-all">
-                        <input type="checkbox" id="selectAllPickup" class="section-checkbox" data-section="pickup">
-                        <label for="selectAllPickup">Select All Pickup</label>
+                    <div class="section-controls">
+                        <div class="days-filter">
+                            <label for="pickupDaysFilter">Filter by Day:</label>
+                            <select id="pickupDaysFilter" onchange="filterByDay('pickup')">
+                                <option value="">All Days</option>
+                                <option value="Sunday">Sunday</option>
+                                <option value="Monday">Monday</option>
+                                <option value="Tuesday">Tuesday</option>
+                                <option value="Wednesday">Wednesday</option>
+                                <option value="Thursday">Thursday</option>
+                                <option value="Friday">Friday</option>
+                                <option value="Saturday">Saturday</option>
+                            </select>
+                        </div>
+                        <div class="section-select-all">
+                            <input type="checkbox" id="selectAllPickup" class="section-checkbox" data-section="pickup">
+                            <label for="selectAllPickup">Select All Pickup</label>
+                        </div>
                     </div>
+
                 </div>
                 
                 <?php if (!empty($pickup_items)): ?>
@@ -216,6 +345,7 @@ $user_id = $_SESSION['user_id'];
                             <th>Select</th>
                             <th></th>
                             <th>Product Name</th>
+                            <th>Days</th>
                             <th>Quantity</th>
                             <th>Price</th>
                             <th>Total</th>
@@ -228,12 +358,15 @@ $user_id = $_SESSION['user_id'];
                             $imageUrl = $row['image_url'] ? "/assets/" . $row['image_url'] : "/assets/images/no-image.jpg";
                             $item_total = $row['price'] * $row['quantity'];
                         ?>
-                        <tr data-cart-id="<?= $row['cart_id'] ?>" data-product-id="<?= $row['product_id'] ?>" data-stock="<?= $row['product_stock'] ?>" data-price="<?= $row['price'] ?>" data-quantity="<?= $row['quantity'] ?>" data-status="pickup">
+                        <tr data-cart-id="<?= $row['cart_id'] ?>" data-product-id="<?= $row['product_id'] ?>" data-stock="<?= $row['product_stock'] ?>" data-price="<?= $row['price'] ?>" data-quantity="<?= $row['quantity'] ?>" data-status="pickup" data-days="<?= htmlspecialchars($row['available_days'] ?? '') ?>">
                             <td>
                                 <input type="checkbox" name="selected_cart_ids[]" value="<?= $row['cart_id'] ?>" class="item-checkbox pickup-checkbox" data-total="<?= $item_total ?>" data-status="pickup">
                             </td>
                             <td><img src="<?= $imageUrl ?>" alt="<?= htmlspecialchars($row['product_name']) ?>" style="width: 60px; height: 60px; object-fit: cover;"></td>
                             <td><?= htmlspecialchars($row['product_name']) ?></td>
+                            <td class="days-column">
+                                <span class="day-abbreviations"><?= getDayAbbreviations($row['available_days'] ?? '') ?></span>
+                            </td>
                             <td>
                                 <div class="quantity-controls">
                                     <button class="quantity-btn" type="button" onclick="updateQuantity(<?= $row['cart_id'] ?>, <?= $row['quantity'] - 1 ?>)">-</button>
@@ -263,10 +396,26 @@ $user_id = $_SESSION['user_id'];
             <div class="cart-section">
                 <div class="section-header">
                     <h3>Delivery</h3>
-                    <div class="section-select-all">
-                        <input type="checkbox" id="selectAllDelivery" class="section-checkbox" data-section="delivery">
-                        <label for="selectAllDelivery">Select All Delivery</label>
+                    <div class="section-controls">
+                        <div class="days-filter">
+                            <label for="daysFilter">Filter by Day:</label>
+                            <select id="daysFilter" onchange="filterByDay('delivery')">
+                                <option value="">All Days</option>
+                                <option value="Sunday">Sunday</option>
+                                <option value="Monday">Monday</option>
+                                <option value="Tuesday">Tuesday</option>
+                                <option value="Wednesday">Wednesday</option>
+                                <option value="Thursday">Thursday</option>
+                                <option value="Friday">Friday</option>
+                                <option value="Saturday">Saturday</option>
+                            </select>
+                        </div>
+                        <div class="section-select-all">
+                            <input type="checkbox" id="selectAllDelivery" class="section-checkbox" data-section="delivery">
+                            <label for="selectAllDelivery">Select All Delivery</label>
+                        </div>
                     </div>
+
                 </div>
                 
                 <?php if (!empty($delivery_items)): ?>
@@ -276,6 +425,7 @@ $user_id = $_SESSION['user_id'];
                             <th>Select</th>
                             <th></th>
                             <th>Product Name</th>
+                            <th>Days</th>
                             <th>Quantity</th>
                             <th>Price</th>
                             <th>Total</th>
@@ -288,12 +438,15 @@ $user_id = $_SESSION['user_id'];
                             $imageUrl = $row['image_url'] ? "/assets/" . $row['image_url'] : "/assets/images/no-image.jpg";
                             $item_total = $row['price'] * $row['quantity'];
                         ?>
-                        <tr data-cart-id="<?= $row['cart_id'] ?>" data-product-id="<?= $row['product_id'] ?>" data-stock="<?= $row['product_stock'] ?>" data-price="<?= $row['price'] ?>" data-quantity="<?= $row['quantity'] ?>" data-status="delivery">
+                        <tr data-cart-id="<?= $row['cart_id'] ?>" data-product-id="<?= $row['product_id'] ?>" data-stock="<?= $row['product_stock'] ?>" data-price="<?= $row['price'] ?>" data-quantity="<?= $row['quantity'] ?>" data-status="delivery" data-days="<?= htmlspecialchars($row['available_days'] ?? '') ?>">
                             <td>
                                 <input type="checkbox" name="selected_cart_ids[]" value="<?= $row['cart_id'] ?>" class="item-checkbox delivery-checkbox" data-total="<?= $item_total ?>" data-status="delivery">
                             </td>
                             <td><img src="<?= $imageUrl ?>" alt="<?= htmlspecialchars($row['product_name']) ?>" style="width: 60px; height: 60px; object-fit: cover;"></td>
                             <td><?= htmlspecialchars($row['product_name']) ?></td>
+                            <td class="days-column">
+                                <span class="day-abbreviations"><?= getDayAbbreviations($row['available_days'] ?? '') ?></span>
+                            </td>
                             <td>
                                 <div class="quantity-controls">
                                     <button class="quantity-btn" type="button" onclick="updateQuantity(<?= $row['cart_id'] ?>, <?= $row['quantity'] - 1 ?>)">-</button>
@@ -420,13 +573,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.checked = false;
                 return;
             }
+            
+            // Warn user about Select All limitation
+            showConfirmation('⚠️ Select All Notice: When all pickup items are selected, you can only delete them (not checkout) due to potentially incompatible pickup days. Select specific items for checkout.', true);
         }
         
-        pickupCheckboxes.forEach(checkbox => {
+        const visiblePickupCheckboxes = Array.from(pickupCheckboxes).filter(cb => {
+            const row = cb.closest('tr');
+            return row && row.style.display !== 'none';
+        });
+        
+        visiblePickupCheckboxes.forEach(checkbox => {
             checkbox.checked = selectAllPickup.checked;
         });
         updateSubtotal();
         checkMixedSelection();
+        
+        // Apply smart filtering after select all
+        if (this.checked) {
+            applySmartFilter();
+        }
     });
     
     selectAllDelivery.addEventListener('change', function() {
@@ -438,13 +604,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.checked = false;
                 return;
             }
+            
+            // Warn user about Select All limitation
+            showConfirmation('⚠️ Select All Notice: When all delivery items are selected, you can only delete them (not checkout) due to potentially incompatible delivery days. Select specific items for checkout.', true);
         }
         
-        deliveryCheckboxes.forEach(checkbox => {
+        const visibleDeliveryCheckboxes = Array.from(deliveryCheckboxes).filter(cb => {
+            const row = cb.closest('tr');
+            return row && row.style.display !== 'none';
+        });
+        
+        visibleDeliveryCheckboxes.forEach(checkbox => {
             checkbox.checked = selectAllDelivery.checked;
         });
         updateSubtotal();
         checkMixedSelection();
+        
+        // Apply smart filtering after select all
+        if (this.checked) {
+            applySmartFilter(); // This function will now handle both pickup and delivery
+        }
     });
     
     // Setup individual checkbox listeners
@@ -460,6 +639,11 @@ document.addEventListener('DOMContentLoaded', function() {
             updateSubtotal();
             updateSectionCheckboxes();
             checkMixedSelection();
+            
+            // Apply smart filtering for both pickup and delivery items
+            if (this.classList.contains('pickup-checkbox') || this.classList.contains('delivery-checkbox')) {
+                applySmartFilter();
+            }
         });
     });
 
@@ -541,6 +725,60 @@ function validateCart() {
         return false;
     }
 
+    // Check day compatibility for both pickup and delivery items
+    const selectedPickupItems = Array.from(selectedItems).filter(checkbox => 
+        checkbox.classList.contains('pickup-checkbox')
+    );
+    const selectedDeliveryItems = Array.from(selectedItems).filter(checkbox => 
+        checkbox.classList.contains('delivery-checkbox')
+    );
+    
+    // Check pickup day compatibility
+    if (selectedPickupItems.length > 1) {
+        const pickupDaysList = selectedPickupItems.map(checkbox => {
+            const row = checkbox.closest('tr');
+            return row.dataset.days || '';
+        }).filter(days => days);
+        
+        if (pickupDaysList.length > 1) {
+            const commonDays = getCommonDays(pickupDaysList);
+            if (commonDays.length === 0) {
+                showConfirmation('⚠️ Pickup Day Conflict: The selected pickup items have no common pickup days. Please select items that can be picked up on the same day.', true);
+                return false;
+            }
+        }
+    }
+    
+    // Check delivery day compatibility
+    if (selectedDeliveryItems.length > 1) {
+        const deliveryDaysList = selectedDeliveryItems.map(checkbox => {
+            const row = checkbox.closest('tr');
+            return row.dataset.days || '';
+        }).filter(days => days);
+        
+        if (deliveryDaysList.length > 1) {
+            const commonDays = getCommonDays(deliveryDaysList);
+            if (commonDays.length === 0) {
+                showConfirmation('⚠️ Delivery Day Conflict: The selected delivery items have no common delivery days. Please select items that can be delivered on the same day.', true);
+                return false;
+            }
+        }
+    }
+    
+    // Check if Select All was used for pickup (prevent checkout)
+    const selectAllPickup = document.getElementById('selectAllPickup');
+    if (selectAllPickup && selectAllPickup.checked && selectedPickupItems.length > 1) {
+        showConfirmation('⚠️ Select All Limitation: You cannot checkout when all pickup items are selected due to potential day conflicts. Please select specific compatible items.', true);
+        return false;
+    }
+    
+    // Check if Select All was used for delivery (prevent checkout)
+    const selectAllDelivery = document.getElementById('selectAllDelivery');
+    if (selectAllDelivery && selectAllDelivery.checked && selectedDeliveryItems.length > 1) {
+        showConfirmation('⚠️ Select All Limitation: You cannot checkout when all delivery items are selected due to potential day conflicts. Please select specific compatible items.', true);
+        return false;
+    }
+
     return true;
 }
 
@@ -598,6 +836,223 @@ document.querySelectorAll('.remove-btn').forEach(btn => {
         showConfirmationModal(cartId);
     };
 });
+
+// Function to filter items by selected day
+function filterByDay(sectionType) {
+    const filterId = sectionType === 'pickup' ? 'pickupDaysFilter' : 'daysFilter';
+    const selectedDay = document.getElementById(filterId).value;
+    const table = document.querySelector(`.${sectionType}-table`);
+    
+    if (!table) return;
+    
+    const rows = table.querySelectorAll('tbody tr');
+    let visibleRows = 0;
+    
+    rows.forEach(row => {
+        const availableDays = row.dataset.days || '';
+        
+        if (selectedDay === '' || availableDays.includes(selectedDay)) {
+            row.style.display = '';
+            visibleRows++;
+        } else {
+            row.style.display = 'none';
+            // Uncheck the checkbox if the row is hidden
+            const checkbox = row.querySelector('.item-checkbox');
+            if (checkbox && checkbox.checked) {
+                checkbox.checked = false;
+                updateSubtotal();
+            }
+        }
+    });
+    
+    // Update the "Select All" checkbox state
+    updateSelectAllState();
+    
+    // Show/hide empty message if needed
+    const emptyMessage = table.parentNode.querySelector('.empty-message');
+    if (visibleRows === 0 && !emptyMessage) {
+        const message = document.createElement('div');
+        message.className = 'empty-message';
+        message.style.cssText = 'text-align: center; padding: 20px; color: #666; font-style: italic;';
+        const sectionText = sectionType === 'pickup' ? 'pickup' : 'delivery';
+        message.textContent = selectedDay ? `No ${sectionText} items available for ${selectedDay}` : `No ${sectionText} items in cart`;
+        table.parentNode.appendChild(message);
+    } else if (visibleRows > 0 && emptyMessage) {
+        emptyMessage.remove();
+    }
+}
+
+// Update selectAllInSection to only select visible rows
+function selectAllInSection(section) {
+    const sectionCheckbox = document.getElementById(`selectAll${section.charAt(0).toUpperCase() + section.slice(1)}`);
+    const checkboxes = document.querySelectorAll(`.${section}-checkbox`);
+    
+    checkboxes.forEach(checkbox => {
+        const row = checkbox.closest('tr');
+        // Only select checkboxes in visible rows
+        if (row && row.style.display !== 'none') {
+            checkbox.checked = sectionCheckbox.checked;
+        }
+    });
+    
+    updateSubtotal();
+}
+
+// Update the select all state based on visible items only
+function updateSelectAllState() {
+    const pickupCheckboxes = Array.from(document.querySelectorAll('.pickup-checkbox')).filter(cb => {
+        const row = cb.closest('tr');
+        return row && row.style.display !== 'none';
+    });
+    
+    const deliveryCheckboxes = Array.from(document.querySelectorAll('.delivery-checkbox')).filter(cb => {
+        const row = cb.closest('tr');
+        return row && row.style.display !== 'none';
+    });
+    
+    const selectAllPickup = document.getElementById('selectAllPickup');
+    const selectAllDelivery = document.getElementById('selectAllDelivery');
+    
+    if (selectAllPickup && pickupCheckboxes.length > 0) {
+        const checkedCount = pickupCheckboxes.filter(cb => cb.checked).length;
+        selectAllPickup.checked = checkedCount === pickupCheckboxes.length;
+        selectAllPickup.indeterminate = checkedCount > 0 && checkedCount < pickupCheckboxes.length;
+    }
+    
+    if (selectAllDelivery && deliveryCheckboxes.length > 0) {
+        const checkedCount = deliveryCheckboxes.filter(cb => cb.checked).length;
+        selectAllDelivery.checked = checkedCount === deliveryCheckboxes.length;
+        selectAllDelivery.indeterminate = checkedCount > 0 && checkedCount < deliveryCheckboxes.length;
+    }
+}
+
+// Function to get common days between multiple products
+function getCommonDays(daysList) {
+    if (daysList.length === 0) return [];
+    if (daysList.length === 1) {
+        // Return the single day string as an array
+        return daysList[0].split(', ').map(day => day.trim()).filter(day => day);
+    }
+    
+    // Convert day strings to arrays
+    const dayArrays = daysList.map(days => 
+        days.split(', ').map(day => day.trim()).filter(day => day)
+    );
+    
+    // Find intersection of all day arrays
+    return dayArrays.reduce((common, current) => 
+        common.filter(day => current.includes(day))
+    );
+}
+
+// Function to check if two products have common days
+function hasCommonDays(days1, days2) {
+    if (!days1 || !days2) return false;
+    
+    const array1 = days1.split(', ').map(day => day.trim()).filter(day => day);
+    const array2 = days2.split(', ').map(day => day.trim()).filter(day => day);
+    
+    return array1.some(day => array2.includes(day));
+}
+
+// Smart filtering based on selected products (both pickup and delivery)
+function applySmartFilter() {
+    const pickupTable = document.querySelector('.pickup-table');
+    const deliveryTable = document.querySelector('.delivery-table');
+
+    if (!pickupTable && !deliveryTable) return;
+
+    // Handle pickup table filtering
+    if (pickupTable) {
+        const pickupRows = pickupTable.querySelectorAll('tbody tr');
+        const selectedPickupRows = Array.from(pickupRows).filter(row => {
+            const checkbox = row.querySelector('.pickup-checkbox');
+            return checkbox && checkbox.checked;
+        });
+        
+        if (selectedPickupRows.length > 0) {
+            const pickupDaysList = selectedPickupRows.map(row => row.dataset.days || '').filter(days => days);
+            const commonPickupDays = pickupDaysList.length > 0 ? getCommonDays(pickupDaysList) : [];
+            
+            pickupRows.forEach(row => {
+                const checkbox = row.querySelector('.pickup-checkbox');
+                const rowDays = row.dataset.days || '';
+                
+                // Always show selected rows
+                if (checkbox && checkbox.checked) {
+                    row.style.display = '';
+                    row.classList.remove('filtered-out');
+                    return;
+                }
+                
+                // For unselected rows, check if they have any common days
+                if (commonPickupDays.length === 0 || hasCommonDays(rowDays, commonPickupDays.join(', '))) {
+                    row.style.display = '';
+                    row.classList.remove('filtered-out');
+                } else {
+                    row.style.display = 'none';
+                    row.classList.add('filtered-out');
+                }
+            });
+            
+
+        } else {
+            // If no pickup items selected, show all pickup items
+            pickupRows.forEach(row => {
+                row.style.display = '';
+                row.classList.remove('filtered-out');
+            });
+
+        }
+    }
+
+    // Handle delivery table filtering
+    if (deliveryTable) {
+        const deliveryRows = deliveryTable.querySelectorAll('tbody tr');
+        const selectedDeliveryRows = Array.from(deliveryRows).filter(row => {
+            const checkbox = row.querySelector('.delivery-checkbox');
+            return checkbox && checkbox.checked;
+        });
+        
+        if (selectedDeliveryRows.length > 0) {
+            const deliveryDaysList = selectedDeliveryRows.map(row => row.dataset.days || '').filter(days => days);
+            const commonDeliveryDays = deliveryDaysList.length > 0 ? getCommonDays(deliveryDaysList) : [];
+            
+            deliveryRows.forEach(row => {
+                const checkbox = row.querySelector('.delivery-checkbox');
+                const rowDays = row.dataset.days || '';
+                
+                // Always show selected rows
+                if (checkbox && checkbox.checked) {
+                    row.style.display = '';
+                    row.classList.remove('filtered-out');
+                    return;
+                }
+                
+                // For unselected rows, check if they have any common days
+                if (commonDeliveryDays.length === 0 || hasCommonDays(rowDays, commonDeliveryDays.join(', '))) {
+                    row.style.display = '';
+                    row.classList.remove('filtered-out');
+                } else {
+                    row.style.display = 'none';
+                    row.classList.add('filtered-out');
+                }
+            });
+            
+
+        } else {
+            // If no delivery items selected, show all delivery items
+            deliveryRows.forEach(row => {
+                row.style.display = '';
+                row.classList.remove('filtered-out');
+            });
+
+        }
+    }
+    
+    // Update select all state
+    updateSelectAllState();
+}
 </script>
 </body>
 </html>

@@ -87,6 +87,10 @@
                         <span class="filter-count" id="count-delivery">0</span>
                         Delivery
                     </button>
+                    <button class="filter-btn" onclick="filterProducts('Available Today', this)" data-filter="available-today">
+                        <span class="filter-count" id="count-available-today">0</span>
+                        Today
+                    </button>
                     <button class="filter-btn" onclick="filterProducts('featured', this)" data-filter="featured">
                         <span class="filter-count" id="count-featured">0</span>
                         Featured
@@ -95,10 +99,13 @@
                         <span class="filter-count" id="count-unavailable">0</span>
                         Unavailable
                     </button>
+
+
                     <select id="unavailableTypeDropdown" class="unavailable-type-dropdown" style="display: none;" onchange="filterUnavailableByType()">
                         <option value="all-unavailable">All Unavailable</option>
                         <option value="unavailable-delivery">Unavailable Delivery</option>
                         <option value="unavailable-pickup">Unavailable Pick Up</option>
+                        <option value="unavailable-today">Unavailable Today</option>
                     </select>
                 </div>
             </div>
@@ -153,30 +160,34 @@
                             // Query with LIMIT and OFFSET for pagination
                             $sql = "SELECT 
                                         p.id, p.sku, p.name, p.price, p.status_id, ps.name AS status_name, 
+                                        p.unavailable_status_id, ups.name AS unavailable_status_name,
                                         pi.image_url, p.is_featured, p.show_when_unavailable, p.hide_when_unavailable,
                                         p.quantity,
                                         GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
                                     FROM products p
                                     LEFT JOIN product_statuses ps ON p.status_id = ps.id
+                                    LEFT JOIN unavail_products_status ups ON p.unavailable_status_id = ups.id
                                     LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
                                     LEFT JOIN product_day pd ON p.id = pd.product_id
                                     WHERE p.deleted_at IS NULL
-                                    GROUP BY p.id, p.sku, p.name, p.price, p.status_id, ps.name, pi.image_url, p.is_featured, p.show_when_unavailable, p.hide_when_unavailable, p.quantity
+                                    GROUP BY p.id, p.sku, p.name, p.price, p.status_id, ps.name, p.unavailable_status_id, ups.name, pi.image_url, p.is_featured, p.show_when_unavailable, p.hide_when_unavailable, p.quantity
                                     ORDER BY p.created_at DESC
                                     LIMIT $items_per_page OFFSET $offset";
                                     
                             // Also get all products for JavaScript filtering (without pagination)
                             $all_products_sql = "SELECT 
                                                     p.id, p.sku, p.name, p.price, p.status_id, ps.name AS status_name, 
+                                                    p.unavailable_status_id, ups.name AS unavailable_status_name,
                                                     pi.image_url, p.is_featured, p.show_when_unavailable, p.hide_when_unavailable,
                                                     p.quantity,
                                                     GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
                                                 FROM products p
                                                 LEFT JOIN product_statuses ps ON p.status_id = ps.id
+                                                LEFT JOIN unavail_products_status ups ON p.unavailable_status_id = ups.id
                                                 LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
                                                 LEFT JOIN product_day pd ON p.id = pd.product_id
                                                 WHERE p.deleted_at IS NULL
-                                                GROUP BY p.id, p.sku, p.name, p.price, p.status_id, ps.name, pi.image_url, p.is_featured, p.show_when_unavailable, p.hide_when_unavailable, p.quantity
+                                                GROUP BY p.id, p.sku, p.name, p.price, p.status_id, ps.name, p.unavailable_status_id, ups.name, pi.image_url, p.is_featured, p.show_when_unavailable, p.hide_when_unavailable, p.quantity
                                                 ORDER BY p.created_at DESC";
                                     
                             $all_products_result = $conn->query($all_products_sql);
@@ -195,7 +206,7 @@
                                     $status_id = isset($row["status_id"]) ? $row["status_id"] : 1;
                                     $quantity = isset($row["quantity"]) ? $row["quantity"] : 0;
                                     $quantityClass = $quantity <= 5 ? 'low-stock' : ($quantity <= 10 ? 'medium-stock' : 'good-stock');
-                                    $statusClass = strtolower(str_replace(' ', '-', $row['status_name']));
+                                    $statusClass = strtolower(str_replace(' ', '-', $row['status_name'] ?? 'Unknown'));
 
                                     // Construct image path
                                     $imagePath = '';
@@ -204,7 +215,7 @@
                                         $imagePath = '/assets/' . $row['image_url'];
                                     }
 
-                                    echo "<tr data-status='" . $row['status_name'] . "' data-name='" . strtolower($row['name']) . "' data-sku='" . strtolower($row['sku']) . "'>
+                                    echo "<tr data-status='" . ($row['status_name'] ?? 'Unknown') . "' data-name='" . strtolower($row['name']) . "' data-sku='" . strtolower($row['sku']) . "'>
                                             <td>
                                                 <div class='product-image-container'>
                                                     <img class='product-image' src='" . htmlspecialchars($imagePath) . "' alt='" . htmlspecialchars($row['name']) . "' loading='lazy'>
@@ -224,7 +235,7 @@
                                             </td>
                                             <td>
                                                 <div class='status-container'>
-                                                    <span class='status-badge status-" . $statusClass . "'>" . $row['status_name'] . "</span>
+                                                    <span class='status-badge status-" . $statusClass . "'>" . ($row['status_name'] ?? 'Unknown') . "</span>
                                                     <span class='stock-badge " . $quantityClass . "'>
                                                         <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>
                                                             <path d='M20 7h-9'></path>
@@ -251,7 +262,9 @@
                                                         '" . ($row["hide_when_unavailable"] ? "true" : "false") . "',
                                                         " . $quantity . ",
                                                         '" . addslashes($row['available_days']) . "',
-                                                        '" . addslashes($row['status_name']) . "'
+                                                        '" . addslashes($row['status_name'] ?? 'Unknown') . "',
+                                                        '" . ($row['unavailable_status_id'] ?? 'null') . "',
+                                                        '" . addslashes($row['unavailable_status_name'] ?? '') . "'
                                                     )\" title='Edit Product'>
                                                         <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>
                                                             <path d='M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7'></path>
@@ -455,9 +468,24 @@
                                 <option value="1">Pick Up</option>
                                 <option value="2">Delivery</option>
                                 <option value="3">Available Today</option>
-                                <option value="4">Unavailable Pick Up</option>
-                                <option value="5">Unavailable Delivery</option>
                             </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Availability:</label>
+                            <div class="radio-group">
+                                <div class="radio-item">
+                                    <input type="radio" id="editAvailable" name="editAvailability" value="available" checked>
+                                    <label for="editAvailable">Available</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" id="editUnavailable" name="editAvailability" value="unavailable">
+                                    <label for="editUnavailable">Unavailable</label>
+                                </div>
+                            </div>
+                            <div id="editUnavailableTypeContainer" style="display: none; margin-top: 10px;">
+                                <input type="hidden" id="editUnavailableType" value="">
+                                <small style="color: #666; font-style: italic;">Unavailable type will be automatically set based on the product status above.</small>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="editIsFeature">Featured Product</label>
