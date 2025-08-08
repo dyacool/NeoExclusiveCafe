@@ -342,32 +342,6 @@ $total_images = mysqli_num_rows($images_result);
                     <?php endif; ?>
                 </div>
             </section>
-
-            <!-- Categories Section -->
-            <section class="categories-section">
-                <header class="section-header" data-aos="fade-up">
-                    <h1 class="titles">Categories</h1>
-                </header>
-                <div class="blog-container" data-aos="fade-up">
-                    <div class="blog-section animate-fade-in-left">
-                        <a href="/frontend/pages/products/product-dashboard.php" class="blog-link">
-                            <img src="/assets/images/IMG_1171.jpg" alt="Weekly Available">
-                            <div class="section-title">
-                                <span>PRODUCTS</span>
-                            </div>
-                        </a>
-                    </div>
-
-                    <div class="blog-section animate-fade-in-right">
-                        <a href="blog-page.php" class="blog-link">
-                            <img src="/assets/images/44185072_Unknown.JPG" alt="All Products">
-                            <div class="section-title">
-                                <span>BLOGS</span>
-                            </div>
-                        </a>
-                    </div>
-                </div>
-            </section>
         </div>
     </div>
 </main>
