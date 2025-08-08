@@ -89,8 +89,13 @@ function renderCalendar(date) {
         let dayContent = i;
         let clickHandler = '';
         
-        // Check if it's a past date
-        if (dayDate < today) {
+        // Check if it's today
+        if (dayDate.getTime() === today.getTime()) {
+            dayClass += ' today';
+            dayContent += '<div class="today-indicator">Today</div>';
+            // No click handler for today - make it non-interactable
+        } else if (dayDate < today) {
+            // Check if it's a past date
             dayClass += ' past-date';
             dayContent += '<div class="past-indicator">Past</div>';
         } else {
