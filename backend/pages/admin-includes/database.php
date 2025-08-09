@@ -17,7 +17,8 @@ if (headers_sent()) {
     !strpos($_SERVER['SCRIPT_NAME'], '/products/remove-individual-image.php') &&
     !strpos($_SERVER['SCRIPT_NAME'], '/products/restore-removed-images.php') &&
     !strpos($_SERVER['SCRIPT_NAME'], '/products/delete-removed-images.php') &&
-    !strpos($_SERVER['SCRIPT_NAME'], '/calendar/update-limit.php')) {
+    !strpos($_SERVER['SCRIPT_NAME'], '/calendar/update-limit.php') &&
+    !strpos($_SERVER['SCRIPT_NAME'], '/cart/availtoday-cart-api.php')) {
         
         echo "<!-- Headers already sent, could not set content type -->";
     }
@@ -37,7 +38,8 @@ if (headers_sent()) {
         strpos($_SERVER['SCRIPT_NAME'], '/products/remove-individual-image.php') ||
         strpos($_SERVER['SCRIPT_NAME'], '/products/restore-removed-images.php') ||
         strpos($_SERVER['SCRIPT_NAME'], '/products/delete-removed-images.php') ||
-        strpos($_SERVER['SCRIPT_NAME'], '/calendar/update-limit.php')) {
+        strpos($_SERVER['SCRIPT_NAME'], '/calendar/update-limit.php') ||
+        strpos($_SERVER['SCRIPT_NAME'], '/cart/availtoday-cart-api.php')) {
         
         // For API endpoints, force JSON content type
         header('Content-Type: application/json');
@@ -63,7 +65,8 @@ if (!isset($suppress_db_debug) &&
     !strpos($_SERVER['SCRIPT_NAME'], '/admin/decline-order.php') &&
     !strpos($_SERVER['SCRIPT_NAME'], '/admin/minimal-orders.php') &&
     !strpos($_SERVER['SCRIPT_NAME'], '/products/update-product.php') &&
-    !strpos($_SERVER['SCRIPT_NAME'], '/calendar/update-limit.php')) {
+    !strpos($_SERVER['SCRIPT_NAME'], '/calendar/update-limit.php') &&
+    !strpos($_SERVER['SCRIPT_NAME'], '/cart/availtoday-cart-api.php')) {
     // echo $debug_info;
 }
 

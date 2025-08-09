@@ -114,8 +114,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         }
 
-        // Insert available days into product_day table for both Delivery and Pick Up
-        if (($status_id == 1 || $status_id == 2) && !empty($available_days)) {
+        // Insert available days into product_day table for Delivery, Pick Up, and Available Today
+        if (($status_id == 1 || $status_id == 2 || $status_id == 3) && !empty($available_days)) {
             $day_stmt = $conn->prepare("INSERT INTO product_day (product_id, day_of_week) VALUES (?, ?)");
             foreach ($available_days as $day) {
                 $day_stmt->bind_param("is", $product_id, $day);
@@ -348,7 +348,7 @@ $conn->close();
          if (statusSelect && availableDaysContainer) {
              const selectedValue = statusSelect.value;
              
-             if (selectedValue === '1' || selectedValue === '2') { // Delivery or Pick Up
+             if (selectedValue === '1' || selectedValue === '2' || selectedValue === '3') { // Delivery, Pick Up, or Available Today
                  availableDaysContainer.style.display = 'block';
              } else {
                  availableDaysContainer.style.display = 'none';

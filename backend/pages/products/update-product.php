@@ -49,6 +49,11 @@ try {
     if (isset($input['unavailable_status_id']) && !empty($input['unavailable_status_id'])) {
         $unavailable_status_id = filter_var($input['unavailable_status_id'], FILTER_VALIDATE_INT);
     }
+    
+    // Auto-set quantity to 0 if product is being set to unavailable
+    if ($unavailable_status_id !== null) {
+        $quantity = 0;
+    }
 
     if ($id === false || empty($name) || $price === false || $status_id === false || $quantity === false) {
         throw new Exception('Invalid input data');
@@ -104,8 +109,8 @@ try {
             $auto_status_stmt->close();
         }
         
-        // Update available days in product_day table for both Delivery and Pick Up
-        if ($status_id == 1 || $status_id == 2) {
+        // Update available days in product_day table for Delivery, Pick Up, and Available Today
+        if ($status_id == 1 || $status_id == 2 || $status_id == 3) {
             // First, delete existing days for this product
             $delete_stmt = $conn->prepare("DELETE FROM product_day WHERE product_id = ?");
             $delete_stmt->bind_param("i", $id);
@@ -122,7 +127,7 @@ try {
                 $day_stmt->close();
             }
         } else {
-            // If status is not Delivery or Pick Up, remove all available days
+            // If status is not Delivery, Pick Up, or Available Today, remove all available days
             $delete_stmt = $conn->prepare("DELETE FROM product_day WHERE product_id = ?");
             $delete_stmt->bind_param("i", $id);
             $delete_stmt->execute();

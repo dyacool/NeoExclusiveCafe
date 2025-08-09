@@ -13,6 +13,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+
+
   // Initialize filter counts
   updateFilterCounts();
 
@@ -56,20 +58,8 @@ function filterProducts(status, button) {
       product.unavailable_status_id !== null
     );
   } else if (status === "Available Today") {
-    // For available today filter, show products that are available today
-    const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
-    filteredProducts = allProductsData.filter(product => {
-      // Check if product has "Available Today" status (status_id = 3)
-      if (product.status_id == 3) {
-        return true;
-      }
-      // Check if product has available days and today is included
-      if (product.available_days && product.available_days.trim() !== '') {
-        const availableDays = product.available_days.split(', ').map(day => day.trim());
-        return availableDays.includes(today);
-      }
-      return false;
-    });
+    // For available today filter, show ONLY products with status_id = 3
+    filteredProducts = allProductsData.filter(product => product.status_id == 3);
   } else {
     // For status-based filters (Pick Up, Delivery)
     filteredProducts = allProductsData.filter(product => product.status_name === status);
@@ -536,12 +526,27 @@ function openEditModal(
     availableRadio.checked = false;
     unavailableTypeContainer.style.display = 'block';
     unavailableTypeSelect.value = unavailableStatusId;
+    
+    // Set quantity to 0 and disable quantity field for unavailable products
+    const quantityField = document.getElementById("editProductQuantity");
+    if (quantityField) {
+      quantityField.value = '0';
+      quantityField.disabled = true;
+      quantityField.style.opacity = '0.5';
+    }
   } else {
     // Product is available
     availableRadio.checked = true;
     unavailableRadio.checked = false;
     unavailableTypeContainer.style.display = 'none';
     unavailableTypeSelect.value = '';
+    
+    // Enable quantity field for available products
+    const quantityField = document.getElementById("editProductQuantity");
+    if (quantityField) {
+      quantityField.disabled = false;
+      quantityField.style.opacity = '1';
+    }
   }
 
   // Set available days checkboxes
@@ -569,10 +574,10 @@ function openEditModal(
     }
   });
 
-  // Show available days checkboxes for both Delivery and Pick Up products
+  // Show available days checkboxes for Delivery, Pick Up, and Available Today products
   const availableDaysContainer = document.querySelector('.checkbox-group.days-group');
   if (availableDaysContainer) {
-    if (statusName === 'Delivery' || statusName === 'Pick Up') {
+    if (statusName === 'Delivery' || statusName === 'Pick Up' || statusName === 'Available Today') {
       availableDaysContainer.style.display = 'block';
     } else {
       availableDaysContainer.style.display = 'none';
@@ -587,7 +592,7 @@ function openEditModal(
     statusSelect.addEventListener('change', function() {
       const selectedStatus = this.options[this.selectedIndex].text;
       if (availableDaysContainer) {
-        if (selectedStatus === 'Delivery' || selectedStatus === 'Pick Up') {
+        if (selectedStatus === 'Delivery' || selectedStatus === 'Pick Up' || selectedStatus === 'Available Today') {
           availableDaysContainer.style.display = 'block';
         } else {
           availableDaysContainer.style.display = 'none';
@@ -632,6 +637,13 @@ function openEditModal(
         unavailableTypeContainer.style.display = 'none';
         // Reset unavailable type when switching to available
         unavailableTypeSelect.value = '';
+        
+        // Enable quantity field when switching to available
+        const quantityField = document.getElementById("editProductQuantity");
+        if (quantityField) {
+          quantityField.disabled = false;
+          quantityField.style.opacity = '1';
+        }
       }
     });
     
@@ -667,6 +679,14 @@ function openEditModal(
           
           messageElement.textContent = `Will be set to: Unavailable ${statusText}`;
         }
+        
+        // Auto-set quantity to 0 and disable quantity field when setting to unavailable
+        const quantityField = document.getElementById("editProductQuantity");
+        if (quantityField) {
+          quantityField.value = '0';
+          quantityField.disabled = true;
+          quantityField.style.opacity = '0.5';
+        }
       }
     });
   }
@@ -700,9 +720,9 @@ function handleFormSubmit(event) {
   const statusSelect = document.getElementById("editProductStatus");
   const selectedStatus = statusSelect.options[statusSelect.selectedIndex].text;
   
-  // Collect available days from checkboxes for both Delivery and Pick Up
+  // Collect available days from checkboxes for Delivery, Pick Up, and Available Today
   const availableDays = [];
-  if (selectedStatus === 'Delivery' || selectedStatus === 'Pick Up') {
+  if (selectedStatus === 'Delivery' || selectedStatus === 'Pick Up' || selectedStatus === 'Available Today') {
     const dayCheckboxes = {
       'edit_sunday': 'Sunday',
       'edit_monday': 'Monday',
@@ -895,6 +915,8 @@ function softDeleteProduct(id) {
     });
 }
 
+
+
 // Utility functions
 function updateFilterCounts() {
   const counts = {
@@ -925,19 +947,7 @@ function updateFilterCounts() {
       counts["Unavailable"]++;
     }
     
-    // Count available today products
-    const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
-    // Count products with "Available Today" status (status_id = 3)
-    if (product.status_id == 3) {
-      counts["Available Today"]++;
-    }
-    // Count products with today in their available days
-    else if (product.available_days && product.available_days.trim() !== '') {
-      const availableDays = product.available_days.split(', ').map(day => day.trim());
-      if (availableDays.includes(today)) {
-        counts["Available Today"]++;
-      }
-    }
+    // Note: Available Today products are already counted by status name above
 
   });
 
@@ -1686,7 +1696,7 @@ function resetFormToOriginal() {
   // Reset available days visibility based on original status
   const availableDaysContainer = document.querySelector('.checkbox-group.days-group');
   if (availableDaysContainer) {
-    if (originalFormData.statusName === 'Delivery' || originalFormData.statusName === 'Pick Up') {
+    if (originalFormData.statusName === 'Delivery' || originalFormData.statusName === 'Pick Up' || originalFormData.statusName === 'Available Today') {
       availableDaysContainer.style.display = 'block';
     } else {
       availableDaysContainer.style.display = 'none';

@@ -270,10 +270,6 @@ $stats['in_progress'] = $progress_result->fetch_assoc()['in_progress'];
                     <div class="dashboard-header">
                         <h1>Admin Dashboard</h1>
                     </div>
-                    <div class="dashboard-content">
-                        <p>Welcome to the NeoCafe Admin Dashboard. Use the navigation menu to manage your cafe operations.</p>
-                        <p>For calendar management and order tracking, please visit the <a href="../calendar/calendar.php" style="color: #2f603c; text-decoration: underline;">Calendar Management</a> page.</p>
-                    </div>
                 </div>
             </div>
             <div class="dashboard-right" id="knowledge-base-container">
