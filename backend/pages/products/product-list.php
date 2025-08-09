@@ -197,6 +197,8 @@
                                 while ($row = $all_products_result->fetch_assoc()) {
                                     $all_products_data[] = $row;
                                 }
+                            }else{
+                                echo "<tr><td colspan='100%'>No products found</td></tr>";
                             }
                                     
                             $result = $conn->query($sql);

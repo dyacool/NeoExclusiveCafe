@@ -146,6 +146,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "terms-conditions-settings.php": "User Terms & Conditions",
       "privacy-policy-settings.php": "User Privacy Policy",
       "footer-settings.php": "Footer Settings",
+      "calendar.php": "Calendar Management",
     };
 
     const pageTitle = pageTitles[currentPage] || "Neo Cafe Admin";

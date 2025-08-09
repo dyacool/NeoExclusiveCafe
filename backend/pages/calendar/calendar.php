@@ -45,30 +45,19 @@ $stats['in_progress'] = $progress_result->fetch_assoc()['in_progress'];
     <link rel="stylesheet" href="../counts.css">
 
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: "Spectral", serif !important;
-            background-color: #f5f5f5;
-        }
-
-        .Main {
-            margin-left: 80px; 
-            transition: margin-left 0.3s ease-in-out;
-            min-height: 100vh;
-            background-color: #f5f5f5;
-            padding: 0;
-        }
-
         .sidebar:not(.collapsed) ~ .Main {
             margin-left: 250px; 
         }
 
         .main-container {
             display: flex;
-            padding: 20px;
-            margin-top: 20px; 
             width: 100%;
+            flex-direction: column;
+        }
+
+        .dashboard-flex{
+            display: flex;
+            flex-wrap: wrap;
         }
 
         .container2{
@@ -78,20 +67,13 @@ $stats['in_progress'] = $progress_result->fetch_assoc()['in_progress'];
             width: 100%;
         }
 
-        .container1 .content {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            gap: 20px;
-        }
-
         .container1 {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             flex-wrap: wrap;
             gap: 20px;
-            width: 20%;
+            width: 100%;
+            justify-content: space-between;
         }
 
         /* Date Limit Controls */
@@ -227,22 +209,6 @@ $stats['in_progress'] = $progress_result->fetch_assoc()['in_progress'];
         }
         }
 
-        @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        }
-
-        .fade-in {
-        opacity: 0;
-        animation: fadeIn 1.5s ease forwards;
-        }
-
         /* Calendar Styles */
         .calendar-section {
             background: white;
@@ -254,11 +220,13 @@ $stats['in_progress'] = $progress_result->fetch_assoc()['in_progress'];
 
         .top-controls {
             display: flex;
+            width: 100%;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
             gap: 15px;
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .order-limit-control {
@@ -306,7 +274,6 @@ $stats['in_progress'] = $progress_result->fetch_assoc()['in_progress'];
         }
 
         .calendar-container {
-            margin-top: 20px;
             width: 100%;
         }
 
@@ -448,32 +415,40 @@ $stats['in_progress'] = $progress_result->fetch_assoc()['in_progress'];
     <?php include '../admin-includes/navbar/navbar.php'; ?>
 
     <div class="main-container dashboard-flex fade-in">
+        <div class="header-content">
+            <p class="page-subtitle">View the orders summary and manage daily limit here</p>
+        </div>
+        <div class="top-controls">
+            <div class="order-limit-control">
+                <h3>Daily Order Limit:</h3>
+                <input type="number" id="dailyLimit" min="1">
+                <button onclick="updateDailyLimit()">Save</button>
+                <button onclick="toggleCompletedOrders()" id="toggleCompletedBtn">Show Completed Orders</button>
+            </div>
+        </div>
         <div class="container1">
-            <div class="content bg-teal">
+            <div class="content bg-purple">
                 <div class="container1-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path>
+                        <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
+                        <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
                     </svg>
                 </div>
                 <div class="container1-text">
-                    <h2><?php echo number_format($stats['total_users']); ?></h2>
-                    <p>Total Users</p>
+                    <h2><?php echo number_format($stats['total_orders']); ?></h2>
+                    <p>Total Orders</p>
                 </div>
             </div>
-
-            <div class="content bg-orange">
+            <div class="content bg-purple">
                 <div class="container1-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <line x1="16" y1="13" x2="8" y2="13"></line>
-                        <line x1="16" y1="17" x2="8" y2="17"></line>
-                        <line x1="10" y1="9" x2="8" y2="9"></line>
+                        <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
+                        <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
                     </svg>
                 </div>
                 <div class="container1-text">
-                    <h2>₱<?php echo number_format($stats['total_income'], 2); ?></h2>
-                    <p>Net Income</p>
+                    <h2><?php echo number_format($stats['total_orders']); ?></h2>
+                    <p>Total Orders</p>
                 </div>
             </div>
 
@@ -506,23 +481,13 @@ $stats['in_progress'] = $progress_result->fetch_assoc()['in_progress'];
 
         <div class="container2">
             <div class="dashboard-left">
-                <div class="dashboard-header">
-                    <h1>Calendar Management</h1>
-                </div>
+
                 <div class="dashboard-content">
                     <!-- Calendar Section -->
                     <div class="calendar-section">
-                        <div class="top-controls">
-                            <div class="order-limit-control">
-                                <h3>Daily Order Limit:</h3>
-                                <input type="number" id="dailyLimit" min="1">
-                                <button onclick="updateDailyLimit()">Save</button>
-                                <button onclick="toggleCompletedOrders()" id="toggleCompletedBtn">Show Completed Orders</button>
-                            </div>
-                        </div>
                         <div class="calendar-container">
                             <div id="calendar">
-                                <div class="header">
+                                <div class="calendar-header">
                                     <button id="prev">←</button>
                                     <span id="monthYear"></span>
                                     <button id="next">→</button>
