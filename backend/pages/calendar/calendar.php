@@ -140,6 +140,18 @@ $stats['in_progress'] = $progress_result->fetch_assoc()['in_progress'];
                 justify-content: center;
             }
 
+            .business-hours-control {
+                width: 100%;
+                justify-content: center;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .time-inputs {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
             .calendar-controls {
                 flex-direction: column;
             }
@@ -254,6 +266,50 @@ $stats['in_progress'] = $progress_result->fetch_assoc()['in_progress'];
             padding: 8px 15px;
             border-radius: 4px;
             cursor: pointer;
+        }
+
+        .business-hours-control {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .business-hours-control h3 {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        .time-inputs {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .time-inputs label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .time-inputs input[type="time"] {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 120px;
+        }
+
+        .time-inputs button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .time-inputs button:hover {
+            background: #1976D2;
         }
 
         .calendar-controls {
@@ -424,6 +480,16 @@ $stats['in_progress'] = $progress_result->fetch_assoc()['in_progress'];
                 <input type="number" id="dailyLimit" min="1">
                 <button onclick="updateDailyLimit()">Save</button>
                 <button onclick="toggleCompletedOrders()" id="toggleCompletedBtn">Show Completed Orders</button>
+            </div>
+            <div class="business-hours-control">
+                <h3>Business Hours:</h3>
+                <div class="time-inputs">
+                    <label for="openingTime">Opening Time:</label>
+                    <input type="time" id="openingTime" name="openingTime">
+                    <label for="closingTime">Closing Time:</label>
+                    <input type="time" id="closingTime" name="closingTime">
+                    <button onclick="updateBusinessHours()">Save Hours</button>
+                </div>
             </div>
         </div>
         <div class="container1">

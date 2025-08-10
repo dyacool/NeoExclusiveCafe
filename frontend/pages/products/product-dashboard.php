@@ -30,7 +30,7 @@ require_once __DIR__ . "/../../user-includes/database.php";
     
     <h1 class="prdct-title">Available Today for Pick Up or Delivery!</h1>
     <div class="header-section">
-        <h2 class="prdct-subtitle"><?php echo date('l, F j, Y'); ?></h2>
+        <h2 class="prdct-subtitle" id="currentDate"><?php echo date('l, F j, Y'); ?></h2>
         <div class="cart-dropdown">
             <button class="cart-btn" id="availableTodayCartBtn">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -47,7 +47,7 @@ require_once __DIR__ . "/../../user-includes/database.php";
                 </div>
                 <div class="availToday_timer" id="availToday_timer">
                     <span class="timer-label">Order before:</span>
-                    <span class="timer-value" id="availTodayTimerValue">11:59 PM</span>
+                    <span class="timer-value" id="availTodayTimerValue">Loading...</span>
                 </div>
                 <div class="cart-items" id="availableTodayCartItems">
                     <p class="empty-cart">No items in cart</p>
@@ -223,6 +223,24 @@ require_once __DIR__ . "/../../user-includes/database.php";
             // For 4 or less products, display them normally in a grid
             scrollContainer.classList.add('normal-grid');
         }
+        
+            // Initialize business hours functionality
+        initBusinessHours();
+        
+        // Add a manual test button for debugging
+        const testButton = document.createElement('button');
+        testButton.textContent = 'Test Business Hours';
+        testButton.style.cssText = 'position: fixed; top: 10px; right: 10px; z-index: 1000; padding: 10px; background: #ff6b35; color: white; border: none; border-radius: 5px; cursor: pointer;';
+        testButton.onclick = () => {
+            console.log('Manual test button clicked');
+            const now = new Date();
+            const currentTime = now.toTimeString().slice(0, 5);
+            console.log('Current time:', currentTime);
+            console.log('Business hours:', businessHours);
+            console.log('Is within business hours:', isWithinBusinessHours(currentTime));
+            checkBusinessHoursAndUpdateDisplay();
+        };
+        document.body.appendChild(testButton);
     });
 
     function setupScroll() {
@@ -241,6 +259,215 @@ require_once __DIR__ . "/../../user-includes/database.php";
     }
 
     // Available Today cart functions are now handled by availtoday-cart.js
+
+    // Business Hours Management
+    let businessHours = {
+        openingTime: '08:00',
+        closingTime: '17:00'
+    };
+
+    function initBusinessHours() {
+        // Ensure cart is visible by default
+        const cartDropdown = document.querySelector('.cart-dropdown');
+        if (cartDropdown) {
+            cartDropdown.style.display = 'block';
+            console.log('Cart dropdown set to visible by default');
+        }
+        
+        loadBusinessHours();
+        // Check immediately after loading
+        setTimeout(() => {
+            checkBusinessHoursAndUpdateDisplay();
+        }, 100);
+        // Check every minute
+        setInterval(checkBusinessHoursAndUpdateDisplay, 60000);
+        
+        // Fallback check after 2 seconds in case fetch fails
+        setTimeout(() => {
+            if (!businessHours.openingTime || !businessHours.closingTime) {
+                console.log('Fallback: Using default business hours');
+                businessHours.openingTime = '08:00';
+                businessHours.closingTime = '17:00';
+                checkBusinessHoursAndUpdateDisplay();
+            }
+        }, 2000);
+    }
+
+    function loadBusinessHours() {
+        fetch('get-business-hours.php')
+            .then(response => response.json())
+            .then(data => {
+                console.log('Business hours data received:', data);
+                if (data.success && data.businessHours) {
+                    businessHours.openingTime = data.businessHours.opening_time;
+                    businessHours.closingTime = data.businessHours.closing_time;
+                    console.log('Business hours loaded:', businessHours);
+                    updateTimerDisplay();
+                    
+                    // Immediately check business hours after loading
+                    setTimeout(() => {
+                        checkBusinessHoursAndUpdateDisplay();
+                    }, 50);
+                } else {
+                    console.error('Failed to load business hours:', data);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading business hours:', error);
+            });
+    }
+
+    function checkBusinessHoursAndUpdateDisplay() {
+        const now = new Date();
+        const currentTime = now.toTimeString().slice(0, 5); // HH:MM format
+        
+        console.log('Current date/time info:', {
+            fullDate: now.toString(),
+            timeString: now.toTimeString(),
+            currentTime: currentTime,
+            hours: now.getHours(),
+            minutes: now.getMinutes(),
+            timezone: now.getTimezoneOffset()
+        });
+        
+        const isOpen = isWithinBusinessHours(currentTime);
+        
+        console.log('Business Hours Check:', {
+            currentTime: currentTime,
+            openingTime: businessHours.openingTime,
+            closingTime: businessHours.closingTime,
+            isOpen: isOpen,
+            businessHours: businessHours
+        });
+        
+        updateProductVisibility(isOpen);
+        updateTimerDisplay();
+    }
+
+    function isWithinBusinessHours(currentTime) {
+        console.log('Time comparison:', {
+            currentTime: currentTime,
+            openingTime: businessHours.openingTime,
+            closingTime: businessHours.closingTime,
+            currentTimeType: typeof currentTime,
+            openingTimeType: typeof businessHours.openingTime,
+            closingTimeType: typeof businessHours.closingTime
+        });
+        
+        // Ensure we have valid business hours
+        if (!businessHours.openingTime || !businessHours.closingTime) {
+            console.log('Business hours not loaded yet, defaulting to open');
+            return true;
+        }
+        
+        // Convert times to minutes for easier comparison
+        const currentMinutes = parseInt(currentTime.split(':')[0]) * 60 + parseInt(currentTime.split(':')[1]);
+        const openingMinutes = parseInt(businessHours.openingTime.split(':')[0]) * 60 + parseInt(businessHours.openingTime.split(':')[1]);
+        const closingMinutes = parseInt(businessHours.closingTime.split(':')[0]) * 60 + parseInt(businessHours.closingTime.split(':')[1]);
+        
+        console.log('Time comparison in minutes:', {
+            currentMinutes: currentMinutes,
+            openingMinutes: openingMinutes,
+            closingMinutes: closingMinutes,
+            isOpen: currentMinutes >= openingMinutes && currentMinutes < closingMinutes
+        });
+        
+        return currentMinutes >= openingMinutes && currentMinutes < closingMinutes;
+    }
+
+    function updateProductVisibility(isOpen) {
+        const productsGrid = document.getElementById('productScroll');
+        const title = document.querySelector('.prdct-title');
+        const subtitle = document.querySelector('.prdct-subtitle');
+        const cartDropdown = document.querySelector('.cart-dropdown');
+        
+        console.log('updateProductVisibility called with isOpen:', isOpen);
+        console.log('Products grid element:', productsGrid);
+        console.log('Title element:', title);
+        console.log('Subtitle element:', subtitle);
+        console.log('Cart dropdown element:', cartDropdown);
+        
+        if (!isOpen) {
+            // Hide products and show closing message
+            console.log('Hiding products - setting display to none');
+            productsGrid.style.display = 'none';
+            title.textContent = 'Products Currently Unavailable';
+            subtitle.innerHTML = `Check again tomorrow for available pre-made breads!<br><span style="color: #ff6b35; font-weight: 600;">Business Hours: ${formatTimeForDisplay(businessHours.openingTime)} - ${formatTimeForDisplay(businessHours.closingTime)}</span>`;
+            
+            // Hide cart and clear cart data when business hours are closed
+            if (cartDropdown) {
+                console.log('Hiding cart dropdown and clearing cart data');
+                cartDropdown.style.display = 'none';
+                
+                // Clear the cart data using the function from availtoday-cart.js
+                if (typeof clearAvailableTodayCart === 'function') {
+                    console.log('Calling clearAvailableTodayCart function');
+                    clearAvailableTodayCart();
+                    console.log('Cart data cleared successfully');
+                } else {
+                    console.log('clearAvailableTodayCart function not available - trying alternative approach');
+                    // Alternative: manually clear cart data
+                    if (typeof availableTodayCart !== 'undefined') {
+                        availableTodayCart = [];
+                        availableTodayCartTotal = 0;
+                        console.log('Cart data manually cleared');
+                    }
+                    // Also try to clear localStorage
+                    try {
+                        localStorage.removeItem('availableTodayCart');
+                        localStorage.removeItem('availableTodayCartTotal');
+                        console.log('Cart data cleared from localStorage');
+                    } catch (e) {
+                        console.log('Could not clear localStorage:', e);
+                    }
+                }
+            }
+        } else {
+            // Show products and restore original title
+            console.log('Showing products - setting display to grid');
+            productsGrid.style.display = 'grid';
+            title.textContent = 'Available Today for Pick Up or Delivery!';
+            subtitle.textContent = new Date().toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            
+            // Show cart when business hours are open
+            if (cartDropdown) {
+                console.log('Showing cart dropdown');
+                cartDropdown.style.display = 'block';
+                
+                // Also ensure cart display is updated
+                if (typeof updateAvailableTodayCartDisplay === 'function') {
+                    console.log('Updating cart display after showing cart');
+                    updateAvailableTodayCartDisplay();
+                }
+            }
+        }
+        
+        console.log('Final products grid display style:', productsGrid.style.display);
+        console.log('Final cart dropdown display style:', cartDropdown ? cartDropdown.style.display : 'N/A');
+    }
+
+    function updateTimerDisplay() {
+        const timerValue = document.getElementById('availTodayTimerValue');
+        if (timerValue) {
+            // Format the time to be more readable (e.g., "5:00 PM" instead of "17:00")
+            const formattedTime = formatTimeForDisplay(businessHours.closingTime);
+            timerValue.textContent = formattedTime;
+        }
+    }
+
+    function formatTimeForDisplay(timeString) {
+        // Convert 24-hour format to 12-hour format
+        const [hours, minutes] = timeString.split(':');
+        const hour = parseInt(hours);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+        return `${displayHour}:${minutes} ${ampm}`;
+    }
 
     function updateQuantity(button, change) {
         const container = button.parentElement;

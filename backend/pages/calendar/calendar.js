@@ -7,6 +7,7 @@ let showCompletedOrders = false;
 document.addEventListener('DOMContentLoaded', function() {
     renderCalendar(currentDate);
     refreshDefaultLimit();
+    loadBusinessHours();
     setupEventListeners();
 });
 
@@ -410,6 +411,70 @@ function updateDailyLimit() {
         console.error('Error updating limit:', error);
         alert('Error updating limit. Please try again.');
     });
+}
+
+function updateBusinessHours() {
+    const openingTime = document.getElementById('openingTime').value;
+    const closingTime = document.getElementById('closingTime').value;
+    
+    // Debug: Log the values being sent
+    console.log('Opening time value:', openingTime);
+    console.log('Closing time value:', closingTime);
+    console.log('Opening time type:', typeof openingTime);
+    console.log('Closing time type:', typeof closingTime);
+    
+    if (!openingTime || !closingTime) {
+        alert('Please enter both opening and closing times');
+        return;
+    }
+
+    // Validate that closing time is after opening time
+    if (openingTime >= closingTime) {
+        alert('Closing time must be after opening time');
+        return;
+    }
+
+    const requestData = {
+        openingTime: openingTime,
+        closingTime: closingTime
+    };
+    
+    console.log('Request data being sent:', requestData);
+
+    fetch('update-business-hours.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Business hours updated successfully!');
+            // Optionally refresh or update the display
+        } else {
+            alert('Error updating business hours: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error updating business hours:', error);
+        alert('Error updating business hours. Please try again.');
+    });
+}
+
+function loadBusinessHours() {
+    fetch('get-business-hours.php')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.businessHours) {
+                document.getElementById('openingTime').value = data.businessHours.opening_time;
+                document.getElementById('closingTime').value = data.businessHours.closing_time;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading business hours:', error);
+        });
 }
 
 function showOrderDetails(orderId) {
