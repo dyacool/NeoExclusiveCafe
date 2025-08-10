@@ -39,10 +39,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $description = $_POST['description'];
     $price = $_POST['price'];
     $status_id = $_POST['status_id'];
-    $quantity = $_POST['quantity']; // Added this line to get quantity
+    $quantity = $_POST['quantity'];
     $is_featured = isset($_POST['is_featured']) ? 1 : 0;
-    $show_when_unavailable = isset($_POST['show_when_unavailable']) ? 1 : 0;
-    $hide_when_unavailable = isset($_POST['hide_when_unavailable']) ? 1 : 0;
+    // Map visibility radio selection to the two DB flags
+    $visibility_option = $_POST['visibility_option'] ?? 'hide';
+    $show_when_unavailable = ($visibility_option === 'show') ? 1 : 0;
+    $hide_when_unavailable = ($visibility_option === 'hide') ? 1 : 0;
 
     // Handle available days - process for both Delivery and Pick Up
     $available_days = [];
@@ -105,7 +107,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     
                     if (move_uploaded_file($tmp_name, $filePath)) {
                         // Store relative path in database without special characters
-                        $dbImagePath = "/../../assets/product-images/" . $folderName . "/" . $cleanFileName;
+                        $dbImagePath = "product-images/" . $folderName . "/" . $cleanFileName;
                         $stmt = $conn->prepare("INSERT INTO product_images (product_id, image_url, is_primary) VALUES (?, ?, 0)");
                         $stmt->bind_param("is", $product_id, $dbImagePath);
                         $stmt->execute();
@@ -243,9 +245,9 @@ $conn->close();
 
                                          <label>Status:</label>
                      <select class="statusGrp" name="status_id">
-                         <option value="1">Delivery</option>
-                         <option value="2">Pick Up</option>
-                         <option value="3">Unavailable</option>
+                         <option value="1">Pick Up</option>
+                         <option value="2">Delivery</option>
+                         <option value="3">Available Today</option>
                      </select>
 
                     <!-- Added Quantity Available For Pre-Order field -->
@@ -288,16 +290,20 @@ $conn->close();
                     <label>Visibility</label>
                     <div class="checkbox-group">
                         <div class="checkbox-item">
+                            <input type="radio" name="visibility_option" id="visibility_show" value="show">
+                            <label class="cb-itm" for="visibility_show" style="display: inline;">Show when unavailable</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="radio" name="visibility_option" id="visibility_hide" value="hide" checked>
+                            <label class="cb-itm" for="visibility_hide" style="display: inline;">Hide when unavailable</label>
+                        </div>
+                    </div>
+
+                    <label>Featured</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
                             <input type="checkbox" name="is_featured" id="is_featured">
-                            <label class = "cb-itm" for="is_featured" style="display: inline;">Feature Product</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" name="show_when_unavailable" id="show_when_unavailable">
-                            <label class = "cb-itm" for="show_when_unavailable" style="display: inline;">Show when unavailable</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" name="hide_when_unavailable" id="hide_when_unavailable">
-                            <label class = "cb-itm" for="hide_when_unavailable" style="display: inline;">Hide when unavailable</label>
+                            <label class="cb-itm" for="is_featured" style="display: inline;">Feature Product</label>
                         </div>
                     </div>
 
@@ -486,4 +492,5 @@ $conn->close();
     }
 </script>
 </body>
+</html>
 </html>

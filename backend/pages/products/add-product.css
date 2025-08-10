@@ -377,6 +377,35 @@ input[type="checkbox"]:checked::after {
   transform: rotate(45deg);
 }
 
+/* Radio button styling */
+input[type="radio"] {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border: #718096 1px solid;
+  border-radius: 50%;
+  outline: none;
+  cursor: pointer;
+  margin-right: 8px;
+  position: relative;
+}
+
+input[type="radio"]:checked {
+  background-color: #256035;
+  border-color: #256035;
+}
+
+input[type="radio"]:checked::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 8px;
+  height: 8px;
+  background-color: white;
+  border-radius: 50%;
+}
+
 .statusGrp {
   display: block;
   width: 100%;

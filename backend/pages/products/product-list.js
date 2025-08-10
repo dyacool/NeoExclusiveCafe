@@ -671,7 +671,7 @@ function loadProductImages(productId) {
   };
   tempImageInfo = { primary: null, additional: [] };
 
-  fetch(`test-get-images.php?product_id=${productId}`)
+  fetch(`get-product-images.php?product_id=${productId}`)
     .then((response) => response.json())
     .then((data) => {
       if (data.success) {
