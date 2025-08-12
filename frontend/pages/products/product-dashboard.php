@@ -72,16 +72,18 @@ require_once __DIR__ . "/../../user-includes/database.php";
                             $sql = "SELECT 
                                         p.id, p.name, p.price, p.description, p.status_id, p.is_featured,
                                         ps.name AS status_name, pi.image_url, p.quantity, p.show_when_unavailable,
+                                        p.availtoday_status_id, ats.name AS availtoday_status_name,
                                         GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
                                     FROM products p
                                     LEFT JOIN product_statuses ps ON p.status_id = ps.id
                                     LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
                                     LEFT JOIN product_day pd ON p.id = pd.product_id
+                                    LEFT JOIN availtoday_status ats ON p.availtoday_status_id = ats.id
                                     WHERE p.deleted_at IS NULL 
                                     AND p.status_id = 3
                                     AND p.quantity > 0
                                     AND pd.day_of_week = ?
-                                    GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, ps.name, pi.image_url, p.quantity, p.show_when_unavailable
+                                    GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, ps.name, pi.image_url, p.quantity, p.show_when_unavailable, p.availtoday_status_id, ats.name
                                     ORDER BY p.is_featured DESC, p.name ASC";
                     
                             // Prepare and execute the statement with today's day parameter
@@ -113,7 +115,9 @@ require_once __DIR__ . "/../../user-includes/database.php";
                                         'is_featured' => (bool)$row['is_featured'],
                                         'quantity' => $row['quantity'],
                                         'show_when_unavailable' => (bool)$row['show_when_unavailable'],
-                                        'available_days' => $row['available_days'] ? explode(', ', $row['available_days']) : []
+                                        'available_days' => $row['available_days'] ? explode(', ', $row['available_days']) : [],
+                                        'availtoday_status_id' => $row['availtoday_status_id'],
+                                        'availtoday_status_name' => $row['availtoday_status_name']
                                     ];
                                     
                                     $featuredClass = $row['is_featured'] ? 'featured-product' : '';
@@ -127,8 +131,16 @@ require_once __DIR__ . "/../../user-includes/database.php";
                                                 <img src='../../../assets/" . htmlspecialchars($row['image_url'] ?: 'images/no-image.jpg') . "' alt='" . htmlspecialchars($row['name']) . "'>
                                             </div>
                                             <div class='product-info'>
-                                                <h3>" . htmlspecialchars($row['name']) . "</h3>
-                                                <p class='price'>₱" . number_format($row['price'], 2) . "</p>
+                                                <h3>" . htmlspecialchars($row['name']) . "</h3>";
+                                                
+                                                // Display availtoday status if available
+                                                if (!empty($row['availtoday_status_name'])) {
+                                                    echo "<div class='availtoday-status-display'>
+                                                            <span class='availtoday-status-badge'>For " . htmlspecialchars($row['availtoday_status_name']) . "</span>
+                                                          </div>";
+                                                }
+                                                
+                                                echo "<p class='price'>₱" . number_format($row['price'], 2) . "</p>
                                                 
                                                 <div class='prdct-availability'>
                                                     <span class='status-badge status-{$statusClass}'>" . htmlspecialchars($row['status_name']) . "</span>
@@ -227,20 +239,7 @@ require_once __DIR__ . "/../../user-includes/database.php";
             // Initialize business hours functionality
         initBusinessHours();
         
-        // Add a manual test button for debugging
-        const testButton = document.createElement('button');
-        testButton.textContent = 'Test Business Hours';
-        testButton.style.cssText = 'position: fixed; top: 10px; right: 10px; z-index: 1000; padding: 10px; background: #ff6b35; color: white; border: none; border-radius: 5px; cursor: pointer;';
-        testButton.onclick = () => {
-            console.log('Manual test button clicked');
-            const now = new Date();
-            const currentTime = now.toTimeString().slice(0, 5);
-            console.log('Current time:', currentTime);
-            console.log('Business hours:', businessHours);
-            console.log('Is within business hours:', isWithinBusinessHours(currentTime));
-            checkBusinessHoursAndUpdateDisplay();
-        };
-        document.body.appendChild(testButton);
+
     });
 
     function setupScroll() {
@@ -391,8 +390,19 @@ require_once __DIR__ . "/../../user-includes/database.php";
             // Hide products and show closing message
             console.log('Hiding products - setting display to none');
             productsGrid.style.display = 'none';
+<<<<<<< Updated upstream
             title.textContent = 'Products Currently Unavailable';
             subtitle.innerHTML = `Check again tomorrow for available pre-made breads!<br><span style="color: #ff6b35; font-weight: 600;">Business Hours: ${formatTimeForDisplay(businessHours.openingTime)} - ${formatTimeForDisplay(businessHours.closingTime)}</span>`;
+=======
+            title.textContent = 'Products';
+            subtitle.innerHTML = `Check again tomorrow for available pre-made breads!<br><span style="color: #ff6b35; font-weight: 600;">Business Hours: ${formatTimeForDisplay(businessHours.openingTime)} - ${formatTimeForDisplay(businessHours.closingTime)}</span>`;
+            
+            // Clear expired cart data when business hours are closed
+            fetch('../../../backend/pages/cart/clear-expired-cart.php')
+                .then(response => response.json())
+                .then(data => console.log('Cart cleared:', data.message))
+                .catch(error => console.log('Cart clear error:', error));
+>>>>>>> Stashed changes
             
             // Hide cart and clear cart data when business hours are closed
             if (cartDropdown) {
@@ -468,6 +478,8 @@ require_once __DIR__ . "/../../user-includes/database.php";
         const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
         return `${displayHour}:${minutes} ${ampm}`;
     }
+
+
 
     function updateQuantity(button, change) {
         const container = button.parentElement;
