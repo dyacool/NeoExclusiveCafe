@@ -324,13 +324,37 @@ small {
 .statusGrp {
   display: block;
   width: 100%;
-  padding: 7px;
+  padding: 3px 8px;
   background-color: #f8f8f8;
-  border: 1px solid #256035;
+  border: 1px solid #e2e8f0;
   margin: 5px 0 15px 0;
   box-sizing: border-box;
   border-radius: 4px;
-  font-family: "Spectral", serif;
+  font-size: 16px;
+  color: #256035;
+}
+
+.availtoday-status {
+  display: block;
+  width: 100%;
+  padding: 3px 8px;
+  background-color: #f8f8f8;
+  border: 1px solid #e2e8f0;
+  margin: 5px 0 15px 0;
+  box-sizing: border-box;
+  border-radius: 4px;
+  font-size: 16px;
+  color: #256035;
+}
+
+.availtoday-status:focus {
+  outline: none;
+  border-color: #256035;
+  box-shadow: 0 0 0 3px rgba(37, 96, 53, 0.15);
+}
+
+#availtodayOptions {
+  margin-bottom: 15px;
 }
 
 /* Checkbox styling */

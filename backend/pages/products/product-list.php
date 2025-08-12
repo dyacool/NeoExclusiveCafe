@@ -5,14 +5,21 @@
         exit();
     }
 
+    // Include config file for base URL
     require_once __DIR__ . "/../admin-includes/config.php";
 
+    // Function to format available days in compact format
     function formatAvailableDays($availableDays) {
         if (empty($availableDays)) return "Not set";
         
         $dayMap = [
-            'Sunday' => 'S', 'Monday' => 'M', 'Tuesday' => 'T', 'Wednesday' => 'W',
-            'Thursday' => 'Th', 'Friday' => 'F', 'Saturday' => 'Sa'
+            'Sunday' => 'S',
+            'Monday' => 'M', 
+            'Tuesday' => 'T',
+            'Wednesday' => 'W',
+            'Thursday' => 'Th',
+            'Friday' => 'F',
+            'Saturday' => 'Sa'
         ];
         
         $days = explode(', ', $availableDays);
@@ -25,6 +32,7 @@
         return implode(', ', $formattedDays);
     }
 
+    // Pagination settings
     $items_per_page = 12;
     $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
     $offset = ($current_page - 1) * $items_per_page;
@@ -42,9 +50,10 @@
 <body>
 <?php include __DIR__ . "/../admin-includes/navbar/navbar.php"; ?>
 
+<!-- FIXED: Wrap content in container with proper class -->
 <div class="product-list-container">
     <div class="main-container">
-         <!-- Header Section  -->
+        <!-- Header Section - FIXED: Removed conflicting header content -->
         <div class="page-header">
             <div class="header-content">
                 <p class="page-subtitle">Manage your products here</p>
@@ -61,7 +70,7 @@
             </div>
         </div>
 
-         <!-- Filters and Search  -->
+        <!-- Filters and Search -->
         <div class="controls-section">
             <div class="filter-group">
                 <label class="filter-label">Filter by Status:</label>
@@ -91,6 +100,7 @@
                         Unavailable
                     </button>
 
+
                     <select id="unavailableTypeDropdown" class="unavailable-type-dropdown" style="display: none;" onchange="filterUnavailableByType()">
                         <option value="all-unavailable">All Unavailable</option>
                         <option value="unavailable-delivery">Unavailable Delivery</option>
@@ -101,7 +111,7 @@
             </div>
         </div>
 
-         <!-- Sort Controls  -->
+        <!-- Sort Controls -->
         <div class="sort-controls">
             <div class="sort-group">
                 <label class="sort-label">Sort by:</label>
@@ -130,7 +140,7 @@
             </div>
         </div>
 
-         <!-- Products Table  -->
+        <!-- Products Grid/Table -->
         <div class="products-container">
             <div class="table-wrapper">
                 <table class="products-table">
@@ -147,37 +157,39 @@
                             $total_products = $count_result->fetch_assoc()['total'];
                             $total_pages = ceil($total_products / $items_per_page);
 
-                            // Query with pagination
+                            // Query with LIMIT and OFFSET for pagination
                             $sql = "SELECT 
                                         p.id, p.sku, p.name, p.price, p.status_id, ps.name AS status_name, 
                                         p.unavailable_status_id, ups.name AS unavailable_status_name,
                                         pi.image_url, p.is_featured, p.show_when_unavailable, p.hide_when_unavailable,
-                                        p.quantity,
+                                        p.quantity, p.availtoday_status_id, ats.name AS availtoday_status_name,
                                         GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
                                     FROM products p
                                     LEFT JOIN product_statuses ps ON p.status_id = ps.id
                                     LEFT JOIN unavail_products_status ups ON p.unavailable_status_id = ups.id
+                                    LEFT JOIN availtoday_status ats ON p.availtoday_status_id = ats.id
                                     LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
                                     LEFT JOIN product_day pd ON p.id = pd.product_id
                                     WHERE p.deleted_at IS NULL
-                                    GROUP BY p.id, p.sku, p.name, p.price, p.status_id, ps.name, p.unavailable_status_id, ups.name, pi.image_url, p.is_featured, p.show_when_unavailable, p.hide_when_unavailable, p.quantity
+                                    GROUP BY p.id, p.sku, p.name, p.price, p.status_id, ps.name, p.unavailable_status_id, ups.name, pi.image_url, p.is_featured, p.show_when_unavailable, p.hide_when_unavailable, p.quantity, p.availtoday_status_id, ats.name
                                     ORDER BY p.created_at DESC
                                     LIMIT $items_per_page OFFSET $offset";
                                     
-                            // Get all products for JavaScript filtering
+                            // Also get all products for JavaScript filtering (without pagination)
                             $all_products_sql = "SELECT 
                                                     p.id, p.sku, p.name, p.price, p.status_id, ps.name AS status_name, 
                                                     p.unavailable_status_id, ups.name AS unavailable_status_name,
                                                     pi.image_url, p.is_featured, p.show_when_unavailable, p.hide_when_unavailable,
-                                                    p.quantity,
+                                                    p.quantity, p.availtoday_status_id, ats.name AS availtoday_status_name,
                                                     GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
                                                 FROM products p
                                                 LEFT JOIN product_statuses ps ON p.status_id = ps.id
                                                 LEFT JOIN unavail_products_status ups ON p.unavailable_status_id = ups.id
+                                                LEFT JOIN availtoday_status ats ON p.availtoday_status_id = ats.id
                                                 LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
                                                 LEFT JOIN product_day pd ON p.id = pd.product_id
                                                 WHERE p.deleted_at IS NULL
-                                                GROUP BY p.id, p.sku, p.name, p.price, p.status_id, ps.name, p.unavailable_status_id, ups.name, pi.image_url, p.is_featured, p.show_when_unavailable, p.hide_when_unavailable, p.quantity
+                                                GROUP BY p.id, p.sku, p.name, p.price, p.status_id, ps.name, p.unavailable_status_id, ups.name, pi.image_url, p.is_featured, p.show_when_unavailable, p.hide_when_unavailable, p.quantity, p.availtoday_status_id, ats.name
                                                 ORDER BY p.created_at DESC";
                                     
                             $all_products_result = $conn->query($all_products_sql);
@@ -187,6 +199,8 @@
                                 while ($row = $all_products_result->fetch_assoc()) {
                                     $all_products_data[] = $row;
                                 }
+                            }else{
+                                echo "<tr><td colspan='100%'>No products found</td></tr>";
                             }
                                     
                             $result = $conn->query($sql);
@@ -198,8 +212,10 @@
                                     $quantityClass = $quantity <= 5 ? 'low-stock' : ($quantity <= 10 ? 'medium-stock' : 'good-stock');
                                     $statusClass = strtolower(str_replace(' ', '-', $row['status_name'] ?? 'Unknown'));
 
+                                    // Construct image path
                                     $imagePath = '';
                                     if (!empty($row['image_url'])) {
+                                        // Use the same path structure as weekly-product.php
                                         $imagePath = '/assets/' . $row['image_url'];
                                     }
 
@@ -223,8 +239,14 @@
                                             </td>
                                             <td>
                                                 <div class='status-container'>
-                                                    <span class='status-badge status-" . $statusClass . "'>" . ($row['status_name'] ?? 'Unknown') . "</span>
-                                                    <span class='stock-badge " . $quantityClass . "'>
+                                                    <span class='status-badge status-" . $statusClass . "'>" . ($row['status_name'] ?? 'Unknown') . "</span>";
+                                                    
+                                                    // Show availtoday status if it's "Available Today"
+                                                    if ($row['status_id'] == 3 && !empty($row['availtoday_status_name'])) {
+                                                        echo "<span class='availtoday-badge'>" . htmlspecialchars($row['availtoday_status_name']) . "</span>";
+                                                    }
+                                                    
+                                                    echo "<span class='stock-badge " . $quantityClass . "'>
                                                         <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>
                                                             <path d='M20 7h-9'></path>
                                                             <path d='M14 17H5'></path>
@@ -235,9 +257,9 @@
                                                     </span>
                                                 </div>
                                             </td>
-                                            <td>
-                                                <span class='available-days-text'>" . formatAvailableDays($row['available_days']) . "</span>
-                                            </td>
+                                                                                         <td>
+                                                 <span class='available-days-text'>" . formatAvailableDays($row['available_days']) . "</span>
+                                             </td>
                                             <td>
                                                 <div class='action-buttons'>
                                                     <button class='btn-action btn-edit' onclick=\"openEditModal(
@@ -252,7 +274,9 @@
                                                         '" . addslashes($row['available_days']) . "',
                                                         '" . addslashes($row['status_name'] ?? 'Unknown') . "',
                                                         '" . ($row['unavailable_status_id'] ?? 'null') . "',
-                                                        '" . addslashes($row['unavailable_status_name'] ?? '') . "'
+                                                        '" . addslashes($row['unavailable_status_name'] ?? '') . "',
+                                                        '" . ($row['availtoday_status_id'] ?? 'null') . "',
+                                                        '" . addslashes($row['availtoday_status_name'] ?? '') . "'
                                                     )\" title='Edit Product'>
                                                         <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>
                                                             <path d='M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7'></path>
@@ -286,7 +310,7 @@
                 </table>
             </div>
 
-            <!-- Pagination  -->
+            <!-- Pagination -->
             <?php if ($total_pages > 1): ?>
             <div class="pagination-container">
                 <div class="pagination-info">
@@ -342,6 +366,11 @@
     </div>
 </div>
 
+<!-- Hidden container with all products data for JavaScript -->
+<div id="allProductsData" style="display: none;">
+    <?php echo json_encode($all_products_data); ?>
+</div>
+
 <!-- Edit Product Modal -->
 <div id="editModal" class="modal">
     <div class="modal-overlay"></div>
@@ -349,7 +378,7 @@
         <div class="modal-header">
             <h2>Edit Product</h2>
             <button class="modal-close" onclick="closeModal()">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
                     <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
@@ -357,18 +386,15 @@
         </div>
         
         <div class="modal-content-wrapper">
-            <!-- Left Panel - Image Management -->
+            <!-- Left Side - Image Management -->
             <div class="modal-left-panel">
                 <div class="image-management-section">
                     <h3>Product Images</h3>
                     
-                    <!-- Primary Image -->
+                    <!-- Primary Image Section -->
                     <div class="primary-image-section">
-                        <label>Primary Image (1 Image Only)</label>
+                        <label>Primary Image</label>
                         <div class="primary-image-container" id="editPrimaryImageContainer">
-                            <button type="button" class="upload-btn-overlay" onclick="document.getElementById('editPrimaryImageInput').click()">
-                                Click to Upload Image
-                            </button>
                             <div class="image-placeholder" id="editPrimaryPlaceholder">
                                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
@@ -378,17 +404,30 @@
                                 <span>No primary image</span>
                             </div>
                         </div>
-                        <input type="file" id="editPrimaryImageInput" accept="image/*" style="display: none;">
-                        <small>Supported files: .png, .jpg, .webp</small>
+                        <div class="image-actions">
+                            <input type="file" id="editPrimaryImageInput" accept="image/*" style="display: none;">
+                            <button type="button" class="btn btn-secondary" onclick="document.getElementById('editPrimaryImageInput').click()">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7,10 12,15 17,10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                Upload Primary
+                            </button>
+                            <button type="button" class="btn btn-danger" id="editRemovePrimaryBtn" style="display: none;" onclick="removePrimaryImage()">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3,6 5,6 21,6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                                Remove
+                            </button>
+                        </div>
                     </div>
 
-                    <!-- Additional Images -->
+                    <!-- Additional Images Section -->
                     <div class="additional-images-section">
-                        <label>Additional Images (Up to 3)</label>
+                        <label>Additional Images (Max 3)</label>
                         <div class="additional-images-container" id="editAdditionalImagesContainer">
-                            <button type="button" class="upload-btn-overlay" onclick="document.getElementById('editAdditionalImagesInput').click()">
-                                Click to Upload Images
-                            </button>
                             <div class="image-placeholder" id="editAdditionalPlaceholder">
                                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
@@ -398,115 +437,124 @@
                                 <span>No additional images</span>
                             </div>
                         </div>
-                        <input type="file" id="editAdditionalImagesInput" accept="image/*" multiple style="display: none;">
-                        <small>Supported files: .png, .jpg, .webp</small>
+                        <div class="image-actions">
+                            <input type="file" id="editAdditionalImagesInput" accept="image/*" multiple style="display: none;">
+                            <button type="button" class="btn btn-secondary" onclick="document.getElementById('editAdditionalImagesInput').click()">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7,10 12,15 17,10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                Add Images
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Right Panel - Form Fields -->
+            <!-- Right Side - Form Fields -->
             <div class="modal-right-panel">
                 <form id="editProductForm" class="modal-form">
                     <input type="hidden" id="editProductId">
                     
-                    <div class="form-content">
+                    <div class="form-group">
+                        <label for="editProductName">Product Name</label>
+                        <input type="text" id="editProductName" required>
+                    </div>
+
+                    <div class="form-row">
                         <div class="form-group">
-                            <label for="editProductName">Product Name</label>
-                            <input type="text" id="editProductName" required>
+                            <label for="editProductPrice">Price (₱)</label>
+                            <input type="number" id="editProductPrice" step="0.01" required>
                         </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="editProductPrice">Price (₱)</label>
-                                <input type="number" id="editProductPrice" step="0.01" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="editProductQuantity">Stock Quantity</label>
-                                <input type="number" id="editProductQuantity" min="0" step="1" required>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="editProductStatus">Status</label>
-                                <select id="editProductStatus">
-                                    <option value="1">Pick Up</option>
-                                    <option value="2">Delivery</option>
-                                    <option value="3">Available Today</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Availability:</label>
-                                <div class="radio-group">
-                                    <div class="radio-item">
-                                        <input type="radio" id="editAvailable" name="editAvailability" value="available" checked>
-                                        <label for="editAvailable">Available</label>
-                                    </div>
-                                    <div class="radio-item">
-                                        <input type="radio" id="editUnavailable" name="editAvailability" value="unavailable">
-                                        <label for="editUnavailable">Unavailable</label>
-                                        <div id="editUnavailableTypeContainer" style="display: none;">
-                                            <input type="hidden" id="editUnavailableType" value="">
-                                            <small>Unavailable type will be automatically set based on the product status above.</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="editIsFeature">Featured Product</label>
-                                <select id="editIsFeature">
-                                    <option value="0">Not Featured</option>
-                                    <option value="1">Featured</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="editVisibilityOption">Visibility When Unavailable</label>
-                                <select id="editVisibilityOption">
-                                    <option value="default">Default (Hidden)</option>
-                                    <option value="show">Show When Unavailable</option>
-                                    <option value="hide">Hide When Unavailable</option>
-                                </select>
-                            </div>
-                        </div>
-
                         <div class="form-group">
-                            <label>Available Days:</label>
-                            <div class="checkbox-group days-group">
-                                <div class="cbitems1">
-                                    <div class="checkbox-item">
-                                        <input type="checkbox" name="edit_available_days[]" id="edit_sunday" value="Sunday">
-                                        <label for="edit_sunday">Sunday</label>
-                                    </div>
-                                    <div class="checkbox-item">
-                                        <input type="checkbox" name="edit_available_days[]" id="edit_monday" value="Monday">
-                                        <label for="edit_monday">Monday</label>
-                                    </div>
-                                    <div class="checkbox-item">
-                                        <input type="checkbox" name="edit_available_days[]" id="edit_tuesday" value="Tuesday">
-                                        <label for="edit_tuesday">Tuesday</label>
-                                    </div>
-                                    <div class="checkbox-item">
-                                        <input type="checkbox" name="edit_available_days[]" id="edit_wednesday" value="Wednesday">
-                                        <label for="edit_wednesday">Wednesday</label>
-                                    </div>
+                            <label for="editProductQuantity">Stock Quantity</label>
+                            <input type="number" id="editProductQuantity" min="0" step="1" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editProductStatus">Status</label>
+                            <select id="editProductStatus">
+                                <option value="1">Pick Up</option>
+                                <option value="2">Delivery</option>
+                                <option value="3">Available Today</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="editAvailtodayOptions" style="display: none;">
+                            <label for="editAvailtodayStatus">Available Today Options:</label>
+                            <select id="editAvailtodayStatus">
+                                <option value="">Select option...</option>
+                                <option value="1">Pick Up</option>
+                                <option value="2">Delivery</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Availability:</label>
+                            <div class="radio-group">
+                                <div class="radio-item">
+                                    <input type="radio" id="editAvailable" name="editAvailability" value="available" checked>
+                                    <label for="editAvailable">Available</label>
                                 </div>
-                                <div class="cbitems2">
-                                    <div class="checkbox-item">
-                                        <input type="checkbox" name="edit_available_days[]" id="edit_thursday" value="Thursday">
-                                        <label for="edit_thursday">Thursday</label>
-                                    </div>
-                                    <div class="checkbox-item">
-                                        <input type="checkbox" name="edit_available_days[]" id="edit_friday" value="Friday">
-                                        <label for="edit_friday">Friday</label>
-                                    </div>
-                                    <div class="checkbox-item">
-                                        <input type="checkbox" name="edit_available_days[]" id="edit_saturday" value="Saturday">
-                                        <label for="edit_saturday">Saturday</label>
-                                    </div>
+                                <div class="radio-item">
+                                    <input type="radio" id="editUnavailable" name="editAvailability" value="unavailable">
+                                    <label for="editUnavailable">Unavailable</label>
                                 </div>
+                            </div>
+                            <div id="editUnavailableTypeContainer" style="display: none; margin-top: 10px;">
+                                <input type="hidden" id="editUnavailableType" value="">
+                                <small style="color: #666; font-style: italic;">Unavailable type will be automatically set based on the product status above.</small>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="editIsFeature">Featured Product</label>
+                            <select id="editIsFeature">
+                                <option value="0">Not Featured</option>
+                                <option value="1">Featured</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editVisibilityOption">Visibility When Unavailable</label>
+                        <select id="editVisibilityOption">
+                            <option value="default">Default (Hidden)</option>
+                            <option value="show">Show When Unavailable</option>
+                            <option value="hide">Hide When Unavailable</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Available Days:</label>
+                        <div class="checkbox-group days-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" name="edit_available_days[]" id="edit_sunday" value="Sunday">
+                                <label for="edit_sunday" style="display: inline;">Sunday</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" name="edit_available_days[]" id="edit_monday" value="Monday">
+                                <label for="edit_monday" style="display: inline;">Monday</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" name="edit_available_days[]" id="edit_tuesday" value="Tuesday">
+                                <label for="edit_tuesday" style="display: inline;">Tuesday</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" name="edit_available_days[]" id="edit_wednesday" value="Wednesday">
+                                <label for="edit_wednesday" style="display: inline;">Wednesday</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" name="edit_available_days[]" id="edit_thursday" value="Thursday">
+                                <label for="edit_thursday" style="display: inline;">Thursday</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" name="edit_available_days[]" id="edit_friday" value="Friday">
+                                <label for="edit_friday" style="display: inline;">Friday</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" name="edit_available_days[]" id="edit_saturday" value="Saturday">
+                                <label for="edit_saturday" style="display: inline;">Saturday</label>
                             </div>
                         </div>
                     </div>
@@ -523,6 +571,7 @@
 
 <?php $conn->close(); ?>
 
+<!-- Hidden container for all products data -->
 <script id="allProductsData" type="application/json">
 <?php echo json_encode($all_products_data); ?>
 </script>

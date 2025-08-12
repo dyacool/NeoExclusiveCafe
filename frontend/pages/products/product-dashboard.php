@@ -391,8 +391,8 @@ require_once __DIR__ . "/../../user-includes/database.php";
             // Hide products and show closing message
             console.log('Hiding products - setting display to none');
             productsGrid.style.display = 'none';
-            title.textContent = 'Products Currently Unavailable';
-            subtitle.innerHTML = `Check again tomorrow for available pre-made breads!<br><span style="color: #ff6b35; font-weight: 600;">Business Hours: ${formatTimeForDisplay(businessHours.openingTime)} - ${formatTimeForDisplay(businessHours.closingTime)}</span>`;
+            title.textContent = 'Come back for more pre-made breads!';
+            subtitle.innerHTML = `Check again tomorrow for exciting pre-made breads!<br><span style="color:rgb(18, 110, 41); font-weight: 600;">${formatTimeForDisplay(businessHours.openingTime)} - ${formatTimeForDisplay(businessHours.closingTime)}</span>`;
             
             // Hide cart and clear cart data when business hours are closed
             if (cartDropdown) {

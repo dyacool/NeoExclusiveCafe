@@ -52,10 +52,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $available_days = $_POST['available_days'];
     }
 
-    // Insert product without days_to_make field
-    $stmt = $conn->prepare("INSERT INTO products (sku, name, description, price, status_id, quantity, is_featured, show_when_unavailable, hide_when_unavailable) 
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("sssdiiiii", $sku, $name, $description, $price, $status_id, $quantity, $is_featured, $show_when_unavailable, $hide_when_unavailable);
+    // Handle availtoday_status_id for Available Today products
+    $availtoday_status_id = null;
+    if ($status_id == 3 && isset($_POST['availtoday_status_id']) && !empty($_POST['availtoday_status_id'])) {
+        $availtoday_status_id = $_POST['availtoday_status_id'];
+    }
+
+    // Insert product with availtoday_status_id field
+    $stmt = $conn->prepare("INSERT INTO products (sku, name, description, price, status_id, quantity, is_featured, show_when_unavailable, hide_when_unavailable, availtoday_status_id) 
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("sssdiiiiii", $sku, $name, $description, $price, $status_id, $quantity, $is_featured, $show_when_unavailable, $hide_when_unavailable, $availtoday_status_id);
     
     if ($stmt->execute()) {
         $product_id = $stmt->insert_id;
@@ -199,7 +205,7 @@ $conn->close();
     </div>
     <?php endif; ?>
     <div class="mainContainer">
-        <form method="post" enctype="multipart/form-data">
+        <form method="post" enctype="multipart/form-data" onsubmit="return validateForm()">
             <div class="container">
                 <div class="grp1">
                     <label>SKU:</label>
@@ -244,11 +250,21 @@ $conn->close();
                     <input class="price" type="text" name="price" required pattern="^\d*\.?\d*$" oninput="this.value = this.value.replace(/[^0-9.]/g, '')">
 
                                          <label>Status:</label>
-                     <select class="statusGrp" name="status_id">
+                     <select class="statusGrp" name="status_id" id="statusSelect">
                          <option value="1">Pick Up</option>
                          <option value="2">Delivery</option>
                          <option value="3">Available Today</option>
                      </select>
+
+                     <!-- New dropdown for Available Today options -->
+                     <div id="availtodayOptions" style="display: none;">
+                         <label>Available Today Options:</label>
+                         <select class="availtoday-status" name="availtoday_status_id">
+                             <option value="">Select option...</option>
+                             <option value="1">Pick Up</option>
+                             <option value="2">Delivery</option>
+                         </select>
+                     </div>
 
                     <!-- Added Quantity Available For Pre-Order field -->
                     <label>Quantity Available For Pre-Order:</label>
@@ -315,7 +331,6 @@ $conn->close();
             </div>
         </form>
     </div>
-</div>
 
 <?php include __DIR__ . "/../admin-includes/footer/admin-footer.php"; ?>
 
@@ -333,6 +348,41 @@ $conn->close();
             }, 500);
         }
 
+        // Global variables to track uploaded files
+        let additionalImagesArray = [];
+
+        // Function to toggle available days visibility based on status
+        function toggleAvailableDaysVisibility() {
+            const statusSelect = document.querySelector('select[name="status_id"]');
+            const availableDaysContainer = document.querySelector('.checkbox-group.days-group');
+            const availtodayOptions = document.getElementById('availtodayOptions');
+            const availtodaySelect = document.querySelector('select[name="availtoday_status_id"]');
+            
+            if (statusSelect && availableDaysContainer && availtodayOptions) {
+                const selectedValue = statusSelect.value;
+                
+                if (selectedValue === '1' || selectedValue === '2') { // Pick Up or Delivery
+                    availableDaysContainer.style.display = 'block';
+                    availtodayOptions.style.display = 'none';
+                    if (availtodaySelect) {
+                        availtodaySelect.removeAttribute('required');
+                    }
+                } else if (selectedValue === '3') { // Available Today
+                    availableDaysContainer.style.display = 'block'; // Show Available Days
+                    availtodayOptions.style.display = 'block'; // Show Available Today Options
+                    if (availtodaySelect) {
+                        availtodaySelect.setAttribute('required', 'required');
+                    }
+                } else {
+                    availableDaysContainer.style.display = 'none';
+                    availtodayOptions.style.display = 'none';
+                    if (availtodaySelect) {
+                        availtodaySelect.removeAttribute('required');
+                    }
+                }
+            }
+        }
+
         // Initialize available days visibility based on initial status
         toggleAvailableDaysVisibility();
 
@@ -341,156 +391,148 @@ $conn->close();
         if (statusSelect) {
             statusSelect.addEventListener('change', toggleAvailableDaysVisibility);
         }
-    });
 
-    // Global variables to track uploaded files
-    let additionalImagesArray = [];
+        // Primary image handling
+        document.getElementById('primaryImageInput').addEventListener('change', function(event) {
+            const previewContainer = document.getElementById('primaryPreviewContainer');
+            const uploadBtn = document.getElementById('primaryUploadBtn');
+            
+            // Clear existing preview
+            previewContainer.innerHTML = '';
+            
+            if (this.files && this.files[0]) {
+                // Hide the upload button when an image is selected
+                uploadBtn.style.display = 'none';
+                
+                // Create preview
+                const previewItem = document.createElement('div');
+                previewItem.className = 'primary-preview-item';
+                
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(this.files[0]);
+                img.alt = 'Primary image preview';
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-btn';
+                removeBtn.innerHTML = '×';
+                removeBtn.onclick = function(e) {
+                    e.preventDefault();
+                    document.getElementById('primaryImageInput').value = '';
+                    previewContainer.innerHTML = '';
+                    uploadBtn.style.display = 'flex';
+                };
+                
+                previewItem.appendChild(img);
+                previewItem.appendChild(removeBtn);
+                previewContainer.appendChild(previewItem);
+                
+                // Make preview container visible and take up full space
+                previewContainer.style.display = 'flex';
+            }
+        });
 
-         // Function to toggle available days visibility based on status
-     function toggleAvailableDaysVisibility() {
-         const statusSelect = document.querySelector('select[name="status_id"]');
-         const availableDaysContainer = document.querySelector('.checkbox-group.days-group');
-         
-         if (statusSelect && availableDaysContainer) {
-             const selectedValue = statusSelect.value;
-             
-             if (selectedValue === '1' || selectedValue === '2' || selectedValue === '3') { // Delivery, Pick Up, or Available Today
-                 availableDaysContainer.style.display = 'block';
-             } else {
-                 availableDaysContainer.style.display = 'none';
-             }
-         }
-     }
-
-    // Primary image handling
-    document.getElementById('primaryImageInput').addEventListener('change', function(event) {
-        const previewContainer = document.getElementById('primaryPreviewContainer');
-        const uploadBtn = document.getElementById('primaryUploadBtn');
-        
-        // Clear existing preview
-        previewContainer.innerHTML = '';
-        
-        if (this.files && this.files[0]) {
-            // Hide the upload button when an image is selected
-            uploadBtn.style.display = 'none';
-            
-            // Create preview
-            const previewItem = document.createElement('div');
-            previewItem.className = 'primary-preview-item';
-            
-            const img = document.createElement('img');
-            img.src = URL.createObjectURL(this.files[0]);
-            img.alt = 'Primary image preview';
-            
-            const removeBtn = document.createElement('button');
-            removeBtn.className = 'remove-btn';
-            removeBtn.innerHTML = '×';
-            removeBtn.onclick = function(e) {
-                e.preventDefault();
-                document.getElementById('primaryImageInput').value = '';
-                previewContainer.innerHTML = '';
-                uploadBtn.style.display = 'flex';
-            };
-            
-            previewItem.appendChild(img);
-            previewItem.appendChild(removeBtn);
-            previewContainer.appendChild(previewItem);
-            
-            // Make preview container visible and take up full space
-            previewContainer.style.display = 'flex';
-        }
-    });
-
-    // Additional images handling - modified to allow multiple selection at once
-    document.getElementById('additionalImagesInput').addEventListener('change', function(event) {
-        if (this.files && this.files.length > 0) {
-            // Process each file
-            for (let i = 0; i < this.files.length; i++) {
-                // Check if we already have 3 images
-                if (additionalImagesArray.length >= 3) {
-                    alert('You can only upload up to 3 additional images.');
-                    break;
+        // Additional images handling - modified to allow multiple selection at once
+        document.getElementById('additionalImagesInput').addEventListener('change', function(event) {
+            if (this.files && this.files.length > 0) {
+                // Process each file
+                for (let i = 0; i < this.files.length; i++) {
+                    // Check if we already have 3 images
+                    if (additionalImagesArray.length >= 3) {
+                        alert('You can only upload up to 3 additional images.');
+                        break;
+                    }
+                    
+                    // Add file to our array
+                    additionalImagesArray.push(this.files[i]);
                 }
                 
-                // Add file to our array
-                additionalImagesArray.push(this.files[i]);
-            }
-            
-            // Clear the input so we can select the same file again if needed
-            this.value = '';
-            
-            // Update the form file input with our array of files
-            updateFormFileInput();
-            
-            // Update the preview
-            updateAdditionalImagesPreview();
-        }
-    });
-
-    // Function to update the form file input with our array of files
-    function updateFormFileInput() {
-        const input = document.getElementById('additionalImagesInput');
-        const dataTransfer = new DataTransfer();
-        
-        // Add all files from our array to the DataTransfer object
-        additionalImagesArray.forEach(file => {
-            dataTransfer.items.add(file);
-        });
-        
-        // Update the file input
-        input.files = dataTransfer.files;
-    }
-
-    // Update the additional images preview
-    function updateAdditionalImagesPreview() {
-        const previewContainer = document.getElementById('additionalPreviewContainer');
-        const uploadBtn = document.getElementById('additionalUploadBtn');
-        
-        // Clear existing preview
-        previewContainer.innerHTML = '';
-        
-        // Toggle active class based on whether there are images
-        if (additionalImagesArray.length > 0) {
-            previewContainer.classList.add('active');
-        } else {
-            previewContainer.classList.remove('active');
-        }
-        
-        // Create preview for each file in our array
-        additionalImagesArray.forEach((file, index) => {
-            const previewItem = document.createElement('div');
-            previewItem.className = 'image-preview-item';
-            
-            const img = document.createElement('img');
-            img.src = URL.createObjectURL(file);
-            img.alt = `Additional image ${index + 1}`;
-            
-            const removeBtn = document.createElement('button');
-            removeBtn.className = 'remove-btn';
-            removeBtn.innerHTML = '×';
-            removeBtn.setAttribute('data-index', index);
-            removeBtn.onclick = function(e) {
-                e.preventDefault();
+                // Clear the input so we can select the same file again if needed
+                this.value = '';
                 
-                // Remove this file from our array
-                additionalImagesArray.splice(parseInt(this.getAttribute('data-index')), 1);
-                
-                // Update the form file input
+                // Update the form file input with our array of files
                 updateFormFileInput();
                 
-                // Update preview
+                // Update the preview
                 updateAdditionalImagesPreview();
-            };
-            
-            previewItem.appendChild(img);
-            previewItem.appendChild(removeBtn);
-            previewContainer.appendChild(previewItem);
+            }
         });
-        
-        // Hide upload button only when we have 3 images (maximum)
-        uploadBtn.style.display = additionalImagesArray.length >= 3 ? 'none' : 'flex';
-    }
+
+        // Function to update the form file input with our array of files
+        function updateFormFileInput() {
+            const input = document.getElementById('additionalImagesInput');
+            const dataTransfer = new DataTransfer();
+            
+            // Add all files from our array to the DataTransfer object
+            additionalImagesArray.forEach(file => {
+                dataTransfer.items.add(file);
+            });
+            
+            // Update the file input
+            input.files = dataTransfer.files;
+        }
+
+        // Update the additional images preview
+        function updateAdditionalImagesPreview() {
+            const previewContainer = document.getElementById('additionalPreviewContainer');
+            const uploadBtn = document.getElementById('additionalUploadBtn');
+            
+            // Clear existing preview
+            previewContainer.innerHTML = '';
+            
+            // Toggle active class based on whether there are images
+            if (additionalImagesArray.length > 0) {
+                previewContainer.classList.add('active');
+            } else {
+                previewContainer.classList.remove('active');
+            }
+            
+            // Create preview for each file in our array
+            additionalImagesArray.forEach((file, index) => {
+                const previewItem = document.createElement('div');
+                previewItem.className = 'image-preview-item';
+                
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(file);
+                img.alt = `Additional image ${index + 1}`;
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-btn';
+                removeBtn.innerHTML = '×';
+                removeBtn.setAttribute('data-index', index);
+                removeBtn.onclick = function(e) {
+                    e.preventDefault();
+                    
+                    // Remove this file from our array
+                    additionalImagesArray.splice(parseInt(this.getAttribute('data-index')), 1);
+                    
+                    // Update the form file input
+                    updateFormFileInput();
+                    
+                    // Update preview
+                    updateAdditionalImagesPreview();
+                };
+                
+                previewItem.appendChild(img);
+                previewItem.appendChild(removeBtn);
+                previewContainer.appendChild(previewItem);
+            });
+            
+            // Hide upload button only when we have 3 images (maximum)
+            uploadBtn.style.display = additionalImagesArray.length >= 3 ? 'none' : 'flex';
+        }
+
+        function validateForm() {
+            const statusSelect = document.getElementById('statusSelect');
+            const availtodayOptions = document.getElementById('availtodayOptions');
+            const availtodaySelect = document.querySelector('select[name="availtoday_status_id"]');
+
+            if (statusSelect.value === '3' && (!availtodaySelect || availtodaySelect.value === '')) {
+                alert('Please select an option for "Available Today".');
+                return false;
+            }
+            return true;
+        }
+    });
 </script>
 </body>
-</html>
 </html>

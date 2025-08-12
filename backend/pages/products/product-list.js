@@ -221,6 +221,11 @@ function createProductRow(product) {
         <span class='status-badge status-${statusClass}'>${
     product.status_name || "Unknown"
   }</span>
+        ${
+          product.status_id == 3 && product.availtoday_status_name
+            ? `<span class='availtoday-badge'>${product.availtoday_status_name}</span>`
+            : ""
+        }
         <span class='stock-badge ${quantityClass}'>
           <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>
             <path d='M20 7h-9'></path><path d='M14 17H5'></path>
@@ -245,6 +250,10 @@ function createProductRow(product) {
           ${product.hide_when_unavailable == 1 ? "true" : "false"}, ${quantity},
           '${(product.available_days || "").replace(/'/g, "\\'")}', '${(
     product.status_name || "Unknown"
+  ).replace(/'/g, "\\'")}', '${product.unavailable_status_id || "null"}', '${(
+    product.unavailable_status_name || ""
+  ).replace(/'/g, "\\'")}', '${product.availtoday_status_id || "null"}', '${(
+    product.availtoday_status_name || ""
   ).replace(/'/g, "\\'")}'
         )" title='Edit Product'>
           <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>
@@ -400,7 +409,9 @@ function openEditModal(
   availableDays,
   statusName,
   unavailableStatusId,
-  unavailableStatusName
+  unavailableStatusName,
+  availtodayStatusId,
+  availtodayStatusName
 ) {
   // Store original form data
   originalFormData = {
@@ -416,6 +427,8 @@ function openEditModal(
     statusName,
     unavailableStatusId,
     unavailableStatusName,
+    availtodayStatusId,
+    availtodayStatusName,
   };
 
   // Populate form fields
@@ -424,6 +437,23 @@ function openEditModal(
   document.getElementById("editProductPrice").value = price;
   document.getElementById("editProductQuantity").value = quantity;
   document.getElementById("editProductStatus").value = status;
+
+  // Handle availtoday_status dropdown visibility and value
+  const availtodayOptions = document.getElementById("editAvailtodayOptions");
+  const availtodaySelect = document.getElementById("editAvailtodayStatus");
+  
+  if (availtodayOptions && availtodaySelect) {
+    if (status == 3) { // Available Today
+      availtodayOptions.style.display = "block";
+      availtodaySelect.value = availtodayStatusId || "";
+      if (availtodaySelect.value === "null") {
+        availtodaySelect.value = "";
+      }
+    } else {
+      availtodayOptions.style.display = "none";
+      availtodaySelect.value = "";
+    }
+  }
 
   const isFeatureBool =
     isFeature === true ||
@@ -548,10 +578,14 @@ function setupStatusChangeListener() {
     "editUnavailableTypeContainer"
   );
   const unavailableTypeSelect = document.getElementById("editUnavailableType");
+  const availtodayOptions = document.getElementById("editAvailtodayOptions");
+  const availtodaySelect = document.getElementById("editAvailtodayStatus");
 
   if (statusSelect) {
     statusSelect.addEventListener("change", function () {
       const selectedStatus = this.options[this.selectedIndex].text;
+      const selectedValue = this.value;
+      
       if (availableDaysContainer) {
         if (
           selectedStatus === "Delivery" ||
@@ -561,6 +595,18 @@ function setupStatusChangeListener() {
           availableDaysContainer.style.display = "block";
         } else {
           availableDaysContainer.style.display = "none";
+        }
+      }
+
+      // Handle availtoday_status dropdown visibility
+      if (availtodayOptions && availtodaySelect) {
+        if (selectedValue == 3) { // Available Today
+          availtodayOptions.style.display = "block";
+          availtodaySelect.setAttribute("required", "required");
+        } else {
+          availtodayOptions.style.display = "none";
+          availtodaySelect.removeAttribute("required");
+          availtodaySelect.value = "";
         }
       }
 
@@ -1106,6 +1152,16 @@ function handleFormSubmit(event) {
 
   const statusSelect = document.getElementById("editProductStatus");
   const selectedStatus = statusSelect.options[statusSelect.selectedIndex].text;
+  const selectedValue = statusSelect.value;
+
+  // Validate availtoday_status when Available Today is selected
+  if (selectedValue == 3) {
+    const availtodaySelect = document.getElementById("editAvailtodayStatus");
+    if (!availtodaySelect || availtodaySelect.value === "" || availtodaySelect.value === "null") {
+      showNotification("Please select an option for 'Available Today'.", "error");
+      return;
+    }
+  }
 
   const availableDays = [];
   if (
@@ -1134,6 +1190,7 @@ function handleFormSubmit(event) {
   const isAvailable = document.getElementById("editAvailable").checked;
   const unavailableTypeId =
     document.getElementById("editUnavailableType").value || null;
+  const availtodayStatusId = document.getElementById("editAvailtodayStatus").value || null;
 
   const formData = {
     id: document.getElementById("editProductId").value,
@@ -1149,6 +1206,7 @@ function handleFormSubmit(event) {
     available_days: availableDays,
     is_available: isAvailable,
     unavailable_status_id: isAvailable ? null : unavailableTypeId,
+    availtoday_status_id: availtodayStatusId,
     pending_image_changes: pendingImageChanges,
   };
 
@@ -1431,10 +1489,34 @@ function resetFormToOriginal() {
     originalFormData.quantity || "";
   document.getElementById("editProductStatus").value =
     originalFormData.status || "";
-  document.getElementById("editIsFeature").value = originalFormData.isFeature
-    ? "1"
-    : "0";
 
+  // Reset availtoday_status dropdown
+  const availtodayOptions = document.getElementById("editAvailtodayOptions");
+  const availtodaySelect = document.getElementById("editAvailtodayStatus");
+  if (availtodayOptions && availtodaySelect) {
+    if (originalFormData.status == 3) { // Available Today
+      availtodayOptions.style.display = "block";
+      availtodaySelect.value = originalFormData.availtodayStatusId || "";
+      if (availtodaySelect.value === "null") {
+        availtodaySelect.value = "";
+      }
+    } else {
+      availtodayOptions.style.display = "none";
+      availtodaySelect.value = "";
+    }
+  }
+
+  const isFeatureBool =
+    originalFormData.isFeature === true ||
+    originalFormData.isFeature === "true" ||
+    originalFormData.isFeature === 1 ||
+    originalFormData.isFeature === "1";
+  const featuredSelect = document.getElementById("editIsFeature");
+  if (featuredSelect) {
+    featuredSelect.value = isFeatureBool ? "1" : "0";
+  }
+
+  // Set visibility option
   const visibilitySelect = document.getElementById("editVisibilityOption");
   if (visibilitySelect) {
     if (originalFormData.showWhenUnavailable) {
