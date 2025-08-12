@@ -29,7 +29,7 @@ if ($result->num_rows > 0) {
         'id' => 1,
         'title' => 'About Neo Exclusive Cafe',
         'about_text' => 'Welcome to Neo Exclusive Cafe. Our story begins with a passion for quality coffee and exceptional service.',
-        'image_path' => '/NeoExclusiveCafe/images/cafe-default.jpg',
+        'image_path' => '/backend/assets/images/cafe-default.jpg',
         'updated_at' => date('Y-m-d H:i:s')
     ];
     
@@ -55,21 +55,45 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
     // Handle image upload if a new image was provided
     if (isset($_FILES['about_image']) && $_FILES['about_image']['size'] > 0) {
-        $target_dir = __DIR__ . "/../../../images/";
-        $file_extension = strtolower(pathinfo($_FILES["about_image"]["name"], PATHINFO_EXTENSION));
-        $new_filename = "about_" . time() . "." . $file_extension;
-        $target_file = $target_dir . $new_filename;
+        // Fixed path: Navigate up two directories from current location to backend, then to assets/images
+        $target_dir = __DIR__ . "/../../assets/images/";
         
-        // Check file type
-        $allowed_types = ["jpg", "jpeg", "png", "gif"];
-        if (!in_array($file_extension, $allowed_types)) {
-            $upload_error = "Sorry, only JPG, JPEG, PNG & GIF files are allowed.";
-        } else {
-            // Try to upload the file
-            if (move_uploaded_file($_FILES["about_image"]["tmp_name"], $target_file)) {
-                $image_path = "/images/" . $new_filename;
-            } else {
-                $upload_error = "Sorry, there was an error uploading your file.";
+        // Create directory if it doesn't exist
+        if (!file_exists($target_dir)) {
+            if (!mkdir($target_dir, 0777, true)) {
+                $upload_error = "Failed to create upload directory.";
+            }
+        }
+        
+        if (empty($upload_error)) {
+            $file_extension = strtolower(pathinfo($_FILES["about_image"]["name"], PATHINFO_EXTENSION));
+            $new_filename = "about_" . time() . "." . $file_extension;
+            $target_file = $target_dir . $new_filename;
+            
+            // Check file type
+            $allowed_types = ["jpg", "jpeg", "png", "gif", "webp"];
+            if (!in_array($file_extension, $allowed_types)) {
+                $upload_error = "Sorry, only JPG, JPEG, PNG, GIF & WEBP files are allowed.";
+            } 
+            // Check file size (optional - 5MB limit)
+            elseif ($_FILES["about_image"]["size"] > 5000000) {
+                $upload_error = "Sorry, your file is too large. Maximum size is 5MB.";
+            } 
+            else {
+                // Try to upload the file
+                if (move_uploaded_file($_FILES["about_image"]["tmp_name"], $target_file)) {
+                    // Store the web-accessible path in the database
+                    $image_path = "/backend/assets/images/" . $new_filename;
+                    
+                    // Optional: Delete old image file if it exists and is not the default
+                    if (!empty($about['image_path']) && 
+                        $about['image_path'] !== '/backend/assets/images/cafe-default.jpg' &&
+                        file_exists(__DIR__ . "/../../assets/images/" . basename($about['image_path']))) {
+                        unlink(__DIR__ . "/../../assets/images/" . basename($about['image_path']));
+                    }
+                } else {
+                    $upload_error = "Sorry, there was an error uploading your file. Please check file permissions.";
+                }
             }
         }
     }
@@ -142,10 +166,14 @@ $conn->close();
                 <div class="form-group">
                     <label for="about_image">About Image:</label>
                     <div class="image-preview">
-                        <img src="<?php echo htmlspecialchars($about['image_path']); ?>" alt="Current About Image" id="image-preview">
+                        <?php if (!empty($about['image_path'])): ?>
+                            <img src="<?php echo htmlspecialchars($about['image_path']); ?>" alt="Current About Image" id="image-preview">
+                        <?php else: ?>
+                            <p>No image uploaded yet</p>
+                        <?php endif; ?>
                     </div>
                     <input type="file" id="about_image" name="about_image" accept="image/*">
-                    <p class="help-text">Leave empty to keep the current image.</p>
+                    <p class="help-text">Leave empty to keep the current image. Maximum file size: 5MB</p>
                 </div>
                 
                 <div class="form-actions">
@@ -162,9 +190,23 @@ $conn->close();
         document.getElementById('about_image').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
+                // Check file size (5MB limit)
+                if (file.size > 5000000) {
+                    alert('File is too large. Maximum size is 5MB.');
+                    this.value = '';
+                    return;
+                }
+                
                 const reader = new FileReader();
                 reader.onload = function(event) {
-                    document.getElementById('image-preview').src = event.target.result;
+                    const preview = document.getElementById('image-preview');
+                    if (preview) {
+                        preview.src = event.target.result;
+                    } else {
+                        // Create img element if it doesn't exist
+                        const imagePreviewDiv = document.querySelector('.image-preview');
+                        imagePreviewDiv.innerHTML = '<img src="' + event.target.result + '" alt="Current About Image" id="image-preview">';
+                    }
                 };
                 reader.readAsDataURL(file);
             }
