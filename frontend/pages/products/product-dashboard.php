@@ -392,9 +392,12 @@ require_once __DIR__ . "/../../user-includes/database.php";
             productsGrid.style.display = 'none';
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
             title.textContent = 'Products Currently Unavailable';
             subtitle.innerHTML = `Check again tomorrow for available pre-made breads!<br><span style="color: #ff6b35; font-weight: 600;">Business Hours: ${formatTimeForDisplay(businessHours.openingTime)} - ${formatTimeForDisplay(businessHours.closingTime)}</span>`;
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
             title.textContent = 'Products';
@@ -406,6 +409,9 @@ require_once __DIR__ . "/../../user-includes/database.php";
                 .then(data => console.log('Cart cleared:', data.message))
                 .catch(error => console.log('Cart clear error:', error));
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
