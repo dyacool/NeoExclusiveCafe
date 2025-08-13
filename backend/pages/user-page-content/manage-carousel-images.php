@@ -1,8 +1,6 @@
 <?php
 $page_title = "Manage Carousel Images";
-$additional_css = [
-    "/backend/pages/user-page-content/manage-carousel.css"
-];
+
 
 require_once __DIR__ . "/../admin-includes/config.php";
 require_once __DIR__ . "/../admin-includes/database.php";
@@ -80,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Handle image upload
             $image_url = '';
             if (isset($_FILES['image']) && $_FILES['image']['error'] === 0) {
-                $upload_dir = __DIR__ . '/../../../assets/images/carousel/';
+                $upload_dir = __DIR__ . '/../backend/assets/images/carousel/';
                 
                 // Create directory if it doesn't exist
                 if (!file_exists($upload_dir)) {
@@ -91,8 +89,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $target_file = $upload_dir . $file_name;
                 
                 if (move_uploaded_file($_FILES['image']['tmp_name'], $target_file)) {
-                    // Store path relative to root without leading slash
-                    $image_url = 'assets/images/carousel/' . $file_name;
+                    // Store path relative to assets folder (consistent with user-dashboard.php)
+                    $image_url = 'images/carousel/' . $file_name;
                 } else {
                     $error_message = "Failed to upload image.";
                 }
@@ -135,18 +133,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             // Check if new image is uploaded
             if (isset($_FILES['image']) && $_FILES['image']['error'] === 0) {
-                $upload_dir = __DIR__ . '/../../../assets/images/carousel/';
+                $upload_dir = __DIR__ . '/../backend/assets/images/carousel/';
                 
                 // Create directory if it doesn't exist
                 if (!file_exists($upload_dir)) {
                     mkdir($upload_dir, 0755, true);
                 }
                 
+                // Get old image to delete it
+                $get_old_image_query = "SELECT image_url FROM carousel_images WHERE id = ?";
+                $get_old_image_stmt = mysqli_prepare($conn, $get_old_image_query);
+                mysqli_stmt_bind_param($get_old_image_stmt, "i", $image_id);
+                mysqli_stmt_execute($get_old_image_stmt);
+                $old_image_result = mysqli_stmt_get_result($get_old_image_stmt);
+                $old_image_data = mysqli_fetch_assoc($old_image_result);
+                
                 $file_name = time() . '_' . basename($_FILES['image']['name']);
                 $target_file = $upload_dir . $file_name;
                 
                 if (move_uploaded_file($_FILES['image']['tmp_name'], $target_file)) {
-                    $image_url = 'assets/images/carousel/' . $file_name;
+                    $image_url = 'images/carousel/' . $file_name;
+                    
+                    // Delete old image file
+                    if ($old_image_data && $old_image_data['image_url']) {
+                        $old_image_path = __DIR__ . '/../backend/assets/' . $old_image_data['image_url'];
+                        if (file_exists($old_image_path)) {
+                            unlink($old_image_path);
+                        }
+                    }
                     
                     // Update with new image
                     $update_query = "UPDATE carousel_images SET image_url = ?, title = ?, display_order = ?, 
@@ -201,7 +215,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $image_result = mysqli_stmt_get_result($get_image_stmt);
         
         if ($image_data = mysqli_fetch_assoc($image_result)) {
-            $image_path = '../../' . $image_data['image_url'];
+            // Correct path for deletion
+            $image_path = __DIR__ . '/../backend/assets/' . $image_data['image_url'];
             if (file_exists($image_path)) {
                 unlink($image_path); // Delete the image file
             }
@@ -223,11 +238,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $images_query = "SELECT * FROM carousel_images ORDER BY display_order ASC";
 $images_result = mysqli_query($conn, $images_query);
 ?>
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carousel Image - Neo Cafe Admin</title>
+    <link rel="stylesheet" href="manage-carousel.css">
+</head>
+<body>
 <main class="admin-main">
     <div class="admin-container">
-        <h1 class="admin-title">Manage Carousel Images</h1>
-    
         <?php if (isset($success_message)): ?>
             <div class="alert alert-success"><?php echo $success_message; ?></div>
         <?php endif; ?>
@@ -257,7 +278,7 @@ $images_result = mysqli_query($conn, $images_query);
                 
                 <div class="form-group checkbox-group">
                     <input type="checkbox" id="is_active" name="is_active" checked>
-                    <label for="is_active">Active (Show in carousel)</label>
+                    <label for="is_active">Show in carousel</label>
                 </div>
                 
                 <div class="form-actions">
@@ -275,7 +296,7 @@ $images_result = mysqli_query($conn, $images_query);
                     <?php while ($image = mysqli_fetch_assoc($images_result)): ?>
                         <div class="slide-card <?php echo $image['is_active'] ? 'active' : 'inactive'; ?>">
                             <div class="slide-image">
-                                <img src="/NeoExclusiveCafe/<?php echo htmlspecialchars($image['image_url']); ?>" alt="<?php echo htmlspecialchars($image['title']); ?>">
+                                <img src="/assets/<?php echo htmlspecialchars($image['image_url']); ?>" alt="<?php echo htmlspecialchars($image['title']); ?>">
                             </div>
                             
                             <div class="slide-details">
@@ -354,6 +375,8 @@ $images_result = mysqli_query($conn, $images_query);
         require_once __DIR__ . "/../admin-includes/footer/admin-footer.php";
     ?>
 </main>
+</body>
+</html>
 
 <script>
 function editImage(imageId) {
@@ -365,249 +388,3 @@ function cancelEdit(imageId) {
 }
 </script>
 
-<style>
-/* Manage Carousel Styles */
-.admin-main {
-  width: 100%;
-  margin: 0;
-  padding: 0;
-}
-
-.admin-container {
-  width: 100%;
-  margin: 0;
-  padding: 2rem;
-  box-sizing: border-box;
-}
-
-.admin-title {
-  font-size: 2rem;
-  margin-bottom: 1.5rem;
-  color: #333;
-}
-
-.admin-nav {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.admin-section {
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  padding: 2rem;
-  margin-bottom: 2rem;
-}
-
-.admin-section h2 {
-  font-size: 1.5rem;
-  margin-bottom: 1.5rem;
-  color: #333;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 0.5rem;
-}
-
-.settings-info {
-  margin-bottom: 1.5rem;
-  color: #666;
-  font-style: italic;
-}
-
-/* Form Styles */
-.admin-form {
-  display: grid;
-  gap: 1.5rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.form-group label {
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  color: #555;
-}
-
-.form-group input[type="text"],
-.form-group input[type="number"],
-.form-group textarea {
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-}
-
-.form-group input[type="file"] {
-  padding: 0.5rem 0;
-}
-
-.checkbox-group {
-  flex-direction: row;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.form-actions {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-/* Alert Styles */
-.alert {
-  padding: 1rem;
-  border-radius: 4px;
-  margin-bottom: 1.5rem;
-}
-
-.alert-success {
-  background-color: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
-}
-
-.alert-danger {
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
-}
-
-/* Slides Grid */
-.slides-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
-}
-
-.slide-card {
-  border: 1px solid #eee;
-  border-radius: 8px;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  position: relative;
-}
-
-.slide-card.inactive {
-  opacity: 0.7;
-}
-
-.slide-image {
-  height: 180px;
-  overflow: hidden;
-}
-
-.slide-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.slide-details {
-  padding: 1rem;
-}
-
-.slide-details h3 {
-  font-size: 1.2rem;
-  margin-bottom: 0.5rem;
-}
-
-.slide-details p {
-  color: #666;
-  margin-bottom: 0.5rem;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.slide-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-  font-size: 0.85rem;
-}
-
-.slide-meta span {
-  background: #f5f5f5;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-}
-
-.slide-actions {
-  display: flex;
-  justify-content: space-between;
-  padding: 1rem;
-  border-top: 1px solid #eee;
-}
-
-.delete-form {
-  margin: 0;
-}
-
-/* Edit Form */
-.edit-form {
-  padding: 1rem;
-  background: #f9f9f9;
-  border-top: 1px solid #eee;
-}
-
-/* No Slides Message */
-.no-slides {
-  text-align: center;
-  padding: 2rem;
-  background: #f9f9f9;
-  border-radius: 8px;
-  color: #666;
-}
-
-/* Preview Section */
-.carousel-preview {
-  background-color: rgba(0, 0, 0, 0.7);
-  border-radius: 8px;
-  padding: 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 300px;
-}
-
-.preview-content {
-  text-align: center;
-  color: white;
-  max-width: 600px;
-}
-
-.preview-title {
-  font-size: 2rem;
-  margin-bottom: 1rem;
-}
-
-.preview-description {
-  font-size: 1.1rem;
-  margin-bottom: 1.5rem;
-}
-
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-  .admin-container {
-    padding: 1rem;
-  }
-
-  .slides-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .form-actions {
-    flex-direction: column;
-  }
-
-  .btn {
-    width: 100%;
-    margin-bottom: 0.5rem;
-  }
-}
-</style>
