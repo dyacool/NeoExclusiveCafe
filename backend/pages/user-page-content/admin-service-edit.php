@@ -12,11 +12,11 @@ $page_title = "Edit Service Section";
 
 // Include database connection
 if (!isset($conn)) {
-    require_once "../../php/includes/database.php";
+    require_once "../admin-includes/database.php";
 }
 
 // Include admin header
-require_once "../../php/includes/navbar.php";
+require_once "../admin-includes/navbar/navbar.php";
 
 // Check if admin is logged in - adjust this to match your actual session variable
 if (!isset($_SESSION['admin_id']) && !isset($_SESSION['admin_username'])) {
@@ -738,4 +738,4 @@ if (!$cards_result) {
     });
 </script>
 
-<?php require_once "../../php/includes/admin-footer.php"; ?>
+<?php require_once "../admin-includes/footer/admin-footer.php"; ?>

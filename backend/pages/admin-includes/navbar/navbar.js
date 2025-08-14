@@ -211,11 +211,64 @@ document.addEventListener("DOMContentLoaded", () => {
 
     svg.appendChild(line1);
     svg.appendChild(line2);
-    addProductButton.appendChild(svg);
-    addProductButton.appendChild(document.createTextNode(" Add Product"));
+    addBlogButton.appendChild(svg);
+    addBlogButton.appendChild(document.createTextNode(" Create Blog"));
 
     headerActions.innerHTML = "";
-    headerActions.appendChild(addProductButton);
+    headerActions.appendChild(addBlogButton);
+  }
+  // Add "Create blog" button dynamically
+  if (window.location.pathname.includes("admin-blog.php")) {
+    let headerActions = document.querySelector(".header-actions");
+
+    if (!headerActions) {
+      headerActions = document.createElement("div");
+      headerActions.className = "header-actions";
+      const header = document.querySelector(".header");
+      if (header) {
+        header.appendChild(headerActions);
+      }
+    }
+
+    const addBlogButton = document.createElement("button");
+    addBlogButton.className = "btn add-blog-button action-button";
+    addBlogButton.onclick = () => {
+      window.location.href = "admin-blog-createpost.php";
+    };
+
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("width", "20");
+    svg.setAttribute("height", "20");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("fill", "none");
+    svg.setAttribute("stroke", "currentColor");
+    svg.setAttribute("stroke-width", "2");
+
+    const line1 = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "line"
+    );
+    line1.setAttribute("x1", "12");
+    line1.setAttribute("y1", "5");
+    line1.setAttribute("x2", "12");
+    line1.setAttribute("y2", "19");
+
+    const line2 = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "line"
+    );
+    line2.setAttribute("x1", "5");
+    line2.setAttribute("y1", "12");
+    line2.setAttribute("x2", "19");
+    line2.setAttribute("y2", "12");
+
+    svg.appendChild(line1);
+    svg.appendChild(line2);
+    addBlogButton.appendChild(svg);
+    addBlogButton.appendChild(document.createTextNode(" Create Blog"));
+
+    headerActions.innerHTML = "";
+    headerActions.appendChild(addBlogButton);
   }
 
   // UPDATED: Set active navigation states with dropdown persistence
