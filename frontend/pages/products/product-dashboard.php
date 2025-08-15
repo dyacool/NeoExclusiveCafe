@@ -1,7 +1,16 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+session_set_cookie_params([
+    'lifetime' => 0,
+    'httponly' => true,
+    'samesite' => 'Strict',
+    'domain' => 'neocafe.cafe'
+]);
+session_start();
+
+// Debug session status
+error_log("[Session Debug] product-dashboard.php - Session Data: " . print_r($_SESSION, true));
+error_log("[Session Debug] product-dashboard.php - User ID: " . (isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 'Not set'));
+error_log("[Session Debug] product-dashboard.php - User Role: " . (isset($_SESSION['user_role']) ? $_SESSION['user_role'] : 'Not set'));
 
 $page_title = "Products";
 $additional_css = [
@@ -12,9 +21,174 @@ require_once __DIR__ . "/../../user-includes/navbar/customer-navigation.php";
 require_once __DIR__ . "/../../user-includes/user-header.php";
 require_once __DIR__ . "/../../user-includes/preview-mode.php";
 require_once __DIR__ . "/../../user-includes/database.php";
+
+// Function to truncate cart_availtoday when business hours are closed
+function truncateCartIfBusinessClosed() {
+    global $conn;
+    
+    try {
+        // Get current time
+        $current_time = date('H:i:s');
+        
+        // Get business hours
+        $business_hours_query = "SELECT opening_time, closing_time FROM business_hours ORDER BY id DESC LIMIT 1";
+        $business_hours_result = $conn->query($business_hours_query);
+        
+        if (!$business_hours_result) {
+            error_log("Failed to get business hours: " . $conn->error);
+            return false;
+        }
+        
+        if ($business_hours_result->num_rows === 0) {
+            // No business hours set, use default
+            $opening_time = '08:00';
+            $closing_time = '17:00';
+            error_log("No business hours set, using defaults: $opening_time - $closing_time");
+        } else {
+            $business_hours = $business_hours_result->fetch_assoc();
+            $opening_time = $business_hours['opening_time'];
+            $closing_time = $business_hours['closing_time'];
+            error_log("Business hours: $opening_time - $closing_time");
+        }
+        
+        // Check if current time is after closing time
+        // Convert times to minutes for proper comparison (handles midnight crossing)
+        $current_minutes = (intval(substr($current_time, 0, 2)) * 60) + intval(substr($current_time, 3, 2));
+        $closing_minutes = (intval(substr($closing_time, 0, 2)) * 60) + intval(substr($closing_time, 3, 2));
+        $opening_minutes = (intval(substr($opening_time, 0, 2)) * 60) + intval(substr($opening_time, 3, 2));
+        
+        // Handle midnight crossing - if current time is much earlier than closing time, we're past midnight
+        $is_closed = false;
+        
+        // Check if we're past midnight (current time is much earlier than closing time)
+        if ($closing_minutes > 1200 && $current_minutes < 600) { // If closing time is after 8 PM and current time is before 10 AM
+            // We're past midnight, so business is closed
+            $is_closed = true;
+            error_log("Business closed - past midnight (current: $current_minutes, closing: $closing_minutes)");
+        } else if ($current_minutes > $closing_minutes) {
+            // Normal case - current time is after closing time
+            $is_closed = true;
+            error_log("Business closed - after closing time (current: $current_minutes, closing: $closing_minutes)");
+        }
+        
+        error_log("Time analysis: current=$current_time ($current_minutes min), opening=$opening_time ($opening_minutes min), closing=$closing_time ($closing_minutes min), is_closed=" . ($is_closed ? 'Yes' : 'No'));
+        
+        if ($is_closed) {
+            // Check if cart has items before truncating
+            $count_query = "SELECT COUNT(*) as cart_count FROM cart_availtoday";
+            $count_result = $conn->query($count_query);
+            
+            if ($count_result) {
+                $count_data = $count_result->fetch_assoc();
+                $cart_count = $count_data['cart_count'];
+                error_log("Cart currently has $cart_count items");
+                
+                if ($cart_count > 0) {
+                    // Business is closed, truncate the cart_availtoday table
+                    $truncate_query = "TRUNCATE TABLE cart_availtoday";
+                    $truncate_result = $conn->query($truncate_query);
+                    
+                    if ($truncate_result) {
+                        error_log("SUCCESS: Cart truncated successfully - $cart_count items removed");
+                        return true; // Successfully truncated
+                    } else {
+                        error_log("ERROR: Failed to truncate cart: " . $conn->error);
+                        return false;
+                    }
+                } else {
+                    error_log("Cart is already empty - no action needed");
+                    return false;
+                }
+            } else {
+                error_log("ERROR: Failed to count cart items: " . $conn->error);
+                return false;
+            }
+        }
+        
+        return false; // No action taken
+    } catch (Exception $e) {
+        error_log("Error truncating cart: " . $e->getMessage());
+        return false;
+    }
+}
+
+// Check and truncate cart if business is closed
+$cart_truncated = truncateCartIfBusinessClosed();
+
+// Debug: Log the result
+error_log("Cart truncation result: " . ($cart_truncated ? 'SUCCESS' : 'No action needed'));
+
+if ($cart_truncated) {
+    // Clear any session cart data
+    if (isset($_SESSION['availableTodayCart'])) {
+        unset($_SESSION['availableTodayCart']);
+    }
+    if (isset($_SESSION['availableTodayCartTotal'])) {
+        unset($_SESSION['availableTodayCartTotal']);
+    }
+    
+    // Set a flag to show notification
+    $_SESSION['cart_truncated_notification'] = true;
+    
+    // Also clear localStorage via JavaScript
+    echo "<script>
+        if (typeof localStorage !== 'undefined') {
+            localStorage.removeItem('availableTodayCart');
+            localStorage.removeItem('availableTodayCartTotal');
+        }
+    </script>";
+}
 ?>
 
 <div id="confirmationPopup" class="confirmation-popup"></div>
+
+<?php if (isset($_SESSION['cart_truncated_notification']) && $_SESSION['cart_truncated_notification']): ?>
+    <div class="cart-truncated-notification" id="cartTruncatedNotification">
+        <div class="notification-content">
+            <span>🕐 Business hours closed. Cart has been cleared for the day.</span>
+            <button onclick="closeCartTruncatedNotification()" class="close-notification-btn">×</button>
+        </div>
+    </div>
+    <?php unset($_SESSION['cart_truncated_notification']); ?>
+<?php endif; ?>
+
+<!-- Debug: Manual test button for cart truncation -->
+<?php if (isset($_SESSION['is_admin']) && $_SESSION['is_admin']): ?>
+    <div style="position: fixed; top: 80px; right: 20px; z-index: 9999; background: #333; color: white; padding: 10px; border-radius: 5px; font-size: 12px;">
+        <button onclick="testCartTruncation()" style="background: #ff6b6b; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">Test Cart Truncation</button>
+        <div id="truncationDebug" style="margin-top: 10px; font-size: 10px;"></div>
+        
+        <!-- Time Analysis Display -->
+        <div style="margin-top: 10px; padding: 5px; background: #444; border-radius: 3px; font-size: 10px;">
+            <strong>Time Analysis:</strong><br>
+            Current: <?php echo date('H:i:s'); ?><br>
+            <?php
+            $business_hours_query = "SELECT opening_time, closing_time FROM business_hours ORDER BY id DESC LIMIT 1";
+            $business_hours_result = $conn->query($business_hours_query);
+            if ($business_hours_result && $business_hours_result->num_rows > 0) {
+                $business_hours = $business_hours_result->fetch_assoc();
+                echo "Hours: " . $business_hours['opening_time'] . " - " . $business_hours['closing_time'] . "<br>";
+                
+                $current_time = date('H:i:s');
+                $current_minutes = (intval(substr($current_time, 0, 2)) * 60) + intval(substr($current_time, 3, 2));
+                $closing_minutes = (intval(substr($business_hours['closing_time'], 0, 2)) * 60) + intval(substr($business_hours['closing_time'], 3, 2));
+                
+                $is_closed = false;
+                if ($closing_minutes > 1200 && $current_minutes < 600) {
+                    $is_closed = true;
+                } else if ($current_minutes > $closing_minutes) {
+                    $is_closed = true;
+                }
+                
+                echo "Status: " . ($is_closed ? '<span style="color: #ff6b6b;">CLOSED</span>' : '<span style="color: #4CAF50;">OPEN</span>') . "<br>";
+            } else {
+                echo "Hours: 08:00 - 17:00 (default)<br>";
+                echo "Status: <span style='color: #4CAF50;'>OPEN</span> (default)<br>";
+            }
+            ?>
+        </div>
+    </div>
+<?php endif; ?>
 
 <div class="wrapper">
     <?php if (isset($_SESSION['is_admin']) && $_SESSION['is_admin']): ?>
@@ -72,16 +246,18 @@ require_once __DIR__ . "/../../user-includes/database.php";
                             $sql = "SELECT 
                                         p.id, p.name, p.price, p.description, p.status_id, p.is_featured,
                                         ps.name AS status_name, pi.image_url, p.quantity, p.show_when_unavailable,
+                                        p.availtoday_status_id, ats.name AS availtoday_status_name,
                                         GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
                                     FROM products p
                                     LEFT JOIN product_statuses ps ON p.status_id = ps.id
                                     LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
                                     LEFT JOIN product_day pd ON p.id = pd.product_id
+                                    LEFT JOIN availtoday_status ats ON p.availtoday_status_id = ats.id
                                     WHERE p.deleted_at IS NULL 
                                     AND p.status_id = 3
                                     AND p.quantity > 0
                                     AND pd.day_of_week = ?
-                                    GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, ps.name, pi.image_url, p.quantity, p.show_when_unavailable
+                                    GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, ps.name, pi.image_url, p.quantity, p.show_when_unavailable, p.availtoday_status_id, ats.name
                                     ORDER BY p.is_featured DESC, p.name ASC";
                     
                             // Prepare and execute the statement with today's day parameter
@@ -113,6 +289,8 @@ require_once __DIR__ . "/../../user-includes/database.php";
                                         'is_featured' => (bool)$row['is_featured'],
                                         'quantity' => $row['quantity'],
                                         'show_when_unavailable' => (bool)$row['show_when_unavailable'],
+                                        'availtoday_status_id' => $row['availtoday_status_id'],
+                                        'availtoday_status_name' => $row['availtoday_status_name'],
                                         'available_days' => $row['available_days'] ? explode(', ', $row['available_days']) : []
                                     ];
                                     
@@ -127,8 +305,14 @@ require_once __DIR__ . "/../../user-includes/database.php";
                                                 <img src='../../../assets/" . htmlspecialchars($row['image_url'] ?: 'images/no-image.jpg') . "' alt='" . htmlspecialchars($row['name']) . "'>
                                             </div>
                                             <div class='product-info'>
-                                                <h3>" . htmlspecialchars($row['name']) . "</h3>
-                                                <p class='price'>₱" . number_format($row['price'], 2) . "</p>
+                                                <h3>" . htmlspecialchars($row['name']) . "</h3>";
+                                    
+                                    // Display availtoday status badge if available
+                                    if (!empty($row['availtoday_status_name'])) {
+                                        echo "<span class='availtoday-badge'>" . htmlspecialchars($row['availtoday_status_name']) . "</span>";
+                                    }
+                                    
+                                    echo "<p class='price'>₱" . number_format($row['price'], 2) . "</p>
                                                 
                                                 <div class='prdct-availability'>
                                                     <span class='status-badge status-{$statusClass}'>" . htmlspecialchars($row['status_name']) . "</span>
@@ -205,7 +389,7 @@ require_once __DIR__ . "/../../user-includes/database.php";
 <script src="availtoday-cart.js"></script>
 
 <script>
-    console.log('Product dashboard page JavaScript loaded');
+    // Remove console.log
     let productModalOpen = false;
     let totalProducts = 0;
     const itemsPerRow = 4;
@@ -226,21 +410,6 @@ require_once __DIR__ . "/../../user-includes/database.php";
         
             // Initialize business hours functionality
         initBusinessHours();
-        
-        // Add a manual test button for debugging
-        const testButton = document.createElement('button');
-        testButton.textContent = 'Test Business Hours';
-        testButton.style.cssText = 'position: fixed; top: 10px; right: 10px; z-index: 1000; padding: 10px; background: #ff6b35; color: white; border: none; border-radius: 5px; cursor: pointer;';
-        testButton.onclick = () => {
-            console.log('Manual test button clicked');
-            const now = new Date();
-            const currentTime = now.toTimeString().slice(0, 5);
-            console.log('Current time:', currentTime);
-            console.log('Business hours:', businessHours);
-            console.log('Is within business hours:', isWithinBusinessHours(currentTime));
-            checkBusinessHoursAndUpdateDisplay();
-        };
-        document.body.appendChild(testButton);
     });
 
     function setupScroll() {
@@ -271,7 +440,7 @@ require_once __DIR__ . "/../../user-includes/database.php";
         const cartDropdown = document.querySelector('.cart-dropdown');
         if (cartDropdown) {
             cartDropdown.style.display = 'block';
-            console.log('Cart dropdown set to visible by default');
+            // Remove console.log
         }
         
         loadBusinessHours();
@@ -567,20 +736,18 @@ require_once __DIR__ . "/../../user-includes/database.php";
         formData.append('product_id', productId);
         formData.append('quantity', finalQuantity);
         
-        fetch("../../../backend/pages/cart/availtoday-cart-api.php", {
-            method: "POST",
-            body: formData
+        const apiUrl = "../../../backend/pages/cart/availtoday-cart-api.php";
+        // Keep only session debug
+// Remove session debug
+        fetch(apiUrl, {
+          method: "POST",
+          body: formData
         })
-        .then(response => {
-            console.log('Response status:', response.status);
-            
+          .then(response => {
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+              throw new Error(`HTTP error! status: ${response.status}`);
             }
             return response.json();
-        })
-        .then(data => {
-            console.log('Available Today Cart API Response:', data);
             
             if (data && data.success) {
                 console.log('Product added to Available Today cart successfully');
@@ -603,7 +770,7 @@ require_once __DIR__ . "/../../user-includes/database.php";
             }
         })
         .catch(error => {
-            console.error("Fetch error:", error);
+            console.error('[DEBUG] API Fetch Error:', error);
             console.error("Error message:", error.message);
             // Don't show error message if it's a redirect (user will be redirected to login)
             if (!error.message.includes('redirect')) {
@@ -756,6 +923,33 @@ require_once __DIR__ . "/../../user-includes/database.php";
     document.addEventListener('touchend', function(e) {
         isScrolling = false;
     }, { passive: true });
+    
+    // Function to close cart truncated notification
+    function closeCartTruncatedNotification() {
+        const notification = document.getElementById('cartTruncatedNotification');
+        if (notification) {
+            notification.style.display = 'none';
+        }
+    }
+    
+    // Function to test cart truncation manually
+    function testCartTruncation() {
+        const debugDiv = document.getElementById('truncationDebug');
+        debugDiv.innerHTML = 'Testing cart truncation...';
+        
+        fetch('test-truncation.php')
+            .then(response => response.text())
+            .then(data => {
+                debugDiv.innerHTML = data.replace(/\n/g, '<br>');
+                // Refresh the page to see if cart was truncated
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
+            })
+            .catch(error => {
+                debugDiv.innerHTML = 'Error: ' + error.message;
+            });
+    }
 </script>
 
 <style>
@@ -766,6 +960,74 @@ require_once __DIR__ . "/../../user-includes/database.php";
     input[type="number"]::-webkit-inner-spin-button {
         -webkit-appearance: none;
         margin: 0;
+    }
+    
+    /* Cart Truncated Notification Styles */
+    .cart-truncated-notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        z-index: 10000;
+        max-width: 350px;
+        animation: slideInRight 0.5s ease-out;
+    }
+    
+    .notification-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+    }
+    
+    .notification-content span {
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 1.4;
+    }
+    
+    .close-notification-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 18px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.3s ease;
+    }
+    
+    .close-notification-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+    
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .cart-truncated-notification {
+            top: 10px;
+            right: 10px;
+            left: 10px;
+            max-width: none;
+        }
     }
 </style>
             

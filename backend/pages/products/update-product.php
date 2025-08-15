@@ -50,6 +50,12 @@ try {
         $unavailable_status_id = filter_var($input['unavailable_status_id'], FILTER_VALIDATE_INT);
     }
     
+    // Handle Available Today status
+    $availtoday_status_id = null;
+    if (isset($input['availtoday_status_id']) && $input['availtoday_status_id'] !== "null" && $input['availtoday_status_id'] !== "") {
+        $availtoday_status_id = filter_var($input['availtoday_status_id'], FILTER_VALIDATE_INT);
+    }
+    
     // Auto-set quantity to 0 if product is being set to unavailable
     if ($unavailable_status_id !== null) {
         $quantity = 0;
@@ -69,10 +75,11 @@ try {
         show_when_unavailable = ?,
         hide_when_unavailable = ?,
         unavailable_status_id = ?,
+        availtoday_status_id = ?,
         updated_at = CURRENT_TIMESTAMP
         WHERE id = ?");
     
-    $stmt->bind_param("sdiiiiiii", 
+    $stmt->bind_param("sdiiiiiiii", 
         $name, 
         $price, 
         $status_id, 
@@ -81,6 +88,7 @@ try {
         $show_when_unavailable,
         $hide_when_unavailable,
         $unavailable_status_id,
+        $availtoday_status_id,
         $id
     );
 

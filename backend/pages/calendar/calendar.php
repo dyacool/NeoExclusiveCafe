@@ -268,6 +268,40 @@ $stats['in_progress'] = $progress_result->fetch_assoc()['in_progress'];
             cursor: pointer;
         }
 
+        .availtoday-order-limit-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .availtoday-order-limit-control h3 {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        .availtoday-order-limit-control input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 80px;
+        }
+
+        .availtoday-order-limit-control button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .availtoday-order-limit-status {
+            margin-top: 10px;
+            text-align: center;
+        }
+
+
+
         .business-hours-control {
             display: flex;
             align-items: center;
@@ -310,6 +344,57 @@ $stats['in_progress'] = $progress_result->fetch_assoc()['in_progress'];
 
         .time-inputs button:hover {
             background: #1976D2;
+        }
+
+        .order-limit-status {
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-indicator.open {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .status-indicator.closed {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .time-inputs.disabled input[type="time"],
+        .time-inputs.disabled button {
+            opacity: 0.5;
+            pointer-events: none;
+            background-color: #f5f5f5;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .time-inputs.disabled label {
+            color: #999;
+        }
+
+        .order-limit-control input[type="number"] {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 80px;
+            font-size: 14px;
+        }
+
+        .order-limit-control input[type="number"]:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
         }
 
         .calendar-controls {
@@ -477,18 +562,31 @@ $stats['in_progress'] = $progress_result->fetch_assoc()['in_progress'];
         <div class="top-controls">
             <div class="order-limit-control">
                 <h3>Daily Order Limit:</h3>
-                <input type="number" id="dailyLimit" min="1">
+                <input type="number" id="dailyLimit" min="0" placeholder="Enter limit">
                 <button onclick="updateDailyLimit()">Save</button>
                 <button onclick="toggleCompletedOrders()" id="toggleCompletedBtn">Show Completed Orders</button>
             </div>
+
+            <div class="availtoday-order-limit-control">
+                <h3>Available Today Order Limit:</h3>
+                <input type="number" id="availtodayOrderLimit" min="0" placeholder="Enter limit">
+                <button onclick="updateAvailTodayOrderLimit()">Save</button>
+                <div class="availtoday-order-limit-status">
+                    <span id="availtodayOrderLimitStatus" class="status-indicator"></span>
+                </div>
+            </div>
+
             <div class="business-hours-control">
-                <h3>Business Hours:</h3>
+                <h3>Today's Products</h3>
                 <div class="time-inputs">
                     <label for="openingTime">Opening Time:</label>
                     <input type="time" id="openingTime" name="openingTime">
                     <label for="closingTime">Closing Time:</label>
                     <input type="time" id="closingTime" name="closingTime">
-                    <button onclick="updateBusinessHours()">Save Hours</button>
+                    <button onclick="updateBusinessHours()" id="saveHoursBtn">Save Hours</button>
+                </div>
+                <div class="order-limit-status">
+                    <span id="orderLimitStatus" class="status-indicator"></span>
                 </div>
             </div>
         </div>

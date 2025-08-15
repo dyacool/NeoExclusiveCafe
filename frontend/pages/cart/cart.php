@@ -1,4 +1,10 @@
 <?php
+session_set_cookie_params([
+    'lifetime' => 0,
+    'httponly' => true,
+    'samesite' => 'Strict',
+    'domain' => 'neocafe.cafe'
+]);
 session_start();
 
 // Include database connection
@@ -275,6 +281,18 @@ function getDayAbbreviations($availableDays) {
         </div>
 
         <?php
+        // Clean up any Available Today products that might be in the regular cart
+        $cleanup_stmt = $conn->prepare("
+            DELETE c FROM cart c 
+            JOIN products p ON c.product_id = p.id 
+            WHERE c.user_id = ? AND p.status_id = 3
+        ");
+        if ($cleanup_stmt) {
+            $cleanup_stmt->bind_param("i", $user_id);
+            $cleanup_stmt->execute();
+            $cleanup_stmt->close();
+        }
+        
         $stmt = $conn->prepare("
             SELECT c.id AS cart_id, c.quantity, c.price,
                    p.id AS product_id, p.name AS product_name, p.quantity as product_stock,
@@ -285,14 +303,13 @@ function getDayAbbreviations($availableDays) {
             LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
             LEFT JOIN product_statuses ps ON p.status_id = ps.id
             LEFT JOIN product_day pd ON p.id = pd.product_id
-            WHERE c.user_id = ?
+            WHERE c.user_id = ? AND p.status_id IN (1, 2)
             GROUP BY c.id, c.quantity, c.price, p.id, p.name, p.quantity, pi.image_url, ps.name
             ORDER BY ps.name = 'Pickup' DESC, p.name ASC
         ");
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
         $result = $stmt->get_result();
-
 
         
         if ($result->num_rows > 0): 
@@ -312,6 +329,7 @@ function getDayAbbreviations($availableDays) {
             }
         ?>
         <form method="POST" action="checkout.php" id="cartForm">
+            <input type="hidden" name="valid_cart_ids" value="<?= implode(',', array_merge(array_column($pickup_items, 'cart_id'), array_column($delivery_items, 'cart_id'))) ?>">
             <!-- Pickup Products Section -->
             <div class="cart-section">
                 <div class="section-header">
@@ -778,7 +796,7 @@ function validateCart() {
         showConfirmation('⚠️ Select All Limitation: You cannot checkout when all delivery items are selected due to potential day conflicts. Please select specific compatible items.', true);
         return false;
     }
-
+    
     return true;
 }
 
@@ -801,7 +819,7 @@ function updateQuantity(cartId, newQuantity) {
     .then(res => res.json())
     .then(data => {
         if (data.success) location.reload();
-        else showConfirmation("Error: " + data.error, true);
+        else showConfirmation("Error: " + (data.error || "Failed to update quantity"), true);
     })
     .catch(err => {
         console.error("Error:", err);

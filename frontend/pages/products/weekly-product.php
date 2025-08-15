@@ -1,7 +1,11 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+session_set_cookie_params([
+    'lifetime' => 0,
+    'httponly' => true,
+    'samesite' => 'Strict',
+    'domain' => 'neocafe.cafe'
+]);
+session_start();
 
 // Define preview mode
 $is_preview_mode = !isset($_SESSION['user_id']) && !isset($_SESSION['admin_id']);

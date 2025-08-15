@@ -927,3 +927,39 @@ h3 {
   transform: translateX(100%);
 }
 
+/* Add to Cart Button States */
+.add-to-cart-btn {
+  background-color: var(--available-color);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: var(--btn-radius);
+  cursor: pointer;
+  font-weight: 500;
+  transition: var(--transition);
+  font-size: var(--font-size2);
+}
+
+.add-to-cart-btn:hover:not(:disabled) {
+  background-color: #0f3d1a;
+  transform: translateY(-2px);
+  box-shadow: var(--border-shadow);
+}
+
+.add-to-cart-btn:disabled {
+  background-color: #6b7280;
+  color: #d1d5db;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.add-to-cart-btn.closed {
+  background-color: #dc2626;
+  color: white;
+}
+
+.add-to-cart-btn.closed:hover {
+  background-color: #b91c1c;
+}
+

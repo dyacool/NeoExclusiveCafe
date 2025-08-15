@@ -1,5 +1,11 @@
 <?php
 // Redirect if not logged in
+session_set_cookie_params([
+    'lifetime' => 0,
+    'httponly' => true,
+    'samesite' => 'Strict',
+    'domain' => 'neocafe.cafe'
+]);
 session_start();
 $page_title = "Our Products";
 $additional_css = [

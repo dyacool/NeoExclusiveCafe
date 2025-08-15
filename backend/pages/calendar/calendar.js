@@ -6,8 +6,10 @@ let showCompletedOrders = false;
 // Initialize calendar when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     renderCalendar(currentDate);
-    refreshDefaultLimit();
+    loadOrderLimit();
+    loadAvailTodayOrderLimit();
     loadBusinessHours();
+    loadDateLimitsForMonth(currentDate); // Add this line to load date limits
     setupEventListeners();
 });
 
@@ -16,12 +18,38 @@ function setupEventListeners() {
     document.getElementById('prev').onclick = () => {
         currentDate.setMonth(currentDate.getMonth() - 1);
         renderCalendar(currentDate);
+        loadDateLimitsForMonth(currentDate); // Load date limits for new month
     };
     
     document.getElementById('next').onclick = () => {
         currentDate.setMonth(currentDate.getMonth() + 1);
         renderCalendar(currentDate);
+        loadDateLimitsForMonth(currentDate); // Load date limits for new month
     };
+
+    // Order limit input change handler
+    const dailyLimitInput = document.getElementById('dailyLimit');
+    if (dailyLimitInput) {
+        dailyLimitInput.addEventListener('change', function() {
+            const value = parseInt(this.value);
+            if (value === 0) {
+                // If limit is set to 0, set business hours to 00:00
+                document.getElementById('openingTime').value = '00:00';
+                document.getElementById('closingTime').value = '00:00';
+                updateBusinessHours(); // Auto-save the 00:00 time
+            } else {
+                // If limit is greater than 0, check if business hours are 00:00 and reset them
+                const openingTime = document.getElementById('openingTime').value;
+                const closingTime = document.getElementById('closingTime').value;
+                if (openingTime === '00:00' && closingTime === '00:00') {
+                    // Reset to default business hours
+                    document.getElementById('openingTime').value = '08:00';
+                    document.getElementById('closingTime').value = '17:00';
+                    updateBusinessHours();
+                }
+            }
+        });
+    }
 
     // Modal close functionality
     const orderModal = document.getElementById('orderModal');
@@ -63,6 +91,8 @@ function setupEventListeners() {
             }
         };
     }
+    
+
 }
 
 function renderCalendar(date) {
@@ -428,8 +458,10 @@ function updateBusinessHours() {
         return;
     }
 
-    // Validate that closing time is after opening time
-    if (openingTime >= closingTime) {
+    // Special case: allow 00:00 for both times when order limit is 0 (system closed)
+    if (openingTime === '00:00' && closingTime === '00:00') {
+        // This is allowed when system is closed
+    } else if (openingTime >= closingTime) {
         alert('Closing time must be after opening time');
         return;
     }
@@ -452,7 +484,8 @@ function updateBusinessHours() {
     .then(data => {
         if (data.success) {
             alert('Business hours updated successfully!');
-            // Optionally refresh or update the display
+            
+
         } else {
             alert('Error updating business hours: ' + (data.error || 'Unknown error'));
         }
@@ -470,6 +503,8 @@ function loadBusinessHours() {
             if (data.success && data.businessHours) {
                 document.getElementById('openingTime').value = data.businessHours.opening_time;
                 document.getElementById('closingTime').value = data.businessHours.closing_time;
+                
+
             }
         })
         .catch(error => {
@@ -627,8 +662,9 @@ function completeOrder(orderId) {
     })
     .then(data => {
         if (data.success) {
-            // Refresh the calendar to show updated order status
+            // Refresh the calendar to show updated order status and reload date limits
             renderCalendar(currentDate);
+            loadDateLimitsForMonth(currentDate);
             
             // Show success message
             alert(data.message || 'Order marked as completed successfully!');
@@ -679,6 +715,197 @@ function toggleCompletedOrders() {
         toggleBtn.style.backgroundColor = '#4CAF50'; // Green color when hiding completed
     }
     
-    // Refresh the calendar to show/hide completed orders
+    // Refresh the calendar to show/hide completed orders and reload date limits
     renderCalendar(currentDate);
+    loadDateLimitsForMonth(currentDate);
 }
+
+// Order Limit Functions
+function loadOrderLimit() {
+    fetch('get-date-limits.php?get_default=true')
+        .then(response => response.text())
+        .then(text => {
+            // Clean the response by removing any HTML comments
+            const jsonStr = text.replace(/<!--[\s\S]*?-->/g, '').trim();
+            try {
+                const data = JSON.parse(jsonStr);
+                if (data.success && data.default_limit !== undefined) {
+                    document.getElementById('dailyLimit').value = data.default_limit;
+                } else {
+                    console.error('Invalid response format:', data);
+                }
+            } catch (e) {
+                console.error('Error parsing JSON:', e, 'Response:', jsonStr);
+            }
+        })
+        .catch(error => console.error('Error fetching default limit:', error));
+}
+
+
+
+function updateDailyLimit() {
+    const limit = document.getElementById('dailyLimit').value;
+    if (!limit || parseInt(limit) <= 0) {
+        alert('Please enter a valid limit greater than 0');
+        return;
+    }
+
+    fetch('update-limit.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            type: 'daily',
+            limit: parseInt(limit)
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Daily limit updated successfully!');
+            // Refresh the calendar and reload date limits
+            renderCalendar(currentDate);
+            loadDateLimitsForMonth(currentDate);
+            // Refresh the default limit display
+            refreshDefaultLimit();
+        } else {
+            alert('Error updating limit: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error updating limit:', error);
+        alert('Error updating order limit. Please try again.');
+    });
+}
+
+// Available Today Order Limit Functions
+function loadAvailTodayOrderLimit() {
+    fetch('availtoday-order-limit-api.php?action=get_limit')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('availtodayOrderLimit').value = data.limit_orders;
+                updateAvailTodayOrderLimitStatus(data.limit_orders);
+            } else {
+                console.error('Error loading availtoday order limit:', data.error);
+            }
+        })
+        .catch(error => console.error('Error loading availtoday order limit:', error));
+}
+
+function updateAvailTodayOrderLimit() {
+    const limitInput = document.getElementById('availtodayOrderLimit');
+    const limit = parseInt(limitInput.value);
+    
+    if (isNaN(limit) || limit < 0) {
+        alert('Please enter a valid limit (0 or positive number)');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('action', 'update_limit');
+    formData.append('limit', limit);
+    
+    fetch('availtoday-order-limit-api.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Available Today order limit updated successfully!');
+            updateAvailTodayOrderLimitStatus(data.limit_orders);
+            
+            // If limit is 0, automatically set business hours to 00:00
+            if (data.limit_orders === 0) {
+                document.getElementById('openingTime').value = '00:00';
+                document.getElementById('closingTime').value = '00:00';
+                updateBusinessHours();
+            } else {
+                // If limit is greater than 0, check if business hours are 00:00 and reset them
+                const openingTime = document.getElementById('openingTime').value;
+                const closingTime = document.getElementById('closingTime').value;
+                if (openingTime === '00:00' && closingTime === '00:00') {
+                    // Reset to default business hours
+                    document.getElementById('openingTime').value = '08:00';
+                    document.getElementById('closingTime').value = '17:00';
+                    updateBusinessHours();
+                }
+            }
+        } else {
+            alert('Error updating Available Today order limit: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error updating Available Today order limit:', error);
+        alert('Error updating Available Today order limit. Please try again.');
+    });
+}
+
+function updateAvailTodayOrderLimitStatus(limit) {
+    const statusElement = document.getElementById('availtodayOrderLimitStatus');
+    if (statusElement) {
+        if (limit === 0) {
+            statusElement.textContent = 'CLOSED';
+            statusElement.className = 'status-indicator closed';
+        } else {
+            statusElement.textContent = 'OPEN';
+            statusElement.className = 'status-indicator open';
+        }
+    }
+}
+
+function loadDateLimitsForMonth(date) {
+    const startDate = new Date(date.getFullYear(), date.getMonth(), 1);
+    const endDate = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+    
+    console.log('Loading date limits for month:', {
+        start: startDate.toISOString().split('T')[0],
+        end: endDate.toISOString().split('T')[0]
+    });
+    
+    fetch(`get-date-limits.php?start=${startDate.toISOString().split('T')[0]}&end=${endDate.toISOString().split('T')[0]}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.text();
+        })
+        .then(text => {
+            try {
+                const jsonStr = text.replace(/<!--[\s\S]*?-->/g, '').trim();
+                const data = JSON.parse(jsonStr);
+                
+                if (data.success && data.dates) {
+                    // Clear existing date limits
+                    dateLimits = {};
+                    
+                    // Populate dateLimits with the fetched data
+                    data.dates.forEach(dateInfo => {
+                        dateLimits[dateInfo.date] = {
+                            limit: parseInt(dateInfo.limit) || 0,
+                            count: parseInt(dateInfo.current_orders) || 0,
+                            is_full: dateInfo.is_full || parseInt(dateInfo.current_orders) >= parseInt(dateInfo.limit),
+                            active_orders: parseInt(dateInfo.active_orders) || 0,
+                            remaining_slots: parseInt(dateInfo.limit) - (parseInt(dateInfo.current_orders) || 0),
+                            status: dateInfo.status || (parseInt(dateInfo.limit) === 0 ? 'not_accepting' : 'accepting')
+                        };
+                    });
+                    
+                    console.log('Date limits loaded:', dateLimits);
+                    
+                    // Re-render calendar with updated date limits
+                    renderCalendar(currentDate);
+                } else {
+                    console.warn('No date limits data received or invalid format');
+                }
+            } catch (e) {
+                console.error('Error parsing date limits response:', e);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading date limits:', error);
+        });
+}
+

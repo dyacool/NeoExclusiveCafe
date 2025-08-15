@@ -9,7 +9,8 @@ require_once __DIR__ . "/../../../backend/pages/admin-includes/config.php";
 session_set_cookie_params([
     'lifetime' => 0,
     'httponly' => true,
-    'samesite' => 'Strict'
+    'samesite' => 'Strict',
+    'domain' => 'neocafe.cafe'
 ]);
 session_start();
 

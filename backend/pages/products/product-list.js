@@ -1080,10 +1080,19 @@ function removePrimaryImage() {
             if (data.success) {
               pendingImageChanges.primary = "remove";
               displayProductImages();
-              showNotification(
-                "Primary image moved to temporary storage (pending save)",
-                "success"
-              );
+              
+              // Show appropriate message based on whether file was missing
+              if (data.file_missing) {
+                showNotification(
+                  "Primary image removed from database (file was already missing)",
+                  "success"
+                );
+              } else {
+                showNotification(
+                  "Primary image moved to temporary storage (pending save)",
+                  "success"
+                );
+              }
             } else {
               showNotification(
                 "Error removing primary image: " + data.error,
@@ -1130,10 +1139,19 @@ function removeAdditionalImage(imageId) {
             if (data.success) {
               pendingImageChanges.additional.toRemove.push(imageId);
               displayProductImages();
-              showNotification(
-                "Image moved to temporary storage (pending save)",
-                "success"
-              );
+              
+              // Show appropriate message based on whether file was missing
+              if (data.file_missing) {
+                showNotification(
+                  "Image removed from database (file was already missing)",
+                  "success"
+                );
+              } else {
+                showNotification(
+                  "Image moved to temporary storage (pending save)",
+                  "success"
+                );
+              }
             } else {
               showNotification("Error removing image: " + data.error, "error");
             }

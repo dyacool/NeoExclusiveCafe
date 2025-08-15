@@ -1,7 +1,15 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+// Enable error reporting temporarily to see what's wrong
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+session_set_cookie_params([
+    'lifetime' => 0,
+    'httponly' => true,
+    'samesite' => 'Strict',
+    'domain' => 'neocafe.cafe'
+]);
+session_start();
 
 // Require login for checkout - check for user role
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'user') {
@@ -18,9 +26,59 @@ require_once "../../user-includes/user-header.php";
 
 // Debug session data
 error_log("Session data at start: " . print_r($_SESSION, true));
+error_log("Session ID: " . session_id());
+error_log("Session status: " . session_status());
+error_log("Current user_id: " . ($_SESSION['user_id'] ?? 'NOT SET'));
+error_log("Current user_role: " . ($_SESSION['user_role'] ?? 'NOT SET'));
 
 // Include database connection
 require_once '../../user-includes/database.php';
+
+// Test database connection
+if ($conn->connect_error) {
+    error_log("Database connection failed: " . $conn->connect_error);
+    die("Database connection failed");
+} else {
+    error_log("Database connection successful");
+    
+    // Test if we can access the cart table
+    $test_query = "SELECT COUNT(*) as cart_count FROM cart WHERE user_id = ?";
+    $test_stmt = $conn->prepare($test_query);
+    if ($test_stmt) {
+        $test_stmt->bind_param("i", $_SESSION['user_id']);
+        $test_stmt->execute();
+        $test_result = $test_stmt->get_result();
+        if ($test_result->num_rows > 0) {
+            $test_row = $test_result->fetch_assoc();
+            error_log("User has " . $test_row['cart_count'] . " items in cart table");
+        }
+        $test_stmt->close();
+    } else {
+        error_log("Failed to prepare test query");
+    }
+    
+    // Check cart table structure
+    $structure_query = "DESCRIBE cart";
+    $structure_result = $conn->query($structure_query);
+    if ($structure_result) {
+        error_log("Cart table structure:");
+        while ($row = $structure_result->fetch_assoc()) {
+            error_log("  " . $row['Field'] . " - " . $row['Type'] . " - " . $row['Null'] . " - " . $row['Key'] . " - " . $row['Default'] . " - " . $row['Extra']);
+        }
+    } else {
+        error_log("Failed to get cart table structure");
+    }
+    
+    // Check if cart item 108 exists at all
+    $check_cart_108 = "SELECT * FROM cart WHERE id = 108";
+    $check_result = $conn->query($check_cart_108);
+    if ($check_result && $check_result->num_rows > 0) {
+        $check_row = $check_result->fetch_assoc();
+        error_log("Cart item 108 exists: " . print_r($check_row, true));
+    } else {
+        error_log("Cart item 108 does not exist in cart table");
+    }
+}
 
 // Initialize user array with default values
 $user = array(
@@ -79,6 +137,11 @@ $debug_info = [
 $selected_cart_ids = [];
 $subtotal = 0;
 
+// Debug: Log what we're receiving
+error_log("REQUEST_METHOD: " . $_SERVER['REQUEST_METHOD']);
+error_log("POST data: " . print_r($_POST, true));
+error_log("SESSION data at cart items check: " . print_r($_SESSION, true));
+
 // Check for POST data first
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['selected_cart_ids'])) {
     // If it's a string (comma-separated), convert to array
@@ -90,13 +153,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['selected_cart_ids']))
         $selected_cart_ids = array_filter($_POST['selected_cart_ids']);
     }
     $subtotal = isset($_POST['subtotal']) ? floatval($_POST['subtotal']) : 0;
+    error_log("Got cart IDs from POST: " . implode(', ', $selected_cart_ids));
+    
+    // Validate cart IDs against the valid_cart_ids from the form
+    if (isset($_POST['valid_cart_ids']) && !empty($_POST['valid_cart_ids'])) {
+        $valid_cart_ids = array_filter(explode(',', $_POST['valid_cart_ids']));
+        $selected_cart_ids = array_intersect($selected_cart_ids, $valid_cart_ids);
+        error_log("Validated cart IDs: " . implode(', ', $selected_cart_ids));
+        
+        if (empty($selected_cart_ids)) {
+            error_log("No valid cart IDs found after validation");
+            $_SESSION['error_message'] = "Invalid cart items selected. Please return to cart and try again.";
+            header("Location: cart.php");
+            exit();
+        }
+    }
 }
 
 // If no items in POST, check session
 if (empty($selected_cart_ids) && isset($_SESSION['selected_cart_ids'])) {
     $selected_cart_ids = $_SESSION['selected_cart_ids'];
     $subtotal = $_SESSION['subtotal'] ?? 0;
+    error_log("Got cart IDs from SESSION: " . implode(', ', $selected_cart_ids));
 }
+
+error_log("Final selected_cart_ids: " . print_r($selected_cart_ids, true));
+error_log("Final subtotal: " . $subtotal);
 
 // Debug cart data
 error_log("Selected cart IDs: " . print_r($selected_cart_ids, true));
@@ -109,9 +191,44 @@ if (empty($selected_cart_ids)) {
     exit();
 }
 
+// Validate that the selected cart IDs actually exist and belong to the current user
+if (!empty($selected_cart_ids)) {
+    $valid_cart_ids = [];
+    foreach ($selected_cart_ids as $cart_id) {
+        $validate_sql = "SELECT id, user_id FROM cart WHERE id = ? AND user_id = ?";
+        $validate_stmt = $conn->prepare($validate_sql);
+        if ($validate_stmt) {
+            $validate_stmt->bind_param("ii", $cart_id, $_SESSION['user_id']);
+            $validate_stmt->execute();
+            $validate_result = $validate_stmt->get_result();
+            if ($validate_result->num_rows > 0) {
+                $valid_cart_ids[] = $cart_id;
+                error_log("Cart item $cart_id is valid for user " . $_SESSION['user_id']);
+            } else {
+                error_log("Cart item $cart_id is invalid or doesn't belong to user " . $_SESSION['user_id']);
+            }
+            $validate_stmt->close();
+        }
+    }
+    
+    if (empty($valid_cart_ids)) {
+        error_log("No valid cart items found - redirecting to cart");
+        $_SESSION['error_message'] = "The selected cart items are no longer valid. Please return to cart and try again.";
+        header("Location: cart.php");
+        exit();
+    }
+    
+    // Update selected_cart_ids to only include valid ones
+    $selected_cart_ids = $valid_cart_ids;
+    error_log("Validated cart IDs: " . implode(', ', $selected_cart_ids));
+}
+
 // Store cart selection in session for persistence
 $_SESSION['selected_cart_ids'] = $selected_cart_ids;
 $_SESSION['subtotal'] = $subtotal;
+
+// Note: Available Today (status_id = 3) products have their own separate cart and checkout system
+// This checkout page only handles regular cart items (status_id = 1 for Pickup, status_id = 2 for Delivery)
 
 // Get cart items details
 $cart_total = 0;
@@ -119,39 +236,83 @@ $cart_items = [];
 
 if (!empty($selected_cart_ids)) {
     try {
+                // Get cart items with product availability days
+        if (count($selected_cart_ids) === 1) {
+            $placeholders = '?';
+            $cart_sql = "SELECT c.*, p.name, p.price, p.status_id, 
+                         GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ',') as available_days
+                         FROM cart c 
+                         JOIN products p ON c.product_id = p.id 
+                         LEFT JOIN product_day pd ON p.id = pd.product_id
+                         WHERE c.id = ? AND p.status_id IN (1, 2)
+                         GROUP BY c.id";
+        } else {
         $placeholders = str_repeat('?,', count($selected_cart_ids) - 1) . '?';
-        $cart_sql = "SELECT c.*, p.name, p.price 
+            $cart_sql = "SELECT c.*, p.name, p.price, p.status_id,
+                         GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ',') as available_days
                      FROM cart c 
                      JOIN products p ON c.product_id = p.id 
-                     WHERE c.id IN ($placeholders)";
+                         LEFT JOIN product_day pd ON p.id = pd.product_id
+                         WHERE c.id IN ($placeholders) AND p.status_id IN (1, 2)
+                         GROUP BY c.id";
+        }
         
         $cart_stmt = $conn->prepare($cart_sql);
+        
         if ($cart_stmt) {
             $types = str_repeat('i', count($selected_cart_ids));
             $cart_stmt->bind_param($types, ...$selected_cart_ids);
             
             if ($cart_stmt->execute()) {
                 $cart_result = $cart_stmt->get_result();
+                
                 while ($item = $cart_result->fetch_assoc()) {
                     $cart_total += $item['price'] * $item['quantity'];
                     $cart_items[] = [
                         'name' => $item['name'],
                         'price' => $item['price'],
                         'quantity' => $item['quantity'],
-                        'cart_id' => $item['id']
+                        'cart_id' => $item['id'],
+                        'status_id' => $item['status_id'],
+                        'available_days' => $item['available_days']
                     ];
                 }
             }
             $cart_stmt->close();
         }
+        
+
+        
     } catch (Exception $e) {
         error_log("Error fetching cart items: " . $e->getMessage());
     }
+} else {
+    error_log("No selected_cart_ids to process");
 }
 
 // Store cart items in session
 $_SESSION['cart_items'] = $cart_items;
 $_SESSION['cart_total'] = $cart_total;
+
+// Check if we have any valid cart items after filtering
+if (empty($cart_items)) {
+    error_log("No valid cart items found after filtering for status_id 1,2 - redirecting to cart");
+    $_SESSION['error_message'] = "No valid cart items found. Please check your cart and try again.";
+    header("Location: cart.php");
+    exit();
+}
+
+// Determine shipping method based on product status
+$shipping_method = 'pickup'; // Default to pickup for all items
+
+if (!empty($cart_items)) {
+    error_log("Setting shipping method to pickup for " . count($cart_items) . " cart items");
+} else {
+    error_log("No cart items to determine shipping method - keeping default (pickup)");
+}
+
+// Store shipping method in session
+$_SESSION['shipping_method'] = $shipping_method;
 
 // Debug output
 error_log("Cart items: " . print_r($cart_items, true));
@@ -175,16 +336,385 @@ $debug_info = [
   <title>Checkout Page</title>
 
   <link rel="stylesheet" href="checkout.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  
+  <style>
+    /* Custom Calendar Styles */
+    .custom-calendar {
+      font-family: Arial, sans-serif;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: white;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+    
+    .calendar-header {
+      background: #256035;
+      color: white;
+      padding: 15px;
+      text-align: center;
+      position: relative;
+    }
+    
+    .calendar-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.3s;
+    }
+    
+    .calendar-nav:hover {
+      background: rgba(255,255,255,0.3);
+    }
+    
+    .calendar-nav.prev {
+      left: 15px;
+    }
+    
+    .calendar-nav.next {
+      right: 15px;
+    }
+    
+    .calendar-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin: 0;
+    }
+    
+    .calendar-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      background: #f8f9fa;
+      border-bottom: 1px solid #ddd;
+    }
+    
+    .weekday {
+      padding: 12px 8px;
+      text-align: center;
+      font-weight: bold;
+      color: #666;
+      font-size: 14px;
+      border-right: 1px solid #ddd;
+    }
+    
+    .weekday:last-child {
+      border-right: none;
+    }
+    
+    .calendar-days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+    }
+    
+    .calendar-day {
+      padding: 12px 8px;
+      text-align: center;
+      cursor: pointer;
+      border-right: 1px solid #ddd;
+      border-bottom: 1px solid #ddd;
+      transition: all 0.3s;
+      min-height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    
+    .calendar-day:nth-child(7n) {
+      border-right: none;
+    }
+    
+    .calendar-day:hover:not(.disabled):not(.not-accepting) {
+      background: #e3f2fd;
+    }
+    
+    .calendar-day.orders-count {
+      font-size: 10px;
+      position: absolute;
+      bottom: 2px;
+      right: 2px;
+      background: rgba(0,0,0,0.1);
+      padding: 1px 3px;
+      border-radius: 2px;
+    }
+    
+    .calendar-day.other-month {
+      color: #ccc;
+    }
+    
+    .calendar-day.today {
+      background: #e8f5e9;
+      color: #2e7d32;
+      font-weight: bold;
+    }
+    
+    .calendar-day.available {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+    
+    .calendar-day.available:hover {
+      background: #c8e6c9;
+    }
+    
+    .calendar-day.selected {
+      background: #256035 !important;
+      color: white !important;
+    }
+    
+    .calendar-day.disabled {
+      background: #f5f5f5;
+      color: #ccc;
+      cursor: not-allowed;
+    }
+    
+    .calendar-day.not-accepting {
+      background: #ffebee;
+      color: #c62828;
+      cursor: not-allowed;
+    }
+    
+    .calendar-day.not-accepting::after {
+      content: '✕';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 18px;
+      font-weight: bold;
+    }
+    
+    .calendar-day.unavailable-day {
+      background: #f8f9fa;
+      color: #ccc;
+      cursor: not-allowed;
+      position: relative;
+    }
+    
+    .calendar-day.unavailable-day::after {
+      content: '🚫';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 14px;
+      opacity: 0.7;
+    }
+    
+    .calendar-day.unavailable-day:hover {
+      background: #f8f9fa;
+      cursor: not-allowed;
+    }
+    
+    /* Layout Fixes for Calendar and DateTime Inputs */
+    .delivery-content {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+        .calendar-section {
+      width: 100%;
+      max-width: 400px;
+      margin-bottom: 20px;
+    }
+    
+    /* Ensure calendar is visible for both pickup and delivery */
+    #pickup-details .calendar-section,
+    #delivery-details .calendar-section {
+      margin-bottom: 20px;
+    }
+    
+    /* Calendar section styling when moved to delivery */
+    .delivery-content .calendar-section {
+      margin-top: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .datetime-inputs {
+      width: 100%;
+      max-width: 400px;
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+      color: #333;
+    }
+    
+    .form-group input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    
+    .form-group input:focus {
+      outline: none;
+      border-color: #256035;
+      box-shadow: 0 0 0 2px rgba(37, 96, 53, 0.1);
+    }
+    
+    .time-note {
+      display: block;
+      margin-top: 5px;
+      font-size: 12px;
+      color: #666;
+      font-style: italic;
+    }
+    
+    .address-section {
+      margin-bottom: 20px;
+    }
+    
+    .address-section input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+    
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+    
+    /* Calendar Error State */
+    .calendar-error {
+      text-align: center;
+      padding: 20px;
+      color: #721c24;
+      background-color: #f8d7da;
+      border: 1px solid #f5c6cb;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .delivery-content {
+        gap: 15px;
+      }
+      
+      .calendar-section {
+        max-width: 100%;
+      }
+      
+      .datetime-inputs {
+        max-width: 100%;
+      }
+      
+      .custom-calendar {
+        font-size: 14px;
+      }
+      
+      .calendar-day {
+        padding: 8px 6px;
+        min-height: 40px;
+      }
+      
+      .weekday {
+        padding: 10px 6px;
+        font-size: 12px;
+      }
+      
+      .calendar-title {
+        font-size: 16px;
+      }
+      
+      .calendar-nav {
+        padding: 6px 10px;
+        font-size: 14px;
+      }
+    }
+    
+    /* Disabled Radio Button Styles */
+    .radio-option input[type="radio"]:disabled + span {
+      color: #999;
+      cursor: not-allowed;
+    }
+    
+    .radio-option input[type="radio"]:disabled {
+      cursor: not-allowed;
+    }
+    
+    /* Shipping Method Notice in Order Summary */
+    .shipping-method-notice {
+      background: #e8f5e9;
+      border: 1px solid #c8e6c9;
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin: 15px 0;
+      color: #2e7d32;
+    }
+    
+    .shipping-method-notice p {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    
+    .shipping-method-notice strong {
+      color: #1b5e20;
+    }
+    
+    /* Shipping Options Improvements */
+    .shipping-details {
+      margin-bottom: 30px;
+    }
+    
+    .delivery-type {
+      margin-bottom: 20px;
+    }
+    
+    .radio-option {
+      display: inline-block;
+      margin-right: 20px;
+      cursor: pointer;
+    }
+    
+    .radio-option input[type="radio"] {
+      margin-right: 8px;
+    }
+    
+    .radio-option span {
+      font-weight: 500;
+      color: #333;
+    }
+  </style>
+  
   <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Declare calendar variables in the outer scope
-        let pickupCalendar, deliveryCalendar;
+        let pickupCalendar;
         const pickupCalendarEl = document.getElementById('calendar');
-        const deliveryCalendarEl = document.getElementById('delivery-calendar');
         const pickupRadio = document.getElementById('pickup');
         const deliveryRadio = document.getElementById('delivery');
         const pickupDetails = document.getElementById('pickup-details');
@@ -193,149 +723,313 @@ $debug_info = [
         const shippingFeeDisplay = document.getElementById('shipping_fee');
         const totalAmountDisplay = document.getElementById('total_amount');
         const subtotal = <?= json_encode($cart_total) ?>;
+        const shippingMethod = <?= json_encode($shipping_method) ?>;
 
         // Global variables
-        let calendar;
         let dateLimits = {};
-
-        function updateCalendarCell(arg) {
-            const cellDate = new Date(arg.date);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+        let cartItems = <?= json_encode($cart_items) ?>;
+        let combinedAvailableDays = [];
+        
+        // Function to calculate combined available days from cart items
+        function calculateCombinedAvailableDays() {
+            const availableDaysSet = new Set();
             
-            // Reset cell styles
-            arg.el.style.backgroundColor = '#ffffff';  // Default white background
-            arg.el.style.color = '#333';
-            arg.el.style.cursor = '';
-            arg.el.title = '';
-            arg.el.classList.remove('fc-day-disabled', 'not-accepting-orders');
-            
-            const existingOverlay = arg.el.querySelector('.not-accepting-overlay');
-            if (existingOverlay) {
-                existingOverlay.remove();
-            }
-            
-            if (cellDate < today) {
-                arg.el.style.backgroundColor = '#999594';
-                arg.el.style.color = 'black';
-                arg.el.style.cursor = 'not-allowed';
-                arg.el.setAttribute('aria-disabled', 'true');
-                arg.el.style.pointerEvents = 'none';
-                return;
-            }
-
-            const dateStr = arg.date.toISOString().split('T')[0];
-            if (dateLimits[dateStr]) {
-                const dateInfo = dateLimits[dateStr];
-                
-                if (dateInfo.limit === 0 || dateInfo.status === 'not_accepting' || dateInfo.is_full) {
-                    arg.el.style.backgroundColor = '#999594';
-                    arg.el.style.color = '#c62828';
-                    arg.el.style.cursor = 'not-allowed';
-                    arg.el.title = dateInfo.is_full ? `No available slots (${dateInfo.active_orders}/${dateInfo.limit} orders)` : 'Not Accepting Orders';
-                    arg.el.classList.add('not-accepting-orders');
-                    arg.el.setAttribute('aria-disabled', 'true');
-                    arg.el.style.pointerEvents = 'none';
-                    
-                    const overlay = document.createElement('div');
-                    overlay.className = 'not-accepting-overlay';
-                    overlay.innerHTML = '✕';
-                    arg.el.appendChild(overlay);
-                } else {
-                    const remaining = dateInfo.remaining_slots;
-                    arg.el.title = `${remaining} slot${remaining !== 1 ? 's' : ''} available`;
-                    
-                    if (dateInfo.count > 0) {
-                        arg.el.style.backgroundColor = '#e8f5e9';  // Light green for dates with orders
-                        arg.el.style.color = '#2e7d32';
-                    }
+            cartItems.forEach(item => {
+                if (item.available_days && item.available_days !== 'null' && item.available_days.trim() !== '') {
+                    // Parse available days string (e.g., "Monday, Tuesday, Wednesday")
+                    const days = item.available_days.split(',').map(day => day.trim());
+                    days.forEach(day => availableDaysSet.add(day));
                 }
+            });
+            
+            combinedAvailableDays = Array.from(availableDaysSet);
+            return combinedAvailableDays;
+        }
+        
+        // Function to update calendar with new available days
+        function updateCalendarAvailableDays() {
+            if (pickupCalendar) {
+                const availableDays = calculateCombinedAvailableDays();
+                pickupCalendar.availableDays = availableDays;
+                pickupCalendar.render();
+                console.log('Calendar updated with new available days:', availableDays);
             }
         }
+
+        // Custom Calendar Class
+        class CustomCalendar {
+            constructor(container, options = {}) {
+                this.container = container;
+                this.options = {
+                    onDateSelect: options.onDateSelect || (() => {}),
+                    ...options
+                };
+                
+                this.currentDate = new Date();
+                this.selectedDate = null;
+                this.dateLimits = {};
+                this.availableDays = options.availableDays || [];
+                
+                this.init();
+            }
+            
+            init() {
+                try {
+                    this.render();
+                    this.attachEventListeners();
+                    
+                    // Fetch date limits for current month
+                    this.fetchCurrentMonthLimits();
+                } catch (error) {
+                    console.error('Error initializing calendar:', error);
+                }
+            }
+            
+            fetchCurrentMonthLimits() {
+                try {
+                    const year = this.currentDate.getFullYear();
+                    const month = this.currentDate.getMonth();
+                    
+                    const startDate = new Date(year, month, 1);
+                    const endDate = new Date(year, month + 1, 0);
+                    
+                    // Call the global fetchDateLimits function
+                    if (typeof fetchDateLimits === 'function') {
+                        fetchDateLimits(startDate, endDate);
+                    }
+                } catch (error) {
+                    console.error('Error fetching current month limits:', error);
+                }
+            }
+            
+            render() {
+                try {
+                    const year = this.currentDate.getFullYear();
+                    const month = this.currentDate.getMonth();
+                    
+                    const firstDay = new Date(year, month, 1);
+                    const lastDay = new Date(year, month + 1, 0);
+                    const startDate = new Date(firstDay);
+                    startDate.setDate(startDate.getDate() - firstDay.getDay());
+                    
+                    const monthNames = [
+                        'January', 'February', 'March', 'April', 'May', 'June',
+                        'July', 'August', 'September', 'October', 'November', 'December'
+                    ];
+                    
+                    this.container.innerHTML = `
+                        <div class="custom-calendar">
+                            <div class="calendar-header">
+                                <button class="calendar-nav prev" data-action="prev">&lt;</button>
+                                <h3 class="calendar-title">${monthNames[month]} ${year}</h3>
+                                <button class="calendar-nav next" data-action="next">&gt;</button>
+                            </div>
+                            <div class="calendar-weekdays">
+                                <div class="weekday">Sun</div>
+                                <div class="weekday">Mon</div>
+                                <div class="weekday">Tue</div>
+                                <div class="weekday">Wed</div>
+                                <div class="weekday">Thu</div>
+                                <div class="weekday">Fri</div>
+                                <div class="weekday">Sat</div>
+                            </div>
+                            <div class="calendar-days">
+                                ${this.generateDaysHTML(startDate, lastDay)}
+                            </div>
+                        </div>
+                    `;
+                } catch (error) {
+                    console.error('Error rendering calendar:', error);
+                    this.container.innerHTML = '<div class="calendar-error">Error loading calendar</div>';
+                }
+            }
+            
+            generateDaysHTML(startDate, lastDay) {
+                try {
+                    let html = '';
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+                    let currentDate = new Date(startDate);
+                    let dayCount = 0;
+                    const maxDays = 42; // 6 weeks * 7 days
+                    
+                    while ((currentDate <= lastDay || currentDate.getDay() !== 0) && dayCount < maxDays) {
+                        const dateStr = currentDate.toISOString().split('T')[0];
+                        const isCurrentMonth = currentDate.getMonth() === this.currentDate.getMonth();
+                        const isToday = currentDate.getTime() === today.getTime();
+                        const isPast = currentDate < today;
+                        const isSelected = this.selectedDate && this.selectedDate.toDateString() === currentDate.toDateString();
+                        
+                        // Check if this date falls on an available day
+                        const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'long' });
+                        const isAvailableDay = this.availableDays.length === 0 || this.availableDays.includes(dayName);
+                        
+                        let dayClass = 'calendar-day';
+                        if (!isCurrentMonth) dayClass += ' other-month';
+                        if (isToday) dayClass += ' today';
+                        if (isPast) dayClass += ' disabled';
+                        if (isSelected) dayClass += ' selected';
+                        
+                        // Check date limits
+                        if (this.dateLimits[dateStr]) {
+                            const dateInfo = this.dateLimits[dateStr];
+                            if (dateInfo.limit === 0 || dateInfo.status === 'not_accepting' || dateInfo.is_full) {
+                                dayClass += ' not-accepting';
+                            } else if (dateInfo.count > 0) {
+                                dayClass += ' available';
+                            }
+                        }
+                        
+                        // Add restriction for unavailable days
+                        if (!isAvailableDay) {
+                            dayClass += ' unavailable-day';
+                        }
+                        
+                        const dayNumber = currentDate.getDate();
+                        let ordersCount = '';
+                        
+                        if (this.dateLimits[dateStr] && this.dateLimits[dateStr].count > 0) {
+                            ordersCount = `<span class="orders-count">${this.dateLimits[dateStr].count}</span>`;
+                        }
+                        
+                        html += `
+                            <div class="${dayClass}" data-date="${dateStr}" ${isPast ? 'data-disabled="true"' : ''} ${!isAvailableDay ? 'data-unavailable="true"' : ''}>
+                                ${dayNumber}${ordersCount}
+                            </div>
+                        `;
+                        
+                        currentDate.setDate(currentDate.getDate() + 1);
+                        dayCount++;
+                    }
+                    
+                    return html;
+                } catch (error) {
+                    console.error('Error generating days HTML:', error);
+                    return '<div class="calendar-error">Error generating calendar</div>';
+                }
+            }
+            
+            attachEventListeners() {
+                try {
+                    this.container.addEventListener('click', (e) => {
+                        if (e.target.classList.contains('calendar-nav')) {
+                            const action = e.target.dataset.action;
+                            if (action === 'prev') {
+                                this.currentDate.setMonth(this.currentDate.getMonth() - 1);
+                            } else if (action === 'next') {
+                                this.currentDate.setMonth(this.currentDate.getMonth() + 1);
+                            }
+                            this.render();
+                            
+                            // Fetch date limits for the new month
+                            this.fetchCurrentMonthLimits();
+                        }
+                        
+                        if (e.target.classList.contains('calendar-day') && !e.target.classList.contains('disabled') && !e.target.classList.contains('not-accepting') && !e.target.classList.contains('unavailable-day')) {
+                            const dateStr = e.target.dataset.date;
+                            if (dateStr) {
+                                this.selectDate(dateStr);
+                                this.options.onDateSelect(dateStr);
+                            }
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error attaching event listeners:', error);
+                }
+            }
+            
+            selectDate(dateStr) {
+                try {
+                    if (!dateStr) {
+                        console.warn('No date string provided for selection');
+                return;
+            }
+            
+                    // Remove previous selection
+                    const prevSelected = this.container.querySelector('.calendar-day.selected');
+                    if (prevSelected) {
+                        prevSelected.classList.remove('selected');
+                    }
+                    
+                    // Add selection to new date
+                    const newSelected = this.container.querySelector(`[data-date="${dateStr}"]`);
+                    if (newSelected) {
+                        newSelected.classList.add('selected');
+                        this.selectedDate = new Date(dateStr);
+                        console.log('Date selected:', dateStr);
+                    } else {
+                        console.warn('Selected date element not found:', dateStr);
+                    }
+                } catch (error) {
+                    console.error('Error selecting date:', error);
+                }
+            }
+            
+            updateDateLimits(dateLimits) {
+                try {
+                    if (dateLimits && typeof dateLimits === 'object') {
+                        this.dateLimits = dateLimits;
+                        this.render();
+                        console.log('Calendar date limits updated');
+                    } else {
+                        console.warn('Invalid date limits provided:', dateLimits);
+                    }
+                } catch (error) {
+                    console.error('Error updating date limits:', error);
+                }
+            }
+            
+            getSelectedDate() {
+                return this.selectedDate;
+            }
+        }
+
+
 
         function initializeCalendars() {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            const commonConfig = {
-                initialView: 'dayGridMonth',
-                selectable: true,
-                headerToolbar: {
-                    left: 'prev',
-                    center: 'title',
-                    right: 'next'
-                },
-                validRange: {
-                    start: today
-                },
-                dayCellDidMount: function(arg) {
-                    const cellDate = new Date(arg.date);
-                    cellDate.setHours(0, 0, 0, 0);
-                    if (cellDate < today) {
-                        arg.el.style.backgroundColor = '#999594';
-                        arg.el.style.color = '#999';
-                        arg.el.style.cursor = 'not-allowed';
-                        arg.el.classList.add('past-date');
-                        arg.el.setAttribute('aria-disabled', 'true');
-                        arg.el.style.pointerEvents = 'none'; // Make it not interactable
-                        return;
-                    }
-                    updateCalendarCell(arg);
-                },
-                datesSet: function(arg) {
-                    fetchDateLimits(arg.start, arg.end);
+            try {
+                // Calculate combined available days from cart items
+                const availableDays = calculateCombinedAvailableDays();
+                
+                if (pickupCalendarEl) {
+                    pickupCalendar = new CustomCalendar(pickupCalendarEl, {
+                        onDateSelect: (dateStr) => {
+                            // Handle date selection for both pickup and delivery
+                            handleDateSelect(dateStr, 'both');
+                        },
+                        availableDays: availableDays
+                    });
+                } else {
+                    console.warn('Calendar element not found');
                 }
-            };
-
-            pickupCalendar = new FullCalendar.Calendar(pickupCalendarEl, {
-                ...commonConfig,
-                dateClick: function(info) {
-                    handleDateClick(info, 'pickup');
-                }
-            });
-
-            deliveryCalendar = new FullCalendar.Calendar(deliveryCalendarEl, {
-                ...commonConfig,
-                dateClick: function(info) {
-                    handleDateClick(info, 'delivery');
-                }
-            });
-
-            if (pickupCalendar && pickupCalendarEl) {
-                pickupCalendar.render();
-            }
-            if (deliveryCalendar && deliveryCalendarEl) {
-                deliveryCalendar.render();
+            } catch (error) {
+                console.error('Error initializing calendars:', error);
             }
         }
 
-        function handleDateClick(info, type) {
-            const clickedDate = new Date(info.dateStr);
-            clickedDate.setHours(0, 0, 0, 0);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            if (clickedDate < today) {
-                // Do nothing for past dates
-                return;
+        function handleDateSelect(dateStr, type) {
+            // Update both pickup and delivery date inputs when a date is selected
+            const pickupDateInput = document.getElementById('pickup_date');
+            const deliveryDateInput = document.getElementById('delivery_date');
+            
+            if (pickupDateInput) {
+                pickupDateInput.value = dateStr;
+            }
+            if (deliveryDateInput) {
+                deliveryDateInput.value = dateStr;
             }
             
-            const dateStr = info.dateStr;
-            const dateInfo = dateLimits[dateStr];
-            
-            if (dateInfo && (dateInfo.limit === 0 || dateInfo.status === 'not_accepting' || dateInfo.is_full)) {
-                // Do nothing for not accepting or full dates
-                return;
-            }
-            
-            const dateInput = document.getElementById(type === 'pickup' ? 'pickup_date' : 'delivery_date');
-            if (dateInput) {
-                dateInput.value = dateStr;
-            }
+            console.log(`Date ${dateStr} selected for ${type}`);
         }
+
+
 
         function fetchDateLimits(start, end) {
             const startStr = start.toISOString().split('T')[0];
             const endStr = end.toISOString().split('T')[0];
+            
+            console.log('Fetching date limits for:', startStr, 'to', endStr);
             
             fetch("../../../backend/pages/homepage/get-date-limits.php?start=${startStr}&end=${endStr}", {
                 headers: {
@@ -353,12 +1047,12 @@ $debug_info = [
                         const jsonStr = text.replace(/<!--[\s\S]*?-->/g, '').trim();
                         const data = JSON.parse(jsonStr);
                         
-                        if (data.success) {
+                        if (data.success && data.dates) {
                             dateLimits = {};
                             
                             data.dates.forEach(date => {
                                 dateLimits[date.date] = {
-                                    limit: parseInt(date.limit),
+                                    limit: parseInt(date.limit) || 0,
                                     count: parseInt(date.current_orders) || 0,
                                     is_full: date.is_full || parseInt(date.current_orders) >= parseInt(date.limit),
                                     active_orders: parseInt(date.active_orders) || 0,
@@ -367,34 +1061,26 @@ $debug_info = [
                                 };
                             });
 
-                            const cells = document.querySelectorAll('.fc-daygrid-day');
-                            cells.forEach(cell => {
-                                cell.style.backgroundColor = '#ffffff';  // Default white
-                                cell.style.color = '#333';
-                                cell.style.cursor = '';
-                                cell.title = '';
-                                cell.classList.remove('fc-day-disabled', 'not-accepting-orders');
-                                
-                                const overlay = cell.querySelector('.not-accepting-overlay');
-                                if (overlay) {
-                                    overlay.remove();
-                                }
-                                
-                                const dateStr = cell.getAttribute('data-date');
-                                if (dateStr) {
-                                    updateCalendarCell({
-                                        date: new Date(dateStr),
-                                        el: cell
-                                    });
-                                }
-                            });
+                            console.log('Date limits loaded:', dateLimits);
+
+                            // Update the calendar with new date limits
+                            if (pickupCalendar) {
+                                pickupCalendar.updateDateLimits(dateLimits);
+                            }
+                            
+                            // Ensure the calendar is properly rendered
+                            if (pickupCalendar) {
+                                pickupCalendar.render();
+                            }
+                        } else {
+                            console.warn('No date limits data received or invalid format');
                         }
                     } catch (e) {
-                        // Error parsing response
+                        console.error('Error parsing date limits response:', e);
                     }
                 })
                 .catch(error => {
-                    // Error fetching date limits
+                    console.error('Error fetching date limits:', error);
                 });
         }
 
@@ -409,13 +1095,30 @@ $debug_info = [
             }
             
             try {
-                if (isPickup && pickupCalendar && pickupCalendarEl) {
+                // Use the same calendar for both pickup and delivery
+                if (pickupCalendar && pickupCalendarEl) {
+                    // Ensure calendar is properly rendered
+                    if (!pickupCalendar.container.innerHTML.trim()) {
                     pickupCalendar.render();
-                } else if (!isPickup && deliveryCalendar && deliveryCalendarEl) {
-                    deliveryCalendar.render();
+                    }
+                    
+                    // Show calendar for both pickup and delivery
+                    pickupCalendarEl.style.display = 'block';
+                    
+                    // Move calendar to the appropriate section
+                    if (isPickup) {
+                        // Calendar stays in pickup details
+                        pickupDetails.appendChild(pickupCalendarEl.parentNode);
+                    } else {
+                        // Move calendar to delivery details (after address section)
+                        const addressSection = deliveryDetails.querySelector('.address-section');
+                        if (addressSection && pickupCalendarEl.parentNode) {
+                            deliveryDetails.insertBefore(pickupCalendarEl.parentNode, addressSection.nextSibling);
+                        }
+                    }
                 }
             } catch (error) {
-                // Error rendering calendar
+                console.error('Error rendering calendar:', error);
             }
             
             const shippingFee = isPickup ? 0 : 50;
@@ -466,13 +1169,46 @@ $debug_info = [
             pickupRadio.addEventListener('change', updateVisibility);
         }
         if (deliveryRadio) {
-            deliveryRadio.addEventListener('change', updateVisibility);
+            deliveryRadio.addEventListener('change', function() {
+                updateVisibility();
+                
+                // Ensure pickup calendar is properly initialized for delivery
+                if (this.checked && pickupCalendar && pickupCalendarEl) {
+                    setTimeout(() => {
+                        if (!pickupCalendar.container.innerHTML.trim()) {
+                            pickupCalendar.render();
+                        }
+                        // Force refresh of date limits
+                        pickupCalendar.fetchCurrentMonthLimits();
+                        
+                        // Ensure calendar is visible in delivery section
+                        if (pickupCalendarEl.parentNode) {
+                            pickupCalendarEl.parentNode.style.display = 'block';
+                        }
+                    }, 200);
+                }
+            });
         }
 
         try {
+            // Debug logging
+            console.log('Shipping Method:', shippingMethod);
+            console.log('Cart Items:', <?= json_encode($cart_items) ?>);
+            console.log('Product Status IDs:', <?= json_encode(array_column($cart_items, 'status_id')) ?>);
+            console.log('Available Days:', <?= json_encode(array_column($cart_items, 'available_days')) ?>);
+            
             initializeCalendars();
             initializeTimeInputs();
             updateVisibility();
+            
+            // Fetch initial date limits for current month
+            const now = new Date();
+            const start = new Date(now.getFullYear(), now.getMonth(), 1);
+            const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            fetchDateLimits(start, end);
+            
+            // Update calendar with available days
+            updateCalendarAvailableDays();
         } catch (error) {
             // Error during initialization
         }
@@ -513,6 +1249,9 @@ $debug_info = [
                     const todayStr = new Date().toISOString().split('T')[0];
                     const deliveryDate = document.getElementById('delivery_date').value || todayStr;
                     const pickupDate = document.getElementById('pickup_date').value || todayStr;
+                    
+
+                    
                     formData.append('delivery_method', isDelivery ? 'delivery' : 'pickup');
                     formData.append('delivery_date', isDelivery ? deliveryDate : todayStr);
                     formData.append('pickup_date', !isDelivery ? pickupDate : todayStr);
@@ -628,11 +1367,15 @@ $debug_info = [
             <h2>Shipping Options</h2>
             <div class="delivery-type">
                 <label class="radio-option">
-                    <input type="radio" id="pickup" name="delivery_method" value="pickup" checked>
+                    <input type="radio" id="pickup" name="delivery_method" value="pickup" 
+                           <?= $shipping_method === 'pickup' ? 'checked' : '' ?>
+                           <?= $shipping_method === 'delivery' ? 'disabled' : '' ?>>
                     <span>Pick Up</span>
                 </label>
                 <label class="radio-option">
-                    <input type="radio" id="delivery" name="delivery_method" value="delivery">
+                    <input type="radio" id="delivery" name="delivery_method" value="delivery"
+                           <?= $shipping_method === 'delivery' ? 'checked' : '' ?>
+                           <?= $shipping_method === 'pickup' ? 'disabled' : '' ?>>
                     <span>Delivery</span>
                 </label>
             </div>
@@ -661,15 +1404,12 @@ $debug_info = [
                            placeholder="Enter delivery address" readonly>
                     <button type="button" id="setLocationBtn" class="btn-secondary">Set Location</button>
                 </div>
-                <div class="calendar-section">
-                    <div id="delivery-calendar"></div>
-                </div>
                 <div class="datetime-inputs">
                     <div class="form-group">
                         <label for="delivery_date">Delivery Date:</label>
                         <input type="text" id="delivery_date" name="delivery_date" readonly required>
                     </div>
-                    <div class="form-group">
+                    <div class="delivery_time">
                         <label for="delivery_time">Delivery Time:</label>
                         <input type="time" id="delivery_time" name="delivery_time" 
                                min="06:00" max="18:00" step="1800" required>
@@ -682,6 +1422,15 @@ $debug_info = [
         <!-- DIV 4: Order Summary -->
         <div class="section-card order-summary">
             <h2>Order Summary</h2>
+            
+
+            
+            <?php if ($shipping_method === 'pickup' || $shipping_method === 'delivery'): ?>
+                <div class="shipping-method-notice">
+                    <p><strong>Shipping Method:</strong> <?= ucfirst($shipping_method) ?> (Automatically set based on product availability)</p>
+                </div>
+            <?php endif; ?>
+            
             <div class="summary-items">
                 <?php foreach ($cart_items as $item): ?>
                     <div class="item">

@@ -8,6 +8,158 @@ let availableTodayCart = [];
 let availableTodayCartTotal = 0;
 
 /**
+ * Check business hours and clear cart if closed
+ */
+function checkBusinessHoursAndClearCart() {
+    fetch('get-business-hours.php')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.businessHours) {
+                const now = new Date();
+                const currentTime = now.getHours() * 60 + now.getMinutes(); // Convert to minutes
+                
+                // Parse business hours
+                const [openingHour, openingMinute] = data.businessHours.opening_time.split(':').map(Number);
+                const [closingHour, closingMinute] = data.businessHours.closing_time.split(':').map(Number);
+                
+                const openingTime = openingHour * 60 + openingMinute;
+                const closingTime = closingHour * 60 + closingMinute;
+                
+                // Check if current time is after closing time
+                if (currentTime > closingTime) {
+                    console.log('Business hours closed, clearing Available Today cart');
+                    clearAvailableTodayCart();
+                    showNotification('Business hours closed. Cart has been cleared.', 'info');
+                    
+                    // Disable add to cart buttons
+                    disableAddToCartButtons();
+                    
+                    // Truncate the cart_availtoday table
+                    truncateCartAvailToday();
+                } else if (currentTime < openingTime) {
+                    // Business not yet open
+                    disableAddToCartButtons();
+                } else {
+                    // Business is open
+                    enableAddToCartButtons();
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error checking business hours:', error);
+        });
+}
+
+/**
+ * Truncate the cart_availtoday table when business hours are closed
+ */
+function truncateCartAvailToday() {
+    fetch('truncate-cart-availtoday.php')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('Cart truncated successfully:', data.message);
+                if (data.action === 'truncated') {
+                    showNotification('Cart has been cleared for the day.', 'info');
+                }
+            } else {
+                console.error('Failed to truncate cart:', data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error truncating cart:', error);
+        });
+}
+
+/**
+ * Check if business hours are currently open
+ * @returns {Promise<boolean>} True if open, false if closed
+ */
+function isBusinessOpen() {
+    return fetch('get-business-hours.php')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.businessHours) {
+                const now = new Date();
+                const currentTime = now.getHours() * 60 + now.getMinutes();
+                
+                const [openingHour, openingMinute] = data.businessHours.opening_time.split(':').map(Number);
+                const [closingHour, closingMinute] = data.businessHours.closing_time.split(':').map(Number);
+                
+                const openingTime = openingHour * 60 + openingMinute;
+                const closingTime = closingHour * 60 + closingMinute;
+                
+                return currentTime >= openingTime && currentTime <= closingTime;
+            }
+            return false;
+        })
+        .catch(error => {
+            console.error('Error checking business hours:', error);
+            return false;
+        });
+}
+
+/**
+ * Disable all add to cart buttons
+ */
+function disableAddToCartButtons() {
+    const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
+    addToCartButtons.forEach(button => {
+        button.disabled = true;
+        button.textContent = 'Closed';
+        button.classList.add('closed');
+    });
+}
+
+/**
+ * Enable all add to cart buttons
+ */
+function enableAddToCartButtons() {
+    const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
+    addToCartButtons.forEach(button => {
+        button.disabled = false;
+        button.textContent = 'Add to Cart';
+        button.classList.remove('closed');
+    });
+}
+
+/**
+ * Clear the Available Today cart
+ */
+function clearAvailableTodayCart() {
+    // Clear local cart
+    availableTodayCart = [];
+    availableTodayCartTotal = 0;
+    
+    // Clear localStorage
+    localStorage.removeItem('availableTodayCart');
+    localStorage.removeItem('availableTodayCartTotal');
+    
+    // Update display
+    updateAvailableTodayCartDisplay();
+    
+    // Clear server cart
+    fetch('../../../backend/pages/cart/availtoday-cart-api.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'action=clear'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Server cart cleared successfully');
+        } else {
+            console.error('Failed to clear server cart:', data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error clearing server cart:', error);
+    });
+}
+
+/**
  * Initialize Available Today Cart
  */
 function initAvailableTodayCart() {
@@ -19,6 +171,12 @@ function initAvailableTodayCart() {
     if (checkoutBtn) {
         checkoutBtn.addEventListener('click', handleAvailableTodayCheckout);
     }
+    
+    // Check business hours and clear cart if closed
+    checkBusinessHoursAndClearCart();
+    
+    // Set up periodic checking of business hours
+    setInterval(checkBusinessHoursAndClearCart, 60000); // Check every minute
 }
 
 /**
@@ -373,6 +531,9 @@ function showNotification(message, type = 'info') {
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     initAvailableTodayCart();
+    
+    // Check business hours immediately
+    checkBusinessHoursAndClearCart();
     
     // Try to sync with server first, fallback to localStorage
     syncWithServer();
