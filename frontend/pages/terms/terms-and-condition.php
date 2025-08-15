@@ -5,28 +5,36 @@ session_start();
 // Include database connection
 require_once "../../user-includes/database.php";
 
-// Fetch about content
-$sql = "SELECT * FROM about_content WHERE id = 1";
+// Fetch terms and conditions
+$sql = "SELECT * FROM terms_conditions WHERE id = 1";
 $result = $conn->query($sql);
 
 if ($result && $result->num_rows > 0) {
-    $about = $result->fetch_assoc();
+    $terms = $result->fetch_assoc();
 } else {
     // Default content if none found
-    $about = [
-        'title' => 'About Neo Exclusive Cafe',
-        'about_text' => '<h2>Welcome to Neo Exclusive Cafe</h2>
-<p>Our story begins with a passion for quality coffee and exceptional service that has been brewing since our establishment.</p>
+    $terms = [
+        'title' => 'Terms and Conditions',
+        'content' => '<h2>Welcome to Neo Exclusive Cafe</h2>
+<p>These terms and conditions outline the rules and regulations for the use of Neo Exclusive Cafe\'s services.</p>
 
-<h3>Our Mission</h3>
-<p>At Neo Exclusive Cafe, we believe that every cup tells a story. Our mission is to create memorable experiences through carefully crafted beverages, delicious food, and warm hospitality.</p>
+<h3>1. Introduction</h3>
+<p>By accessing and using our services, you accept and agree to be bound by the terms and provision of this agreement.</p>
 
-<h3>Quality First</h3>
-<p>We source our coffee beans from the finest farms around the world, ensuring that every cup meets our high standards of excellence. Our skilled baristas are trained to bring out the best in every blend.</p>
+<h3>2. Use License</h3>
+<p>Permission is granted to temporarily download one copy of the materials on Neo Exclusive Cafe\'s website for personal, non-commercial transitory viewing only.</p>
 
-<h3>Community Focus</h3>
-<p>More than just a cafe, we are a gathering place for the community. Whether you\'re catching up with friends, working on your next big project, or simply enjoying a quiet moment, Neo Exclusive Cafe is your home away from home.</p>',
-        'image_path' => '/backend/assets/images/cafe-default.jpg',
+<h3>3. Disclaimer</h3>
+<p>The materials on Neo Exclusive Cafe\'s website are provided on an \'as is\' basis. Neo Exclusive Cafe makes no warranties, expressed or implied.</p>
+
+<h3>4. Limitations</h3>
+<p>In no event shall Neo Exclusive Cafe or its suppliers be liable for any damages arising out of the use or inability to use the materials on our website.</p>
+
+<h3>5. Privacy Policy</h3>
+<p>Your privacy is important to us. Please review our Privacy Policy, which also governs your use of our services.</p>
+
+<h3>6. Contact Information</h3>
+<p>If you have any questions about these Terms and Conditions, please contact us at info@neoexclusivecafe.com</p>',
         'last_updated' => date('Y-m-d H:i:s')
     ];
 }
@@ -39,8 +47,8 @@ $conn->close();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($about['title']); ?> - Neo Exclusive Cafe</title>
-    <link rel="stylesheet" href="about-page.css">
+    <title><?php echo htmlspecialchars($terms['title']); ?> - Neo Exclusive Cafe</title>
+    <link rel="stylesheet" href="terms-and-condition.css">
     <link rel="icon" type="image/x-icon" href="../../../assets/images/favicon.ico">
     
     <!-- Include user navigation -->
@@ -50,41 +58,33 @@ $conn->close();
     <!-- Navigation -->
     <?php include "../../user-includes/navbar/customer-navigation.php"; ?>
 
-    <div class="about-container">
+    <div class="terms-container">
         <div class="container">
             <!-- Breadcrumb -->
             <nav class="breadcrumb">
                 <a href="../home/user-dashboard.php">Home</a>
                 <span class="separator">></span>
-                <span class="current">About Us</span>
+                <span class="current">Terms and Conditions</span>
             </nav>
 
             <!-- Header -->
-            <header class="about-header">
-                <h1><?php echo htmlspecialchars($about['title']); ?></h1>
-                <?php if (isset($about['last_updated'])): ?>
+            <header class="terms-header">
+                <h1><?php echo htmlspecialchars($terms['title']); ?></h1>
+                <?php if (isset($terms['last_updated'])): ?>
                     <p class="last-updated">
-                        Last updated: <?php echo date('F j, Y', strtotime($about['last_updated'])); ?>
+                        Last updated: <?php echo date('F j, Y', strtotime($terms['last_updated'])); ?>
                     </p>
                 <?php endif; ?>
             </header>
 
-            <!-- Main Content -->
-            <main class="about-content">
-                <?php if (!empty($about['image_path'])): ?>
-                    <div class="about-image">
-                        <img src="<?php echo htmlspecialchars($about['image_path']); ?>" 
-                             alt="<?php echo htmlspecialchars($about['title']); ?>"
-                             loading="lazy">
-                    </div>
-                <?php endif; ?>
-
+            <!-- Content -->
+            <main class="terms-content">
                 <div class="content-wrapper">
-                    <?php echo $about['about_text']; ?>
+                    <?php echo $terms['content']; ?>
                 </div>
 
                 <!-- Action Buttons -->
-                <div class="about-actions">
+                <div class="terms-actions">
                     <button onclick="window.print()" class="btn-print">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/>
@@ -107,13 +107,12 @@ $conn->close();
 
                 <!-- Contact Information -->
                 <div class="contact-info">
-                    <h3>Visit Us Today</h3>
-                    <p>Experience the Neo Exclusive difference for yourself. We look forward to serving you!</p>
+                    <h3>Need Help?</h3>
+                    <p>If you have any questions about these terms and conditions, please contact us:</p>
                     <ul>
                         <li><strong>Email:</strong> info@neoexclusivecafe.com</li>
                         <li><strong>Phone:</strong> +1 (555) 123-4567</li>
                         <li><strong>Address:</strong> 123 Coffee Street, Café District, CD 12345</li>
-                        <li><strong>Hours:</strong> Mon-Sun: 6:00 AM - 10:00 PM</li>
                     </ul>
                 </div>
             </main>
@@ -123,9 +122,6 @@ $conn->close();
     <!-- Footer -->
     <?php include "../../user-includes/user-footer.php"; ?>
 
-    <script src="about-page.js"></script>
-</body>
-</html>
-
+    <script src="terms-and-condition.js"></script>
 </body>
 </html>

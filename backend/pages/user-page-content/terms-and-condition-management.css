@@ -102,38 +102,12 @@ textarea {
   font-family: inherit;
 }
 
-input[type="file"] {
-  margin-top: 10px;
-  padding: 8px 0;
-}
-
 .help-text {
   margin-top: 8px;
   color: #666;
   font-size: 0.9rem;
   font-style: italic;
   line-height: 1.4;
-}
-
-.image-preview {
-  margin: 15px 0;
-  text-align: center;
-  background-color: #f9f9f9;
-  padding: 20px;
-  border-radius: 8px;
-  border: 2px dashed #ddd;
-  transition: border-color 0.3s ease;
-}
-
-.image-preview:hover {
-  border-color: #2d5a27;
-}
-
-.image-preview img {
-  max-width: 100%;
-  max-height: 300px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .form-actions {
@@ -306,10 +280,6 @@ input[type="file"] {
   textarea {
     font-size: 16px; /* Prevent zoom on iOS */
   }
-
-  .image-preview {
-    padding: 15px;
-  }
 }
 
 @media (max-width: 480px) {
@@ -323,9 +293,5 @@ input[type="file"] {
 
   .settings-container {
     padding: 15px;
-  }
-
-  .image-preview {
-    padding: 10px;
   }
 }
