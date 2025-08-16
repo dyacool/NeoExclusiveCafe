@@ -106,6 +106,22 @@
                             </div>
                         </a>
                     </div>
+
+                    <div class="setting-card">
+                        <a href="/backend/pages/user-page-content/cb-knowledge-settings.php" class="setting-card-link">
+                            <div class="setting-card-content">
+                                <div class="setting-icon cb-knowledge">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                        <path d="M13 8H7"></path>
+                                        <path d="M17 12H7"></path>
+                                    </svg>
+                                </div>
+                                <h3 class="setting-title">Chatbot knowledge</h3>
+                                <p class="setting-description">Manage chatbot responses, training data, and knowledge base</p>
+                            </div>
+                        </a>
+                    </div>
                 </div>
             </div>
 
