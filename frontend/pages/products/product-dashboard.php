@@ -748,19 +748,26 @@ if ($cart_truncated) {
               throw new Error(`HTTP error! status: ${response.status}`);
             }
             return response.json();
-            
+          })
+          .then(data => {
             if (data && data.success) {
                 console.log('Product added to Available Today cart successfully');
                 showConfirmation(`${data.product_name || 'Product'} added to Available Today cart!`);
                 
-                // Sync the Available Today cart display with server
+                // Update local cart immediately for responsive UI
+                if (button && typeof updateLocalCart === 'function') {
+                    const productCard = button.closest('.product-card');
+                    if (productCard) {
+                        updateLocalCart(productId, finalQuantity, productCard);
+                        if (typeof updateAvailableTodayCartDisplay === 'function') {
+                            updateAvailableTodayCartDisplay();
+                        }
+                    }
+                }
+                
+                // Sync with server to ensure consistency (works for both modal and card cases)
                 if (typeof syncWithServer === 'function') {
                     syncWithServer();
-                } else {
-                    // Fallback: manually add to local cart for immediate UI feedback
-                    if (typeof addToAvailableTodayCart === 'function') {
-                        addToAvailableTodayCart(productId, finalQuantity, button);
-                    }
                 }
                 
                 if (productModalOpen) closeProductModal();
@@ -768,7 +775,7 @@ if ($cart_truncated) {
                 console.log('Error in Available Today cart response:', data.error);
                 showConfirmation("Error: " + (data.error || "Unknown error"), true);
             }
-        })
+          })
         .catch(error => {
             console.error('[DEBUG] API Fetch Error:', error);
             console.error("Error message:", error.message);

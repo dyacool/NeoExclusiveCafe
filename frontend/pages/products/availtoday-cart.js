@@ -251,7 +251,7 @@ function addToAvailableTodayCart(productId, quantity, button) {
  * @param {number} quantity - Quantity to add
  * @param {HTMLElement} productCard - Product card element
  */
-function updateLocalCart(productId, quantity, productCard) {
+window.updateLocalCart = function(productId, quantity, productCard) {
     // Extract product information
     const productName = productCard.querySelector('h3').textContent;
     const priceText = productCard.querySelector('.price').textContent;
@@ -272,12 +272,12 @@ function updateLocalCart(productId, quantity, productCard) {
         });
         console.log(`Added new product to local cart: ${productName}`);
     }
-}
+};
 
 /**
  * Update the Available Today cart display
  */
-function updateAvailableTodayCartDisplay() {
+window.updateAvailableTodayCartDisplay = function() {
     const cartCount = document.getElementById('availableTodayCartCount');
     const cartItems = document.getElementById('availableTodayCartItems');
     const cartTotal = document.getElementById('availableTodayCartTotal');
@@ -320,7 +320,7 @@ function updateAvailableTodayCartDisplay() {
         });
         checkoutBtn.disabled = false;
     }
-}
+};
 
 /**
  * Update quantity of a specific product in Available Today cart
@@ -414,9 +414,8 @@ function handleAvailableTodayCheckout() {
     const confirmCheckout = confirm(`Checkout ${availableTodayCart.length} Available Today items for ₱${availableTodayCartTotal.toFixed(2)}?`);
     
     if (confirmCheckout) {
-        // Redirect to checkout page or process the order
-        // You can modify this to match your checkout flow
-        window.location.href = '../../pages/cart/cart.php';
+        // Redirect to availtoday-specific checkout page
+        window.location.href = '../../pages/cart/availtoday-checkout.php';
     }
 }
 
@@ -458,7 +457,7 @@ function loadAvailableTodayCartFromStorage() {
 /**
  * Sync cart with server data
  */
-function syncWithServer() {
+window.syncWithServer = function() {
     fetch('../../../backend/pages/cart/availtoday-cart-api.php?action=get')
         .then(response => response.json())
         .then(data => {
@@ -483,7 +482,7 @@ function syncWithServer() {
         .catch(error => {
             console.error('Sync error:', error);
         });
-}
+};
 
 /**
  * Get Available Today cart summary
