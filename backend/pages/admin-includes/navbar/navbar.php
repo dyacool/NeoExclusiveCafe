@@ -72,7 +72,7 @@ $isAdmin = isset($_SESSION['isAdmin']) && $_SESSION['isAdmin'] == 1;
             <nav class="sidebar-nav">
                 <ul class="nav-menu">
                     <li class="nav-item">
-                        <a href="../homepage/admin-homepage.php" class="nav-link">
+                        <a href="../dashboard/dashboard.php" class="nav-link">
                             <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="3" y="3" width="7" height="7"></rect>
                                 <rect x="14" y="3" width="7" height="7"></rect>

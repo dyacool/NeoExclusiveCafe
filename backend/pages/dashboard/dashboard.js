@@ -39,47 +39,6 @@ function animateCounters() {
   });
 }
 
-// Update current time
-function updateTime() {
-  const now = new Date();
-
-  // Format time
-  const timeOptions = {
-    hour: "numeric",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true,
-  };
-  const timeString = now.toLocaleTimeString("en-US", timeOptions);
-
-  // Format date and location
-  const dateOptions = {
-    weekday: "short",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  };
-  const dateString = now.toLocaleDateString("en-US", dateOptions);
-
-  // Update DOM
-  const timeElement = document.getElementById("current-time");
-  const dateElement = document.getElementById("current-date");
-
-  if (timeElement) {
-    timeElement.textContent = timeString;
-  }
-
-  if (dateElement) {
-    dateElement.textContent = "San Francisco, CA";
-  }
-
-  // Update location display
-  const locationElement = document.querySelector(".location-display");
-  if (locationElement) {
-    locationElement.textContent = `Online ${dateString}`;
-  }
-}
-
 // Calendar functionality
 function generateCalendar(date = currentDate) {
   const year = date.getFullYear();
@@ -424,11 +383,6 @@ function formatNumber(number) {
 function startAutoRefresh(interval = 300000) {
   // 5 minutes default
   setInterval(() => {
-    updateTime();
-    // Add other refresh operations here
-  }, 1000); // Update time every second
-
-  setInterval(() => {
     refreshDashboard();
   }, interval);
 }
@@ -440,10 +394,6 @@ window.refreshDashboard = refreshDashboard;
 
 // Start auto-refresh when dashboard loads
 document.addEventListener("DOMContentLoaded", function () {
-  // Update time immediately and then every second
-  updateTime();
-  setInterval(updateTime, 1000);
-
   // Start auto-refresh for dashboard data
   startAutoRefresh();
 });
@@ -482,9 +432,12 @@ function toggleDarkMode() {
   );
 }
 
-// Load dark mode preference
+// Load dark mode preference and initialize dashboard
 document.addEventListener("DOMContentLoaded", function () {
   if (localStorage.getItem("darkMode") === "true") {
     document.body.classList.add("dark-mode");
   }
+
+  // Initialize dashboard functionality
+  initializeDashboard();
 });

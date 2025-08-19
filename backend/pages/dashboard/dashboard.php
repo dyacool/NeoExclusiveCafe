@@ -192,7 +192,7 @@ $stats['bulk_change'] = '3 pending approval';
 <body>
     <?php include "../admin-includes/navbar/navbar.php"; ?>
 
-    <div class="Main">
+    <div class="main-container">
         <div class="dashboard-container">
             <!-- Div 1: Service Cards and Sidebar -->
             <div class="dashboard-section-1">
@@ -258,17 +258,8 @@ $stats['bulk_change'] = '3 pending approval';
                     </div>
                 </div>
 
-                <!-- Sidebar: Time, Location, Calendar -->
+                <!-- Sidebar: Calendar -->
                 <div class="dashboard-sidebar">
-                    <!-- Current Time and Location -->
-                    <div class="time-location-card">
-                        <div class="current-time">
-                            <div class="time-display" id="current-time">5:00:25 PM</div>
-                            <div class="date-display" id="current-date">San Francisco, CA</div>
-                        </div>
-                        <div class="location-display">Online August 17, 2025</div>
-                    </div>
-
                     <!-- Calendar Widget -->
                     <div class="calendar-card">
                         <div class="calendar-header">
@@ -406,7 +397,6 @@ $stats['bulk_change'] = '3 pending approval';
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function() {
             initializeDashboard();
-            updateTime();
             generateCalendar();
             createCharts();
         });

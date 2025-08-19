@@ -255,7 +255,6 @@
 /* FIXED: Stable dropdown - no movement, smooth transitions */
 .dropdown-menu {
   list-style: none;
-  margin: 0.5rem 0 0 0;
   padding: 0;
   background: white;
   border-radius: 0.5rem;
@@ -268,6 +267,7 @@
 }
 
 .dropdown-menu.active {
+  margin: 0.5rem 0 0 0;
   max-height: 200px;
   opacity: 1;
   padding: 0.5rem;

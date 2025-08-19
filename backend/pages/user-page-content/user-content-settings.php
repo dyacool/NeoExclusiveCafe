@@ -157,7 +157,7 @@
                     </div>
 
                     <div class="setting-card">
-                        <a href="/backend/pages/user-page-content/terms-conditions-settings.php" class="setting-card-link">
+                        <a href="/backend/pages/user-page-content/terms-and-condition-management.php" class="setting-card-link">
                             <div class="setting-card-content">
                                 <div class="setting-icon terms">
                                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -175,7 +175,7 @@
                     </div>
 
                     <div class="setting-card">
-                        <a href="/backend/pages/user-page-content/privacy-policy-settings.php" class="setting-card-link">
+                        <a href="/backend/pages/user-page-content/privacy-policy-management.php" class="setting-card-link">
                             <div class="setting-card-content">
                                 <div class="setting-icon footer">
                                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
