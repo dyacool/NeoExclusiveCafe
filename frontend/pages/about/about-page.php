@@ -32,7 +32,7 @@ We source our coffee beans from the finest farms around the world, ensuring that
 
 Community Focus
 More than just a cafe, we are a gathering place for the community. Whether you\'re catching up with friends, working on your next big project, or simply enjoying a quiet moment, Neo Exclusive Cafe is your home away from home.',
-        'image_path' => '/assets/images/cafe-default.jpg',
+        'image_path' => '/images/cafe-default.jpg',
         'last_updated' => date('Y-m-d H:i:s')
     ];
 }
@@ -77,33 +77,21 @@ $conn->close();
             <!-- Content -->
             <section class="about-content">
                 <div class="content-wrapper">
-                    <div class="about-text">
                     <?php if (!empty($about['image_path'])): ?>
                         <div class="about-image">
                             <?php
                             // Adjust image path for frontend access
                             $image_src = $about['image_path'];
-                            // If the path starts with /assets/, make it relative to the frontend
-                            if (strpos($image_src, '/assets/') === 0) {
+                            // If the path starts with /images/, make it relative to the frontend
+                            if (strpos($image_src, '/images/') === 0) {
                                 $image_src = '../../../' . ltrim($image_src, '/');
-                            }
-                            // Legacy support for /images/ paths
-                            elseif (strpos($image_src, '/images/') === 0) {
-                                $image_src = '../../../assets' . $image_src;
                             }
                             ?>
                             <img src="<?php echo htmlspecialchars($image_src); ?>" alt="About Neo Exclusive Cafe">
                         </div>
                     <?php endif; ?>
-                        <?php 
-                        // Process the about_text to add paragraph spacing
-                        $paragraphs = explode("\n\n", $about['about_text']);
-                        foreach($paragraphs as $paragraph) {
-                            if(trim($paragraph) !== '') {
-                                echo '<p>' . htmlspecialchars($paragraph) . '</p>';
-                            }
-                        }
-                        ?>
+                    <div class="about-text">
+                        <?php echo $about['about_text']; ?>
                     </div>
 
                 </div>
@@ -111,7 +99,7 @@ $conn->close();
                 <!-- Action Buttons -->
                 <div class="about-actions">
                     <a href="../home/user-dashboard.php" class="btn-back">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <svg width="25" height="14" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.42-1.41L7.83 13H20v-2z"/>
                         </svg>
                         Back to Home

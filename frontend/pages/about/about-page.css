@@ -31,11 +31,6 @@ main {
   gap: 50px;
   padding: 20px 0;
 }
-/* About Image Section */
-.about-image {
-  min-height: 100vh;
-  padding: 1.5rem;
-}
 
 .container {
   max-width: 1200px;
@@ -109,7 +104,6 @@ main {
   align-items: center;
   gap: 40px;
   margin: 0 auto;
-  padding: 20px;
 }
 
 /* Image Container */
@@ -133,8 +127,19 @@ main {
   transform: scale(1.05);
 }
 
-.content-wrapper {
+/* Text Wrapper */
+.about-text {
+  flex: 1;
   padding: 40px;
+  background: white;
+}
+
+.about-text {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: #555;
+  margin-bottom: 20px;
+  text-align: justify;
 }
 
 .content-wrapper h1,

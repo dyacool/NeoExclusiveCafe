@@ -196,6 +196,13 @@ $conn->close();
 </head>
 <body>
 <?php include __DIR__ . "/../admin-includes/navbar/navbar.php"; ?>
+
+<div class="breadcrumb">
+    <a href="/backend/pages/products/product-list.php">Products</a>
+    <span class="separator">></span>
+    <span class="current">Add Product</span>
+</div>
+
     <?php if(isset($_SESSION['success_message'])): ?>
     <div class="success-popup" id="successPopup">
         <?php 

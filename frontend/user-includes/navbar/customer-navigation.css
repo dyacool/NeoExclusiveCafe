@@ -126,7 +126,7 @@ body {
 /* Main Navigation - Green with fade bottom animation */
 .main-nav {
   animation: slideIn 0.5s ease-out;
-  background-color: var(--primary);
+  background-color: #0f5132;
   position: relative;
   padding: 0;
   color: var(--white);
