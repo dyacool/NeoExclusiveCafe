@@ -103,7 +103,7 @@ function getDayAbbreviations($availableDays) {
         .section-header {
             background: linear-gradient(135deg, #256035, #1a4a2a);
             color: white;
-            padding: 15px 20px;
+            padding: 20px 15px 15px 25px;
             border-radius: 8px 8px 0 0;
             margin-bottom: 0;
             display: flex;
@@ -117,6 +117,7 @@ function getDayAbbreviations($availableDays) {
         }
         
         .section-select-all {
+            order: 1;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -139,6 +140,8 @@ function getDayAbbreviations($availableDays) {
             display: flex;
             align-items: center;
             gap: 20px;
+            padding-right: 15px;
+            padding-left: 250px;
         }
         
         .days-filter {
@@ -148,6 +151,8 @@ function getDayAbbreviations($availableDays) {
         }
         
         .days-filter label {
+            padding-left: 150px;
+            margin-left: auto;
             color: white;
             font-weight: 500;
             font-size: 14px;
@@ -331,11 +336,12 @@ function getDayAbbreviations($availableDays) {
         <form method="POST" action="checkout.php" id="cartForm">
             <input type="hidden" name="valid_cart_ids" value="<?= implode(',', array_merge(array_column($pickup_items, 'cart_id'), array_column($delivery_items, 'cart_id'))) ?>">
             <div class="cart-layout">
-                <div class="cart-content">
-                    <!-- Pickup Products Section -->
-                    <div class="cart-section">
-                        <div class="section-header">
-                            <h3>Pickup</h3>
+                <div class="cart-container">
+                    <div class="cart-content">
+                        <!-- Pickup Products Section -->
+                        <div class="cart-section">
+                            <div class="section-header">
+                                <h3>Pickup</h3>
                             <div class="section-controls">
                                 <div class="days-filter">
                                     <label for="pickupDaysFilter">Filter by Day:</label>
