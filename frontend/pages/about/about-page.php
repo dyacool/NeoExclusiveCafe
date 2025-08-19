@@ -2,7 +2,7 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-require_once "../../php/includes/database.php";
+require_once "../../user-includes/database.php";
 
 // Database connection
 $conn = new mysqli("localhost", "root", "", "crud");
@@ -16,82 +16,113 @@ if ($conn->connect_error) {
 $sql = "SELECT * FROM about_content WHERE id = 1";
 $result = $conn->query($sql);
 
-if ($result->num_rows > 0) {
+if ($result && $result->num_rows > 0) {
     $about = $result->fetch_assoc();
 } else {
     // Default content if none found
     $about = [
         'title' => 'About Neo Exclusive Cafe',
-        'about_text' => 'Welcome to Neo Exclusive Cafe. Our story begins with a passion for quality coffee and exceptional service.',
-        'image_path' => '/NeoExclusiveCafe/images/cafe-default.jpg'
+        'about_text' => 'Welcome to Neo Exclusive Cafe. Our story begins with a passion for quality coffee and exceptional service.
+
+Our Mission
+At Neo Exclusive Cafe, we believe that every cup tells a story. Our mission is to create memorable experiences through carefully crafted beverages, delicious food, and warm hospitality.
+
+Quality First
+We source our coffee beans from the finest farms around the world, ensuring that every cup meets our high standards of excellence. Our skilled baristas are trained to bring out the best in every blend.
+
+Community Focus
+More than just a cafe, we are a gathering place for the community. Whether you\'re catching up with friends, working on your next big project, or simply enjoying a quiet moment, Neo Exclusive Cafe is your home away from home.',
+        'image_path' => '/assets/images/cafe-default.jpg',
+        'last_updated' => date('Y-m-d H:i:s')
     ];
 }
+
+$conn->close();
 
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-<<<<<<< Updated upstream
-    <title>About Us - Neo Exclusive Cafe</title>
-    <?php include '../../php/includes/customer-navigation.php'; ?>
-    <link rel="stylesheet" href="../../php/includes/customer-navigation.css">
-    <link rel="stylesheet" href="/NeoExclusiveCafe/css/users/about-page.css">
-=======
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($about['title']); ?> - Neo Exclusive Cafe</title>
     <link rel="stylesheet" href="about-page.css">
+    <link rel="icon" type="image/x-icon" href="../../../assets/images/favicon.ico">
+    
     <!-- Include user navigation -->
     <?php include "../../user-includes/user-header.php"; ?>
->>>>>>> Stashed changes
 </head>
 <body>
+    <!-- Navigation -->
+    <?php include "../../user-includes/navbar/customer-navigation.php"; ?>
+    <div class="about-container">
+        <div class="container">
+            <!-- Breadcrumb -->
+            <nav class="breadcrumb">
+                <a href="../home/user-dashboard.php">Home</a>
+                <span class="separator">></span>
+                <span class="current">About Us</span>
+            </nav>
 
-    
-    <!-- Main Content -->
-    <main>
-        <div class="main-content">
-            <div class="about-container">
-                <section class="about-image">
-                    <div class="image-container">
-                        <img src="<?php echo htmlspecialchars($about['image_path']); ?>" alt="About Neo Exclusive Cafe">
-                    </div>
-                    <div class="header">
-                        <h1><?php echo htmlspecialchars($about['title']); ?></h1>
-                    </div>
-                </section>
+            <!-- Header -->
+            <header class="about-header">
+                <h1><?php echo htmlspecialchars($about['title']); ?></h1>
+                <?php if (isset($about['last_updated'])): ?>
+                    <p class="last-updated">
+                        Last updated: <?php echo date('F j, Y', strtotime($about['last_updated'])); ?>
+                    </p>
+                <?php endif; ?>
+            </header>
 
-                <section class="about-content">
-                <div class="about-box">
-                <?php 
-                // Process the about_text to add paragraph spacing
-                $paragraphs = explode("\n", $about['about_text']);
-                foreach($paragraphs as $paragraph) {
-                    if(trim($paragraph) !== '') {
-                    echo '<p>' . htmlspecialchars($paragraph) . '</p>';
-                    }
-                }
-                ?>
+            <!-- Content -->
+            <section class="about-content">
+                <div class="content-wrapper">
+                    <div class="about-text">
+                    <?php if (!empty($about['image_path'])): ?>
+                        <div class="about-image">
+                            <?php
+                            // Adjust image path for frontend access
+                            $image_src = $about['image_path'];
+                            // If the path starts with /assets/, make it relative to the frontend
+                            if (strpos($image_src, '/assets/') === 0) {
+                                $image_src = '../../../' . ltrim($image_src, '/');
+                            }
+                            // Legacy support for /images/ paths
+                            elseif (strpos($image_src, '/images/') === 0) {
+                                $image_src = '../../../assets' . $image_src;
+                            }
+                            ?>
+                            <img src="<?php echo htmlspecialchars($image_src); ?>" alt="About Neo Exclusive Cafe">
+                        </div>
+                    <?php endif; ?>
+                        <?php 
+                        // Process the about_text to add paragraph spacing
+                        $paragraphs = explode("\n\n", $about['about_text']);
+                        foreach($paragraphs as $paragraph) {
+                            if(trim($paragraph) !== '') {
+                                echo '<p>' . htmlspecialchars($paragraph) . '</p>';
+                            }
+                        }
+                        ?>
+                    </div>
+
                 </div>
-<<<<<<< Updated upstream
-                </section>
-            </div>
-=======
 
                 <!-- Action Buttons -->
                 <div class="about-actions">
                     <a href="../home/user-dashboard.php" class="btn-back">
-                        <svg width="25" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.42-1.41L7.83 13H20v-2z"/>
                         </svg>
                         Back to Home
                     </a>
-            </main>
->>>>>>> Stashed changes
+                    </div>
+            </section>
         </div>
-    </main>
-<?php $conn->close(); ?>
-<?php include '../../php/includes/user-footer.php'; ?>
+    </div>
+    <!-- Footer -->
+    <?php include "../../user-includes/user-footer.php"; ?>
 
+    <script src="about-page.js"></script>
 </body>
 </html>

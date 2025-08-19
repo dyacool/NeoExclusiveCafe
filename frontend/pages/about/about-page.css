@@ -24,7 +24,6 @@ main {
 }
 
 .about-container {
-<<<<<<< Updated upstream
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -33,7 +32,7 @@ main {
   padding: 20px 0;
 }
 /* About Image Section */
-=======
+.about-image {
   min-height: 100vh;
   padding: 1.5rem;
 }
@@ -104,7 +103,6 @@ main {
   animation: slideInUp 0.6s ease-out;
 }
 
->>>>>>> Stashed changes
 .about-image {
   display: flex;
   justify-content: space-between;
@@ -119,10 +117,8 @@ main {
   flex: 0 0 350px; /* Don't allow the image to grow or shrink, keep at 350px */
   height: 350px;
   overflow: hidden;
-<<<<<<< Updated upstream
   border-radius: 50%;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
-=======
   position: relative;
 }
 
@@ -208,7 +204,6 @@ main {
 .content-wrapper em {
   color: #666;
   font-style: italic;
->>>>>>> Stashed changes
 }
 
 /* Additional rich text formatting */

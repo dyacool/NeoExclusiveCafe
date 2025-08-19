@@ -2,13 +2,12 @@
 .admin-main {
   width: 100%;
   margin: 0;
-  padding: 0;
+  padding-top: 1rem;
 }
 
 .admin-container {
   width: 100%;
   margin: 0;
-  padding: 2rem;
   box-sizing: border-box;
 }
 
@@ -121,6 +120,17 @@ textarea:focus {
   padding: 0.75rem 1.5rem;
   background-color: #f0f0f0;
   color: #333;
+}
+
+.btn-save:hover {
+  background-color: #1d3b25;
+}
+
+.btn-save {
+  padding: 0.75rem 1.5rem;
+
+  background-color: #2e5a39;
+  color: #fff;
 }
 
 .btn-secondary:hover {
@@ -261,7 +271,6 @@ textarea:focus {
   color: #666;
   margin-bottom: 0.5rem;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
