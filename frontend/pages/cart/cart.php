@@ -148,6 +148,7 @@ function getDayAbbreviations($availableDays) {
             display: flex;
             align-items: center;
             gap: 8px;
+            white-space: nowrap;
         }
         
         .days-filter label {
