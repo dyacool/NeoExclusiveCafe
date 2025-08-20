@@ -93,9 +93,9 @@ if ($top_products_result) {
 // If no products data, create sample data
 if (empty($top_products)) {
     $top_products = [
-        ['name' => 'Cappuccino', 'total_sold' => 250, 'total_revenue' => 1250, 'price' => 5.00],
-        ['name' => 'Latte', 'total_sold' => 220, 'total_revenue' => 1100, 'price' => 5.00],
-        ['name' => 'Americano', 'total_sold' => 180, 'total_revenue' => 720, 'price' => 4.00],
+        ['name' => 'Classic Sourdough Bread', 'total_sold' => 250, 'total_revenue' => 1250, 'price' => 5.00],
+        ['name' => 'Cinnamon Rolls', 'total_sold' => 220, 'total_revenue' => 1100, 'price' => 5.00],
+        ['name' => 'Three Cheese and Basil', 'total_sold' => 180, 'total_revenue' => 720, 'price' => 4.00],
         ['name' => 'Espresso', 'total_sold' => 150, 'total_revenue' => 450, 'price' => 3.00],
         ['name' => 'Macchiato', 'total_sold' => 130, 'total_revenue' => 650, 'price' => 5.00],
         ['name' => 'Mocha', 'total_sold' => 120, 'total_revenue' => 720, 'price' => 6.00],

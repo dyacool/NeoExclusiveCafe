@@ -87,7 +87,7 @@
 #mobile-page-title {
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--green-800);
+  color: var(--gray-800);
   margin: 0;
 }
 
@@ -369,7 +369,7 @@
 #page-title {
   font-size: 1.875rem;
   font-weight: 700;
-  color: var(--green-800);
+  color: var(--gray-800);
   margin: 0;
   flex: 1; /* FIXED: Allow title to take available space */
 }
