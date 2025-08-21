@@ -1,36 +1,15 @@
-/* Dashboard Base Styles - Matching admin-homepage.php */
-@import url("https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,200;1,300;1,400;1,500;1,600;1,700;1,800&display=swap");
-
-* {
-  font-family: "Spectral", serif;
+.dashboard-container * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-body {
-  margin: 0;
-  padding: 0;
-  font-family: "Spectral", serif !important;
+.dashboard-container {
+  min-height: 100vh;
   color: #333;
   line-height: 1.6;
 }
 
-.main-container {
-  transition: margin-left 0.3s ease-in-out;
-  min-height: 100vh;
-  padding: 0;
-}
-
-.sidebar:not(.collapsed) ~ .Main {
-  margin-left: 250px;
-}
-
-.dashboard-container {
-  min-height: 100vh;
-}
-
-/* Dashboard Section 1: Service Cards + Sidebar */
 .dashboard-section-1 {
   display: flex;
   gap: 20px;
@@ -482,13 +461,9 @@ body {
 }
 
 @media (max-width: 768px) {
-  .Main {
-    margin-left: 0;
-  }
-
-  .sidebar:not(.collapsed) ~ .Main {
-    margin-left: 0;
-  }
+  /* REMOVED conflicting .Main rules - let navbar.css handle layout */
+  /* .Main { margin-left: 0; } - REMOVED */
+  /* .sidebar:not(.collapsed) ~ .Main { margin-left: 0; } - REMOVED */
 
   .dashboard-container {
     padding: 12px;

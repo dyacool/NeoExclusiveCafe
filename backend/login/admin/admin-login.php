@@ -51,7 +51,7 @@ if (isset($_POST["admin-login-submit"])) {
                 $_SESSION["admin_role"] = "admin";
 
                 // Redirect to admin homepage
-                header("Location: /backend/pages/homepage/admin-homepage.php");
+                header("Location: /backend/pages/dashboard/dashboard.php");
                 exit();
             } else {
                 $error[] = "Invalid credentials.";

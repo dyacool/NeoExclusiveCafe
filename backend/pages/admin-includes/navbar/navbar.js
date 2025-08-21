@@ -13,16 +13,37 @@ document.addEventListener("DOMContentLoaded", () => {
   const productPages = ["product-list.php", "add-product.php"];
   const isProductPage = productPages.includes(currentPage);
 
-  // Sidebar management
+  // Enhanced state management with better key
+  const DROPDOWN_STATE_KEY = "navbar_products_dropdown_state";
+  const SIDEBAR_STATE_KEY = "navbar_sidebar_state";
+
+  // Flag to prevent multiple restoration calls
+  let dropdownStateRestored = false;
+
+  // Sidebar management with state persistence
   function openSidebar() {
     if (window.innerWidth <= 768) {
       sidebar.classList.remove("mobile-hidden");
+      localStorage.setItem(SIDEBAR_STATE_KEY, "open");
     }
   }
 
   function closeSidebar() {
     if (window.innerWidth <= 768) {
       sidebar.classList.add("mobile-hidden");
+      localStorage.setItem(SIDEBAR_STATE_KEY, "closed");
+    }
+  }
+
+  // Restore sidebar state on mobile
+  function restoreSidebarState() {
+    if (window.innerWidth <= 768) {
+      const savedState = localStorage.getItem(SIDEBAR_STATE_KEY);
+      if (savedState === "open") {
+        sidebar.classList.remove("mobile-hidden");
+      } else {
+        sidebar.classList.add("mobile-hidden");
+      }
     }
   }
 
@@ -58,22 +79,57 @@ document.addEventListener("DOMContentLoaded", () => {
     e.stopPropagation();
   });
 
-  // FIXED: Product dropdown with localStorage persistence
+  // Enhanced Product dropdown with better state management
+  function toggleDropdown(shouldOpen = null) {
+    if (!productsToggle || !productsDropdown) return;
+
+    const isCurrentlyActive = productsDropdown.classList.contains("active");
+    const newState = shouldOpen !== null ? shouldOpen : !isCurrentlyActive;
+
+    // Only make changes if the state is actually different
+    if (newState !== isCurrentlyActive) {
+      if (newState) {
+        productsDropdown.classList.add("active");
+        productsToggle.classList.add("active");
+        localStorage.setItem(DROPDOWN_STATE_KEY, "open");
+      } else {
+        productsDropdown.classList.remove("active");
+        productsToggle.classList.remove("active");
+        localStorage.setItem(DROPDOWN_STATE_KEY, "closed");
+      }
+    }
+  }
+
+  function restoreDropdownState() {
+    if (!productsToggle || !productsDropdown) return;
+
+    // Prevent multiple calls - only restore once per page load
+    if (dropdownStateRestored) return;
+
+    const savedState = localStorage.getItem(DROPDOWN_STATE_KEY);
+    // Always restore if saved state is open, regardless of page type
+    const shouldRestoreOpen = savedState === "open";
+
+    // Apply state without animation to prevent flickering
+    if (shouldRestoreOpen) {
+      productsDropdown.classList.add("active");
+      productsToggle.classList.add("active");
+    } else {
+      productsDropdown.classList.remove("active");
+      productsToggle.classList.remove("active");
+    }
+
+    dropdownStateRestored = true;
+  }
+
   if (productsToggle && productsDropdown) {
     productsToggle.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
-
-      // Toggle dropdown
-      productsDropdown.classList.toggle("active");
-      productsToggle.classList.toggle("active");
-
-      // Save state to localStorage
-      const isActive = productsDropdown.classList.contains("active");
-      localStorage.setItem("isDropdownActive", isActive);
+      toggleDropdown();
     });
 
-    // Handle dropdown links - maintain state
+    // Enhanced dropdown link handling
     const dropdownLinks = document.querySelectorAll(".dropdown-link");
     dropdownLinks.forEach((link) => {
       link.addEventListener("click", (e) => {
@@ -85,18 +141,10 @@ document.addEventListener("DOMContentLoaded", () => {
           return false;
         }
 
-        // Get the target page
         const href = link.getAttribute("data-href");
         if (href) {
-          // Check if navigating to a product page
-          const targetIsProductPage = productPages.some((page) =>
-            href.includes(page)
-          );
-
-          // If navigating to non-product page, clear dropdown state
-          if (!targetIsProductPage) {
-            localStorage.setItem("isDropdownActive", "false");
-          }
+          // Keep dropdown open when navigating - don't change state
+          // The dropdown state will be preserved as is
 
           // Navigate to new page
           window.location.href = href;
@@ -110,25 +158,35 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // FIXED: Clear dropdown state when navigating to non-product pages via other links
+  // Enhanced navigation link handling
   const allNavLinks = document.querySelectorAll("a[href]:not([data-href])");
   allNavLinks.forEach((link) => {
     link.addEventListener("click", (e) => {
       const href = link.getAttribute("href");
-      // If navigating to non-product page, clear dropdown state
-      const targetIsProductPage = productPages.some((page) =>
-        href.includes(page)
-      );
-      if (!targetIsProductPage) {
-        localStorage.setItem("isDropdownActive", "false");
+
+      // Don't interfere with external links or logout
+      if (href.startsWith("http") || href.includes("logout")) {
+        return;
+      }
+
+      // Don't change dropdown state when navigating to any page
+      // The dropdown will remain open if it was open, closed if it was closed
+      // Only the toggle click can change the state
+
+      // Close mobile sidebar after navigation
+      if (window.innerWidth <= 768) {
+        setTimeout(() => {
+          closeSidebar();
+        }, 100);
       }
     });
   });
 
-  // Page title management
+  // Enhanced page title management
   function updatePageTitle() {
     const pageTitles = {
       "admin-homepage.php": "Dashboard",
+      "dashboard.php": "Dashboard",
       "order-list.php": "Order Management",
       "product-list.php": "Product Management",
       "add-product.php": "Add Product",
@@ -162,10 +220,15 @@ document.addEventListener("DOMContentLoaded", () => {
     if (mobileTitle) {
       mobileTitle.textContent = pageTitle;
     }
+
+    // Update document title for better UX
+    document.title = `${pageTitle} - Neo Cafe Admin`;
   }
 
-  // Add "Add Product" button dynamically
-  if (window.location.pathname.includes("product-list.php")) {
+  // Enhanced Add Product button for product-list page
+  function addProductButton() {
+    if (!window.location.pathname.includes("product-list.php")) return;
+
     let headerActions = document.querySelector(".header-actions");
 
     if (!headerActions) {
@@ -180,6 +243,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const addProductButton = document.createElement("button");
     addProductButton.className = "btn add-product-button action-button";
     addProductButton.onclick = () => {
+      // Don't change dropdown state - let it preserve current state
       window.location.href = "add-product.php";
     };
 
@@ -218,71 +282,78 @@ document.addEventListener("DOMContentLoaded", () => {
     headerActions.appendChild(addProductButton);
   }
 
-  // UPDATED: Set active navigation states with dropdown persistence
+  // Enhanced active state management
   function setActiveStates() {
-    // Remove all active classes
+    // Remove all active classes from links only
     document
       .querySelectorAll(".nav-link, .footer-link, .dropdown-link")
       .forEach((link) => {
         link.classList.remove("active");
       });
 
-    // Remove parent active state
-    if (productsToggle) {
+    // Only remove parent active state if we're not on a product page
+    if (productsToggle && !productPages.includes(currentPage)) {
       productsToggle.classList.remove("has-active-child");
     }
 
-    // Set active based on current page
-    if (currentPage === "order-list.php") {
-      const ordersLink = document.querySelector('a[href="order-list.php"]');
-      if (ordersLink) ordersLink.classList.add("active");
-    }
+    // Set active states based on current page
+    const pageActiveSelectors = {
+      "order-list.php": 'a[href*="order-list.php"]',
+      "admin-homepage.php":
+        'a[href*="dashboard.php"], a[href*="admin-homepage.php"]',
+      "dashboard.php":
+        'a[href*="dashboard.php"], a[href*="admin-homepage.php"]',
+      "transactions.php": 'a[href*="transactions.php"]',
+      "admin-blog.php": 'a[href*="admin-blog.php"]',
+      "admin-profile.php": 'a[href*="admin-profile.php"]',
+      "archive.php": 'a[href*="archive.php"]',
+      "user-content-settings.php": 'a[href*="user-content-settings.php"]',
+      "calendar.php": 'a[href*="calendar.php"]',
+      "promotions-settings.php": 'a[href*="promotions-settings.php"]',
+    };
 
+    // Handle product pages separately
     if (currentPage === "product-list.php") {
       const productListLink = document.querySelector(
-        '[data-href="product-list.php"]'
+        '[data-href*="product-list.php"]'
       );
       if (productListLink) {
         productListLink.classList.add("active");
-        // Add active state to parent toggle
         if (productsToggle) {
           productsToggle.classList.add("has-active-child");
         }
       }
-    }
-
-    if (currentPage === "add-product.php") {
+    } else if (currentPage === "add-product.php") {
       const addProductLink = document.querySelector(
-        '[data-href="add-product.php"]'
+        '[data-href*="add-product.php"]'
       );
       if (addProductLink) {
         addProductLink.classList.add("active");
-        // Add active state to parent toggle
         if (productsToggle) {
           productsToggle.classList.add("has-active-child");
         }
       }
+    } else {
+      // Handle other pages
+      const selector = pageActiveSelectors[currentPage];
+      if (selector) {
+        const activeLink = document.querySelector(selector);
+        if (activeLink) {
+          activeLink.classList.add("active");
+        }
+      }
     }
 
-    // Handle other pages
-    const pageSelectors = {
-      "admin-homepage.php": 'a[href*="admin-homepage.php"]',
-      "transactions.php": 'a[href="transactions.php"]',
-      "admin-blog.php": 'a[href="admin-blog.php"]',
-      "admin-profile.php": 'a[href="admin-profile.php"]',
-      "archive.php": 'a[href="archive.php"]',
-      "user-content-settings.php": 'a[href="user-content-settings.php"]',
-      "userShop.php": 'a[href*="product-dashboard.php"]',
-    };
-
-    const selector = pageSelectors[currentPage];
-    if (selector) {
-      const activeLink = document.querySelector(selector);
-      if (activeLink) activeLink.classList.add("active");
+    // Special handling for "View Shop" link
+    if (window.location.pathname.includes("product-dashboard.php")) {
+      const shopLink = document.querySelector(
+        'a[href*="product-dashboard.php"]'
+      );
+      if (shopLink) shopLink.classList.add("active");
     }
   }
 
-  // Prevent active links from being clicked (except logout)
+  // Enhanced click prevention for active links
   function preventActiveClicks() {
     document
       .querySelectorAll(".nav-link, .footer-link, .dropdown-link")
@@ -299,50 +370,60 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   }
 
-  // Handle window resize
+  // Enhanced window resize handling
   function handleResize() {
     if (window.innerWidth > 768) {
       sidebar.classList.remove("mobile-hidden");
+      // Clear mobile sidebar state when switching to desktop
+      localStorage.removeItem(SIDEBAR_STATE_KEY);
     } else {
-      sidebar.classList.add("mobile-hidden");
+      // Restore mobile sidebar state or default to closed
+      restoreSidebarState();
     }
   }
 
-  // FIXED: Only restore dropdown state if on a product page
-  if (isProductPage && localStorage.getItem("isDropdownActive") === "true") {
-    if (productsDropdown && productsToggle) {
-      productsDropdown.classList.add("active");
-      productsToggle.classList.add("active");
-    }
-  } else if (!isProductPage) {
-    // Clear dropdown state if not on product page
-    localStorage.setItem("isDropdownActive", "false");
-    // Ensure dropdown is closed
-    if (productsDropdown && productsToggle) {
-      productsDropdown.classList.remove("active");
-      productsToggle.classList.remove("active");
+  // Page visibility change handler to maintain state
+  function handleVisibilityChange() {
+    if (document.visibilityState === "visible") {
+      // Only restore sidebar state on mobile, don't touch dropdown
+      if (window.innerWidth <= 768) {
+        restoreSidebarState();
+      }
     }
   }
 
-  // Initialize everything
-  updatePageTitle();
-  setActiveStates();
-  preventActiveClicks();
-  handleResize();
+  // Initialize everything in correct order
+  function initialize() {
+    // Add loading class to prevent flicker during state restoration
+    document.body.classList.add("navbar-loading");
 
-  // Listen for resize
+    updatePageTitle();
+    addProductButton();
+    setActiveStates();
+    preventActiveClicks();
+    handleResize();
+
+    // Restore dropdown state immediately and only once on page load
+    restoreDropdownState();
+
+    // Restore sidebar state for mobile
+    if (window.innerWidth <= 768) {
+      restoreSidebarState();
+    }
+
+    // Remove loading class after a brief delay
+    setTimeout(() => {
+      document.body.classList.remove("navbar-loading");
+    }, 100);
+  }
+
+  // Event listeners
   window.addEventListener("resize", handleResize);
+  document.addEventListener("visibilitychange", handleVisibilityChange);
 
-  // Special fix for order-list page navigation
-  const ordersLink = document.querySelector('a[href="order-list.php"]');
-  if (ordersLink) {
-    ordersLink.addEventListener("click", () => {
-      // Close sidebar after navigation on mobile
-      setTimeout(() => {
-        if (window.innerWidth <= 768) {
-          closeSidebar();
-        }
-      }, 100);
-    });
-  }
+  // Initialize
+  initialize();
+
+  // Note: Dropdown state is now only controlled by manual toggle clicks
+  // No automatic cleanup - the dropdown stays in whatever state the user set it to
 });

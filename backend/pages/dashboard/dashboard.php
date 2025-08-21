@@ -174,19 +174,14 @@ $stats['bulk_change'] = '3 pending approval';
     <link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico">
     
     <!-- CSS files matching admin-homepage.php -->
-    <link rel="stylesheet" href="../admin-includes/navbar/navbar.css">
-    <link rel="stylesheet" href="../admin-includes/navbar/reset.css">
-    <link rel="stylesheet" href="../admin-includes/navbar/admin-navigation.css">
+
     <link rel="stylesheet" href="dashboard.css">
     <link rel="stylesheet" href="../counts.css">
     
-    <!-- Chart.js for graphs -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
-    <!-- Load jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>

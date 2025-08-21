@@ -46,6 +46,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 1rem;
+  position: relative;
 }
 
 .mobile-header-bottom {
@@ -61,6 +62,7 @@
   color: var(--green-700);
   cursor: pointer;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .mobile-menu-toggle:hover {
@@ -74,14 +76,17 @@
 
 .mobile-logo {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .mobile-logo-text {
-  font-size: 1.125rem;
+  font-size: 0.8rem;
   font-weight: 700;
-  color: var(--green-800);
+  color: var(--gray-800);
 }
 
 #mobile-page-title {
@@ -160,7 +165,7 @@
 }
 
 .logo-circle img {
-  width: 400px;
+  width: 220px;
   height: auto;
   filter: brightness(0);
 }
@@ -264,6 +269,8 @@
   overflow: hidden;
   opacity: 0;
   transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
+  /* Prevent layout shift during state restoration */
+  will-change: max-height, opacity, padding;
 }
 
 .dropdown-menu.active {
@@ -271,6 +278,47 @@
   max-height: 200px;
   opacity: 1;
   padding: 0.5rem;
+}
+
+/* Enhanced state restoration */
+.sidebar {
+  transition: transform 0.3s ease;
+  will-change: transform;
+}
+
+.products-toggle {
+  transition: all 0.2s ease;
+  will-change: background-color, color;
+}
+
+.products-toggle.has-active-child {
+  background-color: var(--green-50);
+  color: var(--green-700);
+}
+
+/* Reduce flicker during state restoration */
+.navbar-loading .dropdown-menu {
+  transition: none !important;
+}
+
+.navbar-loading .products-toggle {
+  transition: none !important;
+}
+
+.navbar-loading .sidebar {
+  transition: none !important;
+}
+
+/* Enhanced dropdown stability */
+.dropdown-menu {
+  /* Ensure dropdown doesn't cause layout shifts */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.products-toggle {
+  /* Improve rendering performance */
+  transform: translateZ(0);
 }
 
 .dropdown-link {
@@ -426,10 +474,8 @@
   transform: translateY(0);
 }
 
-/* Content Wrapper - FIXED: Remove conflicting padding */
 .content-wrapper {
   padding: 1rem 2rem;
-  /* REMOVED: Any margin/padding that might conflict with product-list layout */
 }
 
 /* Active states */
@@ -505,5 +551,125 @@
 
   .floating-close-btn {
     display: none !important;
+  }
+}
+
+/* Logout Confirmation Modal */
+.logout-modal {
+  display: none;
+  position: fixed;
+  z-index: 10000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.logout-modal-content {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-width: 400px;
+  width: 90%;
+  max-height: 90vh;
+  animation: slideIn 0.3s ease;
+}
+
+.logout-modal-header {
+  padding: 24px 24px 16px 24px;
+  border-bottom: 1px solid var(--green-200);
+}
+
+.logout-modal-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--gray-800);
+}
+
+.logout-modal-body {
+  padding: 16px 24px;
+}
+
+.logout-modal-body p {
+  margin: 0;
+  color: var(--gray-600);
+  line-height: 1.6;
+}
+
+.logout-modal-footer {
+  padding: 16px 24px 24px 24px;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.logout-btn-cancel,
+.logout-btn-confirm {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.logout-btn-cancel {
+  background: var(--gray-100);
+  color: var(--gray-700);
+}
+
+.logout-btn-cancel:hover {
+  background: var(--gray-200);
+}
+
+.logout-btn-confirm {
+  background: #dc2626;
+  color: white;
+}
+
+.logout-btn-confirm:hover {
+  background: #b91c1c;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Mobile responsive modal */
+@media (max-width: 480px) {
+  .logout-modal-content {
+    width: 95%;
+  }
+
+  .logout-modal-footer {
+    flex-direction: column;
+  }
+
+  .logout-btn-cancel,
+  .logout-btn-confirm {
+    width: 100%;
   }
 }

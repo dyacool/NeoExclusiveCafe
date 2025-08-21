@@ -37,7 +37,7 @@ $isAdmin = isset($_SESSION['isAdmin']) && $_SESSION['isAdmin'] == 1;
                 <div class="logo-circle">
                     <img src="../../assets/images/user-logo.png" alt="Neo Cafe Logo">
                 </div>
-                <span class="mobile-logo-text">ADMIN</span>
+                <span class="mobile-logo-text">Admin</span>
             </div>
         </div>
         
@@ -211,7 +211,7 @@ $isAdmin = isset($_SESSION['isAdmin']) && $_SESSION['isAdmin'] == 1;
                 </li>
 
                 <li class="footer-item">
-                    <a href="../../login/admin/logout.php" class="footer-link logout">
+                    <a href="#" class="footer-link logout" onclick="showLogoutModal(event)">
                         <svg class="footer-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                             <polyline points="16,17 21,12 16,7"></polyline>
@@ -221,6 +221,22 @@ $isAdmin = isset($_SESSION['isAdmin']) && $_SESSION['isAdmin'] == 1;
                     </a>
                 </li>
             </ul>
+        </div>
+    </div>
+
+    <!-- Logout Confirmation Modal -->
+    <div id="logoutModal" class="logout-modal">
+        <div class="logout-modal-content">
+            <div class="logout-modal-header">
+                <h3>Confirm Logout</h3>
+            </div>
+            <div class="logout-modal-body">
+                <p>Are you sure you want to log out?</p>
+            </div>
+            <div class="logout-modal-footer">
+                <button class="logout-btn-cancel" onclick="hideLogoutModal()">Cancel</button>
+                <button class="logout-btn-confirm" onclick="confirmLogout()">Logout</button>
+            </div>
         </div>
     </div>
 
@@ -266,6 +282,35 @@ document.addEventListener("DOMContentLoaded", function() {
         });
         
         observer.observe(pageTitleElement, { childList: true });
+    }
+});
+
+// Logout Modal Functions
+function showLogoutModal(event) {
+    event.preventDefault();
+    document.getElementById('logoutModal').style.display = 'flex';
+}
+
+function hideLogoutModal() {
+    document.getElementById('logoutModal').style.display = 'none';
+}
+
+function confirmLogout() {
+    window.location.href = '../../login/admin/logout.php';
+}
+
+// Close modal when clicking outside of it
+window.onclick = function(event) {
+    const modal = document.getElementById('logoutModal');
+    if (event.target === modal) {
+        hideLogoutModal();
+    }
+}
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        hideLogoutModal();
     }
 });
 </script>
