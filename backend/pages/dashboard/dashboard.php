@@ -173,8 +173,6 @@ $stats['bulk_change'] = '3 pending approval';
     <title>NeoCafe Dashboard</title>
     <link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico">
     
-    <!-- CSS files matching admin-homepage.php -->
-
     <link rel="stylesheet" href="dashboard.css">
     <link rel="stylesheet" href="../counts.css">
     
@@ -189,7 +187,6 @@ $stats['bulk_change'] = '3 pending approval';
 
     <div class="main-container">
         <div class="dashboard-container">
-            <!-- Div 1: Service Cards and Sidebar -->
             <div class="dashboard-section-1">
                 <div class="service-cards-grid">
                     <!-- Today Income -->
