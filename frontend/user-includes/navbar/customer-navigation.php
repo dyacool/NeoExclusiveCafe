@@ -41,19 +41,19 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 <span class="hamburger-icon">☰</span>
             </button>
             <div class="nav-left">
-                <a href="../../../frontend/pages/home/user-dashboard.php" class="nav-link <?php echo $current_page === 'user-dashboard.php' ? 'active' : ''; ?>">
+                <a href="../../../frontend/pages/home/user-dashboard.php" class="nav-link smooth-nav <?php echo $current_page === 'user-dashboard.php' ? 'active' : ''; ?>" data-target="../../../frontend/pages/home/user-dashboard.php">
                     <span class="link-text">Home</span>
                     <span class="link-underline"></span>
                 </a>
-                <a href="/frontend/pages/products/product-dashboard.php" class="nav-link <?php echo $current_page === 'product-dashboard.php' ? 'active' : ''; ?>">
+                <a href="/frontend/pages/products/product-dashboard.php" class="nav-link smooth-nav <?php echo $current_page === 'product-dashboard.php' ? 'active' : ''; ?>" data-target="/frontend/pages/products/product-dashboard.php">
                     <span class="link-text">Products</span>
                     <span class="link-underline"></span>
                 </a>
-                <a href="../../../frontend/pages/blog/blog-dashboard.php" class="nav-link <?php echo $current_page === 'blog-page.php' ? 'active' : ''; ?>">
+                <a href="../../../frontend/pages/blog/blog-dashboard.php" class="nav-link smooth-nav <?php echo $current_page === 'blog-page.php' ? 'active' : ''; ?>" data-target="../../../frontend/pages/blog/blog-dashboard.php">
                     <span class="link-text">Blog</span>
                     <span class="link-underline"></span>
                 </a>
-                <a href="../../../frontend/pages/about/about-page.php" class="nav-link <?php echo $current_page === 'about-page.php' ? 'active' : ''; ?>">
+                <a href="../../../frontend/pages/about/about-page.php" class="nav-link smooth-nav <?php echo $current_page === 'about-page.php' ? 'active' : ''; ?>" data-target="../../../frontend/pages/about/about-page.php">
                     <span class="link-text">About</span>
                     <span class="link-underline"></span>
                 </a>
@@ -234,21 +234,69 @@ $current_page = basename($_SERVER['PHP_SELF']);
             });
             
             // ===== PAGE ENTRY ANIMATION =====
-            // Check if this is the first visit to the page in this session
-            if (!sessionStorage.getItem('navigationAnimationPlayed')) {
-                pageEntryAnimation.classList.add('play-animation');
-                
-                // Hide the animation after it completes
-                setTimeout(() => {
-                    pageEntryAnimation.classList.remove('play-animation');
+            // Only show animation on user-dashboard.php page
+            const isUserDashboard = window.location.pathname.includes('user-dashboard.php') || 
+                                   window.location.pathname.endsWith('/') || 
+                                   window.location.pathname.includes('home');
+            
+            if (isUserDashboard) {
+                // Check if this is the first visit to the page in this session
+                if (!sessionStorage.getItem('navigationAnimationPlayed')) {
+                    pageEntryAnimation.classList.add('play-animation');
+                    
+                    // Hide the animation after it completes and show navbar content
+                    setTimeout(() => {
+                        pageEntryAnimation.classList.remove('play-animation');
+                        pageEntryAnimation.classList.add('animation-completed');
+                        
+                        // Show navbar content then trigger animations
+                        showNavbarContent();
+                        setTimeout(() => {
+                            triggerNavbarAnimations();
+                        }, 100); // Small delay to ensure content is visible first
+                    }, 2000); // Match this timing with your CSS animation duration
+                    
+                    // Mark that we've played the animation in this session
+                    sessionStorage.setItem('navigationAnimationPlayed', 'true');
+                } else {
+                    // If we've already played the animation, show content immediately
                     pageEntryAnimation.classList.add('animation-completed');
-                }, 2000); // Match this timing with your CSS animation duration
-                
-                // Mark that we've played the animation in this session
-                sessionStorage.setItem('navigationAnimationPlayed', 'true');
+                    showNavbarContent();
+                    // Don't trigger animations on subsequent visits
+                }
             } else {
-                // If we've already played the animation, hide it
+                // On other pages, immediately hide logo animation and show navbar content
                 pageEntryAnimation.classList.add('animation-completed');
+                showNavbarContent();
+                // Don't trigger animations on other pages
+            }
+            
+            // Function to show navbar content
+            function showNavbarContent() {
+                const announcementBar = document.querySelector('.announcement-bar');
+                const mainNav = document.querySelector('.main-nav');
+                
+                if (announcementBar) {
+                    announcementBar.classList.add('show-content');
+                }
+                
+                if (mainNav) {
+                    mainNav.classList.add('show-content');
+                }
+            }
+            
+            // Function to trigger navbar animations
+            function triggerNavbarAnimations() {
+                const announcementText = document.querySelector('.announcement-text');
+                const mainNav = document.querySelector('.main-nav');
+                
+                if (announcementText) {
+                    announcementText.classList.add('animate-in');
+                }
+                
+                if (mainNav) {
+                    mainNav.classList.add('animate-in');
+                }
             }
             
             // ===== NOTIFICATIONS =====

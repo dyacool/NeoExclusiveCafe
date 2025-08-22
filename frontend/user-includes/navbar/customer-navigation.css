@@ -106,9 +106,26 @@ body {
   font-size: 12px;
   letter-spacing: 0.5px;
   font-weight: 500;
+  /* Initially hidden until logo reveal completes */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+/* Show announcement bar after logo reveal */
+.announcement-bar.show-content {
+  opacity: 1;
+  visibility: visible;
 }
 
 .announcement-text {
+  /* Remove automatic animation - will be triggered by JavaScript */
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Animation class to be added by JavaScript */
+.announcement-text.animate-in {
   animation: slideIn 0.5s ease-out;
 }
 
@@ -123,17 +140,30 @@ body {
   }
 }
 
-/* Main Navigation - Green with fade bottom animation */
+/* Main Navigation - Green, no automatic animation */
 .main-nav {
-  animation: slideIn 0.5s ease-out;
   background-color: #0f5132;
   position: relative;
   padding: 0;
   color: var(--white);
+  /* Initially hidden until logo reveal completes */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+/* Show main navigation after logo reveal */
+.main-nav.show-content {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Animation class to be added by JavaScript */
+.main-nav.animate-in {
+  animation: slideIn 0.5s ease-out 0.3s both; /* 0.3s delay after announcement */
 }
 
 /* Fade bottom animation for main-nav */
-
 @keyframes fadeBottom {
   from {
     opacity: 0.3;
