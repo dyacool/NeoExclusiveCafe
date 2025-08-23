@@ -36,7 +36,11 @@
 }
 
 .wrapper {
-  background-color: var(--body-color);
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 @keyframes fadeIn {
@@ -72,13 +76,21 @@
   animation: fadeInPop 0.8s ease forwards;
 }
 
+.filters {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 0;
+}
+
 .prdct-title {
-  font-size: 2.5em;
+  font-size: 2em;
   font-weight: 700;
   color: #444;
   text-shadow: 1px 1px 2px #6c6c6c;
   margin-bottom: 15px;
-  text-align: center;
+  @media (max-width: 768px) {
+    text-align: center;
+  }
 }
 
 .main-container {
@@ -99,31 +111,16 @@
   gap: 10px;
 }
 
-.filter-button {
-  width: auto;
-  font-size: var(--font-size0);
-  padding: 5px 20px;
-  border: 1px solid var(--border-color);
-  border-radius: 20px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  background: none;
-  outline: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-}
-
-.filter-button:hover,
-.filter-button.active {
-  background-color: var(--text-green);
-  color: var(--text-white);
-  transform: translateY(-1px);
+/* New Filter Styles */
+.filters {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 0;
 }
 
 .products-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
   padding: 20px 0;
 }
@@ -135,6 +132,9 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s;
   cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .product-card[data-status="Delivery"] .product-image {
@@ -160,6 +160,9 @@
 
 .product-info {
   padding: 12px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
 }
 
 h2 {
@@ -170,7 +173,7 @@ h2 {
 }
 
 h3 {
-  font-size: var(--font-size1);
+  font-size: var(--font-size0);
   font-weight: 600;
   text-align: center;
   margin: 8px 0;
@@ -182,10 +185,9 @@ h3 {
 
 .prdct-availability {
   display: flex;
-  gap: 10px;
-  align-items: center;
   justify-content: space-between;
-  padding: 0 30px;
+  align-items: center;
+  padding: 0 10px;
 }
 
 .price {
@@ -207,7 +209,7 @@ h3 {
 .status-badge {
   display: inline-block;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .quantity-controls {
@@ -258,43 +260,24 @@ h3 {
   color: var(--unavailable-color);
 }
 
-/* Additional status classes for the new status names */
-.status-available {
-  color: var(--available-color);
-}
-
-.status-bread-of-the-week {
-  color: rgb(104, 123, 83);
-}
-
 /* Ensure add-to-cart buttons are clickable */
 .add-to-cart {
-  pointer-events: auto !important;
-  cursor: pointer !important;
+  display: block;
+  width: 95%;
+  margin: auto auto 0 auto;
+  text-align: center;
+  padding: 0.5rem 1rem;
+  background-color: var(--text-green);
+  color: white;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: auto;
 }
 
 .add-to-cart:not(.unavailable) {
   pointer-events: auto !important;
   cursor: pointer !important;
-}
-
-.add-to-cart {
-  display: block;
-  width: 95%;
-  margin: 0 auto;
-  text-align: center;
-  padding: 0.5rem 1rem;
-  background-color: var(--text-green);
-  color: white;
-  text-align: center;
-  border-radius: 0.375rem;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.add-to-cart.unavailable {
-  position: relative;
-  margin-top: 54px;
 }
 
 .add-to-cart:hover {
@@ -358,9 +341,19 @@ h3 {
 
 .modal-body {
   display: flex;
-  flex-direction: column;
   gap: 30px;
   margin-top: 20px;
+}
+
+.modal-days {
+  display: flex;
+  margin-top: 10px;
+}
+
+.modal-controls {
+  align-items: center;
+  justify-content: center;
+  margin-top: auto;
 }
 
 .product-images {
@@ -410,10 +403,10 @@ h3 {
   flex: 1;
 }
 
-.product-details h3 {
-  font-size: 18px;
+.modal-title {
+  font-size: 24px;
   font-weight: 600;
-  text-align: left;
+  text-align: center;
   margin-top: 15px;
   white-space: normal;
   word-wrap: break-word;
@@ -421,12 +414,12 @@ h3 {
 }
 
 .product-details .price {
-  text-align: left;
+  text-align: center;
   font-size: 20px;
   font-weight: 600;
 }
 
-h2 {
+.dscrptn {
   font-size: 18px;
   font-weight: 500;
   color: var(--text-black);
@@ -440,6 +433,9 @@ h2 {
   justify-content: space-between;
 }
 
+.status-badge {
+  color: rgb(104, 123, 83);
+}
 .product-details .description {
   margin: 10px 0;
   line-height: 1.6em;
@@ -560,59 +556,52 @@ h2 {
   background-color: #7f8c8d;
 }
 
-/* BACK BUTTON */
-.cta {
-  border: none;
-  background: none;
-  cursor: pointer;
-  align-self: flex-start;
-  margin: 30px;
+/* Product Availability and Days Display */
+.product-availability {
+  font-size: 12px;
+  color: #666;
+  margin-top: 8px;
 }
 
-.cta span {
-  padding-bottom: 7px;
-  letter-spacing: 1px;
+.available-day {
+  font-size: 11px;
+  color: #555;
+  background-color: #f0f0f0;
+  padding: 2px 6px;
+  border-radius: 10px;
+  margin: 2px 2px 0 0;
+  display: inline-block;
+}
+
+.display-days {
+  margin-top: 5px;
+  font-size: 11px;
+  color: #666;
+}
+
+/* Modal Controls and Text Styling */
+.modal-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+  gap: 10px;
+}
+
+.m-title {
+  font-size: 24px;
+  font-weight: 600;
+  text-align: center;
+  margin-top: 15px;
+  white-space: normal;
+  word-wrap: break-word;
+  max-width: 35ch;
+}
+
+.dscrptn {
   font-size: 18px;
   font-weight: 500;
-  padding-right: 15px;
-  text-transform: uppercase;
+  color: var(--text-black);
+  margin: 10px 0 0 0;
+  text-align: left;
 }
-
-.cta svg {
-  transform: translateX(0);
-  transition: all 0.3s ease;
-}
-
-.cta:hover svg {
-  transform: translateX(-8px);
-}
-
-.cta:active svg {
-  transform: scale(0.9);
-}
-
-.hover-underline-animation {
-  position: relative;
-  color: black;
-  padding-bottom: 20px;
-  padding-left: 5px;
-}
-
-.hover-underline-animation:after {
-  content: "";
-  position: absolute;
-  width: 85%;
-  transform: scaleX(0);
-  height: 2px;
-  bottom: 0;
-  left: 0;
-  background-color: var(--primary-color);
-  transform-origin: bottom right;
-  transition: transform 0.3s ease-out;
-}
-
-.cta:hover .hover-underline-animation:after {
-  transform: scaleX(1);
-  transform-origin: bottom left;
-}
-

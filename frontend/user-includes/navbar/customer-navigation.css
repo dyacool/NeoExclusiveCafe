@@ -437,6 +437,63 @@ body {
   border: none;
 }
 
+/* Mobile Products Dropdown */
+.mobile-products-dropdown {
+  width: 100%;
+  background-color: var(--primary-dark);
+  padding: 0;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 90;
+  margin-top: 0;
+}
+
+.mobile-products-dropdown.active {
+  padding: 0;
+  max-height: 200px;
+  opacity: 1;
+  visibility: visible;
+}
+
+.mobile-dropdown-item {
+  display: block;
+  padding: 15px 40px;
+  color: var(--lightest);
+  text-decoration: none;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  font-size: 16px;
+  font-weight: 500;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+  text-align: left;
+}
+
+.mobile-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.mobile-dropdown-item:hover {
+  background-color: var(--secondary-dark);
+  color: var(--white);
+}
+
+.mobile-dropdown-item:active {
+  background-color: var(--primary);
+}
+
+/* Hide mobile products dropdown on desktop */
+@media (min-width: 993px) {
+  .mobile-products-dropdown {
+    display: none;
+  }
+}
+
 /* Icon Styling */
 .icon-wrapper {
   position: relative;
@@ -854,7 +911,7 @@ body {
   }
 
   .nav-left.active {
-    max-height: 300px;
+    max-height: 500px; /* Increased to accommodate Products dropdown */
     opacity: 1;
   }
 
@@ -921,6 +978,14 @@ body {
     display: none;
   }
 
+  .products-container {
+    width: 100%;
+  }
+
+  .products-container .nav-link {
+    border-bottom: 1px solid var(--primary);
+  }
+
   .logo-container {
     padding: 5px;
   }
@@ -930,9 +995,12 @@ body {
   }
 }
 
-/* Hide mobile search box on desktop */
+/* Hide mobile search box and products dropdown on desktop */
 @media (min-width: 993px) {
   .mobile-search-box {
+    display: none;
+  }
+  .mobile-products-dropdown {
     display: none;
   }
 }
@@ -1007,6 +1075,7 @@ body {
 .products-container .nav-link {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
   position: relative;
 }

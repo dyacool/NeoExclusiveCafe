@@ -46,7 +46,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     <span class="link-underline"></span>
                 </a>
                 <div class="products-container">
-                    <a href="/frontend/pages/products/product-dashboard.php" class="nav-link smooth-nav <?php echo $current_page === 'product-dashboard.php' ? 'active' : ''; ?>" data-target="/frontend/pages/products/product-dashboard.php">
+                    <a href="/frontend/pages/products/products-categories.php" class="nav-link smooth-nav <?php echo $current_page === 'product-dashboard.php' ? 'active' : ''; ?>" data-target="/frontend/pages/products/product-dashboard.php">
                         <span class="link-text">Products</span>
                         <span class="link-underline"></span>
                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="dropdown-arrow">
@@ -57,6 +57,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         <a href="/frontend/pages/products/special-offers.php">Special Offer</a>
                         <a href="/frontend/pages/products/weekly-product.php">For Delivery</a>
                         <a href="/frontend/pages/products/pickup-product.php">For Pick Up</a>
+                    </div>
+                    <!-- Mobile Products Dropdown - Inside nav-left for better visibility -->
+                    <div class="mobile-products-dropdown">
+                        <a href="/frontend/pages/products/special-offers.php" class="mobile-dropdown-item">Special Offer</a>
+                        <a href="/frontend/pages/products/weekly-product.php" class="mobile-dropdown-item">For Delivery</a>
+                        <a href="/frontend/pages/products/pickup-product.php" class="mobile-dropdown-item">For Pick Up</a>
                     </div>
                 </div>
                 <a href="../../../frontend/pages/blog/blog-dashboard.php" class="nav-link smooth-nav <?php echo $current_page === 'blog-page.php' ? 'active' : ''; ?>" data-target="../../../frontend/pages/blog/blog-dashboard.php">
@@ -179,6 +185,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
             const mobileSearchInput = mobileSearchBox.querySelector('.search-input');
             const desktopSearchInput = desktopSearchBox.querySelector('.search-input');
             
+            // ===== PRODUCTS DROPDOWN FUNCTIONALITY =====
+            const productsContainer = document.querySelector('.products-container');
+            const productsLink = productsContainer ? productsContainer.querySelector('.nav-link') : null;
+            const mobileProductsDropdown = document.querySelector('.mobile-products-dropdown');
+            const desktopProductsDropdown = productsContainer ? productsContainer.querySelector('.products-dropdown') : null;
+            
             // Add click event to toggle search visibility
             searchToggle.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -240,7 +252,80 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     mobileSearchBox.classList.remove('active');
                 }
                 searchToggle.classList.remove('active');
+                
+                // Hide products dropdown when resizing across breakpoint
+                if (window.innerWidth <= 992) {
+                    // On mobile, hide desktop dropdown
+                    if (desktopProductsDropdown) {
+                        desktopProductsDropdown.style.display = 'none';
+                    }
+                } else {
+                    // On desktop, hide mobile dropdown and restore desktop dropdown
+                    if (mobileProductsDropdown) {
+                        mobileProductsDropdown.classList.remove('active');
+                    }
+                    if (desktopProductsDropdown) {
+                        desktopProductsDropdown.style.display = '';
+                    }
+                }
             });
+            
+            // ===== PRODUCTS DROPDOWN FUNCTIONALITY =====
+            if (productsLink && mobileProductsDropdown) {
+                productsLink.addEventListener('click', function(e) {
+                    if (window.innerWidth <= 992) {
+                        e.preventDefault(); // Prevent navigation on mobile
+                        mobileProductsDropdown.classList.toggle('active');
+                        
+                        // Close search dropdown if open
+                        mobileSearchBox.classList.remove('active');
+                        searchToggle.classList.remove('active');
+                    }
+                    // On desktop, let the hover CSS handle the dropdown
+                });
+            }
+            
+            // Close mobile products dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (window.innerWidth <= 992 && mobileProductsDropdown && 
+                    !productsContainer.contains(e.target) && 
+                    !mobileProductsDropdown.contains(e.target)) {
+                    mobileProductsDropdown.classList.remove('active');
+                }
+            });
+            
+            // Close products dropdown when pressing Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && window.innerWidth <= 992) {
+                    if (mobileProductsDropdown) {
+                        mobileProductsDropdown.classList.remove('active');
+                    }
+                }
+            });
+            
+            // Hide/show appropriate dropdowns based on screen size
+            function handleProductsDropdownVisibility() {
+                if (window.innerWidth <= 992) {
+                    // Mobile: hide desktop dropdown
+                    if (desktopProductsDropdown) {
+                        desktopProductsDropdown.style.display = 'none';
+                    }
+                } else {
+                    // Desktop: hide mobile dropdown and show desktop dropdown
+                    if (mobileProductsDropdown) {
+                        mobileProductsDropdown.classList.remove('active');
+                    }
+                    if (desktopProductsDropdown) {
+                        desktopProductsDropdown.style.display = '';
+                    }
+                }
+            }
+            
+            // Initial setup
+            handleProductsDropdownVisibility();
+            
+            // Handle window resize for products dropdown
+            window.addEventListener('resize', handleProductsDropdownVisibility);
             
             // ===== PAGE ENTRY ANIMATION =====
             // Only show animation on user-dashboard.php page

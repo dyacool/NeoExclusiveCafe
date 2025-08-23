@@ -32,36 +32,59 @@ if ($conn->connect_error) {
 <div id="confirmationPopup" class="confirmation-popup"></div>
 
 <div class="wrapper">
-   <button class="cta" onclick="window.location.href='/frontend/pages/products/product-dashboard.php'">
-            <svg
-                id="arrow-horizontal"
-                xmlns="http://www.w3.org/2000/svg"
-                width="30"
-                height="10"
-                viewBox="0 0 46 16"
-            >
-                <path
-                id="Path_10"
-                data-name="Path 10"
-                d="M38,0,39.455,1.455,33.949,6.961H76V9.039H33.949l5.506,5.506L38,16l-8-8Z"
-                transform="translate(-25)"
-                ></path>
-            </svg>
-            <span class="hover-underline-animation"> Go Back </span>
-        </button>
-    <h1 class= "prdct-title"> Products </h1>
 
-    <div class="main-container fade-in">
+    <div class="filters">
+        <h1 class="prdct-title">Pick-up Products</h1>
+        
+        <!-- Sorting & Main Filters Section -->
+        <div class="main-filters-section">
+            <h2>Filters:</h2>
 
-        <div class="filter-container">
-            <div class="sort-container">
-                <button class="filter-button active" data-filter="all" type="button" onclick="handleFilterClick(event, 'all', this)">All</button>
-                <button class="filter-button" data-filter="Pickup" type="button" onclick="handleFilterClick(event, 'Pickup', this)">Pickup</button>
-                <button class="filter-button" data-filter="Unavailable" type="button" onclick="handleFilterClick(event, 'Unavailable', this)">Unavailable</button>
-                <button class="filter-button" data-filter="Featured" type="button" onclick="handleFilterClick(event, 'Featured', this)">Featured</button>
+            <!-- Desktop Radio Buttons -->
+            <div class="desktop-filters">
+                <div class="radio-group">
+                    <label class="radio-option">
+                        <input type="radio" name="mainFilter" value="all" checked onchange="handleMainFilterChange()">
+                        <span class="radio-label">All Pre-order Products</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="mainFilter" value="unavailable" onchange="handleMainFilterChange()">
+                        <span class="radio-label">Unavailable Products</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="mainFilter" value="alpha-asc" onchange="handleMainFilterChange()">
+                        <span class="radio-label">Alphabetical (A–Z)</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="mainFilter" value="alpha-desc" onchange="handleMainFilterChange()">
+                        <span class="radio-label">Alphabetical (Z–A)</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="mainFilter" value="price-asc" onchange="handleMainFilterChange()">
+                        <span class="radio-label">Price (Low → High)</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="mainFilter" value="price-desc" onchange="handleMainFilterChange()">
+                        <span class="radio-label">Price (High → Low)</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Mobile Dropdown -->
+            <div class="mobile-filters">
+                <select id="mobileMainFilter" onchange="handleMobileMainFilterChange()">
+                    <option value="all">All Pre-order Products</option>
+                    <option value="unavailable">Unavailable Products</option>
+                    <option value="alpha-asc">Alphabetical (A–Z)</option>
+                    <option value="alpha-desc">Alphabetical (Z–A)</option>
+                    <option value="price-asc">Price (Low → High)</option>
+                    <option value="price-desc">Price (High → Low)</option>
+                </select>
             </div>
         </div>
+    </div>
 
+    <div class="main-container fade-in">
         <div class="products-grid" id="productsGrid">
             <?php
                 $sql = "SELECT 
@@ -171,7 +194,7 @@ if ($conn->connect_error) {
                     <span class="status-badge" id="modalProductStatus"></span>
                     <p class="stock" id="modalProductStock"></p>
                 </div>
-                <h3>Description:</h3>
+                <h3 class="dscrptn">Description:</h3>
                 <div class="description" id="modalProductDescription"></div>
                 <div class="quantity-controls modal-quantity">
                     <button type="button" onclick="updateModalQuantity(-1)">-</button>
@@ -489,31 +512,263 @@ if ($conn->connect_error) {
             };
         });
     });
+
+    // ===== NEW FILTER SYSTEM FUNCTIONS =====
+    let currentMainFilter = 'all';
+
+    function handleMainFilterChange() {
+        const radioButtons = document.querySelectorAll('input[name="mainFilter"]');
+        const selectedRadio = document.querySelector('input[name="mainFilter"]:checked');
+        currentMainFilter = selectedRadio.value;
+        
+        applyFiltersAndSort();
+    }
+
+    function handleMobileMainFilterChange() {
+        const mobileSelect = document.getElementById('mobileMainFilter');
+        currentMainFilter = mobileSelect.value;
+        
+        // Update radio button to match mobile selection
+        const radioButton = document.querySelector(`input[name="mainFilter"][value="${currentMainFilter}"]`);
+        if (radioButton) {
+            radioButton.checked = true;
+        }
+        
+        applyFiltersAndSort();
+    }
+
+    function applyFiltersAndSort() {
+        let cards = Array.from(document.querySelectorAll(".product-card"));
+        
+        // Filter cards first
+        cards.forEach(card => {
+            let shouldShow = false;
+            const statusName = card.getAttribute("data-status");
+            
+            switch (currentMainFilter) {
+                case 'all':
+                    // Show all products except unavailable ones (unless specifically marked to show)
+                    shouldShow = !(statusName === "Unavailable" || statusName === "Unavailable Pick Up" || statusName === "Unavailable Delivery");
+                    break;
+                    
+                case 'unavailable':
+                    shouldShow = (statusName === "Unavailable" || statusName === "Unavailable Pick Up" || statusName === "Unavailable Delivery");
+                    break;
+                    
+                default:
+                    // For sorting options, show all non-unavailable products
+                    shouldShow = !(statusName === "Unavailable" || statusName === "Unavailable Pick Up" || statusName === "Unavailable Delivery");
+                    break;
+            }
+            
+            card.style.display = shouldShow ? "block" : "none";
+        });
+        
+        // Sort visible cards
+        if (currentMainFilter.includes('alpha-') || currentMainFilter.includes('price-')) {
+            sortProducts(currentMainFilter);
+        }
+    }
+
+    function sortProducts(sortType) {
+        const productsGrid = document.getElementById('productsGrid');
+        const cards = Array.from(productsGrid.querySelectorAll('.product-card')).filter(card => 
+            card.style.display !== 'none'
+        );
+        
+        cards.sort((a, b) => {
+            switch (sortType) {
+                case 'alpha-asc':
+                    const nameA = a.querySelector('h3').textContent.toLowerCase();
+                    const nameB = b.querySelector('h3').textContent.toLowerCase();
+                    return nameA.localeCompare(nameB);
+                    
+                case 'alpha-desc':
+                    const nameA2 = a.querySelector('h3').textContent.toLowerCase();
+                    const nameB2 = b.querySelector('h3').textContent.toLowerCase();
+                    return nameB2.localeCompare(nameA2);
+                    
+                case 'price-asc':
+                    const priceA = parseFloat(a.querySelector('.price').textContent.replace('₱', '').replace(',', ''));
+                    const priceB = parseFloat(b.querySelector('.price').textContent.replace('₱', '').replace(',', ''));
+                    return priceA - priceB;
+                    
+                case 'price-desc':
+                    const priceA2 = parseFloat(a.querySelector('.price').textContent.replace('₱', '').replace(',', ''));
+                    const priceB2 = parseFloat(b.querySelector('.price').textContent.replace('₱', '').replace(',', ''));
+                    return priceB2 - priceA2;
+                    
+                default:
+                    return 0;
+            }
+        });
+        
+        // Re-append sorted cards to the grid
+        cards.forEach(card => productsGrid.appendChild(card));
+    }
 </script>
 
 <style>
+    #confirmAddToCartModal .modal-content {
+        max-width: 400px;
+        background: #fff;
+        border-radius: 8px;
+        padding: 20px;
+    }
+
+    #confirmAddToCartModal .modal-body {
+        text-align: center;
+    }
+
+    #confirmAddToCartModal h2 {
+        color: #333;
+        margin-bottom: 15px;
+    }
+
+    #confirmAddToCartModal p {
+        color: #666;
+        margin-bottom: 20px;
+    }
+
+    #confirmAddToCartModal .modal-actions {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+    }
+
+    #confirmAddToCartModal .cancel-btn,
+    #confirmAddToCartModal .confirm-btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    #confirmAddToCartModal .cancel-btn {
+        background: #f0f0f0;
+        color: #333;
+    }
+
+    #confirmAddToCartModal .confirm-btn {
+        background: #4CAF50;
+        color: white;
+    }
+
+    #confirmAddToCartModal .cancel-btn:hover {
+        background: #e0e0e0;
+    }
+
+    #confirmAddToCartModal .confirm-btn:hover {
+        background: #45a049;
+    }
+
     input[type="number"] {
         -moz-appearance: textfield;
     }
+
     input[type="number"]::-webkit-outer-spin-button,
     input[type="number"]::-webkit-inner-spin-button {
         -webkit-appearance: none;
         margin: 0;
     }
-    .back-btn-basic {
-        display: inline-block;
-        margin: 18px 0 10px 0;
-        padding: 8px 18px;
-        background: #256029;
-        color: #fff;
-        border-radius: 4px;
-        text-decoration: none;
-        font-weight: 500;
-        font-size: 1rem;
-        border: none;
-        transition: background 0.2s;
+
+    /* New Filter Section Styles */
+
+
+    .main-filters-section {
+        margin-bottom: 25px;
+        padding-bottom: 20px;
     }
-    .back-btn-basic:hover {
-        background: #1e4d2b;
+
+    .main-filters-section h2 {
+        align: left;
+        font-size: 1.2em;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 15px;
+        letter-spacing: 0.5px;
+    }
+
+    /* Desktop Radio Buttons */
+    .desktop-filters {
+        display: block;
+    }
+
+    .radio-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .radio-option {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        padding: 8px 12px;
+        border-radius: 6px;
+        transition: background-color 0.3s ease;
+    }
+
+    .radio-option:hover {
+        background-color: #f8f9fa;
+    }
+
+    .radio-option input[type="radio"] {
+        margin-right: 10px;
+        width: 16px;
+        height: 16px;
+        accent-color: #1a4a28;
+    }
+
+    .radio-label {
+        font-size: 14px;
+        font-weight: 500;
+        color: #333;
+    }
+
+    /* Mobile Dropdown */
+    .mobile-filters {
+        display: none;
+    }
+
+    .mobile-filters label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+        display: block;
+        font-size: 14px;
+    }
+
+    .mobile-filters select {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+        background: #f8f9fa;
+        color: #333;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .mobile-filters select:focus {
+        outline: none;
+        border-color: #1a4a28;
+        box-shadow: 0 0 0 3px rgba(26, 74, 40, 0.1);
+    }
+
+
+    /* Responsive Design */
+    .filters {
+        width: 320px;
+        height: fit-content;
+        flex-shrink: 0;
+    }
+
+    .main-container {
+        flex: 1;
+        min-width: 0;
     }
 </style>

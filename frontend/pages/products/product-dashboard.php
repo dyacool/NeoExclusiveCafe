@@ -560,7 +560,7 @@ if ($cart_truncated) {
             // Hide products and show closing message
             console.log('Hiding products - setting display to none');
             productsGrid.style.display = 'none';
-            title.textContent = 'Come back for more pre-made breads!';
+            title.textContent = 'Same Day Orders';
             subtitle.innerHTML = `Check again tomorrow for exciting pre-made breads!<br><span style="color:rgb(18, 110, 41); font-weight: 600;">${formatTimeForDisplay(businessHours.openingTime)} - ${formatTimeForDisplay(businessHours.closingTime)}</span>`;
             
             // Hide cart and clear cart data when business hours are closed
@@ -1038,25 +1038,6 @@ if ($cart_truncated) {
     }
 </style>
             
-            <div class="blog-container">
-                <div class="blog-section animate-fade-in-left">
-                <a href="weekly-product.php" class="blog-link">
-                        <img src="../../../assets/images/43384560.jpg" alt="Weekly Available">
-                        <div class="section-title">
-                            <span>DELIVERY</span>
-                        </div>
-                    </a>
-                </div>
-
-                <div class="blog-section animate-fade-in-right">
-                    <a href="user-products.php" class="blog-link">
-                        <img src="../../../assets/images/43387632.JPG" alt="All Products">
-                        <div class="section-title">
-                            <span>PICK UP</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
         </div>
 
         <div class="footer">
