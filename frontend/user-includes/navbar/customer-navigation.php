@@ -45,10 +45,20 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     <span class="link-text">Home</span>
                     <span class="link-underline"></span>
                 </a>
-                <a href="/frontend/pages/products/product-dashboard.php" class="nav-link smooth-nav <?php echo $current_page === 'product-dashboard.php' ? 'active' : ''; ?>" data-target="/frontend/pages/products/product-dashboard.php">
-                    <span class="link-text">Products</span>
-                    <span class="link-underline"></span>
-                </a>
+                <div class="products-container">
+                    <a href="/frontend/pages/products/product-dashboard.php" class="nav-link smooth-nav <?php echo $current_page === 'product-dashboard.php' ? 'active' : ''; ?>" data-target="/frontend/pages/products/product-dashboard.php">
+                        <span class="link-text">Products</span>
+                        <span class="link-underline"></span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="dropdown-arrow">
+                            <polyline points="6,9 12,15 18,9"></polyline>
+                        </svg>
+                    </a>
+                    <div class="products-dropdown">
+                        <a href="/frontend/pages/products/special-offers.php">Special Offer</a>
+                        <a href="/frontend/pages/products/weekly-product.php">For Delivery</a>
+                        <a href="/frontend/pages/products/pickup-product.php">For Pick Up</a>
+                    </div>
+                </div>
                 <a href="../../../frontend/pages/blog/blog-dashboard.php" class="nav-link smooth-nav <?php echo $current_page === 'blog-page.php' ? 'active' : ''; ?>" data-target="../../../frontend/pages/blog/blog-dashboard.php">
                     <span class="link-text">Blog</span>
                     <span class="link-underline"></span>
@@ -70,6 +80,11 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     <button class="search-toggle" aria-label="Toggle search">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                     </button>
+                    <!-- Desktop Search Box - Positioned relative to search icon -->
+                    <form action="../../../frontend/search/search-results.php" method="GET" class="desktop-search-box">
+                        <input type="text" name="query" placeholder="Search..." class="search-input" required>
+                        <button type="submit" class="search-btn">Search</button>
+                    </form>
                 </div>
                 <a href="<?php echo isset($_SESSION['user_id']) ? '../../../frontend/pages/cart/cart.php' : '../../../frontend/login/user/login-signup.php'; ?>" class="cart-link">
                     <div class="icon-wrapper">
@@ -138,12 +153,6 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
         <!-- Mobile Search Box - Positioned below the navigation -->
         <form action="../../../frontend/search/search-results.php" method="GET" class="mobile-search-box">
-            <input type="text" name="query" placeholder="Search..." class="search-input" required>
-            <button type="submit" class="search-btn">Search</button>
-        </form>
-
-        <!-- Desktop Search Box - Popup style -->
-        <form action="../../../frontend/search/search-results.php" method="GET" class="desktop-search-box">
             <input type="text" name="query" placeholder="Search..." class="search-input" required>
             <button type="submit" class="search-btn">Search</button>
         </form>
