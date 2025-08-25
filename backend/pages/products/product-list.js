@@ -575,14 +575,11 @@ function openEditModal(
   const availableTodayCalendarContainer = document.getElementById("availableTodayCalendarContainer");
   
   if (isAvailableTodayContainer && isAvailableTodayRadio) {
-    if (statusName === "Pick Up" || statusName === "Delivery") {
-      console.log('Product is Pick Up/Delivery, showing isAvailableToday container');
+        if (statusName === "Pick Up" || statusName === "Delivery") {
       isAvailableTodayContainer.style.display = "block";
-      
+
       // Check if availtoday_status_id is not null to activate the radio button
-      console.log('Checking availtoday_status_id:', availtodayStatusId);
       if (availtodayStatusId && availtodayStatusId !== 'null' && availtodayStatusId !== '') {
-        console.log('Activating isAvailableToday radio button');
         isAvailableTodayRadio.checked = true;
         
         // Show the Available Today calendar container when radio is checked
@@ -594,9 +591,6 @@ function openEditModal(
         const editAvailableTodayStatusSelect = document.getElementById("editAvailableTodayStatus");
         if (editAvailableTodayStatusSelect) {
           editAvailableTodayStatusSelect.value = availtodayStatusId;
-          console.log('Set editAvailableTodayStatus dropdown to:', availtodayStatusId);
-        } else {
-          console.error('editAvailableTodayStatus dropdown not found!');
         }
       } else {
         // Reset the radio button state if no availtoday_status_id
@@ -624,35 +618,18 @@ function openEditModal(
 
   // Initialize calendars and apply status change after modal is shown
   setTimeout(() => {
-    console.log('=== EDIT MODAL CALENDAR SETUP DEBUG ===');
-    console.log('modalCalendarHandler exists:', !!window.modalCalendarHandler);
-    console.log('todaysProductDates:', todaysProductDates);
-    console.log('regularTodayDates:', regularTodayDates);
-    console.log('status:', status);
-    
     if (window.modalCalendarHandler) {
-      console.log('Initializing edit modal calendars...');
       window.modalCalendarHandler.initializeEditModalCalendars();
-      
-      console.log('Handling edit status change...');
       window.modalCalendarHandler.handleEditStatusChange();
       
       // Set selected dates in calendars
       if (todaysProductDates && status == 3) {
-        console.log('Processing Today\'s Product dates...');
         const dates = todaysProductDates.split(',').filter(d => d.trim());
-        console.log('Parsed dates:', dates);
         window.modalCalendarHandler.setTodaysProductDates(dates);
-      } else {
-        console.log('Not setting Today\'s Product dates:');
-        console.log('- todaysProductDates:', todaysProductDates);
-        console.log('- status == 3:', status == 3);
       }
       
       if (regularTodayDates && (status == 1 || status == 2)) {
-        console.log('Processing regular today dates...');
         const dates = regularTodayDates.split(',').filter(d => d.trim());
-        console.log('Parsed regular dates:', dates);
         if (dates.length > 0) {
           // Check the isAvailableToday radio button
           const isAvailableTodayRadio = document.getElementById('isAvailableToday');
@@ -663,13 +640,7 @@ function openEditModal(
           }
           window.modalCalendarHandler.setAvailableTodayDates(dates);
         }
-      } else {
-        console.log('Not setting regular today dates:');
-        console.log('- regularTodayDates:', regularTodayDates);
-        console.log('- status == 1 || 2:', status == 1 || status == 2);
       }
-    } else {
-      console.error('modalCalendarHandler not found!');
     }
   }, 200); // Increased timeout to ensure calendars are fully initialized
 }
@@ -1339,7 +1310,6 @@ function removeAdditionalImage(imageId) {
 
 function handleFormSubmit(event) {
   event.preventDefault();
-  console.log('=== FORM SUBMIT STARTED ===');
 
   const statusSelect = document.getElementById("editProductStatus");
   const selectedStatus = statusSelect.options[statusSelect.selectedIndex].text;
@@ -1406,22 +1376,13 @@ function handleFormSubmit(event) {
   const availtodayStatusId = document.getElementById("editAvailtodayStatus").value || null;
 
   // Get calendar data
-  console.log('=== FORM SUBMIT CALENDAR DATA DEBUG ===');
   const todaysProductDatesInput = document.getElementById("todaysProductDates");
   const availableTodayDatesInput = document.getElementById("availableTodayDates");
-  
-  console.log('todaysProductDates input exists:', !!todaysProductDatesInput);
-  console.log('todaysProductDates input value:', todaysProductDatesInput ? todaysProductDatesInput.value : 'N/A');
-  console.log('availableTodayDates input exists:', !!availableTodayDatesInput);
-  console.log('availableTodayDates input value:', availableTodayDatesInput ? availableTodayDatesInput.value : 'N/A');
   
   const todaysProductDates = todaysProductDatesInput ? 
     todaysProductDatesInput.value.split(',').filter(d => d.trim()) : [];
   const availableTodayDates = availableTodayDatesInput ? 
     availableTodayDatesInput.value.split(',').filter(d => d.trim()) : [];
-    
-  console.log('Processed todaysProductDates:', todaysProductDates);
-  console.log('Processed availableTodayDates:', availableTodayDates);
 
   const formData = {
     id: document.getElementById("editProductId").value,
@@ -1849,9 +1810,7 @@ function resetFormToOriginal() {
     fetch("cleanup-temp-images.php", { method: "POST", body: cleanupFormData })
       .then((response) => response.json())
       .then((data) => {
-        if (data.success) {
-          console.log("Temporary images cleaned up:", data.cleaned_files);
-        } else {
+        if (!data.success) {
           console.error("Failed to cleanup temp images:", data.error);
         }
       })
@@ -1868,9 +1827,7 @@ function resetFormToOriginal() {
     })
       .then((response) => response.json())
       .then((data) => {
-        if (data.success) {
-          console.log("Removed images restored:", data.restored_images);
-        } else {
+        if (!data.success) {
           console.error("Failed to restore removed images:", data.error);
         }
       })

@@ -28,10 +28,10 @@ class DateCalendar {
         // Register this instance globally for onclick access
         if (!window.calendarInstances) {
             window.calendarInstances = {};
-            console.log('Initialized window.calendarInstances');
+
         }
         window.calendarInstances[containerId] = this;
-        console.log(`Registered calendar instance: ${containerId}`, window.calendarInstances);
+
         
         this.init();
     }

@@ -11,60 +11,53 @@ let availableTodayEditCalendar = null;
  * Initialize calendars for the edit modal
  */
 function initializeEditModalCalendars() {
-    console.log('=== initializeEditModalCalendars DEBUG ===');
-    console.log('todaysProductEditCalendar exists:', !!todaysProductEditCalendar);
-    console.log('availableTodayEditCalendar exists:', !!availableTodayEditCalendar);
-    
     const todaysContainer = document.getElementById('todaysProductCalendar');
     const availableTodayContainer = document.getElementById('availableTodayCalendar');
     
-    console.log('todaysProductCalendar container exists:', !!todaysContainer);
-    console.log('availableTodayCalendar container exists:', !!availableTodayContainer);
-    
     // Only initialize if calendars don't already exist
     if (!todaysProductEditCalendar && todaysContainer) {
-        console.log('Creating todaysProductEditCalendar...');
+
         try {
             todaysProductEditCalendar = new DateCalendar('todaysProductCalendar', {
                 onSelectionChange: function(selectedDates) {
-                    console.log('Today\'s product calendar selection changed:', selectedDates);
+
                     const hiddenInput = document.getElementById('todaysProductDates');
                     if (hiddenInput) {
                         hiddenInput.value = selectedDates.join(',');
-                        console.log('Updated hidden input:', hiddenInput.value);
+
                     }
                 },
                 maxSelections: null // Allow unlimited selections
             });
-            console.log('todaysProductEditCalendar created successfully:', todaysProductEditCalendar);
+
         } catch (error) {
             console.error('Error creating todaysProductEditCalendar:', error);
         }
     } else {
-        console.log('Skipping todaysProductEditCalendar creation');
+
     }
     
     // Only initialize if calendars don't already exist
     if (!availableTodayEditCalendar && availableTodayContainer) {
-        console.log('Creating availableTodayEditCalendar...');
+
         try {
             availableTodayEditCalendar = new DateCalendar('availableTodayCalendar', {
                 onSelectionChange: function(selectedDates) {
-                    console.log('Available today calendar selection changed:', selectedDates);
+
                     const hiddenInput = document.getElementById('availableTodayDates');
                     if (hiddenInput) {
                         hiddenInput.value = selectedDates.join(',');
-                        console.log('Updated hidden input:', hiddenInput.value);
+
                     }
                 },
                 maxSelections: null // Allow unlimited selections
             });
-            console.log('availableTodayEditCalendar created successfully:', availableTodayEditCalendar);
+
         } catch (error) {
             console.error('Error creating availableTodayEditCalendar:', error);
         }
     } else {
-        console.log('Skipping availableTodayEditCalendar creation');
+
     }
 }
 
@@ -72,48 +65,27 @@ function initializeEditModalCalendars() {
  * Set selected dates for Today's Product calendar
  */
 function setTodaysProductDates(dates) {
-    console.log('=== setTodaysProductDates DEBUG ===');
-    console.log('Called with dates:', dates);
-    console.log('Date type:', typeof dates);
-    console.log('Is array:', Array.isArray(dates));
-    console.log('Calendar instance exists:', !!todaysProductEditCalendar);
-    console.log('Calendar instance:', todaysProductEditCalendar);
     
     if (todaysProductEditCalendar && dates && dates.length > 0) {
         const cleanDates = dates.filter(d => d.trim());
-        console.log('Clean dates after filter:', cleanDates);
-        
-        // Check if calendar has the required methods
-        console.log('clearAllDates method exists:', typeof todaysProductEditCalendar.clearAllDates === 'function');
-        console.log('setSelectedDates method exists:', typeof todaysProductEditCalendar.setSelectedDates === 'function');
         
         try {
             // Clear existing selections first
             todaysProductEditCalendar.clearAllDates();
-            console.log('Cleared existing dates');
+
             
             // Set new selections
             todaysProductEditCalendar.setSelectedDates(cleanDates);
-            console.log('Set new dates');
+
             
             // Update hidden input
             const hiddenInput = document.getElementById('todaysProductDates');
             if (hiddenInput) {
                 hiddenInput.value = cleanDates.join(',');
-                console.log('Updated hidden input value:', hiddenInput.value);
-            } else {
-                console.error('Hidden input todaysProductDates not found!');
             }
-            
-            console.log('Dates set successfully');
         } catch (error) {
             console.error('Error setting dates:', error);
         }
-    } else {
-        console.log('Cannot set dates:');
-        console.log('- Calendar exists:', !!todaysProductEditCalendar);
-        console.log('- Dates provided:', !!dates);
-        console.log('- Dates length:', dates ? dates.length : 'N/A');
     }
 }
 

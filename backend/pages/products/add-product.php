@@ -34,12 +34,6 @@ function generateSKU($conn) {
 $sku = generateSKU($conn); // Generate SKU when the page loads
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Debug: Log the POST data
-    error_log("=== ADD PRODUCT FORM SUBMISSION ===");
-    error_log("Status ID: " . $_POST['status_id']);
-    if (isset($_POST['todays_product_dates'])) {
-        error_log("Todays product dates received: " . $_POST['todays_product_dates']);
-    }
     
     $sku = generateSKU($conn);
     $name = $_POST['name'];
@@ -64,9 +58,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (isset($_POST['todays_product_dates']) && !empty($_POST['todays_product_dates'])) {
         $todays_product_dates = explode(',', $_POST['todays_product_dates']);
         $todays_product_dates = array_filter($todays_product_dates); // Remove empty values
-        error_log("Today's product dates: " . print_r($todays_product_dates, true));
-    } else {
-        error_log("No todays_product_dates found in POST data");
     }
 
     // Handle availtoday_status_id for Available Today products
@@ -151,7 +142,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         // Insert Today's product dates into todays_products_dates table
         if ($status_id == 3 && !empty($todays_product_dates)) {
-            error_log("Inserting Today's product dates - Product ID: $product_id, Status: $availtoday_status_id");
             $date_stmt = $conn->prepare("INSERT INTO todays_products_dates (product_id, available_date, availtoday_status_id) VALUES (?, ?, ?)");
             
             foreach ($todays_product_dates as $date) {
@@ -159,18 +149,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // Validate date format
                 if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $trimmed_date)) {
                     $date_stmt->bind_param("isi", $product_id, $trimmed_date, $availtoday_status_id);
-                    if ($date_stmt->execute()) {
-                        error_log("SUCCESS: Inserted date $trimmed_date for product $product_id");
-                    } else {
-                        error_log("FAILED to insert date $trimmed_date: " . $date_stmt->error);
+                    if (!$date_stmt->execute()) {
+                        throw new Exception("Failed to insert date $trimmed_date: " . $date_stmt->error);
                     }
-                } else {
-                    error_log("Invalid date format: $trimmed_date");
                 }
             }
             $date_stmt->close();
-        } else {
-            error_log("Not inserting dates - Status: $status_id, Dates count: " . count($todays_product_dates));
         }
 
         // Set success message in session
@@ -359,7 +343,6 @@ $conn->close();
                         <label>Select Available Dates for Today's Product:</label>
                         <div id="todaysProductCalendar"></div>
                         <input type="hidden" id="todaysProductDates" name="todays_product_dates">
-                        <button type="button" onclick="debugCalendar()" style="margin-top: 10px; padding: 5px 10px; background: #007cba; color: white; border: none; border-radius: 3px;">Debug: Check Calendar</button>
                     </div>
 
                     <label>Visibility</label>
@@ -394,26 +377,7 @@ $conn->close();
 <?php include __DIR__ . "/../admin-includes/footer/admin-footer.php"; ?>
 
 <script>
-    // Global debug function to check calendar state
-    function debugCalendar() {
-        const hiddenInput = document.getElementById('todaysProductDates');
-        const calendarContainer = document.getElementById('todaysProductCalendar');
-        const calendarInstance = window.todaysProductCalendar;
-        
-        console.log('=== CALENDAR DEBUG ===');
-        console.log('Hidden input exists:', !!hiddenInput);
-        console.log('Hidden input value:', hiddenInput ? hiddenInput.value : 'N/A');
-        console.log('Calendar container exists:', !!calendarContainer);
-        console.log('Calendar instance exists:', !!calendarInstance);
-        console.log('DateCalendar class available:', typeof DateCalendar !== 'undefined');
-        
-        if (calendarInstance) {
-            console.log('Calendar selected dates:', calendarInstance.selectedDates || 'No selectedDates property');
-            console.log('Calendar object:', calendarInstance);
-        }
-        
-        alert('Check console for debug info. Hidden input value: ' + (hiddenInput ? hiddenInput.value : 'N/A'));
-    }
+
 </script>
 
 <script>
@@ -435,7 +399,7 @@ $conn->close();
 
         // Function to toggle available days/calendar visibility based on status
         function toggleAvailableDaysVisibility() {
-            console.log('toggleAvailableDaysVisibility called');
+
             const statusSelect = document.querySelector('select[name="status_id"]');
             const regularDaysContainer = document.getElementById('regularAvailableDaysContainer');
             const todaysCalendarContainer = document.getElementById('todaysProductCalendarContainer');
@@ -444,7 +408,7 @@ $conn->close();
             
             if (statusSelect) {
                 const selectedValue = statusSelect.value;
-                console.log('Status selected:', selectedValue);
+
                 
                 if (selectedValue === '1' || selectedValue === '2') { // Pick Up or Delivery
                     if (regularDaysContainer) regularDaysContainer.style.display = 'block';
@@ -463,47 +427,44 @@ $conn->close();
                     }
                     
                     // Initialize calendar for Today's products
-                    console.log('Attempting to initialize calendar for Today\'s products');
-                    console.log('Calendar container exists:', document.getElementById('todaysProductCalendar') !== null);
-                    console.log('DateCalendar class exists:', typeof DateCalendar !== 'undefined');
-                    console.log('initializeDateCalendar function exists:', typeof initializeDateCalendar !== 'undefined');
+
+
                     
                     // Always ensure calendar has proper callback, even if it exists
-                    console.log('Creating/updating calendar instance');
                     try {
                         // Try DateCalendar class first, fallback to initializeDateCalendar function
                         if (typeof DateCalendar !== 'undefined') {
-                            console.log('Using DateCalendar class');
+
                             window.todaysProductCalendar = new DateCalendar('todaysProductCalendar', {
                                 onSelectionChange: function(selectedDates) {
-                                    console.log('Calendar selection changed:', selectedDates);
+
                                     const hiddenInput = document.getElementById('todaysProductDates');
                                     if (hiddenInput) {
                                         hiddenInput.value = selectedDates.join(',');
-                                        console.log('Hidden input value set to:', hiddenInput.value);
+
                                     } else {
-                                        console.error('Hidden input todaysProductDates not found!');
+
                                     }
                                 }
                             });
                         } else if (typeof initializeDateCalendar !== 'undefined') {
-                            console.log('Using initializeDateCalendar function');
+
                             window.todaysProductCalendar = initializeDateCalendar('todaysProductCalendar', {
                                 onSelectionChange: function(selectedDates) {
-                                    console.log('Calendar selection changed:', selectedDates);
+
                                     const hiddenInput = document.getElementById('todaysProductDates');
                                     if (hiddenInput) {
                                         hiddenInput.value = selectedDates.join(',');
-                                        console.log('Hidden input value set to:', hiddenInput.value);
+
                                     } else {
-                                        console.error('Hidden input todaysProductDates not found!');
+
                                     }
                                 }
                             });
                         } else {
-                            console.error('Neither DateCalendar class nor initializeDateCalendar function found!');
+
                         }
-                        console.log('Calendar created successfully:', window.todaysProductCalendar);
+
                     } catch (error) {
                         console.error('Error creating calendar:', error);
                     }
@@ -661,10 +622,7 @@ $conn->close();
             const todaysProductDates = document.getElementById('todaysProductDates');
             const availtodaySelect = document.querySelector('select[name="availtoday_status_id"]');
 
-            // Debug logging
-            console.log('Form validation - Status:', statusSelect.value);
-            console.log('Form validation - Dates:', todaysProductDates ? todaysProductDates.value : 'null');
-            console.log('Form validation - Availtoday Status:', availtodaySelect ? availtodaySelect.value : 'null');
+
 
             // For Today's products, ensure both date and availtoday status are selected
             if (statusSelect.value === '3') {
