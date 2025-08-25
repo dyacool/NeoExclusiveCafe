@@ -31,6 +31,12 @@ if ($conn->connect_error) {
     die("Database connection failed");
 }
 
+// Debug session data
+error_log("=== AVAILTODAY CHECKOUT DEBUG ===");
+error_log("Session ID: " . session_id());
+error_log("User ID from session: " . ($_SESSION['user_id'] ?? 'NOT SET'));
+error_log("Full session data: " . print_r($_SESSION, true));
+
 // Initialize user array with default values
 $user = array(
     'firstname' => $_SESSION['user_firstname'] ?? '',
@@ -41,12 +47,16 @@ $user = array(
 // Get user data from session
 if (isset($_SESSION['session_data']) && isset($_SESSION['session_data']['user_data'])) {
     $user = $_SESSION['session_data']['user_data'];
+    error_log("Got user data from session_data->user_data: " . print_r($user, true));
 } elseif (isset($_SESSION['user_data'])) {
     $user = $_SESSION['user_data'];
+    error_log("Got user data from user_data: " . print_r($user, true));
+} else {
+    error_log("No user data found in session, using defaults: " . print_r($user, true));
 }
 
-// If still no email, try to get from database
-if (empty($user['email']) && isset($_SESSION['user_id'])) {
+// Always fetch user data from database to ensure we have the email
+if (isset($_SESSION['user_id'])) {
     try {
         $user_id = intval($_SESSION['user_id']);
         $user_query = "SELECT firstname, lastname, email FROM users WHERE id = ?";
@@ -62,12 +72,20 @@ if (empty($user['email']) && isset($_SESSION['user_id'])) {
                 $user['firstname'] = $user_data['firstname'];
                 $user['lastname'] = $user_data['lastname'];
                 $user['email'] = $user_data['email'];
+                
+                error_log("User data fetched successfully: " . print_r($user, true));
+            } else {
+                error_log("No user found with ID: " . $user_id);
             }
             $user_stmt->close();
+        } else {
+            error_log("Failed to prepare user query");
         }
     } catch (Exception $e) {
         error_log("Error fetching user data: " . $e->getMessage());
     }
+} else {
+    error_log("No user_id in session");
 }
 
 // Get Available Today cart items from cart_availtoday table
@@ -216,15 +234,37 @@ $debug_info = [
                     <span class="detail-label">Email:</span>
                     <span class="detail-value" id="user-email">
                         <?php 
-                            $email = $user['email'] ?? 'Email not available';
-                            echo htmlspecialchars($email);
+                            // Final attempt to get email - try direct query if still empty
+                            if (empty($user['email']) && isset($_SESSION['user_id'])) {
+                                try {
+                                    $direct_query = "SELECT email FROM users WHERE id = " . intval($_SESSION['user_id']);
+                                    $direct_result = $conn->query($direct_query);
+                                    if ($direct_result && $direct_result->num_rows > 0) {
+                                        $direct_row = $direct_result->fetch_assoc();
+                                        $user['email'] = $direct_row['email'];
+                                        error_log("Email retrieved via direct query: " . $user['email']);
+                                    }
+                                } catch (Exception $e) {
+                                    error_log("Direct query failed: " . $e->getMessage());
+                                }
+                            }
+                            
+                            if (!empty($user['email'])) {
+                                echo htmlspecialchars($user['email']);
+                            } else {
+                                echo '<span style="color: #f44336;">Email not found - please contact support</span>';
+                                error_log("FINAL EMAIL DISPLAY ISSUE:");
+                                error_log("- User data: " . print_r($user, true));
+                                error_log("- Session user_id: " . ($_SESSION['user_id'] ?? 'not set'));
+                                error_log("- Database connection: " . ($conn ? 'OK' : 'FAILED'));
+                            }
                         ?>
                     </span>
                     <input type="hidden" name="email" value="<?php 
                         echo !empty($user['email']) ? htmlspecialchars($user['email']) : '';
                     ?>">
-                    <input type="hidden" name="first_name" value="<?php echo htmlspecialchars($user['firstname']); ?>">
-                    <input type="hidden" name="last_name" value="<?php echo htmlspecialchars($user['lastname']); ?>">
+                    <input type="hidden" name="first_name" value="<?php echo htmlspecialchars($user['firstname'] ?? ''); ?>">
+                    <input type="hidden" name="last_name" value="<?php echo htmlspecialchars($user['lastname'] ?? ''); ?>">
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Contact:</span>
@@ -327,17 +367,37 @@ $debug_info = [
                     <input type="radio" name="payment_method" value="gcash" id="gcash" checked>
                     <div class="payment-option-content">
                         <span class="payment-text">GCash</span>
+                        <small class="payment-desc">Pay with GCash e-wallet</small>
                     </div>
                 </label>
                 <label class="payment-option">
-                    <input type="radio" name="payment_method" value="maya" id="maya">
+                    <input type="radio" name="payment_method" value="paymaya" id="paymaya">
                     <div class="payment-option-content">
-                        <span class="payment-text">Maya</span>
+                        <span class="payment-text">Maya (PayMaya)</span>
+                        <small class="payment-desc">Pay with Maya e-wallet</small>
+                    </div>
+                </label>
+                <label class="payment-option">
+                    <input type="radio" name="payment_method" value="card" id="card">
+                    <div class="payment-option-content">
+                        <span class="payment-text">Credit/Debit Card</span>
+                        <small class="payment-desc">Pay with Visa, Mastercard</small>
                     </div>
                 </label>
             </div>
+            
+            <!-- Card Payment Form (hidden by default) -->
+            <div id="card-payment-form" class="card-payment-form" style="display: none;">
+                <h3>Card Details</h3>
+                <div id="card-element">
+                    <!-- PayMongo card element will be mounted here -->
+                </div>
+                <div id="card-errors" class="card-errors"></div>
+            </div>
+            
             <div class="payment-note">
-                <p>Payment instructions will be provided after placing your order.</p>
+                <p><strong>Secure Payment:</strong> All payments are processed securely through PayMongo.</p>
+                <p><small>Test Mode: Use test card numbers for testing payments.</small></p>
             </div>
         </div>
 
@@ -354,8 +414,14 @@ $debug_info = [
         <input type="hidden" name="has_mixed_status" value="<?php echo $has_mixed_availtoday_status ? '1' : '0'; ?>">
 
         <!-- Place Order Button -->
-        <button type="submit" class="btn-primary place-order-btn" style="background-color: #256035;">
-            Place Order - ₱<?php echo number_format($cart_total, 2); ?>
+        <button type="button" id="place-order-btn" class="btn-primary place-order-btn" style="background-color: #256035;">
+            <span id="button-text">Place Order - ₱<?php echo number_format($cart_total, 2); ?></span>
+            <span id="loading-spinner" style="display: none;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="animate-spin">
+                    <path d="M21 12a9 9 0 11-6.219-8.56"/>
+                </svg>
+                Processing...
+            </span>
         </button>
     </form>
 </div>
@@ -405,6 +471,9 @@ $debug_info = [
 <!-- Add Address Selector Script -->
 <script src="ph-address-selector.js"></script>
 <?php endif; ?>
+
+<!-- PayMongo SDK -->
+<script src="https://js.paymongo.com/v1"></script>
 
 <script>
 // Modal functionality (only if delivery items exist)
@@ -479,46 +548,307 @@ if (phoneInput) {
     });
 }
 
-// Form submission handler
-const checkoutForm = document.getElementById('availtoday-checkout-form');
-if (checkoutForm) {
-    checkoutForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
+// PayMongo Integration
+let paymongoInstance;
+let cardElement;
+
+// Initialize PayMongo
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize PayMongo (we'll set the public key when needed)
+    // paymongoInstance will be initialized when card payment is selected
+    
+    // Handle payment method changes
+    const paymentMethods = document.querySelectorAll('input[name="payment_method"]');
+    paymentMethods.forEach(method => {
+        method.addEventListener('change', handlePaymentMethodChange);
+    });
+    
+    // Handle place order button
+    const placeOrderBtn = document.getElementById('place-order-btn');
+    if (placeOrderBtn) {
+        placeOrderBtn.addEventListener('click', handlePlaceOrder);
+    }
+});
+
+// Handle payment method selection
+function handlePaymentMethodChange(e) {
+    const cardForm = document.getElementById('card-payment-form');
+    
+    if (e.target.value === 'card') {
+        cardForm.style.display = 'block';
+        initializeCardElement();
+    } else {
+        cardForm.style.display = 'none';
+        if (cardElement) {
+            cardElement.unmount();
+            cardElement = null;
+        }
+    }
+}
+
+// Initialize PayMongo card element
+async function initializeCardElement() {
+    try {
+        // We'll get the public key from the server when processing payment
+        // For now, just prepare the card element container
+        const cardElementContainer = document.getElementById('card-element');
+        cardElementContainer.innerHTML = `
+            <div class="card-field-group">
+                <div class="card-field">
+                    <label>Card Number</label>
+                    <input type="text" id="card-number" placeholder="1234 5678 9012 3456" maxlength="19">
+                </div>
+                <div class="card-field-row">
+                    <div class="card-field">
+                        <label>Expiry Date</label>
+                        <input type="text" id="card-expiry" placeholder="MM/YY" maxlength="5">
+                    </div>
+                    <div class="card-field">
+                        <label>CVC</label>
+                        <input type="text" id="card-cvc" placeholder="123" maxlength="4">
+                    </div>
+                </div>
+            </div>
+        `;
         
-        try {
-            // Get all form data
-            const formData = new FormData(this);
-            
-            // Add cart items and user info
-            const cartItems = <?php echo json_encode($cart_items); ?>;
-            const cartTotal = <?php echo json_encode($cart_total); ?>;
-            
-            // Validate cart items
-            if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
-                throw new Error('Please ensure you have items in your cart before proceeding with checkout.');
+        // Add input formatting
+        formatCardInputs();
+        
+    } catch (error) {
+        console.error('Error initializing card element:', error);
+    }
+}
+
+// Format card inputs
+function formatCardInputs() {
+    const cardNumber = document.getElementById('card-number');
+    const cardExpiry = document.getElementById('card-expiry');
+    const cardCvc = document.getElementById('card-cvc');
+    
+    if (cardNumber) {
+        cardNumber.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            value = value.substring(0, 16);
+            value = value.replace(/(\d{4})(?=\d)/g, '$1 ');
+            e.target.value = value;
+        });
+    }
+    
+    if (cardExpiry) {
+        cardExpiry.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
             }
-            
-            // Show loading state
-            const submitBtn = this.querySelector('.place-order-btn');
-            const originalText = submitBtn.textContent;
-            submitBtn.textContent = 'Processing Order...';
-            submitBtn.disabled = true;
-            
-            // Submit the form
-            this.submit();
-            
-        } catch (error) {
-            console.error('Checkout error:', error);
-            alert(error.message || 'An error occurred during checkout. Please try again.');
-            
-            // Reset button state
-            const submitBtn = this.querySelector('.place-order-btn');
-            if (submitBtn) {
-                submitBtn.textContent = submitBtn.textContent.replace('Processing Order...', originalText || 'Place Order');
-                submitBtn.disabled = false;
+            e.target.value = value;
+        });
+    }
+    
+    if (cardCvc) {
+        cardCvc.addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/\D/g, '').substring(0, 4);
+        });
+    }
+}
+
+// Handle place order
+async function handlePlaceOrder() {
+    try {
+        // Show loading state
+        setLoadingState(true);
+        
+        // Validate form
+        if (!validateForm()) {
+            setLoadingState(false);
+            return;
+        }
+        
+        // Get form data
+        const formData = getFormData();
+        
+        // Get selected payment method
+        const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
+        
+        // Prepare payment data
+        const paymentData = {
+            payment_method: paymentMethod,
+            order_type: 'availtoday',
+            amount: <?php echo $cart_total; ?>,
+            order_data: formData
+        };
+        
+        // Process payment
+        const paymentResult = await processPayment(paymentData);
+        
+        if (paymentResult.success) {
+            if (paymentResult.payment_type === 'source') {
+                // Redirect to PayMongo checkout for GCash/Maya
+                window.location.href = paymentResult.checkout_url;
+            } else if (paymentResult.payment_type === 'payment_intent') {
+                // Handle card payment confirmation
+                await handleCardPayment(paymentResult);
             }
+        } else {
+            throw new Error(paymentResult.error || 'Payment processing failed');
+        }
+        
+    } catch (error) {
+        console.error('Order processing error:', error);
+        alert(error.message || 'An error occurred while processing your order. Please try again.');
+        setLoadingState(false);
+    }
+}
+
+// Process payment through backend
+async function processPayment(paymentData) {
+    const response = await fetch('process-payment.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(paymentData)
+    });
+    
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return await response.json();
+}
+
+// Handle card payment with PayMongo
+async function handleCardPayment(paymentResult) {
+    try {
+        // Initialize PayMongo with public key
+        paymongoInstance = new PayMongo(paymentResult.public_key);
+        
+        // Get card details
+        const cardNumber = document.getElementById('card-number').value.replace(/\s/g, '');
+        const cardExpiry = document.getElementById('card-expiry').value;
+        const cardCvc = document.getElementById('card-cvc').value;
+        
+        // Parse expiry
+        const [expMonth, expYear] = cardExpiry.split('/');
+        
+        // Create payment method
+        const paymentMethod = await paymongoInstance.createPaymentMethod({
+            type: 'card',
+            details: {
+                card_number: cardNumber,
+                exp_month: parseInt(expMonth),
+                exp_year: parseInt('20' + expYear),
+                cvc: cardCvc
+            }
+        });
+        
+        if (paymentMethod.error) {
+            throw new Error(paymentMethod.error.message);
+        }
+        
+        // Confirm payment intent
+        const result = await paymongoInstance.confirmPaymentIntent(
+            paymentResult.payment_intent_id,
+            {
+                payment_method: paymentMethod.paymentMethod.id,
+                return_url: window.location.origin + '/frontend/pages/cart/payment-return.php?type=availtoday'
+            }
+        );
+        
+        if (result.error) {
+            throw new Error(result.error.message);
+        }
+        
+        // Handle 3D Secure redirect if needed
+        if (result.paymentIntent.status === 'requires_action') {
+            window.location.href = result.paymentIntent.next_action.redirect.url;
+        } else if (result.paymentIntent.status === 'succeeded') {
+            // Payment successful
+            window.location.href = 'payment-return.php?type=availtoday&status=success';
+        }
+        
+    } catch (error) {
+        console.error('Card payment error:', error);
+        throw error;
+    }
+}
+
+// Get form data
+function getFormData() {
+    const form = document.getElementById('availtoday-checkout-form');
+    const formData = new FormData(form);
+    
+    const data = {};
+    for (let [key, value] of formData.entries()) {
+        data[key] = value;
+    }
+    
+    // Add customer name
+    data.customer_name = (data.first_name || '') + ' ' + (data.last_name || '');
+    data.customer_email = data.email;
+    
+    return data;
+}
+
+// Validate form
+function validateForm() {
+    const form = document.getElementById('availtoday-checkout-form');
+    const requiredFields = form.querySelectorAll('input[required]');
+    let isValid = true;
+    
+    requiredFields.forEach(field => {
+        if (!field.value.trim()) {
+            field.style.borderColor = '#f44336';
+            isValid = false;
+        } else {
+            field.style.borderColor = '#ddd';
         }
     });
+    
+    // Validate card fields if card payment is selected
+    const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
+    if (paymentMethod === 'card') {
+        const cardNumber = document.getElementById('card-number');
+        const cardExpiry = document.getElementById('card-expiry');
+        const cardCvc = document.getElementById('card-cvc');
+        
+        if (!cardNumber.value || cardNumber.value.replace(/\s/g, '').length < 16) {
+            cardNumber.style.borderColor = '#f44336';
+            isValid = false;
+        }
+        
+        if (!cardExpiry.value || cardExpiry.value.length < 5) {
+            cardExpiry.style.borderColor = '#f44336';
+            isValid = false;
+        }
+        
+        if (!cardCvc.value || cardCvc.value.length < 3) {
+            cardCvc.style.borderColor = '#f44336';
+            isValid = false;
+        }
+    }
+    
+    if (!isValid) {
+        alert('Please fill in all required fields correctly.');
+    }
+    
+    return isValid;
+}
+
+// Set loading state
+function setLoadingState(loading) {
+    const buttonText = document.getElementById('button-text');
+    const loadingSpinner = document.getElementById('loading-spinner');
+    const placeOrderBtn = document.getElementById('place-order-btn');
+    
+    if (loading) {
+        buttonText.style.display = 'none';
+        loadingSpinner.style.display = 'inline-flex';
+        placeOrderBtn.disabled = true;
+    } else {
+        buttonText.style.display = 'inline';
+        loadingSpinner.style.display = 'none';
+        placeOrderBtn.disabled = false;
+    }
 }
 
 // Additional styles for Available Today specific elements
@@ -566,6 +896,96 @@ const additionalStyles = `
 .mixed-status-notice h2 {
     color: #856404;
     margin-bottom: 10px;
+}
+
+/* PayMongo Payment Styles */
+.payment-option-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.payment-desc {
+    color: #666;
+    font-size: 12px;
+}
+
+.card-payment-form {
+    margin-top: 20px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+.card-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.card-field-row {
+    display: flex;
+    gap: 15px;
+}
+
+.card-field {
+    flex: 1;
+}
+
+.card-field label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #333;
+    font-size: 14px;
+}
+
+.card-field input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+}
+
+.card-field input:focus {
+    outline: none;
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+.card-errors {
+    color: #f44336;
+    font-size: 14px;
+    margin-top: 10px;
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+#loading-spinner {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.place-order-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+    .card-field-row {
+        flex-direction: column;
+    }
 }
 </style>
 `;

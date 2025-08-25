@@ -7,6 +7,26 @@ require_once __DIR__ . "/../admin-includes/config.php";
 require_once __DIR__ . "/../admin-includes/database.php";
 require_once __DIR__ . "/../../login/admin/admin-auth.php";
 
+// Helper function to format selected dates for dashboard
+function formatDashboardDates($datesString) {
+    if (empty($datesString)) return "";
+    
+    $dates = explode(',', $datesString);
+    $dates = array_filter($dates); // Remove empty values
+    
+    if (empty($dates)) return "";
+    
+    $formattedDates = [];
+    foreach ($dates as $date) {
+        $dateObj = DateTime::createFromFormat('Y-m-d', trim($date));
+        if ($dateObj) {
+            $formattedDates[] = $dateObj->format('n/j'); // Format as M/D (e.g., 8/27)
+        }
+    }
+    
+    return implode(' · ', $formattedDates);
+}
+
 // Initialize stats array with default values
 $stats = [
     'today_income' => 0,
@@ -154,6 +174,37 @@ if ($latest_orders_result) {
             $row['customer_name'] = 'Guest Customer';
         }
         $latest_orders[] = $row;
+    }
+}
+
+// Products with today availability - fetch dates instead of days
+$availtoday_products = [];
+$availtoday_query = "
+    SELECT 
+        p.id,
+        p.name,
+        p.status_id,
+        ps.name as status_name,
+        p.availtoday_status_id,
+        ats.name as availtoday_status_name,
+        GROUP_CONCAT(DISTINCT tpd.available_date ORDER BY tpd.available_date SEPARATOR ',') as todays_product_dates,
+        GROUP_CONCAT(DISTINCT rptd.available_date ORDER BY rptd.available_date SEPARATOR ',') as regular_today_dates
+    FROM products p
+    LEFT JOIN product_statuses ps ON p.status_id = ps.id
+    LEFT JOIN availtoday_status ats ON p.availtoday_status_id = ats.id
+    LEFT JOIN todays_products_dates tpd ON p.id = tpd.product_id
+    LEFT JOIN regular_products_today_dates rptd ON p.id = rptd.product_id
+    WHERE p.deleted_at IS NULL 
+    AND p.availtoday_status_id IS NOT NULL
+    AND (tpd.available_date IS NOT NULL OR rptd.available_date IS NOT NULL)
+    GROUP BY p.id, p.name, p.status_id, ps.name, p.availtoday_status_id, ats.name
+    ORDER BY p.created_at DESC
+    LIMIT 10
+";
+$availtoday_result = $conn->query($availtoday_query);
+if ($availtoday_result) {
+    while ($row = $availtoday_result->fetch_assoc()) {
+        $availtoday_products[] = $row;
     }
 }
 
@@ -373,6 +424,60 @@ $stats['bulk_change'] = '3 pending approval';
                             <div class="empty-state">
                                 <i class="fas fa-shopping-bag"></i>
                                 <p>No orders found</p>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <!-- Products with Today Availability -->
+                <div class="table-card">
+                    <div class="table-header">
+                        <h3>Products with Today Availability</h3>
+                        <span class="table-subtitle">Products available for pickup/delivery with specific dates</span>
+                    </div>
+                    <div class="table-container">
+                        <?php if (count($availtoday_products) > 0): ?>
+                            <table class="data-table">
+                                <tbody>
+                                    <?php foreach ($availtoday_products as $product): ?>
+                                        <tr>
+                                            <td>
+                                                <div class="customer-info">
+                                                    <div class="customer-name"><?php echo htmlspecialchars($product['name']); ?></div>
+                                                    <div class="order-id">
+                                                        <span class="status-badge status-<?php echo strtolower(str_replace(' ', '', $product['status_name'])); ?>">
+                                                            <?php echo htmlspecialchars($product['status_name']); ?>
+                                                        </span>
+                                                        <?php if (!empty($product['availtoday_status_name'])): ?>
+                                                            <span class="availtoday-badge">
+                                                                <?php echo ($product['status_id'] == 3 ? 'for ' : 'also for ') . htmlspecialchars($product['availtoday_status_name']); ?>
+                                                            </span>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="amount-cell">
+                                                <div class="available-dates">
+                                                    <?php 
+                                                    $dates = $product['status_id'] == 3 ? $product['todays_product_dates'] : $product['regular_today_dates'];
+                                                    echo formatDashboardDates($dates);
+                                                    ?>
+                                                </div>
+                                                <div class="dates-count">
+                                                    <?php 
+                                                    $dateArray = array_filter(explode(',', $dates));
+                                                    echo count($dateArray) . ' date' . (count($dateArray) != 1 ? 's' : '');
+                                                    ?>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        <?php else: ?>
+                            <div class="empty-state">
+                                <i class="fas fa-calendar-alt"></i>
+                                <p>No products with today availability found</p>
                             </div>
                         <?php endif; ?>
                     </div>

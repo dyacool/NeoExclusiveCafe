@@ -497,6 +497,31 @@
   }
 }
 
+/* Products with Today Availability Styles */
+.available-dates {
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.dates-count {
+  font-size: 12px;
+  color: #666;
+}
+
+.availtoday-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background-color: #3b82f6;
+  color: white;
+  margin-left: 0.5rem;
+  text-transform: capitalize;
+}
+
 .service-card,
 .chart-card,
 .table-card,

@@ -1,0 +1,101 @@
+/* Selected Dates Display Styles */
+.selected-dates-text {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.4;
+}
+
+.dates-display {
+    position: relative;
+    cursor: help;
+    color: #4caf50;
+    font-weight: 500;
+}
+
+.dates-display .more-dates {
+    background: #e8f5e8;
+    color: #2e7d32;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-left: 4px;
+}
+
+/* Tooltip Styles */
+.dates-display:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+    margin-bottom: 5px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    animation: tooltipFadeIn 0.2s ease-out;
+}
+
+.dates-display:hover::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #333;
+    z-index: 1000;
+}
+
+@keyframes tooltipFadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* Calendar Selected Dates Styles */
+.date-calendar .calendar-day.selected {
+    background: #4caf50 !important;
+    color: white !important;
+    font-weight: 600;
+    border: 2px solid #2e7d32;
+}
+
+.date-calendar .calendar-day.selected:hover {
+    background: #45a049 !important;
+}
+
+/* Empty dates display */
+.selected-dates-text:empty::after {
+    content: "—";
+    color: #ccc;
+    font-style: italic;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .dates-display:hover::after {
+        position: fixed;
+        bottom: auto;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        max-width: 90vw;
+        white-space: normal;
+        text-align: center;
+    }
+    
+    .dates-display:hover::before {
+        display: none;
+    }
+}

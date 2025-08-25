@@ -5,6 +5,10 @@ ini_set('display_errors', 1);
 
 // Start session and check admin authentication
 session_start();
+
+// Debug: Log that the script was called
+error_log("=== UPDATE-PRODUCT.PHP CALLED ===");
+
 if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
     header('Content-Type: application/json');
     echo json_encode(['success' => false, 'error' => 'Unauthorized access']);
@@ -117,8 +121,8 @@ try {
             $auto_status_stmt->close();
         }
         
-        // Update available days in product_day table for Delivery, Pick Up, and Available Today
-        if ($status_id == 1 || $status_id == 2 || $status_id == 3) {
+        // Update available days in product_day table for Delivery and Pick Up only
+        if ($status_id == 1 || $status_id == 2) {
             // First, delete existing days for this product
             $delete_stmt = $conn->prepare("DELETE FROM product_day WHERE product_id = ?");
             $delete_stmt->bind_param("i", $id);
@@ -135,11 +139,80 @@ try {
                 $day_stmt->close();
             }
         } else {
-            // If status is not Delivery, Pick Up, or Available Today, remove all available days
+            // If status is not Delivery or Pick Up, remove all available days
             $delete_stmt = $conn->prepare("DELETE FROM product_day WHERE product_id = ?");
             $delete_stmt->bind_param("i", $id);
             $delete_stmt->execute();
             $delete_stmt->close();
+        }
+        
+        // Handle Today's product dates (status_id == 3)
+        error_log("=== UPDATE PRODUCT DATES DEBUG ===");
+        error_log("Product ID: $id, Status ID: $status_id");
+        error_log("Raw todays_product_dates INPUT: " . ($input['todays_product_dates'] ?? 'NOT SET'));
+        
+        if ($status_id == 3) {
+            error_log("Processing Today's product dates...");
+            
+            // Delete existing Today's product dates
+            $delete_today_stmt = $conn->prepare("DELETE FROM todays_products_dates WHERE product_id = ?");
+            $delete_today_stmt->bind_param("i", $id);
+            $delete_today_stmt->execute();
+            $delete_today_stmt->close();
+            error_log("Deleted existing Today's product dates");
+            
+            // Insert new Today's product dates
+            $todays_product_dates = isset($input['todays_product_dates']) ? json_decode($input['todays_product_dates'], true) : [];
+            error_log("Decoded todays_product_dates: " . print_r($todays_product_dates, true));
+            error_log("Available today status ID: $availtoday_status_id");
+            
+            if (!empty($todays_product_dates)) {
+                $today_date_stmt = $conn->prepare("INSERT INTO todays_products_dates (product_id, available_date, availtoday_status_id) VALUES (?, ?, ?)");
+                foreach ($todays_product_dates as $date) {
+                    error_log("Processing date: '$date'");
+                    if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+                        $today_date_stmt->bind_param("isi", $id, $date, $availtoday_status_id);
+                        if ($today_date_stmt->execute()) {
+                            error_log("SUCCESS: Inserted date $date for product $id");
+                        } else {
+                            error_log("ERROR: Failed to insert date $date: " . $today_date_stmt->error);
+                        }
+                    } else {
+                        error_log("INVALID date format: '$date'");
+                    }
+                }
+                $today_date_stmt->close();
+            } else {
+                error_log("No todays_product_dates to insert");
+            }
+        } else {
+            // If not Today's product, remove all Today's product dates
+            $delete_today_stmt = $conn->prepare("DELETE FROM todays_products_dates WHERE product_id = ?");
+            $delete_today_stmt->bind_param("i", $id);
+            $delete_today_stmt->execute();
+            $delete_today_stmt->close();
+        }
+        
+        // Handle regular products that are also available today
+        $available_today_dates = isset($input['available_today_dates']) ? json_decode($input['available_today_dates'], true) : [];
+        
+        // Always delete existing regular product today dates
+        $delete_regular_today_stmt = $conn->prepare("DELETE FROM regular_products_today_dates WHERE product_id = ?");
+        $delete_regular_today_stmt->bind_param("i", $id);
+        $delete_regular_today_stmt->execute();
+        $delete_regular_today_stmt->close();
+        
+        // Insert new regular product today dates if isAvailableToday is checked
+        $is_available_today = isset($input['is_available_today']) ? (bool)$input['is_available_today'] : false;
+        if ($is_available_today && !empty($available_today_dates)) {
+            $regular_today_stmt = $conn->prepare("INSERT INTO regular_products_today_dates (product_id, available_date, availtoday_status_id) VALUES (?, ?, ?)");
+            foreach ($available_today_dates as $date) {
+                if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+                    $regular_today_stmt->bind_param("isi", $id, $date, $availtoday_status_id);
+                    $regular_today_stmt->execute();
+                }
+            }
+            $regular_today_stmt->close();
         }
         
         echo json_encode(['success' => true]);

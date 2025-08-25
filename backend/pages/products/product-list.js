@@ -223,7 +223,12 @@ function createProductRow(product) {
   }</span>
         ${
           product.status_id == 3 && product.availtoday_status_name
-            ? `<span class='availtoday-badge'>${product.availtoday_status_name}</span>`
+            ? `<span class='availtoday-badge'>for ${product.availtoday_status_name}</span>`
+            : ""
+        }
+        ${
+          product.status_id != 3 && product.regular_today_dates && product.availtoday_status_name
+            ? `<span class='availtoday-badge'>also for ${product.availtoday_status_name}</span>`
             : ""
         }
         <span class='stock-badge ${quantityClass}'>
@@ -411,7 +416,9 @@ function openEditModal(
   unavailableStatusId,
   unavailableStatusName,
   availtodayStatusId,
-  availtodayStatusName
+  availtodayStatusName,
+  todaysProductDates,
+  regularTodayDates
 ) {
   // Store original form data
   originalFormData = {
@@ -429,6 +436,8 @@ function openEditModal(
     unavailableStatusName,
     availtodayStatusId,
     availtodayStatusName,
+    todaysProductDates,
+    regularTodayDates,
   };
 
   // Populate form fields
@@ -560,12 +569,109 @@ function openEditModal(
     }
   }
 
+  // Handle isAvailableToday radio button initial state
+  const isAvailableTodayContainer = document.getElementById("isAvailableTodayContainer");
+  const isAvailableTodayRadio = document.getElementById("isAvailableToday");
+  const availableTodayCalendarContainer = document.getElementById("availableTodayCalendarContainer");
+  
+  if (isAvailableTodayContainer && isAvailableTodayRadio) {
+    if (statusName === "Pick Up" || statusName === "Delivery") {
+      console.log('Product is Pick Up/Delivery, showing isAvailableToday container');
+      isAvailableTodayContainer.style.display = "block";
+      
+      // Check if availtoday_status_id is not null to activate the radio button
+      console.log('Checking availtoday_status_id:', availtodayStatusId);
+      if (availtodayStatusId && availtodayStatusId !== 'null' && availtodayStatusId !== '') {
+        console.log('Activating isAvailableToday radio button');
+        isAvailableTodayRadio.checked = true;
+        
+        // Show the Available Today calendar container when radio is checked
+        if (availableTodayCalendarContainer) {
+          availableTodayCalendarContainer.style.display = "block";
+        }
+        
+        // Set the editAvailableTodayStatus dropdown value (for isAvailableToday radio)
+        const editAvailableTodayStatusSelect = document.getElementById("editAvailableTodayStatus");
+        if (editAvailableTodayStatusSelect) {
+          editAvailableTodayStatusSelect.value = availtodayStatusId;
+          console.log('Set editAvailableTodayStatus dropdown to:', availtodayStatusId);
+        } else {
+          console.error('editAvailableTodayStatus dropdown not found!');
+        }
+      } else {
+        // Reset the radio button state if no availtoday_status_id
+        isAvailableTodayRadio.checked = false;
+        if (availableTodayCalendarContainer) {
+          availableTodayCalendarContainer.style.display = "none";
+        }
+      }
+    } else {
+      isAvailableTodayContainer.style.display = "none";
+      isAvailableTodayRadio.checked = false;
+      if (availableTodayCalendarContainer) {
+        availableTodayCalendarContainer.style.display = "none";
+      }
+    }
+  }
+
   setupStatusChangeListener();
   setupAvailabilityRadioListeners();
+  setupIsAvailableTodayListener();
   loadProductImages(id);
 
   document.getElementById("editModal").style.display = "flex";
   document.body.style.overflow = "hidden";
+
+  // Initialize calendars and apply status change after modal is shown
+  setTimeout(() => {
+    console.log('=== EDIT MODAL CALENDAR SETUP DEBUG ===');
+    console.log('modalCalendarHandler exists:', !!window.modalCalendarHandler);
+    console.log('todaysProductDates:', todaysProductDates);
+    console.log('regularTodayDates:', regularTodayDates);
+    console.log('status:', status);
+    
+    if (window.modalCalendarHandler) {
+      console.log('Initializing edit modal calendars...');
+      window.modalCalendarHandler.initializeEditModalCalendars();
+      
+      console.log('Handling edit status change...');
+      window.modalCalendarHandler.handleEditStatusChange();
+      
+      // Set selected dates in calendars
+      if (todaysProductDates && status == 3) {
+        console.log('Processing Today\'s Product dates...');
+        const dates = todaysProductDates.split(',').filter(d => d.trim());
+        console.log('Parsed dates:', dates);
+        window.modalCalendarHandler.setTodaysProductDates(dates);
+      } else {
+        console.log('Not setting Today\'s Product dates:');
+        console.log('- todaysProductDates:', todaysProductDates);
+        console.log('- status == 3:', status == 3);
+      }
+      
+      if (regularTodayDates && (status == 1 || status == 2)) {
+        console.log('Processing regular today dates...');
+        const dates = regularTodayDates.split(',').filter(d => d.trim());
+        console.log('Parsed regular dates:', dates);
+        if (dates.length > 0) {
+          // Check the isAvailableToday radio button
+          const isAvailableTodayRadio = document.getElementById('isAvailableToday');
+          if (isAvailableTodayRadio) {
+            isAvailableTodayRadio.checked = true;
+            // Trigger change event to show the calendar
+            isAvailableTodayRadio.dispatchEvent(new Event('change'));
+          }
+          window.modalCalendarHandler.setAvailableTodayDates(dates);
+        }
+      } else {
+        console.log('Not setting regular today dates:');
+        console.log('- regularTodayDates:', regularTodayDates);
+        console.log('- status == 1 || 2:', status == 1 || status == 2);
+      }
+    } else {
+      console.error('modalCalendarHandler not found!');
+    }
+  }, 200); // Increased timeout to ensure calendars are fully initialized
 }
 
 function setupStatusChangeListener() {
@@ -580,6 +686,7 @@ function setupStatusChangeListener() {
   const unavailableTypeSelect = document.getElementById("editUnavailableType");
   const availtodayOptions = document.getElementById("editAvailtodayOptions");
   const availtodaySelect = document.getElementById("editAvailtodayStatus");
+  const isAvailableTodayContainer = document.getElementById("isAvailableTodayContainer");
 
   if (statusSelect) {
     statusSelect.addEventListener("change", function () {
@@ -598,6 +705,27 @@ function setupStatusChangeListener() {
         }
       }
 
+      // Handle isAvailableToday radio button visibility - only show for Pick Up or Delivery
+      if (isAvailableTodayContainer) {
+        if (selectedStatus === "Pick Up" || selectedStatus === "Delivery") {
+          isAvailableTodayContainer.style.display = "block";
+        } else {
+          isAvailableTodayContainer.style.display = "none";
+          // Reset the radio button and hide related elements when not Pick Up or Delivery
+          const isAvailableTodayRadio = document.getElementById("isAvailableToday");
+          if (isAvailableTodayRadio) {
+            isAvailableTodayRadio.checked = false;
+          }
+          if (availtodayOptions) {
+            availtodayOptions.style.display = "none";
+          }
+          const availableTodayDaysContainer = document.getElementById("availableTodayDaysContainer");
+          if (availableTodayDaysContainer) {
+            availableTodayDaysContainer.style.display = "none";
+          }
+        }
+      }
+
       // Handle availtoday_status dropdown visibility
       if (availtodayOptions && availtodaySelect) {
         if (selectedValue == 3) { // Available Today
@@ -608,6 +736,11 @@ function setupStatusChangeListener() {
           availtodaySelect.removeAttribute("required");
           availtodaySelect.value = "";
         }
+      }
+
+      // Call the modal calendar handler for additional calendar logic
+      if (window.modalCalendarHandler) {
+        window.modalCalendarHandler.handleEditStatusChange();
       }
 
       if (unavailableRadio && unavailableRadio.checked) {
@@ -688,6 +821,45 @@ function setupAvailabilityRadioListeners() {
           quantityField.value = "0";
           quantityField.disabled = true;
           quantityField.style.opacity = "0.5";
+        }
+      }
+    });
+  }
+}
+
+function setupIsAvailableTodayListener() {
+  const isAvailableTodayRadio = document.getElementById("isAvailableToday");
+  const availtodayOptions = document.getElementById("editAvailtodayOptions");
+  const availableTodayDaysContainer = document.getElementById("availableTodayDaysContainer");
+  
+  if (isAvailableTodayRadio) {
+    isAvailableTodayRadio.addEventListener("change", function () {
+      if (this.checked) {
+        // Show the availtoday select dropdown
+        if (availtodayOptions) {
+          availtodayOptions.style.display = "block";
+        }
+        // Show the checkbox-group2 for Available Today days
+        if (availableTodayDaysContainer) {
+          availableTodayDaysContainer.style.display = "block";
+        }
+      } else {
+        // Hide the availtoday select dropdown
+        if (availtodayOptions) {
+          availtodayOptions.style.display = "none";
+          const availtodaySelect = document.getElementById("editAvailtodayStatus");
+          if (availtodaySelect) {
+            availtodaySelect.value = "";
+          }
+        }
+        // Hide the checkbox-group2 for Available Today days
+        if (availableTodayDaysContainer) {
+          availableTodayDaysContainer.style.display = "none";
+          // Reset all checkboxes in checkbox-group2
+          const todayCheckboxes = availableTodayDaysContainer.querySelectorAll('input[type="checkbox"]');
+          todayCheckboxes.forEach(checkbox => {
+            checkbox.checked = false;
+          });
         }
       }
     });
@@ -1167,6 +1339,7 @@ function removeAdditionalImage(imageId) {
 
 function handleFormSubmit(event) {
   event.preventDefault();
+  console.log('=== FORM SUBMIT STARTED ===');
 
   const statusSelect = document.getElementById("editProductStatus");
   const selectedStatus = statusSelect.options[statusSelect.selectedIndex].text;
@@ -1205,10 +1378,50 @@ function handleFormSubmit(event) {
     });
   }
 
+  // Collect Available Today days from checkbox-group2
+  const availableTodayDays = [];
+  const isAvailableTodayRadio = document.getElementById("isAvailableToday");
+  if (isAvailableTodayRadio && isAvailableTodayRadio.checked) {
+    const todayDayCheckboxes = {
+      edit_today_sunday: "Sunday",
+      edit_today_monday: "Monday",
+      edit_today_tuesday: "Tuesday",
+      edit_today_wednesday: "Wednesday",
+      edit_today_thursday: "Thursday",
+      edit_today_friday: "Friday",
+      edit_today_saturday: "Saturday",
+    };
+
+    Object.keys(todayDayCheckboxes).forEach((checkboxId) => {
+      const checkbox = document.getElementById(checkboxId);
+      if (checkbox && checkbox.checked) {
+        availableTodayDays.push(todayDayCheckboxes[checkboxId]);
+      }
+    });
+  }
+
   const isAvailable = document.getElementById("editAvailable").checked;
   const unavailableTypeId =
     document.getElementById("editUnavailableType").value || null;
   const availtodayStatusId = document.getElementById("editAvailtodayStatus").value || null;
+
+  // Get calendar data
+  console.log('=== FORM SUBMIT CALENDAR DATA DEBUG ===');
+  const todaysProductDatesInput = document.getElementById("todaysProductDates");
+  const availableTodayDatesInput = document.getElementById("availableTodayDates");
+  
+  console.log('todaysProductDates input exists:', !!todaysProductDatesInput);
+  console.log('todaysProductDates input value:', todaysProductDatesInput ? todaysProductDatesInput.value : 'N/A');
+  console.log('availableTodayDates input exists:', !!availableTodayDatesInput);
+  console.log('availableTodayDates input value:', availableTodayDatesInput ? availableTodayDatesInput.value : 'N/A');
+  
+  const todaysProductDates = todaysProductDatesInput ? 
+    todaysProductDatesInput.value.split(',').filter(d => d.trim()) : [];
+  const availableTodayDates = availableTodayDatesInput ? 
+    availableTodayDatesInput.value.split(',').filter(d => d.trim()) : [];
+    
+  console.log('Processed todaysProductDates:', todaysProductDates);
+  console.log('Processed availableTodayDates:', availableTodayDates);
 
   const formData = {
     id: document.getElementById("editProductId").value,
@@ -1225,6 +1438,10 @@ function handleFormSubmit(event) {
     is_available: isAvailable,
     unavailable_status_id: isAvailable ? null : unavailableTypeId,
     availtoday_status_id: availtodayStatusId,
+    is_available_today: isAvailableTodayRadio ? isAvailableTodayRadio.checked : false,
+    available_today_days: availableTodayDays,
+    todays_product_dates: JSON.stringify(todaysProductDates),
+    available_today_dates: JSON.stringify(availableTodayDates),
     pending_image_changes: pendingImageChanges,
   };
 
@@ -1592,6 +1809,29 @@ function resetFormToOriginal() {
     } else {
       availableDaysContainer.style.display = "none";
     }
+  }
+
+  // Reset isAvailableToday radio button and related elements
+  const isAvailableTodayContainer = document.getElementById("isAvailableTodayContainer");
+  const isAvailableTodayRadio = document.getElementById("isAvailableToday");
+  const availableTodayDaysContainer = document.getElementById("availableTodayDaysContainer");
+  
+  if (isAvailableTodayContainer && isAvailableTodayRadio) {
+    if (originalFormData.statusName === "Pick Up" || originalFormData.statusName === "Delivery") {
+      isAvailableTodayContainer.style.display = "block";
+    } else {
+      isAvailableTodayContainer.style.display = "none";
+    }
+    isAvailableTodayRadio.checked = false;
+  }
+
+  if (availableTodayDaysContainer) {
+    availableTodayDaysContainer.style.display = "none";
+    // Reset all checkboxes in checkbox-group2
+    const todayCheckboxes = availableTodayDaysContainer.querySelectorAll('input[type="checkbox"]');
+    todayCheckboxes.forEach(checkbox => {
+      checkbox.checked = false;
+    });
   }
 
   // Reset image changes

@@ -16,13 +16,13 @@ $stats = [
 ];
 
 // Count orders by status using the same method as order-list.php
-$count_sql = "SELECT status, order_type, COUNT(*) as count FROM orders GROUP BY status, order_type";
+$count_sql = "SELECT status, delivery_method, COUNT(*) as count FROM orders GROUP BY status, delivery_method";
 $count_result = mysqli_query($conn, $count_sql);
 
 if ($count_result) {
     while ($count_row = mysqli_fetch_assoc($count_result)) {
         $status = $count_row['status'];
-        $order_type = $count_row['order_type'];
+        $delivery_method = $count_row['delivery_method'];
         $count = $count_row['count'];
         
         // Pending Orders (Pending, Processing, Preparing)
@@ -35,13 +35,13 @@ if ($count_result) {
             $stats['completed_orders'] += $count;
         }
         
-        // For Delivery Orders (not completed and order type is Delivery)
-        if ($order_type == 'Delivery' && !in_array($status, ['Completed', 'Delivered', 'Cancelled'])) {
+        // For Delivery Orders (not completed and delivery method is Delivery)
+        if ($delivery_method == 'Delivery' && !in_array($status, ['Completed', 'Delivered', 'Cancelled'])) {
             $stats['delivery_orders'] += $count;
         }
         
-        // For Pickup Orders (not completed and order type is Pick Up)
-        if ($order_type == 'Pick Up' && !in_array($status, ['Completed', 'Picked-up', 'Cancelled'])) {
+        // For Pickup Orders (not completed and delivery method is Pick-up)
+        if ($delivery_method == 'Pick-up' && !in_array($status, ['Completed', 'Picked-up', 'Cancelled'])) {
             $stats['pickup_orders'] += $count;
         }
     }

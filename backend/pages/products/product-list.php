@@ -32,6 +32,36 @@
         return implode(', ', $formattedDays);
     }
 
+    // Function to format selected dates for display
+    function formatSelectedDates($datesString) {
+        if (empty($datesString)) return "";
+        
+        $dates = explode(',', $datesString);
+        $dates = array_filter($dates); // Remove empty values
+        
+        if (empty($dates)) return "";
+        
+        $formattedDates = [];
+        foreach ($dates as $date) {
+            $dateObj = DateTime::createFromFormat('Y-m-d', trim($date));
+            if ($dateObj) {
+                $formattedDates[] = $dateObj->format('n/j'); // Format as M-D (e.g., 2-23)
+            }
+        }
+        
+        if (empty($formattedDates)) return "";
+        
+        if (count($formattedDates) <= 3) {
+            return implode(' · ', $formattedDates);
+        } else {
+            // Show first 3 dates with hover tooltip for all dates
+            $visibleDates = array_slice($formattedDates, 0, 3);
+            $allDates = implode(' · ', $formattedDates);
+            return '<span class="dates-display" data-tooltip="' . htmlspecialchars($allDates) . '">' . 
+                   implode(' · ', $visibleDates) . ' <span class="more-dates">+' . (count($formattedDates) - 3) . '</span></span>';
+        }
+    }
+
     // Pagination settings
     $items_per_page = 12;
     $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -44,7 +74,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico">
     <link rel="stylesheet" href="/backend/pages/products/product-list.css">
+    <link rel="stylesheet" href="/backend/pages/products/dates-tooltip.css">
     <script src="/backend/pages/products/product-list.js" defer></script>
+    <script src="components/date-calendar.js" defer></script>
+    <script src="/backend/pages/products/modal-calendar-handler.js" defer></script>
     <title>Product Management</title>
 </head>
 <body>
@@ -163,13 +196,17 @@
                                         p.unavailable_status_id, ups.name AS unavailable_status_name,
                                         pi.image_url, p.is_featured, p.show_when_unavailable, p.hide_when_unavailable,
                                         p.quantity, p.availtoday_status_id, ats.name AS availtoday_status_name,
-                                        GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                                        GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days,
+                                        GROUP_CONCAT(DISTINCT tpd.available_date ORDER BY tpd.available_date SEPARATOR ',') as todays_product_dates,
+                                        GROUP_CONCAT(DISTINCT rptd.available_date ORDER BY rptd.available_date SEPARATOR ',') as regular_today_dates
                                     FROM products p
                                     LEFT JOIN product_statuses ps ON p.status_id = ps.id
                                     LEFT JOIN unavail_products_status ups ON p.unavailable_status_id = ups.id
                                     LEFT JOIN availtoday_status ats ON p.availtoday_status_id = ats.id
                                     LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
                                     LEFT JOIN product_day pd ON p.id = pd.product_id
+                                    LEFT JOIN todays_products_dates tpd ON p.id = tpd.product_id
+                                    LEFT JOIN regular_products_today_dates rptd ON p.id = rptd.product_id
                                     WHERE p.deleted_at IS NULL
                                     GROUP BY p.id, p.sku, p.name, p.price, p.status_id, ps.name, p.unavailable_status_id, ups.name, pi.image_url, p.is_featured, p.show_when_unavailable, p.hide_when_unavailable, p.quantity, p.availtoday_status_id, ats.name
                                     ORDER BY p.created_at DESC
@@ -181,13 +218,17 @@
                                                     p.unavailable_status_id, ups.name AS unavailable_status_name,
                                                     pi.image_url, p.is_featured, p.show_when_unavailable, p.hide_when_unavailable,
                                                     p.quantity, p.availtoday_status_id, ats.name AS availtoday_status_name,
-                                                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                                                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days,
+                                                    GROUP_CONCAT(DISTINCT tpd.available_date ORDER BY tpd.available_date SEPARATOR ',') as todays_product_dates,
+                                                    GROUP_CONCAT(DISTINCT rptd.available_date ORDER BY rptd.available_date SEPARATOR ',') as regular_today_dates
                                                 FROM products p
                                                 LEFT JOIN product_statuses ps ON p.status_id = ps.id
                                                 LEFT JOIN unavail_products_status ups ON p.unavailable_status_id = ups.id
                                                 LEFT JOIN availtoday_status ats ON p.availtoday_status_id = ats.id
                                                 LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
                                                 LEFT JOIN product_day pd ON p.id = pd.product_id
+                                                LEFT JOIN todays_products_dates tpd ON p.id = tpd.product_id
+                                                LEFT JOIN regular_products_today_dates rptd ON p.id = rptd.product_id
                                                 WHERE p.deleted_at IS NULL
                                                 GROUP BY p.id, p.sku, p.name, p.price, p.status_id, ps.name, p.unavailable_status_id, ups.name, pi.image_url, p.is_featured, p.show_when_unavailable, p.hide_when_unavailable, p.quantity, p.availtoday_status_id, ats.name
                                                 ORDER BY p.created_at DESC";
@@ -209,6 +250,9 @@
                                 while ($row = $result->fetch_assoc()) {
                                     $status_id = isset($row["status_id"]) ? $row["status_id"] : 1;
                                     $quantity = isset($row["quantity"]) ? $row["quantity"] : 0;
+                                    
+                                    // Debug: Log the dates data
+                                    error_log("Product ID {$row['id']}: todays_product_dates = '{$row['todays_product_dates']}', regular_today_dates = '{$row['regular_today_dates']}', status_id = {$status_id}");
                                     $quantityClass = $quantity <= 5 ? 'low-stock' : ($quantity <= 10 ? 'medium-stock' : 'good-stock');
                                     $statusClass = strtolower(str_replace(' ', '-', $row['status_name'] ?? 'Unknown'));
 
@@ -243,7 +287,12 @@
                                                     
                                                     // Show availtoday status if it's "Available Today"
                                                     if ($row['status_id'] == 3 && !empty($row['availtoday_status_name'])) {
-                                                        echo "<span class='availtoday-badge'>" . htmlspecialchars($row['availtoday_status_name']) . "</span>";
+                                                        echo "<span class='availtoday-badge'>for " . htmlspecialchars($row['availtoday_status_name']) . "</span>";
+                                                    }
+                                                    
+                                                    // Show availtoday badge for regular products with today availability
+                                                    if ($row['status_id'] != 3 && !empty($row['regular_today_dates']) && !empty($row['availtoday_status_name'])) {
+                                                        echo "<span class='availtoday-badge'>also for " . htmlspecialchars($row['availtoday_status_name']) . "</span>";
                                                     }
                                                     
                                                     echo "<span class='stock-badge " . $quantityClass . "'>
@@ -259,6 +308,9 @@
                                             </td>
                                                                                          <td>
                                                  <span class='available-days-text'>" . formatAvailableDays($row['available_days']) . "</span>
+                                             </td>
+                                             <td>
+                                                 <span class='selected-dates-text'>" . formatSelectedDates($row['status_id'] == 3 ? $row['todays_product_dates'] : $row['regular_today_dates']) . "</span>
                                              </td>
                                             <td>
                                                 <div class='action-buttons'>
@@ -276,7 +328,9 @@
                                                         '" . ($row['unavailable_status_id'] ?? 'null') . "',
                                                         '" . addslashes($row['unavailable_status_name'] ?? '') . "',
                                                         '" . ($row['availtoday_status_id'] ?? 'null') . "',
-                                                        '" . addslashes($row['availtoday_status_name'] ?? '') . "'
+                                                        '" . addslashes($row['availtoday_status_name'] ?? '') . "',
+                                                        '" . addslashes($row['todays_product_dates'] ?? '') . "',
+                                                        '" . addslashes($row['regular_today_dates'] ?? '') . "'
                                                     )\" title='Edit Product'>
                                                         <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>
                                                             <path d='M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7'></path>
@@ -294,7 +348,7 @@
                                         </tr>";
                                 }
                             } else {
-                                echo "<tr class='no-results'><td colspan='7'>
+                                echo "<tr class='no-results'><td colspan='8'>
                                         <div class='empty-state'>
                                             <svg width='48' height='48' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>
                                                 <circle cx='11' cy='11' r='8'></circle>
@@ -479,13 +533,22 @@
                             <select id="editProductStatus">
                                 <option value="1">Pick Up</option>
                                 <option value="2">Delivery</option>
-                                <option value="3">Available Today</option>
+                                <option value="3">Today's Product</option>
                             </select>
+                            
+                            <!-- isAvailableToday radio button - only shown when Pick Up or Delivery is selected -->
+                            <div id="isAvailableTodayContainer" style="display: none; margin-top: 10px;">
+                                <div class="radio-group">
+                                    <div class="radio-item">
+                                        <input type="radio" id="isAvailableToday" name="isAvailableToday" value="true">
+                                        <label for="isAvailableToday">Add Today's product</label>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="form-group" id="editAvailtodayOptions" style="display: none;">
-                            <label for="editAvailtodayStatus">Available Today Options:</label>
+                            <label for="editAvailtodayStatus">Today's Product Options:</label>
                             <select id="editAvailtodayStatus">
-                                <option value="">Select option...</option>
                                 <option value="1">Pick Up</option>
                                 <option value="2">Delivery</option>
                             </select>
@@ -525,7 +588,8 @@
                         </select>
                     </div>
 
-                    <div class="form-group">
+                    <!-- Available Days for regular products (Pick Up/Delivery) -->
+                    <div class="form-group" id="regularAvailableDaysContainer">
                         <label>Available Days:</label>
                         <div class="checkbox-group days-group">
                             <div class="checkbox-item">
@@ -557,6 +621,28 @@
                                 <label for="edit_saturday" style="display: inline;">Saturday</label>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Calendar for Today's Products -->
+                    <div class="form-group" id="todaysProductCalendarContainer" style="display: none;">
+                        <label>Select Available Dates for Today's Product:</label>
+                        <div id="todaysProductCalendar"></div>
+                        <input type="hidden" id="todaysProductDates" name="todays_product_dates">
+                    </div>
+
+                    <!-- Calendar for regular products that are also available today -->
+                    <div class="form-group" id="availableTodayCalendarContainer" style="display: none;">
+                        <label>Select Additional Dates for Today's Availability:</label>
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label for="editAvailableTodayStatus">Available Today Options:</label>
+                            <select id="editAvailableTodayStatus" name="available_today_status_id">
+                                <option value="">Select...</option>
+                                <option value="1">Pick Up</option>
+                                <option value="2">Delivery</option>
+                            </select>
+                        </div>
+                        <div id="availableTodayCalendar"></div>
+                        <input type="hidden" id="availableTodayDates" name="available_today_dates">
                     </div>
 
                     <div class="modal-actions">

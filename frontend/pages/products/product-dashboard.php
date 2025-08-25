@@ -239,30 +239,33 @@ if ($cart_truncated) {
         <div class="scroll-container">
             <div class="products-grid" id="productScroll">
                         <?php
-                            // Get today's day of the week
-                            $today = date('l'); // Returns full day name (e.g., 'Monday', 'Tuesday', etc.)
+                            // Get today's date
+                            $today_date = date('Y-m-d'); // Returns date in YYYY-MM-DD format
                             
-                            // Query only for Available Today products (status_id = 3) that are available on today's day
+                            // Query for products with availtoday_status that are available on today's date
+                            // This includes both "Today's Products" (status_id = 3) and regular products with today availability
                             $sql = "SELECT 
                                         p.id, p.name, p.price, p.description, p.status_id, p.is_featured,
                                         ps.name AS status_name, pi.image_url, p.quantity, p.show_when_unavailable,
                                         p.availtoday_status_id, ats.name AS availtoday_status_name,
-                                        GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                                        GROUP_CONCAT(DISTINCT tpd.available_date ORDER BY tpd.available_date SEPARATOR ', ') as todays_product_dates,
+                                        GROUP_CONCAT(DISTINCT rptd.available_date ORDER BY rptd.available_date SEPARATOR ', ') as regular_today_dates
                                     FROM products p
                                     LEFT JOIN product_statuses ps ON p.status_id = ps.id
                                     LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
-                                    LEFT JOIN product_day pd ON p.id = pd.product_id
                                     LEFT JOIN availtoday_status ats ON p.availtoday_status_id = ats.id
+                                    LEFT JOIN todays_products_dates tpd ON p.id = tpd.product_id AND tpd.available_date = ?
+                                    LEFT JOIN regular_products_today_dates rptd ON p.id = rptd.product_id AND rptd.available_date = ?
                                     WHERE p.deleted_at IS NULL 
-                                    AND p.status_id = 3
                                     AND p.quantity > 0
-                                    AND pd.day_of_week = ?
+                                    AND p.availtoday_status_id IS NOT NULL
+                                    AND (tpd.available_date = ? OR rptd.available_date = ?)
                                     GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, ps.name, pi.image_url, p.quantity, p.show_when_unavailable, p.availtoday_status_id, ats.name
                                     ORDER BY p.is_featured DESC, p.name ASC";
                     
-                            // Prepare and execute the statement with today's day parameter
+                            // Prepare and execute the statement with today's date parameter (4 times)
                             $stmt = $conn->prepare($sql);
-                            $stmt->bind_param("s", $today);
+                            $stmt->bind_param("ssss", $today_date, $today_date, $today_date, $today_date);
                             $stmt->execute();
                             $result = $stmt->get_result();
 
@@ -291,15 +294,19 @@ if ($cart_truncated) {
                                         'show_when_unavailable' => (bool)$row['show_when_unavailable'],
                                         'availtoday_status_id' => $row['availtoday_status_id'],
                                         'availtoday_status_name' => $row['availtoday_status_name'],
-                                        'available_days' => $row['available_days'] ? explode(', ', $row['available_days']) : []
+                                        'todays_product_dates' => $row['todays_product_dates'] ? explode(', ', $row['todays_product_dates']) : [],
+                                        'regular_today_dates' => $row['regular_today_dates'] ? explode(', ', $row['regular_today_dates']) : []
                                     ];
                                     
                                     $featuredClass = $row['is_featured'] ? 'featured-product' : '';
                                     $statusClass = strtolower(str_replace(' ', '-', $row['status_name']));
                                     
                                     $productDataJson = htmlspecialchars(json_encode($productData), ENT_QUOTES, 'UTF-8');
+                                    // Get available dates for display
+                                    $available_dates = $row['status_id'] == 3 ? $row['todays_product_dates'] : $row['regular_today_dates'];
+                                    
                                     echo "<div class='product-card {$featuredClass}' data-status='" . htmlspecialchars($row['status_name']) . "' 
-                                          data-available-days='" . htmlspecialchars($row['available_days'] ?? '') . "'
+                                          data-available-dates='" . htmlspecialchars($available_dates ?? '') . "'
                                           data-product='" . $productDataJson . "' onclick='openProductModalFromData(this)'>
                                             <div class='product-image'>
                                                 <img src='../../../assets/" . htmlspecialchars($row['image_url'] ?: 'images/no-image.jpg') . "' alt='" . htmlspecialchars($row['name']) . "'>
@@ -318,14 +325,18 @@ if ($cart_truncated) {
                                                     <span class='status-badge status-{$statusClass}'>" . htmlspecialchars($row['status_name']) . "</span>
                                                     <p class='stock'>Stock: " . $row['quantity'] . "</p>";
                                     
-                                    // Display available days if product has them
-                                    if (!empty($row['available_days'])) {
-                                        $abbreviated_days = str_replace(
-                                            ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-                                            ['S', 'M', 'T', 'W', 'Th', 'F', 'Sa'],
-                                            $row['available_days']
-                                        );
-                                        echo "<p class='available-days'>Available: " . htmlspecialchars($abbreviated_days) . "</p>";
+                                    // Display available dates if product has them
+                                    if (!empty($available_dates)) {
+                                        // Format dates for display (e.g., "8/27, 8/28, 8/29")
+                                        $dates_array = explode(', ', $available_dates);
+                                        $formatted_dates = [];
+                                        foreach ($dates_array as $date) {
+                                            $dateObj = DateTime::createFromFormat('Y-m-d', trim($date));
+                                            if ($dateObj) {
+                                                $formatted_dates[] = $dateObj->format('n/j'); // Format as M/D (e.g., 8/27)
+                                            }
+                                        }
+                                        echo "<p class='available-dates'>Available: " . htmlspecialchars(implode(', ', $formatted_dates)) . "</p>";
                                     }
                                     
                                     echo "</div>
@@ -830,19 +841,15 @@ if ($cart_truncated) {
             productDescription.textContent = product.description || 'No description available';
             productStock.textContent = 'Stock: ' + (product.quantity || 0);
 
-            // Handle available days in modal
-            if (product.available_days && product.available_days.length > 0) {
-                const dayAbbreviations = {
-                    'Sunday': 'S',
-                    'Monday': 'M', 
-                    'Tuesday': 'T',
-                    'Wednesday': 'W',
-                    'Thursday': 'Th',
-                    'Friday': 'F',
-                    'Saturday': 'Sa'
-                };
-                const abbreviatedDays = product.available_days.map(day => dayAbbreviations[day] || day);
-                productAvailableDays.textContent = 'Available: ' + abbreviatedDays.join(', ');
+            // Handle available dates in modal
+            const availableDates = product.status_id == 3 ? product.todays_product_dates : product.regular_today_dates;
+            if (availableDates && availableDates.length > 0) {
+                // Format dates for display (e.g., "8/27, 8/28, 8/29")
+                const formattedDates = availableDates.map(date => {
+                    const dateObj = new Date(date + 'T00:00:00'); // Add time to avoid timezone issues
+                    return (dateObj.getMonth() + 1) + '/' + dateObj.getDate(); // Format as M/D
+                });
+                productAvailableDays.textContent = 'Available: ' + formattedDates.join(', ');
                 productAvailableDays.style.display = 'block';
             } else {
                 productAvailableDays.style.display = 'none';
