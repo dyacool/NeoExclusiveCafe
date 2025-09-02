@@ -27,13 +27,35 @@ $notifications = $notification->getAllNotifications($user_id);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notifications</title>
     <link rel="stylesheet" href="notifications.css" />
+     
+    <!-- Include user navigation -->
+     <?php include "../../user-includes/user-header.php"; ?>
+
 </head>
 <body>
-
-    <?php include '../../user-includes/user-header.php'; ?>
+    
+<!-- Navigation -->
+    <?php include "../../user-includes/navbar/customer-navigation.php"; ?>
     
     <div class="neo-profile-container">
         <h2 class="section-title">Notifications</h2>
+        <button class="cta" onclick="window.location.href='/frontend/pages/blog/blog-dashboard.php'">
+            <svg
+                id="arrow-horizontal"
+                xmlns="http://www.w3.org/2000/svg"
+                width="30"
+                height="10"
+                viewBox="0 0 46 16"
+            >
+                <path
+                id="Path_10"
+                data-name="Path 10"
+                d="M38,0,39.455,1.455,33.949,6.961H76V9.039H33.949l5.506,5.506L38,16l-8-8Z"
+                transform="translate(-25)"
+                ></path>
+            </svg>
+            <span class="hover-underline-animation"> Go Back </span>
+        </button>
         
         <?php if (empty($notifications)): ?>
             <div class="empty-state">

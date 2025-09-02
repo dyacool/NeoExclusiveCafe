@@ -1,4 +1,4 @@
-<?php
+<link rel="stylesheet" href="../../css/users/account-settings.css"><?php
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -152,11 +152,11 @@ echo "<!-- Current profile image path: " . ($row['profile_image'] ?? 'null') . "
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Account Settings - Neo Exclusive Cafe</title>
-    <link rel="stylesheet" href="../../css/users/account-settings.css">
+    <link rel="stylesheet" href="account-settings.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <?php include "../../user-includes/user-header.php"; ?>
+    <?php include "../../user-includes/navbar/customer-navigation.php"; ?>
     
     <div class="container">
         <h1> Account Settings</h1>

@@ -20,8 +20,7 @@ if ($is_user_logged_in) {
 
 $current_page = basename($_SERVER['PHP_SELF']);
 ?>
-<link rel="stylesheet" href="../../../frontend/user-includes/navbar/customer-navigation.css">
-
+<link rel="stylesheet" href="/frontend/user-includes/navbar/customer-navigation.css">
 <div class="header-wrapper">
     <!-- Page Entry Animation Container -->
     <div class="page-entry-animation">
@@ -132,7 +131,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
                 <?php if ($user): ?>
                     <div class="profile-container">
-                        <a href="<?php echo $is_admin_logged_in ? '/backend/pages/homepage/admin-homepage.php' : '../../../frontend/pages/profile/account-settings.php'; ?>" class="profile-link" id="profile-trigger">
+                    <a href="<?php echo $is_admin_logged_in ? '/backend/pages/homepage/admin-homepage.php' : '/frontend/pages/profile/profile.php'; ?>"class="profile-link" id="profile-trigger">
                             <div class="profile-avatar">
                                 <span class="profile-initial"><?php echo substr(htmlspecialchars($user['firstname']), 0, 1); ?></span>
                             </div>

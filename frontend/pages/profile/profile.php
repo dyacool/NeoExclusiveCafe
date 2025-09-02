@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once "../../php/includes/database.php";
+require_once "../../user-includes/database.php";
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../../pages/auth/login-signup.php");
@@ -118,11 +118,11 @@ if (mysqli_num_rows($result) > 0) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile - NeoExclusiveCafe</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="../../css/users/profile.css">
+    <link rel="stylesheet" href="profile.css">
     
 </head>
 <body>
-<?php include "../../php/includes/customer-navigation.php"; ?>
+<?php include "../../user-includes/navbar/customer-navigation.php"; ?>
 
     <!-- Profile content with namespaced classes -->
     <div class="neo-profile-container">
