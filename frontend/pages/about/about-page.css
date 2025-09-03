@@ -71,16 +71,15 @@ main {
   text-align: center;
   margin-bottom: 25px;
   padding: 25px 0;
+  background: linear-gradient(135deg, #2d5a27 0%, #1a4018 100%);
+  color: white;
   border-radius: 10px;
-  background-color: var(--white);
-  border: 2px solid #cbd5c0;
   box-shadow: 0 4px 15px rgba(45, 90, 39, 0.2);
 }
 
 .about-header h1 {
   font-size: 2.5rem;
   font-weight: 700;
-  color: #0f5132;
   animation: slideInDown 0.6s ease-out;
 }
 
@@ -139,7 +138,6 @@ main {
   font-size: 1.1rem;
   line-height: 1.8;
   color: #555;
-  margin-bottom: 20px;
   text-align: justify;
 }
 
@@ -176,7 +174,6 @@ main {
 }
 
 .content-wrapper p {
-  margin-bottom: 20px;
   font-size: 1rem;
   line-height: 1.7;
   text-align: justify;
