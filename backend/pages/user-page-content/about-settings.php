@@ -192,7 +192,8 @@ $conn->close();
     <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 </head>
 <body>
-    <div class="container">
+    <div class="about-settings-container">
+        <div class="container">
         <?php if ($success_message): ?>
             <div class="alert success">
                 <?php echo htmlspecialchars($success_message); ?>
@@ -211,14 +212,21 @@ $conn->close();
             </div>
         <?php endif; ?>
 
-        <div class="settings-container">
-            <div class="header">
-                <h1>About Page Management</h1>
+        <div class="abt-header">
+            <div class="header-content">
                 <p class="subtitle">Manage your website's about page content and image</p>
                 <?php if (isset($about['last_updated'])): ?>
                     <p class="last-updated">Last updated: <?php echo date('F j, Y, g:i a', strtotime($about['last_updated'])); ?></p>
                 <?php endif; ?>
             </div>
+            <div class="form-actions">
+                <div class="action-buttons">
+                    <button type="button" class="btn-draft" onclick="saveDraft()">Save Draft</button>
+                    <button type="submit" class="btn-save" form="aboutForm">Update About Page</button>
+                </div>
+            </div>
+        </div>
+        <div class="settings-container">
 
             <form method="POST" action="" id="aboutForm" enctype="multipart/form-data">
                 <div class="form-group">
@@ -255,18 +263,9 @@ $conn->close();
                     <div class="help-text">Leave empty to keep current image. Maximum file size: 5MB. Supported formats: JPG, PNG, GIF, WebP</div>
                 </div>
 
-                <div class="form-actions">
-                    <a href="../../../frontend/pages/about/about-page.php" 
-                       class="btn-preview" 
-                       target="_blank">
-                        Preview Frontend
-                    </a>
-                    <div class="action-buttons">
-                        <button type="button" class="btn-draft" onclick="saveDraft()">Save Draft</button>
-                        <button type="submit" class="btn-save">Update About Page</button>
-                    </div>
-                </div>
             </form>
+        </div>
+    </div>
         </div>
     </div>
 

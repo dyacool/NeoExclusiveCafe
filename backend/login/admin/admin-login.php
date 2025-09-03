@@ -114,9 +114,9 @@ if (isset($_GET['error'])) {
         }
 
         .login-header h1 {
-            color: #256035;
-            font-size: 28px;
+            font-size: 1rem;
             margin-bottom: 10px;
+            text-transform: uppercase;
         }
 
         .form-group {
@@ -132,7 +132,7 @@ if (isset($_GET['error'])) {
 
         .form-group input {
             width: 100%;
-            padding: 12px;
+            padding: 10px;
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 16px;
@@ -140,14 +140,14 @@ if (isset($_GET['error'])) {
         }
 
         .form-group input:focus {
-            border-color: #4caf50;
+            border-color: #3196c1ff;
             outline: none;
         }
 
         .submit-btn {
             width: 100%;
             padding: 12px;
-            background-color: #4caf50;
+            background-color: #3196c1ff;
             color: white;
             border: none;
             border-radius: 4px;
@@ -157,7 +157,7 @@ if (isset($_GET['error'])) {
         }
 
         .submit-btn:hover {
-            background-color: #45a049;
+            background-color: #3196c1ff;
         }
 
         .alert {
@@ -182,10 +182,23 @@ if (isset($_GET['error'])) {
         .back-to-site a:hover {
             text-decoration: underline;
         }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .logo-container img {
+            width: auto;
+            height: 40px;
+        }
     </style>
 </head>
 <body>
     <div class="login-container">
+        <div class="logo-container">
+            <img src="../../../assets/images/user-logo.png" alt="Neo Cafe Logo">
+        </div>
         <div class="login-header">
             <h1>Admin Login</h1>
             <p>Please login to access the admin dashboard</p>
@@ -210,7 +223,7 @@ if (isset($_GET['error'])) {
         </form>
 
         <div class="back-to-site">
-            <a href="/frontend/pages/home/user-dashboard.php">← Back to Website</a>
+            <a href="/frontend/pages/home/user-dashboard.php">← Go to Website</a>
         </div>
     </div>
 </body>
