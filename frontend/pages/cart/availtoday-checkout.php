@@ -677,8 +677,14 @@ async function handlePlaceOrder() {
             order_data: formData
         };
         
+        console.log('Payment data being sent:', paymentData);
+        
+        // Clean the data to remove any potential circular references
+        const cleanPaymentData = JSON.parse(JSON.stringify(paymentData));
+        console.log('Cleaned payment data:', cleanPaymentData);
+        
         // Process payment
-        const paymentResult = await processPayment(paymentData);
+        const paymentResult = await processPayment(cleanPaymentData);
         
         if (paymentResult.success) {
             if (paymentResult.payment_type === 'source') {
@@ -701,19 +707,34 @@ async function handlePlaceOrder() {
 
 // Process payment through backend
 async function processPayment(paymentData) {
+    const jsonString = JSON.stringify(paymentData);
+    console.log('JSON string being sent:', jsonString);
+    console.log('JSON string length:', jsonString.length);
+    
     const response = await fetch('process-payment.php', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(paymentData)
+        body: jsonString
     });
+    
+    console.log('Response status:', response.status);
+    console.log('Response headers:', response.headers);
+    
+    const responseText = await response.text();
+    console.log('Raw response:', responseText);
     
     if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
     }
     
-    return await response.json();
+    try {
+        return JSON.parse(responseText);
+    } catch (e) {
+        console.error('Failed to parse response JSON:', e);
+        throw new Error('Invalid response format');
+    }
 }
 
 // Handle card payment with PayMongo

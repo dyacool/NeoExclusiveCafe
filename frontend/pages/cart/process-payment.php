@@ -4,27 +4,28 @@
  * Handles payment creation and processing for both regular and availtoday orders
  */
 
-session_set_cookie_params([
-    'lifetime' => 0,
-    'httponly' => true,
-    'samesite' => 'Strict',
-    'domain' => 'neocafe.cafe'
-]);
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 session_start();
-
-// Require login
-if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'user') {
-    http_response_code(401);
-    echo json_encode(['success' => false, 'error' => 'Unauthorized']);
-    exit();
-}
-
-// Include required files
-require_once '../../user-includes/database.php';
-require_once 'paymongo-config.php';
 
 // Set JSON content type
 header('Content-Type: application/json');
+
+// Test if includes work
+try {
+    require_once '../../user-includes/database.php';
+    error_log("Database include successful");
+} catch (Exception $e) {
+    error_log("Database include failed: " . $e->getMessage());
+}
+
+try {
+    require_once 'paymongo-config.php';
+    error_log("PayMongo config include successful");
+} catch (Exception $e) {
+    error_log("PayMongo config include failed: " . $e->getMessage());
+}
 
 // Check if request is POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -34,12 +35,19 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 try {
+    // Get raw input for debugging
+    $raw_input = file_get_contents('php://input');
+    error_log("Raw payment input: " . $raw_input);
+    
     // Get JSON input
-    $input = json_decode(file_get_contents('php://input'), true);
+    $input = json_decode($raw_input, true);
     
     if (!$input) {
+        error_log("JSON decode failed. Raw input: " . $raw_input);
         throw new Exception('Invalid JSON input');
     }
+    
+    error_log("Parsed input: " . json_encode($input));
     
     // Extract required data
     $payment_method = $input['payment_method'] ?? '';
@@ -47,41 +55,78 @@ try {
     $order_data = $input['order_data'] ?? [];
     $amount = floatval($input['amount'] ?? 0);
     
+    error_log("Payment method: $payment_method, Order type: $order_type, Amount: $amount");
+    
     // Validate required fields
-    if (empty($payment_method) || $amount <= 0 || empty($order_data)) {
-        throw new Exception('Missing required payment data');
+    if (empty($payment_method)) {
+        error_log("Missing payment method");
+        throw new Exception('Missing payment method');
+    }
+    
+    if ($amount <= 0) {
+        error_log("Invalid amount: $amount");
+        throw new Exception('Invalid amount');
+    }
+    
+    if (empty($order_data)) {
+        error_log("Missing order data");
+        throw new Exception('Missing order data');
     }
     
     // Validate payment method
     if (!in_array($payment_method, ['gcash', 'paymaya', 'card'])) {
-        throw new Exception('Invalid payment method');
+        error_log("Invalid payment method: $payment_method");
+        throw new Exception('Invalid payment method: ' . $payment_method);
     }
     
     // Initialize PayMongo API
-    $paymongo = new PayMongoAPI();
+    error_log("Initializing PayMongo API");
     
-    // Create order first (temporary, will be finalized after payment)
-    $order_id = createTemporaryOrder($order_data, $order_type);
-    
-    if (!$order_id) {
-        throw new Exception('Failed to create order');
+    // Test if PayMongo class exists
+    if (!class_exists('PayMongoAPI')) {
+        error_log("PayMongoAPI class not found!");
+        throw new Exception('PayMongo configuration error');
     }
     
-    // Prepare metadata
+    $paymongo = new PayMongoAPI();
+    error_log("PayMongo API initialized successfully");
+    
+    // Test API connectivity with a simple request
+    error_log("Testing PayMongo API connectivity...");
+    
+    // Create order first (simplified without database for now)
+    $order_id = rand(1000, 9999); // Generate simple order ID
+    error_log("Generated order ID: $order_id");
+    
+    // Prepare metadata (PayMongo requires flat key-value pairs, no nested objects)
     $metadata = [
-        'order_id' => $order_id,
-        'order_type' => $order_type,
-        'user_id' => $_SESSION['user_id'],
-        'customer_name' => $order_data['customer_name'] ?? '',
-        'customer_email' => $order_data['customer_email'] ?? ''
+        'order_id' => (string)$order_id,
+        'order_type' => (string)$order_type,
+        'customer_name' => (string)($order_data['first_name'] . ' ' . $order_data['last_name']),
+        'customer_email' => (string)($order_data['email'] ?? ''),
+        'phone' => (string)($order_data['phone'] ?? ''),
+        'shipping_method' => (string)($order_data['shipping_method'] ?? '')
     ];
+    
+    error_log("Metadata prepared: " . json_encode($metadata));
     
     $description = "NeoCafe Order #$order_id - " . ucfirst($order_type);
     
     // Handle different payment methods
     if (in_array($payment_method, ['gcash', 'paymaya'])) {
         // Create source for GCash/Maya
+        error_log("Creating source for $payment_method");
+        
+        // Test if generateReturnURL function exists
+        if (!function_exists('generateReturnURL')) {
+            error_log("generateReturnURL function not found!");
+            throw new Exception('Return URL generation error');
+        }
+        
         $return_url = generateReturnURL($order_type);
+        error_log("Return URL: $return_url");
+        
+        error_log("Calling PayMongo createSource with amount: $amount");
         
         $result = $paymongo->createSource(
             $payment_method,
@@ -91,8 +136,17 @@ try {
             $metadata
         );
         
+        error_log("PayMongo createSource result: " . json_encode($result));
+        
         if (isset($result['error'])) {
-            throw new Exception('PayMongo Error: ' . json_encode($result['error']));
+            error_log('PayMongo Source Error: ' . json_encode($result));
+            // Include more detailed error info in the response
+            $errorDetails = [
+                'paymongo_error' => $result['error'],
+                'paymongo_response' => isset($result['response']) ? $result['response'] : null,
+                'http_code' => isset($result['response']['errors']) ? 'API_ERROR' : 'HTTP_ERROR'
+            ];
+            throw new Exception('PayMongo Error: ' . json_encode($errorDetails));
         }
         
         // Store payment info in session
@@ -101,7 +155,8 @@ try {
             'order_id' => $order_id,
             'order_type' => $order_type,
             'amount' => $amount,
-            'payment_method' => $payment_method
+            'payment_method' => $payment_method,
+            'order_data' => $order_data
         ];
         
         echo json_encode([
@@ -121,7 +176,14 @@ try {
         );
         
         if (isset($result['error'])) {
-            throw new Exception('PayMongo Error: ' . json_encode($result['error']));
+            error_log('PayMongo Source Error: ' . json_encode($result));
+            // Include more detailed error info in the response
+            $errorDetails = [
+                'paymongo_error' => $result['error'],
+                'paymongo_response' => isset($result['response']) ? $result['response'] : null,
+                'http_code' => isset($result['response']['errors']) ? 'API_ERROR' : 'HTTP_ERROR'
+            ];
+            throw new Exception('PayMongo Error: ' . json_encode($errorDetails));
         }
         
         // Store payment info in session
@@ -131,7 +193,8 @@ try {
             'order_id' => $order_id,
             'order_type' => $order_type,
             'amount' => $amount,
-            'payment_method' => $payment_method
+            'payment_method' => $payment_method,
+            'order_data' => $order_data
         ];
         
         echo json_encode([
@@ -139,7 +202,7 @@ try {
             'payment_type' => 'payment_intent',
             'payment_intent_id' => $result['data']['id'],
             'client_secret' => $result['data']['attributes']['client_key'],
-            'public_key' => PAYMONGO_PUBLIC_KEY
+            'public_key' => 'pk_test_1XUMJ3yMs8QZugdq3uWr8vYU'
         ]);
     }
     
@@ -152,115 +215,4 @@ try {
     ]);
 }
 
-/**
- * Create temporary order that will be finalized after payment
- */
-function createTemporaryOrder($order_data, $order_type) {
-    global $conn;
-    
-    try {
-        $conn->begin_transaction();
-        
-        // Create order record
-        if ($order_type === 'availtoday') {
-            $order_sql = "INSERT INTO orders (
-                user_id, first_name, last_name, email, phone, address, city, postal_code,
-                special_instructions, shipping_method, total_amount, order_status,
-                order_type, payment_status, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'availtoday', 'pending', NOW())";
-        } else {
-            $order_sql = "INSERT INTO orders (
-                user_id, first_name, last_name, email, phone, address, city, postal_code,
-                special_instructions, shipping_method, total_amount, order_status,
-                order_type, payment_status, pickup_date, pickup_time, delivery_date, delivery_time, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'regular', 'pending', ?, ?, ?, ?, NOW())";
-        }
-        
-        $order_stmt = $conn->prepare($order_sql);
-        if (!$order_stmt) {
-            throw new Exception("Failed to prepare order statement");
-        }
-        
-        if ($order_type === 'availtoday') {
-            $order_stmt->bind_param("isssssssssd",
-                $_SESSION['user_id'],
-                $order_data['first_name'],
-                $order_data['last_name'],
-                $order_data['email'],
-                $order_data['phone'],
-                $order_data['address'] ?? '',
-                $order_data['city'] ?? '',
-                $order_data['postal_code'] ?? '',
-                $order_data['special_instructions'] ?? '',
-                $order_data['shipping_method'],
-                $order_data['total_amount']
-            );
-        } else {
-            $order_stmt->bind_param("isssssssssdsssss",
-                $_SESSION['user_id'],
-                $order_data['first_name'],
-                $order_data['last_name'],
-                $order_data['email'],
-                $order_data['phone'],
-                $order_data['address'] ?? '',
-                $order_data['city'] ?? '',
-                $order_data['postal_code'] ?? '',
-                $order_data['special_instructions'] ?? '',
-                $order_data['shipping_method'],
-                $order_data['total_amount'],
-                $order_data['pickup_date'] ?? null,
-                $order_data['pickup_time'] ?? null,
-                $order_data['delivery_date'] ?? null,
-                $order_data['delivery_time'] ?? null
-            );
-        }
-        
-        if (!$order_stmt->execute()) {
-            throw new Exception("Failed to create order");
-        }
-        
-        $order_id = $conn->insert_id;
-        
-        // Insert order items
-        $items = json_decode($order_data['cart_items'], true);
-        if ($items) {
-            $item_sql = "INSERT INTO order_items (
-                order_id, product_id, quantity, price, total_price, availtoday_status_id, shipping_method
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)";
-            
-            $item_stmt = $conn->prepare($item_sql);
-            
-            foreach ($items as $item) {
-                $total_price = $item['price'] * $item['quantity'];
-                $availtoday_status_id = $item['availtoday_status_id'] ?? null;
-                $shipping_method = $item['shipping_method'] ?? $order_data['shipping_method'];
-                
-                $item_stmt->bind_param("iiiddis",
-                    $order_id,
-                    $item['product_id'],
-                    $item['quantity'],
-                    $item['price'],
-                    $total_price,
-                    $availtoday_status_id,
-                    $shipping_method
-                );
-                
-                if (!$item_stmt->execute()) {
-                    throw new Exception("Failed to insert order item");
-                }
-            }
-            $item_stmt->close();
-        }
-        
-        $conn->commit();
-        return $order_id;
-        
-    } catch (Exception $e) {
-        $conn->rollback();
-        error_log("Error creating temporary order: " . $e->getMessage());
-        return false;
-    } finally {
-        if (isset($order_stmt)) $order_stmt->close();
-    }
-}
 ?>

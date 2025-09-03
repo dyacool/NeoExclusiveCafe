@@ -16,9 +16,10 @@ class PayMongoAPI {
     private $api_url;
     
     public function __construct() {
-        $this->secret_key = PAYMONGO_SECRET_KEY;
-        $this->public_key = PAYMONGO_PUBLIC_KEY;
-        $this->api_url = PAYMONGO_API_URL;
+        // Using PayMongo test keys - replace with your actual test keys
+        $this->secret_key = 'sk_test_yb8pkZvUA3WjHP6T4FKhgudU';
+        $this->public_key = 'pk_test_1XUMJ3yMs8QZugdq3uWr8vYU';
+        $this->api_url = 'https://api.paymongo.com/v1';
     }
     
     /**
@@ -99,21 +100,29 @@ class PayMongoAPI {
     public function createSource($type, $amount, $currency = 'PHP', $redirect_url = '', $metadata = []) {
         $url = $this->api_url . '/sources';
         
+        // Ensure amount is integer (cents)
+        $amount_in_cents = intval($amount * 100);
+        
         $data = [
             'data' => [
                 'attributes' => [
                     'type' => $type,
-                    'amount' => $amount * 100, // Convert to cents
+                    'amount' => $amount_in_cents,
                     'currency' => $currency,
                     'redirect' => [
-                        'success' => $redirect_url . '?status=success',
-                        'failed' => $redirect_url . '?status=failed'
-                    ],
-                    'metadata' => $metadata
+                        'success' => $redirect_url . '&status=success',
+                        'failed' => $redirect_url . '&status=failed'
+                    ]
                 ]
             ]
         ];
         
+        // Add metadata only if not empty
+        if (!empty($metadata)) {
+            $data['data']['attributes']['metadata'] = $metadata;
+        }
+        
+        error_log("PayMongo createSource request: " . json_encode($data));
         return $this->makeRequest('POST', $url, $data);
     }
     
@@ -157,10 +166,19 @@ class PayMongoAPI {
         $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
         $error = curl_error($curl);
         
+        // Log detailed request info
+        error_log("PayMongo API Request URL: " . $url);
+        error_log("PayMongo API Request Method: " . $method);
+        if ($data) {
+            error_log("PayMongo API Request Data: " . json_encode($data));
+        }
+        error_log("PayMongo API Response Code: " . $httpCode);
+        error_log("PayMongo API Response: " . $response);
+        
         curl_close($curl);
         
         if ($error) {
-            error_log("PayMongo API Error: " . $error);
+            error_log("PayMongo API cURL Error: " . $error);
             return ['error' => 'Connection error: ' . $error];
         }
         

@@ -5,7 +5,7 @@
  */
 
 // Use composer autoloader
-require_once __DIR__ . '/../auth/vendor/autoload.php';
+require_once __DIR__ . '/../../config/mailer/vendor/autoload.php';
 
 // Import PHPMailer classes into the global namespace
 use PHPMailer\PHPMailer\PHPMailer;
@@ -185,7 +185,7 @@ function createOrderEmailBody($order) {
 // Function to get email configuration
 function getEmailConfig() {
     // Try to load from configuration file if exists
-    $configFile = __DIR__ . '/../../config/email_config.php';
+    $configFile = __DIR__ . '/../../config/mailer/email_config.php';
     if (file_exists($configFile)) {
         include $configFile;
         if (isset($email_config) && is_array($email_config)) {
@@ -332,35 +332,26 @@ function createPHPMailer() {
     }
 }
 
-// Function to get admin email from database
+// Function to get admin email from configuration
 function getAdminEmail() {
-    global $conn;
-    
     try {
-        // Query to get admin email from database
-        $query = "SELECT email FROM users WHERE is_admin = 1 LIMIT 1";
-        $result = $conn->query($query);
+        error_log("Getting admin email from configuration...");
         
-        if ($result && $result->num_rows > 0) {
-            $admin = $result->fetch_assoc();
-            return $admin['email'];
-        }
-        
-        // Log if no admin email found
-        error_log("No admin email found in database");
-        
-        // Fallback to configuration
+        // Get admin email from configuration file
         $config = getEmailConfig();
         if (isset($config['admin_email']) && !empty($config['admin_email'])) {
+            error_log("Admin email found in config: " . $config['admin_email']);
             return $config['admin_email'];
         }
         
-        // Final fallback
-        return 'neoexclusivecafe@gmail.com';
+        error_log("No admin email found in configuration, using fallback");
+        // Fallback to default
+        return 'admin@neoexclusive.com';
+        
     } catch (Exception $e) {
         error_log("Error fetching admin email: " . $e->getMessage());
         // Fallback to default
-        return 'neoexclusivecafe@gmail.com';
+        return 'admin@neoexclusive.com';
     }
 }
 

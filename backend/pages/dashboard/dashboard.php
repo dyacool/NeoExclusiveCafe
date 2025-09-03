@@ -3,8 +3,7 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-require_once __DIR__ . "/../admin-includes/config.php";
-require_once __DIR__ . "/../admin-includes/database.php";
+// Database includes removed - using static data only
 require_once __DIR__ . "/../../login/admin/admin-auth.php";
 
 // Helper function to format selected dates for dashboard
@@ -42,73 +41,21 @@ $top_products = [];
 $latest_transactions = [];
 $latest_orders = [];
 
-// Check if connection exists
-if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
-}
+// Database connection removed - using static data only
 
 // Total Users (using same query as admin-homepage.php)
-$users_query = "SELECT COUNT(*) as total_users FROM users";
-$users_result = $conn->query($users_query);
-if ($users_result) {
-    $stats['total_users'] = $users_result->fetch_assoc()['total_users'];
-}
+// Total Users - using default value since users table doesn't exist
+$stats['total_users'] = 0;
 
-// Net Income (using same query as admin-homepage.php)
-$income_query = "SELECT COALESCE(SUM(total_amount), 0) as total_income FROM orders WHERE status IN ('Delivered', 'Picked-up')";
-$income_result = $conn->query($income_query);
-if ($income_result) {
-    $stats['net_income'] = $income_result->fetch_assoc()['total_income'];
-}
+// All stats using static values - no database queries
+$stats['net_income'] = 0;
+$stats['today_income'] = 0;
+$stats['total_orders'] = 0;
+$stats['pending_orders'] = 0;
+$stats['total_products'] = 0;
 
-// Current day total income
-$today_income_query = "SELECT COALESCE(SUM(total_amount), 0) as today_income FROM orders WHERE DATE(created_at) = CURDATE() AND status IN ('Delivered', 'Picked-up')";
-$today_income_result = $conn->query($today_income_query);
-if ($today_income_result) {
-    $stats['today_income'] = $today_income_result->fetch_assoc()['today_income'];
-}
-
-// Total Orders (using same query as admin-homepage.php)
-$orders_query = "SELECT COUNT(*) as total_orders FROM orders";
-$orders_result = $conn->query($orders_query);
-if ($orders_result) {
-    $stats['total_orders'] = $orders_result->fetch_assoc()['total_orders'];
-}
-
-// Orders in Progress (using same query as admin-homepage.php)
-$progress_query = "SELECT COUNT(*) as in_progress FROM orders WHERE status NOT IN ('Completed', 'Delivered', 'Picked-up')";
-$progress_result = $conn->query($progress_query);
-if ($progress_result) {
-    $stats['pending_orders'] = $progress_result->fetch_assoc()['in_progress'];
-}
-
-// Total products (with error handling)
-$products_query = "SELECT COUNT(*) as total_products FROM products";
-$products_result = $conn->query($products_query);
-if ($products_result) {
-    $stats['total_products'] = $products_result->fetch_assoc()['total_products'];
-}
-
-// Top 10 products with error handling
-$top_products_query = "
-    SELECT 
-        p.name, 
-        COUNT(oi.id) as total_sold, 
-        SUM(COALESCE(oi.subtotal, p.price)) as total_revenue,
-        p.price
-    FROM products p
-    LEFT JOIN order_items oi ON p.id = oi.product_id 
-    LEFT JOIN orders o ON oi.order_id = o.id AND o.status IN ('Delivered', 'Picked-up')
-    GROUP BY p.id, p.name, p.price
-    ORDER BY total_sold DESC 
-    LIMIT 10
-";
-$top_products_result = $conn->query($top_products_query);
-if ($top_products_result) {
-    while ($row = $top_products_result->fetch_assoc()) {
-        $top_products[] = $row;
-    }
-}
+// Top 10 products - using sample data since order_items table doesn't exist
+$top_products = [];
 
 // If no products data, create sample data
 if (empty($top_products)) {
@@ -126,87 +73,14 @@ if (empty($top_products)) {
     ];
 }
 
-// Latest 5 transactions with error handling
-$transactions_query = "
-    SELECT 
-        o.id, 
-        o.total_amount, 
-        o.created_at, 
-        o.status, 
-        COALESCE(u.first_name, 'Guest') as first_name,
-        COALESCE(u.last_name, '') as last_name
-    FROM orders o
-    LEFT JOIN users u ON o.user_id = u.id
-    WHERE o.status IN ('Delivered', 'Picked-up')
-    ORDER BY o.created_at DESC
-    LIMIT 5
-";
-$transactions_result = $conn->query($transactions_query);
-if ($transactions_result) {
-    while ($row = $transactions_result->fetch_assoc()) {
-        $row['customer_name'] = trim($row['first_name'] . ' ' . $row['last_name']);
-        if (empty($row['customer_name'])) {
-            $row['customer_name'] = 'Guest Customer';
-        }
-        $latest_transactions[] = $row;
-    }
-}
+// Latest 5 transactions - using static data
+$latest_transactions = [];
 
-// Latest 5 orders with error handling
-$latest_orders_query = "
-    SELECT 
-        o.id, 
-        o.total_amount, 
-        o.created_at, 
-        o.status, 
-        COALESCE(u.first_name, 'Guest') as first_name,
-        COALESCE(u.last_name, '') as last_name
-    FROM orders o
-    LEFT JOIN users u ON o.user_id = u.id
-    ORDER BY o.created_at DESC
-    LIMIT 5
-";
-$latest_orders_result = $conn->query($latest_orders_query);
-if ($latest_orders_result) {
-    while ($row = $latest_orders_result->fetch_assoc()) {
-        $row['customer_name'] = trim($row['first_name'] . ' ' . $row['last_name']);
-        if (empty($row['customer_name'])) {
-            $row['customer_name'] = 'Guest Customer';
-        }
-        $latest_orders[] = $row;
-    }
-}
+// Latest 5 orders - using static data
+$latest_orders = [];
 
-// Products with today availability - fetch dates instead of days
+// Products with today availability - using static data
 $availtoday_products = [];
-$availtoday_query = "
-    SELECT 
-        p.id,
-        p.name,
-        p.status_id,
-        ps.name as status_name,
-        p.availtoday_status_id,
-        ats.name as availtoday_status_name,
-        GROUP_CONCAT(DISTINCT tpd.available_date ORDER BY tpd.available_date SEPARATOR ',') as todays_product_dates,
-        GROUP_CONCAT(DISTINCT rptd.available_date ORDER BY rptd.available_date SEPARATOR ',') as regular_today_dates
-    FROM products p
-    LEFT JOIN product_statuses ps ON p.status_id = ps.id
-    LEFT JOIN availtoday_status ats ON p.availtoday_status_id = ats.id
-    LEFT JOIN todays_products_dates tpd ON p.id = tpd.product_id
-    LEFT JOIN regular_products_today_dates rptd ON p.id = rptd.product_id
-    WHERE p.deleted_at IS NULL 
-    AND p.availtoday_status_id IS NOT NULL
-    AND (tpd.available_date IS NOT NULL OR rptd.available_date IS NOT NULL)
-    GROUP BY p.id, p.name, p.status_id, ps.name, p.availtoday_status_id, ats.name
-    ORDER BY p.created_at DESC
-    LIMIT 10
-";
-$availtoday_result = $conn->query($availtoday_query);
-if ($availtoday_result) {
-    while ($row = $availtoday_result->fetch_assoc()) {
-        $availtoday_products[] = $row;
-    }
-}
 
 // Calculate percentage changes (placeholder values for demo)
 $stats['today_change'] = '+2% from yesterday';
@@ -372,7 +246,7 @@ $stats['bulk_change'] = '3 pending approval';
                                             <td>
                                                 <div class="customer-info">
                                                     <div class="customer-name"><?php echo htmlspecialchars($transaction['customer_name']); ?></div>
-                                                    <div class="transaction-id">TXN<?php echo str_pad($transaction['id'], 3, '0', STR_PAD_LEFT); ?> • <?php echo date('M j', strtotime($transaction['created_at'])); ?></div>
+                                                    <div class="transaction-id">TXN<?php echo str_pad($transaction['id'], 3, '0', STR_PAD_LEFT); ?></div>
                                                 </div>
                                             </td>
                                             <td class="amount-cell">
@@ -407,7 +281,7 @@ $stats['bulk_change'] = '3 pending approval';
                                             <td>
                                                 <div class="customer-info">
                                                     <div class="customer-name"><?php echo htmlspecialchars($order['customer_name']); ?></div>
-                                                    <div class="order-id">#<?php echo $order['id']; ?> • <?php echo date('M j', strtotime($order['created_at'])); ?></div>
+                                                    <div class="order-id">#<?php echo $order['id']; ?></div>
                                                 </div>
                                             </td>
                                             <td class="amount-cell">

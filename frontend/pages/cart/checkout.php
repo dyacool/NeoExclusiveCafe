@@ -1263,40 +1263,50 @@ $debug_info = [
                     // Add notes if any
                     formData.append('notes', document.getElementById('order_notes').value);
                     
-                    // Disable submit button to prevent double submission
-                    const submitButton = checkoutForm.querySelector('button[type="submit"]');
-                    if (submitButton) {
-                        submitButton.disabled = true;
+                    // Show loading state
+                    setLoadingState(true);
+                    
+                    // Get selected payment method
+                    const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
+                    
+                    // Convert FormData to regular object for PayMongo integration
+                    const orderData = {};
+                    for (let [key, value] of formData.entries()) {
+                        orderData[key] = value;
                     }
                     
-                    const response = await fetch("../../php/users/process_order.php", {
-                        method: 'POST',
-                        body: formData
-                    });
+                    // Add customer name and email
+                    orderData.customer_name = (orderData.first_name || '') + ' ' + (orderData.last_name || '');
+                    orderData.customer_email = orderData.email;
                     
-                    const responseText = await response.text();
+                    // Prepare payment data for PayMongo
+                    const paymentData = {
+                        payment_method: paymentMethod,
+                        order_type: 'regular',
+                        amount: <?php echo $cart_total; ?>,
+                        order_data: orderData
+                    };
                     
-                    let result;
-                    try {
-                        result = JSON.parse(responseText);
-                    } catch (parseError) {
-                        throw new Error('Invalid server response');
-                    }
+                    console.log('Payment data being sent:', paymentData);
                     
-                    if (result.success) {
-                        alert('Order placed successfully! You will be redirected to your order receipt.');
-                        window.location.href = result.receipt_url;
+                    // Process payment through PayMongo
+                    const paymentResult = await processPayment(paymentData);
+                    
+                    if (paymentResult.success) {
+                        if (paymentResult.payment_type === 'source') {
+                            // Redirect to PayMongo checkout for GCash/Maya
+                            window.location.href = paymentResult.checkout_url;
+                        } else if (paymentResult.payment_type === 'payment_intent') {
+                            // Handle card payment confirmation
+                            await handleCardPayment(paymentResult);
+                        }
                     } else {
-                        throw new Error(result.message || 'Failed to place order');
+                        throw new Error(paymentResult.error || 'Payment processing failed');
                     }
                 } catch (error) {
+                    console.error('Order processing error:', error);
                     alert('An error occurred while placing your order: ' + error.message);
-                } finally {
-                    // Re-enable submit button
-                    const submitButton = checkoutForm.querySelector('button[type="submit"]');
-                    if (submitButton) {
-                        submitButton.disabled = false;
-                    }
+                    setLoadingState(false);
                 }
             });
         }
@@ -1474,6 +1484,12 @@ $debug_info = [
                         <span class="payment-text">Maya</span>
                     </div>
                 </label>
+                <label class="payment-option">
+                    <input type="radio" name="payment_method" value="card" id="card">
+                    <div class="payment-option-content">
+                        <span class="payment-text">Credit/Debit Card</span>
+                    </div>
+                </label>
             </div>
             <div class="payment-note">
                 <p>Payment instructions will be provided after placing your order.</p>
@@ -1598,6 +1614,73 @@ phoneInput.addEventListener('input', function () {
       this.maxLength = 13; // default to max possible
     }
   });
+
+// PayMongo Payment Processing Functions
+async function processPayment(paymentData) {
+    try {
+        console.log('JSON string being sent:', JSON.stringify(paymentData));
+        console.log('JSON string length:', JSON.stringify(paymentData).length);
+        
+        const response = await fetch('process-payment.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(paymentData)
+        });
+        
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+        
+        const rawResponse = await response.text();
+        console.log('Raw response:', rawResponse);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = JSON.parse(rawResponse);
+        return result;
+        
+    } catch (error) {
+        console.error('Payment processing error:', error);
+        throw error;
+    }
+}
+
+async function handleCardPayment(paymentResult) {
+    try {
+        // For card payments, we would need to handle 3D Secure or other confirmations
+        // This is a simplified implementation
+        console.log('Handling card payment:', paymentResult);
+        
+        if (paymentResult.client_secret) {
+            // In a real implementation, you would use PayMongo's JS SDK here
+            // For now, we'll redirect to a success page
+            window.location.href = `payment-success.php?type=regular&order_id=${paymentResult.order_id}`;
+        } else {
+            throw new Error('Card payment confirmation failed');
+        }
+    } catch (error) {
+        console.error('Card payment error:', error);
+        throw error;
+    }
+}
+
+function setLoadingState(isLoading) {
+    const submitButton = document.querySelector('button[type="submit"]');
+    const buttonText = submitButton.querySelector('.button-text') || submitButton;
+    
+    if (isLoading) {
+        submitButton.disabled = true;
+        buttonText.textContent = 'Processing Payment...';
+        submitButton.style.opacity = '0.7';
+    } else {
+        submitButton.disabled = false;
+        buttonText.textContent = 'Place Order';
+        submitButton.style.opacity = '1';
+    }
+}
 </script>
 
 <?php
