@@ -72,14 +72,15 @@ main {
   margin-bottom: 25px;
   padding: 25px 0;
   border-radius: 10px;
-  background: white;   /* White background */
-  color: #2d5a27;      /* Default text color green */
+  background-color: var(--white);
+  border: 2px solid #cbd5c0;
+  box-shadow: 0 4px 15px rgba(45, 90, 39, 0.2);
 }
 
 .about-header h1 {
   font-size: 2.5rem;
   font-weight: 700;
-  color: #2d5a27;      /* Force the title text to green */
+  color: #0f5132;
   animation: slideInDown 0.6s ease-out;
 }
 

@@ -53,9 +53,9 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         </svg>
                     </a>
                     <div class="products-dropdown">
-                        <a href="/frontend/pages/products/special-offers.php">Special Offer</a>
+                        <a href="/frontend/pages/products/product-dashboard.php">Same Day Order</a>
                         <a href="/frontend/pages/products/weekly-product.php">For Delivery</a>
-                        <a href="/frontend/pages/products/pickup-product.php">For Pick Up</a>
+                        <a href="/frontend/pages/products/user-products.php">For Pick Up</a>
                     </div>
                     <!-- Mobile Products Dropdown - Inside nav-left for better visibility -->
                     <div class="mobile-products-dropdown">

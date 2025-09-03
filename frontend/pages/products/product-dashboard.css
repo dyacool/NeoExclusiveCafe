@@ -35,10 +35,6 @@
   --font-size3: 10px;
 }
 
-.wrapper {
-  background-color: var(--body-color);
-}
-
 /* Animation keyframes */
 @keyframes fadeIn {
   from {
@@ -124,7 +120,7 @@
 .cart-btn:hover {
   background-color: var(--text-green);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .cart-count {
@@ -146,7 +142,7 @@
   background-color: white;
   min-width: 320px;
   max-width: 400px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   border-radius: 12px;
   z-index: 1000;
   border: 1px solid #e0e0e0;
@@ -154,7 +150,7 @@
 
 /* Create invisible bridge to maintain hover */
 .cart-dropdown-content::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -4px;
   right: 0;
@@ -197,7 +193,7 @@
 .timer-value {
   color: #ff6b35;
   font-weight: 600;
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
 }
 
 .cart-items {
@@ -381,7 +377,10 @@
 
 .products-grid.normal-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr); /* Explicitly 4 columns for normal grid */
+  grid-template-columns: repeat(
+    4,
+    1fr
+  ); /* Explicitly 4 columns for normal grid */
   gap: 20px;
 }
 
@@ -666,7 +665,7 @@ h3 {
 }
 
 .thumbnail-container img:hover {
-  border-color: #4CAF50;
+  border-color: #4caf50;
   transform: scale(1.05);
 }
 
@@ -842,20 +841,18 @@ h3 {
     flex-direction: column;
     gap: 20px;
   }
-  
+
   .blog-container {
     flex-direction: column;
     padding: 0 15px;
   }
-  
-
 }
 
 @media (max-width: 480px) and (min-width: 320px) {
   .products-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .products-grid.scroll-mode .product-card {
     flex: 0 0 250px; /* Slightly smaller on mobile */
     min-width: 250px;
@@ -866,18 +863,18 @@ h3 {
     font-size: var(--h2-font-size);
     text-align: left;
   }
-  
+
   .prdct-subtitle {
     font-size: 1.1em;
     text-align: left;
   }
-  
+
   .header-section {
     flex-direction: column;
     gap: 15px;
     align-items: center;
   }
-  
+
   .cart-dropdown-content {
     min-width: 280px;
     right: 50%;
@@ -887,14 +884,12 @@ h3 {
   .main-container {
     padding: 15px;
   }
-  
 
-  
   .modal-content {
     width: 95%;
     margin: 2% auto;
   }
-  
+
   .modal-body {
     padding: 20px;
   }
@@ -904,7 +899,7 @@ h3 {
 .confirmation-popup {
   top: 20px;
   right: 20px;
-  background: #4CAF50;
+  background: #4caf50;
   color: white;
   padding: 15px 20px;
   border-radius: 8px;
@@ -962,4 +957,3 @@ h3 {
 .add-to-cart-btn.closed:hover {
   background-color: #b91c1c;
 }
-
