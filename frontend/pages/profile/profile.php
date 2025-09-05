@@ -56,6 +56,21 @@ mysqli_stmt_execute($saved_stmt);
 $saved_result = mysqli_stmt_get_result($saved_stmt);
 $saved_count = mysqli_fetch_assoc($saved_result)['saved_count'];
 
+// Get count of bulk orders
+$bulk_orders_count_query = "SELECT COUNT(*) as bulk_count FROM bulk_orders WHERE user_id = ?";
+$bulk_orders_count_stmt = mysqli_prepare($conn, $bulk_orders_count_query);
+
+if ($bulk_orders_count_stmt === false) {
+    // Handle case where bulk_orders table doesn't exist yet
+    $bulk_orders_count = 0;
+} else {
+    mysqli_stmt_bind_param($bulk_orders_count_stmt, "i", $user_id);
+    mysqli_stmt_execute($bulk_orders_count_stmt);
+    $bulk_orders_count_result = mysqli_stmt_get_result($bulk_orders_count_stmt);
+    $bulk_orders_count = mysqli_fetch_assoc($bulk_orders_count_result)['bulk_count'];
+    mysqli_stmt_close($bulk_orders_count_stmt);
+}
+
 // Determine profile image path
 $profile_image_path = '../../assets/images/profile.svg';
 if (isset($user['profile_image']) && !empty(trim($user['profile_image']))) {
@@ -108,6 +123,35 @@ if (mysqli_num_rows($result) > 0) {
     
     // Reset the result pointer for the main display loop
     mysqli_data_seek($result, 0);
+}
+
+// Fetch user bulk orders
+$bulk_orders_sql = "SELECT id, name, contact, email, billing_address, order_type, delivery_address, purpose, date_needed, time_needed, created_at, status, total_items, total_amount, proof_of_payment, admin_updated, note, admin_notes FROM bulk_orders WHERE user_id = ? ORDER BY created_at DESC";
+$bulk_orders_stmt = mysqli_prepare($conn, $bulk_orders_sql);
+
+// Check if bulk_orders table exists and statement prepared successfully
+if ($bulk_orders_stmt === false) {
+    // Handle case where bulk_orders table doesn't exist yet
+    $bulk_orders_count = 0;
+    $all_bulk_orders = [];
+    $bulk_order_items = [];
+    // Create empty result for later use
+    $bulk_orders_result = mysqli_query($conn, "SELECT 1 WHERE 0"); // Empty result set
+} else {
+    mysqli_stmt_bind_param($bulk_orders_stmt, "i", $user_id);
+    mysqli_stmt_execute($bulk_orders_stmt);
+    $bulk_orders_result = mysqli_stmt_get_result($bulk_orders_stmt);
+
+    // Prepare arrays to store bulk order details and items
+    $all_bulk_orders = [];
+    $bulk_order_items = [];
+
+    // Reset the result pointer for the main display loop if needed
+    if (mysqli_num_rows($bulk_orders_result) > 0) {
+        mysqli_data_seek($bulk_orders_result, 0);
+    }
+    
+    mysqli_stmt_close($bulk_orders_stmt);
 }
 ?>
 
@@ -175,7 +219,10 @@ if (mysqli_num_rows($result) > 0) {
                 <div class="neo-stat-number"><?php echo $orders_count; ?></div>
                 <div class="neo-stat-label">Total Orders</div>
             </div>
-
+            <div class="neo-stat-card">
+                <div class="neo-stat-number"><?php echo $bulk_orders_count; ?></div>
+                <div class="neo-stat-label">Bulk Orders</div>
+            </div>
         </div>
 
         <div class="neo-profile-orders">
@@ -209,6 +256,46 @@ if (mysqli_num_rows($result) > 0) {
                     <?php else: ?>
                         <tr>
                             <td colspan="4">No orders found for your account.</td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Bulk Order History Section -->
+        <div class="neo-profile-orders">
+            <h2>Bulk Order History</h2>
+            <table class="orders-table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Date Submitted</th>
+                        <th>Total Items</th>
+                        <th>Total Amount</th>
+                        <th>Order Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (mysqli_num_rows($bulk_orders_result) > 0): ?>
+                        <?php while ($bulk_order = mysqli_fetch_assoc($bulk_orders_result)): ?>
+                        <tr>
+                            <td>#<?php echo htmlspecialchars($bulk_order['id']); ?></td>
+                            <td><?php echo htmlspecialchars(date("F j, Y, g:i a", strtotime($bulk_order['created_at']))); ?></td>
+                            <td><?php echo htmlspecialchars($bulk_order['total_items']); ?></td>
+                            <td>₱<?php echo htmlspecialchars(number_format($bulk_order['total_amount'], 2)); ?></td>
+                            <td><span class="status-<?php echo htmlspecialchars(strtolower($bulk_order['status'])); ?>"><?php echo htmlspecialchars(ucfirst(str_replace('_', ' ', $bulk_order['status']))); ?></span></td>
+                            <td>
+                                <a href="../bulk/bulk-order-details.php?id=<?php echo $bulk_order['id']; ?>" class="btn-view">View Details</a>
+                                <?php if ($bulk_order['status'] == 'approved' && empty($bulk_order['proof_of_payment'])): ?>
+                                    <a href="../bulk-orders/bulk-order-details.php?id=<?php echo $bulk_order['id']; ?>#proof-upload" class="btn-proof">Attach Proof</a>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                        <?php endwhile; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="6">No bulk orders found for your account.</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>

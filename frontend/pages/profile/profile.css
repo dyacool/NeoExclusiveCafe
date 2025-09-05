@@ -393,6 +393,29 @@
   box-shadow: 0 3px 10px rgba(92, 141, 118, 0.2);
 }
 
+/* Proof attachment button styling */
+.btn-proof {
+  display: inline-block;
+  padding: 0.6rem 1.25rem;
+  background-color: #d4842e;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  text-align: center;
+  cursor: pointer;
+  margin-left: 0.5rem;
+}
+
+.btn-proof:hover {
+  background-color: #c27729;
+  color: white;
+  box-shadow: 0 3px 10px rgba(212, 132, 46, 0.2);
+}
+
 /* Empty state styling */
 .orders-table td[colspan="4"] {
   grid-column: 1 / span 3;
@@ -852,6 +875,30 @@
 .status-cancelled {
   color: #d32f2f;
   background-color: rgba(211, 47, 47, 0.1);
+  padding: 0.3rem 0.75rem;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.status-approved {
+  color: #1976d2;
+  background-color: rgba(25, 118, 210, 0.1);
+  padding: 0.3rem 0.75rem;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.status-payment_received {
+  color: #388e3c;
+  background-color: rgba(56, 142, 60, 0.1);
+  padding: 0.3rem 0.75rem;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.status-ready_for_delivery {
+  color: #0277bd;
+  background-color: rgba(2, 119, 189, 0.1);
   padding: 0.3rem 0.75rem;
   border-radius: 4px;
   font-weight: 500;

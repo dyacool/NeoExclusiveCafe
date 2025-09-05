@@ -56,12 +56,15 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         <a href="/frontend/pages/products/product-dashboard.php">Same Day Order</a>
                         <a href="/frontend/pages/products/weekly-product.php">For Delivery</a>
                         <a href="/frontend/pages/products/user-products.php">For Pick Up</a>
+                        <a href="/frontend/pages/bulk/bulk-form.php">Bulk Order</a>
                     </div>
                     <!-- Mobile Products Dropdown - Inside nav-left for better visibility -->
                     <div class="mobile-products-dropdown">
-                        <a href="/frontend/pages/products/special-offers.php" class="mobile-dropdown-item">Special Offer</a>
+                        <a href="/frontend/pages/products/product-dashboard.php" class="mobile-dropdown-item">Special Offer</a>
                         <a href="/frontend/pages/products/weekly-product.php" class="mobile-dropdown-item">For Delivery</a>
-                        <a href="/frontend/pages/products/pickup-product.php" class="mobile-dropdown-item">For Pick Up</a>
+                        <a href="/frontend/pages/products/user-products.php" class="mobile-dropdown-item">For Pick Up</a>
+                        <a href="/frontend/pages/bulk/bulk-form.php" class="mobile-dropdown-item">Bulk Order</a>
+
                     </div>
                 </div>
                 <a href="../../../frontend/pages/blog/blog-dashboard.php" class="nav-link smooth-nav <?php echo $current_page === 'blog-page.php' ? 'active' : ''; ?>" data-target="../../../frontend/pages/blog/blog-dashboard.php">

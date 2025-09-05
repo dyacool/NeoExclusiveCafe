@@ -139,6 +139,17 @@ $isAdmin = isset($_SESSION['isAdmin']) && $_SESSION['isAdmin'] == 1;
                     </li>
 
                     <li class="nav-item">
+                        <a href="../bulks/bulk-order-lists.php" class="nav-link">
+                            <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="9" cy="21" r="1"></circle>
+                                <circle cx="20" cy="21" r="1"></circle>
+                                <path d="m1 1 4 4 2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                            </svg>
+                            <span class="nav-text">Bulk Orders</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
                         <a href="../transactions/transactions.php" class="nav-link">
                             <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
