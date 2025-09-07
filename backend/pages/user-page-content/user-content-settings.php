@@ -122,6 +122,22 @@
                             </div>
                         </a>
                     </div>
+                    <div class="setting-card">
+                        <a href="/backend/pages/user-page-content/delivery-locations.php" class="setting-card-link">
+                            <div class="setting-card-content">
+                                <div class="setting-icon delivery">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="1" y="3" width="15" height="13"></rect>
+                                        <polygon points="16,8 20,8 23,11 23,16 16,16"></polygon>
+                                        <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                                        <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                                    </svg>
+                                </div>
+                                <h3 class="setting-title">Delivery Locations</h3>
+                                <p class="setting-description">Manage delivery locations and delivery fees</p>
+                            </div>
+                        </a>
+                    </div>
                 </div>
             </div>
 
