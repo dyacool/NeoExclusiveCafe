@@ -159,8 +159,7 @@ if ($result && mysqli_num_rows($result) > 0) {
     <div class="bulk-order-container">
         <div class="page-header">
             <div class="header-content">
-                <h1><i class="fas fa-boxes"></i> Bulk Orders Management</h1>
-                <p>Manage and track all bulk orders submitted by customers</p>
+                <p>Manage and track all bulk order requests submitted by customers</p>
             </div>
         </div>
 

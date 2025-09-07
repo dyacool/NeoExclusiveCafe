@@ -132,6 +132,7 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
     <title>Bulk Order Form - NeoCafe</title>
     <link rel="stylesheet" href="bulk-form.css">
 </head>
+<?php include "../../user-includes/navbar/customer-navigation.php"; ?>
 <body>
     <div class="container">
         <div class="form-header">
@@ -249,11 +250,6 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
                                     <label for="product_<?php echo $product['id']; ?>">
                                         <strong><?php echo htmlspecialchars($product['name']); ?></strong>
                                         <span class="product-price">₱<?php echo number_format($product['price'], 2); ?></span>
-                                        <?php if (isset($product['status_name']) && $product['status_name'] !== 'Available'): ?>
-                                            <span class="product-status status-<?php echo strtolower($product['status_name']); ?>">
-                                                (<?php echo $product['status_name']; ?>)
-                                            </span>
-                                        <?php endif; ?>
                                     </label>
                                 </div>
                                 <div class="quantity-input" style="display: none;">
