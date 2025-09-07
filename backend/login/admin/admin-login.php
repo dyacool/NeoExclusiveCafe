@@ -82,127 +82,251 @@ if (isset($_GET['error'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login - Neo Exclusive Cafe</title>
     <style>
-        @import url("https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,200;1,300;1,400;1,500;1,600;1,700;1,800&display=swap");
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: "Spectral", serif;
         }
 
         body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             min-height: 100vh;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8ecef 100%);
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            background-color: #f5f5f5;
+            padding: 20px;
         }
 
-        .login-container {
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             width: 100%;
-            max-width: 400px;
-        }
-
-        .login-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .login-header h1 {
-            font-size: 1rem;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 500;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-
-        .form-group input:focus {
-            border-color: #3196c1ff;
-            outline: none;
-        }
-
-        .submit-btn {
-            width: 100%;
-            padding: 12px;
-            background-color: #3196c1ff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .submit-btn:hover {
-            background-color: #3196c1ff;
-        }
-
-        .alert {
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 4px;
-            color: white;
-            background-color: #f44336;
-        }
-
-        .back-to-site {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .back-to-site a {
-            color: #256035;
-            text-decoration: none;
-            font-size: 14px;
-        }
-
-        .back-to-site a:hover {
-            text-decoration: underline;
+            max-width: 440px;
         }
 
         .logo-container {
             text-align: center;
-            margin-bottom: 5px;
+            margin-bottom: 30px;
         }
 
         .logo-container img {
             width: auto;
-            height: 40px;
+            height: 60px;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+            padding: 60px 50px;
+            width: 100%;
+            max-width: 440px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #16a34a 0%, #42e07cff 100%);
+        }
+
+        .logo-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .admin-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #16a34a 0%, #20b456ff 20%, #42e07cff 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3);
+        }
+
+        .admin-icon svg {
+            width: 36px;
+            height: 36px;
+            fill: white;
+        }
+
+        .login-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #111827;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 400;
+            color: #374151;
+            background: #f9fafb;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-group input::placeholder {
+            color: #9ca3af;
+            font-weight: 400;
+        }
+
+        .form-group input:focus {
+            border-color: #16a34a;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .back-link {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .back-link a {
+            color: #6b7280;
+            text-decoration: underline;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .back-link a:hover {
+            color: #8b5cf6;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #16a34a 0%, #20b456ff 20%, #42e07cff 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(22, 163, 74, 0.3);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(22, 163, 74, 0.4);
+            background: linear-gradient(135deg, #16a34a 0%, #20b456ff 20%, #42e07cff 100%);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .alert {
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+            border: 1px solid #fca5a5;
+            color: #dc2626;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 480px) {
+            body {
+                padding: 15px;
+            }
+
+            .logo-container {
+                margin-bottom: 20px;
+            }
+
+            .logo-container img {
+                height: 50px;
+            }
+
+            .login-container {
+                padding: 40px 30px;
+                border-radius: 16px;
+            }
+
+            .admin-icon {
+                width: 70px;
+                height: 70px;
+            }
+
+            .admin-icon svg {
+                width: 32px;
+                height: 32px;
+            }
+
+            .login-title {
+                font-size: 16px;
+            }
+
+            .form-group input {
+                padding: 14px 16px;
+                font-size: 15px;
+            }
+
+            .submit-btn {
+                padding: 14px;
+                font-size: 15px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .login-container {
+                padding: 30px 20px;
+            }
+
+            .logo-container img {
+                height: 45px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="login-container">
+    <div class="main-container">
         <div class="logo-container">
             <img src="../../../assets/images/user-logo.png" alt="Neo Cafe Logo">
         </div>
-        <div class="login-header">
-            <h1>Admin Login</h1>
-            <p>Please login to access the admin dashboard</p>
-        </div>
+        
+        <div class="login-container">
+            <div class="logo-section">
+                <div class="admin-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    </svg>
+                </div>
+                <div class="login-title">Admin Login</div>
+            </div>
 
         <?php if (!empty($errorMessage)): ?>
             <div class="alert">
@@ -212,19 +336,19 @@ if (isset($_GET['error'])) {
 
         <form method="POST" action="">
             <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" required>
+                <input type="text" id="username" name="username" placeholder="Username" required>
             </div>
             <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required>
+                <input type="password" id="password" name="password" placeholder="Password" required>
             </div>
+            
+            <div class="back-link">
+                <a href="/frontend/pages/home/user-dashboard.php">Go to user website</a>
+            </div>
+            
             <button type="submit" name="admin-login-submit" class="submit-btn">Login</button>
         </form>
-
-        <div class="back-to-site">
-            <a href="/frontend/pages/home/user-dashboard.php">← Go to Website</a>
-        </div>
+    </div>
     </div>
 </body>
 </html> 
