@@ -13,16 +13,6 @@ require_once __DIR__ . '/database-config.php';
 // Initialize database and create table if needed
 $conn = getDBConnection();
 createPromotionsTable($conn);
-
-// Pagination settings
-$items_per_page = 12;
-$current_page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-$offset = ($current_page - 1) * $items_per_page;
-
-// Search and sort parameters
-$search = isset($_GET['search']) ? trim($_GET['search']) : '';
-$sort_by = isset($_GET['sort']) && in_array($_GET['sort'], ['title', 'code', 'discount_value', 'start_date', 'end_date']) ? $_GET['sort'] : 'title';
-$sort_order = isset($_GET['order']) && $_GET['order'] === 'DESC' ? 'DESC' : 'ASC';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -30,8 +20,10 @@ $sort_order = isset($_GET['order']) && $_GET['order'] === 'DESC' ? 'DESC' : 'ASC
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.1.7/css/dataTables.dataTables.css">
     <link rel="stylesheet" href="/backend/pages/user-page-content/promotions-settings.css">
-    <script src="/backend/pages/user-page-content/promotions-settings.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <title>Promotions Management</title>
 </head>
 <body>
@@ -40,254 +32,180 @@ $sort_order = isset($_GET['order']) && $_GET['order'] === 'DESC' ? 'DESC' : 'ASC
 <div class="promotions-container">
     <div class="main-container">
         <!-- Header Section -->
-        <div class="page-header">
-            <div class="header-content">
-                <h1>Promotions & Coupons</h1>
-                <p class="page-subtitle">Manage your promotional codes and discounts</p>
-            </div>
-                    
-            <div class="header-actions">
-                <button class="btn btn-primary" onclick="openAddModal()">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                    Add Coupon
-                </button>
-            </div>
-        </div>
-
-        <!-- Search Section -->
-        <div class="search-section">
-            <div class="search-group">
-                <div class="search-container">
-                    <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <path d="m21 21-4.35-4.35"></path>
-                    </svg>
-                    <input type="text" class="search-input" placeholder="Search coupons..." id="searchInput" oninput="searchCoupons()">
+        <div class="header-supply-order">
+            <h4>Manage Promotions</h4>
+            <div class="all-controls-supply-order">
+                <div class="controls-supply-order">
+                    <button id="supply-order-new-btn">
+                        <i class="fas fa-plus"></i>
+                        <span>New</span>
+                    </button>
+                    <button id="view-supply-order-btn">
+                        <i class="fas fa-eye"></i>
+                        <span>View</span>
+                    </button>
+                    <button id="reactivate-voucher-btn" class="reactivate-btn" disabled>
+                        <i class="fas fa-redo"></i>
+                        <span>Reactivate</span>
+                    </button>
+                </div>
+                <div class="controls-supply-order-right">
+                    <button id="filter-btn">
+                        <i class="fas fa-filter"></i>
+                        <span>Filter</span>
+                    </button>
+                    <div class="filter-container" style="display: none;">
+                        <div class="filter-item">
+                            <label for="voucher-type-filter">Voucher Type</label>
+                            <select id="voucher-type-filter" name="voucher-type-filter">
+                                <option value="" selected>All Types</option>
+                                <option value="percentage">Percentage (%)</option>
+                                <option value="fixed">Fixed Amount (₱)</option>
+                                <option value="free_shipping">Free Shipping Only</option>
+                            </select>
+                        </div>
+                        <fieldset class="filter-fieldset" id="value-range-fieldset">
+                            <legend>Value</legend>
+                            <div class="field-group">
+                                <div class="filter-item">
+                                    <label for="value-min">Min</label>
+                                    <input type="number" id="value-min" placeholder="Min Value">
+                                </div>
+                                <div class="filter-item">
+                                    <label for="value-max">Max</label>
+                                    <input type="number" id="value-max" placeholder="Max Value">
+                                </div>
+                            </div>
+                        </fieldset>
+                        <fieldset class="filter-fieldset">
+                            <legend>Min Purchase</legend>
+                            <div class="field-group">
+                                <div class="filter-item">
+                                    <label for="min-purchase-min">Min</label>
+                                    <input type="number" id="min-purchase-min" placeholder="Min Purchase">
+                                </div>
+                                <div class="filter-item">
+                                    <label for="min-purchase-max">Max</label>
+                                    <input type="number" id="min-purchase-max" placeholder="Max Purchase">
+                                </div>
+                            </div>
+                        </fieldset>
+                        <div class="filter-item">
+                            <label for="status-filter">Status</label>
+                            <select id="status-filter" name="status-filter">
+                                <option value="" selected>All Status</option>
+                                <option value="active">Active</option>
+                                <option value="expired">Expired</option>
+                                <option value="upcoming">Upcoming</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <label for="applies-to-filter">Applies To</label>
+                            <select id="applies-to-filter" name="applies-to-filter">
+                                <option value="" selected>All</option>
+                                <option value="all">All Products</option>
+                                <option value="delivery">Delivery Products</option>
+                                <option value="pickup">Pickup Products</option>
+                                <option value="special">Special Products</option>
+                            </select>
+                        </div>
+                        <fieldset class="filter-fieldset">
+                            <legend>Usage Limit (Global)</legend>
+                            <div class="field-group">
+                                <div class="filter-item">
+                                    <label for="usage-limit-min">Min</label>
+                                    <input type="number" id="usage-limit-min" placeholder="Min Usage Limit">
+                                </div>
+                                <div class="filter-item">
+                                    <label for="usage-limit-max">Max</label>
+                                    <input type="number" id="usage-limit-max" placeholder="Max Usage Limit">
+                                </div>
+                            </div>
+                            <div class="filter-item">
+                                <label for="usage-limit-type">Global Usage Limit Type</label>
+                                <select id="usage-limit-type">
+                                    <option value="" selected>All</option>
+                                    <option value="unlimited">Unlimited (∞)</option>
+                                    <option value="limited">Limited</option>
+                                </select>
+                            </div>
+                        </fieldset>
+                        <fieldset class="filter-fieldset">
+                            <legend>Usage Limit Per User</legend>
+                            <div class="field-group">
+                                <div class="filter-item">
+                                    <label for="usage-limit-user-min">Min</label>
+                                    <input type="number" id="usage-limit-user-min" placeholder="Min Usage/User">
+                                </div>
+                                <div class="filter-item">
+                                    <label for="usage-limit-user-max">Max</label>
+                                    <input type="number" id="usage-limit-user-max" placeholder="Max Usage/User">
+                                </div>
+                            </div>
+                            <div class="filter-item">
+                                <label for="usage-limit-user-type">Per User Usage Limit Type</label>
+                                <select id="usage-limit-user-type">
+                                    <option value="" selected>All</option>
+                                    <option value="unlimited">Unlimited (∞)</option>
+                                    <option value="limited">Limited</option>
+                                </select>
+                            </div>
+                        </fieldset>
+                        <fieldset class="filter-fieldset">
+                            <legend>Validity Date</legend>
+                            <div class="field-group">
+                                <div class="filter-item">
+                                    <label for="validity-from">From</label>
+                                    <input type="date" id="validity-from">
+                                </div>
+                                <div class="filter-item">
+                                    <label for="validity-to">To</label>
+                                    <input type="date" id="validity-to">
+                                </div>
+                            </div>
+                        </fieldset>
+                        <div class="filter-btns">
+                            <button id="reset-filters-btn" type="button">Reset</button>
+                            <button id="apply-filters-btn" type="button">Apply</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Table Controls -->
-        <div class="table-controls">
-            <div class="select-controls">
-                <div class="select-group">
-                    <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
-                    <label for="selectAll">Select All</label>
-                </div>
-                <div class="bulk-actions">
-                    <button class="btn btn-secondary" onclick="bulkDelete()" id="bulkDeleteBtn" style="display: none;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="3,6 5,6 21,6"></polyline>
-                            <path d="m19,6 0,14 a2,2 0 0,1 -2,2 H7 a2,2 0 0,1 -2,-2 V6 m3,0 V4 a2,2 0 0,1 2,-2 h4 a2,2 0 0,1 2,2 v2"></path>
-                        </svg>
-                        Delete Selected
-                    </button>
-                </div>
-            </div>
-
-            <div class="sort-controls">
-                <label class="sort-label">Sort by:</label>
-                <div class="sort-buttons">
-                    <button class="sort-btn active" id="sort-title" onclick="toggleSort('title')">
-                        Title
-                        <svg class="sort-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="6,9 12,15 18,9"></polyline>
-                        </svg>
-                    </button>
-                    <button class="sort-btn" id="sort-code" onclick="toggleSort('code')">
-                        Code
-                        <svg class="sort-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="6,9 12,15 18,9"></polyline>
-                        </svg>
-                    </button>
-                    <button class="sort-btn" id="sort-discount" onclick="toggleSort('discount')">
-                        Discount
-                        <svg class="sort-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="6,9 12,15 18,9"></polyline>
-                        </svg>
-                    </button>
-                    <button class="sort-btn" id="sort-validity" onclick="toggleSort('validity')">
-                        Validity
-                        <svg class="sort-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="6,9 12,15 18,9"></polyline>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Promotions Table -->
-        <div class="promotions-container-table">
-            <div class="table-wrapper">
-                <table class="promotions-table">
+        <!-- DataTable -->
+        <div class="table-div">
+            <table id="supply-order-table" class="display stripe" style="width:100%">
                     <thead>
                         <tr>
-                            <th width="50">
-                                <input type="checkbox" id="headerSelectAll" onchange="toggleSelectAll()">
-                            </th>
+                        <th>Id</th>
                             <th>Title</th>
+                        <th>Method</th>
                             <th>Code</th>
-                            <th>Discount Type</th>
+                        <th>Discount</th>
                             <th>Restrictions</th>
-                            <th>Date Validity</th>
+                        <th>Usage</th>
+                        <th>Valid Period</th>
+                        <th>Sale Channel</th>
                             <th>Status</th>
-                            <th width="150">Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="promotionsTableBody">
-                        <?php
-                            // Database connection
-                            $conn = new mysqli("localhost", "root", "", "crud");
-                            if ($conn->connect_error) {
-                                die("Connection failed: " . $conn->connect_error);
-                            }
-
-                            // Check if promotions table exists, if not create it
-                            $create_table_sql = "CREATE TABLE IF NOT EXISTS promotions (
-                                id INT AUTO_INCREMENT PRIMARY KEY,
-                                title VARCHAR(255) NOT NULL,
-                                code VARCHAR(10) UNIQUE NOT NULL,
-                                discount_type ENUM('shipping', 'percentage', 'fixed_amount') NOT NULL,
-                                discount_value DECIMAL(10,2) NOT NULL,
-                                min_spend DECIMAL(10,2) DEFAULT 0,
-                                applicable_to ENUM('delivery', 'pickup', 'all', 'special') NOT NULL DEFAULT 'all',
-                                usage_limit INT DEFAULT NULL,
-                                usage_limit_per_user INT DEFAULT NULL,
-                                used_count INT DEFAULT 0,
-                                start_date DATE NOT NULL,
-                                end_date DATE NOT NULL,
-                                status ENUM('active', 'inactive', 'expired') DEFAULT 'active',
-                                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-                            )";
-                            $conn->query($create_table_sql);
-
-                            // Fetch promotions with search and pagination
-                            $search = isset($_GET['search']) ? $_GET['search'] : '';
-                            $sort_by = isset($_GET['sort']) ? $_GET['sort'] : 'title';
-                            $sort_order = isset($_GET['order']) ? $_GET['order'] : 'ASC';
-
-                            $where_clause = '';
-                            if (!empty($search)) {
-                                $search = $conn->real_escape_string($search);
-                                $where_clause = "WHERE title LIKE '%$search%' OR code LIKE '%$search%'";
-                            }
-
-                            $sql = "SELECT * FROM promotions $where_clause ORDER BY $sort_by $sort_order LIMIT $items_per_page OFFSET $offset";
-                            $result = $conn->query($sql);
-
-                            if ($result && $result->num_rows > 0) {
-                                while($row = $result->fetch_assoc()) {
-                                    $status_class = '';
-                                    $status_text = ucfirst($row['status']);
-                                    
-                                    // Check if expired
-                                    if (strtotime($row['end_date']) < time()) {
-                                        $status_class = 'status-expired';
-                                        $status_text = 'Expired';
-                                    } else if ($row['status'] == 'active') {
-                                        $status_class = 'status-active';
-                                    } else {
-                                        $status_class = 'status-inactive';
-                                    }
-
-                                    $discount_display = '';
-                                    if ($row['discount_type'] == 'percentage') {
-                                        $discount_display = $row['discount_value'] . '%';
-                                    } else if ($row['discount_type'] == 'fixed_amount') {
-                                        $discount_display = '₱' . number_format($row['discount_value'], 2);
-                                    } else {
-                                        $discount_display = 'Free Shipping';
-                                    }
-
-                                    $restrictions = [];
-                                    if ($row['min_spend'] > 0) {
-                                        $restrictions[] = 'Min: ₱' . number_format($row['min_spend'], 2);
-                                    }
-                                    if ($row['usage_limit']) {
-                                        $restrictions[] = 'Limit: ' . $row['usage_limit'];
-                                    }
-                                    if ($row['usage_limit_per_user']) {
-                                        $restrictions[] = 'Per user: ' . $row['usage_limit_per_user'];
-                                    }
-                                    $restrictions_text = !empty($restrictions) ? implode(', ', $restrictions) : 'None';
-
-                                    echo "<tr class='promotion-row' data-id='{$row['id']}'>
-                                        <td>
-                                            <input type='checkbox' class='row-select' value='{$row['id']}' onchange='updateBulkActions()'>
-                                        </td>
-                                        <td class='promotion-title'>{$row['title']}</td>
-                                        <td class='promotion-code'><code>{$row['code']}</code></td>
-                                        <td class='discount-type'>{$discount_display}</td>
-                                        <td class='restrictions'>{$restrictions_text}</td>
-                                        <td class='validity'>" . date('M j, Y', strtotime($row['start_date'])) . " - " . date('M j, Y', strtotime($row['end_date'])) . "</td>
-                                        <td><span class='status-badge {$status_class}'>{$status_text}</span></td>
-                                        <td class='actions'>
-                                            <button class='action-btn edit-btn' onclick='openEditModal({$row['id']})' title='Edit'>
-                                                <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>
-                                                    <path d='M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z'></path>
-                                                </svg>
-                                            </button>
-                                            <button class='action-btn delete-btn' onclick='deleteCoupon({$row['id']})' title='Delete'>
-                                                <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>
-                                                    <polyline points='3,6 5,6 21,6'></polyline>
-                                                    <path d='m19,6 0,14 a2,2 0 0,1 -2,2 H7 a2,2 0 0,1 -2,-2 V6 m3,0 V4 a2,2 0 0,1 2,-2 h4 a2,2 0 0,1 2,2 v2'></path>
-                                                </svg>
-                                            </button>
-                                        </td>
-                                    </tr>";
-                                }
-                            } else {
-                                echo "<tr><td colspan='8' class='no-data'>No promotions found. <a href='#' onclick='openAddModal()'>Create your first coupon</a></td></tr>";
-                            }
-
-                            $conn->close();
-                        ?>
-                    </tbody>
+                <tbody></tbody>
+                <tfoot>
+                    <tr>
+                        <th>Id</th>
+                        <th>Title</th>
+                        <th>Method</th>
+                        <th>Code</th>
+                        <th>Discount</th>
+                        <th>Restrictions</th>
+                        <th>Usage</th>
+                        <th>Valid Period</th>
+                        <th>Sale Channel</th>
+                        <th>Status</th>
+                    </tr>
+                </tfoot>
                 </table>
-            </div>
-        </div>
-
-        <!-- Pagination -->
-        <div class="pagination-container">
-            <?php
-                // Get total count for pagination
-                $conn = new mysqli("localhost", "root", "", "crud");
-                $count_sql = "SELECT COUNT(*) as total FROM promotions";
-                if (!empty($search)) {
-                    $search = $conn->real_escape_string($search);
-                    $count_sql = "SELECT COUNT(*) as total FROM promotions WHERE title LIKE '%$search%' OR code LIKE '%$search%'";
-                }
-                $count_result = $conn->query($count_sql);
-                $total_items = $count_result->fetch_assoc()['total'];
-                $total_pages = ceil($total_items / $items_per_page);
-
-                if ($total_pages > 1) {
-                    echo "<div class='pagination'>";
-                    
-                    // Previous button
-                    if ($current_page > 1) {
-                        echo "<a href='?page=" . ($current_page - 1) . "' class='pagination-btn'>Previous</a>";
-                    }
-                    
-                    // Page numbers
-                    for ($i = 1; $i <= $total_pages; $i++) {
-                        $active_class = ($i == $current_page) ? 'active' : '';
-                        echo "<a href='?page=$i' class='pagination-btn $active_class'>$i</a>";
-                    }
-                    
-                    // Next button
-                    if ($current_page < $total_pages) {
-                        echo "<a href='?page=" . ($current_page + 1) . "' class='pagination-btn'>Next</a>";
-                    }
-                    
-                    echo "</div>";
-                }
-                $conn->close();
-            ?>
         </div>
     </div>
 </div>
@@ -312,24 +230,31 @@ $sort_order = isset($_GET['order']) && $_GET['order'] === 'DESC' ? 'DESC' : 'ASC
                         <label for="code">Code * (Max 10 characters)</label>
                         <input type="text" id="code" name="code" maxlength="10" required pattern="[A-Za-z0-9]+" title="Only letters and numbers allowed">
                     </div>
+                    <div class="form-group">
+                        <label for="applicationMethod">Application Method *</label>
+                        <select id="applicationMethod" name="application_method" required>
+                            <option value="voucher_code">Voucher Code</option>
+                            <option value="automatic_discount">Automatic Discount</option>
+                        </select>
+                    </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="discountType">Discount Type *</label>
-                            <select id="discountType" name="discount_type" required onchange="toggleDiscountValue()">
+                            <select id="discountType" name="type" required onchange="toggleDiscountValue()">
                                 <option value="">Select Type</option>
-                                <option value="shipping">Free Shipping</option>
+                                <option value="free_shipping">Free Shipping</option>
                                 <option value="percentage">Percentage Discount</option>
-                                <option value="fixed_amount">Fixed Amount Discount</option>
+                                <option value="fixed">Fixed Amount Discount</option>
                             </select>
                         </div>
                         <div class="form-group" id="discountValueGroup" style="display: none;">
                             <label for="discountValue">Discount Value *</label>
-                            <input type="number" id="discountValue" name="discount_value" step="0.01" min="0">
+                            <input type="number" id="discountValue" name="value" step="0.01" min="0">
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="minSpend">Minimum Spend (₱)</label>
-                        <input type="number" id="minSpend" name="min_spend" step="0.01" min="0" value="0">
+                        <input type="number" id="minSpend" name="min_purchase" step="0.01" min="0" value="0">
                     </div>
                 </div>
 
@@ -384,11 +309,11 @@ $sort_order = isset($_GET['order']) && $_GET['order'] === 'DESC' ? 'DESC' : 'ASC
                     <div class="form-row">
                         <div class="form-group">
                             <label for="startDate">Start Date *</label>
-                            <input type="date" id="startDate" name="start_date" required>
+                            <input type="date" id="startDate" name="activation_date" required>
                         </div>
                         <div class="form-group">
                             <label for="endDate">End Date *</label>
-                            <input type="date" id="endDate" name="end_date" required>
+                            <input type="date" id="endDate" name="expiration_date" required>
                         </div>
                     </div>
                 </div>
@@ -424,24 +349,31 @@ $sort_order = isset($_GET['order']) && $_GET['order'] === 'DESC' ? 'DESC' : 'ASC
                         <label for="editCode">Code * (Max 10 characters)</label>
                         <input type="text" id="editCode" name="code" maxlength="10" required pattern="[A-Za-z0-9]+" title="Only letters and numbers allowed">
                     </div>
+                    <div class="form-group">
+                        <label for="editApplicationMethod">Application Method *</label>
+                        <select id="editApplicationMethod" name="application_method" required>
+                            <option value="voucher_code">Voucher Code</option>
+                            <option value="automatic_discount">Automatic Discount</option>
+                        </select>
+                    </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="editDiscountType">Discount Type *</label>
-                            <select id="editDiscountType" name="discount_type" required onchange="toggleEditDiscountValue()">
+                            <select id="editDiscountType" name="type" required onchange="toggleEditDiscountValue()">
                                 <option value="">Select Type</option>
-                                <option value="shipping">Free Shipping</option>
+                                <option value="free_shipping">Free Shipping</option>
                                 <option value="percentage">Percentage Discount</option>
-                                <option value="fixed_amount">Fixed Amount Discount</option>
+                                <option value="fixed">Fixed Amount Discount</option>
                             </select>
                         </div>
                         <div class="form-group" id="editDiscountValueGroup">
                             <label for="editDiscountValue">Discount Value *</label>
-                            <input type="number" id="editDiscountValue" name="discount_value" step="0.01" min="0">
+                            <input type="number" id="editDiscountValue" name="value" step="0.01" min="0">
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="editMinSpend">Minimum Spend (₱)</label>
-                        <input type="number" id="editMinSpend" name="min_spend" step="0.01" min="0" value="0">
+                        <input type="number" id="editMinSpend" name="min_purchase" step="0.01" min="0" value="0">
                     </div>
                 </div>
 
@@ -494,11 +426,11 @@ $sort_order = isset($_GET['order']) && $_GET['order'] === 'DESC' ? 'DESC' : 'ASC
                     <div class="form-row">
                         <div class="form-group">
                             <label for="editStartDate">Start Date *</label>
-                            <input type="date" id="editStartDate" name="start_date" required>
+                            <input type="date" id="editStartDate" name="activation_date" required>
                         </div>
                         <div class="form-group">
                             <label for="editEndDate">End Date *</label>
-                            <input type="date" id="editEndDate" name="end_date" required>
+                            <input type="date" id="editEndDate" name="expiration_date" required>
                         </div>
                     </div>
                 </div>
@@ -522,6 +454,35 @@ $sort_order = isset($_GET['order']) && $_GET['order'] === 'DESC' ? 'DESC' : 'ASC
         </div>
     </div>
 </div>
+
+<!-- Reactivate Voucher Modal -->
+<div id="reactivate-voucher-modal" class="modal" style="display:none;z-index:2000;">
+    <div class="modal-content voucher-modal-content" style="max-width: 28em; min-width: 20em;">
+        <span class="close" id="reactivate-voucher-modal-close">&times;</span>
+        <h2 class="voucher-modal-title">Reactivate Voucher</h2>
+        <p class="voucher-modal-desc">Set new activation and expiration dates for this voucher.</p>
+        <form id="reactivate-voucher-form">
+            <div class="form-row">
+                <label for="reactivate-activation-date">Activation Date <span class="required-asterisk">*</span></label>
+                <input type="date" id="reactivate-activation-date" name="activation_date" required />
+            </div>
+            <div class="form-row">
+                <label for="reactivate-expiration-date">Expiration Date <span class="required-asterisk">*</span></label>
+                <input type="date" id="reactivate-expiration-date" name="expiration_date" required />
+            </div>
+            <div class="voucher-modal-footer">
+                <button type="button" class="voucher-submit-btn" id="reactivate-voucher-submit">Reactivate</button>
+            </div>
+        </form>
+        <div id="reactivate-voucher-loader-overlay" style="display:none;">
+            <div class="form-loader-spinner"></div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+<script src="https://cdn.datatables.net/2.1.7/js/dataTables.js"></script>
+<script src="/backend/pages/user-page-content/promotions-settings.js"></script>
 
 </body>
 </html>

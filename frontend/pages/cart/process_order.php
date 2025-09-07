@@ -7,7 +7,7 @@ session_set_cookie_params([
 ]);
 session_start();
 require_once '../../user-includes/database.php';
-require_once '../../backend/config/mailer/mailer.php';
+require_once '../../../backend/pages/admin-includes/mailer.php';
 
 // Ensure no output before JSON response
 ob_start();
@@ -32,7 +32,9 @@ function sendOrderEmail($orderDetails, $adminEmail) {
             'cart_total' => $orderDetails['cart_total'],
             'shipping_fee' => $orderDetails['shipping_fee'],
             'total_amount' => $orderDetails['total_amount'],
-            'order_notes' => $orderDetails['order_notes'] ?? ''
+            'order_notes' => $orderDetails['order_notes'] ?? '',
+            'discount_amount' => $orderDetails['discount_amount'] ?? 0,
+            'applied_coupon' => $orderDetails['applied_coupon'] ?? null
         ];
 
         // Use the mailer function from mailer.php
@@ -85,7 +87,21 @@ try {
 
     $orderDetails['cart_items'] = $cart_items;
     $orderDetails['cart_total'] = floatval($_POST['cart_total']);
-    $orderDetails['total_amount'] = $orderDetails['cart_total'] + $orderDetails['shipping_fee'];
+    
+    // Process coupon data if provided
+    $discount_amount = 0;
+    $applied_coupon = null;
+    
+    if (!empty($_POST['applied_coupon'])) {
+        $applied_coupon = json_decode($_POST['applied_coupon'], true);
+        $discount_amount = floatval($_POST['discount_amount'] ?? 0);
+        
+        // Update total amount with discount
+        $orderDetails['discount_amount'] = $discount_amount;
+        $orderDetails['applied_coupon'] = $applied_coupon;
+    }
+    
+    $orderDetails['total_amount'] = $orderDetails['cart_total'] + $orderDetails['shipping_fee'] - $discount_amount;
     
     // Debug log
     error_log("Cart Items Data: " . print_r($orderDetails['cart_items'], true));
@@ -209,7 +225,12 @@ try {
     $delivery_time = $orderDetails['delivery_method'] === 'delivery' ? $orderDetails['delivery_time'] : null;
     $pickup_date = $orderDetails['delivery_method'] === 'pickup' ? $orderDetails['pickup_date'] : null;
     $pickup_time = $orderDetails['delivery_method'] === 'pickup' ? $orderDetails['pickup_time'] : null;
+    // Include coupon information in notes if applied
     $notes = $orderDetails['order_notes'];
+    if ($applied_coupon) {
+        $coupon_info = "\n\nCoupon Applied: " . $applied_coupon['code'] . " - Discount: ₱" . number_format($discount_amount, 2);
+        $notes .= $coupon_info;
+    }
     
     // Save order to database with the customer_id
     $order_sql = "INSERT INTO orders (

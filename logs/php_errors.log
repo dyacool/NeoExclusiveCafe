@@ -61708,3 +61708,2609 @@ Stack trace:
 [05-Sep-2025 15:35:51 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in D:\XAMPP\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 9
 [05-Sep-2025 15:35:51 Europe/Berlin] PHP Warning:  include_once(D:\XAMPP\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in D:\XAMPP\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
 [05-Sep-2025 15:35:51 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'D:\XAMPP\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='D:\XAMPP\php\PEAR') in D:\XAMPP\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 08:54:30 Europe/Berlin] Processing dates: start=2025-08-31, end=2025-09-29
+[07-Sep-2025 08:54:30 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Sep-2025 08:54:30 Europe/Berlin] With parameters: start=2025-08-31, end=2025-09-29, showCompleted=false
+[07-Sep-2025 08:54:30 Europe/Berlin] Processing dates: start=2025-08-31, end=2025-09-29
+[07-Sep-2025 08:54:30 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[07-Sep-2025 08:54:30 Europe/Berlin] With parameters: start=2025-08-31, end=2025-09-29, showCompleted=false
+[07-Sep-2025 08:55:41 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 08:55:41 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 08:55:41 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 08:55:41 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[07-Sep-2025 08:55:41 Europe/Berlin] Total featured products found: 1
+[07-Sep-2025 08:55:41 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[07-Sep-2025 08:56:08 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 08:56:08 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 08:56:08 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 08:56:14 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 08:56:14 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 08:56:14 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 08:56:18 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 08:56:18 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 08:56:18 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 08:56:18 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 08:56:18 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 08:56:18 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 09:45:52 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 09:45:52 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 09:45:52 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 09:45:52 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[07-Sep-2025 09:45:52 Europe/Berlin] Total featured products found: 1
+[07-Sep-2025 09:45:52 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[07-Sep-2025 09:46:01 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 09:46:01 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 09:46:01 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 09:46:05 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 09:46:05 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 09:46:05 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 09:46:06 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 09:46:06 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 09:46:06 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 09:46:06 Europe/Berlin] Business hours: 08:00:00 - 23:42:00
+[07-Sep-2025 09:46:06 Europe/Berlin] Business closed - past midnight (current: 586, closing: 1422)
+[07-Sep-2025 09:46:06 Europe/Berlin] Time analysis: current=09:46:06 (586 min), opening=08:00:00 (480 min), closing=23:42:00 (1422 min), is_closed=Yes
+[07-Sep-2025 09:46:06 Europe/Berlin] Cart currently has 1 items
+[07-Sep-2025 09:46:07 Europe/Berlin] SUCCESS: Cart truncated successfully - 1 items removed
+[07-Sep-2025 09:46:07 Europe/Berlin] Cart truncation result: SUCCESS
+[07-Sep-2025 09:46:07 Europe/Berlin] PHP Warning:  Undefined variable $today in C:\xampp\htdocs\NeoExclusiveCafe\frontend\pages\products\product-dashboard.php on line 355
+[07-Sep-2025 09:46:13 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 09:46:13 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 09:46:13 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 09:46:15 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 09:46:15 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 09:46:15 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 09:46:20 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 09:46:20 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 09:46:20 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 09:46:35 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 09:46:35 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 09:46:35 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 09:46:35 Europe/Berlin] Session data at start: Array
+(
+    [user_id] => 21
+    [user_username] => zpdhnnh
+    [is_verified] => 1
+    [user_firstname] => Hannah
+    [user_lastname] => Zepeda
+    [user_role] => user
+)
+
+[07-Sep-2025 09:46:35 Europe/Berlin] Session ID: cr9jkgcg7u20r74md117dhr3va
+[07-Sep-2025 09:46:35 Europe/Berlin] Session status: 2
+[07-Sep-2025 09:46:35 Europe/Berlin] Current user_id: 21
+[07-Sep-2025 09:46:35 Europe/Berlin] Current user_role: user
+[07-Sep-2025 09:46:35 Europe/Berlin] Database connection successful
+[07-Sep-2025 09:46:35 Europe/Berlin] User has 2 items in cart table
+[07-Sep-2025 09:46:35 Europe/Berlin] Cart table structure:
+[07-Sep-2025 09:46:35 Europe/Berlin]   id - int(11) - NO - PRI -  - auto_increment
+[07-Sep-2025 09:46:35 Europe/Berlin]   user_id - int(11) - NO - MUL -  - 
+[07-Sep-2025 09:46:35 Europe/Berlin]   product_id - int(11) - NO - MUL -  - 
+[07-Sep-2025 09:46:35 Europe/Berlin]   quantity - int(11) - NO -  - 1 - 
+[07-Sep-2025 09:46:35 Europe/Berlin]   price - decimal(10,2) - NO -  -  - 
+[07-Sep-2025 09:46:35 Europe/Berlin]   created_at - timestamp - NO -  - current_timestamp() - 
+[07-Sep-2025 09:46:35 Europe/Berlin]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[07-Sep-2025 09:46:35 Europe/Berlin] Cart item 108 exists: Array
+(
+    [id] => 108
+    [user_id] => 3
+    [product_id] => 6
+    [quantity] => 2
+    [price] => 4.44
+    [created_at] => 2025-08-13 20:58:56
+    [updated_at] => 2025-08-14 03:55:36
+)
+
+[07-Sep-2025 09:46:35 Europe/Berlin] Final user data: Array
+(
+    [firstname] => Hannah
+    [lastname] => Zepeda
+    [email] => hannah.zepeda03@gmail.com
+)
+
+[07-Sep-2025 09:46:35 Europe/Berlin] REQUEST_METHOD: POST
+[07-Sep-2025 09:46:35 Europe/Berlin] POST data: Array
+(
+    [valid_cart_ids] => 109
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [checkout] => 
+    [subtotal] => 4.44
+    [cart_items] => 109
+)
+
+[07-Sep-2025 09:46:35 Europe/Berlin] SESSION data at cart items check: Array
+(
+    [user_id] => 21
+    [user_username] => zpdhnnh
+    [is_verified] => 1
+    [user_firstname] => Hannah
+    [user_lastname] => Zepeda
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Hannah
+            [lastname] => Zepeda
+            [email] => hannah.zepeda03@gmail.com
+        )
+
+)
+
+[07-Sep-2025 09:46:35 Europe/Berlin] Got cart IDs from POST: 109
+[07-Sep-2025 09:46:35 Europe/Berlin] Validated cart IDs: 109
+[07-Sep-2025 09:46:35 Europe/Berlin] Final selected_cart_ids: Array
+(
+    [0] => 109
+)
+
+[07-Sep-2025 09:46:35 Europe/Berlin] Final subtotal: 4.44
+[07-Sep-2025 09:46:35 Europe/Berlin] Selected cart IDs: Array
+(
+    [0] => 109
+)
+
+[07-Sep-2025 09:46:35 Europe/Berlin] Subtotal: 4.44
+[07-Sep-2025 09:46:35 Europe/Berlin] Cart item 109 is valid for user 21
+[07-Sep-2025 09:46:35 Europe/Berlin] Validated cart IDs: 109
+[07-Sep-2025 09:46:35 Europe/Berlin] Setting shipping method to pickup for 1 cart items
+[07-Sep-2025 09:46:35 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => HAHAAHHATODGOODOGDGO
+            [price] => 4.44
+            [quantity] => 1
+            [cart_id] => 109
+            [status_id] => 2
+            [available_days] => Monday,Tuesday
+        )
+
+)
+
+[07-Sep-2025 09:46:35 Europe/Berlin] Cart total: 4.44
+[07-Sep-2025 09:46:35 Europe/Berlin] User data at display point: Array
+(
+    [firstname] => Hannah
+    [lastname] => Zepeda
+)
+
+[07-Sep-2025 09:46:35 Europe/Berlin] Session data at display point: Array
+(
+    [user_id] => 21
+    [user_username] => zpdhnnh
+    [is_verified] => 1
+    [user_firstname] => Hannah
+    [user_lastname] => Zepeda
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Hannah
+            [lastname] => Zepeda
+            [email] => hannah.zepeda03@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [subtotal] => 4.44
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => HAHAAHHATODGOODOGDGO
+                    [price] => 4.44
+                    [quantity] => 1
+                    [cart_id] => 109
+                    [status_id] => 2
+                    [available_days] => Monday,Tuesday
+                )
+
+        )
+
+    [cart_total] => 4.44
+    [shipping_method] => pickup
+)
+
+[07-Sep-2025 14:09:29 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 14:09:29 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:09:29 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:09:29 Europe/Berlin] Session data at start: Array
+(
+    [user_id] => 21
+    [user_username] => zpdhnnh
+    [is_verified] => 1
+    [user_firstname] => Hannah
+    [user_lastname] => Zepeda
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Hannah
+            [lastname] => Zepeda
+            [email] => hannah.zepeda03@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [subtotal] => 4.44
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => HAHAAHHATODGOODOGDGO
+                    [price] => 4.44
+                    [quantity] => 1
+                    [cart_id] => 109
+                    [status_id] => 2
+                    [available_days] => Monday,Tuesday
+                )
+
+        )
+
+    [cart_total] => 4.44
+    [shipping_method] => pickup
+)
+
+[07-Sep-2025 14:09:29 Europe/Berlin] Session ID: cr9jkgcg7u20r74md117dhr3va
+[07-Sep-2025 14:09:29 Europe/Berlin] Session status: 2
+[07-Sep-2025 14:09:29 Europe/Berlin] Current user_id: 21
+[07-Sep-2025 14:09:29 Europe/Berlin] Current user_role: user
+[07-Sep-2025 14:09:29 Europe/Berlin] Database connection successful
+[07-Sep-2025 14:09:29 Europe/Berlin] User has 2 items in cart table
+[07-Sep-2025 14:09:29 Europe/Berlin] Cart table structure:
+[07-Sep-2025 14:09:29 Europe/Berlin]   id - int(11) - NO - PRI -  - auto_increment
+[07-Sep-2025 14:09:29 Europe/Berlin]   user_id - int(11) - NO - MUL -  - 
+[07-Sep-2025 14:09:29 Europe/Berlin]   product_id - int(11) - NO - MUL -  - 
+[07-Sep-2025 14:09:29 Europe/Berlin]   quantity - int(11) - NO -  - 1 - 
+[07-Sep-2025 14:09:29 Europe/Berlin]   price - decimal(10,2) - NO -  -  - 
+[07-Sep-2025 14:09:29 Europe/Berlin]   created_at - timestamp - NO -  - current_timestamp() - 
+[07-Sep-2025 14:09:29 Europe/Berlin]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[07-Sep-2025 14:09:29 Europe/Berlin] Cart item 108 exists: Array
+(
+    [id] => 108
+    [user_id] => 3
+    [product_id] => 6
+    [quantity] => 2
+    [price] => 4.44
+    [created_at] => 2025-08-13 20:58:56
+    [updated_at] => 2025-08-14 03:55:36
+)
+
+[07-Sep-2025 14:09:29 Europe/Berlin] Final user data: Array
+(
+    [firstname] => Hannah
+    [lastname] => Zepeda
+    [email] => hannah.zepeda03@gmail.com
+)
+
+[07-Sep-2025 14:09:29 Europe/Berlin] REQUEST_METHOD: POST
+[07-Sep-2025 14:09:29 Europe/Berlin] POST data: Array
+(
+    [valid_cart_ids] => 109
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [checkout] => 
+    [subtotal] => 4.44
+    [cart_items] => 109
+)
+
+[07-Sep-2025 14:09:29 Europe/Berlin] SESSION data at cart items check: Array
+(
+    [user_id] => 21
+    [user_username] => zpdhnnh
+    [is_verified] => 1
+    [user_firstname] => Hannah
+    [user_lastname] => Zepeda
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Hannah
+            [lastname] => Zepeda
+            [email] => hannah.zepeda03@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [subtotal] => 4.44
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => HAHAAHHATODGOODOGDGO
+                    [price] => 4.44
+                    [quantity] => 1
+                    [cart_id] => 109
+                    [status_id] => 2
+                    [available_days] => Monday,Tuesday
+                )
+
+        )
+
+    [cart_total] => 4.44
+    [shipping_method] => pickup
+)
+
+[07-Sep-2025 14:09:29 Europe/Berlin] Got cart IDs from POST: 109
+[07-Sep-2025 14:09:29 Europe/Berlin] Validated cart IDs: 109
+[07-Sep-2025 14:09:29 Europe/Berlin] Final selected_cart_ids: Array
+(
+    [0] => 109
+)
+
+[07-Sep-2025 14:09:29 Europe/Berlin] Final subtotal: 4.44
+[07-Sep-2025 14:09:29 Europe/Berlin] Selected cart IDs: Array
+(
+    [0] => 109
+)
+
+[07-Sep-2025 14:09:29 Europe/Berlin] Subtotal: 4.44
+[07-Sep-2025 14:09:29 Europe/Berlin] Cart item 109 is valid for user 21
+[07-Sep-2025 14:09:29 Europe/Berlin] Validated cart IDs: 109
+[07-Sep-2025 14:09:29 Europe/Berlin] Setting shipping method to pickup for 1 cart items
+[07-Sep-2025 14:09:29 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => HAHAAHHATODGOODOGDGO
+            [price] => 4.44
+            [quantity] => 1
+            [cart_id] => 109
+            [status_id] => 2
+            [available_days] => Monday,Tuesday
+        )
+
+)
+
+[07-Sep-2025 14:09:29 Europe/Berlin] Cart total: 4.44
+[07-Sep-2025 14:09:30 Europe/Berlin] User data at display point: Array
+(
+    [firstname] => Hannah
+    [lastname] => Zepeda
+)
+
+[07-Sep-2025 14:09:30 Europe/Berlin] Session data at display point: Array
+(
+    [user_id] => 21
+    [user_username] => zpdhnnh
+    [is_verified] => 1
+    [user_firstname] => Hannah
+    [user_lastname] => Zepeda
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Hannah
+            [lastname] => Zepeda
+            [email] => hannah.zepeda03@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [subtotal] => 4.44
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => HAHAAHHATODGOODOGDGO
+                    [price] => 4.44
+                    [quantity] => 1
+                    [cart_id] => 109
+                    [status_id] => 2
+                    [available_days] => Monday,Tuesday
+                )
+
+        )
+
+    [cart_total] => 4.44
+    [shipping_method] => pickup
+)
+
+[07-Sep-2025 14:10:06 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 14:10:06 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:10:06 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:10:06 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[07-Sep-2025 14:10:06 Europe/Berlin] Total featured products found: 1
+[07-Sep-2025 14:10:06 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[07-Sep-2025 14:10:08 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 14:10:08 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:10:08 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:10:16 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 14:10:16 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:10:16 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:10:20 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 14:10:20 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:10:20 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:10:20 Europe/Berlin] Session data at start: Array
+(
+    [user_id] => 21
+    [user_username] => zpdhnnh
+    [is_verified] => 1
+    [user_firstname] => Hannah
+    [user_lastname] => Zepeda
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Hannah
+            [lastname] => Zepeda
+            [email] => hannah.zepeda03@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [subtotal] => 4.44
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => HAHAAHHATODGOODOGDGO
+                    [price] => 4.44
+                    [quantity] => 1
+                    [cart_id] => 109
+                    [status_id] => 2
+                    [available_days] => Monday,Tuesday
+                )
+
+        )
+
+    [cart_total] => 4.44
+    [shipping_method] => pickup
+)
+
+[07-Sep-2025 14:10:20 Europe/Berlin] Session ID: cr9jkgcg7u20r74md117dhr3va
+[07-Sep-2025 14:10:20 Europe/Berlin] Session status: 2
+[07-Sep-2025 14:10:20 Europe/Berlin] Current user_id: 21
+[07-Sep-2025 14:10:20 Europe/Berlin] Current user_role: user
+[07-Sep-2025 14:10:20 Europe/Berlin] Database connection successful
+[07-Sep-2025 14:10:20 Europe/Berlin] User has 2 items in cart table
+[07-Sep-2025 14:10:21 Europe/Berlin] Cart table structure:
+[07-Sep-2025 14:10:21 Europe/Berlin]   id - int(11) - NO - PRI -  - auto_increment
+[07-Sep-2025 14:10:21 Europe/Berlin]   user_id - int(11) - NO - MUL -  - 
+[07-Sep-2025 14:10:21 Europe/Berlin]   product_id - int(11) - NO - MUL -  - 
+[07-Sep-2025 14:10:21 Europe/Berlin]   quantity - int(11) - NO -  - 1 - 
+[07-Sep-2025 14:10:21 Europe/Berlin]   price - decimal(10,2) - NO -  -  - 
+[07-Sep-2025 14:10:21 Europe/Berlin]   created_at - timestamp - NO -  - current_timestamp() - 
+[07-Sep-2025 14:10:21 Europe/Berlin]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[07-Sep-2025 14:10:21 Europe/Berlin] Cart item 108 exists: Array
+(
+    [id] => 108
+    [user_id] => 3
+    [product_id] => 6
+    [quantity] => 2
+    [price] => 4.44
+    [created_at] => 2025-08-13 20:58:56
+    [updated_at] => 2025-08-14 03:55:36
+)
+
+[07-Sep-2025 14:10:21 Europe/Berlin] Final user data: Array
+(
+    [firstname] => Hannah
+    [lastname] => Zepeda
+    [email] => hannah.zepeda03@gmail.com
+)
+
+[07-Sep-2025 14:10:21 Europe/Berlin] REQUEST_METHOD: POST
+[07-Sep-2025 14:10:21 Europe/Berlin] POST data: Array
+(
+    [valid_cart_ids] => 109
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [checkout] => 
+    [subtotal] => 4.44
+    [cart_items] => 109
+)
+
+[07-Sep-2025 14:10:21 Europe/Berlin] SESSION data at cart items check: Array
+(
+    [user_id] => 21
+    [user_username] => zpdhnnh
+    [is_verified] => 1
+    [user_firstname] => Hannah
+    [user_lastname] => Zepeda
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Hannah
+            [lastname] => Zepeda
+            [email] => hannah.zepeda03@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [subtotal] => 4.44
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => HAHAAHHATODGOODOGDGO
+                    [price] => 4.44
+                    [quantity] => 1
+                    [cart_id] => 109
+                    [status_id] => 2
+                    [available_days] => Monday,Tuesday
+                )
+
+        )
+
+    [cart_total] => 4.44
+    [shipping_method] => pickup
+)
+
+[07-Sep-2025 14:10:21 Europe/Berlin] Got cart IDs from POST: 109
+[07-Sep-2025 14:10:21 Europe/Berlin] Validated cart IDs: 109
+[07-Sep-2025 14:10:21 Europe/Berlin] Final selected_cart_ids: Array
+(
+    [0] => 109
+)
+
+[07-Sep-2025 14:10:21 Europe/Berlin] Final subtotal: 4.44
+[07-Sep-2025 14:10:21 Europe/Berlin] Selected cart IDs: Array
+(
+    [0] => 109
+)
+
+[07-Sep-2025 14:10:21 Europe/Berlin] Subtotal: 4.44
+[07-Sep-2025 14:10:21 Europe/Berlin] Cart item 109 is valid for user 21
+[07-Sep-2025 14:10:21 Europe/Berlin] Validated cart IDs: 109
+[07-Sep-2025 14:10:21 Europe/Berlin] Setting shipping method to pickup for 1 cart items
+[07-Sep-2025 14:10:21 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => HAHAAHHATODGOODOGDGO
+            [price] => 4.44
+            [quantity] => 1
+            [cart_id] => 109
+            [status_id] => 2
+            [available_days] => Monday,Tuesday
+        )
+
+)
+
+[07-Sep-2025 14:10:21 Europe/Berlin] Cart total: 4.44
+[07-Sep-2025 14:10:21 Europe/Berlin] User data at display point: Array
+(
+    [firstname] => Hannah
+    [lastname] => Zepeda
+)
+
+[07-Sep-2025 14:10:21 Europe/Berlin] Session data at display point: Array
+(
+    [user_id] => 21
+    [user_username] => zpdhnnh
+    [is_verified] => 1
+    [user_firstname] => Hannah
+    [user_lastname] => Zepeda
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Hannah
+            [lastname] => Zepeda
+            [email] => hannah.zepeda03@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [subtotal] => 4.44
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => HAHAAHHATODGOODOGDGO
+                    [price] => 4.44
+                    [quantity] => 1
+                    [cart_id] => 109
+                    [status_id] => 2
+                    [available_days] => Monday,Tuesday
+                )
+
+        )
+
+    [cart_total] => 4.44
+    [shipping_method] => pickup
+)
+
+[07-Sep-2025 14:14:48 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 14:14:48 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:14:48 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:14:48 Europe/Berlin] Session data at start: Array
+(
+    [user_id] => 21
+    [user_username] => zpdhnnh
+    [is_verified] => 1
+    [user_firstname] => Hannah
+    [user_lastname] => Zepeda
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Hannah
+            [lastname] => Zepeda
+            [email] => hannah.zepeda03@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [subtotal] => 4.44
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => HAHAAHHATODGOODOGDGO
+                    [price] => 4.44
+                    [quantity] => 1
+                    [cart_id] => 109
+                    [status_id] => 2
+                    [available_days] => Monday,Tuesday
+                )
+
+        )
+
+    [cart_total] => 4.44
+    [shipping_method] => pickup
+)
+
+[07-Sep-2025 14:14:48 Europe/Berlin] Session ID: cr9jkgcg7u20r74md117dhr3va
+[07-Sep-2025 14:14:48 Europe/Berlin] Session status: 2
+[07-Sep-2025 14:14:48 Europe/Berlin] Current user_id: 21
+[07-Sep-2025 14:14:48 Europe/Berlin] Current user_role: user
+[07-Sep-2025 14:14:48 Europe/Berlin] Database connection successful
+[07-Sep-2025 14:14:48 Europe/Berlin] User has 2 items in cart table
+[07-Sep-2025 14:14:48 Europe/Berlin] Cart table structure:
+[07-Sep-2025 14:14:48 Europe/Berlin]   id - int(11) - NO - PRI -  - auto_increment
+[07-Sep-2025 14:14:48 Europe/Berlin]   user_id - int(11) - NO - MUL -  - 
+[07-Sep-2025 14:14:48 Europe/Berlin]   product_id - int(11) - NO - MUL -  - 
+[07-Sep-2025 14:14:48 Europe/Berlin]   quantity - int(11) - NO -  - 1 - 
+[07-Sep-2025 14:14:48 Europe/Berlin]   price - decimal(10,2) - NO -  -  - 
+[07-Sep-2025 14:14:48 Europe/Berlin]   created_at - timestamp - NO -  - current_timestamp() - 
+[07-Sep-2025 14:14:48 Europe/Berlin]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[07-Sep-2025 14:14:48 Europe/Berlin] Cart item 108 exists: Array
+(
+    [id] => 108
+    [user_id] => 3
+    [product_id] => 6
+    [quantity] => 2
+    [price] => 4.44
+    [created_at] => 2025-08-13 20:58:56
+    [updated_at] => 2025-08-14 03:55:36
+)
+
+[07-Sep-2025 14:14:48 Europe/Berlin] Final user data: Array
+(
+    [firstname] => Hannah
+    [lastname] => Zepeda
+    [email] => hannah.zepeda03@gmail.com
+)
+
+[07-Sep-2025 14:14:48 Europe/Berlin] REQUEST_METHOD: POST
+[07-Sep-2025 14:14:48 Europe/Berlin] POST data: Array
+(
+    [valid_cart_ids] => 109
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [checkout] => 
+    [subtotal] => 4.44
+    [cart_items] => 109
+)
+
+[07-Sep-2025 14:14:48 Europe/Berlin] SESSION data at cart items check: Array
+(
+    [user_id] => 21
+    [user_username] => zpdhnnh
+    [is_verified] => 1
+    [user_firstname] => Hannah
+    [user_lastname] => Zepeda
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Hannah
+            [lastname] => Zepeda
+            [email] => hannah.zepeda03@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [subtotal] => 4.44
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => HAHAAHHATODGOODOGDGO
+                    [price] => 4.44
+                    [quantity] => 1
+                    [cart_id] => 109
+                    [status_id] => 2
+                    [available_days] => Monday,Tuesday
+                )
+
+        )
+
+    [cart_total] => 4.44
+    [shipping_method] => pickup
+)
+
+[07-Sep-2025 14:14:48 Europe/Berlin] Got cart IDs from POST: 109
+[07-Sep-2025 14:14:48 Europe/Berlin] Validated cart IDs: 109
+[07-Sep-2025 14:14:48 Europe/Berlin] Final selected_cart_ids: Array
+(
+    [0] => 109
+)
+
+[07-Sep-2025 14:14:48 Europe/Berlin] Final subtotal: 4.44
+[07-Sep-2025 14:14:48 Europe/Berlin] Selected cart IDs: Array
+(
+    [0] => 109
+)
+
+[07-Sep-2025 14:14:48 Europe/Berlin] Subtotal: 4.44
+[07-Sep-2025 14:14:48 Europe/Berlin] Cart item 109 is valid for user 21
+[07-Sep-2025 14:14:48 Europe/Berlin] Validated cart IDs: 109
+[07-Sep-2025 14:14:48 Europe/Berlin] Setting shipping method to pickup for 1 cart items
+[07-Sep-2025 14:14:48 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => HAHAAHHATODGOODOGDGO
+            [price] => 4.44
+            [quantity] => 1
+            [cart_id] => 109
+            [status_id] => 2
+            [available_days] => Monday,Tuesday
+        )
+
+)
+
+[07-Sep-2025 14:14:48 Europe/Berlin] Cart total: 4.44
+[07-Sep-2025 14:14:48 Europe/Berlin] User data at display point: Array
+(
+    [firstname] => Hannah
+    [lastname] => Zepeda
+)
+
+[07-Sep-2025 14:14:48 Europe/Berlin] Session data at display point: Array
+(
+    [user_id] => 21
+    [user_username] => zpdhnnh
+    [is_verified] => 1
+    [user_firstname] => Hannah
+    [user_lastname] => Zepeda
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Hannah
+            [lastname] => Zepeda
+            [email] => hannah.zepeda03@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [subtotal] => 4.44
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => HAHAAHHATODGOODOGDGO
+                    [price] => 4.44
+                    [quantity] => 1
+                    [cart_id] => 109
+                    [status_id] => 2
+                    [available_days] => Monday,Tuesday
+                )
+
+        )
+
+    [cart_total] => 4.44
+    [shipping_method] => pickup
+)
+
+[07-Sep-2025 14:19:04 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 14:19:04 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:19:04 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:19:04 Europe/Berlin] Session data at start: Array
+(
+    [user_id] => 21
+    [user_username] => zpdhnnh
+    [is_verified] => 1
+    [user_firstname] => Hannah
+    [user_lastname] => Zepeda
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Hannah
+            [lastname] => Zepeda
+            [email] => hannah.zepeda03@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [subtotal] => 4.44
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => HAHAAHHATODGOODOGDGO
+                    [price] => 4.44
+                    [quantity] => 1
+                    [cart_id] => 109
+                    [status_id] => 2
+                    [available_days] => Monday,Tuesday
+                )
+
+        )
+
+    [cart_total] => 4.44
+    [shipping_method] => pickup
+)
+
+[07-Sep-2025 14:19:04 Europe/Berlin] Session ID: cr9jkgcg7u20r74md117dhr3va
+[07-Sep-2025 14:19:04 Europe/Berlin] Session status: 2
+[07-Sep-2025 14:19:04 Europe/Berlin] Current user_id: 21
+[07-Sep-2025 14:19:04 Europe/Berlin] Current user_role: user
+[07-Sep-2025 14:19:04 Europe/Berlin] Database connection successful
+[07-Sep-2025 14:19:04 Europe/Berlin] User has 2 items in cart table
+[07-Sep-2025 14:19:04 Europe/Berlin] Cart table structure:
+[07-Sep-2025 14:19:04 Europe/Berlin]   id - int(11) - NO - PRI -  - auto_increment
+[07-Sep-2025 14:19:04 Europe/Berlin]   user_id - int(11) - NO - MUL -  - 
+[07-Sep-2025 14:19:04 Europe/Berlin]   product_id - int(11) - NO - MUL -  - 
+[07-Sep-2025 14:19:04 Europe/Berlin]   quantity - int(11) - NO -  - 1 - 
+[07-Sep-2025 14:19:04 Europe/Berlin]   price - decimal(10,2) - NO -  -  - 
+[07-Sep-2025 14:19:04 Europe/Berlin]   created_at - timestamp - NO -  - current_timestamp() - 
+[07-Sep-2025 14:19:04 Europe/Berlin]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[07-Sep-2025 14:19:04 Europe/Berlin] Cart item 108 exists: Array
+(
+    [id] => 108
+    [user_id] => 3
+    [product_id] => 6
+    [quantity] => 2
+    [price] => 4.44
+    [created_at] => 2025-08-13 20:58:56
+    [updated_at] => 2025-08-14 03:55:36
+)
+
+[07-Sep-2025 14:19:04 Europe/Berlin] Final user data: Array
+(
+    [firstname] => Hannah
+    [lastname] => Zepeda
+    [email] => hannah.zepeda03@gmail.com
+)
+
+[07-Sep-2025 14:19:04 Europe/Berlin] REQUEST_METHOD: POST
+[07-Sep-2025 14:19:04 Europe/Berlin] POST data: Array
+(
+    [valid_cart_ids] => 109
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [checkout] => 
+    [subtotal] => 4.44
+    [cart_items] => 109
+)
+
+[07-Sep-2025 14:19:04 Europe/Berlin] SESSION data at cart items check: Array
+(
+    [user_id] => 21
+    [user_username] => zpdhnnh
+    [is_verified] => 1
+    [user_firstname] => Hannah
+    [user_lastname] => Zepeda
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Hannah
+            [lastname] => Zepeda
+            [email] => hannah.zepeda03@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [subtotal] => 4.44
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => HAHAAHHATODGOODOGDGO
+                    [price] => 4.44
+                    [quantity] => 1
+                    [cart_id] => 109
+                    [status_id] => 2
+                    [available_days] => Monday,Tuesday
+                )
+
+        )
+
+    [cart_total] => 4.44
+    [shipping_method] => pickup
+)
+
+[07-Sep-2025 14:19:04 Europe/Berlin] Got cart IDs from POST: 109
+[07-Sep-2025 14:19:04 Europe/Berlin] Validated cart IDs: 109
+[07-Sep-2025 14:19:04 Europe/Berlin] Final selected_cart_ids: Array
+(
+    [0] => 109
+)
+
+[07-Sep-2025 14:19:04 Europe/Berlin] Final subtotal: 4.44
+[07-Sep-2025 14:19:04 Europe/Berlin] Selected cart IDs: Array
+(
+    [0] => 109
+)
+
+[07-Sep-2025 14:19:04 Europe/Berlin] Subtotal: 4.44
+[07-Sep-2025 14:19:04 Europe/Berlin] Cart item 109 is valid for user 21
+[07-Sep-2025 14:19:04 Europe/Berlin] Validated cart IDs: 109
+[07-Sep-2025 14:19:04 Europe/Berlin] Setting shipping method to pickup for 1 cart items
+[07-Sep-2025 14:19:04 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => HAHAAHHATODGOODOGDGO
+            [price] => 4.44
+            [quantity] => 1
+            [cart_id] => 109
+            [status_id] => 2
+            [available_days] => Monday,Tuesday
+        )
+
+)
+
+[07-Sep-2025 14:19:04 Europe/Berlin] Cart total: 4.44
+[07-Sep-2025 14:19:04 Europe/Berlin] User data at display point: Array
+(
+    [firstname] => Hannah
+    [lastname] => Zepeda
+)
+
+[07-Sep-2025 14:19:04 Europe/Berlin] Session data at display point: Array
+(
+    [user_id] => 21
+    [user_username] => zpdhnnh
+    [is_verified] => 1
+    [user_firstname] => Hannah
+    [user_lastname] => Zepeda
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Hannah
+            [lastname] => Zepeda
+            [email] => hannah.zepeda03@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [subtotal] => 4.44
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => HAHAAHHATODGOODOGDGO
+                    [price] => 4.44
+                    [quantity] => 1
+                    [cart_id] => 109
+                    [status_id] => 2
+                    [available_days] => Monday,Tuesday
+                )
+
+        )
+
+    [cart_total] => 4.44
+    [shipping_method] => pickup
+)
+
+[07-Sep-2025 14:19:34 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 14:19:34 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:19:34 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:19:34 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[07-Sep-2025 14:19:34 Europe/Berlin] Total featured products found: 1
+[07-Sep-2025 14:19:34 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[07-Sep-2025 14:19:36 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 14:19:36 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:19:36 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:19:39 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 14:19:39 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:19:39 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:19:44 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 14:19:44 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:19:44 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:19:44 Europe/Berlin] Session data at start: Array
+(
+    [user_id] => 21
+    [user_username] => zpdhnnh
+    [is_verified] => 1
+    [user_firstname] => Hannah
+    [user_lastname] => Zepeda
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Hannah
+            [lastname] => Zepeda
+            [email] => hannah.zepeda03@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [subtotal] => 4.44
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => HAHAAHHATODGOODOGDGO
+                    [price] => 4.44
+                    [quantity] => 1
+                    [cart_id] => 109
+                    [status_id] => 2
+                    [available_days] => Monday,Tuesday
+                )
+
+        )
+
+    [cart_total] => 4.44
+    [shipping_method] => pickup
+)
+
+[07-Sep-2025 14:19:44 Europe/Berlin] Session ID: cr9jkgcg7u20r74md117dhr3va
+[07-Sep-2025 14:19:44 Europe/Berlin] Session status: 2
+[07-Sep-2025 14:19:44 Europe/Berlin] Current user_id: 21
+[07-Sep-2025 14:19:44 Europe/Berlin] Current user_role: user
+[07-Sep-2025 14:19:44 Europe/Berlin] Database connection successful
+[07-Sep-2025 14:19:44 Europe/Berlin] User has 2 items in cart table
+[07-Sep-2025 14:19:44 Europe/Berlin] Cart table structure:
+[07-Sep-2025 14:19:44 Europe/Berlin]   id - int(11) - NO - PRI -  - auto_increment
+[07-Sep-2025 14:19:44 Europe/Berlin]   user_id - int(11) - NO - MUL -  - 
+[07-Sep-2025 14:19:44 Europe/Berlin]   product_id - int(11) - NO - MUL -  - 
+[07-Sep-2025 14:19:44 Europe/Berlin]   quantity - int(11) - NO -  - 1 - 
+[07-Sep-2025 14:19:44 Europe/Berlin]   price - decimal(10,2) - NO -  -  - 
+[07-Sep-2025 14:19:44 Europe/Berlin]   created_at - timestamp - NO -  - current_timestamp() - 
+[07-Sep-2025 14:19:44 Europe/Berlin]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[07-Sep-2025 14:19:44 Europe/Berlin] Cart item 108 exists: Array
+(
+    [id] => 108
+    [user_id] => 3
+    [product_id] => 6
+    [quantity] => 2
+    [price] => 4.44
+    [created_at] => 2025-08-13 20:58:56
+    [updated_at] => 2025-08-14 03:55:36
+)
+
+[07-Sep-2025 14:19:44 Europe/Berlin] Final user data: Array
+(
+    [firstname] => Hannah
+    [lastname] => Zepeda
+    [email] => hannah.zepeda03@gmail.com
+)
+
+[07-Sep-2025 14:19:44 Europe/Berlin] REQUEST_METHOD: POST
+[07-Sep-2025 14:19:44 Europe/Berlin] POST data: Array
+(
+    [valid_cart_ids] => 109
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [checkout] => 
+    [subtotal] => 8.88
+    [cart_items] => 109
+)
+
+[07-Sep-2025 14:19:44 Europe/Berlin] SESSION data at cart items check: Array
+(
+    [user_id] => 21
+    [user_username] => zpdhnnh
+    [is_verified] => 1
+    [user_firstname] => Hannah
+    [user_lastname] => Zepeda
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Hannah
+            [lastname] => Zepeda
+            [email] => hannah.zepeda03@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [subtotal] => 4.44
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => HAHAAHHATODGOODOGDGO
+                    [price] => 4.44
+                    [quantity] => 1
+                    [cart_id] => 109
+                    [status_id] => 2
+                    [available_days] => Monday,Tuesday
+                )
+
+        )
+
+    [cart_total] => 4.44
+    [shipping_method] => pickup
+)
+
+[07-Sep-2025 14:19:44 Europe/Berlin] Got cart IDs from POST: 109
+[07-Sep-2025 14:19:44 Europe/Berlin] Validated cart IDs: 109
+[07-Sep-2025 14:19:44 Europe/Berlin] Final selected_cart_ids: Array
+(
+    [0] => 109
+)
+
+[07-Sep-2025 14:19:44 Europe/Berlin] Final subtotal: 8.88
+[07-Sep-2025 14:19:44 Europe/Berlin] Selected cart IDs: Array
+(
+    [0] => 109
+)
+
+[07-Sep-2025 14:19:44 Europe/Berlin] Subtotal: 8.88
+[07-Sep-2025 14:19:44 Europe/Berlin] Cart item 109 is valid for user 21
+[07-Sep-2025 14:19:44 Europe/Berlin] Validated cart IDs: 109
+[07-Sep-2025 14:19:44 Europe/Berlin] Setting shipping method to pickup for 1 cart items
+[07-Sep-2025 14:19:44 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => HAHAAHHATODGOODOGDGO
+            [price] => 4.44
+            [quantity] => 2
+            [cart_id] => 109
+            [status_id] => 2
+            [available_days] => Monday,Tuesday
+        )
+
+)
+
+[07-Sep-2025 14:19:44 Europe/Berlin] Cart total: 8.88
+[07-Sep-2025 14:19:44 Europe/Berlin] User data at display point: Array
+(
+    [firstname] => Hannah
+    [lastname] => Zepeda
+)
+
+[07-Sep-2025 14:19:44 Europe/Berlin] Session data at display point: Array
+(
+    [user_id] => 21
+    [user_username] => zpdhnnh
+    [is_verified] => 1
+    [user_firstname] => Hannah
+    [user_lastname] => Zepeda
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Hannah
+            [lastname] => Zepeda
+            [email] => hannah.zepeda03@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [subtotal] => 8.88
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => HAHAAHHATODGOODOGDGO
+                    [price] => 4.44
+                    [quantity] => 2
+                    [cart_id] => 109
+                    [status_id] => 2
+                    [available_days] => Monday,Tuesday
+                )
+
+        )
+
+    [cart_total] => 8.88
+    [shipping_method] => pickup
+)
+
+[07-Sep-2025 14:20:48 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 14:20:48 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:20:48 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:20:48 Europe/Berlin] Session data at start: Array
+(
+    [user_id] => 21
+    [user_username] => zpdhnnh
+    [is_verified] => 1
+    [user_firstname] => Hannah
+    [user_lastname] => Zepeda
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Hannah
+            [lastname] => Zepeda
+            [email] => hannah.zepeda03@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [subtotal] => 8.88
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => HAHAAHHATODGOODOGDGO
+                    [price] => 4.44
+                    [quantity] => 2
+                    [cart_id] => 109
+                    [status_id] => 2
+                    [available_days] => Monday,Tuesday
+                )
+
+        )
+
+    [cart_total] => 8.88
+    [shipping_method] => pickup
+)
+
+[07-Sep-2025 14:20:48 Europe/Berlin] Session ID: cr9jkgcg7u20r74md117dhr3va
+[07-Sep-2025 14:20:48 Europe/Berlin] Session status: 2
+[07-Sep-2025 14:20:48 Europe/Berlin] Current user_id: 21
+[07-Sep-2025 14:20:48 Europe/Berlin] Current user_role: user
+[07-Sep-2025 14:20:48 Europe/Berlin] Database connection successful
+[07-Sep-2025 14:20:48 Europe/Berlin] User has 2 items in cart table
+[07-Sep-2025 14:20:48 Europe/Berlin] Cart table structure:
+[07-Sep-2025 14:20:48 Europe/Berlin]   id - int(11) - NO - PRI -  - auto_increment
+[07-Sep-2025 14:20:48 Europe/Berlin]   user_id - int(11) - NO - MUL -  - 
+[07-Sep-2025 14:20:48 Europe/Berlin]   product_id - int(11) - NO - MUL -  - 
+[07-Sep-2025 14:20:48 Europe/Berlin]   quantity - int(11) - NO -  - 1 - 
+[07-Sep-2025 14:20:48 Europe/Berlin]   price - decimal(10,2) - NO -  -  - 
+[07-Sep-2025 14:20:48 Europe/Berlin]   created_at - timestamp - NO -  - current_timestamp() - 
+[07-Sep-2025 14:20:48 Europe/Berlin]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[07-Sep-2025 14:20:48 Europe/Berlin] Cart item 108 exists: Array
+(
+    [id] => 108
+    [user_id] => 3
+    [product_id] => 6
+    [quantity] => 2
+    [price] => 4.44
+    [created_at] => 2025-08-13 20:58:56
+    [updated_at] => 2025-08-14 03:55:36
+)
+
+[07-Sep-2025 14:20:48 Europe/Berlin] Final user data: Array
+(
+    [firstname] => Hannah
+    [lastname] => Zepeda
+    [email] => hannah.zepeda03@gmail.com
+)
+
+[07-Sep-2025 14:20:48 Europe/Berlin] REQUEST_METHOD: POST
+[07-Sep-2025 14:20:48 Europe/Berlin] POST data: Array
+(
+    [valid_cart_ids] => 109
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [checkout] => 
+    [subtotal] => 8.88
+    [cart_items] => 109
+)
+
+[07-Sep-2025 14:20:48 Europe/Berlin] SESSION data at cart items check: Array
+(
+    [user_id] => 21
+    [user_username] => zpdhnnh
+    [is_verified] => 1
+    [user_firstname] => Hannah
+    [user_lastname] => Zepeda
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Hannah
+            [lastname] => Zepeda
+            [email] => hannah.zepeda03@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [subtotal] => 8.88
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => HAHAAHHATODGOODOGDGO
+                    [price] => 4.44
+                    [quantity] => 2
+                    [cart_id] => 109
+                    [status_id] => 2
+                    [available_days] => Monday,Tuesday
+                )
+
+        )
+
+    [cart_total] => 8.88
+    [shipping_method] => pickup
+)
+
+[07-Sep-2025 14:20:48 Europe/Berlin] Got cart IDs from POST: 109
+[07-Sep-2025 14:20:48 Europe/Berlin] Validated cart IDs: 109
+[07-Sep-2025 14:20:48 Europe/Berlin] Final selected_cart_ids: Array
+(
+    [0] => 109
+)
+
+[07-Sep-2025 14:20:48 Europe/Berlin] Final subtotal: 8.88
+[07-Sep-2025 14:20:48 Europe/Berlin] Selected cart IDs: Array
+(
+    [0] => 109
+)
+
+[07-Sep-2025 14:20:48 Europe/Berlin] Subtotal: 8.88
+[07-Sep-2025 14:20:48 Europe/Berlin] Cart item 109 is valid for user 21
+[07-Sep-2025 14:20:48 Europe/Berlin] Validated cart IDs: 109
+[07-Sep-2025 14:20:48 Europe/Berlin] Setting shipping method to pickup for 1 cart items
+[07-Sep-2025 14:20:48 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => HAHAAHHATODGOODOGDGO
+            [price] => 4.44
+            [quantity] => 2
+            [cart_id] => 109
+            [status_id] => 2
+            [available_days] => Monday,Tuesday
+        )
+
+)
+
+[07-Sep-2025 14:20:48 Europe/Berlin] Cart total: 8.88
+[07-Sep-2025 14:20:48 Europe/Berlin] User data at display point: Array
+(
+    [firstname] => Hannah
+    [lastname] => Zepeda
+)
+
+[07-Sep-2025 14:20:48 Europe/Berlin] Session data at display point: Array
+(
+    [user_id] => 21
+    [user_username] => zpdhnnh
+    [is_verified] => 1
+    [user_firstname] => Hannah
+    [user_lastname] => Zepeda
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Hannah
+            [lastname] => Zepeda
+            [email] => hannah.zepeda03@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [subtotal] => 8.88
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => HAHAAHHATODGOODOGDGO
+                    [price] => 4.44
+                    [quantity] => 2
+                    [cart_id] => 109
+                    [status_id] => 2
+                    [available_days] => Monday,Tuesday
+                )
+
+        )
+
+    [cart_total] => 8.88
+    [shipping_method] => pickup
+)
+
+[07-Sep-2025 14:24:49 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 14:24:49 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:24:49 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:24:49 Europe/Berlin] Business hours: 08:00:00 - 23:42:00
+[07-Sep-2025 14:24:49 Europe/Berlin] Time analysis: current=14:24:49 (864 min), opening=08:00:00 (480 min), closing=23:42:00 (1422 min), is_closed=No
+[07-Sep-2025 14:24:49 Europe/Berlin] Cart truncation result: No action needed
+[07-Sep-2025 14:24:49 Europe/Berlin] PHP Warning:  Undefined variable $today in C:\xampp\htdocs\NeoExclusiveCafe\frontend\pages\products\product-dashboard.php on line 355
+[07-Sep-2025 14:25:06 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 14:25:06 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:25:06 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:25:06 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[07-Sep-2025 14:25:06 Europe/Berlin] Total featured products found: 1
+[07-Sep-2025 14:25:06 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[07-Sep-2025 14:25:08 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 14:25:08 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:25:08 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:25:08 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[07-Sep-2025 14:25:08 Europe/Berlin] Total featured products found: 1
+[07-Sep-2025 14:25:08 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[07-Sep-2025 14:25:10 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 14:25:10 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:25:10 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:25:13 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 14:25:13 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:25:13 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:25:13 Europe/Berlin] Session data at start: Array
+(
+    [user_id] => 21
+    [user_username] => zpdhnnh
+    [is_verified] => 1
+    [user_firstname] => Hannah
+    [user_lastname] => Zepeda
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Hannah
+            [lastname] => Zepeda
+            [email] => hannah.zepeda03@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [subtotal] => 8.88
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => HAHAAHHATODGOODOGDGO
+                    [price] => 4.44
+                    [quantity] => 2
+                    [cart_id] => 109
+                    [status_id] => 2
+                    [available_days] => Monday,Tuesday
+                )
+
+        )
+
+    [cart_total] => 8.88
+    [shipping_method] => pickup
+)
+
+[07-Sep-2025 14:25:13 Europe/Berlin] Session ID: cr9jkgcg7u20r74md117dhr3va
+[07-Sep-2025 14:25:13 Europe/Berlin] Session status: 2
+[07-Sep-2025 14:25:13 Europe/Berlin] Current user_id: 21
+[07-Sep-2025 14:25:13 Europe/Berlin] Current user_role: user
+[07-Sep-2025 14:25:13 Europe/Berlin] Database connection successful
+[07-Sep-2025 14:25:13 Europe/Berlin] User has 2 items in cart table
+[07-Sep-2025 14:25:13 Europe/Berlin] Cart table structure:
+[07-Sep-2025 14:25:13 Europe/Berlin]   id - int(11) - NO - PRI -  - auto_increment
+[07-Sep-2025 14:25:13 Europe/Berlin]   user_id - int(11) - NO - MUL -  - 
+[07-Sep-2025 14:25:13 Europe/Berlin]   product_id - int(11) - NO - MUL -  - 
+[07-Sep-2025 14:25:13 Europe/Berlin]   quantity - int(11) - NO -  - 1 - 
+[07-Sep-2025 14:25:13 Europe/Berlin]   price - decimal(10,2) - NO -  -  - 
+[07-Sep-2025 14:25:13 Europe/Berlin]   created_at - timestamp - NO -  - current_timestamp() - 
+[07-Sep-2025 14:25:13 Europe/Berlin]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[07-Sep-2025 14:25:13 Europe/Berlin] Cart item 108 exists: Array
+(
+    [id] => 108
+    [user_id] => 3
+    [product_id] => 6
+    [quantity] => 2
+    [price] => 4.44
+    [created_at] => 2025-08-13 20:58:56
+    [updated_at] => 2025-08-14 03:55:36
+)
+
+[07-Sep-2025 14:25:13 Europe/Berlin] Final user data: Array
+(
+    [firstname] => Hannah
+    [lastname] => Zepeda
+    [email] => hannah.zepeda03@gmail.com
+)
+
+[07-Sep-2025 14:25:13 Europe/Berlin] REQUEST_METHOD: POST
+[07-Sep-2025 14:25:13 Europe/Berlin] POST data: Array
+(
+    [valid_cart_ids] => 109
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [checkout] => 
+    [subtotal] => 8.88
+    [cart_items] => 109
+)
+
+[07-Sep-2025 14:25:13 Europe/Berlin] SESSION data at cart items check: Array
+(
+    [user_id] => 21
+    [user_username] => zpdhnnh
+    [is_verified] => 1
+    [user_firstname] => Hannah
+    [user_lastname] => Zepeda
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Hannah
+            [lastname] => Zepeda
+            [email] => hannah.zepeda03@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [subtotal] => 8.88
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => HAHAAHHATODGOODOGDGO
+                    [price] => 4.44
+                    [quantity] => 2
+                    [cart_id] => 109
+                    [status_id] => 2
+                    [available_days] => Monday,Tuesday
+                )
+
+        )
+
+    [cart_total] => 8.88
+    [shipping_method] => pickup
+)
+
+[07-Sep-2025 14:25:13 Europe/Berlin] Got cart IDs from POST: 109
+[07-Sep-2025 14:25:13 Europe/Berlin] Validated cart IDs: 109
+[07-Sep-2025 14:25:13 Europe/Berlin] Final selected_cart_ids: Array
+(
+    [0] => 109
+)
+
+[07-Sep-2025 14:25:13 Europe/Berlin] Final subtotal: 8.88
+[07-Sep-2025 14:25:13 Europe/Berlin] Selected cart IDs: Array
+(
+    [0] => 109
+)
+
+[07-Sep-2025 14:25:13 Europe/Berlin] Subtotal: 8.88
+[07-Sep-2025 14:25:13 Europe/Berlin] Cart item 109 is valid for user 21
+[07-Sep-2025 14:25:13 Europe/Berlin] Validated cart IDs: 109
+[07-Sep-2025 14:25:13 Europe/Berlin] Setting shipping method to pickup for 1 cart items
+[07-Sep-2025 14:25:13 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => HAHAAHHATODGOODOGDGO
+            [price] => 4.44
+            [quantity] => 2
+            [cart_id] => 109
+            [status_id] => 2
+            [available_days] => Monday,Tuesday
+        )
+
+)
+
+[07-Sep-2025 14:25:13 Europe/Berlin] Cart total: 8.88
+[07-Sep-2025 14:25:13 Europe/Berlin] User data at display point: Array
+(
+    [firstname] => Hannah
+    [lastname] => Zepeda
+)
+
+[07-Sep-2025 14:25:13 Europe/Berlin] Session data at display point: Array
+(
+    [user_id] => 21
+    [user_username] => zpdhnnh
+    [is_verified] => 1
+    [user_firstname] => Hannah
+    [user_lastname] => Zepeda
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Hannah
+            [lastname] => Zepeda
+            [email] => hannah.zepeda03@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [subtotal] => 8.88
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => HAHAAHHATODGOODOGDGO
+                    [price] => 4.44
+                    [quantity] => 2
+                    [cart_id] => 109
+                    [status_id] => 2
+                    [available_days] => Monday,Tuesday
+                )
+
+        )
+
+    [cart_total] => 8.88
+    [shipping_method] => pickup
+)
+
+[07-Sep-2025 14:40:52 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 14:40:52 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:40:52 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:40:52 Europe/Berlin] Session data at start: Array
+(
+    [user_id] => 21
+    [user_username] => zpdhnnh
+    [is_verified] => 1
+    [user_firstname] => Hannah
+    [user_lastname] => Zepeda
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Hannah
+            [lastname] => Zepeda
+            [email] => hannah.zepeda03@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [subtotal] => 8.88
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => HAHAAHHATODGOODOGDGO
+                    [price] => 4.44
+                    [quantity] => 2
+                    [cart_id] => 109
+                    [status_id] => 2
+                    [available_days] => Monday,Tuesday
+                )
+
+        )
+
+    [cart_total] => 8.88
+    [shipping_method] => pickup
+)
+
+[07-Sep-2025 14:40:52 Europe/Berlin] Session ID: cr9jkgcg7u20r74md117dhr3va
+[07-Sep-2025 14:40:52 Europe/Berlin] Session status: 2
+[07-Sep-2025 14:40:52 Europe/Berlin] Current user_id: 21
+[07-Sep-2025 14:40:52 Europe/Berlin] Current user_role: user
+[07-Sep-2025 14:40:52 Europe/Berlin] Database connection successful
+[07-Sep-2025 14:40:52 Europe/Berlin] User has 2 items in cart table
+[07-Sep-2025 14:40:52 Europe/Berlin] Cart table structure:
+[07-Sep-2025 14:40:52 Europe/Berlin]   id - int(11) - NO - PRI -  - auto_increment
+[07-Sep-2025 14:40:52 Europe/Berlin]   user_id - int(11) - NO - MUL -  - 
+[07-Sep-2025 14:40:52 Europe/Berlin]   product_id - int(11) - NO - MUL -  - 
+[07-Sep-2025 14:40:52 Europe/Berlin]   quantity - int(11) - NO -  - 1 - 
+[07-Sep-2025 14:40:52 Europe/Berlin]   price - decimal(10,2) - NO -  -  - 
+[07-Sep-2025 14:40:52 Europe/Berlin]   created_at - timestamp - NO -  - current_timestamp() - 
+[07-Sep-2025 14:40:52 Europe/Berlin]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[07-Sep-2025 14:40:52 Europe/Berlin] Cart item 108 exists: Array
+(
+    [id] => 108
+    [user_id] => 3
+    [product_id] => 6
+    [quantity] => 2
+    [price] => 4.44
+    [created_at] => 2025-08-13 20:58:56
+    [updated_at] => 2025-08-14 03:55:36
+)
+
+[07-Sep-2025 14:40:52 Europe/Berlin] Final user data: Array
+(
+    [firstname] => Hannah
+    [lastname] => Zepeda
+    [email] => hannah.zepeda03@gmail.com
+)
+
+[07-Sep-2025 14:40:52 Europe/Berlin] REQUEST_METHOD: POST
+[07-Sep-2025 14:40:52 Europe/Berlin] POST data: Array
+(
+    [valid_cart_ids] => 109
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [checkout] => 
+    [subtotal] => 8.88
+    [cart_items] => 109
+)
+
+[07-Sep-2025 14:40:52 Europe/Berlin] SESSION data at cart items check: Array
+(
+    [user_id] => 21
+    [user_username] => zpdhnnh
+    [is_verified] => 1
+    [user_firstname] => Hannah
+    [user_lastname] => Zepeda
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Hannah
+            [lastname] => Zepeda
+            [email] => hannah.zepeda03@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [subtotal] => 8.88
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => HAHAAHHATODGOODOGDGO
+                    [price] => 4.44
+                    [quantity] => 2
+                    [cart_id] => 109
+                    [status_id] => 2
+                    [available_days] => Monday,Tuesday
+                )
+
+        )
+
+    [cart_total] => 8.88
+    [shipping_method] => pickup
+)
+
+[07-Sep-2025 14:40:52 Europe/Berlin] Got cart IDs from POST: 109
+[07-Sep-2025 14:40:52 Europe/Berlin] Validated cart IDs: 109
+[07-Sep-2025 14:40:52 Europe/Berlin] Final selected_cart_ids: Array
+(
+    [0] => 109
+)
+
+[07-Sep-2025 14:40:52 Europe/Berlin] Final subtotal: 8.88
+[07-Sep-2025 14:40:52 Europe/Berlin] Selected cart IDs: Array
+(
+    [0] => 109
+)
+
+[07-Sep-2025 14:40:52 Europe/Berlin] Subtotal: 8.88
+[07-Sep-2025 14:40:52 Europe/Berlin] Cart item 109 is valid for user 21
+[07-Sep-2025 14:40:52 Europe/Berlin] Validated cart IDs: 109
+[07-Sep-2025 14:40:52 Europe/Berlin] Setting shipping method to pickup for 1 cart items
+[07-Sep-2025 14:40:52 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => HAHAAHHATODGOODOGDGO
+            [price] => 4.44
+            [quantity] => 2
+            [cart_id] => 109
+            [status_id] => 2
+            [available_days] => Monday,Tuesday
+        )
+
+)
+
+[07-Sep-2025 14:40:52 Europe/Berlin] Cart total: 8.88
+[07-Sep-2025 14:40:52 Europe/Berlin] User data at display point: Array
+(
+    [firstname] => Hannah
+    [lastname] => Zepeda
+)
+
+[07-Sep-2025 14:40:52 Europe/Berlin] Session data at display point: Array
+(
+    [user_id] => 21
+    [user_username] => zpdhnnh
+    [is_verified] => 1
+    [user_firstname] => Hannah
+    [user_lastname] => Zepeda
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Hannah
+            [lastname] => Zepeda
+            [email] => hannah.zepeda03@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [subtotal] => 8.88
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => HAHAAHHATODGOODOGDGO
+                    [price] => 4.44
+                    [quantity] => 2
+                    [cart_id] => 109
+                    [status_id] => 2
+                    [available_days] => Monday,Tuesday
+                )
+
+        )
+
+    [cart_total] => 8.88
+    [shipping_method] => pickup
+)
+
+[07-Sep-2025 14:42:25 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 14:42:25 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:42:25 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:42:27 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 14:42:27 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:42:27 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:42:27 Europe/Berlin] Session data at start: Array
+(
+    [user_id] => 21
+    [user_username] => zpdhnnh
+    [is_verified] => 1
+    [user_firstname] => Hannah
+    [user_lastname] => Zepeda
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Hannah
+            [lastname] => Zepeda
+            [email] => hannah.zepeda03@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [subtotal] => 8.88
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => HAHAAHHATODGOODOGDGO
+                    [price] => 4.44
+                    [quantity] => 2
+                    [cart_id] => 109
+                    [status_id] => 2
+                    [available_days] => Monday,Tuesday
+                )
+
+        )
+
+    [cart_total] => 8.88
+    [shipping_method] => pickup
+)
+
+[07-Sep-2025 14:42:27 Europe/Berlin] Session ID: cr9jkgcg7u20r74md117dhr3va
+[07-Sep-2025 14:42:27 Europe/Berlin] Session status: 2
+[07-Sep-2025 14:42:27 Europe/Berlin] Current user_id: 21
+[07-Sep-2025 14:42:27 Europe/Berlin] Current user_role: user
+[07-Sep-2025 14:42:27 Europe/Berlin] Database connection successful
+[07-Sep-2025 14:42:27 Europe/Berlin] User has 2 items in cart table
+[07-Sep-2025 14:42:27 Europe/Berlin] Cart table structure:
+[07-Sep-2025 14:42:27 Europe/Berlin]   id - int(11) - NO - PRI -  - auto_increment
+[07-Sep-2025 14:42:27 Europe/Berlin]   user_id - int(11) - NO - MUL -  - 
+[07-Sep-2025 14:42:27 Europe/Berlin]   product_id - int(11) - NO - MUL -  - 
+[07-Sep-2025 14:42:27 Europe/Berlin]   quantity - int(11) - NO -  - 1 - 
+[07-Sep-2025 14:42:27 Europe/Berlin]   price - decimal(10,2) - NO -  -  - 
+[07-Sep-2025 14:42:27 Europe/Berlin]   created_at - timestamp - NO -  - current_timestamp() - 
+[07-Sep-2025 14:42:27 Europe/Berlin]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[07-Sep-2025 14:42:27 Europe/Berlin] Cart item 108 exists: Array
+(
+    [id] => 108
+    [user_id] => 3
+    [product_id] => 6
+    [quantity] => 2
+    [price] => 4.44
+    [created_at] => 2025-08-13 20:58:56
+    [updated_at] => 2025-08-14 03:55:36
+)
+
+[07-Sep-2025 14:42:27 Europe/Berlin] Final user data: Array
+(
+    [firstname] => Hannah
+    [lastname] => Zepeda
+    [email] => hannah.zepeda03@gmail.com
+)
+
+[07-Sep-2025 14:42:27 Europe/Berlin] REQUEST_METHOD: POST
+[07-Sep-2025 14:42:27 Europe/Berlin] POST data: Array
+(
+    [valid_cart_ids] => 109
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [checkout] => 
+    [subtotal] => 0
+    [cart_items] => 
+)
+
+[07-Sep-2025 14:42:27 Europe/Berlin] SESSION data at cart items check: Array
+(
+    [user_id] => 21
+    [user_username] => zpdhnnh
+    [is_verified] => 1
+    [user_firstname] => Hannah
+    [user_lastname] => Zepeda
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Hannah
+            [lastname] => Zepeda
+            [email] => hannah.zepeda03@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [subtotal] => 8.88
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => HAHAAHHATODGOODOGDGO
+                    [price] => 4.44
+                    [quantity] => 2
+                    [cart_id] => 109
+                    [status_id] => 2
+                    [available_days] => Monday,Tuesday
+                )
+
+        )
+
+    [cart_total] => 8.88
+    [shipping_method] => pickup
+)
+
+[07-Sep-2025 14:42:27 Europe/Berlin] Got cart IDs from POST: 109
+[07-Sep-2025 14:42:27 Europe/Berlin] Validated cart IDs: 109
+[07-Sep-2025 14:42:27 Europe/Berlin] Final selected_cart_ids: Array
+(
+    [0] => 109
+)
+
+[07-Sep-2025 14:42:27 Europe/Berlin] Final subtotal: 0
+[07-Sep-2025 14:42:27 Europe/Berlin] Selected cart IDs: Array
+(
+    [0] => 109
+)
+
+[07-Sep-2025 14:42:27 Europe/Berlin] Subtotal: 0
+[07-Sep-2025 14:42:27 Europe/Berlin] Cart item 109 is valid for user 21
+[07-Sep-2025 14:42:27 Europe/Berlin] Validated cart IDs: 109
+[07-Sep-2025 14:42:27 Europe/Berlin] Setting shipping method to pickup for 1 cart items
+[07-Sep-2025 14:42:28 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => HAHAAHHATODGOODOGDGO
+            [price] => 4.44
+            [quantity] => 2
+            [cart_id] => 109
+            [status_id] => 2
+            [available_days] => Monday,Tuesday
+        )
+
+)
+
+[07-Sep-2025 14:42:28 Europe/Berlin] Cart total: 8.88
+[07-Sep-2025 14:42:28 Europe/Berlin] User data at display point: Array
+(
+    [firstname] => Hannah
+    [lastname] => Zepeda
+)
+
+[07-Sep-2025 14:42:28 Europe/Berlin] Session data at display point: Array
+(
+    [user_id] => 21
+    [user_username] => zpdhnnh
+    [is_verified] => 1
+    [user_firstname] => Hannah
+    [user_lastname] => Zepeda
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Hannah
+            [lastname] => Zepeda
+            [email] => hannah.zepeda03@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [subtotal] => 0
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => HAHAAHHATODGOODOGDGO
+                    [price] => 4.44
+                    [quantity] => 2
+                    [cart_id] => 109
+                    [status_id] => 2
+                    [available_days] => Monday,Tuesday
+                )
+
+        )
+
+    [cart_total] => 8.88
+    [shipping_method] => pickup
+)
+
+[07-Sep-2025 14:42:52 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 14:42:52 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:42:52 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:42:53 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 14:42:53 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:42:53 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:42:54 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 14:42:54 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:42:54 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:42:54 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 14:42:54 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:42:54 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:42:55 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 14:42:55 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:42:55 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:42:55 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 14:42:55 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:42:55 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:42:58 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 14:42:58 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:42:58 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:42:58 Europe/Berlin] Session data at start: Array
+(
+    [user_id] => 21
+    [user_username] => zpdhnnh
+    [is_verified] => 1
+    [user_firstname] => Hannah
+    [user_lastname] => Zepeda
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Hannah
+            [lastname] => Zepeda
+            [email] => hannah.zepeda03@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [subtotal] => 0
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => HAHAAHHATODGOODOGDGO
+                    [price] => 4.44
+                    [quantity] => 2
+                    [cart_id] => 109
+                    [status_id] => 2
+                    [available_days] => Monday,Tuesday
+                )
+
+        )
+
+    [cart_total] => 8.88
+    [shipping_method] => pickup
+)
+
+[07-Sep-2025 14:42:58 Europe/Berlin] Session ID: cr9jkgcg7u20r74md117dhr3va
+[07-Sep-2025 14:42:58 Europe/Berlin] Session status: 2
+[07-Sep-2025 14:42:58 Europe/Berlin] Current user_id: 21
+[07-Sep-2025 14:42:58 Europe/Berlin] Current user_role: user
+[07-Sep-2025 14:42:58 Europe/Berlin] Database connection successful
+[07-Sep-2025 14:42:58 Europe/Berlin] User has 2 items in cart table
+[07-Sep-2025 14:42:58 Europe/Berlin] Cart table structure:
+[07-Sep-2025 14:42:58 Europe/Berlin]   id - int(11) - NO - PRI -  - auto_increment
+[07-Sep-2025 14:42:58 Europe/Berlin]   user_id - int(11) - NO - MUL -  - 
+[07-Sep-2025 14:42:58 Europe/Berlin]   product_id - int(11) - NO - MUL -  - 
+[07-Sep-2025 14:42:58 Europe/Berlin]   quantity - int(11) - NO -  - 1 - 
+[07-Sep-2025 14:42:58 Europe/Berlin]   price - decimal(10,2) - NO -  -  - 
+[07-Sep-2025 14:42:58 Europe/Berlin]   created_at - timestamp - NO -  - current_timestamp() - 
+[07-Sep-2025 14:42:58 Europe/Berlin]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[07-Sep-2025 14:42:58 Europe/Berlin] Cart item 108 exists: Array
+(
+    [id] => 108
+    [user_id] => 3
+    [product_id] => 6
+    [quantity] => 2
+    [price] => 4.44
+    [created_at] => 2025-08-13 20:58:56
+    [updated_at] => 2025-08-14 03:55:36
+)
+
+[07-Sep-2025 14:42:58 Europe/Berlin] Final user data: Array
+(
+    [firstname] => Hannah
+    [lastname] => Zepeda
+    [email] => hannah.zepeda03@gmail.com
+)
+
+[07-Sep-2025 14:42:58 Europe/Berlin] REQUEST_METHOD: POST
+[07-Sep-2025 14:42:58 Europe/Berlin] POST data: Array
+(
+    [valid_cart_ids] => 109
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [checkout] => 
+    [subtotal] => 8.88
+    [cart_items] => 109
+)
+
+[07-Sep-2025 14:42:58 Europe/Berlin] SESSION data at cart items check: Array
+(
+    [user_id] => 21
+    [user_username] => zpdhnnh
+    [is_verified] => 1
+    [user_firstname] => Hannah
+    [user_lastname] => Zepeda
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Hannah
+            [lastname] => Zepeda
+            [email] => hannah.zepeda03@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [subtotal] => 0
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => HAHAAHHATODGOODOGDGO
+                    [price] => 4.44
+                    [quantity] => 2
+                    [cart_id] => 109
+                    [status_id] => 2
+                    [available_days] => Monday,Tuesday
+                )
+
+        )
+
+    [cart_total] => 8.88
+    [shipping_method] => pickup
+)
+
+[07-Sep-2025 14:42:58 Europe/Berlin] Got cart IDs from POST: 109
+[07-Sep-2025 14:42:58 Europe/Berlin] Validated cart IDs: 109
+[07-Sep-2025 14:42:58 Europe/Berlin] Final selected_cart_ids: Array
+(
+    [0] => 109
+)
+
+[07-Sep-2025 14:42:58 Europe/Berlin] Final subtotal: 8.88
+[07-Sep-2025 14:42:58 Europe/Berlin] Selected cart IDs: Array
+(
+    [0] => 109
+)
+
+[07-Sep-2025 14:42:58 Europe/Berlin] Subtotal: 8.88
+[07-Sep-2025 14:42:58 Europe/Berlin] Cart item 109 is valid for user 21
+[07-Sep-2025 14:42:58 Europe/Berlin] Validated cart IDs: 109
+[07-Sep-2025 14:42:58 Europe/Berlin] Setting shipping method to pickup for 1 cart items
+[07-Sep-2025 14:42:58 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => HAHAAHHATODGOODOGDGO
+            [price] => 4.44
+            [quantity] => 2
+            [cart_id] => 109
+            [status_id] => 2
+            [available_days] => Monday,Tuesday
+        )
+
+)
+
+[07-Sep-2025 14:42:58 Europe/Berlin] Cart total: 8.88
+[07-Sep-2025 14:42:58 Europe/Berlin] User data at display point: Array
+(
+    [firstname] => Hannah
+    [lastname] => Zepeda
+)
+
+[07-Sep-2025 14:42:58 Europe/Berlin] Session data at display point: Array
+(
+    [user_id] => 21
+    [user_username] => zpdhnnh
+    [is_verified] => 1
+    [user_firstname] => Hannah
+    [user_lastname] => Zepeda
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Hannah
+            [lastname] => Zepeda
+            [email] => hannah.zepeda03@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 109
+        )
+
+    [subtotal] => 8.88
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => HAHAAHHATODGOODOGDGO
+                    [price] => 4.44
+                    [quantity] => 2
+                    [cart_id] => 109
+                    [status_id] => 2
+                    [available_days] => Monday,Tuesday
+                )
+
+        )
+
+    [cart_total] => 8.88
+    [shipping_method] => pickup
+)
+
+[07-Sep-2025 14:45:43 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 14:45:43 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:45:43 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:45:48 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 14:45:48 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:45:48 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 14:45:48 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[07-Sep-2025 14:45:48 Europe/Berlin] Total featured products found: 1
+[07-Sep-2025 14:45:48 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[07-Sep-2025 15:10:56 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 15:10:56 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 15:10:56 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 15:10:56 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[07-Sep-2025 15:10:56 Europe/Berlin] Total featured products found: 1
+[07-Sep-2025 15:10:56 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[07-Sep-2025 15:10:57 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 15:10:57 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 15:10:57 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 15:11:14 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 15:11:14 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 15:11:14 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 15:11:21 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 15:11:21 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 15:11:21 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 15:13:10 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 15:13:11 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 15:13:11 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 15:13:14 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 15:13:14 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 15:13:14 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 15:15:26 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 15:15:26 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 15:15:26 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 15:15:34 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 15:15:34 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 15:15:34 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 15:15:36 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 15:15:36 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 15:15:36 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 15:15:40 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 15:15:40 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 15:15:40 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 15:15:46 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 15:15:46 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 15:15:46 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 15:15:53 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 15:15:53 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 15:15:53 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 15:15:56 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 15:15:56 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 15:15:56 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 15:16:45 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 15:16:45 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 15:16:46 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 15:16:49 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 15:16:49 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 15:16:49 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 15:16:58 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 15:16:58 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 15:16:58 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 15:16:58 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[07-Sep-2025 15:16:58 Europe/Berlin] Total featured products found: 1
+[07-Sep-2025 15:16:58 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[07-Sep-2025 15:17:08 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
+[07-Sep-2025 15:17:08 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[07-Sep-2025 15:17:08 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265

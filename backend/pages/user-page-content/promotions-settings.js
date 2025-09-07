@@ -1,505 +1,752 @@
-// Promotions Management JavaScript
-let currentSort = "title";
-let sortOrder = "ASC";
-let selectedRows = [];
-
-// Initialize the page
-document.addEventListener("DOMContentLoaded", function () {
-  // Set default dates
-  const today = new Date().toISOString().split("T")[0];
-  const nextMonth = new Date();
-  nextMonth.setMonth(nextMonth.getMonth() + 1);
-  const nextMonthStr = nextMonth.toISOString().split("T")[0];
-
-  document.getElementById("startDate").value = today;
-  document.getElementById("endDate").value = nextMonthStr;
-
-  updateBulkActions();
-});
-
-// Search functionality
-function searchCoupons() {
-  const searchTerm = document.getElementById("searchInput").value;
-  const url = new URL(window.location);
-
-  if (searchTerm) {
-    url.searchParams.set("search", searchTerm);
-  } else {
-    url.searchParams.delete("search");
+const VoucherTable = (function () {
+  function initDataTable() {
+    return new DataTable("#supply-order-table", {
+      scrollX: true,
+      responsive: true,
+      processing: true,
+      serverSide: true,
+      ajax: {
+        url: "./promotions_api.php",
+        type: "post",
+        data: { action: "datatableDisplay" },
+      },
+      columns: [
+        { data: "id", visible: false },
+        { data: "title" },
+        { data: "application_method", render: renderMethod },
+        { data: "code" },
+        { data: "discount", render: renderDiscount },
+        { data: "restrictions", render: renderRestrictions },
+        { data: "usage", render: renderUsage },
+        { data: "valid_period" },
+        { data: "sale_channel" },
+        { data: "status", render: renderStatus },
+      ],
+    });
   }
 
-  url.searchParams.delete("page"); // Reset to first page
-  window.location.href = url.toString();
-}
+  function renderDiscount(data, type, row) {
+    if (type === "display") {
+      
+      if (row.discount.includes("Free Shipping Only")) {
+        return `<span class='status-badge upcoming'>Free Shipping Only</span>`;
+      }
+      let html = data;
+      
+      html = html.replace(/\$/g, "₱");
+      if (
+        parseInt(row.include_free_shipping) === 1 &&
+        row.type !== "free_shipping"
+      ) {
+        html += `<br><span class='status-badge' style='background:#E3FCF4;color:#039855;font-size:12px;padding:2px 8px;border-radius:12px;'>Free Shipping</span>`;
+      }
+      return html;
+    }
+    return data;
+  }
 
-// Sort functionality
-function toggleSort(column) {
-  const sortBtn = document.getElementById("sort-" + column);
+  function renderRestrictions(data, type, row) {
+    if (type === "display") {
+      return data;
+    }
+    return data;
+  }
 
-  // Remove active class from all sort buttons
-  document.querySelectorAll(".sort-btn").forEach((btn) => {
-    btn.classList.remove("active", "desc");
+  function renderUsage(data, type, row) {
+    if (type === "display") {
+      return data;
+    }
+    return data;
+  }
+
+  function renderStatus(data, type, row) {
+    if (type === "display") {
+      let text = data.charAt(0).toUpperCase() + data.slice(1);
+      let bgColor = "#E3FCF4",
+        textColor = "#039855",
+        dotColor = "#12B76A";
+      if (data === "expired") {
+        bgColor = "#F2F4F7";
+        textColor = "#667085";
+        dotColor = "#D0D5DD";
+      } else if (data === "upcoming") {
+        bgColor = "#D5CAB5";
+        textColor = "#845832";
+        dotColor = "#A89869";
+      } else if (data === "archived") {
+        bgColor = "#FEE4E2";
+        textColor = "#D92D20";
+        dotColor = "#F04438";
+      }
+      return `<span class="status-badge" style="background-color: ${bgColor}; color: ${textColor}; padding: 6px 12px; border-radius: 16px; font-size: 12px; font-weight: 500; text-transform: capitalize; display: inline-flex; align-items: center; gap: 6px; min-width: 80px; justify-content: center;"><span style="width: 6px; height: 6px; background-color: ${dotColor}; border-radius: 50%; display: inline-block;"></span>${text}</span>`;
+    }
+    return data;
+  }
+
+  function renderMethod(data, type, row) {
+    if (type === "display") {
+      if (data === "voucher_code") return "Voucher Code";
+      if (data === "automatic_discount") return "Automatic Discount";
+      return data;
+    }
+    return data;
+  }
+
+  function addSelectEvent(table) {
+    table.on("click", "tbody tr", function (e) {
+      e.currentTarget.classList.toggle("selected");
+    });
+  }
+
+  function getSelectedRow(table) {
+    return table.rows(".selected").data();
+  }
+
+  function deselectAllRows() {
+    document
+      .querySelectorAll("tbody tr.selected")
+      .forEach((el) => el.classList.remove("selected"));
+  }
+
+  return {
+    initDataTable,
+    addSelectEvent,
+    getSelectedRow,
+    deselectAllRows,
+  };
+})();
+
+
+const VoucherControls = (function () {
+  function add_events() {
+    const newBtn = document.getElementById("supply-order-new-btn");
+    const addModal = document.getElementById("addModal");
+
+    if (newBtn && addModal) {
+      newBtn.addEventListener("click", function () {
+        addModal.style.display = "flex";
+      });
+    }
+
+    // Modal close logic
+    const addModalClose = document.getElementById("addModal");
+    if (addModalClose) {
+      const closeBtn = addModalClose.querySelector(".close");
+      if (closeBtn) {
+        closeBtn.addEventListener("click", function () {
+          addModal.style.display = "none";
+        });
+      }
+    }
+
+    window.addEventListener("click", function (e) {
+      if (e.target === addModal) {
+        addModal.style.display = "none";
+      }
+    });
+  }
+
+  return {
+    add_events,
+  };
+})();
+
+
+let supplyOrderTable = null;
+document.addEventListener("DOMContentLoaded", function () {
+  supplyOrderTable = VoucherTable.initDataTable();
+  VoucherTable.addSelectEvent(supplyOrderTable);
+  VoucherControls.add_events();
+
+  
+  const reactivateBtn = document.getElementById("reactivate-voucher-btn");
+  const table = document.getElementById("supply-order-table");
+  function updateReactivateBtn() {
+    const selectedRows = VoucherTable.getSelectedRow(supplyOrderTable);
+    if (selectedRows.length === 1 && selectedRows[0].status === "expired") {
+      reactivateBtn.disabled = false;
+    } else {
+      reactivateBtn.disabled = true;
+    }
+  }
+  
+  table.addEventListener("click", function (e) {
+    // Only update if a row is clicked
+    if (e.target.closest("tbody tr")) {
+      updateReactivateBtn();
+    }
   });
 
-  // Set new sort
-  if (currentSort === column && sortOrder === "ASC") {
-    sortOrder = "DESC";
-    sortBtn.classList.add("desc");
-  } else {
-    sortOrder = "ASC";
-    currentSort = column;
+  supplyOrderTable.on("draw", updateReactivateBtn);
+  updateReactivateBtn();
+
+  reactivateBtn.addEventListener("click", function () {
+    const selectedRows = VoucherTable.getSelectedRow(supplyOrderTable);
+    if (selectedRows.length !== 1) return;
+    const voucher = selectedRows[0];
+    const today = new Date();
+    const todayStr = today.toISOString().split("T")[0];
+    const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const nextWeekStr = nextWeek.toISOString().split("T")[0];
+    const activationInput = document.getElementById(
+      "reactivate-activation-date"
+    );
+    const expirationInput = document.getElementById(
+      "reactivate-expiration-date"
+    );
+    activationInput.value = todayStr;
+    expirationInput.value = nextWeekStr;
+    activationInput.setAttribute("min", todayStr);
+    expirationInput.setAttribute("min", todayStr);
+    activationInput.onchange = function () {
+      expirationInput.setAttribute("min", activationInput.value);
+      if (expirationInput.value < activationInput.value) {
+        expirationInput.value = activationInput.value;
+      }
+    };
+    document.getElementById("reactivate-voucher-modal").style.display = "flex";
+    document.getElementById("reactivate-voucher-form").dataset.voucherId =
+      voucher.id;
+  });
+
+  function resetReactivateForm() {
+    const form = document.getElementById("reactivate-voucher-form");
+    form.reset();
+    const activationInput = document.getElementById(
+      "reactivate-activation-date"
+    );
+    const expirationInput = document.getElementById(
+      "reactivate-expiration-date"
+    );
+    if (activationInput) {
+      activationInput.value = "";
+      activationInput.setAttribute("min", "");
+    }
+    if (expirationInput) {
+      expirationInput.value = "";
+      expirationInput.setAttribute("min", "");
+    }
+    const errorMessages = form.querySelectorAll(".error-message");
+    errorMessages.forEach((el) => el.remove());
+    [activationInput, expirationInput].forEach((input) => {
+      if (input) {
+        input.style.borderColor = "";
+        input.style.backgroundColor = "";
+      }
+    });
+    form.dataset.voucherId = "";
   }
+  document.getElementById("reactivate-voucher-modal-close").onclick =
+    function () {
+      document.getElementById("reactivate-voucher-modal").style.display =
+        "none";
+      resetReactivateForm();
+    };
+  window.addEventListener("click", function (e) {
+    if (e.target === document.getElementById("reactivate-voucher-modal")) {
+      document.getElementById("reactivate-voucher-modal").style.display =
+        "none";
+      resetReactivateForm();
+    }
+  });
 
-  sortBtn.classList.add("active");
+  document.getElementById("reactivate-voucher-submit").onclick = function (e) {
+    e.preventDefault();
+    const form = document.getElementById("reactivate-voucher-form");
+    const voucherId = form.dataset.voucherId;
+    const activationDate = document.getElementById(
+      "reactivate-activation-date"
+    ).value;
+    const expirationDate = document.getElementById(
+      "reactivate-expiration-date"
+    ).value;
+    const loader = document.getElementById("reactivate-voucher-loader-overlay");
+    const submitBtn = document.getElementById("reactivate-voucher-submit");
+    if (!activationDate || !expirationDate) {
+      Swal.fire("Error", "Both dates are required.", "error");
+      return;
+    }
+    if (activationDate > expirationDate) {
+      Swal.fire(
+        "Error",
+        "Activation date cannot be after expiration date.",
+        "error"
+      );
+      return;
+    }
+    loader.style.display = "flex";
+    submitBtn.disabled = true;
+    $.post(
+      "./promotions_api.php",
+      {
+        action: "reactivate_voucher",
+        voucher_id: voucherId,
+        activation_date: activationDate,
+        expiration_date: expirationDate,
+      },
+      function (data) {
+        loader.style.display = "none";
+        submitBtn.disabled = false;
+        if (typeof data === "string") {
+          try {
+            data = JSON.parse(data);
+          } catch (e) {
+            data = { success: false, message: data };
+          }
+        }
+        if (data.success) {
+          document.getElementById("reactivate-voucher-modal").style.display =
+            "none";
+          if (typeof Swal !== "undefined") {
+            Swal.fire("Success", data.message, "success");
+          } else {
+            alert(data.message);
+          }
+          if (typeof supplyOrderTable !== "undefined" && supplyOrderTable)
+            supplyOrderTable.draw();
+        } else {
+          Swal.fire(
+            "Error",
+            data.message || "Could not reactivate voucher.",
+            "error"
+          );
+        }
+      }
+    ).fail(function () {
+      loader.style.display = "none";
+      submitBtn.disabled = false;
+      Swal.fire("Error", "Network error. Please try again.", "error");
+    });
+  };
+});
 
-  // Apply sort
-  const url = new URL(window.location);
-  url.searchParams.set("sort", column);
-  url.searchParams.set("order", sortOrder);
-  url.searchParams.delete("page"); // Reset to first page
-  window.location.href = url.toString();
+function viewVoucher() {
+  const selectedRows = VoucherTable.getSelectedRow(supplyOrderTable);
+  if (selectedRows.length !== 1) {
+    if (typeof Swal !== "undefined") {
+      Swal.fire("Please select one voucher to view.", "warning");
+  } else {
+      alert("Please select one voucher to view.");
+    }
+    return;
+  }
+  VoucherTable.deselectAllRows();
+  
+  const voucher = selectedRows[0];
+  Swal.fire({
+    title: voucher.title,
+    html: `
+      <div style="text-align: left;">
+        <p><strong>Code:</strong> ${voucher.code}</p>
+        <p><strong>Type:</strong> ${voucher.type}</p>
+        <p><strong>Discount:</strong> ${voucher.discount}</p>
+        <p><strong>Status:</strong> ${voucher.status}</p>
+        <p><strong>Valid Period:</strong> ${voucher.valid_period}</p>
+      </div>
+    `,
+    showConfirmButton: true
+  });
 }
 
-// Modal functions
+const viewBtn = document.getElementById("view-supply-order-btn");
+if (viewBtn) {
+  viewBtn.addEventListener("click", viewVoucher);
+}
+
+const VoucherFilter = (function () {
+  const filter_btn = document.getElementById("filter-btn");
+  const filterContainer = document.querySelector(".filter-container");
+  const apply_btn = document.getElementById("apply-filters-btn");
+  const reset_btn = document.getElementById("reset-filters-btn");
+
+  const voucherTypeFilter = document.getElementById("voucher-type-filter");
+  const valueMin = document.getElementById("value-min");
+  const valueMax = document.getElementById("value-max");
+  const valueRangeFieldset = document.getElementById("value-range-fieldset");
+  const minPurchaseMin = document.getElementById("min-purchase-min");
+  const minPurchaseMax = document.getElementById("min-purchase-max");
+  const statusFilter = document.getElementById("status-filter");
+  const validityFrom = document.getElementById("validity-from");
+  const validityTo = document.getElementById("validity-to");
+  const appliesToFilter = document.getElementById("applies-to-filter");
+  const usageLimitMin = document.getElementById("usage-limit-min");
+  const usageLimitMax = document.getElementById("usage-limit-max");
+  const usageLimitUserMin = document.getElementById("usage-limit-user-min");
+  const usageLimitUserMax = document.getElementById("usage-limit-user-max");
+  const usageLimitType = document.getElementById("usage-limit-type");
+  const usageLimitUserType = document.getElementById("usage-limit-user-type");
+
+  function add_events() {
+    filter_btn.addEventListener("click", toggle_filter_container);
+    apply_btn.addEventListener("click", () => {
+      draw_table_filter();
+      toggle_filter_container();
+    });
+    reset_btn.addEventListener("click", reset);
+
+    voucherTypeFilter.addEventListener("change", function () {
+      if (voucherTypeFilter.value === "free_shipping") {
+        valueRangeFieldset.style.display = "none";
+      } else {
+        valueRangeFieldset.style.display = "block";
+      }
+    });
+    if (voucherTypeFilter.value === "free_shipping") {
+      valueRangeFieldset.style.display = "none";
+  } else {
+      valueRangeFieldset.style.display = "block";
+    }
+    validityFrom.addEventListener(
+      "change",
+      () => (validityTo.min = validityFrom.value)
+    );
+    validityTo.addEventListener(
+      "change",
+      () => (validityFrom.max = validityTo.value)
+    );
+    appliesToFilter.value = "";
+    usageLimitMin.value = "";
+    usageLimitMax.value = "";
+    usageLimitUserMin.value = "";
+    usageLimitUserMax.value = "";
+    usageLimitType.value = "";
+    usageLimitUserType.value = "";
+  }
+
+  function toggle_filter_container() {
+    if (
+      filterContainer.style.display === "none" ||
+      filterContainer.style.display === ""
+    ) {
+      filterContainer.style.display = "flex";
+    } else {
+      filterContainer.style.display = "none";
+    }
+  }
+
+  function reset() {
+    voucherTypeFilter.value = "";
+    valueMin.value = "";
+    valueMax.value = "";
+    minPurchaseMin.value = "";
+    minPurchaseMax.value = "";
+    statusFilter.value = "";
+    validityFrom.value = "";
+    validityTo.value = "";
+    valueRangeFieldset.style.display = "block";
+    appliesToFilter.value = "";
+    usageLimitMin.value = "";
+    usageLimitMax.value = "";
+    usageLimitUserMin.value = "";
+    usageLimitUserMax.value = "";
+    usageLimitType.value = "";
+    usageLimitUserType.value = "";
+    draw_table_filter();
+    toggle_filter_container();
+  }
+
+  function draw_table_filter() {
+    if (
+      valueMin.value &&
+      valueMax.value &&
+      parseFloat(valueMin.value) > parseFloat(valueMax.value)
+    ) {
+      Swal.fire("Invalid Value Range!", "error");
+      return;
+    }
+    if (
+      minPurchaseMin.value &&
+      minPurchaseMax.value &&
+      parseFloat(minPurchaseMin.value) > parseFloat(minPurchaseMax.value)
+    ) {
+      Swal.fire("Invalid Min Purchase Range!", "error");
+      return;
+    }
+    if (
+      usageLimitMin.value &&
+      usageLimitMax.value &&
+      parseInt(usageLimitMin.value) > parseInt(usageLimitMax.value)
+    ) {
+      Swal.fire("Invalid Usage Limit Range!", "error");
+      return;
+    }
+    if (
+      usageLimitUserMin.value &&
+      usageLimitUserMax.value &&
+      parseInt(usageLimitUserMin.value) > parseInt(usageLimitUserMax.value)
+    ) {
+      Swal.fire("Invalid Usage Limit Per User Range!", "error");
+      return;
+    }
+    supplyOrderTable.context[0].ajax.data = {
+      action: "datatableDisplay",
+      voucher_type: voucherTypeFilter.value,
+      value_min: valueMin.value,
+      value_max: valueMax.value,
+      min_purchase_min: minPurchaseMin.value,
+      min_purchase_max: minPurchaseMax.value,
+      status: statusFilter.value,
+      applies_to: appliesToFilter.value,
+      usage_limit_min: usageLimitMin.value,
+      usage_limit_max: usageLimitMax.value,
+      usage_limit_type: usageLimitType.value,
+      usage_limit_user_min: usageLimitUserMin.value,
+      usage_limit_user_max: usageLimitUserMax.value,
+      usage_limit_user_type: usageLimitUserType.value,
+      validity_from: validityFrom.value,
+      validity_to: validityTo.value,
+    };
+    supplyOrderTable.draw();
+  }
+
+  return {
+    add_events,
+    draw_table_filter,
+  };
+})();
+
+
+if (VoucherFilter && VoucherFilter.add_events) {
+  VoucherFilter.add_events();
+}
+
+
 function openAddModal() {
-  document.getElementById("addModal").style.display = "block";
-  document.body.style.overflow = "hidden";
-
-  // Reset form
-  document.getElementById("addCouponForm").reset();
-
-  // Set default dates
-  const today = new Date().toISOString().split("T")[0];
-  const nextMonth = new Date();
-  nextMonth.setMonth(nextMonth.getMonth() + 1);
-  const nextMonthStr = nextMonth.toISOString().split("T")[0];
-
-  document.getElementById("startDate").value = today;
-  document.getElementById("endDate").value = nextMonthStr;
-
-  // Reset switches
-  document.getElementById("unlimitedUsage").checked = false;
-  document.getElementById("unlimitedPerUser").checked = false;
-  toggleUsageLimit();
-  togglePerUserLimit();
-  toggleDiscountValue();
+  document.getElementById('addModal').style.display = 'flex';
 }
 
 function openEditModal(id) {
-  document.getElementById("editModal").style.display = "block";
-  document.body.style.overflow = "hidden";
 
-  // Fetch coupon data
-  fetch("get-coupon.php?id=" + id)
-    .then((response) => response.json())
-    .then((data) => {
+  fetch('./get-coupon.php?id=' + id)
+    .then(response => response.json())
+    .then(data => {
       if (data.success) {
         const coupon = data.coupon;
-
-        // Populate form
-        document.getElementById("editId").value = coupon.id;
-        document.getElementById("editTitle").value = coupon.title;
-        document.getElementById("editCode").value = coupon.code;
-        document.getElementById("editDiscountType").value =
-          coupon.discount_type;
-        document.getElementById("editDiscountValue").value =
-          coupon.discount_value;
-        document.getElementById("editMinSpend").value = coupon.min_spend;
-        document.getElementById("editApplicableTo").value =
-          coupon.applicable_to;
-        document.getElementById("editStartDate").value = coupon.start_date;
-        document.getElementById("editEndDate").value = coupon.end_date;
-        document.getElementById("editStatus").value = coupon.status;
-
-        // Handle usage limits
-        if (coupon.usage_limit) {
-          document.getElementById("editUnlimitedUsage").checked = false;
-          document.getElementById("editUsageLimit").value = coupon.usage_limit;
-        } else {
-          document.getElementById("editUnlimitedUsage").checked = true;
-        }
-
-        if (coupon.usage_limit_per_user) {
-          document.getElementById("editUnlimitedPerUser").checked = false;
-          document.getElementById("editPerUserLimit").value =
-            coupon.usage_limit_per_user;
-        } else {
-          document.getElementById("editUnlimitedPerUser").checked = true;
-        }
-
-        // Update UI
+        document.getElementById('editId').value = coupon.id;
+        document.getElementById('editTitle').value = coupon.title;
+        document.getElementById('editCode').value = coupon.code;
+        document.getElementById('editApplicationMethod').value = coupon.application_method || 'voucher_code';
+        document.getElementById('editDiscountType').value = coupon.discount_type;
+        document.getElementById('editDiscountValue').value = coupon.discount_value;
+        document.getElementById('editMinSpend').value = coupon.min_spend;
+        document.getElementById('editApplicableTo').value = coupon.applicable_to;
+        document.getElementById('editUsageLimit').value = coupon.usage_limit || '';
+        document.getElementById('editPerUserLimit').value = coupon.usage_limit_per_user || '';
+        document.getElementById('editStartDate').value = coupon.start_date;
+        document.getElementById('editEndDate').value = coupon.end_date;
+        document.getElementById('editStatus').value = coupon.status;
+        
+       
+        document.getElementById('editUnlimitedUsage').checked = !coupon.usage_limit;
+        document.getElementById('editUnlimitedPerUser').checked = !coupon.usage_limit_per_user;
+        
         toggleEditUsageLimit();
         toggleEditPerUserLimit();
         toggleEditDiscountValue();
+        
+        document.getElementById('editModal').style.display = 'flex';
       } else {
-        alert("Error loading coupon data: " + data.message);
+        Swal.fire('Error', data.message, 'error');
       }
     })
-    .catch((error) => {
-      console.error("Error:", error);
-      alert("Error loading coupon data");
+    .catch(error => {
+      Swal.fire('Error', 'Failed to load coupon data', 'error');
     });
 }
 
 function closeModal(modalId) {
-  document.getElementById(modalId).style.display = "none";
-  document.body.style.overflow = "auto";
+  document.getElementById(modalId).style.display = 'none';
 }
 
-// Close modal when clicking outside
-window.onclick = function (event) {
-  const addModal = document.getElementById("addModal");
-  const editModal = document.getElementById("editModal");
-
-  if (event.target === addModal) {
-    closeModal("addModal");
-  }
-  if (event.target === editModal) {
-    closeModal("editModal");
-  }
-};
-
-// Toggle discount value field
 function toggleDiscountValue() {
-  const discountType = document.getElementById("discountType").value;
-  const discountValueGroup = document.getElementById("discountValueGroup");
-  const discountValue = document.getElementById("discountValue");
-
-  if (discountType === "shipping") {
-    discountValueGroup.style.display = "none";
-    discountValue.required = false;
-    discountValue.value = "0";
+  const discountType = document.getElementById('discountType').value;
+  const discountValueGroup = document.getElementById('discountValueGroup');
+  
+  if (discountType === 'free_shipping') {
+    discountValueGroup.style.display = 'none';
+    document.getElementById('discountValue').value = '';
   } else {
-    discountValueGroup.style.display = "block";
-    discountValue.required = true;
-
-    if (discountType === "percentage") {
-      discountValue.max = "100";
-      discountValue.previousElementSibling.textContent =
-        "Discount Percentage *";
-    } else {
-      discountValue.removeAttribute("max");
-      discountValue.previousElementSibling.textContent =
-        "Discount Amount (₱) *";
-    }
+    discountValueGroup.style.display = 'block';
   }
 }
 
 function toggleEditDiscountValue() {
-  const discountType = document.getElementById("editDiscountType").value;
-  const discountValueGroup = document.getElementById("editDiscountValueGroup");
-  const discountValue = document.getElementById("editDiscountValue");
-
-  if (discountType === "shipping") {
-    discountValueGroup.style.display = "none";
-    discountValue.required = false;
-    discountValue.value = "0";
+  const discountType = document.getElementById('editDiscountType').value;
+  const discountValueGroup = document.getElementById('editDiscountValueGroup');
+  
+  if (discountType === 'free_shipping') {
+    discountValueGroup.style.display = 'none';
+    document.getElementById('editDiscountValue').value = '';
   } else {
-    discountValueGroup.style.display = "block";
-    discountValue.required = true;
-
-    if (discountType === "percentage") {
-      discountValue.max = "100";
-      discountValue.previousElementSibling.textContent =
-        "Discount Percentage *";
-    } else {
-      discountValue.removeAttribute("max");
-      discountValue.previousElementSibling.textContent =
-        "Discount Amount (₱) *";
-    }
+    discountValueGroup.style.display = 'block';
   }
 }
 
-// Toggle usage limit
 function toggleUsageLimit() {
-  const unlimited = document.getElementById("unlimitedUsage").checked;
-  const usageLimitGroup = document.getElementById("usageLimitGroup");
-  const usageLimit = document.getElementById("usageLimit");
-
-  if (unlimited) {
-    usageLimitGroup.style.display = "none";
-    usageLimit.required = false;
-    usageLimit.value = "";
+  const unlimitedUsage = document.getElementById('unlimitedUsage').checked;
+  const usageLimitGroup = document.getElementById('usageLimitGroup');
+  
+  if (unlimitedUsage) {
+    usageLimitGroup.style.display = 'none';
+    document.getElementById('usageLimit').value = '';
   } else {
-    usageLimitGroup.style.display = "block";
-    usageLimit.required = true;
+    usageLimitGroup.style.display = 'block';
   }
 }
 
 function toggleEditUsageLimit() {
-  const unlimited = document.getElementById("editUnlimitedUsage").checked;
-  const usageLimitGroup = document.getElementById("editUsageLimitGroup");
-  const usageLimit = document.getElementById("editUsageLimit");
-
-  if (unlimited) {
-    usageLimitGroup.style.display = "none";
-    usageLimit.required = false;
-    usageLimit.value = "";
+  const unlimitedUsage = document.getElementById('editUnlimitedUsage').checked;
+  const usageLimitGroup = document.getElementById('editUsageLimitGroup');
+  
+  if (unlimitedUsage) {
+    usageLimitGroup.style.display = 'none';
+    document.getElementById('editUsageLimit').value = '';
   } else {
-    usageLimitGroup.style.display = "block";
-    usageLimit.required = true;
+    usageLimitGroup.style.display = 'block';
   }
 }
 
-// Toggle per user limit
 function togglePerUserLimit() {
-  const unlimited = document.getElementById("unlimitedPerUser").checked;
-  const perUserLimitGroup = document.getElementById("perUserLimitGroup");
-  const perUserLimit = document.getElementById("perUserLimit");
-
-  if (unlimited) {
-    perUserLimitGroup.style.display = "none";
-    perUserLimit.required = false;
-    perUserLimit.value = "";
+  const unlimitedPerUser = document.getElementById('unlimitedPerUser').checked;
+  const perUserLimitGroup = document.getElementById('perUserLimitGroup');
+  
+  if (unlimitedPerUser) {
+    perUserLimitGroup.style.display = 'none';
+    document.getElementById('perUserLimit').value = '';
   } else {
-    perUserLimitGroup.style.display = "block";
-    perUserLimit.required = true;
+    perUserLimitGroup.style.display = 'block';
   }
 }
 
 function toggleEditPerUserLimit() {
-  const unlimited = document.getElementById("editUnlimitedPerUser").checked;
-  const perUserLimitGroup = document.getElementById("editPerUserLimitGroup");
-  const perUserLimit = document.getElementById("editPerUserLimit");
-
-  if (unlimited) {
-    perUserLimitGroup.style.display = "none";
-    perUserLimit.required = false;
-    perUserLimit.value = "";
+  const unlimitedPerUser = document.getElementById('editUnlimitedPerUser').checked;
+  const perUserLimitGroup = document.getElementById('editPerUserLimitGroup');
+  
+  if (unlimitedPerUser) {
+    perUserLimitGroup.style.display = 'none';
+    document.getElementById('editPerUserLimit').value = '';
   } else {
-    perUserLimitGroup.style.display = "block";
-    perUserLimit.required = true;
+    perUserLimitGroup.style.display = 'block';
   }
 }
 
-// Select all functionality
-function toggleSelectAll() {
-  const selectAllCheckbox =
-    document.getElementById("selectAll") ||
-    document.getElementById("headerSelectAll");
-  const rowCheckboxes = document.querySelectorAll(".row-select");
-
-  rowCheckboxes.forEach((checkbox) => {
-    checkbox.checked = selectAllCheckbox.checked;
-  });
-
-  updateBulkActions();
-}
-
-function updateBulkActions() {
-  const selectedCheckboxes = document.querySelectorAll(".row-select:checked");
-  const bulkDeleteBtn = document.getElementById("bulkDeleteBtn");
-  const selectAllCheckbox = document.getElementById("selectAll");
-  const headerSelectAllCheckbox = document.getElementById("headerSelectAll");
-  const totalRows = document.querySelectorAll(".row-select").length;
-
-  selectedRows = Array.from(selectedCheckboxes).map((cb) => cb.value);
-
-  if (selectedRows.length > 0) {
-    bulkDeleteBtn.style.display = "inline-flex";
-    bulkDeleteBtn.textContent = `Delete Selected (${selectedRows.length})`;
-  } else {
-    bulkDeleteBtn.style.display = "none";
-  }
-
-  // Update select all checkboxes
-  if (selectAllCheckbox) {
-    selectAllCheckbox.indeterminate =
-      selectedRows.length > 0 && selectedRows.length < totalRows;
-    selectAllCheckbox.checked =
-      selectedRows.length === totalRows && totalRows > 0;
-  }
-
-  if (headerSelectAllCheckbox) {
-    headerSelectAllCheckbox.indeterminate =
-      selectedRows.length > 0 && selectedRows.length < totalRows;
-    headerSelectAllCheckbox.checked =
-      selectedRows.length === totalRows && totalRows > 0;
-  }
-}
-
-// Add coupon
 function addCoupon(event) {
   event.preventDefault();
 
   const formData = new FormData(event.target);
-  const submitBtn = event.target.querySelector('button[type="submit"]');
-
-  submitBtn.disabled = true;
-  submitBtn.textContent = "Creating...";
-
-  fetch("add-coupon.php", {
-    method: "POST",
-    body: formData,
+  formData.append('action', 'add_voucher');
+  
+ 
+  if (!formData.has('include_free_shipping')) formData.append('include_free_shipping', 0);
+  if (!formData.has('prevent_discounted')) formData.append('prevent_discounted', 0);
+  
+ 
+  console.log('Form data being sent:');
+  for (let [key, value] of formData.entries()) {
+    console.log(key, value);
+  }
+  
+  fetch('./promotions_api.php', {
+    method: 'POST',
+    body: formData
   })
-    .then((response) => response.json())
-    .then((data) => {
+  .then(response => {
+    console.log('Response status:', response.status);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.text(); 
+  })
+  .then(text => {
+    console.log('Raw response:', text);
+    try {
+      const data = JSON.parse(text);
       if (data.success) {
-        alert("Coupon created successfully!");
-        closeModal("addModal");
-        location.reload();
+        Swal.fire('Success', data.message, 'success');
+        document.getElementById('addModal').style.display = 'none';
+        event.target.reset();
+        if (supplyOrderTable) {
+          supplyOrderTable.draw();
+        }
       } else {
-        alert("Error: " + data.message);
+        Swal.fire('Error', data.message, 'error');
       }
-    })
-    .catch((error) => {
-      console.error("Error:", error);
-      alert("Error creating coupon");
-    })
-    .finally(() => {
-      submitBtn.disabled = false;
-      submitBtn.textContent = "Create Coupon";
-    });
+    } catch (e) {
+      console.error('JSON parse error:', e);
+      console.error('Response text:', text);
+      Swal.fire('Error', 'Invalid response from server', 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Fetch error:', error);
+    Swal.fire('Error', 'Network error. Please try again.', 'error');
+  });
 }
 
-// Update coupon
 function updateCoupon(event) {
   event.preventDefault();
 
   const formData = new FormData(event.target);
-  const submitBtn = event.target.querySelector('button[type="submit"]');
-
-  submitBtn.disabled = true;
-  submitBtn.textContent = "Updating...";
-
-  fetch("update-coupon.php", {
-    method: "POST",
-    body: formData,
+  formData.append('action', 'update_voucher');
+  
+ 
+  if (!formData.has('include_free_shipping')) formData.append('include_free_shipping', 0);
+  if (!formData.has('prevent_discounted')) formData.append('prevent_discounted', 0);
+  
+  fetch('./promotions_api.php', {
+    method: 'POST',
+    body: formData
   })
-    .then((response) => response.json())
-    .then((data) => {
+  .then(response => response.json())
+  .then(data => {
       if (data.success) {
-        alert("Coupon updated successfully!");
-        closeModal("editModal");
-        location.reload();
-      } else {
-        alert("Error: " + data.message);
+      Swal.fire('Success', data.message, 'success');
+      document.getElementById('editModal').style.display = 'none';
+      if (supplyOrderTable) {
+        supplyOrderTable.draw();
       }
-    })
-    .catch((error) => {
-      console.error("Error:", error);
-      alert("Error updating coupon");
-    })
-    .finally(() => {
-      submitBtn.disabled = false;
-      submitBtn.textContent = "Update Coupon";
-    });
+      } else {
+      Swal.fire('Error', data.message, 'error');
+    }
+  })
+  .catch(error => {
+    Swal.fire('Error', 'Network error. Please try again.', 'error');
+  });
 }
 
-// Delete single coupon
 function deleteCoupon(id) {
-  if (!confirm("Are you sure you want to delete this coupon?")) {
-    return;
-  }
-
-  fetch("delete-coupon.php", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ id: id }),
-  })
-    .then((response) => response.json())
-    .then((data) => {
+  Swal.fire({
+    title: 'Are you sure?',
+    text: "You won't be able to revert this!",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Yes, delete it!'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      const formData = new FormData();
+      formData.append('action', 'delete_voucher');
+      formData.append('id', id);
+      
+      fetch('./promotions_api.php', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
       if (data.success) {
-        alert("Coupon deleted successfully!");
-        location.reload();
+          Swal.fire('Deleted!', data.message, 'success');
+          if (supplyOrderTable) {
+            supplyOrderTable.draw();
+          }
       } else {
-        alert("Error: " + data.message);
-      }
-    })
-    .catch((error) => {
-      console.error("Error:", error);
-      alert("Error deleting coupon");
-    });
-}
-
-// Bulk delete
-function bulkDelete() {
-  if (selectedRows.length === 0) {
-    alert("Please select at least one coupon to delete.");
-    return;
-  }
-
-  if (
-    !confirm(
-      `Are you sure you want to delete ${selectedRows.length} coupon(s)?`
-    )
-  ) {
-    return;
-  }
-
-  fetch("delete-coupon.php", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ ids: selectedRows }),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.success) {
-        alert("Coupons deleted successfully!");
-        location.reload();
-      } else {
-        alert("Error: " + data.message);
-      }
-    })
-    .catch((error) => {
-      console.error("Error:", error);
-      alert("Error deleting coupons");
-    });
-}
-
-// Form validation
-document.addEventListener("DOMContentLoaded", function () {
-  // Code validation - uppercase and remove spaces
-  const codeInputs = ["code", "editCode"];
-  codeInputs.forEach((inputId) => {
-    const input = document.getElementById(inputId);
-    if (input) {
-      input.addEventListener("input", function () {
-        this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+          Swal.fire('Error', data.message, 'error');
+        }
+      })
+      .catch(error => {
+        Swal.fire('Error', 'Network error. Please try again.', 'error');
       });
     }
   });
-
-  // Date validation
-  const forms = ["addCouponForm", "editCouponForm"];
-  forms.forEach((formId) => {
-    const form = document.getElementById(formId);
-    if (form) {
-      form.addEventListener("submit", function (event) {
-        const prefix = formId === "addCouponForm" ? "" : "edit";
-        const startDate = document.getElementById(prefix + "StartDate").value;
-        const endDate = document.getElementById(prefix + "EndDate").value;
-
-        if (new Date(startDate) >= new Date(endDate)) {
-          event.preventDefault();
-          alert("End date must be after start date.");
-          return false;
-        }
-
-        // Validate discount value for percentage
-        const discountType = document.getElementById(
-          prefix + "DiscountType"
-        ).value;
-        const discountValue = document.getElementById(
-          prefix + "DiscountValue"
-        ).value;
-
-        if (discountType === "percentage" && parseFloat(discountValue) > 100) {
-          event.preventDefault();
-          alert("Percentage discount cannot be more than 100%.");
-          return false;
-        }
-
-        if (discountType !== "shipping" && parseFloat(discountValue) <= 0) {
-          event.preventDefault();
-          alert("Discount value must be greater than 0.");
-          return false;
-        }
-      });
     }
-  });
-});

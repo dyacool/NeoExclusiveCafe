@@ -5,7 +5,7 @@ if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
     exit();
 }
 
-require_once $_SERVER['DOCUMENT_ROOT'] . "/NeoExclusiveCafe/php/includes/database.php";
+require_once '../admin-includes/database.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['order_id']) && isset($_POST['status'])) {
     $order_id = intval($_POST['order_id']);
@@ -18,7 +18,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['order_id']) && isset($
     
 if (mysqli_stmt_execute($stmt)) {
     // Create notification for user about order status change
-    require_once $_SERVER['DOCUMENT_ROOT'] . "/NeoExclusiveCafe/php/includes/class-notif.php";
+    require_once '../../../frontend/pages/notifications/class-notif.php';
     $notification = new Notification($conn);
 
     // Adjusted column name from user_id to customer_id based on error

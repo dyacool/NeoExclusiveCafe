@@ -30,7 +30,7 @@ class Notification {
                 $imageUrl = '/' . ltrim($imgRow['image_url'], '/');
             }
             $imgStmt->close();
-            $link = "/NeoExclusiveCafe/pages/users/product-details.php?product_id=" . $productId;
+            $link = "/NeoExclusiveCafe/frontend/pages/users/product-details.php?product_id=" . $productId;
         }
         $notifQuery = "INSERT INTO notifications (user_id, type, title, message, image_url, link, created_at, is_read) 
                        VALUES (?, 'promotion', ?, ?, ?, ?, NOW(), 0)";
@@ -107,7 +107,7 @@ class Notification {
             // Prepare notification details
             $title = "Order #$orderId Status Update";
             $message = "Your order #$orderId has been $status.";
-            $link = "/NeoExclusiveCafe/pages/users/order-details.php?order_id=" . $orderId;
+            $link = "/NeoExclusiveCafe/frontend/pages/cart/order-details.php?order_id=" . $orderId;
 
             // Insert the notification
             $notifQuery = "INSERT INTO notifications (user_id, type, title, message, image_url, order_id, link, created_at, is_read)
