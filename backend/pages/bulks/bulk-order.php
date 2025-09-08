@@ -201,12 +201,8 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
     
     <div class="bulk-order-detail-container">
         <div class="page-header">
-            <a href="bulk-order-lists.php" class="back-button">
-                <i class="fas fa-arrow-left"></i> Back to Bulk Orders
-            </a>
             <div class="header-content">
-                <h1><i class="fas fa-box"></i> Bulk Order Details</h1>
-                <p>Order ID: #<?php echo htmlspecialchars($order_id_display); ?></p>
+                <h1> Bulk Order ID: #<?php echo htmlspecialchars($order_id_display); ?></h1>
             </div>
         </div>
 
@@ -222,6 +218,29 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
             </div>
         <?php endif; ?>
 
+        <!-- Status Update Section -->
+        <div class="status-update-section">
+            <h3><i class="fas fa-edit"></i> Update Order Status</h3>
+            <form method="POST" class="status-form">
+                <input type="hidden" name="action" value="update_status">
+                <div class="form-group">
+                    <label for="new_status">Change Status:</label>
+                    <select name="new_status" id="new_status" class="status-select" required>
+                        <option value="">Select new status...</option>
+                        <option value="pending" <?php echo ($order['status'] == 'pending') ? 'selected' : ''; ?>>Pending</option>
+                        <option value="approved" <?php echo ($order['status'] == 'approved') ? 'selected' : ''; ?>>Approved</option>
+                        <option value="payment_received" <?php echo ($order['status'] == 'payment_received') ? 'selected' : ''; ?>>Payment Received</option>
+                        <option value="ready_for_delivery" <?php echo ($order['status'] == 'ready_for_delivery') ? 'selected' : ''; ?>>Ready for Delivery</option>
+                        <option value="completed" <?php echo ($order['status'] == 'completed') ? 'selected' : ''; ?>>Completed</option>
+                        <option value="cancelled" <?php echo ($order['status'] == 'cancelled') ? 'selected' : ''; ?>>Cancelled</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Update Status
+                </button>
+            </form>
+        </div>
+
         <!-- Order Information Grid -->
         <div class="order-info-grid">
             <!-- Customer Information -->
@@ -229,8 +248,13 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
                 <h3><i class="fas fa-user"></i> Customer Information</h3>
                 <div class="info-grid">
                     <div class="info-item">
-                        <div class="info-label">Customer Name</div>
-                        <div class="info-value"><?php echo htmlspecialchars($order['name']); ?></div>
+                        <div class="info-label">Name</div>
+                        <div class="info-value">
+                            <?php echo htmlspecialchars($user_name); ?>
+                            <?php if ($order['username']): ?>
+                                <br><small>@<?php echo htmlspecialchars($order['username']); ?></small>
+                            <?php endif; ?>
+                        </div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Contact Number</div>
@@ -250,75 +274,60 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
             <!-- Order Details -->
             <div class="info-card">
                 <h3><i class="fas fa-clipboard-list"></i> Order Details</h3>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <div class="info-label">Order Type</div>
-                        <div class="info-value">
-                            <span class="order-type-badge <?php echo $order['order_type']; ?>">
-                                <?php echo ucfirst($order['order_type']); ?>
-                            </span>
+                <div class="info-grid two-column">
+                    <!-- First Column -->
+                    <div class="column-left">
+                        <div class="info-item">
+                            <div class="info-label">Order Type</div>
+                            <div class="info-value">
+                                <span class="order-type-badge <?php echo $order['order_type']; ?>">
+                                    <?php echo ucfirst($order['order_type']); ?>
+                                </span>
+                            </div>
+                        </div>
+                        <?php if ($order['order_type'] == 'delivery' && $order['delivery_address']): ?>
+                        <div class="info-item">
+                            <div class="info-label">Delivery Address</div>
+                            <div class="info-value"><?php echo nl2br(htmlspecialchars($order['delivery_address'])); ?></div>
+                        </div>
+                        <?php endif; ?>
+                        <div class="info-item">
+                            <div class="info-label">Date Submitted</div>
+                            <div class="info-value"><?php echo date('F j, Y g:i A', strtotime($order['created_at'])); ?></div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Date Needed</div>
+                            <div class="info-value"><?php echo date('F j, Y', strtotime($order['date_needed'])); ?></div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Time Needed</div>
+                            <div class="info-value"><?php echo date('g:i A', strtotime($order['time_needed'])); ?></div>
                         </div>
                     </div>
-                    <?php if ($order['order_type'] == 'delivery' && $order['delivery_address']): ?>
-                    <div class="info-item">
-                        <div class="info-label">Delivery Address</div>
-                        <div class="info-value"><?php echo nl2br(htmlspecialchars($order['delivery_address'])); ?></div>
-                    </div>
-                    <?php endif; ?>
-                    <div class="info-item">
-                        <div class="info-label">Purpose of Order</div>
-                        <div class="info-value"><?php echo nl2br(htmlspecialchars($order['purpose'])); ?></div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Date Needed</div>
-                        <div class="info-value"><?php echo date('F j, Y', strtotime($order['date_needed'])); ?></div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Time Needed</div>
-                        <div class="info-value"><?php echo date('g:i A', strtotime($order['time_needed'])); ?></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Order Summary -->
-            <div class="info-card">
-                <h3><i class="fas fa-chart-bar"></i> Order Summary</h3>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <div class="info-label">User Account</div>
-                        <div class="info-value">
-                            <?php echo htmlspecialchars($user_name); ?>
-                            <?php if ($order['username']): ?>
-                                <br><small>@<?php echo htmlspecialchars($order['username']); ?></small>
-                            <?php endif; ?>
+                    
+                    <!-- Second Column -->
+                    <div class="column-right">
+                        <div class="info-item">
+                            <div class="info-label">Purpose of Order</div>
+                            <div class="info-value"><?php echo nl2br(htmlspecialchars($order['purpose'])); ?></div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Total Items</div>
+                            <div class="info-value"><?php echo number_format($total_items); ?></div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Total Amount</div>
+                            <div class="info-value total-amount">₱<?php echo number_format($total_amount, 2); ?></div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Current Status</div>
+                            <div class="info-value">
+                                <span class="status-badge status-<?php echo strtolower($order['status']); ?>">
+                                    <?php echo ucfirst(str_replace('_', ' ', $order['status'])); ?>
+                                </span>
+                            </div>
                         </div>
                     </div>
-                    <div class="info-item">
-                        <div class="info-label">Date Submitted</div>
-                        <div class="info-value"><?php echo date('F j, Y g:i A', strtotime($order['created_at'])); ?></div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Total Items</div>
-                        <div class="info-value"><?php echo number_format($total_items); ?></div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Total Amount</div>
-                        <div class="info-value total-amount">₱<?php echo number_format($total_amount, 2); ?></div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Current Status</div>
-                        <div class="info-value">
-                            <span class="status-badge status-<?php echo strtolower($order['status']); ?>">
-                                <?php echo ucfirst(str_replace('_', ' ', $order['status'])); ?>
-                            </span>
-                        </div>
-                    </div>
-                    <?php if ($order['admin_updated']): ?>
-                    <div class="info-item">
-                        <div class="info-label">Last Updated</div>
-                        <div class="info-value"><?php echo date("F j, Y g:i A", strtotime($order['admin_updated'])); ?></div>
-                    </div>
-                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -346,29 +355,6 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
             </div>
         </div>
         <?php endif; ?>
-
-        <!-- Status Update Section -->
-        <div class="status-update-section">
-            <h3><i class="fas fa-edit"></i> Update Order Status</h3>
-            <form method="POST" class="status-form">
-                <input type="hidden" name="action" value="update_status">
-                <div class="form-group">
-                    <label for="new_status">Change Status:</label>
-                    <select name="new_status" id="new_status" class="status-select" required>
-                        <option value="">Select new status...</option>
-                        <option value="pending" <?php echo ($order['status'] == 'pending') ? 'selected' : ''; ?>>Pending</option>
-                        <option value="approved" <?php echo ($order['status'] == 'approved') ? 'selected' : ''; ?>>Approved</option>
-                        <option value="payment_received" <?php echo ($order['status'] == 'payment_received') ? 'selected' : ''; ?>>Payment Received</option>
-                        <option value="ready_for_delivery" <?php echo ($order['status'] == 'ready_for_delivery') ? 'selected' : ''; ?>>Ready for Delivery</option>
-                        <option value="completed" <?php echo ($order['status'] == 'completed') ? 'selected' : ''; ?>>Completed</option>
-                        <option value="cancelled" <?php echo ($order['status'] == 'cancelled') ? 'selected' : ''; ?>>Cancelled</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i> Update Status
-                </button>
-            </form>
-        </div>
 
         <!-- Order Items -->
         <div class="items-table-container">
@@ -416,8 +402,7 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
                         <i class="fas fa-check"></i>
                     </div>
                     <div>
-                        <strong>Proof of Payment Uploaded</strong><br>
-                        <small>Customer has uploaded payment proof</small>
+                        <strong>Customer has uploaded payment proof</strong>
                     </div>
                 <?php else: ?>
                     <div class="payment-icon payment-awaiting">

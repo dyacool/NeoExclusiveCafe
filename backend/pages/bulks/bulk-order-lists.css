@@ -38,7 +38,7 @@
 /* Scoped styles to avoid conflicts with navbar */
 .bulk-order-container {
   font-family: "Inter", sans-serif;
-  padding: 2rem;
+  padding: 1rem 0;
   max-width: 1600px;
   margin: 0 auto;
 }
@@ -53,21 +53,11 @@
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 2rem;
-  padding: 0 0 1rem 0;
   border-bottom: 1px solid var(--gray-200);
 }
 
-.header-content h1 {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--green-800);
-  margin-bottom: 0.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
 .header-content p {
+  padding: 0 0 1rem 0;
   color: var(--gray-600);
   font-size: 1rem;
   margin: 0;
@@ -153,7 +143,6 @@
   color: var(--gray-700);
   border-bottom: 1px solid var(--gray-200);
   font-size: 0.875rem;
-  text-transform: uppercase;
   letter-spacing: 0.025em;
 }
 
