@@ -64314,3 +64314,530 @@ Stack trace:
 [07-Sep-2025 15:17:08 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 8
 [07-Sep-2025 15:17:08 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
 [07-Sep-2025 15:17:08 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoExclusiveCafe\frontend\user-includes\user-header.php on line 265
+[08-Sep-2025 14:53:48 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[08-Sep-2025 14:53:48 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[08-Sep-2025 14:53:48 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[08-Sep-2025 14:53:50 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[08-Sep-2025 14:53:50 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[08-Sep-2025 14:53:50 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[08-Sep-2025 14:53:50 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[08-Sep-2025 14:53:50 Europe/Berlin] Total featured products found: 1
+[08-Sep-2025 14:53:50 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[08-Sep-2025 14:53:52 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[08-Sep-2025 14:53:52 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[08-Sep-2025 14:53:52 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[08-Sep-2025 14:54:04 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[08-Sep-2025 14:54:04 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[08-Sep-2025 14:54:04 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[08-Sep-2025 14:54:04 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[08-Sep-2025 14:54:04 Europe/Berlin] Total featured products found: 1
+[08-Sep-2025 14:54:04 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[08-Sep-2025 14:54:05 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[08-Sep-2025 14:54:05 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[08-Sep-2025 14:54:05 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[08-Sep-2025 14:54:13 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[08-Sep-2025 14:54:13 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[08-Sep-2025 14:54:13 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[08-Sep-2025 14:54:19 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[08-Sep-2025 14:54:19 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[08-Sep-2025 14:54:19 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[08-Sep-2025 14:54:19 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[08-Sep-2025 14:54:19 Europe/Berlin] Total featured products found: 1
+[08-Sep-2025 14:54:19 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[08-Sep-2025 14:54:20 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[08-Sep-2025 14:54:20 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[08-Sep-2025 14:54:20 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[08-Sep-2025 14:54:24 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[08-Sep-2025 14:54:24 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[08-Sep-2025 14:54:24 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[08-Sep-2025 14:54:24 Europe/Berlin] Business hours: 08:00:00 - 23:42:00
+[08-Sep-2025 14:54:24 Europe/Berlin] Time analysis: current=14:54:24 (894 min), opening=08:00:00 (480 min), closing=23:42:00 (1422 min), is_closed=No
+[08-Sep-2025 14:54:24 Europe/Berlin] Cart truncation result: No action needed
+[08-Sep-2025 14:54:24 Europe/Berlin] PHP Warning:  Undefined variable $today in C:\xampp\htdocs\NeoCafe\frontend\pages\products\product-dashboard.php on line 355
+[08-Sep-2025 14:54:28 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[08-Sep-2025 14:54:28 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[08-Sep-2025 14:54:28 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[08-Sep-2025 14:54:29 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[08-Sep-2025 14:54:29 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[08-Sep-2025 14:54:29 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[09-Sep-2025 05:34:25 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[09-Sep-2025 05:34:25 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[09-Sep-2025 05:34:25 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[09-Sep-2025 05:34:25 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[09-Sep-2025 05:34:25 Europe/Berlin] Total featured products found: 1
+[09-Sep-2025 05:34:25 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[09-Sep-2025 05:36:37 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[09-Sep-2025 05:36:37 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[09-Sep-2025 05:36:37 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[09-Sep-2025 05:36:37 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[09-Sep-2025 05:36:37 Europe/Berlin] Total featured products found: 1
+[09-Sep-2025 05:36:37 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[09-Sep-2025 05:56:58 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[09-Sep-2025 05:56:58 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[09-Sep-2025 05:56:58 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[09-Sep-2025 05:56:58 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[09-Sep-2025 05:56:58 Europe/Berlin] Total featured products found: 1
+[09-Sep-2025 05:56:58 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[09-Sep-2025 05:57:06 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[09-Sep-2025 05:57:06 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[09-Sep-2025 05:57:06 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[09-Sep-2025 05:57:06 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[09-Sep-2025 05:57:06 Europe/Berlin] Total featured products found: 1
+[09-Sep-2025 05:57:06 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[09-Sep-2025 05:57:16 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[09-Sep-2025 05:57:16 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[09-Sep-2025 05:57:16 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[09-Sep-2025 05:57:16 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[09-Sep-2025 05:57:16 Europe/Berlin] Total featured products found: 1
+[09-Sep-2025 05:57:16 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[09-Sep-2025 06:15:47 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[09-Sep-2025 06:15:47 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[09-Sep-2025 06:15:47 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[09-Sep-2025 06:15:47 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[09-Sep-2025 06:15:47 Europe/Berlin] Total featured products found: 1
+[09-Sep-2025 06:15:47 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[09-Sep-2025 06:16:34 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[09-Sep-2025 06:16:34 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[09-Sep-2025 06:16:34 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[09-Sep-2025 06:16:34 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[09-Sep-2025 06:16:34 Europe/Berlin] Total featured products found: 1
+[09-Sep-2025 06:16:34 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[09-Sep-2025 06:26:29 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[09-Sep-2025 06:26:29 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[09-Sep-2025 06:26:29 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[09-Sep-2025 06:26:29 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[09-Sep-2025 06:26:29 Europe/Berlin] Total featured products found: 1
+[09-Sep-2025 06:26:29 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[09-Sep-2025 06:38:42 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[09-Sep-2025 06:38:42 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[09-Sep-2025 06:38:42 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[09-Sep-2025 06:38:42 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[09-Sep-2025 06:38:42 Europe/Berlin] Total featured products found: 1
+[09-Sep-2025 06:38:42 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[09-Sep-2025 06:39:11 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[09-Sep-2025 06:39:11 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[09-Sep-2025 06:39:11 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[09-Sep-2025 06:39:11 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[09-Sep-2025 06:39:11 Europe/Berlin] Total featured products found: 1
+[09-Sep-2025 06:39:11 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[09-Sep-2025 06:39:15 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[09-Sep-2025 06:39:15 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[09-Sep-2025 06:39:15 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[09-Sep-2025 06:39:15 Europe/Berlin] Business hours: 08:00:00 - 23:42:00
+[09-Sep-2025 06:39:15 Europe/Berlin] Business closed - past midnight (current: 399, closing: 1422)
+[09-Sep-2025 06:39:15 Europe/Berlin] Time analysis: current=06:39:15 (399 min), opening=08:00:00 (480 min), closing=23:42:00 (1422 min), is_closed=Yes
+[09-Sep-2025 06:39:15 Europe/Berlin] Cart currently has 1 items
+[09-Sep-2025 06:39:15 Europe/Berlin] SUCCESS: Cart truncated successfully - 1 items removed
+[09-Sep-2025 06:39:15 Europe/Berlin] Cart truncation result: SUCCESS
+[09-Sep-2025 06:39:15 Europe/Berlin] PHP Warning:  Undefined variable $today in C:\xampp\htdocs\NeoCafe\frontend\pages\products\product-dashboard.php on line 355
+[09-Sep-2025 07:15:50 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[09-Sep-2025 07:15:50 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[09-Sep-2025 07:15:50 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[09-Sep-2025 07:15:50 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[09-Sep-2025 07:15:50 Europe/Berlin] Total featured products found: 1
+[09-Sep-2025 07:15:50 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[09-Sep-2025 07:15:59 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[09-Sep-2025 07:15:59 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[09-Sep-2025 07:15:59 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[09-Sep-2025 07:15:59 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[09-Sep-2025 07:15:59 Europe/Berlin] Total featured products found: 1
+[09-Sep-2025 07:15:59 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[09-Sep-2025 07:48:15 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[09-Sep-2025 07:48:15 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[09-Sep-2025 07:48:15 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[09-Sep-2025 07:48:15 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[09-Sep-2025 07:48:15 Europe/Berlin] Total featured products found: 1
+[09-Sep-2025 07:48:15 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[09-Sep-2025 08:08:18 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[09-Sep-2025 08:08:18 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[09-Sep-2025 08:08:18 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[09-Sep-2025 08:08:18 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[09-Sep-2025 08:08:18 Europe/Berlin] Total featured products found: 1
+[09-Sep-2025 08:08:18 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[09-Sep-2025 08:08:26 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[09-Sep-2025 08:08:26 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[09-Sep-2025 08:08:26 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[09-Sep-2025 08:08:26 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM crud.products p 
+                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[09-Sep-2025 08:08:26 Europe/Berlin] Total featured products found: 1
+[09-Sep-2025 08:08:26 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[09-Sep-2025 08:08:29 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[09-Sep-2025 08:08:29 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[09-Sep-2025 08:08:29 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265

@@ -43,7 +43,7 @@ class Notification {
     // Create a notification for system updates
     public function createWelcomeNotification($userId) {
         $message = "Welcome to NeoExclusiveCafe! Your account has been verified.";
-        $this->create($userId, 'System Update', $message);
+        $this->create($userId, 'system_alert', $message);
     }
 
     // Create a notification for order status updates with image and order_id

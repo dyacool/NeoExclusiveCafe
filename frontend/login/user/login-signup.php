@@ -115,7 +115,7 @@ if (isset($_POST['signup-submit'])) {
             $mail->setFrom("noreplyneoexclusive@gmail.com", "NeoExclusive");
             $mail->addAddress($email);
             $mail->Subject = "Email Verification";
-            $verificationLink = "http://localhost/frontend/login/user/verify-email.php?token=" . $token;
+            $verificationLink = "http://neocafe.cafe:8080/frontend/login/user/verify-email.php?token=" . $token;
             $mail->Body = <<<END
             <p>Hello $firstname,</p>
             <p>Thank you for registering! Please click the link below to verify your email address:</p>
@@ -274,6 +274,37 @@ if (isset($_POST["signin-submit"])) {
         .closebtn:hover {
             color: black;
         }
+        .back a {
+            position: relative;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .back a::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            bottom: -3px; /* distance from text */
+            width: 100%;
+            height: 2px;
+            background-color: black;
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        .back a:hover {
+            scale: 1.1;
+            transition: ease-in-out 0.3s;
+            color: black;
+        }
+
+        .back a:hover::after {
+            transform: scaleX(1);
+            transition: ease-in-out 0.3s;
+        }
     </style>
     <script>    
     window.onload = function() {
@@ -359,6 +390,9 @@ if (isset($_POST["signin-submit"])) {
                 </div>
             </div>
         </div>
+    </div>
+    <div class="back">
+        <a href="/frontend/pages/home/user-dashboard.php">Back to Home</a>
     </div>
 
 </body>

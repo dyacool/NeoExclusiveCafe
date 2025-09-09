@@ -2,7 +2,8 @@
 if ($_SERVER["REQUEST_METHOD"] === "GET") {
     $token = $_GET["token"] ?? "";
     $token_hash = hash("sha256", $token);
-    $mysqli = require __DIR__ . "/database.php";
+    require_once __DIR__ . "/../../../backend/pages/admin-includes/database.php";
+    $mysqli = $conn;
     $sql = "SELECT * FROM users WHERE reset_token_hash = ?";
     $stmt = $mysqli->prepare($sql);
     $stmt->bind_param("s", $token_hash);
@@ -33,7 +34,8 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         exit;
     }
 
-    $mysqli = require __DIR__ . "/database.php";
+    require_once __DIR__ . "/../../../backend/pages/admin-includes/database.php";
+    $mysqli = $conn;
     $sql = "SELECT * FROM users WHERE reset_token_hash = ?";
     $stmt = $mysqli->prepare($sql);
     $stmt->bind_param("s", $token_hash);

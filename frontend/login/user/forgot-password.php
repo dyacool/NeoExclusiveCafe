@@ -1,6 +1,7 @@
 <?php
 $message = "";
 $messageType = ""; // "success" or "error"
+$redirect = false;
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if (!isset($_POST["email"]) || empty($_POST["email"])) {
@@ -42,22 +43,26 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             // Email body with reset link
             $mail->Body = <<<END
             <p>Hello,</p>
-            <p>Click <a href="http://localhost/frontend/login/user/forgot-pw-reset.php?token=$token">here</a>
+            <p>Click <a href="http://neocafe.cafe:8080/frontend/login/user/forgot-pw-reset.php?token=$token">here</a>
             to reset your password.</p>
             <p>This link will expire in 30 minutes.</p>
             END;
 
             try {
                 $mail->send();
-                $message = "Password reset email sent. Check your inbox.";
+                $message = "Password reset email sent. Check your inbox. Redirecting in 3 seconds...";
                 $messageType = "success";
+                $redirect = true;
             } catch (Exception $e) {
-                $message = "Message could not be sent. Error: {$mail->ErrorInfo}";
+                $message = "Message could not be sent. Error: " . $e->getMessage() . " | SMTP Error: " . $mail->ErrorInfo;
                 $messageType = "error";
+                error_log("Email sending failed: " . $e->getMessage() . " | SMTP: " . $mail->ErrorInfo);
+                $redirect = false;
             }
         } else {
             $message = "No account found with this email.";
             $messageType = "error";
+            $redirect = false;
         }
     }
 }
@@ -117,8 +122,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             setTimeout(function() {
                 let alertBox = document.getElementById('alertBox');
                 alertBox.classList.add('fade-out');
-                setTimeout(() => alertBox.style.display = 'none', 2000);
-            }, 2000);
+                setTimeout(() => alertBox.style.display = 'none', 3000);
+            }, 3000);
+            <?php if ($redirect) : ?>
+            document.getElementById("delayedLink").addEventListener("click", function(e) {
+            e.preventDefault(); // stop immediate navigation
+
+            // Example: show a success message
+            alert("Redirecting in 3 seconds...");
+
+            // Redirect after 2 seconds
+            setTimeout(() => {
+                window.location.href = this.href;
+            }, 3000);
+        });
+        <?php endif; ?>
         </script>
     <?php endif; ?>
 
