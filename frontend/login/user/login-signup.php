@@ -141,11 +141,13 @@ if (isset($_POST['signup-submit'])) {
                         successAlert.classList.add('show');
                         successAlert.style.display = 'block';
                         
-                        // Switch to login form
-                        var container = document.getElementById('container');
-                        if(container) {
-                            container.classList.remove('right-panel-active');
-                        }
+                        // Switch to login form after showing success message
+                        setTimeout(function() {
+                            var showLoginLink = document.getElementById('show-login');
+                            if (showLoginLink) {
+                                showLoginLink.click();
+                            }
+                        }, 2000);
                     }
                 });
             </script>";
@@ -160,6 +162,10 @@ if (isset($_POST['signup-submit'])) {
     }
 }
 
+// Debug: Check if form was submitted
+if ($_POST) {
+    error_log("Form submitted with data: " . print_r($_POST, true));
+}
 
 // Handle User Login
 if (isset($_POST["signin-submit"])) {
@@ -167,57 +173,79 @@ if (isset($_POST["signin-submit"])) {
     $password = $_POST["password"] ?? "";
     $error = [];
 
-    $stmt = mysqli_prepare($conn, "SELECT * FROM users WHERE username = ? AND is_admin = 0");
-    if ($stmt === false) {
-        $error[] = "Database error occurred: " . mysqli_error($conn);
-    } else {
-        mysqli_stmt_bind_param($stmt, "s", $username);
-        
-        if (!mysqli_stmt_execute($stmt)) {
-            $error[] = "Database error occurred: " . mysqli_stmt_error($stmt);
-        } else {
-            $result = mysqli_stmt_get_result($stmt);
-            $user = mysqli_fetch_assoc($result);
-            
-            if ($user && password_verify($password, $user["password"])) {
-                if (!$user["is_verified"]) {
-                    $_SESSION['unverified_email'] = $user['email'];
-                    header("Location: verification-page.php");
-                    exit();
-                } else {
-                    // Clear any existing session data to prevent conflicts
-                    session_unset();
-                    session_destroy();
-                    session_start();
-                    
-                    // Set session variables with separate user keys
-                    $_SESSION["user_id"] = $user["id"];
-                    $_SESSION["user_username"] = $user["username"];
-                    $_SESSION["is_verified"] = true;
-                    $_SESSION["user_firstname"] = $user["firstname"];
-                    $_SESSION["user_lastname"] = $user["lastname"];
-                    $_SESSION["user_role"] = "user";
+    // Debug: Log login attempt
+    error_log("Login attempt for username: " . $username);
 
-                    // If there was a redirect URL stored, use it
-                    if (isset($_SESSION["user_redirect_url"])) {
-                        $redirect = $_SESSION["user_redirect_url"];
-                        unset($_SESSION["user_redirect_url"]);
-                        header("Location: " . $redirect);
-                    } else {
-                        // Default redirect to user dashboard
-                        header("Location: /frontend/pages/home/user-dashboard.php");
-                    }
-                    exit();
-                }
+    if (empty($username) || empty($password)) {
+        $error[] = "Username and password are required.";
+    } else {
+        $stmt = mysqli_prepare($conn, "SELECT * FROM users WHERE username = ? AND is_admin = 0");
+        if ($stmt === false) {
+            $error[] = "Database error occurred: " . mysqli_error($conn);
+            error_log("Database prepare error: " . mysqli_error($conn));
+        } else {
+            mysqli_stmt_bind_param($stmt, "s", $username);
+            
+            if (!mysqli_stmt_execute($stmt)) {
+                $error[] = "Database error occurred: " . mysqli_stmt_error($stmt);
+                error_log("Database execute error: " . mysqli_stmt_error($stmt));
             } else {
-                $error[] = "Invalid Username or Password!";
+                $result = mysqli_stmt_get_result($stmt);
+                $user = mysqli_fetch_assoc($result);
+                
+                // Debug: Check if user was found
+                if (!$user) {
+                    $error[] = "User not found. Please check your username.";
+                    error_log("User not found: " . $username);
+                } else {
+                    error_log("User found: " . $username . ", is_verified: " . ($user["is_verified"] ? "yes" : "no"));
+                    
+                    if (!password_verify($password, $user["password"])) {
+                        $error[] = "Invalid password. Please check your password.";
+                        error_log("Password verification failed for user: " . $username);
+                    } else {
+                        // Password is correct
+                        if (!$user["is_verified"]) {
+                            $_SESSION['unverified_email'] = $user['email'];
+                            error_log("User not verified, redirecting to verification page: " . $username);
+                            header("Location: verification-page.php");
+                            exit();
+                        } else {
+                            // Clear any existing session data to prevent conflicts
+                            session_unset();
+                            session_destroy();
+                            session_start();
+                            
+                            // Set session variables with separate user keys
+                            $_SESSION["user_id"] = $user["id"];
+                            $_SESSION["user_username"] = $user["username"];
+                            $_SESSION["is_verified"] = true;
+                            $_SESSION["user_firstname"] = $user["firstname"];
+                            $_SESSION["user_lastname"] = $user["lastname"];
+                            $_SESSION["user_role"] = "user";
+
+                            error_log("Login successful for user: " . $username . ", redirecting to dashboard");
+
+                            // If there was a redirect URL stored, use it
+                            if (isset($_SESSION["user_redirect_url"])) {
+                                $redirect = $_SESSION["user_redirect_url"];
+                                unset($_SESSION["user_redirect_url"]);
+                                header("Location: " . $redirect);
+                            } else {
+                                header("Location: /frontend/pages/home/user-dashboard.php");
+                            }
+                            exit();
+                        }
+                    }
+                }
             }
+            mysqli_stmt_close($stmt);
         }
-        mysqli_stmt_close($stmt);
     }
     
     if (!empty($error)) {
         $errorMessage = implode("<br>", $error);
+        error_log("Login errors: " . implode(", ", $error));
     }
 }
 ?>
@@ -227,10 +255,15 @@ if (isset($_POST["signin-submit"])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/frontend/login/user/login-signup.css">
-    <script src="/frontend/login/user/login-signup.js"></script>
+    <title>NeoCafe - Login & Sign Up</title>
+    <link rel="stylesheet" href="/frontend/login/user/login-signup-redesigned.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Temporarily disable complex JavaScript for debugging -->
+    <!-- <script src="/frontend/login/user/login-signup-redesigned.js" defer></script> -->
     <style>
-        /* Add these styles for better alerts */
+        /* Alert styling for better error/success messages */
         .alert, .salert {
             position: fixed;
             top: 20px;
@@ -238,107 +271,60 @@ if (isset($_POST["signin-submit"])) {
             transform: translateX(-50%);
             z-index: 1000;
             padding: 20px;
-            border-radius: 5px;
+            border-radius: 8px;
             display: none;
-            width: 80%;
-            max-width: 600px;
+            width: 90%;
+            max-width: 500px;
             text-align: left;
             line-height: 1.5;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
         .alert {
-            background-color: #f44336;
+            background: rgba(239, 68, 68, 0.95);
             color: white;
+            border-left: 4px solid #dc2626;
         }
         .salert {
-            background-color: #4CAF50;
+            background: rgba(34, 197, 94, 0.95);
             color: white;
+            border-left: 4px solid #16a34a;
         }
         .alert.show, .salert.show {
             display: block;
-            animation: fadeIn 0.5s;
+            animation: slideInDown 0.5s ease-out;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translate(-50%, -20px); }
-            to { opacity: 1; transform: translate(-50%, 0); }
+        @keyframes slideInDown {
+            from { 
+                opacity: 0; 
+                transform: translate(-50%, -30px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translate(-50%, 0); 
+            }
         }
         .closebtn {
             margin-left: 15px;
             color: white;
             font-weight: bold;
             float: right;
-            font-size: 22px;
+            font-size: 20px;
             line-height: 20px;
             cursor: pointer;
+            transition: all 0.3s ease;
         }
         .closebtn:hover {
-            color: black;
-        }
-        .back a {
-            position: relative;
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 18px;
-        }
-
-        .back a::after {
-            content: "";
-            position: absolute;
-            left: 0;
-            bottom: -3px; /* distance from text */
-            width: 100%;
-            height: 2px;
-            background-color: black;
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 0.3s ease;
-        }
-
-        .back a:hover {
-            scale: 1.1;
-            transition: ease-in-out 0.3s;
-            color: black;
-        }
-
-        .back a:hover::after {
-            transform: scaleX(1);
-            transition: ease-in-out 0.3s;
+            opacity: 0.7;
+            transform: scale(1.1);
         }
     </style>
-    <script>    
-    window.onload = function() {
-        let errorBox = document.getElementById('errorAlert');
-        let successBox = document.getElementById('successAlert');
-
-        function fadeOut(element) {
-            setTimeout(() => {
-                if(element && element.style) {
-                    element.style.opacity = '0';
-                    setTimeout(() => {
-                        element.style.display = 'none';
-                    }, 500);
-                }
-            }, 10000); // Show for 10 seconds
-        }
-
-        if (errorBox && errorBox.innerHTML.trim() !== '') {
-            errorBox.classList.add('show');
-            fadeOut(errorBox);
-        }
-
-        if (successBox && successBox.innerHTML.trim() !== '') {
-            successBox.classList.add('show');
-            fadeOut(successBox);
-        }
-    };
-    </script>
 </head>
 <body>
-
     <!-- Error Alert -->
     <?php if (!empty($errorMessage)): ?>
-        <div id="errorAlert" class="alert">
+        <div id="errorAlert" class="alert show">
             <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
             <span><?php echo $errorMessage; ?></span>
         </div>
@@ -346,54 +332,174 @@ if (isset($_POST["signin-submit"])) {
 
     <!-- Success Alert -->
     <?php if (!empty($successMessage)): ?>
-        <div id="successAlert" class="salert">
+        <div id="successAlert" class="salert show">
             <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
             <span><?php echo $successMessage; ?></span>
         </div>
     <?php endif; ?>
 
-    <div class="container" id="container">
-        <!-- Sign Up Form -->
-        <div class="form-container sign-up-container">
-            <form action="login-signup.php" method="post">
-                <h1 class="title">Sign Up</h1>
-                <input type="text" name="firstname" placeholder="First Name" required>
-                <input type="text" name="lastname" placeholder="Last Name" required>
-                <input type="text" name="username" placeholder="Username" required>
-                <input type="email" name="email" placeholder="Email" required>
-                <input type="password" name="password" placeholder="Password" required>
-                <input type="password" name="confirm-password" placeholder="Confirm Password" required>
-                <input type="submit" class="submit" name="signup-submit">
-            </form>
-        </div>
+    <!-- Back to Home Link -->
+    <div class="back-home">
+        <a href="/frontend/pages/home/user-dashboard.php">
+            ← Back to Home
+        </a>
+    </div>
 
-        <!-- Login Form -->
-        <div class="form-container sign-in-container">
-            <form action="login-signup.php" method="post">
-                <h1 class="title">Login</h1>
-                <input type="text" name="username" placeholder="Username" required>
-                <input type="password" name="password" placeholder="Password" required>
-                <a href="forgot-password.php">Forgot password?</a>
-                <input type="submit" class="submit" name="signin-submit">
-            </form>
-        </div>
-
-        <div class="overlay-container">
-            <div class="overlay">
-                <div class="overlay-panel overlay-left">
-                    <h1>Already Have an Account?</h1>
-                    <button class="ghost" id="signIn">Login</button>
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Left Side - Background Image with Welcome Content -->
+        <div class="left-side">
+            <div class="welcome-content">
+                <img src="/assets/images/user-logo.png" alt="NeoCafe Logo" class="logo" onerror="this.style.display='none'">
+                <div class="welcome-text">
+                    Welcome to Neo Cafe<br>
                 </div>
-                <div class="overlay-panel overlay-right">
-                    <h1>No Account?</h1>
-                    <button class="ghost" id="signUp">Create Account</button>
+            </div>
+        </div>
+
+        <!-- Right Side - Form Panel -->
+        <div class="right-side">
+            <div class="form-wrapper">
+                <!-- Login Form -->
+                <div id="login-form" class="auth-form">
+                    <form action="login-signup.php" method="post">
+                        <h1 class="form-title">Log In</h1>
+                        <p class="form-subtitle">Welcome back! Please enter your details.</p>
+                        
+                        <div class="input-group">
+                            <input type="text" name="username" class="input-field" placeholder="Username" required>
+                        </div>
+                        
+                        <div class="input-group">
+                            <input type="password" name="password" class="input-field" placeholder="Password" required>
+                        </div>
+                        
+                        <div class="utility-row">
+                            <a href="forgot-password.php" class="forgot-link">Forgot password?</a>
+                        </div>
+                        
+                        <input type="submit" name="signin-submit" value="Login" class="submit-btn">
+                    </form>
+                    
+                    <div class="toggle-section">
+                        <div class="toggle-text">Don't have an account yet?</div>
+                        <a href="#" id="show-signup" class="toggle-link">Create Account</a>
+                    </div>
+                </div>
+
+                <!-- Signup Form -->
+                <div id="signup-form" class="auth-form hidden">
+                    <form action="login-signup.php" method="post">
+                        <h1 class="form-title">Sign Up</h1>
+                        <p class="form-subtitle">Create your account to get started.</p>
+                        
+                        <div class="input-group">
+                            <input type="text" name="firstname" class="input-field" placeholder="First Name" required>
+                        </div>
+                        
+                        <div class="input-group">
+                            <input type="text" name="lastname" class="input-field" placeholder="Last Name" required>
+                        </div>
+                        
+                        <div class="input-group">
+                            <input type="text" name="username" class="input-field" placeholder="Username" required>
+                        </div>
+                        
+                        <div class="input-group">
+                            <input type="email" name="email" class="input-field" placeholder="Email" required>
+                        </div>
+                        
+                        <div class="input-group">
+                            <input type="password" name="password" class="input-field" placeholder="Password" required>
+                        </div>
+                        
+                        <div class="input-group">
+                            <input type="password" name="confirm-password" class="input-field" placeholder="Confirm Password" required>
+                        </div>
+                        
+                        <input type="submit" name="signup-submit" value="Create Account" class="submit-btn">
+                    </form>
+                    
+                    <div class="toggle-section">
+                        <div class="toggle-text">Already have an account?</div>
+                        <a href="#" id="show-login" class="toggle-link">Log In</a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="back">
-        <a href="/frontend/pages/home/user-dashboard.php">Back to Home</a>
-    </div>
 
+    <!-- Hide Original Structure -->
+    <style>
+        .container, .back {
+            display: none !important;
+        }
+    </style>
+
+    <script>
+        // Simple form switching without complex validation
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.getElementById('login-form');
+            const signupForm = document.getElementById('signup-form');
+            const showSignupLink = document.getElementById('show-signup');
+            const showLoginLink = document.getElementById('show-login');
+
+            // Form switching functionality
+            if (showSignupLink) {
+                showSignupLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (loginForm && signupForm) {
+                        loginForm.classList.add('hidden');
+                        signupForm.classList.remove('hidden');
+                    }
+                });
+            }
+
+            if (showLoginLink) {
+                showLoginLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (loginForm && signupForm) {
+                        signupForm.classList.add('hidden');
+                        loginForm.classList.remove('hidden');
+                    }
+                });
+            }
+
+            // Debug: Log form submissions
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    console.log('Form submitted:', this.action);
+                    console.log('Form data:', new FormData(this));
+                });
+            });
+        });
+
+        // Auto-fade alerts
+        window.onload = function() {
+            let errorBox = document.getElementById('errorAlert');
+            let successBox = document.getElementById('successAlert');
+
+            function fadeOut(element) {
+                setTimeout(() => {
+                    if(element && element.style) {
+                        element.style.opacity = '0';
+                        setTimeout(() => {
+                            element.style.display = 'none';
+                            element.classList.remove('show');
+                        }, 300);
+                    }
+                }, 10000); // Show for 10 seconds
+            }
+
+            if (errorBox && errorBox.innerHTML.trim() !== '') {
+                fadeOut(errorBox);
+            }
+
+            if (successBox && successBox.innerHTML.trim() !== '') {
+                fadeOut(successBox);
+            }
+        };
+    </script>
 </body>
 </html>

@@ -162,18 +162,23 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       });
 
-      if (isFormValid) {
-        // Show loading state
-        this.disabled = true;
-        this.value = "Processing...";
-
-        // Re-enable after 5 seconds (in case of slow response)
-        setTimeout(() => {
-          this.disabled = false;
-          this.value =
-            this.name === "signup-submit" ? "Create Account" : "Login";
-        }, 5000);
+      if (!isFormValid) {
+        // Prevent form submission if validation fails
+        e.preventDefault();
+        return false;
       }
+
+      // If form is valid, allow submission and show loading state
+      // Show loading state
+      this.disabled = true;
+      this.value = "Processing...";
+
+      // Re-enable after 5 seconds (in case of slow response)
+      setTimeout(() => {
+        this.disabled = false;
+        this.value =
+          this.name === "signup-submit" ? "Create Account" : "Login";
+      }, 5000);
     });
   });
 
