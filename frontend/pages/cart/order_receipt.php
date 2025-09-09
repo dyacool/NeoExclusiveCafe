@@ -191,7 +191,7 @@ while ($item = $items_result->fetch_assoc()) {
 
         <div class="text-center print-button">
             <button class="btn btn-success" onclick="window.print()">Print Receipt</button>
-            <a href="pages/users/user-dashboard.php" class="btn btn-secondary">Back to Home</a>
+            <a href="../products/product-dashboard.php" class="btn btn-secondary">Back to Home</a>
         </div>
     </div>
 

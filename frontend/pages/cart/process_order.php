@@ -398,30 +398,50 @@ try {
         }
     }
     
-    // Clear any output buffers before sending JSON
+    // Clear any output buffers
     while (ob_get_level()) {
         ob_end_clean();
     }
     
-    // Set JSON header
-    header('Content-Type: application/json');
+    // Check if this is an AJAX request or form submission
+    $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+              strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest' ||
+              (isset($_SERVER['CONTENT_TYPE']) && strpos($_SERVER['CONTENT_TYPE'], 'application/json') !== false);
     
-    // Return success response with the order_id
-    echo json_encode([
-        'success' => true, 
-        'order_id' => $order_id,
-        'receipt_url' => 'order_receipt.php?order_id=' . $order_id
-    ]);
+    if ($isAjax) {
+        // Return JSON response for AJAX requests
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => true, 
+            'order_id' => $order_id,
+            'receipt_url' => 'order_receipt.php?order_id=' . $order_id
+        ]);
+    } else {
+        // Redirect to receipt page for form submissions
+        header('Location: order_receipt.php?order_id=' . $order_id);
+        exit();
+    }
     
 } catch (Exception $e) {
-    // Clear any output buffers before sending JSON
+    // Clear any output buffers
     while (ob_get_level()) {
         ob_end_clean();
     }
     
-    // Set JSON header
-    header('Content-Type: application/json');
-    
     error_log("Order processing error: " . $e->getMessage());
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    
+    // Check if this is an AJAX request or form submission
+    $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+              strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest' ||
+              (isset($_SERVER['CONTENT_TYPE']) && strpos($_SERVER['CONTENT_TYPE'], 'application/json') !== false);
+    
+    if ($isAjax) {
+        // Return JSON response for AJAX requests
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    } else {
+        // Redirect to an error page or back to checkout for form submissions
+        header('Location: checkout.php?error=' . urlencode($e->getMessage()));
+        exit();
+    }
 } 

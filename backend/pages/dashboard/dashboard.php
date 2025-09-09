@@ -3,8 +3,8 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-// Database includes removed - using static data only
 require_once __DIR__ . "/../../login/admin/admin-auth.php";
+require_once __DIR__ . "/../admin-includes/database.php";
 
 // Helper function to format selected dates for dashboard
 function formatDashboardDates($datesString) {
@@ -33,31 +33,131 @@ $stats = [
     'total_products' => 0,
     'pending_orders' => 0,
     'total_orders' => 0,
-    'total_users' => 0
+    'total_users' => 0,
+    'bulk_orders' => 0
 ];
 
 // Initialize arrays
 $top_products = [];
 $latest_transactions = [];
 $latest_orders = [];
+$availtoday_products = [];
 
-// Database connection removed - using static data only
+// Get today's date for calculations
+$today = date('Y-m-d');
+$yesterday = date('Y-m-d', strtotime('-1 day'));
+$last_month_start = date('Y-m-d', strtotime('-30 days'));
 
-// Total Users (using same query as admin-homepage.php)
-// Total Users - using default value since users table doesn't exist
-$stats['total_users'] = 0;
+// ======================
+// DASHBOARD STATISTICS
+// ======================
 
-// All stats using static values - no database queries
-$stats['net_income'] = 0;
-$stats['today_income'] = 0;
-$stats['total_orders'] = 0;
-$stats['pending_orders'] = 0;
-$stats['total_products'] = 0;
+try {
+    // Today's Income
+    $today_income_query = "SELECT SUM(total_amount) as today_income FROM orders 
+                          WHERE DATE(order_date) = ? AND status NOT IN ('Cancelled')";
+    $stmt = mysqli_prepare($conn, $today_income_query);
+    mysqli_stmt_bind_param($stmt, "s", $today);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    $row = mysqli_fetch_assoc($result);
+    $stats['today_income'] = $row['today_income'] ?? 0;
+    
+    // Yesterday's Income for comparison
+    $yesterday_income_query = "SELECT SUM(total_amount) as yesterday_income FROM orders 
+                              WHERE DATE(order_date) = ? AND status NOT IN ('Cancelled')";
+    $stmt = mysqli_prepare($conn, $yesterday_income_query);
+    mysqli_stmt_bind_param($stmt, "s", $yesterday);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    $row = mysqli_fetch_assoc($result);
+    $yesterday_income = $row['yesterday_income'] ?? 0;
+    
+    // Net Income (last 30 days)
+    $net_income_query = "SELECT SUM(total_amount) as net_income FROM orders 
+                        WHERE DATE(order_date) >= ? AND status NOT IN ('Cancelled')";
+    $stmt = mysqli_prepare($conn, $net_income_query);
+    mysqli_stmt_bind_param($stmt, "s", $last_month_start);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    $row = mysqli_fetch_assoc($result);
+    $stats['net_income'] = $row['net_income'] ?? 0;
+    
+    // Total Products
+    $products_query = "SELECT COUNT(*) as total_products FROM products WHERE deleted_at IS NULL";
+    $result = mysqli_query($conn, $products_query);
+    $row = mysqli_fetch_assoc($result);
+    $stats['total_products'] = $row['total_products'] ?? 0;
+    
+    // Pending Orders
+    $pending_query = "SELECT COUNT(*) as pending_orders FROM orders 
+                     WHERE status IN ('Pending', 'Processing', 'Preparing')";
+    $result = mysqli_query($conn, $pending_query);
+    $row = mysqli_fetch_assoc($result);
+    $stats['pending_orders'] = $row['pending_orders'] ?? 0;
+    
+    // Total Orders
+    $total_orders_query = "SELECT COUNT(*) as total_orders FROM orders";
+    $result = mysqli_query($conn, $total_orders_query);
+    $row = mysqli_fetch_assoc($result);
+    $stats['total_orders'] = $row['total_orders'] ?? 0;
+    
+    // Total Users
+    $users_query = "SELECT COUNT(*) as total_users FROM users";
+    $result = mysqli_query($conn, $users_query);
+    if ($result) {
+        $row = mysqli_fetch_assoc($result);
+        $stats['total_users'] = $row['total_users'] ?? 0;
+    }
+    
+    // Bulk Orders
+    $bulk_orders_query = "SELECT COUNT(*) as bulk_orders FROM bulk_orders";
+    $result = mysqli_query($conn, $bulk_orders_query);
+    if ($result) {
+        $row = mysqli_fetch_assoc($result);
+        $stats['bulk_orders'] = $row['bulk_orders'] ?? 0;
+    }
+    
+} catch (Exception $e) {
+    error_log("Dashboard stats error: " . $e->getMessage());
+}
 
-// Top 10 products - using sample data since order_items table doesn't exist
-$top_products = [];
+// ======================
+// TOP 10 PRODUCTS DATA
+// ======================
 
-// If no products data, create sample data
+try {
+    // Get top 10 products by quantity sold
+    $top_products_query = "SELECT 
+                              oi.product_name as name,
+                              SUM(oi.quantity) as total_sold,
+                              SUM(oi.price * oi.quantity) as total_revenue,
+                              AVG(oi.price) as price
+                          FROM order_items oi
+                          JOIN orders o ON oi.order_id = o.order_id
+                          WHERE o.status NOT IN ('Cancelled')
+                          GROUP BY oi.product_name
+                          ORDER BY total_sold DESC
+                          LIMIT 10";
+    
+    $result = mysqli_query($conn, $top_products_query);
+    
+    if ($result && mysqli_num_rows($result) > 0) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $top_products[] = [
+                'name' => $row['name'],
+                'total_sold' => (int)$row['total_sold'],
+                'total_revenue' => (float)$row['total_revenue'],
+                'price' => (float)$row['price']
+            ];
+        }
+    }
+    
+} catch (Exception $e) {
+    error_log("Top products query error: " . $e->getMessage());
+}
+
+// If no real data, use sample data for demo
 if (empty($top_products)) {
     $top_products = [
         ['name' => 'Classic Sourdough Bread', 'total_sold' => 250, 'total_revenue' => 1250, 'price' => 5.00],
@@ -73,22 +173,225 @@ if (empty($top_products)) {
     ];
 }
 
-// Latest 5 transactions - using static data
-$latest_transactions = [];
+// ======================
+// LATEST TRANSACTIONS
+// ======================
 
-// Latest 5 orders - using static data
-$latest_orders = [];
+try {
+    $transactions_query = "SELECT 
+                              order_id as id,
+                              customer_name,
+                              total_amount,
+                              order_date,
+                              status
+                          FROM orders 
+                          WHERE status IN ('Completed', 'Delivered', 'Picked-up')
+                          ORDER BY order_date DESC 
+                          LIMIT 5";
+    
+    $result = mysqli_query($conn, $transactions_query);
+    
+    if ($result && mysqli_num_rows($result) > 0) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $latest_transactions[] = [
+                'id' => $row['id'],
+                'customer_name' => $row['customer_name'],
+                'total_amount' => (float)$row['total_amount'],
+                'order_date' => $row['order_date'],
+                'status' => $row['status']
+            ];
+        }
+    }
+    
+} catch (Exception $e) {
+    error_log("Latest transactions query error: " . $e->getMessage());
+}
 
-// Products with today availability - using static data
-$availtoday_products = [];
+// ======================
+// LATEST ORDERS
+// ======================
 
-// Calculate percentage changes (placeholder values for demo)
-$stats['today_change'] = '+2% from yesterday';
-$stats['net_change'] = '+8% from last month';
-$stats['products_change'] = '+23 new this week';
-$stats['pending_change'] = '+12% from last week';
-$stats['orders_change'] = '+5% from last week';
-$stats['bulk_change'] = '3 pending approval';
+try {
+    $orders_query = "SELECT 
+                        order_id as id,
+                        customer_name,
+                        total_amount,
+                        order_date,
+                        status
+                    FROM orders 
+                    ORDER BY order_date DESC 
+                    LIMIT 5";
+    
+    $result = mysqli_query($conn, $orders_query);
+    
+    if ($result && mysqli_num_rows($result) > 0) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $latest_orders[] = [
+                'id' => $row['id'],
+                'customer_name' => $row['customer_name'],
+                'total_amount' => (float)$row['total_amount'],
+                'order_date' => $row['order_date'],
+                'status' => $row['status']
+            ];
+        }
+    }
+    
+} catch (Exception $e) {
+    error_log("Latest orders query error: " . $e->getMessage());
+}
+
+// ======================
+// PRODUCTS WITH TODAY AVAILABILITY
+// ======================
+
+try {
+    // Get products that have availtoday status or regular products with today dates
+    $availtoday_query = "SELECT DISTINCT
+                            p.id,
+                            p.name,
+                            ps.name as status_name,
+                            ps.id as status_id,
+                            aps.name as availtoday_status_name,
+                            COALESCE(pd.selected_dates, '') as todays_product_dates,
+                            COALESCE(prd.selected_dates, '') as regular_today_dates
+                        FROM products p
+                        LEFT JOIN product_statuses ps ON p.status_id = ps.id
+                        LEFT JOIN product_statuses aps ON p.availtoday_status_id = aps.id
+                        LEFT JOIN product_day pd ON p.id = pd.product_id AND pd.status_type = 'availtoday'
+                        LEFT JOIN product_day prd ON p.id = prd.product_id AND prd.status_type = 'regular'
+                        WHERE p.deleted_at IS NULL 
+                        AND (
+                            (p.availtoday_status_id IS NOT NULL AND p.availtoday_status_id != 0)
+                            OR (pd.selected_dates IS NOT NULL AND pd.selected_dates != '')
+                            OR (prd.selected_dates IS NOT NULL AND prd.selected_dates != '')
+                        )
+                        ORDER BY p.name
+                        LIMIT 10";
+    
+    $result = mysqli_query($conn, $availtoday_query);
+    
+    if ($result && mysqli_num_rows($result) > 0) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $availtoday_products[] = $row;
+        }
+    }
+    
+} catch (Exception $e) {
+    error_log("Availtoday products query error: " . $e->getMessage());
+}
+
+// ======================
+// CALCULATE PERCENTAGE CHANGES
+// ======================
+
+// Today vs Yesterday income change
+if ($yesterday_income > 0) {
+    $today_change_percent = round((($stats['today_income'] - $yesterday_income) / $yesterday_income) * 100, 1);
+    $stats['today_change'] = ($today_change_percent >= 0 ? '+' : '') . $today_change_percent . '% from yesterday';
+} else {
+    $stats['today_change'] = $stats['today_income'] > 0 ? 'New income today' : 'No income yet';
+}
+
+// Get last month's income for comparison
+try {
+    $last_month_income_query = "SELECT SUM(total_amount) as last_month_income FROM orders 
+                               WHERE DATE(order_date) >= ? AND DATE(order_date) < ? 
+                               AND status NOT IN ('Cancelled')";
+    $two_months_ago = date('Y-m-d', strtotime('-60 days'));
+    $stmt = mysqli_prepare($conn, $last_month_income_query);
+    mysqli_stmt_bind_param($stmt, "ss", $two_months_ago, $last_month_start);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    $row = mysqli_fetch_assoc($result);
+    $last_month_income = $row['last_month_income'] ?? 0;
+    
+    if ($last_month_income > 0) {
+        $net_change_percent = round((($stats['net_income'] - $last_month_income) / $last_month_income) * 100, 1);
+        $stats['net_change'] = ($net_change_percent >= 0 ? '+' : '') . $net_change_percent . '% from last month';
+    } else {
+        $stats['net_change'] = 'First month data';
+    }
+} catch (Exception $e) {
+    $stats['net_change'] = 'Data unavailable';
+}
+
+// Get products added this week
+try {
+    $week_ago = date('Y-m-d', strtotime('-7 days'));
+    $new_products_query = "SELECT COUNT(*) as new_products FROM products 
+                          WHERE created_at >= ? AND deleted_at IS NULL";
+    $stmt = mysqli_prepare($conn, $new_products_query);
+    mysqli_stmt_bind_param($stmt, "s", $week_ago);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    $row = mysqli_fetch_assoc($result);
+    $new_products = $row['new_products'] ?? 0;
+    $stats['products_change'] = '+' . $new_products . ' new this week';
+} catch (Exception $e) {
+    $stats['products_change'] = 'Data unavailable';
+}
+
+// Get pending orders change from last week
+try {
+    $week_ago = date('Y-m-d', strtotime('-7 days'));
+    $last_week_pending_query = "SELECT COUNT(*) as last_week_pending FROM orders 
+                               WHERE DATE(order_date) >= ? AND DATE(order_date) < ?
+                               AND status IN ('Pending', 'Processing', 'Preparing')";
+    $two_weeks_ago = date('Y-m-d', strtotime('-14 days'));
+    $stmt = mysqli_prepare($conn, $last_week_pending_query);
+    mysqli_stmt_bind_param($stmt, "ss", $two_weeks_ago, $week_ago);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    $row = mysqli_fetch_assoc($result);
+    $last_week_pending = $row['last_week_pending'] ?? 0;
+    
+    if ($last_week_pending > 0) {
+        $pending_change_percent = round((($stats['pending_orders'] - $last_week_pending) / $last_week_pending) * 100, 1);
+        $stats['pending_change'] = ($pending_change_percent >= 0 ? '+' : '') . $pending_change_percent . '% from last week';
+    } else {
+        $stats['pending_change'] = 'New orders this week';
+    }
+} catch (Exception $e) {
+    $stats['pending_change'] = 'Data unavailable';
+}
+
+// Get orders change from last week
+try {
+    $week_ago = date('Y-m-d', strtotime('-7 days'));
+    $last_week_orders_query = "SELECT COUNT(*) as last_week_orders FROM orders 
+                              WHERE DATE(order_date) >= ? AND DATE(order_date) < ?";
+    $two_weeks_ago = date('Y-m-d', strtotime('-14 days'));
+    $stmt = mysqli_prepare($conn, $last_week_orders_query);
+    mysqli_stmt_bind_param($stmt, "ss", $two_weeks_ago, $week_ago);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    $row = mysqli_fetch_assoc($result);
+    $last_week_orders = $row['last_week_orders'] ?? 0;
+    
+    if ($last_week_orders > 0) {
+        $orders_change_percent = round((($stats['total_orders'] - $last_week_orders) / $last_week_orders) * 100, 1);
+        $stats['orders_change'] = ($orders_change_percent >= 0 ? '+' : '') . $orders_change_percent . '% from last week';
+    } else {
+        $stats['orders_change'] = 'First week data';
+    }
+} catch (Exception $e) {
+    $stats['orders_change'] = 'Data unavailable';
+}
+
+// Get bulk orders pending approval
+try {
+    $pending_bulk_query = "SELECT COUNT(*) as pending_bulk FROM bulk_orders WHERE status = 'pending'";
+    $result = mysqli_query($conn, $pending_bulk_query);
+    if ($result) {
+        $row = mysqli_fetch_assoc($result);
+        $pending_bulk = $row['pending_bulk'] ?? 0;
+        $stats['bulk_change'] = $pending_bulk . ' pending approval';
+    } else {
+        $stats['bulk_change'] = '0 pending approval';
+    }
+} catch (Exception $e) {
+    $stats['bulk_change'] = 'Data unavailable';
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -120,7 +423,7 @@ $stats['bulk_change'] = '3 pending approval';
                             <span class="card-title">Today Income</span>
                             <i class="fas fa-dollar-sign card-icon"></i>
                         </div>
-                        <div class="card-value">$<?php echo number_format($stats['today_income'], 0); ?></div>
+                        <div class="card-value">₱<?php echo number_format($stats['today_income'], 0); ?></div>
                         <div class="card-change positive"><?php echo $stats['today_change']; ?></div>
                     </div>
 
@@ -130,7 +433,7 @@ $stats['bulk_change'] = '3 pending approval';
                             <span class="card-title">Net Income</span>
                             <i class="fas fa-chart-line card-icon"></i>
                         </div>
-                        <div class="card-value">$<?php echo number_format($stats['net_income'], 0); ?></div>
+                        <div class="card-value">₱<?php echo number_format($stats['net_income'], 0); ?></div>
                         <div class="card-change positive"><?php echo $stats['net_change']; ?></div>
                     </div>
 
@@ -164,13 +467,13 @@ $stats['bulk_change'] = '3 pending approval';
                         <div class="card-change positive"><?php echo $stats['orders_change']; ?></div>
                     </div>
 
-                    <!-- Bulk Requests (Placeholder) -->
-                    <div class="service-card placeholder">
+                    <!-- Bulk Orders -->
+                    <div class="service-card">
                         <div class="card-header">
-                            <span class="card-title">Bulk Requests</span>
+                            <span class="card-title">Bulk Orders</span>
                             <i class="fas fa-layer-group card-icon"></i>
                         </div>
-                        <div class="card-value">45</div>
+                        <div class="card-value"><?php echo number_format($stats['bulk_orders'], 0); ?></div>
                         <div class="card-change"><?php echo $stats['bulk_change']; ?></div>
                     </div>
                 </div>
@@ -250,7 +553,7 @@ $stats['bulk_change'] = '3 pending approval';
                                                 </div>
                                             </td>
                                             <td class="amount-cell">
-                                                <div class="amount">$<?php echo number_format($transaction['total_amount'], 2); ?></div>
+                                                <div class="amount">₱<?php echo number_format($transaction['total_amount'], 2); ?></div>
                                                 <div class="status-badge status-completed">Completed</div>
                                             </td>
                                         </tr>
@@ -285,7 +588,7 @@ $stats['bulk_change'] = '3 pending approval';
                                                 </div>
                                             </td>
                                             <td class="amount-cell">
-                                                <div class="amount">$<?php echo number_format($order['total_amount'], 2); ?></div>
+                                                <div class="amount">₱<?php echo number_format($order['total_amount'], 2); ?></div>
                                                 <div class="status-badge status-<?php echo strtolower(str_replace([' ', '-'], '', $order['status'])); ?>">
                                                     <?php echo ucfirst($order['status']); ?>
                                                 </div>

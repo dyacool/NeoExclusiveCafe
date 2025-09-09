@@ -70,31 +70,31 @@ function formatTime($time) {
     <!-- Product Categories Grid -->
     <div class="categories-container">
         <div class="categories-grid">
-            <a href="/products/special-offer" class="category-card">
-                <div class="category-content">
-                    <h3 class="category-title">All Products</h3>
-                    <p class="category-description">Exclusive deals and promotions</p>
-                </div>
-            </a>
-
             <a href="product-dashboard.php" class="category-card">
                 <div class="category-content">
                     <h3 class="category-title">Same Day Order</h3>
-                    <p class="category-description">Reorder your favorite items quickly</p>
+                    <p class="category-description">Order fresh items for today's pickup or delivery</p>
                 </div>
             </a>
 
             <a href="weekly-product.php" class="category-card">
                 <div class="category-content">
                     <h3 class="category-title">For Delivery</h3>
-                    <p class="category-description">Fresh items delivered to your doorstep</p>
+                    <p class="category-description">Get fresh baked goods delivered straight to you</p>
                 </div>
             </a>
 
             <a href="user-products.php" class="category-card">
                 <div class="category-content">
                     <h3 class="category-title">For Pickup</h3>
-                    <p class="category-description">Order ahead and collect in-store</p>
+                    <p class="category-description">Pre-order and pick up at your convenience</p>
+                </div>
+            </a>
+
+            <a href="../bulk/bulk-form.php" class="category-card">
+                <div class="category-content">
+                    <h3 class="category-title">Bulk Order Form</h3>
+                    <p class="category-description">Order large quantities for events or businesses</p>
                 </div>
             </a>
         </div>

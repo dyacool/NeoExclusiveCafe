@@ -142,10 +142,12 @@ if (isset($_POST['signup-submit'])) {
                         successAlert.style.display = 'block';
                         
                         // Switch to login form
-                        var container = document.getElementById('container');
-                        if(container) {
-                            container.classList.remove('right-panel-active');
-                        }
+                        setTimeout(function() {
+                            var showLoginLink = document.getElementById('show-login');
+                            if (showLoginLink) {
+                                showLoginLink.click();
+                            }
+                        }, 2000);
                     }
                 });
             </script>";
@@ -159,7 +161,6 @@ if (isset($_POST['signup-submit'])) {
         $errorMessage = implode("<br>", $error);
     }
 }
-
 
 // Handle User Login
 if (isset($_POST["signin-submit"])) {
@@ -204,7 +205,6 @@ if (isset($_POST["signin-submit"])) {
                         unset($_SESSION["user_redirect_url"]);
                         header("Location: " . $redirect);
                     } else {
-                        // Default redirect to user dashboard
                         header("Location: /frontend/pages/home/user-dashboard.php");
                     }
                     exit();
@@ -227,118 +227,17 @@ if (isset($_POST["signin-submit"])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/frontend/login/user/login-signup.css">
-    <script src="/frontend/login/user/login-signup.js"></script>
-    <style>
-        /* Add these styles for better alerts */
-        .alert, .salert {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1000;
-            padding: 20px;
-            border-radius: 5px;
-            display: none;
-            width: 80%;
-            max-width: 600px;
-            text-align: left;
-            line-height: 1.5;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .alert {
-            background-color: #f44336;
-            color: white;
-        }
-        .salert {
-            background-color: #4CAF50;
-            color: white;
-        }
-        .alert.show, .salert.show {
-            display: block;
-            animation: fadeIn 0.5s;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translate(-50%, -20px); }
-            to { opacity: 1; transform: translate(-50%, 0); }
-        }
-        .closebtn {
-            margin-left: 15px;
-            color: white;
-            font-weight: bold;
-            float: right;
-            font-size: 22px;
-            line-height: 20px;
-            cursor: pointer;
-        }
-        .closebtn:hover {
-            color: black;
-        }
-        .back a {
-            position: relative;
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 18px;
-        }
-
-        .back a::after {
-            content: "";
-            position: absolute;
-            left: 0;
-            bottom: -3px; /* distance from text */
-            width: 100%;
-            height: 2px;
-            background-color: black;
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 0.3s ease;
-        }
-
-        .back a:hover {
-            scale: 1.1;
-            transition: ease-in-out 0.3s;
-            color: black;
-        }
-
-        .back a:hover::after {
-            transform: scaleX(1);
-            transition: ease-in-out 0.3s;
-        }
-    </style>
-    <script>    
-    window.onload = function() {
-        let errorBox = document.getElementById('errorAlert');
-        let successBox = document.getElementById('successAlert');
-
-        function fadeOut(element) {
-            setTimeout(() => {
-                if(element && element.style) {
-                    element.style.opacity = '0';
-                    setTimeout(() => {
-                        element.style.display = 'none';
-                    }, 500);
-                }
-            }, 10000); // Show for 10 seconds
-        }
-
-        if (errorBox && errorBox.innerHTML.trim() !== '') {
-            errorBox.classList.add('show');
-            fadeOut(errorBox);
-        }
-
-        if (successBox && successBox.innerHTML.trim() !== '') {
-            successBox.classList.add('show');
-            fadeOut(successBox);
-        }
-    };
-    </script>
+    <title>NeoCafe - Login & Sign Up</title>
+    <link rel="stylesheet" href="/frontend/login/user/login-signup-redesigned.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="/frontend/login/user/login-signup-redesigned.js" defer></script>
 </head>
 <body>
-
     <!-- Error Alert -->
     <?php if (!empty($errorMessage)): ?>
-        <div id="errorAlert" class="alert">
+        <div id="errorAlert" class="alert show">
             <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
             <span><?php echo $errorMessage; ?></span>
         </div>
@@ -346,54 +245,136 @@ if (isset($_POST["signin-submit"])) {
 
     <!-- Success Alert -->
     <?php if (!empty($successMessage)): ?>
-        <div id="successAlert" class="salert">
+        <div id="successAlert" class="salert show">
             <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
             <span><?php echo $successMessage; ?></span>
         </div>
     <?php endif; ?>
 
-    <div class="container" id="container">
-        <!-- Sign Up Form -->
-        <div class="form-container sign-up-container">
-            <form action="login-signup.php" method="post">
-                <h1 class="title">Sign Up</h1>
-                <input type="text" name="firstname" placeholder="First Name" required>
-                <input type="text" name="lastname" placeholder="Last Name" required>
-                <input type="text" name="username" placeholder="Username" required>
-                <input type="email" name="email" placeholder="Email" required>
-                <input type="password" name="password" placeholder="Password" required>
-                <input type="password" name="confirm-password" placeholder="Confirm Password" required>
-                <input type="submit" class="submit" name="signup-submit">
-            </form>
-        </div>
+    <!-- Back to Home Link -->
+    <div class="back-home">
+        <a href="/frontend/pages/home/user-dashboard.php">
+            ← Back to Home
+        </a>
+    </div>
 
-        <!-- Login Form -->
-        <div class="form-container sign-in-container">
-            <form action="login-signup.php" method="post">
-                <h1 class="title">Login</h1>
-                <input type="text" name="username" placeholder="Username" required>
-                <input type="password" name="password" placeholder="Password" required>
-                <a href="forgot-password.php">Forgot password?</a>
-                <input type="submit" class="submit" name="signin-submit">
-            </form>
-        </div>
-
-        <div class="overlay-container">
-            <div class="overlay">
-                <div class="overlay-panel overlay-left">
-                    <h1>Already Have an Account?</h1>
-                    <button class="ghost" id="signIn">Login</button>
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Left Side - Background Image with Welcome Content -->
+        <div class="left-side">
+            <div class="welcome-content">
+                <img src="/assets/images/user-logo.png" alt="NeoCafe Logo" class="logo" onerror="this.style.display='none'">
+                <div class="welcome-text">
+                    Welcome to Neo Cafe<br>
                 </div>
-                <div class="overlay-panel overlay-right">
-                    <h1>No Account?</h1>
-                    <button class="ghost" id="signUp">Create Account</button>
+            </div>
+        </div>
+
+        <!-- Right Side - Form Panel -->
+        <div class="right-side">
+            <div class="form-wrapper">
+                <!-- Login Form -->
+                <div id="login-form" class="auth-form">
+                    <form action="login-signup-redesigned.php" method="post">
+                        <h1 class="form-title">Log In</h1>
+                        <p class="form-subtitle">Welcome back! Please enter your details.</p>
+                        
+                        <div class="input-group">
+                            <input type="text" name="username" class="input-field" placeholder="Username" required>
+                        </div>
+                        
+                        <div class="input-group">
+                            <input type="password" name="password" class="input-field" placeholder="Password" required>
+                        </div>
+                        
+                        <div class="utility-row">
+                            <a href="forgot-password.php" class="forgot-link">Forgot password?</a>
+                        </div>
+                        
+                        <input type="submit" name="signin-submit" value="Login" class="submit-btn">
+                    </form>
+                    
+                    <div class="toggle-section">
+                        <div class="toggle-text">Don't have an account yet?</div>
+                        <a href="#" id="show-signup" class="toggle-link">Create Account</a>
+                    </div>
+                </div>
+
+                <!-- Signup Form -->
+                <div id="signup-form" class="auth-form hidden">
+                    <form action="login-signup-redesigned.php" method="post">
+                        <h1 class="form-title">Sign Up</h1>
+                        <p class="form-subtitle">Create your account to get started.</p>
+                        
+                        <div class="input-group">
+                            <input type="text" name="firstname" class="input-field" placeholder="First Name" required>
+                        </div>
+                        
+                        <div class="input-group">
+                            <input type="text" name="lastname" class="input-field" placeholder="Last Name" required>
+                        </div>
+                        
+                        <div class="input-group">
+                            <input type="text" name="username" class="input-field" placeholder="Username" required>
+                        </div>
+                        
+                        <div class="input-group">
+                            <input type="email" name="email" class="input-field" placeholder="Email" required>
+                        </div>
+                        
+                        <div class="input-group">
+                            <input type="password" name="password" class="input-field" placeholder="Password" required>
+                        </div>
+                        
+                        <div class="input-group">
+                            <input type="password" name="confirm-password" class="input-field" placeholder="Confirm Password" required>
+                        </div>
+                        
+                        <input type="submit" name="signup-submit" value="Create Account" class="submit-btn">
+                    </form>
+                    
+                    <div class="toggle-section">
+                        <div class="toggle-text">Already have an account?</div>
+                        <a href="#" id="show-login" class="toggle-link">Log In</a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="back">
-        <a href="/frontend/pages/home/user-dashboard.php">Back to Home</a>
-    </div>
 
+    <!-- Hide Original Structure -->
+    <style>
+        .container, .back {
+            display: none !important;
+        }
+    </style>
+
+    <script>
+        // Auto-fade alerts
+        window.onload = function() {
+            let errorBox = document.getElementById('errorAlert');
+            let successBox = document.getElementById('successAlert');
+
+            function fadeOut(element) {
+                setTimeout(() => {
+                    if(element && element.style) {
+                        element.style.opacity = '0';
+                        setTimeout(() => {
+                            element.style.display = 'none';
+                            element.classList.remove('show');
+                        }, 300);
+                    }
+                }, 10000); // Show for 10 seconds
+            }
+
+            if (errorBox && errorBox.innerHTML.trim() !== '') {
+                fadeOut(errorBox);
+            }
+
+            if (successBox && successBox.innerHTML.trim() !== '') {
+                fadeOut(successBox);
+            }
+        };
+    </script>
 </body>
 </html>
