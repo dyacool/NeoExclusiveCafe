@@ -1,172 +1,166 @@
+
 <?php
 class Notification {
     private $db;
 
     public function __construct($db) {
-        $this->db = $db; // Database connection (MySQLi instance)
+        $this->db = $db; // mysqli connection
     }
 
-    // Create a new notification
-    public function create($userId, $type, $message) {
-        $stmt = $this->db->prepare("INSERT INTO notifications (user_id, type, message, is_read, created_at) VALUES (?, ?, ?, 0, NOW())");
-        $safeMessage = htmlspecialchars($message);
-        $stmt->bind_param("iss", $userId, $type, $safeMessage);
-        $stmt->execute();
+    // Create a new notification aligned with schema (no link/order_id columns)
+    public function create($userId, $type, $title, $message, $imageUrl = null) {
+        $sql = "INSERT INTO notifications (user_id, type, title, message, image_url, is_read, created_at) VALUES (?, ?, ?, ?, ?, 0, NOW())";
+        $stmt = $this->db->prepare($sql);
+        if (!$stmt) return false;
+        $safeTitle = trim($title);
+        $safeMessage = trim($message);
+        $safeImage = $imageUrl ? trim($imageUrl) : null;
+        $stmt->bind_param("issss", $userId, $type, $safeTitle, $safeMessage, $safeImage);
+        $ok = $stmt->execute();
         $stmt->close();
+        return $ok;
     }
 
-    // Create a notification for promotions
-    public function createPromotionNotification($userId, $productName, $promotionType, $productId = null) {
-        $message = "$productName has been marked as $promotionType.";
-        $title = "Promotion: $productName";
+    // Create a notification for promotions using products table for image
+    public function createPromotionNotification($userId, $productId, $promotionType) {
+        $productName = null;
         $imageUrl = '/NeoExclusiveCafe/assets/images/default-product.png';
-        $link = null;
-        if ($productId) {
-            $imgStmt = $this->db->prepare("SELECT image_url FROM product_images WHERE product_id = ? AND is_primary = 1 LIMIT 1");
-            $imgStmt->bind_param("i", $productId);
-            $imgStmt->execute();
-            $imgResult = $imgStmt->get_result();
-            if ($imgRow = $imgResult->fetch_assoc()) {
-                $imageUrl = '/' . ltrim($imgRow['image_url'], '/');
+        if (!empty($productId)) {
+            $q = "SELECT name, image_url FROM products WHERE id = ? LIMIT 1";
+            $ps = $this->db->prepare($q);
+            $ps->bind_param("i", $productId);
+            $ps->execute();
+            $res = $ps->get_result();
+            if ($row = $res->fetch_assoc()) {
+                $productName = $row['name'];
+                if (!empty($row['image_url'])) {
+                    $imageUrl = '/' . ltrim($row['image_url'], '/');
+                }
             }
-            $imgStmt->close();
-            $link = "/NeoExclusiveCafe/pages/users/product-details.php?product_id=" . $productId;
+            $ps->close();
         }
-        $notifQuery = "INSERT INTO notifications (user_id, type, title, message, image_url, link, created_at, is_read) 
-                       VALUES (?, 'promotion', ?, ?, ?, ?, NOW(), 0)";
-        $stmt = $this->db->prepare($notifQuery);
-        $stmt->bind_param("issss", $userId, $title, $message, $imageUrl, $link);
-        $stmt->execute();
-        $stmt->close();
+        $productName = $productName ?: 'Product';
+        $title = "Promotion: {$productName}";
+        $message = "{$productName} has been marked as {$promotionType}.";
+        return $this->create($userId, 'promotion', $title, $message, $imageUrl);
     }
 
     // Create a notification for system updates
     public function createWelcomeNotification($userId) {
-        $message = "Welcome to NeoExclusiveCafe! Your account has been verified.";
-        $this->create($userId, 'System Update', $message);
+        $title = 'Welcome to NeoExclusiveCafe';
+        $message = 'Your account has been verified.';
+        return $this->create($userId, 'system', $title, $message, null);
     }
 
-    // Create a notification for order status updates with image and order_id
+    // Create a notification for order status updates with image from products table
     public function createOrderNotification($orderId, $status) {
         try {
-            // First, get the order details with customer email
-            $orderQuery = "SELECT o.customer_id, o.order_id, o.status, o.customer_email 
-                          FROM orders o 
-                          WHERE o.order_id = ?";
-            
+            // Get order with user reference
+            $orderQuery = "SELECT o.id AS order_id, o.user_id, o.customer_email FROM orders o WHERE o.id = ? LIMIT 1";
             $stmt = $this->db->prepare($orderQuery);
             $stmt->bind_param("i", $orderId);
             $stmt->execute();
-            $result = $stmt->get_result();
-            $order = $result->fetch_assoc();
+            $orderRes = $stmt->get_result();
+            $order = $orderRes->fetch_assoc();
             $stmt->close();
+            if (!$order) return false;
 
-            if (!$order) {
-                file_put_contents(__DIR__ . '/../../logs/order_errors.log', "[Notif Error] No order found for orderId: $orderId\n", FILE_APPEND);
+            // Resolve user id (prefer orders.user_id; fallback by email)
+            $userId = null;
+            if (!empty($order['user_id'])) {
+                $userId = (int)$order['user_id'];
+            } elseif (!empty($order['customer_email'])) {
+                $us = $this->db->prepare("SELECT id FROM users WHERE email = ? LIMIT 1");
+                $us->bind_param("s", $order['customer_email']);
+                $us->execute();
+                $uRes = $us->get_result();
+                if ($u = $uRes->fetch_assoc()) { $userId = (int)$u['id']; }
+                $us->close();
+            }
+            if (empty($userId)) return false;
+
+            // Only verified users can receive order notifications
+            $vs = $this->db->prepare("SELECT verified FROM users WHERE id = ? LIMIT 1");
+            $vs->bind_param("i", $userId);
+            $vs->execute();
+            $vRes = $vs->get_result();
+            $verifiedRow = $vRes->fetch_assoc();
+            $vs->close();
+            if (!$verifiedRow || (int)$verifiedRow['verified'] !== 1) {
                 return false;
             }
 
-            // Get user by customer_email from users table
-            $userQuery = "SELECT id FROM users WHERE email = ?";
-            $userStmt = $this->db->prepare($userQuery);
-            $userStmt->bind_param("s", $order['customer_email']);
-            $userStmt->execute();
-            $userResult = $userStmt->get_result();
-            $user = $userResult->fetch_assoc();
-            $userStmt->close();
-
-            if (!$user) {
-                file_put_contents(__DIR__ . '/../../logs/order_errors.log', 
-                    "[Notif Error] User not found for Order #$orderId (Email: {$order['customer_email']})\n", 
-                    FILE_APPEND
-                );
-                return false;
-            }
-
-            // Get the product image if available
-            $imageQuery = "SELECT pi.image_url 
-                          FROM order_items oi 
-                          LEFT JOIN products p ON p.name = oi.product_name
-                          LEFT JOIN product_images pi ON pi.product_id = p.id AND pi.is_primary = 1
-                          WHERE oi.order_id = ? 
-                          LIMIT 1";
-            
-            $imgStmt = $this->db->prepare($imageQuery);
-            $imgStmt->bind_param("i", $orderId);
-            $imgStmt->execute();
-            $imgResult = $imgStmt->get_result();
-            $imageUrl = '/NeoExclusiveCafe/assets/images/default-product.png'; // Default image
-            
-            if ($imgRow = $imgResult->fetch_assoc()) {
-                if (!empty($imgRow['image_url'])) {
-                    $imageUrl = '/' . ltrim($imgRow['image_url'], '/');
+            // Get one product image from products table through order_items
+            $imageUrl = '/NeoExclusiveCafe/assets/images/default-product.png';
+            $pi = $this->db->prepare("SELECT p.image_url FROM order_items oi JOIN products p ON p.id = oi.product_id WHERE oi.order_id = ? LIMIT 1");
+            $pi->bind_param("i", $orderId);
+            $pi->execute();
+            $piRes = $pi->get_result();
+            if ($row = $piRes->fetch_assoc()) {
+                if (!empty($row['image_url'])) {
+                    $imageUrl = '/' . ltrim($row['image_url'], '/');
                 }
             }
-            $imgStmt->close();
+            $pi->close();
 
-            // Prepare notification details
-            $title = "Order #$orderId Status Update";
-            $message = "Your order #$orderId has been $status.";
-            $link = "/NeoExclusiveCafe/pages/users/order-details.php?order_id=" . $orderId;
+            $safeStatus = trim($status);
+            $title = "Order #{$orderId} Status Update";
+            $message = "Your order #{$orderId} has been {$safeStatus}.";
 
-            // Insert the notification
-            $notifQuery = "INSERT INTO notifications (user_id, type, title, message, image_url, order_id, link, created_at, is_read)
-                          VALUES (?, 'order_update', ?, ?, ?, ?, ?, NOW(), 0)";
-            
-            $notifStmt = $this->db->prepare($notifQuery);
-            if (!$notifStmt) {
-                throw new Exception("Failed to prepare notification insert: " . $this->db->error);
-            }
-
-            $notifStmt->bind_param("isssis", 
-                $user['id'],      // user_id
-                $title,           // title
-                $message,         // message
-                $imageUrl,        // image_url
-                $orderId,         // order_id
-                $link            // link
-            );
-
-            if (!$notifStmt->execute()) {
-                throw new Exception("Failed to insert notification: " . $notifStmt->error);
-            }
-
-            $notifStmt->close();
-            return true;
-
-        } catch (Exception $e) {
-            file_put_contents(__DIR__ . '/../../logs/order_errors.log', 
-                "[Notif Error] Failed to create notification for Order #$orderId: " . $e->getMessage() . "\n", 
-                FILE_APPEND
-            );
+            return $this->create($userId, 'order', $title, $message, $imageUrl);
+        } catch (\Throwable $e) {
             return false;
         }
     }
 
-    // Fetch unread notifications for a user
+    // Fetch unread notifications for a user, hiding order notifications if user not verified
     public function getUnreadNotifications($userId) {
-        $stmt = $this->db->prepare("SELECT * FROM notifications WHERE user_id = ? AND is_read = 0 ORDER BY created_at DESC");
-        $stmt->bind_param("i", $userId);
+        $isVerified = 0;
+        $vs = $this->db->prepare("SELECT verified FROM users WHERE id = ? LIMIT 1");
+        $vs->bind_param("i", $userId);
+        $vs->execute();
+        $vRes = $vs->get_result();
+        if ($row = $vRes->fetch_assoc()) { $isVerified = (int)$row['verified']; }
+        $vs->close();
+
+        if ($isVerified === 1) {
+            $stmt = $this->db->prepare("SELECT id, user_id, type, title, message, image_url, is_read, created_at FROM notifications WHERE user_id = ? AND is_read = 0 ORDER BY created_at DESC");
+            $stmt->bind_param("i", $userId);
+        } else {
+            $stmt = $this->db->prepare("SELECT id, user_id, type, title, message, image_url, is_read, created_at FROM notifications WHERE user_id = ? AND is_read = 0 AND type <> 'order' ORDER BY created_at DESC");
+            $stmt->bind_param("i", $userId);
+        }
+
         $stmt->execute();
         $result = $stmt->get_result();
         $notifications = [];
-        while ($row = $result->fetch_assoc()) {
-            $notifications[] = $row;
-        }
+        while ($row = $result->fetch_assoc()) { $notifications[] = $row; }
         $stmt->close();
         return $notifications;
     }
 
-    // Fetch all notifications for a user
+    // Fetch all notifications for a user (respect verified rule for orders)
     public function getAllNotifications($userId) {
-        $stmt = $this->db->prepare("SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC");
-        $stmt->bind_param("i", $userId);
+        $isVerified = 0;
+        $vs = $this->db->prepare("SELECT verified FROM users WHERE id = ? LIMIT 1");
+        $vs->bind_param("i", $userId);
+        $vs->execute();
+        $vRes = $vs->get_result();
+        if ($row = $vRes->fetch_assoc()) { $isVerified = (int)$row['verified']; }
+        $vs->close();
+
+        if ($isVerified === 1) {
+            $stmt = $this->db->prepare("SELECT id, user_id, type, title, message, image_url, is_read, created_at FROM notifications WHERE user_id = ? ORDER BY created_at DESC");
+            $stmt->bind_param("i", $userId);
+        } else {
+            $stmt = $this->db->prepare("SELECT id, user_id, type, title, message, image_url, is_read, created_at FROM notifications WHERE user_id = ? AND type <> 'order' ORDER BY created_at DESC");
+            $stmt->bind_param("i", $userId);
+        }
+
         $stmt->execute();
         $result = $stmt->get_result();
         $notifications = [];
-        while ($row = $result->fetch_assoc()) {
-            $notifications[] = $row;
-        }
+        while ($row = $result->fetch_assoc()) { $notifications[] = $row; }
         $stmt->close();
         return $notifications;
     }
@@ -181,16 +175,14 @@ class Notification {
 
     // Get the count of unread notifications for a user
     public function getUnreadCount($userId) {
-        $count = 0;
-        $stmt = $this->db->prepare("SELECT COUNT(*) as count FROM notifications WHERE user_id = ? AND is_read = 0");
+        $stmt = $this->db->prepare("SELECT COUNT(*) AS cnt FROM notifications WHERE user_id = ? AND is_read = 0");
         $stmt->bind_param("i", $userId);
         $stmt->execute();
-        $stmt->bind_result($count);
-        $stmt->fetch();
+        $res = $stmt->get_result();
+        $row = $res->fetch_assoc();
         $stmt->close();
-        return $count;
+        return (int)($row['cnt'] ?? 0);
     }
-
 
     // Mark a single notification as read by notification ID
     public function markAsRead($notificationId) {
@@ -198,4 +190,5 @@ class Notification {
         $stmt->bind_param("i", $notificationId);
         $stmt->execute();
         $stmt->close();
-    }}
+    }
+}

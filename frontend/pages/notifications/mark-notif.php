@@ -17,12 +17,12 @@ if (!isset($_SESSION["user_id"])) {
     exit();
 }
 
-require_once '../../user-includes/database.php'; // Include the database connection
-require_once 'class-notif.php'; // Include the Notification class
+require_once '../../user-includes/database.php';
+require_once 'class-notif.php';
 
 try {
-    $userId = $_SESSION['user_id']; // Get the logged-in user's ID
-    $notification = new Notification($conn); // Initialize the Notification class
+    $userId = $_SESSION['user_id'];
+    $notification = new Notification($conn);
 
     // Mark all notifications as read using the Notification class
     $notification->markAllAsRead($userId);

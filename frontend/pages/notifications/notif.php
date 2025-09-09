@@ -1,23 +1,24 @@
 <?php
-require_once 'class-notif.php'; // Include the Notification class
-require_once '../../user-includes/database.php'; // Include the database connection
+require_once 'class-notif.php';
+require_once '../../user-includes/database.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
-        $message = trim($_POST['message']); // Trim whitespace from the message
+        $message = isset($_POST['message']) ? trim($_POST['message']) : '';
 
         // Validate the message
         if (empty($message)) {
             throw new Exception("Message cannot be empty.");
         }
 
-        // Create an instance of the Notification class
-        $notification = new Notification($db); // Pass the database connection
+        // Create an instance of the Notification class (mysqli)
+        $notification = new Notification($conn);
 
-        // Fetch all users from the database
-        $stmt = $db->prepare("SELECT id, email FROM users");
+        // Fetch all users from the database (only verified for order visibility rule doesn't matter here)
+        $stmt = $conn->prepare("SELECT id, email FROM users");
         $stmt->execute();
-        $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $res = $stmt->get_result();
+        $users = $res->fetch_all(MYSQLI_ASSOC);
 
         if (empty($users)) {
             throw new Exception("No users found.");
@@ -27,10 +28,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         foreach ($users as $user) {
             $userId = $user['id'];
             $userEmail = $user['email'];
-            $type = 'promotion';
-
-            // Insert the notification into the database
-            $notification->create($userId, $type, $message);
+            $type = 'system';
+            $notification->create($userId, $type, 'System Message', $message, null);
 
             // Send the email notification
             if ($userEmail) {
@@ -61,6 +60,6 @@ function sendEmailNotification($toEmail, $message) {
 ?>
 
 <form method="POST">
-    <textarea name="message" placeholder="Enter Promotion Details"></textarea>
+    <textarea name="message" placeholder="Enter message for all users"></textarea>
     <button type="submit">Send Notification</button>
 </form>

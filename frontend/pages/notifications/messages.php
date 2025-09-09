@@ -15,9 +15,8 @@ $user_id = $_SESSION['user_id'];
 
 // Fetch order notifications
 $order_notifs_query = "
-    SELECT n.id, n.message, n.created_at, o.id AS order_id, o.product_image, o.status
+    SELECT n.id, n.title, n.message, n.created_at
     FROM notifications n
-    JOIN orders o ON n.order_id = o.id
     WHERE n.user_id = ? AND n.type = 'order'
     ORDER BY n.created_at DESC
 ";
@@ -28,9 +27,8 @@ $order_notifications = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
 // Fetch promotional notifications
 $promo_notifs_query = "
-    SELECT n.id, n.message, n.created_at, p.id AS product_id, p.image AS product_image, p.description
+    SELECT n.id, n.title, n.message, n.image_url, n.created_at
     FROM notifications n
-    JOIN products p ON n.product_id = p.id
     WHERE n.user_id = ? AND n.type = 'promotion'
     ORDER BY n.created_at DESC
 ";
@@ -59,10 +57,15 @@ $promo_notifications = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             <ul>
                 <?php foreach ($order_notifications as $notif): ?>
                     <li>
-                        <a href="order-details.php?order_id=<?= htmlspecialchars($notif['order_id']) ?>">
-                            <img src="<?= htmlspecialchars($notif['product_image'] ?: '../../assets/images/default-product.png') ?>" alt="Product Image" width="50" />
+                        <?php 
+                        $orderId = null;
+                        $text = ($notif['title'] ?? '') . ' ' . ($notif['message'] ?? '');
+                        if (preg_match('/Order\s*#(\d+)/i', $text, $m)) { $orderId = (int)$m[1]; }
+                        $orderLink = $orderId ? ('order-details.php?order_id=' . $orderId) : '#';
+                        ?>
+                        <a href="<?= htmlspecialchars($orderLink) ?>">
                             <div>
-                                <strong>Order #<?= htmlspecialchars($notif['order_id']) ?></strong><br />
+                                <?= htmlspecialchars($notif['title'] ?: 'Order Update') ?><br />
                                 <?= htmlspecialchars($notif['message']) ?><br />
                                 <small><?= htmlspecialchars(date('M d, Y H:i', strtotime($notif['created_at']))) ?></small>
                             </div>
@@ -81,13 +84,12 @@ $promo_notifications = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             <ul>
                 <?php foreach ($promo_notifications as $promo): ?>
                     <li>
-                        <a href="product.php?product_id=<?= htmlspecialchars($promo['product_id']) ?>">
-                            <img src="<?= htmlspecialchars($promo['product_image'] ?: '../../assets/images/default-product.png') ?>" alt="Product Image" width="50" />
-                            <div>
-                                <?= htmlspecialchars($promo['message']) ?><br />
-                                <small><?= htmlspecialchars(date('M d, Y H:i', strtotime($promo['created_at']))) ?></small>
-                            </div>
-                        </a>
+                        <img src="<?= htmlspecialchars($promo['image_url'] ?: '../../assets/images/default-product.png') ?>" alt="Product Image" width="50" />
+                        <div>
+                            <strong><?= htmlspecialchars($promo['title'] ?: 'Promotion') ?></strong><br />
+                            <?= htmlspecialchars($promo['message']) ?><br />
+                            <small><?= htmlspecialchars(date('M d, Y H:i', strtotime($promo['created_at']))) ?></small>
+                        </div>
                     </li>
                 <?php endforeach; ?>
             </ul>

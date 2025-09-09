@@ -62,16 +62,22 @@ $notifications = $notification->getAllNotifications($user_id);
                             </div>
                         </div>
                         
-                        <?php if (!empty($notif['description']) && $notif['description'] !== ($notif['title'] ?? $notif['message'])): ?>
-                            <div class="notification-info">
-                                <div class="notification-label">Description</div>
-                                <div class="notification-value"><?= htmlspecialchars($notif['description']) ?></div>
-                            </div>
-                        <?php endif; ?>
+                        <?php 
+                        $computedLink = null; 
+                        if (!empty($notif['type']) && $notif['type'] === 'order') {
+                            $titleMsg = ($notif['title'] ?? '') . ' ' . ($notif['message'] ?? '');
+                            if (preg_match('/Order\s*#(\d+)/i', $titleMsg, $m)) {
+                                $orderId = (int)$m[1];
+                                if ($orderId > 0) {
+                                    $computedLink = "/NeoExclusiveCafe/pages/users/order-details.php?order_id=" . $orderId;
+                                }
+                            }
+                        }
+                        ?>
                         
-                        <?php if (!empty($notif['link'])): ?>
+                        <?php if (!empty($computedLink)): ?>
                             <div class="notification-action">
-                                <a href="<?= htmlspecialchars($notif['link']) ?>" class="view-details-btn">View Details</a>
+                                <a href="<?= htmlspecialchars($computedLink) ?>" class="view-details-btn">View Details</a>
                             </div>
                         <?php endif; ?>
                     </div>

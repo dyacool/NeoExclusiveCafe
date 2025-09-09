@@ -4,48 +4,56 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-if (!isset($_SESSION["user_id"]) || !isset($_SESSION["user_role"]) || $_SESSION["user_role"] !== "user") {
-    // Always return JSON for AJAX requests, even when not logged in
-    header('Content-Type: application/json');
+header('Content-Type: application/json');
+
+if (!isset($_SESSION["user_id"])) {
     echo json_encode(["status" => "error", "message" => "User not logged in", "count" => 0]);
     exit();
 }
 
-require_once __DIR__ . '/../../user-includes/database.php'; // Include the database connection
-require_once __DIR__ . '/class-notif.php'; // Include the Notification class
+require_once __DIR__ . '/../../user-includes/database.php';
+require_once __DIR__ . '/class-notif.php';
 
 try {
-    $userId = $_SESSION['user_id']; // Get the logged-in user's ID
-    $notification = new Notification($conn); // Initialize the Notification class
+    $userId = $_SESSION['user_id'];
+    $notification = new Notification($conn);
 
-    // Fetch unread notifications using the Notification class
+    // Fetch unread notifications using the Notification class (order hidden if not verified)
     $notifications = $notification->getUnreadNotifications($userId);
 
-    // Enrich notifications with product image, title, description, order info
-    $enrichedNotifications = [];
-    foreach ($notifications as $notif) {
-        $notifData = $notif;
+    $response = [];
+    foreach ($notifications as $n) {
+        $title = !empty($n['title']) ? $n['title'] : $n['message'];
+        $msg = $n['message'];
+        $img = !empty($n['image_url']) ? $n['image_url'] : '/NeoExclusiveCafe/assets/images/default-product.png';
+        $link = null;
 
-        // Use image_url and title from notifications table directly
-        if (!empty($notif['order_id'])) {
-            $notifData['product_image'] = !empty($notif['image_url']) ? $notif['image_url'] : "/assets/images/default-product.png";
-            $notifData['title'] = !empty($notif['title']) ? $notif['title'] : ("Order #" . $notif['order_id'] . " Status Update");
-            $notifData['description'] = $notif['message'];
-            $notifData['link'] = !empty($notif['link']) ? $notif['link'] : ("/frontend/pages/profile/my-orders.php?order_id=" . $notif['order_id']);
-        } else {
-            $notifData['title'] = !empty($notif['title']) ? $notif['title'] : $notif['message'];
-            $notifData['description'] = "";
-            $notifData['product_image'] = !empty($notif['image_url']) ? $notif['image_url'] : "/assets/images/default-product.png";
-            $notifData['link'] = !empty($notif['link']) ? $notif['link'] : null;
+        // Compute View Details link for order notifications
+        if (isset($n['type']) && $n['type'] === 'order') {
+            $m = [];
+            if (preg_match('/Order\s*#(\d+)/i', $title . ' ' . $msg, $m)) {
+                $orderId = (int)$m[1];
+                if ($orderId > 0) {
+                    $link = "/NeoExclusiveCafe/pages/users/order-details.php?order_id=" . $orderId;
+                }
+            }
         }
 
-        $enrichedNotifications[] = $notifData;
+        $response[] = [
+            'id' => (int)$n['id'],
+            'type' => $n['type'],
+            'title' => $title,
+            'message' => $msg,
+            'image_url' => $img,
+            'is_read' => (int)$n['is_read'],
+            'created_at' => $n['created_at'],
+            'link' => $link
+        ];
     }
 
-    echo json_encode(["status" => "success", "count" => count($enrichedNotifications), "notifications" => $enrichedNotifications]);
-} catch (Exception $e) {
-    http_response_code(500); // Internal Server Error
+    echo json_encode(["status" => "success", "count" => count($response), "notifications" => $response]);
+} catch (Throwable $e) {
+    http_response_code(500);
     echo json_encode(["status" => "error", "message" => "Failed to fetch notifications"]);
-    error_log("Database error: " . $e->getMessage());
 }
 ?>
