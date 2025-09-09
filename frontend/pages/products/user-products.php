@@ -29,6 +29,8 @@ if ($conn->connect_error) {
 }
 ?>
 
+<?php include __DIR__ . "/../../user-includes/bread-crumb/bread-crumb.php"; ?>
+
 <div id="confirmationPopup" class="confirmation-popup"></div>
 
 <div class="wrapper">

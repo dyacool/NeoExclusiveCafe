@@ -19,23 +19,24 @@
 }
 
 .breadcrumb-container {
-  background-color: var(--gray-50);
-  border-bottom: 1px solid var(--gray-100);
-  padding: 0.75rem 0;
-  margin-bottom: 1rem;
+  padding: 0.75rem 5.3rem;
+  margin: 0 0 1rem 0;
   font-family: "Spectral", serif;
   animation: slideInFromTop 0.3s ease-out;
+  text-align: left;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .breadcrumb {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 .breadcrumb-list {
   display: flex;
-  align-items: center;
+  align-items: left;
   flex-wrap: wrap;
   list-style: none;
   margin: 0;
@@ -165,10 +166,6 @@
 
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
-  .breadcrumb-container {
-    background-color: var(--gray-800);
-    border-bottom-color: var(--gray-600);
-  }
 
   .breadcrumb-item {
     color: var(--gray-300);

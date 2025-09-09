@@ -441,6 +441,12 @@
   padding: 12px;
 }
 
+/* Wrapper */
+.wrapper {
+  display: flex;
+  margin: 10px 50px;
+}
+
 h3 {
   font-size: var(--font-size1);
   font-weight: 600;

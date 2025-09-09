@@ -42,15 +42,9 @@ if (!$is_preview_mode && (!isset($_SESSION['is_verified']) || $_SESSION['is_veri
 </head>
 <body>
     
+<?php include __DIR__ . "/../../user-includes/bread-crumb/bread-crumb.php"; ?>
     <div class="main">
         <div class="content">
-             
-        <!-- Breadcrumb -->
-             <nav class="breadcrumb">
-                <a href="../home/user-dashboard.php">Home</a>
-                <span class="separator">></span>
-                <span class="current">Blog</span>
-            </nav>
             
             <h1>Blog</h1>
             <p class="subtitle">Welcome to Neo Cafe's Blog Page! Discover stories, tips, and reviews straight from the bakery and our beloved customers.</p>

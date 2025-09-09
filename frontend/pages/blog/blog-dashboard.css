@@ -7,7 +7,6 @@
 .content {
     max-width: 1200px;
     margin: auto;
-    padding: 30px 20px;
     color: #333;
 }
 
@@ -88,31 +87,3 @@ h1 {
         width: 100%;
     }
 }
-
-/* Breadcrumb */
-.breadcrumb {
-    margin-bottom: 10px;
-    font-size: 0.9rem;
-    color: #666;
-  }
-  
-  .breadcrumb a {
-    color: #2d5a27;
-    text-decoration: none;
-    transition: color 0.3s ease;
-  }
-  
-  .breadcrumb a:hover {
-    color: #1a4018;
-    text-decoration: underline;
-  }
-  
-  .separator {
-    margin: 0 10px;
-    color: #999;
-  }
-  
-  .current {
-    color: #666;
-    font-weight: 500;
-  }

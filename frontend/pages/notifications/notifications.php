@@ -39,7 +39,7 @@ $notifications = $notification->getAllNotifications($user_id);
     
     <div class="neo-profile-container">
         <h2 class="section-title">Notifications</h2>
-        <button class="cta" onclick="window.location.href='/frontend/pages/blog/blog-dashboard.php'">
+        <button class="cta" onclick="window.location.href='/frontend/pages/home/user-dashboard.php'">
             <svg
                 id="arrow-horizontal"
                 xmlns="http://www.w3.org/2000/svg"

@@ -139,224 +139,211 @@ if ($cart_truncated) {
     </script>";
 }
 ?>
-
-<div id="confirmationPopup" class="confirmation-popup"></div>
-
-<?php if (isset($_SESSION['cart_truncated_notification']) && $_SESSION['cart_truncated_notification']): ?>
-    <div class="cart-truncated-notification" id="cartTruncatedNotification">
-        <div class="notification-content">
-            <span>🕐 Business hours closed. Cart has been cleared for the day.</span>
-            <button onclick="closeCartTruncatedNotification()" class="close-notification-btn">×</button>
-        </div>
-    </div>
-    <?php unset($_SESSION['cart_truncated_notification']); ?>
-<?php endif; ?>
-
-<!-- Debug: Manual test button for cart truncation -->
-<?php if (isset($_SESSION['is_admin']) && $_SESSION['is_admin']): ?>
-    <div style="position: fixed; top: 80px; right: 20px; z-index: 9999; background: #333; color: white; padding: 10px; border-radius: 5px; font-size: 12px;">
-        <button onclick="testCartTruncation()" style="background: #ff6b6b; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">Test Cart Truncation</button>
-        <div id="truncationDebug" style="margin-top: 10px; font-size: 10px;"></div>
-        
-        <!-- Time Analysis Display -->
-        <div style="margin-top: 10px; padding: 5px; background: #444; border-radius: 3px; font-size: 10px;">
-            <strong>Time Analysis:</strong><br>
-            Current: <?php echo date('H:i:s'); ?><br>
-            <?php
-            $business_hours_query = "SELECT opening_time, closing_time FROM business_hours ORDER BY id DESC LIMIT 1";
-            $business_hours_result = $conn->query($business_hours_query);
-            if ($business_hours_result && $business_hours_result->num_rows > 0) {
-                $business_hours = $business_hours_result->fetch_assoc();
-                echo "Hours: " . $business_hours['opening_time'] . " - " . $business_hours['closing_time'] . "<br>";
-                
-                $current_time = date('H:i:s');
-                $current_minutes = (intval(substr($current_time, 0, 2)) * 60) + intval(substr($current_time, 3, 2));
-                $closing_minutes = (intval(substr($business_hours['closing_time'], 0, 2)) * 60) + intval(substr($business_hours['closing_time'], 3, 2));
-                
-                $is_closed = false;
-                if ($closing_minutes > 1200 && $current_minutes < 600) {
-                    $is_closed = true;
-                } else if ($current_minutes > $closing_minutes) {
-                    $is_closed = true;
-                }
-                
-                echo "Status: " . ($is_closed ? '<span style="color: #ff6b6b;">CLOSED</span>' : '<span style="color: #4CAF50;">OPEN</span>') . "<br>";
-            } else {
-                echo "Hours: 08:00 - 17:00 (default)<br>";
-                echo "Status: <span style='color: #4CAF50;'>OPEN</span> (default)<br>";
-            }
-            ?>
-        </div>
-    </div>
-<?php endif; ?>
-
+    <?php include __DIR__ . "/../../user-includes/bread-crumb/bread-crumb.php"; ?>
 <div class="wrapper">
-    <?php if (isset($_SESSION['is_admin']) && $_SESSION['is_admin']): ?>
-    <div class="admin-controls">
-        <a href="/backend/pages/admin-manager.php" class="admin-back-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M19 12H5M12 19l-7-7 7-7"/>
-            </svg>
-            Back to Dashboard
-        </a>
-    </div>
+    <div id="confirmationPopup" class="confirmation-popup"></div>
+
+    <?php if (isset($_SESSION['cart_truncated_notification']) && $_SESSION['cart_truncated_notification']): ?>
+        <div class="cart-truncated-notification" id="cartTruncatedNotification">
+            <div class="notification-content">
+                <span>🕐 Business hours closed. Cart has been cleared for the day.</span>
+                <button onclick="closeCartTruncatedNotification()" class="close-notification-btn">×</button>
+            </div>
+        </div>
+        <?php unset($_SESSION['cart_truncated_notification']); ?>
     <?php endif; ?>
-    
-    <h1 class="prdct-title">Available Today for Pick Up or Delivery!</h1>
-    <div class="header-section">
-        <h2 class="prdct-subtitle" id="currentDate"><?php echo date('l, F j, Y'); ?></h2>
-        <div class="cart-dropdown">
-            <button class="cart-btn" id="availableTodayCartBtn">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="9" cy="21" r="1"></circle>
-                    <circle cx="20" cy="21" r="1"></circle>
-                    <path d="m1 1 4 4 6.5 13h9"></path>
-                    <path d="m7 13 10-10-1.5-1.5L5.5 11.5"></path>
-                </svg>
-                <span class="cart-count" id="availableTodayCartCount">0</span>
-            </button>
-            <div class="cart-dropdown-content" id="availableTodayCartContent">
-                <div class="cart-header">
-                    <h3>Available Today Cart</h3>
-                </div>
-                <div class="availToday_timer" id="availToday_timer">
-                    <span class="timer-label">Order before:</span>
-                    <span class="timer-value" id="availTodayTimerValue">Loading...</span>
-                </div>
-                <div class="cart-items" id="availableTodayCartItems">
-                    <p class="empty-cart">No items in cart</p>
-                </div>
-                <div class="cart-footer">
-                    <div class="cart-total" id="availableTodayCartTotal">Total: ₱0.00</div>
-                    <button class="checkout-btn" id="availableTodayCheckoutBtn" disabled>Checkout</button>
+
+    <!-- Debug: Manual test button for cart truncation -->
+    <?php if (isset($_SESSION['is_admin']) && $_SESSION['is_admin']): ?>
+        <div style="position: fixed; top: 80px; right: 20px; z-index: 9999; background: #333; color: white; padding: 10px; border-radius: 5px; font-size: 12px;">
+            <button onclick="testCartTruncation()" style="background: #ff6b6b; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">Test Cart Truncation</button>
+            <div id="truncationDebug" style="margin-top: 10px; font-size: 10px;"></div>
+            
+            <!-- Time Analysis Display -->
+            <div style="margin-top: 10px; padding: 5px; background: #444; border-radius: 3px; font-size: 10px;">
+                <strong>Time Analysis:</strong><br>
+                Current: <?php echo date('H:i:s'); ?><br>
+                <?php
+                $business_hours_query = "SELECT opening_time, closing_time FROM business_hours ORDER BY id DESC LIMIT 1";
+                $business_hours_result = $conn->query($business_hours_query);
+                if ($business_hours_result && $business_hours_result->num_rows > 0) {
+                    $business_hours = $business_hours_result->fetch_assoc();
+                    echo "Hours: " . $business_hours['opening_time'] . " - " . $business_hours['closing_time'] . "<br>";
+                    
+                    $current_time = date('H:i:s');
+                    $current_minutes = (intval(substr($current_time, 0, 2)) * 60) + intval(substr($current_time, 3, 2));
+                    $closing_minutes = (intval(substr($business_hours['closing_time'], 0, 2)) * 60) + intval(substr($business_hours['closing_time'], 3, 2));
+                    
+                    $is_closed = false;
+                    if ($closing_minutes > 1200 && $current_minutes < 600) {
+                        $is_closed = true;
+                    } else if ($current_minutes > $closing_minutes) {
+                        $is_closed = true;
+                    }
+                    
+                    echo "Status: " . ($is_closed ? '<span style="color: #ff6b6b;">CLOSED</span>' : '<span style="color: #4CAF50;">OPEN</span>') . "<br>";
+                } else {
+                    echo "Hours: 08:00 - 17:00 (default)<br>";
+                    echo "Status: <span style='color: #4CAF50;'>OPEN</span> (default)<br>";
+                }
+                ?>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <div class="main-container fade-in">
+        <h1 class="prdct-title">Available Today for Pick Up or Delivery!</h1>
+        <div class="header-section">
+            <h2 class="prdct-subtitle" id="currentDate"><?php echo date('l, F j, Y'); ?></h2>
+            <div class="cart-dropdown">
+                <button class="cart-btn" id="availableTodayCartBtn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="9" cy="21" r="1"></circle>
+                        <circle cx="20" cy="21" r="1"></circle>
+                        <path d="m1 1 4 4 6.5 13h9"></path>
+                        <path d="m7 13 10-10-1.5-1.5L5.5 11.5"></path>
+                    </svg>
+                    <span class="cart-count" id="availableTodayCartCount">0</span>
+                </button>
+                <div class="cart-dropdown-content" id="availableTodayCartContent">
+                    <div class="cart-header">
+                        <h3>Available Today Cart</h3>
+                    </div>
+                    <div class="availToday_timer" id="availToday_timer">
+                        <span class="timer-label">Order before:</span>
+                        <span class="timer-value" id="availTodayTimerValue">Loading...</span>
+                    </div>
+                    <div class="cart-items" id="availableTodayCartItems">
+                        <p class="empty-cart">No items in cart</p>
+                    </div>
+                    <div class="cart-footer">
+                        <div class="cart-total" id="availableTodayCartTotal">Total: ₱0.00</div>
+                        <button class="checkout-btn" id="availableTodayCheckoutBtn" disabled>Checkout</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    <div class="main-container fade-in">
-
-        <!-- Scroll Container -->
         <div class="scroll-container">
             <div class="products-grid" id="productScroll">
-                        <?php
-                            // Get today's date
-                            $today_date = date('Y-m-d'); // Returns date in YYYY-MM-DD format
-                            
-                            // Query for products with availtoday_status that are available on today's date
-                            // This includes both "Today's Products" (status_id = 3) and regular products with today availability
-                            $sql = "SELECT 
-                                        p.id, p.name, p.price, p.description, p.status_id, p.is_featured,
-                                        ps.name AS status_name, pi.image_url, p.quantity, p.show_when_unavailable,
-                                        p.availtoday_status_id, ats.name AS availtoday_status_name,
-                                        GROUP_CONCAT(DISTINCT tpd.available_date ORDER BY tpd.available_date SEPARATOR ', ') as todays_product_dates,
-                                        GROUP_CONCAT(DISTINCT rptd.available_date ORDER BY rptd.available_date SEPARATOR ', ') as regular_today_dates
-                                    FROM products p
-                                    LEFT JOIN product_statuses ps ON p.status_id = ps.id
-                                    LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
-                                    LEFT JOIN availtoday_status ats ON p.availtoday_status_id = ats.id
-                                    LEFT JOIN todays_products_dates tpd ON p.id = tpd.product_id AND tpd.available_date = ?
-                                    LEFT JOIN regular_products_today_dates rptd ON p.id = rptd.product_id AND rptd.available_date = ?
-                                    WHERE p.deleted_at IS NULL 
-                                    AND p.quantity > 0
-                                    AND p.availtoday_status_id IS NOT NULL
-                                    AND (tpd.available_date = ? OR rptd.available_date = ?)
-                                    GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, ps.name, pi.image_url, p.quantity, p.show_when_unavailable, p.availtoday_status_id, ats.name
-                                    ORDER BY p.is_featured DESC, p.name ASC";
+                <?php
+                    // Get today's date
+                    $today_date = date('Y-m-d'); // Returns date in YYYY-MM-DD format
                     
-                            // Prepare and execute the statement with today's date parameter (4 times)
-                            $stmt = $conn->prepare($sql);
-                            $stmt->bind_param("ssss", $today_date, $today_date, $today_date, $today_date);
-                            $stmt->execute();
-                            $result = $stmt->get_result();
+                    // Query for products with availtoday_status that are available on today's date
+                    // This includes both "Today's Products" (status_id = 3) and regular products with today availability
+                    $sql = "SELECT 
+                                p.id, p.name, p.price, p.description, p.status_id, p.is_featured,
+                                ps.name AS status_name, pi.image_url, p.quantity, p.show_when_unavailable,
+                                p.availtoday_status_id, ats.name AS availtoday_status_name,
+                                GROUP_CONCAT(DISTINCT tpd.available_date ORDER BY tpd.available_date SEPARATOR ', ') as todays_product_dates,
+                                GROUP_CONCAT(DISTINCT rptd.available_date ORDER BY rptd.available_date SEPARATOR ', ') as regular_today_dates
+                            FROM products p
+                            LEFT JOIN product_statuses ps ON p.status_id = ps.id
+                            LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
+                            LEFT JOIN availtoday_status ats ON p.availtoday_status_id = ats.id
+                            LEFT JOIN todays_products_dates tpd ON p.id = tpd.product_id AND tpd.available_date = ?
+                            LEFT JOIN regular_products_today_dates rptd ON p.id = rptd.product_id AND rptd.available_date = ?
+                            WHERE p.deleted_at IS NULL 
+                            AND p.quantity > 0
+                            AND p.availtoday_status_id IS NOT NULL
+                            AND (tpd.available_date = ? OR rptd.available_date = ?)
+                            GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, ps.name, pi.image_url, p.quantity, p.show_when_unavailable, p.availtoday_status_id, ats.name
+                            ORDER BY p.is_featured DESC, p.name ASC";
+                    
+                    // Prepare and execute the statement with today's date parameter (4 times)
+                    $stmt = $conn->prepare($sql);
+                    $stmt->bind_param("ssss", $today_date, $today_date, $today_date, $today_date);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
 
-                            if ($result->num_rows > 0) {
-                                while ($row = $result->fetch_assoc()) {
-                                    // Get all images for this product
-                                    $images_sql = "SELECT image_url FROM product_images WHERE product_id = ?";
-                                    $images_stmt = $conn->prepare($images_sql);
-                                    $images_stmt->bind_param("i", $row['id']);
-                                    $images_stmt->execute();
-                                    $images_result = $images_stmt->get_result();
-                                    $images = [];
-                                    while ($image = $images_result->fetch_assoc()) {
-                                        $images[] = $image['image_url'];
-                                    }
-                                    
-                                    $productData = [
-                                        'id' => $row['id'],
-                                        'name' => $row['name'],
-                                        'price' => $row['price'],
-                                        'description' => $row['description'],
-                                        'status' => $row['status_name'],
-                                        'images' => $images,
-                                        'is_featured' => (bool)$row['is_featured'],
-                                        'quantity' => $row['quantity'],
-                                        'show_when_unavailable' => (bool)$row['show_when_unavailable'],
-                                        'availtoday_status_id' => $row['availtoday_status_id'],
-                                        'availtoday_status_name' => $row['availtoday_status_name'],
-                                        'todays_product_dates' => $row['todays_product_dates'] ? explode(', ', $row['todays_product_dates']) : [],
-                                        'regular_today_dates' => $row['regular_today_dates'] ? explode(', ', $row['regular_today_dates']) : []
-                                    ];
-                                    
-                                    $featuredClass = $row['is_featured'] ? 'featured-product' : '';
-                                    $statusClass = strtolower(str_replace(' ', '-', $row['status_name']));
-                                    
-                                    $productDataJson = htmlspecialchars(json_encode($productData), ENT_QUOTES, 'UTF-8');
-                                    // Get available dates for display
-                                    $available_dates = $row['status_id'] == 3 ? $row['todays_product_dates'] : $row['regular_today_dates'];
-                                    
-                                    echo "<div class='product-card {$featuredClass}' data-status='" . htmlspecialchars($row['status_name']) . "' 
-                                          data-available-dates='" . htmlspecialchars($available_dates ?? '') . "'
-                                          data-product='" . $productDataJson . "' onclick='openProductModalFromData(this)'>
-                                            <div class='product-image'>
-                                                <img src='../../../assets/" . htmlspecialchars($row['image_url'] ?: 'images/no-image.jpg') . "' alt='" . htmlspecialchars($row['name']) . "'>
-                                            </div>
-                                            <div class='product-info'>
-                                                <h3>" . htmlspecialchars($row['name']) . "</h3>";
-                                    
-                                    // Display availtoday status badge if available
-                                    if (!empty($row['availtoday_status_name'])) {
-                                        echo "<span class='availtoday-badge'>" . htmlspecialchars($row['availtoday_status_name']) . "</span>";
-                                    }
-                                    
-                                    echo "<p class='price'>₱" . number_format($row['price'], 2) . "</p>
-                                                
-                                                <div class='prdct-availability'>
-                                                    <span class='status-badge status-{$statusClass}'>" . htmlspecialchars($row['status_name']) . "</span>
-                                                    <p class='stock'>Stock: " . $row['quantity'] . "</p>";
-                                    
-                                    // Display available dates if product has them
-                                    if (!empty($available_dates)) {
-                                        // Format dates for display (e.g., "8/27, 8/28, 8/29")
-                                        $dates_array = explode(', ', $available_dates);
-                                        $formatted_dates = [];
-                                        foreach ($dates_array as $date) {
-                                            $dateObj = DateTime::createFromFormat('Y-m-d', trim($date));
-                                            if ($dateObj) {
-                                                $formatted_dates[] = $dateObj->format('n/j'); // Format as M/D (e.g., 8/27)
-                                            }
-                                        }
-                                        echo "<p class='available-dates'>Available: " . htmlspecialchars(implode(', ', $formatted_dates)) . "</p>";
-                                    }
-                                    
-                                    echo "</div>
-                                                
-                                                <div class='quantity-controls'>
-                                                    <button type='button' onclick='event.stopPropagation(); updateQuantity(this, -1)'>-</button>
-                                                    <input type='number' value='1' min='1' max='" . $row['quantity'] . "' onclick='event.stopPropagation()' onchange='validateQuantity(this)'>
-                                                    <button type='button' onclick='event.stopPropagation(); updateQuantity(this, 1)'>+</button>
-                                                </div>
-                                                
-                                                <button class='add-to-cart' onclick='event.stopPropagation(); addToCart(" . $row['id'] . ", this)'>Add to Cart</button>
-                                            </div>
-                                        </div>";
-                                }
-                            } else {
-                                echo "<div class='no-products'>No products available for " . $today . " at the moment.</div>";
+                    if ($result->num_rows > 0) {
+                        while ($row = $result->fetch_assoc()) {
+                            // Get all images for this product
+                            $images_sql = "SELECT image_url FROM product_images WHERE product_id = ?";
+                            $images_stmt = $conn->prepare($images_sql);
+                            $images_stmt->bind_param("i", $row['id']);
+                            $images_stmt->execute();
+                            $images_result = $images_stmt->get_result();
+                            $images = [];
+                            while ($image = $images_result->fetch_assoc()) {
+                                $images[] = $image['image_url'];
                             }
-                            $stmt->close();
-                            $conn->close();
-                        ?>
+                            
+                            $productData = [
+                                'id' => $row['id'],
+                                'name' => $row['name'],
+                                'price' => $row['price'],
+                                'description' => $row['description'],
+                                'status' => $row['status_name'],
+                                'images' => $images,
+                                'is_featured' => (bool)$row['is_featured'],
+                                'quantity' => $row['quantity'],
+                                'show_when_unavailable' => (bool)$row['show_when_unavailable'],
+                                'availtoday_status_id' => $row['availtoday_status_id'],
+                                'availtoday_status_name' => $row['availtoday_status_name'],
+                                'todays_product_dates' => $row['todays_product_dates'] ? explode(', ', $row['todays_product_dates']) : [],
+                                'regular_today_dates' => $row['regular_today_dates'] ? explode(', ', $row['regular_today_dates']) : []
+                            ];
+                            
+                            $featuredClass = $row['is_featured'] ? 'featured-product' : '';
+                            $statusClass = strtolower(str_replace(' ', '-', $row['status_name']));
+                            
+                            $productDataJson = htmlspecialchars(json_encode($productData), ENT_QUOTES, 'UTF-8');
+                            // Get available dates for display
+                            $available_dates = $row['status_id'] == 3 ? $row['todays_product_dates'] : $row['regular_today_dates'];
+                            
+                            echo "<div class='product-card {$featuredClass}' data-status='" . htmlspecialchars($row['status_name']) . "' 
+                                  data-available-dates='" . htmlspecialchars($available_dates ?? '') . "'
+                                  data-product='" . $productDataJson . "' onclick='openProductModalFromData(this)'>
+                                    <div class='product-image'>
+                                        <img src='../../../assets/" . htmlspecialchars($row['image_url'] ?: 'images/no-image.jpg') . "' alt='" . htmlspecialchars($row['name']) . "'>
+                                    </div>
+                                    <div class='product-info'>
+                                        <h3>" . htmlspecialchars($row['name']) . "</h3>";
+                            
+                            // Display availtoday status badge if available
+                            if (!empty($row['availtoday_status_name'])) {
+                                echo "<span class='availtoday-badge'>" . htmlspecialchars($row['availtoday_status_name']) . "</span>";
+                            }
+                            
+                            echo "<p class='price'>₱" . number_format($row['price'], 2) . "</p>
+                                  
+                                    <div class='prdct-availability'>
+                                        <span class='status-badge status-{$statusClass}'>" . htmlspecialchars($row['status_name']) . "</span>
+                                        <p class='stock'>Stock: " . $row['quantity'] . "</p>";
+                            
+                            // Display available dates if product has them
+                            if (!empty($available_dates)) {
+                                // Format dates for display (e.g., "8/27, 8/28, 8/29")
+                                $dates_array = explode(', ', $available_dates);
+                                $formatted_dates = [];
+                                foreach ($dates_array as $date) {
+                                    $dateObj = DateTime::createFromFormat('Y-m-d', trim($date));
+                                    if ($dateObj) {
+                                        $formatted_dates[] = $dateObj->format('n/j'); // Format as M/D (e.g., 8/27)
+                                    }
+                                }
+                                echo "<p class='available-dates'>Available: " . htmlspecialchars(implode(', ', $formatted_dates)) . "</p>";
+                            }
+                            
+                            echo "</div>
+                                  
+                                    <div class='quantity-controls'>
+                                        <button type='button' onclick='event.stopPropagation(); updateQuantity(this, -1)'>-</button>
+                                        <input type='number' value='1' min='1' max='" . $row['quantity'] . "' onclick='event.stopPropagation()' onchange='validateQuantity(this)'>
+                                        <button type='button' onclick='event.stopPropagation(); updateQuantity(this, 1)'>+</button>
+                                    </div>
+                                  
+                                    <button class='add-to-cart' onclick='event.stopPropagation(); addToCart(" . $row['id'] . ", this)'>Add to Cart</button>
+                                </div>
+                            </div>";
+                        }
+                    } else {
+                        echo "<div class='no-products'>No products available for " . $today . " at the moment.</div>";
+                    }
+                    $stmt->close();
+                    $conn->close();
+                ?>
             </div> <!-- End products-grid -->
         </div> <!-- End scroll-container -->
     </div> <!-- End main-container -->
@@ -395,6 +382,7 @@ if ($cart_truncated) {
         </div>
     </div>
 </div>
+                        </div>
             
 <!-- Available Today Cart JavaScript -->
 <script src="availtoday-cart.js"></script>

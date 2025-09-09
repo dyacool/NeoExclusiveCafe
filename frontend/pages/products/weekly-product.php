@@ -47,6 +47,8 @@ if ($conn->connect_error) {
 }
 ?>
 
+<?php include __DIR__ . "/../../user-includes/bread-crumb/bread-crumb.php"; ?>
+
 <div id="confirmationPopup" class="confirmation-popup"></div>
 <div id="confirmAddToCartModal" class="modal" style="display: none;">
     <div class="modal-content fade-in-pop">
@@ -996,7 +998,6 @@ if ($conn->connect_error) {
     .wrapper {
         display: flex;
         gap: 20px;
-        padding: 20px;
         max-width: 1400px;
         margin: 0 auto;
     }

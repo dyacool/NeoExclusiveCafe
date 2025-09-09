@@ -37,11 +37,6 @@
   --font-size3: 10px;
 }
 
-.wrapper {
-  display: flex;
-  margin: 10px 50px;
-}
-
 @keyframes fadeIn {
   from {
     opacity: 0;
