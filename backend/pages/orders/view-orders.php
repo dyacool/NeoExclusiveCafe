@@ -86,11 +86,15 @@ $items_result = mysqli_stmt_get_result($stmt);
                             <input type="hidden" name="order_id" value="<?php echo $order_id; ?>">
                             <select name="status" onchange="this.form.submit()">
                                 <?php
-                                $statuses = ["Pending", "Preparing", "Ready for Delivery", "Out for Delivery", "Ready for Pick-up", "Picked-up", "Delivered"];
-                                foreach ($statuses as $status) {
-                                    $selected = ($order['status'] == $status) ? 'selected' : '';
-                                    echo "<option value=\"$status\" $selected>$status</option>";
-                                }
+                                    if($order['delivery_method'] == "Pick-up"){
+                                        $statuses = ["Pending", "Preparing", "Ready for Pick-up", "Picked-up"];
+                                    }elseif($order['delivery_method'] == "Delivery"){
+                                        $statuses = ["Pending", "Preparing", "Ready for Delivery", "Out for Delivery", "Delivered"];
+                                    }
+                                    foreach ($statuses as $status) {
+                                        $selected = ($order['status'] == $status) ? 'selected' : '';
+                                        echo "<option value=\"$status\" $selected>$status</option>";
+                                    }
                                 ?>
                             </select>
                         </form>
