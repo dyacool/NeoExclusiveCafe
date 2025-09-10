@@ -98,7 +98,7 @@ if (isset($_SESSION['session_data']) && isset($_SESSION['session_data']['user_da
 if (empty($user['email']) && isset($_SESSION['user_id'])) {
     try {
         $user_id = intval($_SESSION['user_id']);
-        $query = "SELECT firstname, lastname, email FROM crud.users WHERE id = ? LIMIT 1";
+        $query = "SELECT firstname, lastname, email FROM neoexclusivecafe_crud.users WHERE id = ? LIMIT 1";
         $stmt = $conn->prepare($query);
         
         if ($stmt) {

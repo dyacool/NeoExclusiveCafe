@@ -1,7 +1,6 @@
 <?php
 $page_title = "Dashboard";
 
-
 require_once __DIR__ . "/../../user-includes/database.php";
 require_once __DIR__ . "/../../user-includes/navbar/customer-navigation.php";
 require_once __DIR__ . "/../../user-includes/user-header.php";
@@ -72,10 +71,10 @@ $featured_query = "SELECT DISTINCT p.*,
                     ps.name as status_name,
                     p.quantity as stock,
                     GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
-                  FROM crud.products p 
-                  LEFT JOIN crud.product_images pi ON p.id = pi.product_id 
-                  LEFT JOIN crud.product_statuses ps ON p.status_id = ps.id
-                  LEFT JOIN crud.product_day pd ON p.id = pd.product_id
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
                   WHERE p.is_featured = 1 
                   AND p.deleted_at IS NULL
                   AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
@@ -94,7 +93,7 @@ error_log("Total featured products found: " . $total_featured);
 
 // If no featured products found, check the database state
 if ($total_featured == 0) {
-    $check_query = "SELECT COUNT(*) as total FROM crud.products WHERE is_featured = 1";
+    $check_query = "SELECT COUNT(*) as total FROM neoexclusivecafe_crud.products WHERE is_featured = 1";
     $check_result = mysqli_query($conn, $check_query);
     $check_data = mysqli_fetch_assoc($check_result);
     error_log("Total featured products in database (including deleted): " . $check_data['total']);

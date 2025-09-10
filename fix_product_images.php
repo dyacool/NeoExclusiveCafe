@@ -11,8 +11,8 @@ function sanitizeFilename($filename) {
 
 // First, let's check what images actually exist
 $query = "SELECT pi.*, p.name as product_name 
-          FROM crud.product_images pi 
-          JOIN crud.products p ON pi.product_id = p.id";
+          FROM neoexclusivecafe_crud.product_images pi 
+          JOIN neoexclusivecafe_crud.products p ON pi.product_id = p.id";
 $result = mysqli_query($conn, $query);
 
 echo "Checking existing files and updating database...\n";
@@ -60,7 +60,7 @@ while ($row = mysqli_fetch_assoc($result)) {
         if ($found_path !== $new_full_path) {
             if (rename($found_path, $new_full_path)) {
                 // Update database with new path
-                $update_query = "UPDATE crud.product_images SET image_url = ? WHERE id = ?";
+                $update_query = "UPDATE neoexclusivecafe_crud.product_images SET image_url = ? WHERE id = ?";
                 $stmt = mysqli_prepare($conn, $update_query);
                 mysqli_stmt_bind_param($stmt, "si", $new_relative_path, $row['id']);
                 mysqli_stmt_execute($stmt);
@@ -74,7 +74,7 @@ while ($row = mysqli_fetch_assoc($result)) {
         echo "File not found in any location: {$current_path}\n";
         
         // Remove the record if file doesn't exist
-        $delete_query = "DELETE FROM crud.product_images WHERE id = ?";
+        $delete_query = "DELETE FROM neoexclusivecafe_crud.product_images WHERE id = ?";
         $stmt = mysqli_prepare($conn, $delete_query);
         mysqli_stmt_bind_param($stmt, "i", $row['id']);
         mysqli_stmt_execute($stmt);
@@ -83,7 +83,7 @@ while ($row = mysqli_fetch_assoc($result)) {
 }
 
 // Now let's clean up any products that have no images
-$cleanup_query = "DELETE FROM crud.products WHERE id NOT IN (SELECT DISTINCT product_id FROM crud.product_images)";
+$cleanup_query = "DELETE FROM neoexclusivecafe_crud.products WHERE id NOT IN (SELECT DISTINCT product_id FROM neoexclusivecafe_crud.product_images)";
 mysqli_query($conn, $cleanup_query);
 
 echo "Done processing files.\n";

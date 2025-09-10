@@ -68765,3 +68765,94 @@ Stack trace:
 [10-Sep-2025 12:00:26 Europe/Berlin] Time analysis: current=12:00:26 (720 min), opening=08:00:00 (480 min), closing=23:42:00 (1422 min), is_closed=No
 [10-Sep-2025 12:00:26 Europe/Berlin] Cart truncation result: No action needed
 [10-Sep-2025 12:00:26 Europe/Berlin] PHP Warning:  Undefined variable $today in C:\xampp\htdocs\NeoCafe\frontend\pages\products\product-dashboard.php on line 342
+[10-Sep-2025 12:14:15 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[10-Sep-2025 12:14:16 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[10-Sep-2025 12:14:16 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[10-Sep-2025 12:14:18 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[10-Sep-2025 12:14:18 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[10-Sep-2025 12:14:18 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[10-Sep-2025 12:14:18 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: SELECT command denied to user '429123'@'223.25.25.130' for table `crud`.`products` in C:\xampp\htdocs\NeoCafe\frontend\pages\home\user-dashboard.php:86
+Stack trace:
+#0 C:\xampp\htdocs\NeoCafe\frontend\pages\home\user-dashboard.php(86): mysqli_prepare(Object(mysqli), 'SELECT DISTINCT...')
+#1 {main}
+  thrown in C:\xampp\htdocs\NeoCafe\frontend\pages\home\user-dashboard.php on line 86
+[10-Sep-2025 12:15:12 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[10-Sep-2025 12:15:12 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[10-Sep-2025 12:15:12 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[10-Sep-2025 12:15:14 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[10-Sep-2025 12:15:14 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[10-Sep-2025 12:15:14 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[10-Sep-2025 12:15:14 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: SELECT command denied to user '429123'@'223.25.25.130' for table `crud`.`products` in C:\xampp\htdocs\NeoCafe\frontend\pages\home\user-dashboard.php:86
+Stack trace:
+#0 C:\xampp\htdocs\NeoCafe\frontend\pages\home\user-dashboard.php(86): mysqli_prepare(Object(mysqli), 'SELECT DISTINCT...')
+#1 {main}
+  thrown in C:\xampp\htdocs\NeoCafe\frontend\pages\home\user-dashboard.php on line 86
+[10-Sep-2025 12:15:20 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[10-Sep-2025 12:15:21 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[10-Sep-2025 12:15:21 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[10-Sep-2025 12:15:23 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[10-Sep-2025 12:15:23 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[10-Sep-2025 12:15:23 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[10-Sep-2025 12:15:26 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[10-Sep-2025 12:15:27 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[10-Sep-2025 12:15:27 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[10-Sep-2025 12:15:28 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[10-Sep-2025 12:15:29 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[10-Sep-2025 12:15:29 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[10-Sep-2025 12:15:29 Europe/Berlin] Business hours: 08:00:00 - 23:42:00
+[10-Sep-2025 12:15:29 Europe/Berlin] Time analysis: current=12:15:29 (735 min), opening=08:00:00 (480 min), closing=23:42:00 (1422 min), is_closed=No
+[10-Sep-2025 12:15:29 Europe/Berlin] Cart truncation result: No action needed
+[10-Sep-2025 12:15:30 Europe/Berlin] PHP Warning:  Undefined variable $today in C:\xampp\htdocs\NeoCafe\frontend\pages\products\product-dashboard.php on line 342
+[10-Sep-2025 12:15:42 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[10-Sep-2025 12:15:42 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[10-Sep-2025 12:15:42 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[10-Sep-2025 12:15:42 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: SELECT command denied to user '429123'@'223.25.25.130' for table `crud`.`products` in C:\xampp\htdocs\NeoCafe\frontend\pages\home\user-dashboard.php:86
+Stack trace:
+#0 C:\xampp\htdocs\NeoCafe\frontend\pages\home\user-dashboard.php(86): mysqli_prepare(Object(mysqli), 'SELECT DISTINCT...')
+#1 {main}
+  thrown in C:\xampp\htdocs\NeoCafe\frontend\pages\home\user-dashboard.php on line 86
+[10-Sep-2025 14:01:32 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[10-Sep-2025 14:01:32 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[10-Sep-2025 14:01:32 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[10-Sep-2025 14:01:32 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: SELECT command denied to user '429123'@'223.25.25.130' for table `crud`.`products` in C:\xampp\htdocs\NeoCafe\frontend\pages\home\user-dashboard.php:86
+Stack trace:
+#0 C:\xampp\htdocs\NeoCafe\frontend\pages\home\user-dashboard.php(86): mysqli_prepare(Object(mysqli), 'SELECT DISTINCT...')
+#1 {main}
+  thrown in C:\xampp\htdocs\NeoCafe\frontend\pages\home\user-dashboard.php on line 86
+[10-Sep-2025 14:05:27 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[10-Sep-2025 14:05:27 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[10-Sep-2025 14:05:27 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[10-Sep-2025 14:05:27 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[10-Sep-2025 14:05:27 Europe/Berlin] Total featured products found: 2
+[10-Sep-2025 14:05:28 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[10-Sep-2025 14:05:36 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[10-Sep-2025 14:05:37 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[10-Sep-2025 14:05:37 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[10-Sep-2025 14:05:37 Europe/Berlin] Business hours: 08:00:00 - 23:42:00
+[10-Sep-2025 14:05:37 Europe/Berlin] Time analysis: current=14:05:37 (845 min), opening=08:00:00 (480 min), closing=23:42:00 (1422 min), is_closed=No
+[10-Sep-2025 14:05:37 Europe/Berlin] Cart truncation result: No action needed
+[10-Sep-2025 14:05:37 Europe/Berlin] PHP Warning:  Undefined variable $today in C:\xampp\htdocs\NeoCafe\frontend\pages\products\product-dashboard.php on line 342
+[10-Sep-2025 14:05:44 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[10-Sep-2025 14:05:44 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[10-Sep-2025 14:05:44 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
