@@ -167,6 +167,63 @@ if ($_POST) {
     error_log("Form submitted with data: " . print_r($_POST, true));
 }
 
+// Handle Forgot Password
+if (isset($_POST["reset-submit"])) {
+    if (!isset($_POST["email"]) || empty($_POST["email"])) {
+        $errorMessage = "Please enter your email.";
+    } else {
+        $email = $_POST["email"];
+        $token = bin2hex(random_bytes(16));
+        $token_hash = hash("sha256", $token);
+        $expiry = date("Y-m-d H:i:s", time() + 60 * 30);
+        
+        $sql = "UPDATE users
+                SET reset_token_hash = ?,
+                    reset_token_expires_at = ?
+                WHERE email = ?";
+
+        $stmt = mysqli_prepare($conn, $sql);
+        mysqli_stmt_bind_param($stmt, "sss", $token_hash, $expiry, $email);
+        mysqli_stmt_execute($stmt);
+
+        if (mysqli_stmt_affected_rows($stmt)) {
+            $mail = require __DIR__ . "/../../../backend/config/mailer/mailer.php";
+            $mail->setFrom("noreplyneoexclusive@gmail.com", "NeoExclusive");
+            $mail->addAddress($email);
+            $mail->Subject = "Password Reset Request";
+            $mail->Body = <<<END
+            <p>Hello,</p>
+            <p>Click <a href="http://neocafe.cafe:8080/frontend/login/user/forgot-pw-reset.php?token=$token">here</a>
+            to reset your password.</p>
+            <p>This link will expire in 30 minutes.</p>
+            END;
+
+            try {
+                $mail->send();
+                $successMessage = "Password reset email sent. Please check your inbox.";
+                
+                // Add JavaScript to switch back to login form after showing message
+                echo "<script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        setTimeout(function() {
+                            var backToLoginLink = document.getElementById('back-to-login');
+                            if (backToLoginLink) {
+                                backToLoginLink.click();
+                            }
+                        }, 3000);
+                    });
+                </script>";
+            } catch (Exception $e) {
+                $errorMessage = "Message could not be sent. Please try again later.";
+                error_log("Email sending failed: " . $e->getMessage() . " | SMTP: " . $mail->ErrorInfo);
+            }
+        } else {
+            $errorMessage = "No account found with this email.";
+        }
+        mysqli_stmt_close($stmt);
+    }
+}
+
 // Handle User Login
 if (isset($_POST["signin-submit"])) {
     $username = trim($_POST["username"] ?? "");
@@ -321,6 +378,7 @@ if (isset($_POST["signin-submit"])) {
         }
     </style>
 </head>
+<?php include __DIR__ . "/../../../frontend/user-includes/navbar/customer-navigation.php"; ?>
 <body>
     <!-- Error Alert -->
     <?php if (!empty($errorMessage)): ?>
@@ -375,7 +433,7 @@ if (isset($_POST["signin-submit"])) {
                         </div>
                         
                         <div class="utility-row">
-                            <a href="forgot-password.php" class="forgot-link">Forgot password?</a>
+                            <a href="#" class="forgot-link" id="show-forgot">Forgot password?</a>
                         </div>
                         
                         <input type="submit" name="signin-submit" value="Login" class="submit-btn">
@@ -384,6 +442,25 @@ if (isset($_POST["signin-submit"])) {
                     <div class="toggle-section">
                         <div class="toggle-text">Don't have an account yet?</div>
                         <a href="#" id="show-signup" class="toggle-link">Create Account</a>
+                    </div>
+                </div>
+
+                <!-- Forgot Password Form -->
+                <div id="forgot-form" class="auth-form hidden">
+                    <form action="login-signup.php" method="post">
+                        <h1 class="form-title">Forgot Password</h1>
+                        <p class="form-subtitle">Enter your email to reset your password.</p>
+                        
+                        <div class="input-group">
+                            <input type="email" name="email" class="input-field" placeholder="Email" required>
+                        </div>
+                        
+                        <input type="submit" name="reset-submit" value="Reset Password" class="submit-btn">
+                    </form>
+                    
+                    <div class="toggle-section">
+                        <div class="toggle-text">Remember your password?</div>
+                        <a href="#" id="back-to-login" class="toggle-link">Back to Login</a>
                     </div>
                 </div>
 
@@ -441,27 +518,47 @@ if (isset($_POST["signin-submit"])) {
         document.addEventListener('DOMContentLoaded', function() {
             const loginForm = document.getElementById('login-form');
             const signupForm = document.getElementById('signup-form');
+            const forgotForm = document.getElementById('forgot-form');
             const showSignupLink = document.getElementById('show-signup');
             const showLoginLink = document.getElementById('show-login');
+            const showForgotLink = document.getElementById('show-forgot');
+            const backToLoginLink = document.getElementById('back-to-login');
+
+            function showForm(formToShow) {
+                // Hide all forms
+                [loginForm, signupForm, forgotForm].forEach(form => {
+                    if (form) form.classList.add('hidden');
+                });
+                // Show the requested form
+                if (formToShow) formToShow.classList.remove('hidden');
+            }
 
             // Form switching functionality
             if (showSignupLink) {
                 showSignupLink.addEventListener('click', function(e) {
                     e.preventDefault();
-                    if (loginForm && signupForm) {
-                        loginForm.classList.add('hidden');
-                        signupForm.classList.remove('hidden');
-                    }
+                    showForm(signupForm);
                 });
             }
 
             if (showLoginLink) {
                 showLoginLink.addEventListener('click', function(e) {
                     e.preventDefault();
-                    if (loginForm && signupForm) {
-                        signupForm.classList.add('hidden');
-                        loginForm.classList.remove('hidden');
-                    }
+                    showForm(loginForm);
+                });
+            }
+
+            if (showForgotLink) {
+                showForgotLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showForm(forgotForm);
+                });
+            }
+
+            if (backToLoginLink) {
+                backToLoginLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showForm(loginForm);
                 });
             }
 

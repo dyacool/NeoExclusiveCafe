@@ -132,8 +132,13 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     </div>
                 </div>
 
+                <style>
+                    .hide-on-login {
+                        display: none !important;
+                    }
+                </style>
                 <?php if ($user): ?>
-                    <div class="profile-container">
+                    <div class="profile-container auth-buttons">
                     <a href="<?php echo $is_admin_logged_in ? '/backend/pages/homepage/admin-homepage.php' : '/frontend/pages/profile/profile.php'; ?>"class="profile-link" id="profile-trigger">
                             <div class="profile-avatar">
                                 <span class="profile-initial"><?php echo substr(htmlspecialchars($user['firstname']), 0, 1); ?></span>
@@ -152,10 +157,28 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         </div>
                     </div>
                 <?php else: ?>
-                    <a href="../../login/user/login-signup.php" class="login-link">
+                    <a href="../../login/user/login-signup.php" class="login-link auth-buttons">
                         <span>Login</span>
                     </a>
                 <?php endif; ?>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        // Check if we're on the login/signup page
+                        const isLoginPage = window.location.pathname.includes('/frontend/login/user/login-signup.php');
+                        
+                        // Get all auth buttons
+                        const authButtons = document.querySelectorAll('.auth-buttons');
+                        
+                        // Add or remove the hide class based on the current page
+                        authButtons.forEach(button => {
+                            if (isLoginPage) {
+                                button.classList.add('hide-on-login');
+                            } else {
+                                button.classList.remove('hide-on-login');
+                            }
+                        });
+                    });
+                </script>
             </div>
         </div>
 
