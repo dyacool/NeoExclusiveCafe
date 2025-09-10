@@ -286,12 +286,12 @@ $conn->close();
                      <select class="statusGrp" name="status_id" id="statusSelect">
                          <option value="1">Pick Up</option>
                          <option value="2">Delivery</option>
-                         <option value="3">Available Today</option>
+                         <option value="3">Same Day Order</option>
                      </select>
 
                      <!-- New dropdown for Available Today options -->
                      <div id="availtodayOptions" style="display: none;">
-                         <label>Available Today Options:</label>
+                         <label>Delivery Option:</label>
                          <select class="availtoday-status" name="availtoday_status_id">
                              <option value="">Select option...</option>
                              <option value="1">Pick Up</option>
@@ -300,7 +300,7 @@ $conn->close();
                      </div>
 
                     <!-- Added Quantity Available For Pre-Order field -->
-                    <label>Quantity Available For Pre-Order:</label>
+                    <label>Stocks:</label>
                     <input class="quantity" type="number" name="quantity" min="0" step="1" value="0" required>
 
                     <!-- Available Days for regular products (Pick Up/Delivery) -->
@@ -340,7 +340,7 @@ $conn->close();
 
                     <!-- Calendar for Today's Products -->
                     <div id="todaysProductCalendarContainer" style="display: none;">
-                        <label>Select Available Dates for Today's Product:</label>
+                        <label>Select Available Dates:</label>
                         <div id="todaysProductCalendar"></div>
                         <input type="hidden" id="todaysProductDates" name="todays_product_dates">
                     </div>
