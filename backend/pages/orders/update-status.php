@@ -37,17 +37,7 @@ if (mysqli_stmt_execute($stmt)) {
         "Picked-up" => "Your order #$order_id has been picked up."
     ];
 
-    if (array_key_exists($status, $statusMessages)) {
-        // Check if user exists before creating notification
-        $userCheckStmt = mysqli_prepare($conn, "SELECT id FROM users WHERE id = ?");
-        mysqli_stmt_bind_param($userCheckStmt, "i", $user_id);
-        mysqli_stmt_execute($userCheckStmt);
-        mysqli_stmt_store_result($userCheckStmt);
-        if (mysqli_stmt_num_rows($userCheckStmt) > 0) {
-            $notification->create($user_id, "order_status", $statusMessages[$status]);
-        }
-        mysqli_stmt_close($userCheckStmt);
-    }
+    // Note: Order notification is handled by createOrderNotification method below
 
     // Use the createOrderNotification function for detailed notifications
     $notification->createOrderNotification($order_id, $status);

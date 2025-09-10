@@ -1,9 +1,9 @@
 <?php
 function getDBConnection() {
-    $servername = "localhost";
-    $username = "root";
-    $password = "";
-    $dbname = "crud";
+    $servername = "mysql-neoexclusivecafe.alwaysdata.net";
+    $username = "429123";
+    $password = "NeoCafe123";
+    $dbname = "neoexclusivecafe_crud";
     
     $conn = new mysqli($servername, $username, $password, $dbname);
     

@@ -8,7 +8,7 @@ if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
 // Include config file for base URL
 require_once __DIR__ . "/../admin-includes/config.php";
 
-$conn = new mysqli("localhost", "root", "", "crud");
+$conn = new mysqli("mysql-neoexclusivecafe.alwaysdata.net", "429123", "NeoCafe123", "neoexclusivecafe_crud");
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }

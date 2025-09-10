@@ -6,7 +6,7 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once "../user-includes/preview-mode.php";
 
 // Direct database connection
-$conn = new mysqli("localhost", "root", "", "crud");
+$conn = new mysqli("mysql-neoexclusivecafe.alwaysdata.net", "429123", "NeoCafe123", "neoexclusivecafe_crud");
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }

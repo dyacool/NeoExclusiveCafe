@@ -376,6 +376,76 @@ try {
         }
 
         error_log("Successfully inserted order item with order_id: " . $order_id);
+        
+        // Update product inventory - subtract ordered quantity
+        $product_id = $item['product_id'] ?? null;
+        $ordered_quantity = $item['quantity'];
+        
+        if ($product_id) {
+            // First, check current stock
+            $stock_check_sql = "SELECT quantity, status_id, name FROM products WHERE id = ?";
+            $stock_check_stmt = $conn->prepare($stock_check_sql);
+            $stock_check_stmt->bind_param("i", $product_id);
+            $stock_check_stmt->execute();
+            $stock_result = $stock_check_stmt->get_result();
+            
+            if ($stock_row = $stock_result->fetch_assoc()) {
+                $current_stock = $stock_row['quantity'];
+                $current_status_id = $stock_row['status_id'];
+                $product_name = $stock_row['name'];
+                
+                // Check if there's sufficient stock
+                if ($current_stock >= $ordered_quantity) {
+                    // Update product stock
+                    $update_stock_sql = "UPDATE products SET quantity = quantity - ? WHERE id = ?";
+                    $update_stock_stmt = $conn->prepare($update_stock_sql);
+                    $update_stock_stmt->bind_param("ii", $ordered_quantity, $product_id);
+                    
+                    if ($update_stock_stmt->execute()) {
+                        error_log("Successfully updated inventory for product ID $product_id: reduced by $ordered_quantity");
+                        
+                        // Check if product quantity reached 0 and update status to unavailable
+                        $new_stock = $current_stock - $ordered_quantity;
+                        if ($new_stock <= 0) {
+                            $new_status_id = 0;
+                            
+                            // Determine the appropriate unavailable status based on current status
+                            if ($current_status_id == 1) {
+                                // Currently Pick Up - set to Unavailable Pick Up (ID 4)
+                                $new_status_id = 4;
+                            } else if ($current_status_id == 2) {
+                                // Currently Delivery - set to Unavailable Delivery (ID 5)
+                                $new_status_id = 5;
+                            } else {
+                                // For any other status, default to Unavailable Delivery (ID 5)
+                                $new_status_id = 5;
+                            }
+                            
+                            $update_status_sql = "UPDATE products SET status_id = ? WHERE id = ?";
+                            $update_status_stmt = $conn->prepare($update_status_sql);
+                            $update_status_stmt->bind_param("ii", $new_status_id, $product_id);
+                            
+                            if ($update_status_stmt->execute()) {
+                                error_log("Product '$product_name' (ID: $product_id) marked as unavailable due to zero stock");
+                            } else {
+                                error_log("Failed to update product status for product ID $product_id: " . $update_status_stmt->error);
+                            }
+                            $update_status_stmt->close();
+                        }
+                    } else {
+                        error_log("Failed to update inventory for product ID $product_id: " . $update_stock_stmt->error);
+                    }
+                    $update_stock_stmt->close();
+                } else {
+                    error_log("Insufficient stock for product '$product_name' (ID: $product_id). Available: $current_stock, Requested: $ordered_quantity");
+                }
+            } else {
+                error_log("Product not found for inventory update: product ID $product_id");
+            }
+            $stock_check_stmt->close();
+        } else {
+            error_log("No product_id found for inventory update in item: " . print_r($item, true));
+        }
     }
     
     // Add the generated order_id to orderDetails for email

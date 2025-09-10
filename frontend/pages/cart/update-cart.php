@@ -22,7 +22,8 @@ $cart_id = $_POST["cart_id"];
 $quantity = $_POST["quantity"];
 $user_id = $_SESSION["user_id"];
 
-$conn = new mysqli("localhost", "root", "", "crud");
+// Include database connection
+require_once "../../user-includes/database.php";
 if ($conn->connect_error) {
     echo json_encode(["success" => false, "error" => "Database connection failed"]);
     exit();

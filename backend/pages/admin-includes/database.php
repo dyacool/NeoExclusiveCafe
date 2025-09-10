@@ -48,10 +48,10 @@ if (headers_sent()) {
 
 // Database connection parameters
 $db_params = array(
-    'hostname' => 'localhost',
-    'username' => 'root',
-    'password' => '',
-    'database' => 'crud'
+    'hostname' => 'mysql-neoexclusivecafe.alwaysdata.net',
+    'username' => '429123',
+    'password' => 'NeoCafe123',
+    'database' => 'neoexclusivecafe_crud'
 );
 
 // Store the debug info in a variable instead of outputting directly
@@ -71,10 +71,11 @@ if (!isset($suppress_db_debug) &&
 }
 
 try {
-    $host = 'localhost';
-    $dbname = 'crud';
-    $username = 'root';
-    $password = '';
+    // Use the parameters from the array to avoid duplication
+    $host = $db_params['hostname'];
+    $dbname = $db_params['database'];
+    $username = $db_params['username'];
+    $password = $db_params['password'];
 
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

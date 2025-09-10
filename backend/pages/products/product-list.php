@@ -179,10 +179,8 @@
                 <table class="products-table">
                     <tbody id="productTableBody">
                         <?php
-                            $conn = new mysqli("localhost", "root", "", "crud");
-                            if ($conn->connect_error) {
-                                die("Connection failed: " . $conn->connect_error);
-                            }
+                            // Include database connection
+                            require_once "../admin-includes/database.php";
 
                             // Count total products for pagination
                             $count_sql = "SELECT COUNT(*) as total FROM products WHERE deleted_at IS NULL";

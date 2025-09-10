@@ -4,13 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 require_once "../../user-includes/database.php";
 
-// Database connection
-$conn = new mysqli("localhost", "root", "", "crud");
-
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+// Database connection is already established in database.php as $conn
 
 // Fetch about content
 $sql = "SELECT * FROM about_content WHERE id = 1";

@@ -3,11 +3,11 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Database configuration
-$db_host = 'localhost';
-$db_user = 'root';
-$db_pass = '';
-$db_name = 'crud';
+// Database configuration for AlwaysData
+$db_host = 'mysql-neoexclusivecafe.alwaysdata.net';
+$db_user = '429123';
+$db_pass = 'NeoCafe123';
+$db_name = 'neoexclusivecafe_crud';
 
 // Create connection with error handling
 try {
@@ -36,13 +36,13 @@ function closeConnection() {
     global $conn;
     if (isset($conn) && $conn instanceof mysqli) {
         try {
-            // Check if connection is still valid without using ping()
-            if (!$conn->connect_error) {
+            // Check if connection is still open
+            if ($conn->thread_id !== null) {
                 mysqli_close($conn);
             }
         } catch (Exception $e) {
             // Silently ignore connection close errors
-            error_log("Database connection already closed or invalid");
+            error_log("Database connection close error: " . $e->getMessage());
         }
     }
 }

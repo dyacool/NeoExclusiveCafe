@@ -98,7 +98,7 @@ if (isset($_SESSION['session_data']) && isset($_SESSION['session_data']['user_da
 if (empty($user['email']) && isset($_SESSION['user_id'])) {
     try {
         $user_id = intval($_SESSION['user_id']);
-        $query = "SELECT firstname, lastname, email FROM crud.users WHERE id = ? LIMIT 1";
+        $query = "SELECT firstname, lastname, email FROM neoexclusivecafe_crud.users WHERE id = ? LIMIT 1";
         $stmt = $conn->prepare($query);
         
         if ($stmt) {
@@ -273,6 +273,7 @@ if (!empty($selected_cart_ids)) {
                         'price' => $item['price'],
                         'quantity' => $item['quantity'],
                         'cart_id' => $item['id'],
+                        'product_id' => $item['product_id'],
                         'status_id' => $item['status_id'],
                         'available_days' => $item['available_days']
                     ];
@@ -303,16 +304,44 @@ if (empty($cart_items)) {
 }
 
 // Determine shipping method based on product status
-$shipping_method = 'pickup'; // Default to pickup for all items
+$shipping_method = 'pickup'; // Default
+$has_pickup_items = false;
+$has_delivery_items = false;
 
 if (!empty($cart_items)) {
-    error_log("Setting shipping method to pickup for " . count($cart_items) . " cart items");
+    // Check what types of products are in the cart
+    foreach ($cart_items as $item) {
+        if ($item['status_id'] == 1) {
+            $has_pickup_items = true;
+        } elseif ($item['status_id'] == 2) {
+            $has_delivery_items = true;
+        }
+    }
+    
+    // Determine shipping method based on product types
+    if ($has_delivery_items && !$has_pickup_items) {
+        // Only delivery items - force delivery
+        $shipping_method = 'delivery';
+        error_log("Cart contains only delivery items - setting shipping method to delivery");
+    } elseif ($has_pickup_items && !$has_delivery_items) {
+        // Only pickup items - force pickup
+        $shipping_method = 'pickup';
+        error_log("Cart contains only pickup items - setting shipping method to pickup");
+    } else {
+        // Mixed items - let user choose, default to pickup
+        $shipping_method = 'pickup';
+        error_log("Cart contains mixed items - defaulting to pickup, user can choose");
+    }
+    
+    error_log("Cart analysis: " . count($cart_items) . " items, pickup: $has_pickup_items, delivery: $has_delivery_items, method: $shipping_method");
 } else {
     error_log("No cart items to determine shipping method - keeping default (pickup)");
 }
 
-// Store shipping method in session
+// Store shipping method and product type info in session
 $_SESSION['shipping_method'] = $shipping_method;
+$_SESSION['has_pickup_items'] = $has_pickup_items;
+$_SESSION['has_delivery_items'] = $has_delivery_items;
 
 // Debug output
 error_log("Cart items: " . print_r($cart_items, true));
@@ -682,7 +711,161 @@ $debug_info = [
     }
     
     .shipping-method-notice strong {
-      color: #1b5e20;
+        color: #1b5e20;
+    }
+
+    /* Location Modal Styling */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+    }
+
+    .modal-content {
+        background-color: white;
+        margin: 15% auto;
+        padding: 0;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    .modal-header {
+        background-color: #256035;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px 8px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-header h2 {
+        margin: 0;
+        font-size: 1.2rem;
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 0;
+        line-height: 1;
+    }
+
+    .close-btn:hover {
+        opacity: 0.7;
+    }
+
+    .modal-body {
+        padding: 20px;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+        color: #333;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        box-sizing: border-box;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #256035;
+        box-shadow: 0 0 0 2px rgba(37, 96, 53, 0.2);
+    }
+
+    optgroup {
+        font-weight: bold;
+        color: #256035;
+    }
+
+    option {
+        font-weight: normal;
+        color: #333;
+        padding: 5px;
+    }
+
+    .form-text {
+        font-size: 12px;
+        color: #6c757d;
+        margin-top: 5px;
+    }
+
+    #saveLocationBtn {
+        background-color: #256035;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        width: 100%;
+    }
+
+    #saveLocationBtn:hover {
+        background-color: #1e4a2a;
+    }
+
+    /* Place Order Button Disabled State */
+    .btn-primary:disabled,
+    .place-order-btn:disabled {
+        background-color: #6c757d !important;
+        cursor: not-allowed !important;
+        opacity: 0.7 !important;
+        transform: none !important;
+        box-shadow: none !important;
+        border-color: #6c757d !important;
+    }
+
+    .btn-primary:disabled:hover,
+    .place-order-btn:disabled:hover {
+        background-color: #6c757d !important;
+        transform: none !important;
+        box-shadow: none !important;
+        border-color: #6c757d !important;
+    }
+
+    /* Loading Spinner */
+    .spinner {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        border-top-color: transparent;
+        animation: spin 1s ease-in-out infinite;
+        margin-right: 8px;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .btn-processing {
+        position: relative;
+        pointer-events: none;
     }
     
     /* Shipping Options Improvements */
@@ -1531,6 +1714,12 @@ $debug_info = [
             checkoutForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 
+                // Prevent double submission
+                if (orderProcessing) {
+                    console.log('Order already being processed, ignoring duplicate submission');
+                    return;
+                }
+                
                 try {
                     // Get all form data
                     const formData = new FormData(this);
@@ -1699,18 +1888,34 @@ $debug_info = [
         <!-- Combined Shipping Options & Details -->
         <div class="section-card shipping-details">
             <h2>Shipping Options</h2>
+            
+            <?php if ($has_pickup_items && $has_delivery_items): ?>
+                <div class="shipping-method-notice">
+                    <p><strong>Mixed Cart:</strong> Your cart contains both pickup and delivery items. Please choose your preferred method.</p>
+                </div>
+            <?php elseif ($has_delivery_items && !$has_pickup_items): ?>
+                <div class="shipping-method-notice">
+                    <p><strong>Delivery Required:</strong> All items in your cart are delivery-only products.</p>
+                    <p><strong>Delivery Areas:</strong> We deliver to Sta. Rosa, Cabuyao, Calamba, Binan (Laguna), Silang, and Tagaytay (Cavite) only.</p>
+                </div>
+            <?php elseif ($has_pickup_items && !$has_delivery_items): ?>
+                <div class="shipping-method-notice">
+                    <p><strong>Pickup Required:</strong> All items in your cart are pickup-only products.</p>
+                </div>
+            <?php endif; ?>
+            
             <div class="delivery-type">
                 <label class="radio-option">
                     <input type="radio" id="pickup" name="delivery_method" value="pickup" 
                            <?= $shipping_method === 'pickup' ? 'checked' : '' ?>
-                           <?= $shipping_method === 'delivery' ? 'disabled' : '' ?>>
-                    <span>Pick Up</span>
+                           <?= !$has_pickup_items ? 'disabled' : '' ?>>
+                    <span>Pick Up <?= !$has_pickup_items ? '(Not available for selected items)' : '' ?></span>
                 </label>
                 <label class="radio-option">
                     <input type="radio" id="delivery" name="delivery_method" value="delivery"
                            <?= $shipping_method === 'delivery' ? 'checked' : '' ?>
-                           <?= $shipping_method === 'pickup' ? 'disabled' : '' ?>>
-                    <span>Delivery</span>
+                           <?= !$has_delivery_items ? 'disabled' : '' ?>>
+                    <span>Delivery <?= !$has_delivery_items ? '(Not available for selected items)' : '' ?></span>
                 </label>
             </div>
     
@@ -1861,28 +2066,29 @@ $debug_info = [
         </div>
         <div class="modal-body">
             <div class="form-group mb-3">
-                <label class="form-label">Region *</label>
-                <select name="region" class="form-control form-control-md" id="region"></select>
-                <input type="hidden" class="form-control form-control-md" name="region_text" id="region-text" required>
+                <label class="form-label">Select Delivery Location *</label>
+                <select name="delivery_location" class="form-control form-control-md" id="delivery_location" required>
+                    <option value="">Choose your delivery location</option>
+                    <optgroup label="Laguna">
+                        <option value="Sta. Rosa, Laguna 4026">Sta. Rosa, Laguna 4026</option>
+                        <option value="Sta. Rosa, Laguna 4034">Sta. Rosa, Laguna 4034</option>
+                        <option value="Cabuyao, Laguna 4025">Cabuyao, Laguna 4025</option>
+                        <option value="Calamba, Laguna 4027">Calamba, Laguna 4027</option>
+                        <option value="Calamba, Laguna 4028">Calamba, Laguna 4028</option>
+                        <option value="Calamba, Laguna 4029">Calamba, Laguna 4029</option>
+                        <option value="Binan, Laguna 4024">Binan, Laguna 4024</option>
+                    </optgroup>
+                    <optgroup label="Cavite">
+                        <option value="Silang, Cavite 4118">Silang, Cavite 4118</option>
+                        <option value="Tagaytay, Cavite 4120">Tagaytay, Cavite 4120</option>
+                    </optgroup>
+                </select>
             </div>
             <div class="form-group mb-3">
-                <label class="form-label">Province *</label>
-                <select name="province" class="form-control form-control-md" id="province"></select>
-                <input type="hidden" class="form-control form-control-md" name="province_text" id="province-text" required>
-            </div>
-            <div class="form-group mb-3">
-                <label class="form-label">City / Municipality *</label>
-                <select name="city" class="form-control form-control-md" id="city"></select>
-                <input type="hidden" class="form-control form-control-md" name="city_text" id="city-text" required>
-            </div>
-            <div class="form-group mb-3">
-                <label class="form-label">Barangay *</label>
-                <select name="barangay" class="form-control form-control-md" id="barangay"></select>
-                <input type="hidden" class="form-control form-control-md" name="barangay_text" id="barangay-text" required>
-            </div>
-            <div class="form-group mb-3">
-                <label for="street-text" class="form-label">Street (Optional)</label>
-                <input type="text" class="form-control form-control-md" name="street_text" id="street-text">
+                <label class="form-label">Complete Address *</label>
+                <textarea name="complete_address" class="form-control" id="complete_address" rows="3" 
+                         placeholder="Enter your complete address (house number, street, subdivision, etc.)" required></textarea>
+                <small class="form-text text-muted">Please provide specific details like house/building number, street name, subdivision, landmarks, etc.</small>
             </div>
             <button type="button" id="saveLocationBtn" class="btn btn-success">Save Location</button>
         </div>
@@ -1893,8 +2099,6 @@ $debug_info = [
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 <!-- Add jQuery -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<!-- Add Address Selector Script -->
-<script src="ph-address-selector.js"></script>
 
 <script>
 // Modal functionality
@@ -1920,23 +2124,24 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     saveLocationBtn.addEventListener('click', function() {
-        const region = document.getElementById('region-text').value;
-        const province = document.getElementById('province-text').value;
-        const city = document.getElementById('city-text').value;
-        const barangay = document.getElementById('barangay-text').value;
-        const street = document.getElementById('street-text').value;
+        const deliveryLocation = document.getElementById('delivery_location').value;
+        const completeAddress = document.getElementById('complete_address').value;
 
-        if (!region || !province || !city || !barangay) {
-            alert('Please fill in all required fields');
+        if (!deliveryLocation) {
+            alert('Please select a delivery location');
             return;
         }
 
-        const address = street 
-            ? `${street}, Brgy. ${barangay}, ${city}, ${province}, ${region}`
-            : `Brgy. ${barangay}, ${city}, ${province}, ${region}`;
+        if (!completeAddress.trim()) {
+            alert('Please enter your complete address');
+            return;
+        }
+
+        // Combine the selected location with the complete address
+        const fullAddress = `${completeAddress.trim()}, ${deliveryLocation}`;
 
         if (deliveryAddressInput) {
-            deliveryAddressInput.value = address;
+            deliveryAddressInput.value = fullAddress;
         }
 
         modal.style.display = 'none';
@@ -2011,19 +2216,104 @@ async function handleCardPayment(paymentResult) {
     }
 }
 
+// Global variable to track if order is being processed
+let orderProcessing = false;
+let countdownTimer = null;
+
+// Check if there's an ongoing order process from previous session
+document.addEventListener('DOMContentLoaded', function() {
+    const orderStartTime = sessionStorage.getItem('orderStartTime');
+    if (orderStartTime) {
+        const elapsed = Math.floor((Date.now() - parseInt(orderStartTime)) / 1000);
+        const remaining = 20 - elapsed;
+        
+        if (remaining > 0) {
+            // Continue countdown from where it left off
+            const submitButton = document.querySelector('button[type="submit"]');
+            const buttonText = submitButton.querySelector('.button-text') || submitButton;
+            
+            orderProcessing = true;
+            submitButton.disabled = true;
+            submitButton.classList.add('btn-processing');
+            submitButton.style.opacity = '0.7';
+            submitButton.style.cursor = 'not-allowed';
+            
+            // Start countdown with remaining time
+            startCountdownTimer(submitButton, buttonText, remaining);
+        } else {
+            // Time expired, clear the session storage
+            sessionStorage.removeItem('orderStartTime');
+        }
+    }
+});
+
 function setLoadingState(isLoading) {
     const submitButton = document.querySelector('button[type="submit"]');
     const buttonText = submitButton.querySelector('.button-text') || submitButton;
     
     if (isLoading) {
+        orderProcessing = true;
         submitButton.disabled = true;
-        buttonText.textContent = 'Processing Payment...';
+        submitButton.classList.add('btn-processing');
+        
+        // Add spinner and text
+        buttonText.innerHTML = '<span class="spinner"></span>Processing Order...';
         submitButton.style.opacity = '0.7';
+        submitButton.style.cursor = 'not-allowed';
+        
+        // Store start time in session storage
+        sessionStorage.setItem('orderStartTime', Date.now().toString());
+        
+        // Start 20-second countdown to re-enable button
+        startCountdownTimer(submitButton, buttonText);
     } else {
-        submitButton.disabled = false;
-        buttonText.textContent = 'Place Order';
-        submitButton.style.opacity = '1';
+        // Only re-enable if not in countdown mode
+        if (!orderProcessing) {
+            submitButton.disabled = false;
+            submitButton.classList.remove('btn-processing');
+            buttonText.innerHTML = 'Place Order';
+            submitButton.style.opacity = '1';
+            submitButton.style.cursor = 'pointer';
+        }
     }
+}
+
+function startCountdownTimer(submitButton, buttonText, initialCountdown = 20) {
+    let countdown = initialCountdown;
+    
+    // Clear any existing timer
+    if (countdownTimer) {
+        clearInterval(countdownTimer);
+    }
+    
+    // Update button text with countdown
+    const updateCountdown = () => {
+        if (countdown > 0) {
+            buttonText.innerHTML = `<span class="spinner"></span>Please wait... (${countdown}s)`;
+            countdown--;
+        } else {
+            // Re-enable button after countdown
+            orderProcessing = false;
+            submitButton.disabled = false;
+            submitButton.classList.remove('btn-processing');
+            buttonText.innerHTML = 'Place Order';
+            submitButton.style.opacity = '1';
+            submitButton.style.cursor = 'pointer';
+            
+            // Clear the timer and session storage
+            clearInterval(countdownTimer);
+            countdownTimer = null;
+            sessionStorage.removeItem('orderStartTime');
+            
+            console.log('Order button re-enabled after countdown completed');
+        }
+    };
+    
+    // Start the countdown immediately
+    updateCountdown();
+    
+    // Continue countdown every second
+    countdownTimer = setInterval(updateCountdown, 1000);
 }
 </script>
 
