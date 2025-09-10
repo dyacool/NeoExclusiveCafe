@@ -3,11 +3,11 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Database configuration
-$db_host = 'localhost';
-$db_user = 'root';
-$db_pass = '';
-$db_name = 'crud';
+// Database configuration for AlwaysData
+$db_host = 'mysql-neoexclusivecafe.alwaysdata.net';
+$db_user = '429123';
+$db_pass = 'NeoCafe123';
+$db_name = 'neoexclusivecafe_crud';
 
 // Create connection with error handling
 try {

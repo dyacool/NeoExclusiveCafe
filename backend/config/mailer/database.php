@@ -1,11 +1,11 @@
 <?php
-$hostname = "localhost";
-$dbUser = "root";
-$dbPassword = "";
-$dbName = "crud";
+$host = 'mysql-neoexclusivecafe.alwaysdata.net';
+$dbname = 'neoexclusivecafe_crud';
+$username = '429123';
+$password = 'NeoCafe123';
 
 // Create a connection
-$conn = new mysqli($hostname, $dbUser, $dbPassword, $dbName);
+$conn = new mysqli($host, $username, $password, $dbname);
 
 // Check the connection
 if ($conn->connect_error) {

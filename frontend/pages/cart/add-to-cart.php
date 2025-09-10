@@ -28,11 +28,8 @@ if ($quantity < 1) {
     exit();
 }
 
-$conn = new mysqli("localhost", "root", "", "crud");
-if ($conn->connect_error) {
-    echo json_encode(["success" => false, "error" => "Database connection failed"]);
-    exit();
-}
+// Include database connection
+require_once "../../user-includes/database.php";
 
 // Check if product exists, is available, and has sufficient stock
 $check_sql = "SELECT id, price, quantity FROM products WHERE id = ? AND status_id != 3 AND deleted_at IS NULL";

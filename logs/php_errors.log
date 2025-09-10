@@ -68741,3 +68741,27 @@ Stack trace:
 [09-Sep-2025 23:01:20 Europe/Berlin] Time analysis: current=23:01:20 (1381 min), opening=08:00:00 (480 min), closing=23:42:00 (1422 min), is_closed=No
 [09-Sep-2025 23:01:20 Europe/Berlin] Cart truncation result: No action needed
 [09-Sep-2025 23:01:20 Europe/Berlin] PHP Warning:  Undefined variable $today in C:\xampp\htdocs\NeoCafe\frontend\pages\products\product-dashboard.php on line 342
+[10-Sep-2025 08:43:52 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[10-Sep-2025 08:43:52 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[10-Sep-2025 08:43:52 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[10-Sep-2025 08:43:52 Europe/Berlin] Business hours: 08:00:00 - 23:42:00
+[10-Sep-2025 08:43:52 Europe/Berlin] Business closed - past midnight (current: 523, closing: 1422)
+[10-Sep-2025 08:43:52 Europe/Berlin] Time analysis: current=08:43:52 (523 min), opening=08:00:00 (480 min), closing=23:42:00 (1422 min), is_closed=Yes
+[10-Sep-2025 08:43:52 Europe/Berlin] Cart currently has 0 items
+[10-Sep-2025 08:43:52 Europe/Berlin] Cart is already empty - no action needed
+[10-Sep-2025 08:43:52 Europe/Berlin] Cart truncation result: No action needed
+[10-Sep-2025 08:43:52 Europe/Berlin] PHP Warning:  Undefined variable $today in C:\xampp\htdocs\NeoCafe\frontend\pages\products\product-dashboard.php on line 342
+[10-Sep-2025 11:00:31 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[10-Sep-2025 11:00:31 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[10-Sep-2025 11:00:31 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[10-Sep-2025 11:00:31 Europe/Berlin] Business hours: 08:00:00 - 23:42:00
+[10-Sep-2025 11:00:31 Europe/Berlin] Time analysis: current=11:00:31 (660 min), opening=08:00:00 (480 min), closing=23:42:00 (1422 min), is_closed=No
+[10-Sep-2025 11:00:31 Europe/Berlin] Cart truncation result: No action needed
+[10-Sep-2025 11:00:31 Europe/Berlin] PHP Warning:  Undefined variable $today in C:\xampp\htdocs\NeoCafe\frontend\pages\products\product-dashboard.php on line 342
+[10-Sep-2025 12:00:25 Europe/Berlin] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed when a session is active in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 8
+[10-Sep-2025 12:00:26 Europe/Berlin] PHP Warning:  include_once(C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[10-Sep-2025 12:00:26 Europe/Berlin] PHP Warning:  include_once(): Failed opening 'C:\xampp\htdocs\NeoCafe\frontend\user-includes/customer-navigation.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\user-includes\user-header.php on line 265
+[10-Sep-2025 12:00:26 Europe/Berlin] Business hours: 08:00:00 - 23:42:00
+[10-Sep-2025 12:00:26 Europe/Berlin] Time analysis: current=12:00:26 (720 min), opening=08:00:00 (480 min), closing=23:42:00 (1422 min), is_closed=No
+[10-Sep-2025 12:00:26 Europe/Berlin] Cart truncation result: No action needed
+[10-Sep-2025 12:00:26 Europe/Berlin] PHP Warning:  Undefined variable $today in C:\xampp\htdocs\NeoCafe\frontend\pages\products\product-dashboard.php on line 342

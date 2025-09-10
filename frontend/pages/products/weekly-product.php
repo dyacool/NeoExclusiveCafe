@@ -41,7 +41,7 @@ if (!$is_preview_mode && (!isset($_SESSION['is_verified']) || $_SESSION['is_veri
 }
 
 // Database connection
-$conn = new mysqli("localhost", "root", "", "crud");
+$conn = new mysqli("mysql-neoexclusivecafe.alwaysdata.net", "429123", "NeoCafe123", "neoexclusivecafe_crud");
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
