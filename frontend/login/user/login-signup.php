@@ -169,58 +169,85 @@ if ($_POST) {
 
 // Handle Forgot Password
 if (isset($_POST["reset-submit"])) {
+    error_log("Password reset form submitted for email: " . ($_POST["email"] ?? "not provided"));
+    
     if (!isset($_POST["email"]) || empty($_POST["email"])) {
         $errorMessage = "Please enter your email.";
+        error_log("Password reset failed: No email provided");
     } else {
-        $email = $_POST["email"];
-        $token = bin2hex(random_bytes(16));
-        $token_hash = hash("sha256", $token);
-        $expiry = date("Y-m-d H:i:s", time() + 60 * 30);
+        $email = trim($_POST["email"]);
         
-        $sql = "UPDATE users
-                SET reset_token_hash = ?,
-                    reset_token_expires_at = ?
-                WHERE email = ?";
-
-        $stmt = mysqli_prepare($conn, $sql);
-        mysqli_stmt_bind_param($stmt, "sss", $token_hash, $expiry, $email);
-        mysqli_stmt_execute($stmt);
-
-        if (mysqli_stmt_affected_rows($stmt)) {
-            $mail = require __DIR__ . "/../../../backend/config/mailer/mailer.php";
-            $mail->setFrom("noreplyneoexclusive@gmail.com", "NeoExclusive");
-            $mail->addAddress($email);
-            $mail->Subject = "Password Reset Request";
-            $mail->Body = <<<END
-            <p>Hello,</p>
-            <p>Click <a href="http://neocafe.cafe:8080/frontend/login/user/forgot-pw-reset.php?token=$token">here</a>
-            to reset your password.</p>
-            <p>This link will expire in 30 minutes.</p>
-            END;
-
-            try {
-                $mail->send();
-                $successMessage = "Password reset email sent. Please check your inbox.";
-                
-                // Add JavaScript to switch back to login form after showing message
-                echo "<script>
-                    document.addEventListener('DOMContentLoaded', function() {
-                        setTimeout(function() {
-                            var backToLoginLink = document.getElementById('back-to-login');
-                            if (backToLoginLink) {
-                                backToLoginLink.click();
-                            }
-                        }, 3000);
-                    });
-                </script>";
-            } catch (Exception $e) {
-                $errorMessage = "Message could not be sent. Please try again later.";
-                error_log("Email sending failed: " . $e->getMessage() . " | SMTP: " . $mail->ErrorInfo);
-            }
+        // Validate email format
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errorMessage = "Please enter a valid email address.";
+            error_log("Password reset failed: Invalid email format - " . $email);
         } else {
-            $errorMessage = "No account found with this email.";
+            $token = bin2hex(random_bytes(16));
+            $token_hash = hash("sha256", $token);
+            $expiry = date("Y-m-d H:i:s", time() + 60 * 30);
+            
+            error_log("Generated password reset token for email: " . $email);
+        
+            $sql = "UPDATE users
+                    SET reset_token_hash = ?,
+                        reset_token_expires_at = ?
+                    WHERE email = ?";
+
+            $stmt = $conn->prepare($sql);
+            if (!$stmt) {
+                error_log("Failed to prepare password reset statement: " . $conn->error);
+                $errorMessage = "Database error occurred. Please try again.";
+            } else {
+                $stmt->bind_param("sss", $token_hash, $expiry, $email);
+                
+                if ($stmt->execute()) {
+                    if ($stmt->affected_rows > 0) {
+                        error_log("Database updated successfully for password reset");
+                        
+                        $mail = require __DIR__ . "/../../../backend/config/mailer/mailer.php";
+                        $mail->setFrom("noreplyneoexclusive@gmail.com", "NeoExclusive");
+                        $mail->addAddress($email);
+                        $mail->Subject = "Password Reset Request";
+                        $mail->Body = <<<END
+                        <p>Hello,</p>
+                        <p>Click <a href="http://neocafe.cafe:8080/frontend/login/user/forgot-pw-reset.php?token=$token">here</a>
+                        to reset your password.</p>
+                        <p>This link will expire in 30 minutes.</p>
+                        END;
+
+                        error_log("Attempting to send password reset email to: " . $email);
+                        
+                        try {
+                            $mail->send();
+                            error_log("Password reset email sent successfully to: " . $email);
+                            $successMessage = "Password reset email sent. Please check your inbox.";
+                            
+                            // Add JavaScript to switch back to login form after showing message
+                            echo "<script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    setTimeout(function() {
+                                        var backToLoginLink = document.getElementById('back-to-login');
+                                        if (backToLoginLink) {
+                                            backToLoginLink.click();
+                                        }
+                                    }, 3000);
+                                });
+                            </script>";
+                        } catch (Exception $e) {
+                            $errorMessage = "Message could not be sent. Please try again later.";
+                            error_log("Email sending failed: " . $e->getMessage() . " | SMTP: " . $mail->ErrorInfo);
+                        }
+                    } else {
+                        error_log("No database rows affected - email not found: " . $email);
+                        $errorMessage = "No account found with this email.";
+                    }
+                } else {
+                    error_log("Password reset query execution failed: " . $stmt->error);
+                    $errorMessage = "Database error occurred. Please try again.";
+                }
+                $stmt->close();
+            }
         }
-        mysqli_stmt_close($stmt);
     }
 }
 
@@ -231,7 +258,7 @@ if (isset($_POST["signin-submit"])) {
     $error = [];
 
     // Debug: Log login attempt
-    error_log("Login attempt for username: " . $username);
+    error_log("Login attempt for username: " . $username . " with password length: " . strlen($password));
 
     if (empty($username) || empty($password)) {
         $error[] = "Username and password are required.";
@@ -259,7 +286,7 @@ if (isset($_POST["signin-submit"])) {
                     
                     if (!password_verify($password, $user["password"])) {
                         $error[] = "Invalid password. Please check your password.";
-                        error_log("Password verification failed for user: " . $username);
+                        error_log("Password verification failed for user: " . $username . " | Password hash: " . substr($user["password"], 0, 20) . "... | Attempted password length: " . strlen($password));
                     } else {
                         // Password is correct
                         if (!$user["is_verified"]) {

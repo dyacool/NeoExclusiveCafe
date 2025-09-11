@@ -5,8 +5,21 @@
  */
 
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', 0); // Disable display_errors to prevent HTML output
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/../../logs/php_errors.log');
 
+// Start output buffering to catch any accidental output
+ob_start();
+
+// Start session with dynamic domain
+$session_domain = $_SERVER['HTTP_HOST'] ?? 'localhost';
+session_set_cookie_params([
+    'lifetime' => 0,
+    'httponly' => true,
+    'samesite' => 'Strict',
+    'domain' => $session_domain
+]);
 session_start();
 
 // Set JSON content type
@@ -16,8 +29,17 @@ header('Content-Type: application/json');
 try {
     require_once '../../user-includes/database.php';
     error_log("Database include successful");
+    
+    // Test database connection
+    if (isset($conn) && $conn->ping()) {
+        error_log("Database connection successful");
+    } else {
+        error_log("Database connection failed");
+        throw new Exception("Database connection failed");
+    }
 } catch (Exception $e) {
     error_log("Database include failed: " . $e->getMessage());
+    throw $e;
 }
 
 try {
@@ -25,6 +47,7 @@ try {
     error_log("PayMongo config include successful");
 } catch (Exception $e) {
     error_log("PayMongo config include failed: " . $e->getMessage());
+    throw $e;
 }
 
 // Check if request is POST
@@ -35,6 +58,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 try {
+    error_log("=== PAYMENT PROCESSING STARTED ===");
+    error_log("Request method: " . $_SERVER['REQUEST_METHOD']);
+    error_log("Content type: " . ($_SERVER['CONTENT_TYPE'] ?? 'not set'));
+    
     // Get raw input for debugging
     $raw_input = file_get_contents('php://input');
     error_log("Raw payment input: " . $raw_input);
@@ -159,12 +186,16 @@ try {
             'order_data' => $order_data
         ];
         
-        echo json_encode([
+        $response = [
             'success' => true,
             'payment_type' => 'source',
-            'checkout_url' => $result['data']['attributes']['redirect']['checkout_url'],
+            'payment_url' => $result['data']['attributes']['redirect']['checkout_url'],
             'source_id' => $result['data']['id']
-        ]);
+        ];
+        
+        error_log("Sending response: " . json_encode($response));
+        echo json_encode($response);
+        exit(); // Ensure clean exit after response
         
     } else if ($payment_method === 'card') {
         // Create payment intent for card payments
@@ -197,22 +228,35 @@ try {
             'order_data' => $order_data
         ];
         
-        echo json_encode([
+        $response = [
             'success' => true,
             'payment_type' => 'payment_intent',
             'payment_intent_id' => $result['data']['id'],
             'client_secret' => $result['data']['attributes']['client_key'],
             'public_key' => 'pk_test_1XUMJ3yMs8QZugdq3uWr8vYU'
-        ]);
+        ];
+        
+        error_log("Sending card response: " . json_encode($response));
+        echo json_encode($response);
+        exit(); // Ensure clean exit after response
     }
     
 } catch (Exception $e) {
     error_log("Payment processing error: " . $e->getMessage());
+    error_log("Payment processing error stack: " . $e->getTraceAsString());
+    
+    // Clean any output buffer
+    ob_clean();
+    
     http_response_code(400);
     echo json_encode([
         'success' => false,
+        'message' => 'Payment processing failed: ' . $e->getMessage(),
         'error' => $e->getMessage()
     ]);
+    exit();
 }
 
+// Clean any accidental output and ensure only JSON is sent
+ob_end_flush();
 ?>

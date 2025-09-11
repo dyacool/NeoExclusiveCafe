@@ -8,17 +8,14 @@ if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
 // Include config file for base URL
 require_once __DIR__ . "/../admin-includes/config.php";
 
-$conn = new mysqli("mysql-neoexclusivecafe.alwaysdata.net", "429123", "NeoCafe123", "neoexclusivecafe_crud");
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+include __DIR__ . "/../admin-includes/database.php";
 
 // Function to generate SKU **only when inserting a new product**
 function generateSKU($conn) {
     $prefix = "SD-";
 
-    // Fetch the last SKU
-    $result = $conn->query("SELECT sku FROM products ORDER BY id DESC LIMIT 1");
+    // Fetch the last SKU from non-deleted products only
+    $result = $conn->query("SELECT sku FROM products WHERE deleted_at IS NULL ORDER BY id DESC LIMIT 1");
     if ($result->num_rows > 0) {
         $row = $result->fetch_assoc();
         $last_sku = $row['sku'];
@@ -27,7 +24,17 @@ function generateSKU($conn) {
         $number = (int)substr($last_sku, 3) + 1;
         return $prefix . str_pad($number, 5, '0', STR_PAD_LEFT);
     } else {
-        return $prefix . "00001"; // First product starts at SD-00001
+        // If no active products exist, find the highest SKU number from all products (including deleted)
+        // to ensure we don't reuse SKU numbers
+        $result = $conn->query("SELECT sku FROM products ORDER BY CAST(SUBSTRING(sku, 4) AS UNSIGNED) DESC LIMIT 1");
+        if ($result->num_rows > 0) {
+            $row = $result->fetch_assoc();
+            $last_sku = $row['sku'];
+            $number = (int)substr($last_sku, 3) + 1;
+            return $prefix . str_pad($number, 5, '0', STR_PAD_LEFT);
+        } else {
+            return $prefix . "00001"; // First product starts at SD-00001
+        }
     }
 }
 
@@ -67,9 +74,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // Insert product with availtoday_status_id field
+    // Note: Explicitly excluding 'id' from INSERT to ensure AUTO_INCREMENT works
     $stmt = $conn->prepare("INSERT INTO products (sku, name, description, price, status_id, quantity, is_featured, show_when_unavailable, hide_when_unavailable, availtoday_status_id) 
                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     $stmt->bind_param("sssdiiiiii", $sku, $name, $description, $price, $status_id, $quantity, $is_featured, $show_when_unavailable, $hide_when_unavailable, $availtoday_status_id);
+    
+    // Debug: Check if the statement prepared correctly
+    if (!$stmt) {
+        die("Prepare failed: " . $conn->error);
+    }
     
     if ($stmt->execute()) {
         $product_id = $stmt->insert_id;
@@ -161,7 +174,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $_SESSION['success_message'] = "Product has been added successfully!";
         
         // Redirect to prevent form resubmission
-        header("Location: ".$_SERVER['PHP_SELF']);
+        header("Location: /backend/pages/products/product-list.php");
         exit();
     } else {
         echo "Error: " . $stmt->error;

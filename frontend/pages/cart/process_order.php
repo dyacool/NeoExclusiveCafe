@@ -1,9 +1,11 @@
 <?php
+// Start session with dynamic domain
+$session_domain = $_SERVER['HTTP_HOST'] ?? 'localhost';
 session_set_cookie_params([
     'lifetime' => 0,
     'httponly' => true,
     'samesite' => 'Strict',
-    'domain' => 'neocafe.cafe'
+    'domain' => $session_domain
 ]);
 session_start();
 require_once '../../user-includes/database.php';
