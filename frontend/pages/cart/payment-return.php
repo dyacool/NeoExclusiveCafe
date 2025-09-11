@@ -39,55 +39,236 @@ $paymongo = new PayMongoAPI();
 
 try {
     if ($status === 'success') {
-        // For presentation purposes, simulate successful payment verification
-        error_log("Simulating successful payment verification for presentation");
-        
-        // Mock successful payment result
-        $payment_status = 'paid';
-        
-        if (in_array($payment_status, ['paid', 'succeeded'])) {
-            // Payment successful - finalize order (mock for presentation)
-            $order_id = $pending_payment['order_id'];
-            
-            if ($order_id) {
-                // Send order confirmation email
-                try {
-                    error_log("Sending order confirmation email for order: " . $order_id);
-                    sendOrderConfirmationEmail($order_id, $pending_payment['order_data'], $type);
-                    error_log("Order confirmation email sent successfully");
-                } catch (Exception $e) {
-                    error_log("Failed to send order confirmation email: " . $e->getMessage());
-                    // Don't fail the payment process if email fails
+        // Treat as successful payment and persist the order + inventory updates
+        error_log("Payment succeeded. Creating order and updating inventory.");
+
+        $order_id_created = null;
+        try {
+            global $conn;
+
+            // Normalize order data
+            $order_data = $pending_payment['order_data'] ?? [];
+            if (is_string($order_data)) {
+                $decoded = json_decode($order_data, true);
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    $order_data = $decoded;
                 }
-                
-                // Clear cart based on order type
-                if ($type === 'availtoday') {
-                    clearAvailTodayCart($pending_payment['order_id']);
-                } else {
-                    clearRegularCart($pending_payment['order_id']);
+            }
+
+            // cart_items may be JSON string
+            $cart_items = $order_data['cart_items'] ?? [];
+            if (is_string($cart_items)) {
+                $decodedItems = json_decode($cart_items, true);
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    $cart_items = $decodedItems;
                 }
-                
-                // Store success data for confirmation page
+            }
+
+            if (empty($cart_items) || !is_array($cart_items)) {
+                throw new Exception('No cart items provided for order creation');
+            }
+
+            // Derive fields
+            $total_items = 0;
+            foreach ($cart_items as $ci) { $total_items += intval($ci['quantity'] ?? 0); }
+
+            $total_amount = floatval($pending_payment['amount'] ?? ($order_data['cart_total'] ?? 0));
+            $customer_name = trim(($order_data['user_name'] ?? ($order_data['customer_name'] ?? '')));
+            $customer_email = $order_data['user_email'] ?? ($order_data['customer_email'] ?? null);
+            $customer_contact = $order_data['phone'] ?? $order_data['contact_number'] ?? null;
+            $customer_address = $order_data['delivery_address'] ?? ($order_data['address'] ?? null);
+            $payment_method = $pending_payment['payment_method'] ?? ($order_data['payment_method'] ?? '');
+            $delivery_method_raw = $order_data['delivery_method'] ?? 'pickup';
+            $delivery_method = $delivery_method_raw === 'delivery' ? 'Delivery' : 'Pick-up';
+            $delivery_date = $delivery_method_raw === 'delivery' ? ($order_data['delivery_date'] ?? null) : null;
+            $delivery_time = $delivery_method_raw === 'delivery' ? ($order_data['delivery_time'] ?? null) : null;
+            $pickup_date = $delivery_method_raw === 'pickup' ? ($order_data['pickup_date'] ?? null) : null;
+            $pickup_time = $delivery_method_raw === 'pickup' ? ($order_data['pickup_time'] ?? null) : null;
+            $notes = $order_data['order_notes'] ?? ($order_data['notes'] ?? '');
+            $customer_id = null; // optional
+            $payment_id = $pending_payment['source_id'] ?? ($pending_payment['payment_intent_id'] ?? null);
+
+            // Ensure orders.order_id is AUTO_INCREMENT primary key (fallback safety)
+            try {
+                $aiCheck = $conn->query("SHOW COLUMNS FROM orders WHERE Field = 'order_id' AND Extra LIKE '%auto_increment%'");
+                if ($aiCheck && $aiCheck->num_rows === 0) {
+                    // Ensure PRIMARY KEY exists
+                    $pkCheck = $conn->query("SHOW INDEX FROM orders WHERE Key_name = 'PRIMARY'");
+                    if ($pkCheck && $pkCheck->num_rows === 0) {
+                        $conn->query("ALTER TABLE orders ADD PRIMARY KEY (order_id)");
+                    }
+                    // Set AUTO_INCREMENT on order_id
+                    $conn->query("ALTER TABLE orders MODIFY order_id int(11) NOT NULL AUTO_INCREMENT");
+                    error_log("payment-return: orders.order_id set to AUTO_INCREMENT");
+                }
+            } catch (Exception $e) {
+                error_log("payment-return: Failed to enforce AUTO_INCREMENT on orders.order_id: " . $e->getMessage());
+            }
+
+            // Insert into orders
+            $sql = "INSERT INTO orders (
+                        order_date,
+                        customer_name,
+                        customer_contact,
+                        customer_email,
+                        customer_address,
+                        payment_method,
+                        total_items,
+                        total_amount,
+                        status,
+                        delivery_method,
+                        delivery_date,
+                        pickup_date,
+                        delivery_time,
+                        notes,
+                        pickup_time,
+                        customer_id,
+                        payment_id,
+                        payment_status,
+                        amount_paid,
+                        paid_at
+                    ) VALUES (
+                        CURRENT_TIMESTAMP,
+                        ?,?,?,?,?,?,?,'Confirmed',?,?,?,?,?,?,?,?, 'paid', ?, NOW()
+                    )";
+
+            $stmt = $conn->prepare($sql);
+            if (!$stmt) { throw new Exception('Prepare order failed: ' . $conn->error); }
+
+            $stmt->bind_param(
+                "sssssidssssssisd",
+                $customer_name,
+                $customer_contact,
+                $customer_email,
+                $customer_address,
+                $payment_method,
+                $total_items,
+                $total_amount,
+                $delivery_method,
+                $delivery_date,
+                $pickup_date,
+                $delivery_time,
+                $notes,
+                $pickup_time,
+                $customer_id,
+                $payment_id,
+                $total_amount
+            );
+
+            if (!$stmt->execute()) { throw new Exception('Execute order failed: ' . $stmt->error); }
+            $order_id_created = $stmt->insert_id;
+            $stmt->close();
+
+            if (!$order_id_created) {
+                // Fallback: try connection insert_id
+                $order_id_created = $conn->insert_id;
+            }
+            if (!$order_id_created) {
+                // Fallback: query the most recent matching order for this customer and amount
+                $fallback_sql = "SELECT order_id FROM orders 
+                                 WHERE customer_email <=> ?
+                                   AND customer_name <=> ?
+                                   AND total_amount = ?
+                                 ORDER BY order_id DESC LIMIT 1";
+                $fb = $conn->prepare($fallback_sql);
+                if ($fb) {
+                    $fb->bind_param("ssd", $customer_email, $customer_name, $total_amount);
+                    $fb->execute();
+                    $res = $fb->get_result();
+                    if ($r = $res->fetch_assoc()) {
+                        $order_id_created = intval($r['order_id']);
+                    }
+                    $fb->close();
+                }
+            }
+            if (!$order_id_created) { throw new Exception('Failed to get new order_id'); }
+
+            // Insert order_items and update inventory
+            $item_sql = "INSERT INTO order_items (order_id, product_name, image_path, price, quantity) VALUES (?,?,?,?,?)";
+            $item_stmt = $conn->prepare($item_sql);
+            if (!$item_stmt) { throw new Exception('Prepare order_items failed: ' . $conn->error); }
+
+            foreach ($cart_items as $it) {
+                $pname = $it['name'] ?? 'Unknown Item';
+                $price = floatval($it['price'] ?? 0);
+                $qty = intval($it['quantity'] ?? 0);
+                $image_path = null;
+                $item_stmt->bind_param("issdi", $order_id_created, $pname, $image_path, $price, $qty);
+                if (!$item_stmt->execute()) { throw new Exception('Insert order_item failed: ' . $item_stmt->error); }
+
+                // Inventory update
+                if (!empty($it['product_id'])) {
+                    $pid = intval($it['product_id']);
+                    // Check stock first
+                    $stock_stmt = $conn->prepare("SELECT quantity, status_id, name FROM products WHERE id = ?");
+                    $stock_stmt->bind_param("i", $pid);
+                    $stock_stmt->execute();
+                    $stock_res = $stock_stmt->get_result();
+                    if ($row = $stock_res->fetch_assoc()) {
+                        $current_stock = intval($row['quantity']);
+                        if ($current_stock >= $qty) {
+                            $upd = $conn->prepare("UPDATE products SET quantity = quantity - ? WHERE id = ?");
+                            $upd->bind_param("ii", $qty, $pid);
+                            $upd->execute();
+                            $upd->close();
+
+                            // If stock hits 0, mark unavailable similar to existing logic
+                            $new_stock = $current_stock - $qty;
+                            if ($new_stock <= 0) {
+                                $new_status_id = ($row['status_id'] == 1) ? 4 : 5; // pickup->4, delivery->5, default 5
+                                $updS = $conn->prepare("UPDATE products SET status_id = ? WHERE id = ?");
+                                $updS->bind_param("ii", $new_status_id, $pid);
+                                $updS->execute();
+                                $updS->close();
+                            }
+                        }
+                    }
+                    $stock_stmt->close();
+                }
+            }
+            $item_stmt->close();
+
+            // Clear cart entries by selected_cart_ids if provided
+            if (!empty($order_data['selected_cart_ids'])) {
+                $ids_csv = $order_data['selected_cart_ids'];
+                if (is_array($ids_csv)) { $ids = $ids_csv; } else { $ids = array_filter(array_map('intval', explode(',', $ids_csv))); }
+                if (!empty($ids)) {
+                    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+                    $types = str_repeat('i', count($ids));
+                    $del_sql = "DELETE FROM cart WHERE id IN ($placeholders)";
+                    $del = $conn->prepare($del_sql);
+                    $del->bind_param($types, ...$ids);
+                    $del->execute();
+                    $del->close();
+                }
+            }
+
+        } catch (Exception $ex) {
+            error_log('Order creation on payment return failed: ' . $ex->getMessage());
+            throw $ex;
+        }
+
+        // Send email but don't block on failure
+        try {
+            sendOrderConfirmationEmail($order_id_created, is_array($pending_payment['order_data']) ? $pending_payment['order_data'] : $order_data, $type);
+        } catch (Exception $e) {
+            error_log("Order confirmation email failed: " . $e->getMessage());
+        }
+
+        // Success session payload
                 $_SESSION['payment_success'] = [
-                    'order_id' => $order_id,
+            'order_id' => $order_id_created,
                     'amount' => $pending_payment['amount'],
                     'payment_method' => $pending_payment['payment_method'],
                     'order_type' => $type
                 ];
                 
-                // Clear pending payment
+        // Clear pending
                 unset($_SESSION['pending_payment']);
                 
                 // Redirect to success page
                 header("Location: payment-success.php?type=$type");
                 exit();
-            } else {
-                throw new Exception('Failed to finalize order');
-            }
-        } else {
-            // Payment failed
-            throw new Exception('Payment not completed. Status: ' . $payment_status);
-        }
         
     } else {
         // Payment failed or cancelled
@@ -192,22 +373,32 @@ function sendOrderConfirmationEmail($order_id, $order_data, $order_type) {
     global $conn;
     
     try {
-        // Get order details from database (or use order_data for mock)
+        // Normalize email/name and fields for reliability
+        $normalized_email = $order_data['customer_email'] ?? ($order_data['email'] ?? ($order_data['user_email'] ?? ''));
+        $normalized_name = $order_data['customer_name'] ?? ($order_data['user_name'] ?? trim(($order_data['first_name'] ?? '') . ' ' . ($order_data['last_name'] ?? '')));
+        $normalized_delivery_method = $order_data['delivery_method'] ?? ($order_data['shipping_method'] ?? 'pickup');
+        $normalized_delivery_method = strtolower($normalized_delivery_method) === 'delivery' ? 'Delivery' : 'Pick-up';
+        $normalized_items = $order_data['cart_items'] ?? [];
+        if (is_string($normalized_items)) {
+            $decoded = json_decode($normalized_items, true);
+            if (json_last_error() === JSON_ERROR_NONE) { $normalized_items = $decoded; }
+        }
+
         $orderDetails = [
             'order_id' => $order_id,
-            'customer_name' => $order_data['customer_name'] ?? $order_data['first_name'] . ' ' . $order_data['last_name'],
-            'customer_email' => $order_data['customer_email'] ?? $order_data['email'],
-            'customer_contact' => $order_data['phone'] ?? 'N/A',
-            'payment_method' => $order_data['payment_method'],
-            'total_amount' => $order_data['cart_total'] ?? '0',
-            'delivery_method' => ucfirst($order_data['shipping_method']),
+            'customer_name' => $normalized_name,
+            'customer_email' => $normalized_email,
+            'customer_contact' => $order_data['phone'] ?? ($order_data['contact_number'] ?? 'N/A'),
+            'payment_method' => $order_data['payment_method'] ?? '',
+            'total_amount' => $order_data['cart_total'] ?? ($order_data['total_amount'] ?? '0'),
+            'delivery_method' => $normalized_delivery_method,
             'order_date' => date('Y-m-d H:i:s'),
-            'pickup_date' => date('Y-m-d', strtotime('+1 day')), // Default to tomorrow
-            'delivery_date' => date('Y-m-d', strtotime('+1 day')),
-            'delivery_time' => '10:00:00',
-            'notes' => $order_data['special_instructions'] ?? '',
+            'pickup_date' => $order_data['pickup_date'] ?? date('Y-m-d', strtotime('+1 day')),
+            'delivery_date' => $order_data['delivery_date'] ?? date('Y-m-d', strtotime('+1 day')),
+            'delivery_time' => $order_data['delivery_time'] ?? '10:00:00',
+            'notes' => $order_data['special_instructions'] ?? ($order_data['order_notes'] ?? ''),
             'order_type' => $order_type,
-            'cart_items' => json_decode($order_data['cart_items'], true)
+            'cart_items' => $normalized_items
         ];
         
         error_log("Order details prepared for email: " . json_encode($orderDetails));

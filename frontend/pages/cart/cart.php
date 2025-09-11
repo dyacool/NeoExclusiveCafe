@@ -320,15 +320,19 @@ function getDayAbbreviations($availableDays) {
         $stmt = $conn->prepare("
             SELECT c.id AS cart_id, c.quantity, c.price,
                    p.id AS product_id, p.name AS product_name, p.quantity as product_stock,
-                   pi.image_url, ps.name as status_name,
-                   GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                   ps.name as status_name,
+                   GROUP_CONCAT(DISTINCT pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days,
+                   (
+                      SELECT image_url FROM product_images pi2
+                      WHERE pi2.product_id = p.id AND pi2.is_primary = 1
+                      LIMIT 1
+                   ) AS image_url
             FROM cart c
             JOIN products p ON c.product_id = p.id
-            LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
             LEFT JOIN product_statuses ps ON p.status_id = ps.id
             LEFT JOIN product_day pd ON p.id = pd.product_id
             WHERE c.user_id = ? AND p.status_id IN (1, 2)
-            GROUP BY c.id, c.quantity, c.price, p.id, p.name, p.quantity, pi.image_url, ps.name
+            GROUP BY c.id, c.quantity, c.price, p.id, p.name, p.quantity, ps.name
             ORDER BY ps.name = 'Pickup' DESC, p.name ASC
         ");
         $stmt->bind_param("i", $user_id);
@@ -739,24 +743,64 @@ function updateSubtotal() {
 }
 
 function validateCart() {
+    // Send debug info to server logs
+    fetch('/NeoCafe/log_debug.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'validateCart() called' })
+    });
+    
     // Check if terms are accepted
     if (!document.getElementById('termsCheckbox').checked) {
+        fetch('/NeoCafe/log_debug.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: 'CART VALIDATION: Terms not accepted' })
+        });
         showConfirmation('Please accept the Terms and Conditions', true);
         return false;
     }
     
+    fetch('/NeoCafe/log_debug.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'CART VALIDATION: Terms accepted' })
+    });
+    
     // Check if any item is selected
     const selectedItems = document.querySelectorAll('.item-checkbox:checked');
+    fetch('/NeoCafe/log_debug.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'CART VALIDATION: Selected items count: ' + selectedItems.length })
+    });
+    
     if (selectedItems.length === 0) {
+        fetch('/NeoCafe/log_debug.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: 'CART VALIDATION: No items selected' })
+        });
         showConfirmation('Please select at least one item to checkout', true);
         return false;
     }
 
     // Check for mixed selection
     if (checkMixedSelection()) {
+        fetch('/NeoCafe/log_debug.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: 'CART VALIDATION: Mixed selection detected' })
+        });
         showConfirmation('You cannot mix Pickup and Delivery products in the same order. Please select items from only one category.', true);
         return false;
     }
+    
+    fetch('/NeoCafe/log_debug.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'CART VALIDATION: No mixed selection - continuing validation' })
+    });
 
     // Check stock availability for selected items only
     let hasInsufficientStock = false;
@@ -828,6 +872,11 @@ function validateCart() {
         return false;
     }
     
+    fetch('/NeoCafe/log_debug.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'CART VALIDATION: All validations passed - form will submit' })
+    });
     return true;
 }
 

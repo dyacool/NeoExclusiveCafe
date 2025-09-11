@@ -7,6 +7,7 @@
 
     // Include config file for base URL
     require_once __DIR__ . "/../admin-includes/config.php";
+    include __DIR__ . "/../admin-includes/database.php";
 
     // Function to format available days in compact format
     function formatAvailableDays($availableDays) {
@@ -205,8 +206,8 @@
                                     LEFT JOIN product_day pd ON p.id = pd.product_id
                                     LEFT JOIN todays_products_dates tpd ON p.id = tpd.product_id
                                     LEFT JOIN regular_products_today_dates rptd ON p.id = rptd.product_id
-                                    WHERE p.deleted_at IS NULL
-                                    GROUP BY p.id, p.sku, p.name, p.price, p.status_id, ps.name, p.unavailable_status_id, ups.name, pi.image_url, p.is_featured, p.show_when_unavailable, p.hide_when_unavailable, p.quantity, p.availtoday_status_id, ats.name
+                                    WHERE p.deleted_at IS NULL AND p.id > 0
+                                    GROUP BY p.id
                                     ORDER BY p.created_at DESC
                                     LIMIT $items_per_page OFFSET $offset";
                                     
@@ -227,8 +228,8 @@
                                                 LEFT JOIN product_day pd ON p.id = pd.product_id
                                                 LEFT JOIN todays_products_dates tpd ON p.id = tpd.product_id
                                                 LEFT JOIN regular_products_today_dates rptd ON p.id = rptd.product_id
-                                                WHERE p.deleted_at IS NULL
-                                                GROUP BY p.id, p.sku, p.name, p.price, p.status_id, ps.name, p.unavailable_status_id, ups.name, pi.image_url, p.is_featured, p.show_when_unavailable, p.hide_when_unavailable, p.quantity, p.availtoday_status_id, ats.name
+                                                WHERE p.deleted_at IS NULL AND p.id > 0
+                                                GROUP BY p.id
                                                 ORDER BY p.created_at DESC";
                                     
                             $all_products_result = $conn->query($all_products_sql);

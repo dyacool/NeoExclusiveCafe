@@ -421,9 +421,9 @@ try {
                     <div class="service-card">
                         <div class="card-header">
                             <span class="card-title">Today Income</span>
-                            <i class="fas fa-dollar-sign card-icon"></i>
+                            <i class="card-icon"></i>
                         </div>
-                        <div class="card-value">₱<?php echo number_format($stats['today_income'], 0); ?></div>
+                        <div class="card-value fas fa-peso-sign"> <?php echo number_format($stats['today_income'], 0); ?></div>
                         <div class="card-change positive"><?php echo $stats['today_change']; ?></div>
                     </div>
 
@@ -433,7 +433,7 @@ try {
                             <span class="card-title">Net Income</span>
                             <i class="fas fa-chart-line card-icon"></i>
                         </div>
-                        <div class="card-value">₱<?php echo number_format($stats['net_income'], 0); ?></div>
+                        <div class="card-value fas fa-peso-sign"> <?php echo number_format($stats['net_income'], 0); ?></div>
                         <div class="card-change positive"><?php echo $stats['net_change']; ?></div>
                     </div>
 

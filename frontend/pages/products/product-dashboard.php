@@ -243,7 +243,7 @@ if ($cart_truncated) {
                             LEFT JOIN availtoday_status ats ON p.availtoday_status_id = ats.id
                             LEFT JOIN todays_products_dates tpd ON p.id = tpd.product_id AND tpd.available_date = ?
                             LEFT JOIN regular_products_today_dates rptd ON p.id = rptd.product_id AND rptd.available_date = ?
-                            WHERE p.deleted_at IS NULL 
+                            WHERE p.deleted_at IS NULL AND p.id > 0 
                             AND p.quantity > 0
                             AND p.availtoday_status_id IS NOT NULL
                             AND (tpd.available_date = ? OR rptd.available_date = ?)

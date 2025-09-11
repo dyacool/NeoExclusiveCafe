@@ -49,4 +49,4 @@ function closeConnection() {
 
 // Note: Removed automatic shutdown function to prevent conflicts
 // Connections will be closed automatically by PHP when the script ends
-?> 
+// No closing PHP tag to prevent accidental whitespace output

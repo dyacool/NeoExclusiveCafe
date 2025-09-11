@@ -3,17 +3,65 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// Ensure output is not buffered
+if (ob_get_level()) {
+    ob_end_clean();
+}
+
+// Set session cookie parameters based on environment
+$session_domain = '';
+if (isset($_SERVER['HTTP_HOST'])) {
+    $host = $_SERVER['HTTP_HOST'];
+    // Only set domain for production environment
+    if (strpos($host, 'neocafe.cafe') !== false) {
+        $session_domain = 'neocafe.cafe';
+    }
+    // For localhost/local development, leave domain empty
+}
+
 session_set_cookie_params([
     'lifetime' => 0,
     'httponly' => true,
     'samesite' => 'Strict',
-    'domain' => 'neocafe.cafe'
+    'domain' => $session_domain
 ]);
 session_start();
 
 // Require login for checkout - check for user role
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'user') {
+    error_log("Checkout access denied - Session check failed:");
+    error_log("user_id: " . (isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 'NOT SET'));
+    error_log("user_role: " . (isset($_SESSION['user_role']) ? $_SESSION['user_role'] : 'NOT SET'));
+    error_log("Redirecting to login page");
     header("Location: ../../login/user/login-signup.php");
+    exit();
+}
+
+// Include database connection first (before any output)
+require_once '../../user-includes/database.php';
+
+// Validate cart items BEFORE any output
+$selected_cart_ids = [];
+$subtotal = 0;
+
+// Cart table fixed - no more debug needed
+
+// Get cart items from POST or SESSION
+if (isset($_POST['selected_cart_ids']) && !empty($_POST['selected_cart_ids'])) {
+    $selected_cart_ids = $_POST['selected_cart_ids'];
+    $subtotal = $_POST['subtotal'] ?? 0;
+} elseif (isset($_POST['selected_items']) && !empty($_POST['selected_items'])) {
+    $selected_cart_ids = $_POST['selected_items'];
+    $subtotal = $_POST['subtotal'] ?? 0;
+} elseif (isset($_SESSION['selected_cart_ids'])) {
+    $selected_cart_ids = $_SESSION['selected_cart_ids'];
+    $subtotal = $_SESSION['subtotal'] ?? 0;
+}
+
+// If no cart items, redirect immediately (before any output)
+if (empty($selected_cart_ids)) {
+    error_log("No cart items found - redirecting to cart");
+    header("Location: cart.php");
     exit();
 }
 
@@ -24,15 +72,9 @@ $additional_css = [
 
 require_once "../../user-includes/user-header.php";
 
-// Debug session data
-error_log("Session data at start: " . print_r($_SESSION, true));
-error_log("Session ID: " . session_id());
-error_log("Session status: " . session_status());
-error_log("Current user_id: " . ($_SESSION['user_id'] ?? 'NOT SET'));
-error_log("Current user_role: " . ($_SESSION['user_role'] ?? 'NOT SET'));
+// Session validation passed - user is logged in
 
-// Include database connection
-require_once '../../user-includes/database.php';
+// Database already included above
 
 // Test database connection
 if ($conn->connect_error) {
@@ -164,7 +206,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['selected_cart_ids']))
         if (empty($selected_cart_ids)) {
             error_log("No valid cart IDs found after validation");
             $_SESSION['error_message'] = "Invalid cart items selected. Please return to cart and try again.";
-            header("Location: cart.php");
+            // Can't redirect here - headers already sent
+            echo '<script>window.location.href = "cart.php";</script>';
             exit();
         }
     }
@@ -184,12 +227,7 @@ error_log("Final subtotal: " . $subtotal);
 error_log("Selected cart IDs: " . print_r($selected_cart_ids, true));
 error_log("Subtotal: " . $subtotal);
 
-// If still no items selected, redirect back to cart
-if (empty($selected_cart_ids)) {
-    error_log("No cart items found - redirecting to cart");
-    header("Location: cart.php");
-    exit();
-}
+// Cart validation already handled above - this redirect would fail due to headers already sent
 
 // Validate that the selected cart IDs actually exist and belong to the current user
 if (!empty($selected_cart_ids)) {
@@ -214,7 +252,7 @@ if (!empty($selected_cart_ids)) {
     if (empty($valid_cart_ids)) {
         error_log("No valid cart items found - redirecting to cart");
         $_SESSION['error_message'] = "The selected cart items are no longer valid. Please return to cart and try again.";
-        header("Location: cart.php");
+        echo '<script>window.location.href = "cart.php";</script>';
         exit();
     }
     
@@ -299,7 +337,7 @@ $_SESSION['cart_total'] = $cart_total;
 if (empty($cart_items)) {
     error_log("No valid cart items found after filtering for status_id 1,2 - redirecting to cart");
     $_SESSION['error_message'] = "No valid cart items found. Please check your cart and try again.";
-    header("Location: cart.php");
+    echo '<script>window.location.href = "cart.php";</script>';
     exit();
 }
 
@@ -1179,7 +1217,10 @@ $debug_info = [
                     const maxDays = 42; // 6 weeks * 7 days
                     
                     while ((currentDate <= lastDay || currentDate.getDay() !== 0) && dayCount < maxDays) {
-                        const dateStr = currentDate.toISOString().split('T')[0];
+                        // Use local timezone instead of UTC to avoid date offset issues
+                        const dateStr = currentDate.getFullYear() + '-' + 
+                                      String(currentDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                                      String(currentDate.getDate()).padStart(2, '0');
                         const isCurrentMonth = currentDate.getMonth() === this.currentDate.getMonth();
                         const isToday = currentDate.getTime() === today.getTime();
                         const isPast = currentDate < today;
@@ -1350,8 +1391,13 @@ $debug_info = [
 
 
         function fetchDateLimits(start, end) {
-            const startStr = start.toISOString().split('T')[0];
-            const endStr = end.toISOString().split('T')[0];
+            // Use local timezone instead of UTC to avoid date offset issues
+            const startStr = start.getFullYear() + '-' + 
+                            String(start.getMonth() + 1).padStart(2, '0') + '-' + 
+                            String(start.getDate()).padStart(2, '0');
+            const endStr = end.getFullYear() + '-' + 
+                         String(end.getMonth() + 1).padStart(2, '0') + '-' + 
+                         String(end.getDate()).padStart(2, '0');
             
             console.log('Fetching date limits for:', startStr, 'to', endStr);
             
@@ -1708,7 +1754,7 @@ $debug_info = [
             // Error during initialization
         }
 
-        // Form submission handler
+        // Form submission handler with PayMongo integration
         const checkoutForm = document.getElementById('checkout-form');
         if (checkoutForm) {
             checkoutForm.addEventListener('submit', async function(e) {
@@ -1716,20 +1762,22 @@ $debug_info = [
                 
                 // Prevent double submission
                 if (orderProcessing) {
-                    console.log('Order already being processed, ignoring duplicate submission');
                     return;
                 }
+                orderProcessing = true;
                 
                 try {
+                    // Show loading state
+                    setLoadingState(true);
+                    
                     // Get all form data
-                    const formData = new FormData(this);
+                    const formData = new FormData();
                     
                     // Add cart items and user info
                     const cartItems = <?php echo json_encode($cart_items); ?>;
                     const cartTotal = <?php echo json_encode($cart_total); ?>;
-                    
-                    const userEmail = <?php echo json_encode($user['email']); ?>;
-                    const userName = <?php echo json_encode($user['firstname'] . ' ' . $user['lastname']); ?>;
+                    const userEmail = <?php echo json_encode($user['email'] ?? ''); ?>;
+                    const userName = <?php echo json_encode(trim(($user['firstname'] ?? '') . ' ' . ($user['lastname'] ?? ''))); ?>;
                     
                     // Validate cart items
                     if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
@@ -1743,38 +1791,45 @@ $debug_info = [
                     formData.append('user_name', userName);
                     formData.append('user_email', userEmail);
                     
-
-                    
                     // Add delivery/pickup information
                     const isDelivery = document.getElementById('delivery').checked;
-                    const todayStr = new Date().toISOString().split('T')[0];
-                    const deliveryDate = document.getElementById('delivery_date').value || todayStr;
-                    const pickupDate = document.getElementById('pickup_date').value || todayStr;
-                    
-
+                    const today = new Date();
+                    const todayStr = today.getFullYear() + '-' + 
+                                   String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                                   String(today.getDate()).padStart(2, '0');
                     
                     formData.append('delivery_method', isDelivery ? 'delivery' : 'pickup');
-                    formData.append('delivery_date', isDelivery ? deliveryDate : todayStr);
-                    formData.append('pickup_date', !isDelivery ? pickupDate : todayStr);
-                    formData.append('delivery_time', isDelivery ? document.getElementById('delivery_time').value : document.getElementById('pickup_time').value);
+                    formData.append('delivery_date', isDelivery ? (document.getElementById('delivery_date').value || todayStr) : todayStr);
+                    formData.append('pickup_date', !isDelivery ? (document.getElementById('pickup_date').value || todayStr) : todayStr);
                     
-                    // Add payment method
-                    formData.append('payment_method', document.querySelector('input[name="payment_method"]:checked').value);
-                    
-                    // Add notes if any
-                    formData.append('notes', document.getElementById('order_notes').value);
-                    
-                    // Add coupon information if applied
-                    if (appliedCoupon) {
-                        formData.append('applied_coupon', JSON.stringify(appliedCoupon));
-                        formData.append('discount_amount', discountAmount);
+                    // Add delivery/pickup time
+                    if (isDelivery && document.getElementById('delivery_time')) {
+                        formData.append('delivery_time', document.getElementById('delivery_time').value);
+                    }
+                    if (!isDelivery && document.getElementById('pickup_time')) {
+                        formData.append('pickup_time', document.getElementById('pickup_time').value);
                     }
                     
-                    // Show loading state
-                    setLoadingState(true);
+                    // Add payment method
+                    const paymentMethodEl = document.querySelector('input[name="payment_method"]:checked');
+                    if (!paymentMethodEl) {
+                        throw new Error('Please select a payment method.');
+                    }
+                    formData.append('payment_method', paymentMethodEl.value);
                     
-                    // Get selected payment method
-                    const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
+                    // Add notes if any
+                    const notesEl = document.getElementById('order_notes');
+                    if (notesEl) {
+                        formData.append('notes', notesEl.value);
+                    }
+                    
+                    // Add coupon information if applied
+                    if (typeof appliedCoupon !== 'undefined' && appliedCoupon) {
+                        formData.append('applied_coupon', JSON.stringify(appliedCoupon));
+                        if (typeof discountAmount !== 'undefined') {
+                            formData.append('discount_amount', discountAmount);
+                        }
+                    }
                     
                     // Convert FormData to regular object for PayMongo integration
                     const orderData = {};
@@ -1783,43 +1838,49 @@ $debug_info = [
                     }
                     
                     // Add customer name and email
-                    orderData.customer_name = (orderData.first_name || '') + ' ' + (orderData.last_name || '');
-                    orderData.customer_email = orderData.email;
+                    orderData.customer_name = userName;
+                    orderData.customer_email = userEmail;
                     
                     // Prepare payment data for PayMongo
                     const paymentData = {
-                        payment_method: paymentMethod,
+                        payment_method: paymentMethodEl.value,
                         order_type: 'regular',
-                        amount: <?php echo $cart_total; ?>,
+                        amount: parseFloat(cartTotal),
                         order_data: orderData
                     };
                     
                     console.log('Payment data being sent:', paymentData);
                     
-                    // For now, let's use the existing order processing instead of PayMongo
-                    // This will allow the checkout to work while we fix the payment integration
-                    console.log('Processing order without payment integration...');
+                    // Process payment through PayMongo
+                    const response = await fetch('process-payment.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(paymentData)
+                    });
                     
-                    // Redirect to the existing order processing
-                    const orderForm = document.createElement('form');
-                    orderForm.method = 'POST';
-                    orderForm.action = 'process_order.php';
+                    const result = await response.json();
                     
-                    // Add all form data
-                    for (let [key, value] of formData.entries()) {
-                        const input = document.createElement('input');
-                        input.type = 'hidden';
-                        input.name = key;
-                        input.value = value;
-                        orderForm.appendChild(input);
+                    if (result.success) {
+                        if (result.payment_url) {
+                            // Redirect to PayMongo payment page
+                            window.location.href = result.payment_url;
+                        } else if (result.order_id) {
+                            // Payment successful, redirect to success page
+                            window.location.href = `payment-success.php?order_id=${result.order_id}`;
+                        } else {
+                            throw new Error('Payment processed but no redirect URL provided');
+                        }
+                    } else {
+                        throw new Error(result.message || 'Payment processing failed');
                     }
                     
-                    document.body.appendChild(orderForm);
-                    orderForm.submit();
                 } catch (error) {
-                    console.error('Order processing error:', error);
-                    alert('An error occurred while placing your order: ' + error.message);
+                    console.error('Payment error:', error);
+                    alert('An error occurred while processing your payment: ' + error.message);
                     setLoadingState(false);
+                    orderProcessing = false;
                 }
             });
         }

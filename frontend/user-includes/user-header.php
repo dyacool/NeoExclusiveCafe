@@ -5,14 +5,25 @@ ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 ini_set('error_log', __DIR__ . '/../../logs/php_errors.log');
 
-session_set_cookie_params([
-    'lifetime' => 0,
-    'httponly' => true,
-    'samesite' => 'Strict',
-    'domain' => 'neocafe.cafe'
-]);
-
+// Only set session parameters if session hasn't been started yet
 if (session_status() === PHP_SESSION_NONE) {
+    // Set session cookie parameters based on environment
+    $session_domain = '';
+    if (isset($_SERVER['HTTP_HOST'])) {
+        $host = $_SERVER['HTTP_HOST'];
+        // Only set domain for production environment
+        if (strpos($host, 'neocafe.cafe') !== false) {
+            $session_domain = 'neocafe.cafe';
+        }
+    }
+    
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'httponly' => true,
+        'samesite' => 'Strict',
+        'domain' => $session_domain
+    ]);
+    
     session_start();
 }
 
@@ -262,7 +273,7 @@ $is_admin_logged_in = isset($_SESSION['admin_id']) && isset($_SESSION['admin_rol
     <?php endif; ?>
 </head>
 <body>
-    <?php include_once __DIR__ . "/customer-navigation.php"; ?>
+    <?php include_once __DIR__ . "/navbar/customer-navigation.php"; ?>
     <!-- Page content will be inserted here -->
     
     <!-- Chat Button -->
