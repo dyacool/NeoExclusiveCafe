@@ -129,8 +129,29 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0, post-check=0, pre-check=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="-1">
+    <meta http-equiv="Clear-Site-Data" content="cache,storage">
     <title>Bulk Order Form - NeoCafe</title>
     <link rel="stylesheet" href="bulk-form.css">
+    <script>
+        // Clear form data immediately when the page starts loading
+        document.addEventListener('DOMContentLoaded', function() {
+            history.replaceState(null, '', document.location.href);
+        });
+        
+        // Prevent bfcache
+        window.addEventListener('unload', function() {});
+        
+        // Force reload on back navigation
+        window.addEventListener('pageshow', function(e) {
+            if (e.persisted) {
+                window.location.reload();
+            }
+        });
+    </script>
 </head>
 <?php include "../../user-includes/navbar/customer-navigation.php"; ?>
 <body>
@@ -146,7 +167,7 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
             </div>
         <?php endif; ?>
 
-        <form id="bulkOrderForm" method="POST" action="">
+        <form id="bulkOrderForm" method="POST" action="" autocomplete="off" data-form-restore="false" onpageshow="if(event.persisted) window.location.reload()">
             <!-- Customer Information Section -->
             <div class="form-section">
                 <h2>Customer Information</h2>
@@ -322,5 +343,40 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
     <?php endif; ?>
 
     <script src="bulk-form.js"></script>
+    <script>
+        // Comprehensive form restoration prevention
+        (function() {
+            // Clear all storage
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            // Reset form and prevent restoration
+            const form = document.getElementById('bulkOrderForm');
+            form.reset();
+            form.setAttribute('autocomplete', 'off');
+            
+            // Prevent back-forward cache
+            window.addEventListener('pageshow', function(e) {
+                if (e.persisted || performance.navigation.type === 2) {
+                    window.location.reload();
+                }
+            });
+            
+            // Clear history state
+            if (window.history.replaceState) {
+                window.history.replaceState(null, null, window.location.href);
+            }
+            
+            // Disable form storage
+            window.addEventListener('beforeunload', function() {
+                form.reset();
+            });
+            
+            // Force manual scroll restoration
+            if ('scrollRestoration' in history) {
+                history.scrollRestoration = 'manual';
+            }
+        })();
+    </script>
 </body>
 </html>

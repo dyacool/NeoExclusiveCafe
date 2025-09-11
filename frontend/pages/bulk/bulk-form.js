@@ -385,63 +385,18 @@ document.addEventListener("DOMContentLoaded", function () {
   // Initialize phone formatting
   formatPhoneNumber();
 
-  // Auto-save functionality (optional)
-  function autoSave() {
-    const formData = new FormData(form);
-    const data = {};
-
-    for (let [key, value] of formData.entries()) {
-      data[key] = value;
-    }
-
-    data.selectedProducts = selectedProducts;
-
-    localStorage.setItem("bulkOrderDraft", JSON.stringify(data));
-  }
-
-  function loadDraft() {
-    const draft = localStorage.getItem("bulkOrderDraft");
-    if (draft && confirm("Would you like to restore your previous draft?")) {
-      const data = JSON.parse(draft);
-
-      // Restore form fields
-      Object.keys(data).forEach((key) => {
-        const field = form.querySelector(`[name="${key}"]`);
-        if (field && key !== "selectedProducts") {
-          field.value = data[key];
-        }
-      });
-
-      // Restore selected products
-      if (data.selectedProducts && data.selectedProducts.length > 0) {
-        data.selectedProducts.forEach((product) => {
-          const checkbox = document.getElementById(`product_${product.id}`);
-          const quantityField = document.getElementById(
-            `quantity_${product.id}`
-          );
-
-          if (checkbox && quantityField) {
-            checkbox.checked = true;
-            quantityField.value = product.quantity;
-            handleProductSelection({ target: checkbox });
-          }
-        });
-      }
-
-      validateForm();
-    }
-  }
-
-  // Auto-save every 30 seconds
-  setInterval(autoSave, 30000);
-
-  // Load draft on page load
-  setTimeout(loadDraft, 1000);
-
-  // Clear draft on successful submission
-  form.addEventListener("submit", function () {
-    if (validateForm()) {
-      localStorage.removeItem("bulkOrderDraft");
+  // Clear form data on page load to prevent restoration
+  window.addEventListener("pageshow", function (event) {
+    if (event.persisted) {
+      // Page was restored from back/forward cache
+      form.reset();
     }
   });
+
+  // Prevent form resubmission on refresh
+  window.onload = function () {
+    if (window.history.replaceState) {
+      window.history.replaceState(null, null, window.location.href);
+    }
+  };
 });
