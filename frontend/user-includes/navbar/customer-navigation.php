@@ -1,20 +1,63 @@
 <?php
+// Ensure session is started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 // Get user information if logged in - check for both user and admin sessions
 $user = null;
-$is_user_logged_in = isset($_SESSION['user_id']) && isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'user';
+$is_user_logged_in = isset($_SESSION['user_id']);
 $is_admin_logged_in = isset($_SESSION['admin_id']) && isset($_SESSION['admin_role']) && $_SESSION['admin_role'] === 'admin';
 
 if ($is_user_logged_in) {
     // Use session data for user
     $user = [
         'firstname' => $_SESSION['user_firstname'] ?? '',
-        'lastname' => $_SESSION['user_lastname'] ?? ''
+        'lastname' => $_SESSION['user_lastname'] ?? '',
+        'profile_image' => $_SESSION['user_profile_image'] ?? ''
     ];
+
+    // Fallback: fetch from database if profile image (or names) missing
+    if (($user['profile_image'] ?? '') === '' || ($user['firstname'] ?? '') === '' || ($user['lastname'] ?? '') === '') {
+        $user_id = (int)($_SESSION['user_id'] ?? 0);
+        if ($user_id > 0) {
+            // Include database connection
+            $db_path = __DIR__ . '/../database.php';
+            if (file_exists($db_path)) {
+                require_once $db_path;
+                if (isset($conn) && $conn instanceof mysqli) {
+                    $stmt = mysqli_prepare($conn, "SELECT firstname, lastname, profile_image FROM users WHERE id = ?");
+                    if ($stmt) {
+                        mysqli_stmt_bind_param($stmt, "i", $user_id);
+                        mysqli_stmt_execute($stmt);
+                        $result = mysqli_stmt_get_result($stmt);
+                        if ($result && ($row = mysqli_fetch_assoc($result))) {
+                            $user['firstname'] = $user['firstname'] !== '' ? $user['firstname'] : ($row['firstname'] ?? '');
+                            $user['lastname'] = $user['lastname'] !== '' ? $user['lastname'] : ($row['lastname'] ?? '');
+                            $user['profile_image'] = $user['profile_image'] !== '' ? $user['profile_image'] : (trim($row['profile_image'] ?? ''));
+                            // Update session for future requests
+                            if (!empty($user['profile_image'])) {
+                                $_SESSION['user_profile_image'] = $user['profile_image'];
+                            }
+                            if (!empty($user['firstname'])) {
+                                $_SESSION['user_firstname'] = $user['firstname'];
+                            }
+                            if (!empty($user['lastname'])) {
+                                $_SESSION['user_lastname'] = $user['lastname'];
+                            }
+                        }
+                        mysqli_stmt_close($stmt);
+                    }
+                }
+            }
+        }
+    }
 } elseif ($is_admin_logged_in) {
     // Use session data for admin
     $user = [
         'firstname' => $_SESSION['admin_firstname'] ?? '',
-        'lastname' => $_SESSION['admin_lastname'] ?? ''
+        'lastname' => $_SESSION['admin_lastname'] ?? '',
+        'profile_image' => $_SESSION['admin_profile_image'] ?? ''
     ];
 }
 
@@ -141,7 +184,15 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     <div class="profile-container auth-buttons">
                     <a href="<?php echo $is_admin_logged_in ? '/backend/pages/homepage/admin-homepage.php' : '/frontend/pages/profile/profile.php'; ?>"class="profile-link" id="profile-trigger">
                             <div class="profile-avatar">
-                                <span class="profile-initial"><?php echo substr(htmlspecialchars($user['firstname']), 0, 1); ?></span>
+                                <?php 
+                                $sessionProfileImage = isset($user['profile_image']) ? trim($user['profile_image']) : '';
+                                if ($sessionProfileImage !== '') {
+                                    if ($sessionProfileImage[0] !== '/') { $sessionProfileImage = '/' . $sessionProfileImage; }
+                                    echo '<img src="' . htmlspecialchars($sessionProfileImage) . '" alt="Profile Image">';
+                                } else {
+                                    echo '<span class="profile-initial">' . substr(htmlspecialchars($user['firstname']), 0, 1) . '</span>';
+                                }
+                                ?>
                             </div>
                             <span class="profile-name"><?php echo htmlspecialchars($user['firstname']); ?></span>
                         </a>

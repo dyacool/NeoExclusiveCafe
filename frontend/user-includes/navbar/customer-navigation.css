@@ -713,10 +713,20 @@ body {
   color: var(--primary-dark);
   font-weight: bold;
   transition: transform 0.3s ease;
+  overflow: hidden; /* Ensure image is clipped to circle */
 }
 
 .profile-link:hover .profile-avatar {
   transform: scale(1.1);
+}
+
+/* Constrain avatar image to tiny circular container */
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
 }
 
 .profile-name {

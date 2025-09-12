@@ -3,8 +3,8 @@ session_start();
 require_once "../../user-includes/database.php";
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: ../../pages/auth/login-signup.php");
-    exit();
+	header("Location: ../../login/user/login-signup.php");
+	exit();
 }
 
 $user_id = $_SESSION['user_id'];
@@ -19,7 +19,14 @@ $user = mysqli_fetch_assoc($user_result);
 
 // Ensure user data is retrieved
 if (!$user) {
-    die("Error: Unable to fetch user data");
+	error_log("Profile: user record not found for user_id=" . $user_id);
+	if (isset($user_stmt) && $user_stmt instanceof mysqli_stmt) {
+		mysqli_stmt_close($user_stmt);
+	}
+	session_unset();
+	session_destroy();
+	header("Location: ../../login/user/login-signup.php?relogin=1");
+	exit();
 }
 
 // Ensure created_at has a valid value
@@ -71,14 +78,16 @@ if ($bulk_orders_count_stmt === false) {
     mysqli_stmt_close($bulk_orders_count_stmt);
 }
 
-// Determine profile image path
-$profile_image_path = '../../assets/images/profile.svg';
+// Determine profile image url (root-relative stored in DB like /assets/public/profile-images/xxxx.jpg)
+$profile_default_image_path = '/assets/images/profile.svg';
+$profile_image_url = $profile_default_image_path;
 if (isset($user['profile_image']) && !empty(trim($user['profile_image']))) {
-    $image_path = ltrim($user['profile_image'], '/');
-    $server_path = $_SERVER['DOCUMENT_ROOT'] . '/../../' . $image_path;
-    if (file_exists($server_path) && is_readable($server_path)) {
-        $profile_image_path = '../../' . $image_path;
+    $db_path = trim($user['profile_image']);
+    if ($db_path[0] !== '/') {
+        $db_path = '/' . $db_path;
     }
+    // Use root-relative url stored in DB (e.g., /assets/public/profile-images/abc.jpg)
+    $profile_image_url = $db_path;
 }
 
 $user_email = $user['email'];
@@ -172,7 +181,7 @@ if ($bulk_orders_stmt === false) {
     <div class="neo-profile-container">
         <div class="neo-profile-header">
             <div class="neo-profile-avatar">
-                <img src="<?= htmlspecialchars($user['profile_image'] ?: '../../assets/images/default-profile.png') ?>" alt="Profile Image" width="50" />
+                <img src="<?= htmlspecialchars($profile_image_url) ?>" alt="Profile Image" width="50" />
             </div>
             <div class="neo-profile-info">
                 <h1><?php echo htmlspecialchars($user['firstname'] . ' ' . $user['lastname']); ?></h1>
