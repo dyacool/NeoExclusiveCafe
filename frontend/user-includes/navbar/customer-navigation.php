@@ -1,20 +1,63 @@
 <?php
+// Ensure session is started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 // Get user information if logged in - check for both user and admin sessions
 $user = null;
-$is_user_logged_in = isset($_SESSION['user_id']) && isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'user';
+$is_user_logged_in = isset($_SESSION['user_id']);
 $is_admin_logged_in = isset($_SESSION['admin_id']) && isset($_SESSION['admin_role']) && $_SESSION['admin_role'] === 'admin';
 
 if ($is_user_logged_in) {
     // Use session data for user
     $user = [
         'firstname' => $_SESSION['user_firstname'] ?? '',
-        'lastname' => $_SESSION['user_lastname'] ?? ''
+        'lastname' => $_SESSION['user_lastname'] ?? '',
+        'profile_image' => $_SESSION['user_profile_image'] ?? ''
     ];
+
+    // Fallback: fetch from database if profile image (or names) missing
+    if (($user['profile_image'] ?? '') === '' || ($user['firstname'] ?? '') === '' || ($user['lastname'] ?? '') === '') {
+        $user_id = (int)($_SESSION['user_id'] ?? 0);
+        if ($user_id > 0) {
+            // Include database connection
+            $db_path = __DIR__ . '/../database.php';
+            if (file_exists($db_path)) {
+                require_once $db_path;
+                if (isset($conn) && $conn instanceof mysqli) {
+                    $stmt = mysqli_prepare($conn, "SELECT firstname, lastname, profile_image FROM users WHERE id = ?");
+                    if ($stmt) {
+                        mysqli_stmt_bind_param($stmt, "i", $user_id);
+                        mysqli_stmt_execute($stmt);
+                        $result = mysqli_stmt_get_result($stmt);
+                        if ($result && ($row = mysqli_fetch_assoc($result))) {
+                            $user['firstname'] = $user['firstname'] !== '' ? $user['firstname'] : ($row['firstname'] ?? '');
+                            $user['lastname'] = $user['lastname'] !== '' ? $user['lastname'] : ($row['lastname'] ?? '');
+                            $user['profile_image'] = $user['profile_image'] !== '' ? $user['profile_image'] : (trim($row['profile_image'] ?? ''));
+                            // Update session for future requests
+                            if (!empty($user['profile_image'])) {
+                                $_SESSION['user_profile_image'] = $user['profile_image'];
+                            }
+                            if (!empty($user['firstname'])) {
+                                $_SESSION['user_firstname'] = $user['firstname'];
+                            }
+                            if (!empty($user['lastname'])) {
+                                $_SESSION['user_lastname'] = $user['lastname'];
+                            }
+                        }
+                        mysqli_stmt_close($stmt);
+                    }
+                }
+            }
+        }
+    }
 } elseif ($is_admin_logged_in) {
     // Use session data for admin
     $user = [
         'firstname' => $_SESSION['admin_firstname'] ?? '',
-        'lastname' => $_SESSION['admin_lastname'] ?? ''
+        'lastname' => $_SESSION['admin_lastname'] ?? '',
+        'profile_image' => $_SESSION['admin_profile_image'] ?? ''
     ];
 }
 
@@ -127,7 +170,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         </div>
                         <div class="dropdown-footer">
                             <button id="markAllRead" class="mark-read" style="color:black;">Mark all as read</button>
-                            <button class="viewall" onclick="window.location.href='../../../frontend/pages/notifications/notifications.php'">View all</button>
+                            <button class="viewall" onclick="window.location.href='../../../frontend/pages/notifications/notifications.php'">See More</button>
                         </div>
                     </div>
                 </div>
@@ -141,7 +184,15 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     <div class="profile-container auth-buttons">
                     <a href="<?php echo $is_admin_logged_in ? '/backend/pages/homepage/admin-homepage.php' : '/frontend/pages/profile/profile.php'; ?>"class="profile-link" id="profile-trigger">
                             <div class="profile-avatar">
-                                <span class="profile-initial"><?php echo substr(htmlspecialchars($user['firstname']), 0, 1); ?></span>
+                                <?php 
+                                $sessionProfileImage = isset($user['profile_image']) ? trim($user['profile_image']) : '';
+                                if ($sessionProfileImage !== '') {
+                                    if ($sessionProfileImage[0] !== '/') { $sessionProfileImage = '/' . $sessionProfileImage; }
+                                    echo '<img src="' . htmlspecialchars($sessionProfileImage) . '" alt="Profile Image">';
+                                } else {
+                                    echo '<span class="profile-initial">' . substr(htmlspecialchars($user['firstname']), 0, 1) . '</span>';
+                                }
+                                ?>
                             </div>
                             <span class="profile-name"><?php echo htmlspecialchars($user['firstname']); ?></span>
                         </a>
@@ -189,6 +240,39 @@ $current_page = basename($_SERVER['PHP_SELF']);
         </form>
     </nav>
 </div>
+
+<!-- Notification Details Modal -->
+<div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="notificationModalLabel">Notification Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="notification-details">
+                    <div class="notification-image-container" id="notificationImageContainer" style="display: none;">
+                        <img id="notificationImage" src="" alt="Notification Image" class="img-fluid rounded">
+                    </div>
+                    <div class="notification-content">
+                        <h6 id="notificationTitle" class="notification-title"></h6>
+                        <p id="notificationMessage" class="notification-message"></p>
+                        <small id="notificationTimestamp" class="text-muted"></small>
+                    </div>
+                    <div id="orderDetailsContainer" class="order-details" style="display: none;">
+                        <hr>
+                        <h6>Order Details</h6>
+                        <div id="orderDetails"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="wrapper">
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -420,7 +504,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             
             // ===== NOTIFICATIONS =====
             function fetchNotifications() {
-                fetch('../../pages/notifications/fetch-notif.php')
+                fetch('../../pages/notifications/fetch-notif.php?dropdown=true')
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
@@ -439,28 +523,47 @@ $current_page = basename($_SERVER['PHP_SELF']);
                             data.notifications.forEach(notif => {
                                 let newNotif = document.createElement("li");
                                 newNotif.className = notif.is_read ? "read" : "unread";
+                                newNotif.setAttribute('data-notification-id', notif.id);
 
-                                // Create clickable link for notification message
-                                let link = document.createElement("a");
-                                link.href = `../../../frontend/pages/profile/order-details.php?order_id=${notif.order_id}`;
-                                link.textContent = notif.message;
-                                link.style.textDecoration = "none";
-                                link.style.color = "inherit";
+                                // Create clickable notification item
+                                let notificationItem = document.createElement("div");
+                                notificationItem.className = "notification-item";
+                                notificationItem.style.cursor = "pointer";
+                                
+                                // Add click handler
+                                notificationItem.addEventListener('click', function() {
+                                    handleNotificationClick(notif.id);
+                                });
 
-                                newNotif.appendChild(link);
+                                // Notification title
+                                let title = document.createElement("div");
+                                title.className = "notification-title";
+                                title.textContent = notif.title || notif.message;
+                                title.style.fontWeight = notif.is_read ? "normal" : "bold";
+                                notificationItem.appendChild(title);
 
-                                // Add timestamp
-                                let small = document.createElement("small");
-                                small.textContent = new Date(notif.created_at).toLocaleString();
-                                newNotif.appendChild(small);
+                                // Notification message (truncated)
+                                let message = document.createElement("div");
+                                message.className = "notification-message";
+                                message.textContent = notif.message.length > 50 ? notif.message.substring(0, 50) + "..." : notif.message;
+                                message.style.fontSize = "0.9em";
+                                message.style.color = "#666";
+                                notificationItem.appendChild(message);
 
+                                // Timestamp
+                                let timestamp = document.createElement("small");
+                                timestamp.textContent = new Date(notif.created_at).toLocaleString();
+                                timestamp.style.color = "#999";
+                                notificationItem.appendChild(timestamp);
+
+                                newNotif.appendChild(notificationItem);
                                 notificationList.appendChild(newNotif);
                             });
 
                             const unreadCount = data.notifications.filter(n => !n.is_read).length;
                             if (unreadCount > 0) {
                                 document.getElementById("notifCount").textContent = unreadCount;
-                            document.getElementById("notifCount").style.display = "block";
+                                document.getElementById("notifCount").style.display = "block";
                             } else {
                                 document.getElementById("notifCount").style.display = "none";
                             }
@@ -476,8 +579,102 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     console.error('Error fetching notifications:', error);
                     document.getElementById("noNotifications").innerHTML = 
                         '<p style="color:black;">Unable to load notifications. Please try again later.</p>';
-                        document.getElementById("notifCount").style.display = "none";
+                    document.getElementById("notifCount").style.display = "none";
                 });
+            }
+
+            // Handle notification click - mark as read and show modal
+            function handleNotificationClick(notificationId) {
+                // Mark notification as read
+                fetch('../../pages/notifications/mark_read.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'notification_id=' + notificationId
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Fetch notification details and show modal
+                        fetchNotificationDetails(notificationId);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error marking notification as read:', error);
+                    // Still try to show the modal even if marking as read fails
+                    fetchNotificationDetails(notificationId);
+                });
+            }
+
+            // Fetch notification details and show modal
+            function fetchNotificationDetails(notificationId) {
+                fetch('../../pages/notifications/notif.php?action=details&id=' + notificationId)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        showNotificationModal(data.notification);
+                    } else {
+                        console.error('Error fetching notification details:', data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching notification details:', error);
+                });
+            }
+
+            // Show notification modal with details
+            function showNotificationModal(notification) {
+                // Update modal content
+                document.getElementById('notificationTitle').textContent = notification.title;
+                document.getElementById('notificationMessage').textContent = notification.message;
+                document.getElementById('notificationTimestamp').textContent = 
+                    'Received: ' + new Date(notification.created_at).toLocaleString();
+
+                // Handle image
+                const imageContainer = document.getElementById('notificationImageContainer');
+                const image = document.getElementById('notificationImage');
+                if (notification.image_url) {
+                    image.src = notification.image_url;
+                    imageContainer.style.display = 'block';
+                } else {
+                    imageContainer.style.display = 'none';
+                }
+
+                // Handle order details
+                const orderDetailsContainer = document.getElementById('orderDetailsContainer');
+                const orderDetails = document.getElementById('orderDetails');
+                if (notification.type === 'order' && notification.order_details) {
+                    const order = notification.order_details;
+                    orderDetails.innerHTML = `
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Order ID:</strong> #${order.id}</p>
+                                <p><strong>Customer:</strong> ${order.customer_name}</p>
+                                <p><strong>Email:</strong> ${order.customer_email}</p>
+                                <p><strong>Phone:</strong> ${order.customer_phone}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Status:</strong> <span class="badge bg-primary">${order.status}</span></p>
+                                <p><strong>Total Amount:</strong> ₱${parseFloat(order.total_amount).toFixed(2)}</p>
+                                <p><strong>Order Date:</strong> ${new Date(order.order_date).toLocaleString()}</p>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <p><strong>Items:</strong> ${order.items}</p>
+                                <p><strong>Delivery Address:</strong> ${order.delivery_address}</p>
+                            </div>
+                        </div>
+                    `;
+                    orderDetailsContainer.style.display = 'block';
+                } else {
+                    orderDetailsContainer.style.display = 'none';
+                }
+
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('notificationModal'));
+                modal.show();
             }
 
             // Show/hide dropdown on bell icon hover - modified to check screen width
@@ -540,7 +737,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
             if (markAllReadButton) {
                 markAllReadButton.addEventListener('click', () => {
-                    fetch('../../../frontend/pages/notifications/mark-notif.php', { 
+                    fetch('../../pages/notifications/mark-notif.php', { 
                         method: 'POST',
                         credentials: 'same-origin'
                     })

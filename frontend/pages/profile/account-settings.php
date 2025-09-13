@@ -74,7 +74,8 @@ if (isset($_POST['change_password'])) {
 
 // Handle profile image upload
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['profile_image'])) {
-    $upload_dir = $_SERVER['DOCUMENT_ROOT'] . '/NeoExclusiveCafe/assets/profile-images/';
+    // Save to project root assets folder: C:\xampp\htdocs\NeoCafe\assets\public\profile-images
+    $upload_dir = __DIR__ . '/../../../assets/public/profile-images/';
     
     // Debug information
     error_reporting(E_ALL);
@@ -97,18 +98,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['profile_image'])) {
         $allowed_extensions = ['jpg', 'jpeg', 'png', 'gif'];
         
         if (in_array($file_extension, $allowed_extensions)) {
-            $new_filename = 'profile_' . $user_id . '_' . time() . '.' . $file_extension;
+            // Generate a secure random filename
+            try {
+                $random_bytes = random_bytes(16);
+                $random_string = bin2hex($random_bytes);
+            } catch (Exception $e) {
+                $random_string = bin2hex(openssl_random_pseudo_bytes(16));
+            }
+            $new_filename = 'profile_' . $random_string . '.' . $file_extension;
             $upload_path = $upload_dir . $new_filename;
             echo "<!-- Debug: Attempting to upload to = " . $upload_path . " -->";
             
             if (move_uploaded_file($file['tmp_name'], $upload_path)) {
                 // Store the relative path in database
-                $image_path = '/assets/profile-images/' . $new_filename;
+                $image_path = '/assets/public/profile-images/' . $new_filename;
                 $update_query = "UPDATE users SET profile_image = ? WHERE id = ?";
                 $update_stmt = mysqli_prepare($conn, $update_query);
                 mysqli_stmt_bind_param($update_stmt, "si", $image_path, $user_id);
                 if (mysqli_stmt_execute($update_stmt)) {
                     $_SESSION['message'] = "Profile picture updated successfully!";
+                    // Update session so navbar/profile can fetch immediately
+                    $_SESSION['user_profile_image'] = $image_path;
                     echo "<!-- Debug: Database updated with path = " . $image_path . " -->";
                     // Redirect to prevent form resubmission
                     header("Location: " . $_SERVER['PHP_SELF']);
@@ -175,9 +185,10 @@ echo "<!-- Current profile image path: " . ($row['profile_image'] ?? 'null') . "
             <div class="profile-picture-section">
                 <div class="current-profile-picture">
                     <?php if (!empty($row['profile_image'])): ?>
-                        <img src="../../<?php echo htmlspecialchars($row['profile_image']); ?>" alt="Profile Image">
+                        <?php $display_path = trim($row['profile_image']); if ($display_path !== '' && $display_path[0] !== '/') { $display_path = '/' . $display_path; } ?>
+                        <img src="<?php echo htmlspecialchars($display_path); ?>" alt="Profile Image">
                     <?php else: ?>
-                        <img src="/NeoExclusiveCafe/assets/images/profile.svg" alt="Default Profile Image">
+                        <img src="/assets/images/profile.svg" alt="Default Profile Image">
                     <?php endif; ?>
                 </div>
                 <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="POST" enctype="multipart/form-data" class="profile-image-form">
