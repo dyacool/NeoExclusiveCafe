@@ -75981,3 +75981,61 @@ Stack trace:
     [updated_at] => 2025-05-20 08:21:14
 )
 
+[13-Sep-2025 17:08:24 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[13-Sep-2025 17:08:24 Europe/Berlin] Total featured products found: 0
+[13-Sep-2025 17:08:24 Europe/Berlin] Total featured products in database (including deleted): 0
+[13-Sep-2025 17:08:24 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[13-Sep-2025 17:08:39 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[13-Sep-2025 17:08:39 Europe/Berlin] Total featured products found: 0
+[13-Sep-2025 17:08:39 Europe/Berlin] Total featured products in database (including deleted): 0
+[13-Sep-2025 17:08:40 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[13-Sep-2025 17:34:48 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in D:\XAMPP\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[13-Sep-2025 17:34:49 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in D:\XAMPP\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[13-Sep-2025 17:34:49 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in D:\XAMPP\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[13-Sep-2025 17:34:49 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in D:\XAMPP\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[13-Sep-2025 17:34:56 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in D:\XAMPP\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[13-Sep-2025 17:34:56 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in D:\XAMPP\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[13-Sep-2025 17:34:57 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in D:\XAMPP\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[13-Sep-2025 17:34:57 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in D:\XAMPP\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
