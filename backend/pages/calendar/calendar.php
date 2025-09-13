@@ -88,7 +88,7 @@ if ($count_result) {
 
         <div class="layout-container">
             <div class="controls-section">
-                <div class="control-card">
+                <div class="control-card order-overview">
                     <h3>Orders Overview</h3>
                     <div class="control-row">
                         <label for="toggleCompletedBtn">Show completed orders:</label>
@@ -98,25 +98,6 @@ if ($count_result) {
                         </label>
                     </div>
                 </div>
-                <div class="control-card">
-                    <h3>Daily Order Limit</h3>
-                    <div class="control-row">
-                        <label>No. of Orders:</label>
-                        <input type="number" id="dailyLimit" min="0" value="5">
-                        <button class="btn-green" onclick="updateDailyLimit()">Save</button>
-                    </div>
-                </div>
-
-                <div class="control-card">
-                    <h3>Available Today Limit</h3>
-                    <div class="control-row">
-                        <label>No. of Orders:</label>
-                        <input type="number" id="availtodayOrderLimit" min="0" value="1">
-                        <button class="btn-green" onclick="updateAvailTodayOrderLimit()">Save</button>
-                    </div>
-
-                </div>
-
                 <div class="control-card business-hours">
                     <h3>Business Hours</h3>
                     <div class="time-row">
@@ -130,6 +111,24 @@ if ($count_result) {
                         </div>
                     </div>
                     <button class="btn-green business-hour" onclick="updateBusinessHours()" id="saveHoursBtn">Save</button>
+                </div>
+                <div class="control-card order-limit">
+                    <h3>Order Limit</h3>
+                    <div class="control-row">
+                        <label>No. of Orders:</label>
+                        <input type="number" id="dailyLimit" min="0" value="5">
+                        <button class="btn-green" onclick="updateDailyLimit()">Save</button>
+                    </div>
+                </div>
+
+                <div class="control-card  same-order-limit">
+                    <h3>Same Day Order Limit</h3>
+                    <div class="control-row">
+                        <label>No. of Orders:</label>
+                        <input type="number" id="availtodayOrderLimit" min="0" value="1">
+                        <button class="btn-green" onclick="updateAvailTodayOrderLimit()">Save</button>
+                    </div>
+
                 </div>
             </div>
 
@@ -152,28 +151,7 @@ if ($count_result) {
     <!-- Order Details Modal -->
     <div class="order-details-modal" id="orderModal">
         <div class="modal-content">
-            <div class="close-btnn">
-                <span class="close">&times;</span>
-            </div>
             <div id="orderInfo"></div>
-        </div>
-    </div>
-
-    <!-- Daily Limit Update Modal -->
-    <div class="modal" id="dailyLimitModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Update Daily Order Limit</h3>
-                <span class="close" onclick="closeDailyLimitModal()">&times;</span>
-            </div>
-            <div class="modal-body">
-                <p>Enter the new daily order limit:</p>
-                <input type="number" id="modalDailyLimit" min="0" placeholder="Enter limit">
-            </div>
-            <div class="modal-footer">
-                <button class="btn-green" onclick="saveDailyLimit()">Save</button>
-                <button class="btn-cancel" onclick="closeDailyLimitModal()">Cancel</button>
-            </div>
         </div>
     </div>
     </div>

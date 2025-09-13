@@ -265,12 +265,15 @@ function showDateLimit(date) {
   const displayDate = new Date(date + "T12:00:00").toLocaleDateString();
 
   orderInfo.innerHTML = `
-        <h3 style="text-align: center">Set Order Limit for ${displayDate}</h3>
-        <p style="font-size: 0.8em; color: #666; margin-bottom: 15px; text-align: center">Date: ${date}</p>
-        <div id="dateLimitContainer" class="date-limit-controls">
+        <div class="close-btnn" style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem; border-bottom: 2px solid #f1f5f9;">
+            <div></div>
+            <h3 style="margin: 0; font-size: 1.1rem; font-weight: 600; color: #1e293b;">Set Order Limit for ${displayDate}</h3>
+            <span class="close" style="color: #64748b; font-size: 1.5rem; font-weight: 400; cursor: pointer;">&times;</span>
+        </div>
+        <div id="dateLimitContainer" class="date-limit-controls" style="padding: 1.5rem;">
             <div class="limit-input-group">
                 <input type="number" id="dateLimit" min="0" class="limit-input">
-                <button onclick="updateDateLimit('${date}')" class="update-btn">Update Limit</button>
+                <button onclick="updateDateLimit('${date}')" class="update-btn">Update</button>
             </div>
             <div class="not-accepting-group">
                 <button onclick="setNotAcceptingOrders('${date}')" class="not-accepting-btn">Not Accepting Orders</button>
@@ -278,6 +281,16 @@ function showDateLimit(date) {
         </div>
     `;
   modal.style.display = "block";
+
+  // Add click event listener to the dynamically created close button
+  setTimeout(() => {
+    const dynamicCloseBtn = modal.querySelector("#orderInfo .close");
+    if (dynamicCloseBtn) {
+      dynamicCloseBtn.onclick = function () {
+        modal.style.display = "none";
+      };
+    }
+  }, 0);
 
   // Fetch current limit for the date
   fetch("get-date-limits.php?date=" + date)

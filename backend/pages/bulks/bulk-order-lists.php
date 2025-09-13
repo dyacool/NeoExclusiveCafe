@@ -7,18 +7,16 @@ if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
 
 require_once __DIR__ . "/../admin-includes/database.php";
 
-// Handle status updates
+// Handle status updates (approve/reject from list)
 if ($_POST && isset($_POST['action']) && $_POST['action'] === 'update_status') {
     $bulk_order_id = (int)$_POST['bulk_order_id'];
     $new_status = $_POST['new_status'];
-    
-    // Validate status
-    $allowed_statuses = ['pending', 'approved', 'completed', 'cancelled'];
+    // Allow approve/reject from list
+    $allowed_statuses = ['pending', 'approved', 'completed', 'cancelled', 'rejected'];
     if (in_array($new_status, $allowed_statuses)) {
         $update_sql = "UPDATE bulk_orders SET status = ?, admin_updated = NOW() WHERE id = ?";
         $update_stmt = mysqli_prepare($conn, $update_sql);
         mysqli_stmt_bind_param($update_stmt, "si", $new_status, $bulk_order_id);
-        
         if (mysqli_stmt_execute($update_stmt)) {
             $success_message = "Order status updated successfully!";
         } else {
@@ -147,6 +145,16 @@ if ($result && mysqli_num_rows($result) > 0) {
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <style>
+        .orders-table tbody tr {
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .orders-table tbody tr:hover, .orders-table tbody tr:focus {
+            background: #f3f4f6;
+            outline: none;
+        }
+    </style>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bulk Orders Management - Admin</title>
@@ -245,11 +253,11 @@ if ($result && mysqli_num_rows($result) > 0) {
                                 : ($order['username'] ?: 'Guest User');
                             $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_pad($order['id'], 6, '0', STR_PAD_LEFT);
                             ?>
-                            <tr onclick="window.location.href='bulk-order.php?id=<?php echo $order['id']; ?>'">
-                                <td>
+                            <tr tabindex="0" onkeydown="if(event.key==='Enter'){window.location.href='bulk-order.php?id=<?php echo $order['id']; ?>';}">
+                                <td onclick="window.location.href='bulk-order.php?id=<?php echo $order['id']; ?>'" style="cursor:pointer;">
                                     <div class="order-id">#<?php echo htmlspecialchars($order_id_display); ?></div>
                                 </td>
-                                <td>
+                                <td onclick="window.location.href='bulk-order.php?id=<?php echo $order['id']; ?>'" style="cursor:pointer;">
                                     <div class="user-info">
                                         <div class="user-name"><?php echo htmlspecialchars($user_name); ?></div>
                                         <?php if ($order['username']): ?>
@@ -257,18 +265,36 @@ if ($result && mysqli_num_rows($result) > 0) {
                                         <?php endif; ?>
                                     </div>
                                 </td>
-                                <td>
+                                <td onclick="window.location.href='bulk-order.php?id=<?php echo $order['id']; ?>'" style="cursor:pointer;">
                                     <div class="date-info">
                                         <div class="date-main"><?php echo date("M j, Y", strtotime($order['created_at'])); ?></div>
                                         <div class="date-time"><?php echo date("g:i A", strtotime($order['created_at'])); ?></div>
                                     </div>
                                 </td>
-                                <td><?php echo number_format($totals['total_items']); ?></td>
-                                <td>₱<?php echo number_format($totals['total_amount'], 2); ?></td>
+                                <td onclick="window.location.href='bulk-order.php?id=<?php echo $order['id']; ?>'" style="cursor:pointer;">
+                                    <?php echo number_format($totals['total_items']); ?>
+                                </td>
+                                <td onclick="window.location.href='bulk-order.php?id=<?php echo $order['id']; ?>'" style="cursor:pointer;">
+                                    ₱<?php echo number_format($totals['total_amount'], 2); ?>
+                                </td>
                                 <td>
                                     <span class="status-badge status-<?php echo strtolower($order['status']); ?>">
                                         <?php echo ucfirst(str_replace('_', ' ', $order['status'])); ?>
                                     </span>
+                                    <?php if ($order['status'] === 'pending'): ?>
+                                        <form method="POST" style="display:inline-block; margin-left:8px;">
+                                            <input type="hidden" name="action" value="update_status">
+                                            <input type="hidden" name="bulk_order_id" value="<?php echo $order['id']; ?>">
+                                            <input type="hidden" name="new_status" value="approved">
+                                            <button type="submit" class="btn btn-success btn-xs" onclick="return confirm('Approve this order?');" title="Approve"><i class="fas fa-check"></i></button>
+                                        </form>
+                                        <form method="POST" style="display:inline-block;">
+                                            <input type="hidden" name="action" value="update_status">
+                                            <input type="hidden" name="bulk_order_id" value="<?php echo $order['id']; ?>">
+                                            <input type="hidden" name="new_status" value="rejected">
+                                            <button type="submit" class="btn btn-danger btn-xs" onclick="return confirm('Reject this order?');" title="Reject"><i class="fas fa-times"></i></button>
+                                        </form>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                         <?php endwhile; ?>
