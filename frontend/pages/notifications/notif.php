@@ -2,6 +2,46 @@
 require_once 'class-notif.php'; // Include the Notification class
 require_once '../../user-includes/database.php'; // Include the database connection
 
+// Don't start session if it's already active
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Handle notification details request
+if (isset($_GET['action']) && $_GET['action'] === 'details') {
+    header('Content-Type: application/json');
+    
+    if (!isset($_SESSION["user_id"])) {
+        echo json_encode(["status" => "error", "message" => "User not logged in"]);
+        exit();
+    }
+    
+    $notificationId = $_GET['id'] ?? null;
+    
+    if (!$notificationId) {
+        echo json_encode(["status" => "error", "message" => "Notification ID is required"]);
+        exit();
+    }
+    
+    try {
+        $userId = $_SESSION['user_id'];
+        $notification = new Notification($conn);
+        $notificationDetails = $notification->getNotificationDetails($notificationId, $userId);
+        
+        if (!$notificationDetails) {
+            echo json_encode(["status" => "error", "message" => "Notification not found"]);
+            exit();
+        }
+        
+        echo json_encode(["status" => "success", "notification" => $notificationDetails]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(["status" => "error", "message" => "Failed to fetch notification details"]);
+        error_log("Database error: " . $e->getMessage());
+    }
+    exit();
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $message = trim($_POST['message']); // Trim whitespace from the message

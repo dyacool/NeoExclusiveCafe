@@ -20,14 +20,37 @@ if (!isset($_SESSION["user_id"])) {
 require_once '../../user-includes/database.php'; // Include the database connection
 require_once 'class-notif.php'; // Include the Notification class
 
+header('Content-Type: application/json');
+
 try {
-    $userId = $_SESSION['user_id']; // Get the logged-in user's ID
-    $notification = new Notification($conn); // Initialize the Notification class
-
-    // Mark all notifications as read using the Notification class
-    $notification->markAllAsRead($userId);
-
-    echo json_encode(["status" => "success", "message" => "All notifications marked as read"]);
+    $userId = $_SESSION['user_id'];
+    $notification = new Notification($conn);
+    
+    // Check if marking individual notification or all notifications
+    $notificationId = $_POST['notification_id'] ?? null;
+    
+    if ($notificationId) {
+        // Mark individual notification as read
+        // Verify the notification belongs to the current user
+        $stmt = $conn->prepare("SELECT id FROM notifications WHERE id = ? AND user_id = ?");
+        $stmt->bind_param("ii", $notificationId, $userId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows === 0) {
+            echo json_encode(["status" => "error", "message" => "Notification not found"]);
+            exit();
+        }
+        $stmt->close();
+        
+        // Mark notification as read
+        $notification->markAsRead($notificationId);
+        echo json_encode(["status" => "success", "message" => "Notification marked as read"]);
+    } else {
+        // Mark all notifications as read using the Notification class
+        $notification->markAllAsRead($userId);
+        echo json_encode(["status" => "success", "message" => "All notifications marked as read"]);
+    }
 } catch (Exception $e) {
     http_response_code(500); // Internal Server Error
     echo json_encode(["status" => "error", "message" => "Failed to mark notifications as read"]);

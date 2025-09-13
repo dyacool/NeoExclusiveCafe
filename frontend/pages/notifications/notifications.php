@@ -64,7 +64,9 @@ $notifications = $notification->getAllNotifications($user_id);
         <?php else: ?>
             <div class="notifications-list">
                 <?php foreach ($notifications as $notif): ?>
-                    <div class="notification-card <?= $notif['is_read'] ? 'read' : 'unread' ?>">
+                    <div class="notification-card <?= $notif['is_read'] ? 'read' : 'unread' ?>" 
+                         onclick="handleNotificationClick(<?= $notif['id'] ?>)" 
+                         style="cursor: pointer;">
                         <div class="notification-info">
                             <div class="notification-label">Date</div>
                             <div class="notification-value"><?= date("F j, Y, g:i a", strtotime($notif['created_at'])) ?></div>
@@ -84,18 +86,11 @@ $notifications = $notification->getAllNotifications($user_id);
                             </div>
                         </div>
                         
-                        <?php if (!empty($notif['description']) && $notif['description'] !== ($notif['title'] ?? $notif['message'])): ?>
-                            <div class="notification-info">
-                                <div class="notification-label">Description</div>
-                                <div class="notification-value"><?= htmlspecialchars($notif['description']) ?></div>
-                            </div>
-                        <?php endif; ?>
-                        
-                        <?php if (!empty($notif['link'])): ?>
-                            <div class="notification-action">
-                                <a href="<?= htmlspecialchars($notif['link']) ?>" class="view-details-btn">View Details</a>
-                            </div>
-                        <?php endif; ?>
+                        <div class="notification-action">
+                            <button class="view-details-btn" onclick="event.stopPropagation(); handleNotificationClick(<?= $notif['id'] ?>)">
+                                View Details
+                            </button>
+                        </div>
                     </div>
                 <?php endforeach; ?>
             </div>
@@ -104,6 +99,38 @@ $notifications = $notification->getAllNotifications($user_id);
                 <button id="markAllRead" class="mark-all-btn">Mark All as Read</button>
             </div>
         <?php endif; ?>
+    </div>
+
+    <!-- Notification Details Modal -->
+    <div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="notificationModalLabel">Notification Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="notification-details">
+                        <div class="notification-image-container" id="notificationImageContainer" style="display: none;">
+                            <img id="notificationImage" src="" alt="Notification Image" class="img-fluid rounded">
+                        </div>
+                        <div class="notification-content">
+                            <h6 id="notificationTitle" class="notification-title"></h6>
+                            <p id="notificationMessage" class="notification-message"></p>
+                            <small id="notificationTimestamp" class="text-muted"></small>
+                        </div>
+                        <div id="orderDetailsContainer" class="order-details" style="display: none;">
+                            <hr>
+                            <h6>Order Details</h6>
+                            <div id="orderDetails"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -125,6 +152,100 @@ $notifications = $notification->getAllNotifications($user_id);
                         alert('Error marking all notifications as read.');
                     });
             });
+        }
+
+        // Handle notification click - mark as read and show modal
+        function handleNotificationClick(notificationId) {
+            // Mark notification as read
+            fetch('mark-notif.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'notification_id=' + notificationId
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Fetch notification details and show modal
+                    fetchNotificationDetails(notificationId);
+                }
+            })
+            .catch(error => {
+                console.error('Error marking notification as read:', error);
+                // Still try to show the modal even if marking as read fails
+                fetchNotificationDetails(notificationId);
+            });
+        }
+
+        // Fetch notification details and show modal
+        function fetchNotificationDetails(notificationId) {
+            fetch('notif.php?action=details&id=' + notificationId)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showNotificationModal(data.notification);
+                } else {
+                    console.error('Error fetching notification details:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching notification details:', error);
+            });
+        }
+
+        // Show notification modal with details
+        function showNotificationModal(notification) {
+            // Update modal content
+            document.getElementById('notificationTitle').textContent = notification.title;
+            document.getElementById('notificationMessage').textContent = notification.message;
+            document.getElementById('notificationTimestamp').textContent = 
+                'Received: ' + new Date(notification.created_at).toLocaleString();
+
+            // Handle image
+            const imageContainer = document.getElementById('notificationImageContainer');
+            const image = document.getElementById('notificationImage');
+            if (notification.image_url) {
+                image.src = notification.image_url;
+                imageContainer.style.display = 'block';
+            } else {
+                imageContainer.style.display = 'none';
+            }
+
+            // Handle order details
+            const orderDetailsContainer = document.getElementById('orderDetailsContainer');
+            const orderDetails = document.getElementById('orderDetails');
+            if (notification.type === 'order' && notification.order_details) {
+                const order = notification.order_details;
+                orderDetails.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Order ID:</strong> #${order.id}</p>
+                            <p><strong>Customer:</strong> ${order.customer_name}</p>
+                            <p><strong>Email:</strong> ${order.customer_email}</p>
+                            <p><strong>Phone:</strong> ${order.customer_phone}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Status:</strong> <span class="badge bg-primary">${order.status}</span></p>
+                            <p><strong>Total Amount:</strong> ₱${parseFloat(order.total_amount).toFixed(2)}</p>
+                            <p><strong>Order Date:</strong> ${new Date(order.order_date).toLocaleString()}</p>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-12">
+                            <p><strong>Items:</strong> ${order.items}</p>
+                            <p><strong>Delivery Address:</strong> ${order.delivery_address}</p>
+                        </div>
+                    </div>
+                `;
+                orderDetailsContainer.style.display = 'block';
+            } else {
+                orderDetailsContainer.style.display = 'none';
+            }
+
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('notificationModal'));
+            modal.show();
         }
     </script>
 </body>
