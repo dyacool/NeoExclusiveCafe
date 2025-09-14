@@ -609,7 +609,7 @@ try {
                 <!-- Products with Today Availability -->
                 <div class="table-card">
                     <div class="table-header">
-                        <h3>Products with Today Availability</h3>
+                        <h3>Same Day Order Products</h3>
                         <span class="table-subtitle">Products available for pickup/delivery with specific dates</span>
                     </div>
                     <div class="table-container">
