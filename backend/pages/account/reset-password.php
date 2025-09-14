@@ -87,35 +87,165 @@ if (isset($_POST["reset_password"])) {
         
         <div class="main-container">
             <div class="container">
-                <div class="title">
-                    <h3>Reset Password</h3>
+                <div class="form-header">
+                    <div class="lock-icon">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <h1>Reset Password</h1>
+                    <p>Enter your new password below</p>
                 </div>
-                <div class="content">
-                    <form action="" method="post">
-                        <div class="text-field">
-                            <input type="password" name="current_password" placeholder="Current Password" required>
-                        </div>
-                        <div class="text-field">
-                            <input type="password" name="new_password" placeholder="New Password" required>
-                        </div>
-                        <div class="text-field">
-                            <input type="password" name="confirm_password" placeholder="Confirm Password" required>
-                        </div>
-                        <button type="submit" class="reset-pw" name="reset_password">Reset Password</button>
-                    </form>
+                
+                <?php if (!empty($successMessage)): ?>
+                    <div class="success-message">
+                        <i class="fas fa-check-circle"></i>
+                        <span><?php echo htmlspecialchars($successMessage); ?></span>
+                    </div>
+                <?php endif; ?>
 
-                    <?php if (!empty($errorMessage)): ?>
-                        <div class="alert"><?php echo htmlspecialchars($errorMessage); ?></div>
-                    <?php endif; ?>
+                <?php if (!empty($errorMessage)): ?>
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span><?php echo htmlspecialchars($errorMessage); ?></span>
+                    </div>
+                <?php endif; ?>
 
-                    <?php if (!empty($successMessage)): ?>
-                        <div class="alert"><?php echo htmlspecialchars($successMessage); ?></div>
-                    <?php endif; ?>
-                </div>
+                <form action="" method="post" class="password-form">
+                    <div class="form-group">
+                        <label for="current_password">Current Password</label>
+                        <div class="input-group">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="current_password" name="current_password" placeholder="Enter current password" required>
+                            <button type="button" class="toggle-password" onclick="togglePassword('current_password', this)">
+                                <i class="far fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="new_password">New Password</label>
+                        <div class="input-group">
+                            <i class="fas fa-key"></i>
+                            <input type="password" id="new_password" name="new_password" placeholder="Enter new password" required>
+                            <button type="button" class="toggle-password" onclick="togglePassword('new_password', this)">
+                                <i class="far fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="password-strength">
+                            <div class="strength-meter"></div>
+                            <span class="strength-text">Password strength</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirm_password">Confirm New Password</label>
+                        <div class="input-group">
+                            <i class="fas fa-check-circle"></i>
+                            <input type="password" id="confirm_password" name="confirm_password" required>
+                            <button type="button" class="toggle-password" onclick="togglePassword('confirm_password', this)">
+                                <i class="far fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="reset-button" name="reset_password">
+                        <span>Update Password</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </form>
             </div>
         </div>
     </div>
     
     <?php include __DIR__ . "/../admin-includes/footer/admin-footer.php"; ?>
+    
+    <script>
+    function togglePassword(inputId, button) {
+        const input = document.getElementById(inputId);
+        const icon = button.querySelector('i');
+        
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const newPassword = document.getElementById('new_password');
+        const confirmPassword = document.getElementById('confirm_password');
+        const strengthMeter = document.querySelector('.strength-meter');
+        const strengthText = document.querySelector('.strength-text');
+        
+        if (newPassword) {
+            newPassword.addEventListener('input', updatePasswordStrength);
+        }
+        
+        if (confirmPassword) {
+            confirmPassword.addEventListener('input', validatePasswordMatch);
+        }
+        
+        function updatePasswordStrength() {
+            const password = newPassword.value;
+            let strength = 0;
+            let messages = [];
+            
+            // Check password length
+            if (password.length >= 8) strength++;
+            
+            // Check for lowercase letters
+            if (/[a-z]/.test(password)) strength++;
+            
+            // Check for uppercase letters
+            if (/[A-Z]/.test(password)) strength++;
+            
+            // Check for numbers
+            if (/[0-9]/.test(password)) strength++;
+            
+            // Check for special characters
+            if (/[^A-Za-z0-9]/.test(password)) strength++;
+            
+            // Update the strength meter
+            const strengthPercentage = (strength / 5) * 100;
+            strengthMeter.style.width = strengthPercentage + '%';
+            
+            // Update the strength text and color
+            let strengthLabel = '';
+            let strengthColor = '';
+            
+            if (password.length === 0) {
+                strengthLabel = 'Password strength';
+                strengthColor = '#e5e7eb';
+            } else if (strength <= 2) {
+                strengthLabel = 'Weak';
+                strengthColor = '#ef4444'; // Red
+            } else if (strength === 3) {
+                strengthLabel = 'Moderate';
+                strengthColor = '#f59e0b'; // Orange
+            } else if (strength === 4) {
+                strengthLabel = 'Strong';
+                strengthColor = '#3b82f6'; // Blue
+            } else {
+                strengthLabel = 'Very Strong';
+                strengthColor = '#10b981'; // Green
+            }
+            
+            strengthMeter.style.backgroundColor = strengthColor;
+            strengthText.textContent = strengthLabel;
+            strengthText.style.color = strengthColor;
+        }
+        
+        function validatePasswordMatch() {
+            if (newPassword.value !== confirmPassword.value) {
+                confirmPassword.setCustomValidity('Passwords do not match');
+            } else {
+                confirmPassword.setCustomValidity('');
+            }
+        }
+    });
+    </script>
 </body>
 </html>
