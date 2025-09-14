@@ -189,7 +189,7 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
 
                 <div class="form-group">
                     <label for="billing_address">Billing Address *</label>
-                    <textarea id="billing_address" name="billing_address" rows="3" required readonly style="resize: none;"></textarea>
+                    <textarea id="billing_address" name="billing_address" rows="3" required style="resize: none;"></textarea>
                 </div>
 
                 <div class="form-group">
@@ -208,7 +208,7 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
 
                 <div class="form-group">
                     <label for="purpose">Purpose of Order *</label>
-                    <textarea id="purpose" name="purpose" rows="2" required placeholder="e.g., Corporate event, Wedding, Birthday party, etc." readonly style="resize: none;"></textarea>
+                    <textarea id="purpose" name="purpose" rows="2" required placeholder="e.g., Corporate event, Wedding, Birthday party, etc." style="resize: none;"></textarea>
                 </div>
 
                 <div class="form-group">
