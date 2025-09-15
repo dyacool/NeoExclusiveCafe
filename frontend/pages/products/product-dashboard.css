@@ -903,6 +903,7 @@ h3 {
 
 /* Confirmation Popup */
 .confirmation-popup {
+  position: fixed;
   top: 20px;
   right: 20px;
   background: #4caf50;
