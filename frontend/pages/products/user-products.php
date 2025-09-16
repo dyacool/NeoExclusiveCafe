@@ -98,9 +98,7 @@ if ($conn->connect_error) {
                         LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
                         LEFT JOIN product_day pd ON p.id = pd.product_id
                             WHERE p.deleted_at IS NULL AND p.id > 0
-                        AND ps.name != 'Delivery'
-                        AND (p.status_id != 3 
-                            OR (p.status_id = 3 AND p.show_when_unavailable = 1))
+                        AND (p.status_id = 1 OR p.availtoday_status_id = 1)
                         GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, ps.name, pi.image_url, p.quantity, p.show_when_unavailable
                         ORDER BY p.is_featured DESC, p.status_id ASC";
         
