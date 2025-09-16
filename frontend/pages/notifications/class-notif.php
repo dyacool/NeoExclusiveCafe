@@ -203,7 +203,7 @@ class Notification {
     // Fetch notification details by ID for modal display
     public function getNotificationDetails($notificationId, $userId) {
         $stmt = $this->db->prepare("
-            SELECT id, user_id, type, title, message, image_url, is_read, created_at, related_id 
+            SELECT id, user_id, type, title, message, image_url, is_read, created_at, order_id 
             FROM notifications 
             WHERE id = ? AND user_id = ?
         ");
@@ -219,8 +219,8 @@ class Notification {
         $stmt->close();
         
         // If it's an order notification, fetch order details
-        if ($notification['type'] === 'order' && !empty($notification['related_id'])) {
-            $orderId = $notification['related_id'];
+        if ($notification['type'] === 'order' && !empty($notification['order_id'])) {
+            $orderId = $notification['order_id'];
             
             // Fetch order details
             $orderStmt = $this->db->prepare("

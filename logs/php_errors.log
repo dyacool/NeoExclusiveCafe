@@ -76039,3 +76039,929 @@ Stack trace:
 [13-Sep-2025 17:34:56 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in D:\XAMPP\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
 [13-Sep-2025 17:34:57 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in D:\XAMPP\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
 [13-Sep-2025 17:34:57 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in D:\XAMPP\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[15-Sep-2025 11:23:36 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[15-Sep-2025 11:23:36 Europe/Berlin] Total featured products found: 7
+[15-Sep-2025 11:23:39 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[15-Sep-2025 11:23:46 Europe/Berlin] Business hours: 08:00:00 - 21:50:00
+[15-Sep-2025 11:23:46 Europe/Berlin] Time analysis: current=11:23:46 (683 min), opening=08:00:00 (480 min), closing=21:50:00 (1310 min), is_closed=No
+[15-Sep-2025 11:23:46 Europe/Berlin] Cart truncation result: No action needed
+[15-Sep-2025 11:33:15 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[15-Sep-2025 11:33:15 Europe/Berlin] Total featured products found: 7
+[15-Sep-2025 11:33:18 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[15-Sep-2025 11:33:29 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[15-Sep-2025 11:33:30 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[15-Sep-2025 11:33:30 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[15-Sep-2025 11:33:31 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[15-Sep-2025 11:40:17 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[15-Sep-2025 11:40:18 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[15-Sep-2025 11:40:18 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[15-Sep-2025 11:40:19 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[15-Sep-2025 11:44:28 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[15-Sep-2025 11:44:28 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[15-Sep-2025 11:44:28 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[15-Sep-2025 11:44:29 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[15-Sep-2025 11:47:30 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[15-Sep-2025 11:47:30 Europe/Berlin] Total featured products found: 7
+[15-Sep-2025 11:47:33 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[15-Sep-2025 11:47:40 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[15-Sep-2025 11:47:40 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[15-Sep-2025 11:47:40 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[15-Sep-2025 11:47:41 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[16-Sep-2025 02:15:10 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[16-Sep-2025 02:15:10 Europe/Berlin] Total featured products found: 7
+[16-Sep-2025 02:15:13 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[16-Sep-2025 02:18:11 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[16-Sep-2025 02:18:11 Europe/Berlin] Total featured products found: 7
+[16-Sep-2025 02:18:14 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[16-Sep-2025 03:43:04 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[16-Sep-2025 03:43:04 Europe/Berlin] Total featured products found: 7
+[16-Sep-2025 03:43:07 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[16-Sep-2025 10:29:50 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[16-Sep-2025 10:29:50 Europe/Berlin] Total featured products found: 7
+[16-Sep-2025 10:29:53 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[16-Sep-2025 12:15:57 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[16-Sep-2025 12:15:57 Europe/Berlin] Total featured products found: 7
+[16-Sep-2025 12:16:00 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[16-Sep-2025 13:07:49 Europe/Berlin] Business hours: 08:00:00 - 21:50:00
+[16-Sep-2025 13:07:49 Europe/Berlin] Time analysis: current=13:07:49 (787 min), opening=08:00:00 (480 min), closing=21:50:00 (1310 min), is_closed=No
+[16-Sep-2025 13:07:49 Europe/Berlin] Cart truncation result: No action needed
+[16-Sep-2025 13:09:46 Europe/Berlin] Business hours: 08:00:00 - 21:50:00
+[16-Sep-2025 13:09:46 Europe/Berlin] Time analysis: current=13:09:46 (789 min), opening=08:00:00 (480 min), closing=21:50:00 (1310 min), is_closed=No
+[16-Sep-2025 13:09:46 Europe/Berlin] Cart truncation result: No action needed
+[16-Sep-2025 13:12:08 Europe/Berlin] Business hours: 08:00:00 - 21:50:00
+[16-Sep-2025 13:12:08 Europe/Berlin] Time analysis: current=13:12:07 (792 min), opening=08:00:00 (480 min), closing=21:50:00 (1310 min), is_closed=No
+[16-Sep-2025 13:12:08 Europe/Berlin] Cart truncation result: No action needed
+[16-Sep-2025 13:41:22 Europe/Berlin] Business hours: 08:00:00 - 21:50:00
+[16-Sep-2025 13:41:22 Europe/Berlin] Time analysis: current=13:41:22 (821 min), opening=08:00:00 (480 min), closing=21:50:00 (1310 min), is_closed=No
+[16-Sep-2025 13:41:22 Europe/Berlin] Cart truncation result: No action needed
+[16-Sep-2025 13:41:31 Europe/Berlin] Processing dates: start=2025-08-31, end=2025-09-29
+[16-Sep-2025 13:41:31 Europe/Berlin] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) IN (LOWER('pending'), LOWER('picked-up'), LOWER('delivered')) ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[16-Sep-2025 13:41:31 Europe/Berlin] With parameters: start=2025-08-31, end=2025-09-29, showCompleted=true
+[16-Sep-2025 14:17:02 Europe/Berlin] Business hours: 08:00:00 - 21:50:00
+[16-Sep-2025 14:17:02 Europe/Berlin] Time analysis: current=14:17:02 (857 min), opening=08:00:00 (480 min), closing=21:50:00 (1310 min), is_closed=No
+[16-Sep-2025 14:17:02 Europe/Berlin] Cart truncation result: No action needed
+[16-Sep-2025 14:24:49 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[16-Sep-2025 14:24:49 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[16-Sep-2025 14:24:50 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[16-Sep-2025 14:24:50 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[16-Sep-2025 14:25:04 Europe/Berlin] Database connection successful
+[16-Sep-2025 14:25:04 Europe/Berlin] User has 1 items in cart table
+[16-Sep-2025 14:25:04 Europe/Berlin] Cart table structure:
+[16-Sep-2025 14:25:04 Europe/Berlin]   id - int(11) - NO - PRI -  - auto_increment
+[16-Sep-2025 14:25:04 Europe/Berlin]   user_id - int(11) - NO -  -  - 
+[16-Sep-2025 14:25:04 Europe/Berlin]   product_id - int(11) - NO -  -  - 
+[16-Sep-2025 14:25:04 Europe/Berlin]   quantity - int(11) - NO -  - 1 - 
+[16-Sep-2025 14:25:04 Europe/Berlin]   price - decimal(10,2) - NO -  -  - 
+[16-Sep-2025 14:25:04 Europe/Berlin]   created_at - timestamp - NO -  - current_timestamp() - 
+[16-Sep-2025 14:25:04 Europe/Berlin]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[16-Sep-2025 14:25:04 Europe/Berlin] Cart item 108 does not exist in cart table
+[16-Sep-2025 14:25:05 Europe/Berlin] Final user data: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [email] => alrainepascua2@gmail.com
+)
+
+[16-Sep-2025 14:25:05 Europe/Berlin] REQUEST_METHOD: POST
+[16-Sep-2025 14:25:05 Europe/Berlin] POST data: Array
+(
+    [valid_cart_ids] => 12
+    [selected_cart_ids] => Array
+        (
+            [0] => 12
+        )
+
+    [checkout] => 
+    [subtotal] => 250
+    [cart_items] => 12
+)
+
+[16-Sep-2025 14:25:05 Europe/Berlin] SESSION data at cart items check: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [admin_redirect_url] => /backend/pages/homepage/admin-homepage.php
+    [user_profile_image] => /assets/public/profile-images/profile_fb6545ed8cf33d8c74aeaaeb51645429.jpg
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+)
+
+[16-Sep-2025 14:25:05 Europe/Berlin] Got cart IDs from POST: 12
+[16-Sep-2025 14:25:05 Europe/Berlin] Validated cart IDs: 12
+[16-Sep-2025 14:25:05 Europe/Berlin] Final selected_cart_ids: Array
+(
+    [0] => 12
+)
+
+[16-Sep-2025 14:25:05 Europe/Berlin] Final subtotal: 250
+[16-Sep-2025 14:25:05 Europe/Berlin] Selected cart IDs: Array
+(
+    [0] => 12
+)
+
+[16-Sep-2025 14:25:05 Europe/Berlin] Subtotal: 250
+[16-Sep-2025 14:25:05 Europe/Berlin] Cart item 12 is valid for user 5
+[16-Sep-2025 14:25:05 Europe/Berlin] Validated cart IDs: 12
+[16-Sep-2025 14:25:06 Europe/Berlin] Cart contains only delivery items - setting shipping method to delivery
+[16-Sep-2025 14:25:06 Europe/Berlin] Cart analysis: 1 items, pickup: , delivery: 1, method: delivery
+[16-Sep-2025 14:25:06 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Olive Sourdough Batard
+            [price] => 250.00
+            [quantity] => 1
+            [cart_id] => 12
+            [product_id] => 7
+            [status_id] => 2
+            [available_days] => Monday,Wednesday,Friday
+        )
+
+)
+
+[16-Sep-2025 14:25:06 Europe/Berlin] Cart total: 250
+[16-Sep-2025 14:25:06 Europe/Berlin] User data at display point: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [profile_image] => /assets/public/profile-images/profile_fb6545ed8cf33d8c74aeaaeb51645429.jpg
+)
+
+[16-Sep-2025 14:25:06 Europe/Berlin] Session data at display point: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [admin_redirect_url] => /backend/pages/homepage/admin-homepage.php
+    [user_profile_image] => /assets/public/profile-images/profile_fb6545ed8cf33d8c74aeaaeb51645429.jpg
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 12
+        )
+
+    [subtotal] => 250
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Olive Sourdough Batard
+                    [price] => 250.00
+                    [quantity] => 1
+                    [cart_id] => 12
+                    [product_id] => 7
+                    [status_id] => 2
+                    [available_days] => Monday,Wednesday,Friday
+                )
+
+        )
+
+    [cart_total] => 250
+    [shipping_method] => delivery
+    [has_pickup_items] => 
+    [has_delivery_items] => 1
+)
+
+[16-Sep-2025 14:26:02 Europe/Berlin] Database connection successful
+[16-Sep-2025 14:26:02 Europe/Berlin] User has 1 items in cart table
+[16-Sep-2025 14:26:03 Europe/Berlin] Cart table structure:
+[16-Sep-2025 14:26:03 Europe/Berlin]   id - int(11) - NO - PRI -  - auto_increment
+[16-Sep-2025 14:26:03 Europe/Berlin]   user_id - int(11) - NO -  -  - 
+[16-Sep-2025 14:26:03 Europe/Berlin]   product_id - int(11) - NO -  -  - 
+[16-Sep-2025 14:26:03 Europe/Berlin]   quantity - int(11) - NO -  - 1 - 
+[16-Sep-2025 14:26:03 Europe/Berlin]   price - decimal(10,2) - NO -  -  - 
+[16-Sep-2025 14:26:03 Europe/Berlin]   created_at - timestamp - NO -  - current_timestamp() - 
+[16-Sep-2025 14:26:03 Europe/Berlin]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[16-Sep-2025 14:26:03 Europe/Berlin] Cart item 108 does not exist in cart table
+[16-Sep-2025 14:26:03 Europe/Berlin] Final user data: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [email] => alrainepascua2@gmail.com
+)
+
+[16-Sep-2025 14:26:03 Europe/Berlin] REQUEST_METHOD: POST
+[16-Sep-2025 14:26:03 Europe/Berlin] POST data: Array
+(
+    [valid_cart_ids] => 12
+    [selected_cart_ids] => Array
+        (
+            [0] => 12
+        )
+
+    [checkout] => 
+    [subtotal] => 0
+    [cart_items] => 
+)
+
+[16-Sep-2025 14:26:03 Europe/Berlin] SESSION data at cart items check: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [admin_redirect_url] => /backend/pages/homepage/admin-homepage.php
+    [user_profile_image] => /assets/public/profile-images/profile_fb6545ed8cf33d8c74aeaaeb51645429.jpg
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 12
+        )
+
+    [subtotal] => 250
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Olive Sourdough Batard
+                    [price] => 250.00
+                    [quantity] => 1
+                    [cart_id] => 12
+                    [product_id] => 7
+                    [status_id] => 2
+                    [available_days] => Monday,Wednesday,Friday
+                )
+
+        )
+
+    [cart_total] => 250
+    [shipping_method] => delivery
+    [has_pickup_items] => 
+    [has_delivery_items] => 1
+    [pending_payment] => Array
+        (
+            [source_id] => src_STGkks5JLkUHKaPsLso4zmrh
+            [order_id] => 4304
+            [order_type] => regular
+            [amount] => 250
+            [payment_method] => gcash
+            [order_data] => Array
+                (
+                    [cart_items] => [{"name":"Olive Sourdough Batard","price":"250.00","quantity":1,"cart_id":12,"product_id":7,"status_id":2,"available_days":"Monday,Wednesday,Friday"}]
+                    [selected_cart_ids] => 12
+                    [cart_total] => 250
+                    [user_name] => Aine Pascua
+                    [user_email] => alrainepascua2@gmail.com
+                    [delivery_method] => delivery
+                    [delivery_date] => 2025-09-24
+                    [pickup_date] => 2025-09-16
+                    [delivery_time] => 06:00
+                    [payment_method] => gcash
+                    [notes] => 
+                    [customer_name] => Aine Pascua
+                    [customer_email] => alrainepascua2@gmail.com
+                )
+
+        )
+
+)
+
+[16-Sep-2025 14:26:03 Europe/Berlin] Got cart IDs from POST: 12
+[16-Sep-2025 14:26:03 Europe/Berlin] Validated cart IDs: 12
+[16-Sep-2025 14:26:03 Europe/Berlin] Final selected_cart_ids: Array
+(
+    [0] => 12
+)
+
+[16-Sep-2025 14:26:03 Europe/Berlin] Final subtotal: 0
+[16-Sep-2025 14:26:03 Europe/Berlin] Selected cart IDs: Array
+(
+    [0] => 12
+)
+
+[16-Sep-2025 14:26:03 Europe/Berlin] Subtotal: 0
+[16-Sep-2025 14:26:03 Europe/Berlin] Cart item 12 is valid for user 5
+[16-Sep-2025 14:26:03 Europe/Berlin] Validated cart IDs: 12
+[16-Sep-2025 14:26:04 Europe/Berlin] Cart contains only delivery items - setting shipping method to delivery
+[16-Sep-2025 14:26:04 Europe/Berlin] Cart analysis: 1 items, pickup: , delivery: 1, method: delivery
+[16-Sep-2025 14:26:04 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Olive Sourdough Batard
+            [price] => 250.00
+            [quantity] => 1
+            [cart_id] => 12
+            [product_id] => 7
+            [status_id] => 2
+            [available_days] => Monday,Wednesday,Friday
+        )
+
+)
+
+[16-Sep-2025 14:26:04 Europe/Berlin] Cart total: 250
+[16-Sep-2025 14:26:04 Europe/Berlin] User data at display point: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [profile_image] => /assets/public/profile-images/profile_fb6545ed8cf33d8c74aeaaeb51645429.jpg
+)
+
+[16-Sep-2025 14:26:04 Europe/Berlin] Session data at display point: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [admin_redirect_url] => /backend/pages/homepage/admin-homepage.php
+    [user_profile_image] => /assets/public/profile-images/profile_fb6545ed8cf33d8c74aeaaeb51645429.jpg
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 12
+        )
+
+    [subtotal] => 0
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Olive Sourdough Batard
+                    [price] => 250.00
+                    [quantity] => 1
+                    [cart_id] => 12
+                    [product_id] => 7
+                    [status_id] => 2
+                    [available_days] => Monday,Wednesday,Friday
+                )
+
+        )
+
+    [cart_total] => 250
+    [shipping_method] => delivery
+    [has_pickup_items] => 
+    [has_delivery_items] => 1
+    [pending_payment] => Array
+        (
+            [source_id] => src_STGkks5JLkUHKaPsLso4zmrh
+            [order_id] => 4304
+            [order_type] => regular
+            [amount] => 250
+            [payment_method] => gcash
+            [order_data] => Array
+                (
+                    [cart_items] => [{"name":"Olive Sourdough Batard","price":"250.00","quantity":1,"cart_id":12,"product_id":7,"status_id":2,"available_days":"Monday,Wednesday,Friday"}]
+                    [selected_cart_ids] => 12
+                    [cart_total] => 250
+                    [user_name] => Aine Pascua
+                    [user_email] => alrainepascua2@gmail.com
+                    [delivery_method] => delivery
+                    [delivery_date] => 2025-09-24
+                    [pickup_date] => 2025-09-16
+                    [delivery_time] => 06:00
+                    [payment_method] => gcash
+                    [notes] => 
+                    [customer_name] => Aine Pascua
+                    [customer_email] => alrainepascua2@gmail.com
+                )
+
+        )
+
+)
+
+[16-Sep-2025 14:30:08 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[16-Sep-2025 14:30:08 Europe/Berlin] Total featured products found: 7
+[16-Sep-2025 14:30:13 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[16-Sep-2025 14:34:50 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[16-Sep-2025 14:34:50 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[16-Sep-2025 14:34:51 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[16-Sep-2025 14:34:51 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[16-Sep-2025 14:35:54 Europe/Berlin] Business hours: 08:00:00 - 21:50:00
+[16-Sep-2025 14:35:54 Europe/Berlin] Time analysis: current=14:35:54 (875 min), opening=08:00:00 (480 min), closing=21:50:00 (1310 min), is_closed=No
+[16-Sep-2025 14:35:54 Europe/Berlin] Cart truncation result: No action needed
+[16-Sep-2025 14:37:13 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[16-Sep-2025 14:37:14 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[16-Sep-2025 14:37:14 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[16-Sep-2025 14:37:15 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[16-Sep-2025 14:47:25 Europe/Berlin] Database connection successful
+[16-Sep-2025 14:47:26 Europe/Berlin] User has 3 items in cart table
+[16-Sep-2025 14:47:26 Europe/Berlin] Cart table structure:
+[16-Sep-2025 14:47:26 Europe/Berlin]   id - int(11) - NO - PRI -  - auto_increment
+[16-Sep-2025 14:47:26 Europe/Berlin]   user_id - int(11) - NO -  -  - 
+[16-Sep-2025 14:47:26 Europe/Berlin]   product_id - int(11) - NO -  -  - 
+[16-Sep-2025 14:47:26 Europe/Berlin]   quantity - int(11) - NO -  - 1 - 
+[16-Sep-2025 14:47:26 Europe/Berlin]   price - decimal(10,2) - NO -  -  - 
+[16-Sep-2025 14:47:26 Europe/Berlin]   created_at - timestamp - NO -  - current_timestamp() - 
+[16-Sep-2025 14:47:26 Europe/Berlin]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[16-Sep-2025 14:47:26 Europe/Berlin] Cart item 108 does not exist in cart table
+[16-Sep-2025 14:47:26 Europe/Berlin] Final user data: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [email] => alrainepascua2@gmail.com
+)
+
+[16-Sep-2025 14:47:26 Europe/Berlin] REQUEST_METHOD: POST
+[16-Sep-2025 14:47:26 Europe/Berlin] POST data: Array
+(
+    [valid_cart_ids] => 14,12,13
+    [selected_cart_ids] => Array
+        (
+            [0] => 14
+        )
+
+    [checkout] => 
+    [subtotal] => 230
+    [cart_items] => 14
+)
+
+[16-Sep-2025 14:47:26 Europe/Berlin] SESSION data at cart items check: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [admin_redirect_url] => /backend/pages/homepage/admin-homepage.php
+    [user_profile_image] => /assets/public/profile-images/profile_fb6545ed8cf33d8c74aeaaeb51645429.jpg
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 12
+        )
+
+    [subtotal] => 0
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Olive Sourdough Batard
+                    [price] => 250.00
+                    [quantity] => 1
+                    [cart_id] => 12
+                    [product_id] => 7
+                    [status_id] => 2
+                    [available_days] => Monday,Wednesday,Friday
+                )
+
+        )
+
+    [cart_total] => 250
+    [shipping_method] => delivery
+    [has_pickup_items] => 
+    [has_delivery_items] => 1
+    [pending_payment] => Array
+        (
+            [source_id] => src_STGkks5JLkUHKaPsLso4zmrh
+            [order_id] => 4304
+            [order_type] => regular
+            [amount] => 250
+            [payment_method] => gcash
+            [order_data] => Array
+                (
+                    [cart_items] => [{"name":"Olive Sourdough Batard","price":"250.00","quantity":1,"cart_id":12,"product_id":7,"status_id":2,"available_days":"Monday,Wednesday,Friday"}]
+                    [selected_cart_ids] => 12
+                    [cart_total] => 250
+                    [user_name] => Aine Pascua
+                    [user_email] => alrainepascua2@gmail.com
+                    [delivery_method] => delivery
+                    [delivery_date] => 2025-09-24
+                    [pickup_date] => 2025-09-16
+                    [delivery_time] => 06:00
+                    [payment_method] => gcash
+                    [notes] => 
+                    [customer_name] => Aine Pascua
+                    [customer_email] => alrainepascua2@gmail.com
+                )
+
+        )
+
+    [availtoday_cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Three Cheese and Basil - 3 Slices
+                    [price] => 100.00
+                    [quantity] => 1
+                    [cart_id] => 1
+                    [product_id] => 2
+                    [status_id] => 3
+                    [availtoday_status_id] => 2
+                    [availtoday_status_name] => Delivery
+                    [available_days] => 
+                    [shipping_method] => delivery
+                )
+
+            [1] => Array
+                (
+                    [name] => Classic Sourdough Bread
+                    [price] => 200.00
+                    [quantity] => 2
+                    [cart_id] => 2
+                    [product_id] => 1
+                    [status_id] => 3
+                    [availtoday_status_id] => 2
+                    [availtoday_status_name] => Delivery
+                    [available_days] => 
+                    [shipping_method] => delivery
+                )
+
+        )
+
+    [availtoday_cart_total] => 500
+    [availtoday_shipping_method] => delivery
+    [has_mixed_availtoday_status] => 
+)
+
+[16-Sep-2025 14:47:26 Europe/Berlin] Got cart IDs from POST: 14
+[16-Sep-2025 14:47:26 Europe/Berlin] Validated cart IDs: 14
+[16-Sep-2025 14:47:26 Europe/Berlin] Final selected_cart_ids: Array
+(
+    [0] => 14
+)
+
+[16-Sep-2025 14:47:26 Europe/Berlin] Final subtotal: 230
+[16-Sep-2025 14:47:26 Europe/Berlin] Selected cart IDs: Array
+(
+    [0] => 14
+)
+
+[16-Sep-2025 14:47:26 Europe/Berlin] Subtotal: 230
+[16-Sep-2025 14:47:27 Europe/Berlin] Cart item 14 is valid for user 5
+[16-Sep-2025 14:47:27 Europe/Berlin] Validated cart IDs: 14
+[16-Sep-2025 14:47:27 Europe/Berlin] Cart contains only pickup items - setting shipping method to pickup
+[16-Sep-2025 14:47:27 Europe/Berlin] Cart analysis: 1 items, pickup: 1, delivery: , method: pickup
+[16-Sep-2025 14:47:27 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Cassava Cake
+            [price] => 230.00
+            [quantity] => 1
+            [cart_id] => 14
+            [product_id] => 12
+            [status_id] => 1
+            [available_days] => Monday,Thursday
+        )
+
+)
+
+[16-Sep-2025 14:47:27 Europe/Berlin] Cart total: 230
+[16-Sep-2025 14:47:27 Europe/Berlin] User data at display point: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [profile_image] => /assets/public/profile-images/profile_fb6545ed8cf33d8c74aeaaeb51645429.jpg
+)
+
+[16-Sep-2025 14:47:27 Europe/Berlin] Session data at display point: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [admin_redirect_url] => /backend/pages/homepage/admin-homepage.php
+    [user_profile_image] => /assets/public/profile-images/profile_fb6545ed8cf33d8c74aeaaeb51645429.jpg
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 14
+        )
+
+    [subtotal] => 230
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Cassava Cake
+                    [price] => 230.00
+                    [quantity] => 1
+                    [cart_id] => 14
+                    [product_id] => 12
+                    [status_id] => 1
+                    [available_days] => Monday,Thursday
+                )
+
+        )
+
+    [cart_total] => 230
+    [shipping_method] => pickup
+    [has_pickup_items] => 1
+    [has_delivery_items] => 
+    [pending_payment] => Array
+        (
+            [source_id] => src_STGkks5JLkUHKaPsLso4zmrh
+            [order_id] => 4304
+            [order_type] => regular
+            [amount] => 250
+            [payment_method] => gcash
+            [order_data] => Array
+                (
+                    [cart_items] => [{"name":"Olive Sourdough Batard","price":"250.00","quantity":1,"cart_id":12,"product_id":7,"status_id":2,"available_days":"Monday,Wednesday,Friday"}]
+                    [selected_cart_ids] => 12
+                    [cart_total] => 250
+                    [user_name] => Aine Pascua
+                    [user_email] => alrainepascua2@gmail.com
+                    [delivery_method] => delivery
+                    [delivery_date] => 2025-09-24
+                    [pickup_date] => 2025-09-16
+                    [delivery_time] => 06:00
+                    [payment_method] => gcash
+                    [notes] => 
+                    [customer_name] => Aine Pascua
+                    [customer_email] => alrainepascua2@gmail.com
+                )
+
+        )
+
+    [availtoday_cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Three Cheese and Basil - 3 Slices
+                    [price] => 100.00
+                    [quantity] => 1
+                    [cart_id] => 1
+                    [product_id] => 2
+                    [status_id] => 3
+                    [availtoday_status_id] => 2
+                    [availtoday_status_name] => Delivery
+                    [available_days] => 
+                    [shipping_method] => delivery
+                )
+
+            [1] => Array
+                (
+                    [name] => Classic Sourdough Bread
+                    [price] => 200.00
+                    [quantity] => 2
+                    [cart_id] => 2
+                    [product_id] => 1
+                    [status_id] => 3
+                    [availtoday_status_id] => 2
+                    [availtoday_status_name] => Delivery
+                    [available_days] => 
+                    [shipping_method] => delivery
+                )
+
+        )
+
+    [availtoday_cart_total] => 500
+    [availtoday_shipping_method] => delivery
+    [has_mixed_availtoday_status] => 
+)
+
+[16-Sep-2025 14:47:40 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[16-Sep-2025 14:47:40 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[16-Sep-2025 14:47:40 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[16-Sep-2025 14:47:41 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[16-Sep-2025 14:53:19 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[16-Sep-2025 14:53:19 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[16-Sep-2025 14:53:20 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
+[16-Sep-2025 14:53:21 Europe/Berlin] PHP Warning:  Undefined array key "image_url" in C:\xampp\htdocs\NeoCafe\frontend\pages\products\weekly-product.php on line 233
