@@ -75,6 +75,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico">
     <link rel="stylesheet" href="/backend/pages/products/product-list.css">
+    <link rel="stylesheet" href="/backend/pages/products/edit-modal.css">
     <link rel="stylesheet" href="/backend/pages/products/dates-tooltip.css">
     <script src="/backend/pages/products/product-list.js" defer></script>
     <script src="components/date-calendar.js" defer></script>
@@ -440,8 +441,8 @@
         <div class="modal-content-wrapper">
             <!-- Left Side - Image Management -->
             <div class="modal-left-panel">
+                <h3>Product Images</h3>
                 <div class="image-management-section">
-                    <h3>Product Images</h3>
                     
                     <!-- Primary Image Section -->
                     <div class="primary-image-section">
@@ -531,7 +532,7 @@
                             <select id="editProductStatus">
                                 <option value="1">Pick Up</option>
                                 <option value="2">Delivery</option>
-                                <option value="3">Today's Product</option>
+                                <option value="3">Same Day Order</option>
                             </select>
                             
                             <!-- isAvailableToday radio button - only shown when Pick Up or Delivery is selected -->
@@ -539,13 +540,13 @@
                                 <div class="radio-group">
                                     <div class="radio-item">
                                         <input type="radio" id="isAvailableToday" name="isAvailableToday" value="true">
-                                        <label for="isAvailableToday">Add Today's product</label>
+                                        <label for="isAvailableToday">Display as Same Day Order product</label>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="form-group" id="editAvailtodayOptions" style="display: none;">
-                            <label for="editAvailtodayStatus">Today's Product Options:</label>
+                            <label for="editAvailtodayStatus">Same Day Order Options:</label>
                             <select id="editAvailtodayStatus">
                                 <option value="1">Pick Up</option>
                                 <option value="2">Delivery</option>
@@ -643,11 +644,15 @@
                         <input type="hidden" id="availableTodayDates" name="available_today_dates">
                     </div>
 
-                    <div class="modal-actions">
-                        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
-                    </div>
                 </form>
+            </div>
+        </div>
+        
+        <!-- Modal Footer -->
+        <div class="modal-footer">
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary" form="editProductForm">Save Changes</button>
             </div>
         </div>
     </div>
