@@ -229,6 +229,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function addProductButton() {
     if (!window.location.pathname.includes("product-list.php")) return;
 
+    // Create button for desktop header
     let headerActions = document.querySelector(".header-actions");
 
     if (!headerActions) {
@@ -280,6 +281,65 @@ document.addEventListener("DOMContentLoaded", () => {
 
     headerActions.innerHTML = "";
     headerActions.appendChild(addProductButton);
+
+    // Create button for mobile header bottom
+    let mobileHeaderActions = document.querySelector(".mobile-header-actions");
+
+    if (!mobileHeaderActions) {
+      mobileHeaderActions = document.createElement("div");
+      mobileHeaderActions.className = "mobile-header-actions";
+      const mobileHeaderBottom = document.querySelector(
+        ".mobile-header-bottom"
+      );
+      if (mobileHeaderBottom) {
+        mobileHeaderBottom.appendChild(mobileHeaderActions);
+      }
+    }
+
+    const mobileAddProductButton = document.createElement("button");
+    mobileAddProductButton.className =
+      "btn add-product-button action-button mobile-action-button";
+    mobileAddProductButton.onclick = () => {
+      // Don't change dropdown state - let it preserve current state
+      window.location.href = "add-product.php";
+    };
+
+    const mobileSvg = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "svg"
+    );
+    mobileSvg.setAttribute("width", "20");
+    mobileSvg.setAttribute("height", "20");
+    mobileSvg.setAttribute("viewBox", "0 0 24 24");
+    mobileSvg.setAttribute("fill", "none");
+    mobileSvg.setAttribute("stroke", "currentColor");
+    mobileSvg.setAttribute("stroke-width", "2");
+
+    const mobileLine1 = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "line"
+    );
+    mobileLine1.setAttribute("x1", "12");
+    mobileLine1.setAttribute("y1", "5");
+    mobileLine1.setAttribute("x2", "12");
+    mobileLine1.setAttribute("y2", "19");
+
+    const mobileLine2 = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "line"
+    );
+    mobileLine2.setAttribute("x1", "5");
+    mobileLine2.setAttribute("y1", "12");
+    mobileLine2.setAttribute("x2", "19");
+    mobileLine2.setAttribute("y2", "12");
+
+    mobileSvg.appendChild(mobileLine1);
+    mobileSvg.appendChild(mobileLine2);
+    mobileAddProductButton.appendChild(mobileSvg);
+    mobileAddProductButton.appendChild(document.createTextNode(" Add Product"));
+
+    mobileHeaderActions.innerHTML = "";
+    mobileHeaderActions.appendChild(mobileAddProductButton);
   }
 
   // Enhanced active state management
