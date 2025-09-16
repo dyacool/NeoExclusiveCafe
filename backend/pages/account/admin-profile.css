@@ -50,7 +50,7 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   width: 100%;
-  max-width: 800px; /* Increased from 600px to 800px */
+  max-width: 600px; /* Increased from 600px to 800px */
   margin: 0 auto;
 }
 

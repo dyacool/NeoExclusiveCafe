@@ -67,23 +67,11 @@ if (isset($_POST["reset_password"])) {
 </head>
 <body>
     <div class="wrapper">
-        <button class="cta" onclick="window.location.href='/backend/pages/account/admin-profile.php'">
-            <svg
-                id="arrow-horizontal"
-                xmlns="http://www.w3.org/2000/svg"
-                width="30"
-                height="10"
-                viewBox="0 0 46 16"
-            >
-                <path
-                id="Path_10"
-                data-name="Path 10"
-                d="M38,0,39.455,1.455,33.949,6.961H76V9.039H33.949l5.506,5.506L38,16l-8-8Z"
-                transform="translate(-25)"
-                ></path>
-            </svg>
-            <span class="hover-underline-animation"> Go Back </span>
-        </button>
+        <nav class="breadcrumb">
+            <a href="/backend/pages/account/admin-profile.php">Account</a>
+            <span class="separator">></span>
+            <span class="current">Reset Password</span>
+        </nav>
         
         <div class="main-container">
             <div class="container">
@@ -113,22 +101,15 @@ if (isset($_POST["reset_password"])) {
                     <div class="form-group">
                         <label for="current_password">Current Password</label>
                         <div class="input-group">
-                            <i class="fas fa-lock"></i>
                             <input type="password" id="current_password" name="current_password" placeholder="Enter current password" required>
-                            <button type="button" class="toggle-password" onclick="togglePassword('current_password', this)">
-                                <i class="far fa-eye"></i>
-                            </button>
+
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label for="new_password">New Password</label>
                         <div class="input-group">
-                            <i class="fas fa-key"></i>
                             <input type="password" id="new_password" name="new_password" placeholder="Enter new password" required>
-                            <button type="button" class="toggle-password" onclick="togglePassword('new_password', this)">
-                                <i class="far fa-eye"></i>
-                            </button>
                         </div>
                         <div class="password-strength">
                             <div class="strength-meter"></div>
@@ -139,17 +120,12 @@ if (isset($_POST["reset_password"])) {
                     <div class="form-group">
                         <label for="confirm_password">Confirm New Password</label>
                         <div class="input-group">
-                            <i class="fas fa-check-circle"></i>
                             <input type="password" id="confirm_password" name="confirm_password" required>
-                            <button type="button" class="toggle-password" onclick="togglePassword('confirm_password', this)">
-                                <i class="far fa-eye"></i>
-                            </button>
                         </div>
                     </div>
 
                     <button type="submit" class="reset-button" name="reset_password">
                         <span>Update Password</span>
-                        <i class="fas fa-arrow-right"></i>
                     </button>
                 </form>
             </div>
