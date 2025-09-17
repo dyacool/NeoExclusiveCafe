@@ -76,12 +76,13 @@
 /* Modal Content Layout */
 .modal-content-wrapper {
   display: grid;
-  grid-template-columns: 30% 70%;
+  grid-template-columns: 32% 65%;
   flex: 1;
   min-height: 0;
   gap: 2rem;
   padding: 2rem;
   background-color: white;
+  overflow-y: auto;
 }
 
 .modal-left-panel {
@@ -89,13 +90,10 @@
   border: 1px solid var(--gray-200);
   border-radius: 12px;
   padding: 1.5rem;
-  overflow-y: auto;
-  min-height: 0;
-  height: fit-content;
+  height: auto;
 }
 
 .modal-right-panel {
-  overflow-y: auto;
   background-color: white;
   min-height: 0;
   display: flex;
@@ -382,7 +380,6 @@
 
 .form-content {
   flex: 1;
-  overflow-y: auto;
   width: 100%;
   min-width: 0;
   min-height: 0;
@@ -740,9 +737,13 @@ input[type="checkbox"]:checked::after {
 
 @media (max-width: 1440px) {
   .modal-content-wrapper {
-    grid-template-columns: 35% 65%;
+    grid-template-columns: 38% 60%;
     gap: 1.5rem;
     padding: 1.5rem;
+  }
+  .primary-image-section label,
+  .additional-images-section label {
+    text-align: left;
   }
 }
 
