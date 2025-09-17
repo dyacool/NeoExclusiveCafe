@@ -136,6 +136,7 @@ if ($conn->connect_error) {
                         
                         $productDataJson = htmlspecialchars(json_encode($productData), ENT_QUOTES, 'UTF-8');
                         echo "<div class='product-card {$featuredClass}' data-status='" . htmlspecialchars($row['status_name']) . "' 
+                              data-available-days='" . htmlspecialchars($row['available_days'] ?? '') . "' 
                               data-product='" . $productDataJson . "' onclick='openProductModalFromData(this)'>
                                 <div class='product-image'>
                                     <img src='../../../assets/" . htmlspecialchars($row['image_url'] ?: 'images/no-image.jpg') . "' alt='" . htmlspecialchars($row['name']) . "'>";
@@ -147,17 +148,30 @@ if ($conn->connect_error) {
                                     <h3>" . htmlspecialchars($row['name']) . "</h3>
                                     <p class='price'>₱" . number_format($row['price'], 2) . "</p>
                                     
-                                    <div class='prdct-availability'>
+                                    <div class='product-availability'>
                                         <span class='status-badge status-{$statusClass}'>" . ($isUnavailable ? "Not Available" : htmlspecialchars($row['status_name'])) . "</span>
                                         <p class='stock'>Stock: " . $row['quantity'] . "</p>
                                     </div>";
+                        
+                        // Display available days similar to weekly-product
+                        if (!$isUnavailable && !empty($row['available_days'])) {
+                            $abbreviated_days = str_replace(
+                                ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+                                ['S', 'M', 'T', 'W', 'Th', 'F', 'Sa'],
+                                $row['available_days']
+                            );
+                            echo "<div class='available-day'>";
+                            echo "<div class = 'display-days'> <p class='available-days'>Pick-Up days: </p>";
+                            echo "<p class='p-days'>" . htmlspecialchars($abbreviated_days) . "</p> </div>";
+                            echo "</div>";
+                        }
                         if (!$isUnavailable) {
                             echo "<div class='quantity-controls'>
                                     <button type='button' onclick='event.stopPropagation(); updateQuantity(this, -1)'>-</button>
                                     <input type='number' value='1' min='1' max='" . $row['quantity'] . "' onclick='event.stopPropagation()' onchange='validateQuantity(this)'>
                                     <button type='button' onclick='event.stopPropagation(); updateQuantity(this, 1)'>+</button>
                                 </div>";
-                            echo "<button class='add-to-cart' onclick='event.stopPropagation(); console.log(\"Add to Cart button clicked for product ID: " . $row['id'] . "\"); addToCart(" . $row['id'] . ", this)'>Add to Cart</button>";
+                            echo "<button class='add-to-cart' onclick='event.stopPropagation(); addToCart(" . $row['id'] . ", this)'>Add to Cart</button>";
                         
                         } else {
                             echo "<button class='add-to-cart unavailable' disabled>Currently Unavailable</button>";
