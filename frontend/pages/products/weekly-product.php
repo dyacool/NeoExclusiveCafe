@@ -253,7 +253,7 @@ if ($conn->connect_error) {
                                 ['S', 'M', 'T', 'W', 'Th', 'F', 'Sa'],
                                 $row['available_days']
                             );
-                            echo "<div class = 'display-days'> <p class='available-days'>Available days: </p>";
+                            echo "<div class = 'display-days'> <p class='available-days'>Delivery days: </p>";
                             echo "<p class='p-days'>" . htmlspecialchars($abbreviated_days) . "</p> </div>";
                         }
                         
