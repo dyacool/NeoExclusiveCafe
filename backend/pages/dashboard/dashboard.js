@@ -31,7 +31,7 @@ function animateCounters() {
         clearInterval(timer);
       }
 
-      const prefix = counter.textContent.includes("$") ? "$" : "";
+      const prefix = counter.textContent.includes("₱") ? "₱" : "";
       const suffix = counter.textContent.includes("%") ? "%" : "";
       counter.textContent =
         prefix + Math.floor(current).toLocaleString() + suffix;
@@ -172,7 +172,7 @@ function createTopProductsChart() {
         {
           label: "Units Sold",
           data: data,
-          backgroundColor: "#1f2937",
+          backgroundColor: "#86efac",
           borderRadius: 4,
           maxBarThickness: 40,
         },
@@ -251,9 +251,9 @@ function createSalesPerProductChart() {
       labels: labels,
       datasets: [
         {
-          label: "Revenue ($)",
+          label: "Revenue (₱)",
           data: revenueData,
-          backgroundColor: "#1f2937",
+          backgroundColor: "#86efac",
           borderRadius: 4,
           maxBarThickness: 30,
           yAxisID: "y",
@@ -261,7 +261,7 @@ function createSalesPerProductChart() {
         {
           label: "Units Sold",
           data: unitsData,
-          backgroundColor: "#6b7280",
+          backgroundColor: "#c5fad8ff",
           borderRadius: 4,
           maxBarThickness: 30,
           yAxisID: "y1",
@@ -309,7 +309,7 @@ function createSalesPerProductChart() {
               size: 11,
             },
             callback: function (value) {
-              return "$" + value.toLocaleString();
+              return "₱" + value.toLocaleString();
             },
           },
           beginAtZero: true,
@@ -368,9 +368,9 @@ function refreshDashboard() {
 
 // Utility function to format currency
 function formatCurrency(amount) {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("en-PH", {
     style: "currency",
-    currency: "USD",
+    currency: "PHP",
   }).format(amount);
 }
 

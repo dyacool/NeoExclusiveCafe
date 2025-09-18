@@ -160,16 +160,16 @@ try {
 // If no real data, use sample data for demo
 if (empty($top_products)) {
     $top_products = [
-        ['name' => 'Classic Sourdough Bread', 'total_sold' => 250, 'total_revenue' => 1250, 'price' => 5.00],
-        ['name' => 'Cinnamon Rolls', 'total_sold' => 220, 'total_revenue' => 1100, 'price' => 5.00],
-        ['name' => 'Three Cheese and Basil', 'total_sold' => 180, 'total_revenue' => 720, 'price' => 4.00],
-        ['name' => 'Espresso', 'total_sold' => 150, 'total_revenue' => 450, 'price' => 3.00],
-        ['name' => 'Macchiato', 'total_sold' => 130, 'total_revenue' => 650, 'price' => 5.00],
-        ['name' => 'Mocha', 'total_sold' => 120, 'total_revenue' => 720, 'price' => 6.00],
-        ['name' => 'Frappuccino', 'total_sold' => 110, 'total_revenue' => 770, 'price' => 7.00],
-        ['name' => 'Cold Brew', 'total_sold' => 100, 'total_revenue' => 500, 'price' => 5.00],
-        ['name' => 'Matcha Latte', 'total_sold' => 90, 'total_revenue' => 540, 'price' => 6.00],
-        ['name' => 'Chai Latte', 'total_sold' => 80, 'total_revenue' => 400, 'price' => 5.00]
+        ['name' => 'Product1', 'total_sold' => 250, 'total_revenue' => 62500, 'price' => 250.00],
+        ['name' => 'Product2', 'total_sold' => 220, 'total_revenue' => 55000, 'price' => 250.00],
+        ['name' => 'Product3', 'total_sold' => 180, 'total_revenue' => 36000, 'price' => 200.00],
+        ['name' => 'Product4', 'total_sold' => 150, 'total_revenue' => 22500, 'price' => 150.00],
+        ['name' => 'Product5', 'total_sold' => 130, 'total_revenue' => 32500, 'price' => 250.00],
+        ['name' => 'Product6', 'total_sold' => 120, 'total_revenue' => 36000, 'price' => 300.00],
+        ['name' => 'Product7', 'total_sold' => 110, 'total_revenue' => 38500, 'price' => 350.00],
+        ['name' => 'Product8', 'total_sold' => 100, 'total_revenue' => 25000, 'price' => 250.00],
+        ['name' => 'Product9', 'total_sold' => 90, 'total_revenue' => 27000, 'price' => 300.00],
+        ['name' => 'Product10', 'total_sold' => 80, 'total_revenue' => 20000, 'price' => 250.00]
     ];
 }
 
