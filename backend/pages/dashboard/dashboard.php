@@ -483,9 +483,9 @@ try {
                     <!-- Calendar Widget -->
                     <div class="calendar-card">
                         <div class="calendar-header">
-                            <button class="calendar-nav" onclick="previousMonth()">&larr;</button>
+                            <button class="calendar-nav" onclick="previousMonth()">«</button>
                             <span class="calendar-month" id="calendar-month-year">Aug 2025</span>
-                            <button class="calendar-nav" onclick="nextMonth()">&rarr;</button>
+                            <button class="calendar-nav" onclick="nextMonth()">»</button>
                         </div>
                         <div class="calendar-body">
                             <div class="calendar-weekdays">

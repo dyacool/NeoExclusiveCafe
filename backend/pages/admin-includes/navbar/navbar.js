@@ -195,7 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "admin-profile.php": "Profile",
       "archive.php": "Archive",
       "userShop.php": "View Shop",
-      "user-content-settings.php": "User Page Contents Management",
+      "user-content-settings.php": "Content Management",
       "manage-carousel-images.php": "Dashboard Hero Images",
       "manage-carousel-settings.php": "Dashboard Hero Text",
       "admin-service-edit.php": "Service",

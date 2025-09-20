@@ -201,7 +201,7 @@ $conn->close();
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: #4CAF50;
+            background-color: #86efac;
             color: white;
             padding: 15px 25px;
             border-radius: 5px;
@@ -260,6 +260,18 @@ $conn->close();
                     <label>Product Name:</label>
                     <input class="pname" type="text" name="name" required>
 
+                    <div class="price-stock-container">
+                        <div class="price-field">
+                            <label>Price:</label>
+                            <input class="price" type="text" name="price" required pattern="^\d*\.?\d*$" oninput="this.value = this.value.replace(/[^0-9.]/g, '')">
+                        </div>
+
+                        <div class="stock-field">
+                            <label>Stocks:</label>
+                            <input class="quantity" type="number" name="quantity" min="0" step="1" value="0" required>
+                        </div>
+                    </div>
+
                     <label>Description:</label>
                     <textarea class="description" name="description"></textarea>
 
@@ -292,15 +304,13 @@ $conn->close();
                 </div>
 
                 <div class="grp2">
-                    <label>Price:</label>
-                    <input class="price" type="text" name="price" required pattern="^\d*\.?\d*$" oninput="this.value = this.value.replace(/[^0-9.]/g, '')">
-
-                                         <label>Status:</label>
+                    <label>Status:</label>
                      <select class="statusGrp" name="status_id" id="statusSelect">
                          <option value="1">Pick Up</option>
                          <option value="2">Delivery</option>
                          <option value="3">Same Day Order</option>
                      </select>
+                     
 
                      <!-- New dropdown for Available Today options -->
                      <div id="availtodayOptions" style="display: none;">
@@ -311,10 +321,6 @@ $conn->close();
                              <option value="2">Delivery</option>
                          </select>
                      </div>
-
-                    <!-- Added Quantity Available For Pre-Order field -->
-                    <label>Stocks:</label>
-                    <input class="quantity" type="number" name="quantity" min="0" step="1" value="0" required>
 
                     <!-- Available Days for regular products (Pick Up/Delivery) -->
                     <div id="regularAvailableDaysContainer">
@@ -359,7 +365,7 @@ $conn->close();
                     </div>
 
                     <label>Visibility</label>
-                    <div class="checkbox-group">
+                    <div class="checkbox-group visibility-group">
                         <div class="checkbox-item">
                             <input type="radio" name="visibility_option" id="visibility_show" value="show">
                             <label class="cb-itm" for="visibility_show" style="display: inline;">Show when unavailable</label>

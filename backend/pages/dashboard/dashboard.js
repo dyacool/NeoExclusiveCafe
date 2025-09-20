@@ -119,9 +119,9 @@ function generateCalendar(date = currentDate) {
 
   // Add days from next month to fill the grid
   const totalCells = calendarDays.children.length;
-  const remainingCells = 42 - totalCells; // 6 rows * 7 days = 42
+  const remainingCells = 35 - totalCells; // 6 rows * 7 days = 42
 
-  for (let day = 1; day <= remainingCells && totalCells < 42; day++) {
+  for (let day = 1; day <= remainingCells && totalCells < 35; day++) {
     const dayElement = document.createElement("div");
     dayElement.classList.add("calendar-day", "other-month");
     dayElement.textContent = day;

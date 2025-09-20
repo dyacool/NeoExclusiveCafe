@@ -5,6 +5,8 @@
   margin: 0;
   box-sizing: border-box;
   font-family: "Inter", sans-serif;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: font-size 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 :root {
@@ -28,6 +30,12 @@
   --gray-700: #374151;
   --gray-800: #1f2937;
   --gray-900: #111827;
+}
+
+.layout-container {
+  position: relative;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
 /* Mobile Header */
@@ -139,7 +147,7 @@
   display: flex;
   flex-direction: column;
   z-index: 999;
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, width 0.3s ease;
 }
 
 .sidebar.mobile-hidden {
@@ -403,6 +411,7 @@
   min-height: 100vh;
   background: var(--gray-50);
   transition: margin-left 0.3s ease;
+  will-change: margin-left;
 }
 
 /* Header - FIXED: Better button positioning */
@@ -513,6 +522,7 @@
 @media (max-width: 1800px) {
   .sidebar {
     width: 225px;
+    transition: transform 0.3s ease, width 0.3s ease;
   }
 
   .sidebar-header {
@@ -535,6 +545,7 @@
 
   .Main {
     margin-left: 225px !important;
+    transition: margin-left 0.3s ease;
   }
 
   .nav-link,
@@ -590,6 +601,7 @@
 @media (max-width: 1628px) {
   .sidebar {
     width: 200px;
+    transition: transform 0.3s ease, width 0.3s ease;
   }
 
   .sidebar-header {
@@ -612,6 +624,7 @@
 
   .Main {
     margin-left: 200px !important;
+    transition: margin-left 0.3s ease;
   }
 
   .nav-link,
@@ -660,6 +673,7 @@
 @media (max-width: 1440px) {
   .sidebar {
     width: 175px;
+    transition: transform 0.3s ease, width 0.3s ease;
   }
 
   .sidebar-header {
@@ -682,6 +696,7 @@
 
   .Main {
     margin-left: 175px !important;
+    transition: margin-left 0.3s ease;
   }
 
   .nav-link,
@@ -730,6 +745,7 @@
 @media (max-width: 1178px) {
   .sidebar {
     width: 150px;
+    transition: transform 0.3s ease, width 0.3s ease;
   }
 
   .sidebar-header {
@@ -752,6 +768,7 @@
 
   .Main {
     margin-left: 150px !important;
+    transition: margin-left 0.3s ease;
   }
 
   .nav-link,
@@ -797,6 +814,7 @@
 @media (max-width: 1024px) {
   .sidebar {
     width: 125px;
+    transition: transform 0.3s ease, width 0.3s ease;
   }
 
   .sidebar-header {
@@ -819,6 +837,7 @@
 
   .Main {
     margin-left: 125px !important;
+    transition: margin-left 0.3s ease;
   }
 
   .nav-link,
@@ -865,6 +884,7 @@
 @media (max-width: 768px) {
   .Main {
     margin-left: 0px !important;
+    transition: margin-left 0.3s ease;
   }
   .mobile-header {
     display: flex;
@@ -878,6 +898,7 @@
   .sidebar {
     position: fixed;
     z-index: 1001;
+    transition: transform 0.3s ease;
   }
 
   .Main {
