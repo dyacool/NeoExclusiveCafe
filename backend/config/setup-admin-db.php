@@ -1,5 +1,5 @@
 <?php
-require_once "../includes/database.php";
+require_once "../pages/admin-includes/database.php";
 
 // First, delete all existing users except admin
 $stmt = $conn->prepare("DELETE FROM users WHERE email != 'annadechavez@hotmail.com'");
@@ -63,15 +63,9 @@ if ($result->num_rows === 0) {
 if ($stmt->execute()) {
     $adminId = $result->num_rows === 0 ? $conn->insert_id : $result->fetch_assoc()['id'];
     
-    // Assign admin role
-    $stmt = $conn->prepare("
-        INSERT INTO user_roles (user_id, role_id)
-        SELECT ?, id FROM admin_roles WHERE name = 'admin'
-        ON DUPLICATE KEY UPDATE user_id = user_id
-    ");
-    $stmt->bind_param("i", $adminId);
+    // Admin role assignment removed - using is_admin flag only
     
-    if ($stmt->execute()) {
+    if (true) {
         echo "<br>Database has been reset and all users have been deleted.";
         echo "<br>Admin user setup completed successfully!";
         echo "<br>Admin Details:";
@@ -81,7 +75,7 @@ if ($stmt->execute()) {
         echo "<br>- Password: admin123";
         echo "<br>- Status: Verified";
     } else {
-        echo "<br>Error assigning admin role: " . $conn->error;
+        echo "<br>Admin setup completed successfully!";
     }
 } else {
     echo "<br>Error setting up admin user: " . $conn->error;

@@ -29,7 +29,7 @@ if ($quantity < 1) {
 }
 
 // Include database connection
-require_once "../../user-includes/database.php";
+require_once "../../../backend/pages/admin-includes/database.php";
 
 // Check if product exists, is available, and has sufficient stock
 $check_sql = "SELECT id, price, quantity FROM products WHERE id = ? AND status_id != 3 AND deleted_at IS NULL";

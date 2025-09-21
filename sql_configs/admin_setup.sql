@@ -1,8 +1,7 @@
 -- First delete all non-admin users
 DELETE FROM users WHERE email != 'annadechavez@hotmail.com';
 
--- Drop existing admin-related tables in correct order
-DROP TABLE IF EXISTS user_roles;
+-- Drop existing admin-related tables in correct order (user_roles removed)
 DROP TABLE IF EXISTS admin_role_permissions;
 DROP TABLE IF EXISTS admin_permissions;
 DROP TABLE IF EXISTS admin_roles;
@@ -33,15 +32,7 @@ CREATE TABLE IF NOT EXISTS admin_role_permissions (
     FOREIGN KEY (permission_id) REFERENCES admin_permissions(id) ON DELETE CASCADE
 );
 
--- Create user_roles table (junction table)
-CREATE TABLE IF NOT EXISTS user_roles (
-    user_id INT,
-    role_id INT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (user_id, role_id),
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (role_id) REFERENCES admin_roles(id) ON DELETE CASCADE
-);
+-- user_roles table removed - using is_admin flag only
 
 -- Insert default permissions
 INSERT INTO admin_permissions (name, description) VALUES

@@ -1235,22 +1235,7 @@ INSERT INTO `user_blog_post` (`id`, `user_id`, `title`, `content`, `image_path`,
 
 -- --------------------------------------------------------
 
---
--- Table structure for table `user_roles`
---
-
-CREATE TABLE `user_roles` (
-  `user_id` int(11) NOT NULL,
-  `role_id` int(11) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `user_roles`
---
-
-INSERT INTO `user_roles` (`user_id`, `role_id`, `created_at`) VALUES
-(0, 1, '2025-06-15 11:28:14');
+-- user_roles table removed - using is_admin flag only
 
 -- --------------------------------------------------------
 
@@ -1538,12 +1523,7 @@ ALTER TABLE `user_blog_post`
   ADD PRIMARY KEY (`id`),
   ADD KEY `user_id` (`user_id`);
 
---
--- Indexes for table `user_roles`
---
-ALTER TABLE `user_roles`
-  ADD PRIMARY KEY (`user_id`,`role_id`),
-  ADD KEY `role_id` (`role_id`);
+-- user_roles indexes removed
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -1819,12 +1799,7 @@ ALTER TABLE `todays_products_dates`
 ALTER TABLE `user_blog_post`
   ADD CONSTRAINT `user_blog_post_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `user_roles`
---
-ALTER TABLE `user_roles`
-  ADD CONSTRAINT `user_roles_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `user_roles_ibfk_2` FOREIGN KEY (`role_id`) REFERENCES `admin_roles` (`id`) ON DELETE CASCADE;
+-- user_roles constraints removed
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

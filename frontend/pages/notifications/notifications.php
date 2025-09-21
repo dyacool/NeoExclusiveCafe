@@ -1,5 +1,5 @@
 <?php
-require_once '../../user-includes/database.php';
+require_once '../../../backend/pages/admin-includes/database.php';
 require_once 'class-notif.php'; 
 
 // Don't start session if it's already active

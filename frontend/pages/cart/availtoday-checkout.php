@@ -23,7 +23,7 @@ $additional_css = [
 ];
 
 // Include database connection
-require_once '../../user-includes/database.php';
+require_once '../../../backend/pages/admin-includes/database.php';
 
 // Test database connection
 if ($conn->connect_error) {

@@ -27,7 +27,7 @@ header('Content-Type: application/json');
 
 // Test if includes work
 try {
-    require_once '../../user-includes/database.php';
+    require_once '../../../backend/pages/admin-includes/database.php';
     error_log("Database include successful");
     
     // Test database connection

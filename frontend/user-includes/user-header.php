@@ -28,7 +28,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once __DIR__ . "/../../backend/pages/admin-includes/config.php";
-require_once __DIR__ . "/database.php";
+require_once __DIR__ . "/../../backend/pages/admin-includes/database.php";
 
 // Define preview mode - check for both user and admin sessions
 $is_preview_mode = !isset($_SESSION['user_id']) && !isset($_SESSION['admin_id']);

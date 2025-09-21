@@ -76249,3 +76249,557 @@ Stack trace:
                   (o.delivery_date BETWEEN ? AND ?)
               ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
 [16-Sep-2025 15:45:12 Europe/Berlin] With parameters: start=2025-08-31, end=2025-09-29, showCompleted=false
+[17-Sep-2025 04:10:53 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[17-Sep-2025 04:10:53 Europe/Berlin] Total featured products found: 7
+[17-Sep-2025 04:10:56 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[18-Sep-2025 05:41:31 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[18-Sep-2025 05:41:31 Europe/Berlin] Total featured products found: 7
+[18-Sep-2025 05:41:34 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[18-Sep-2025 12:47:30 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[18-Sep-2025 12:47:30 Europe/Berlin] Total featured products found: 6
+[18-Sep-2025 12:47:33 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[19-Sep-2025 05:42:40 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[19-Sep-2025 05:42:40 Europe/Berlin] Total featured products found: 6
+[19-Sep-2025 05:42:43 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[20-Sep-2025 05:52:40 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[20-Sep-2025 05:52:40 Europe/Berlin] Total featured products found: 6
+[20-Sep-2025 05:52:43 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[20-Sep-2025 10:30:25 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[20-Sep-2025 10:30:25 Europe/Berlin] Total featured products found: 6
+[20-Sep-2025 10:30:28 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[20-Sep-2025 11:28:44 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[20-Sep-2025 11:28:44 Europe/Berlin] Total featured products found: 6
+[20-Sep-2025 11:28:46 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[20-Sep-2025 12:01:57 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[20-Sep-2025 12:01:57 Europe/Berlin] Total featured products found: 6
+[20-Sep-2025 12:02:00 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[20-Sep-2025 12:06:13 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[20-Sep-2025 12:06:13 Europe/Berlin] Total featured products found: 6
+[20-Sep-2025 12:06:16 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[20-Sep-2025 14:15:27 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[20-Sep-2025 14:15:27 Europe/Berlin] Total featured products found: 6
+[20-Sep-2025 14:15:30 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[20-Sep-2025 15:59:49 Europe/Berlin] Database connection successful
+[20-Sep-2025 15:59:50 Europe/Berlin] User has 4 items in cart table
+[20-Sep-2025 15:59:50 Europe/Berlin] Cart table structure:
+[20-Sep-2025 15:59:50 Europe/Berlin]   id - int(11) - NO - PRI -  - auto_increment
+[20-Sep-2025 15:59:50 Europe/Berlin]   user_id - int(11) - NO -  -  - 
+[20-Sep-2025 15:59:50 Europe/Berlin]   product_id - int(11) - NO -  -  - 
+[20-Sep-2025 15:59:50 Europe/Berlin]   quantity - int(11) - NO -  - 1 - 
+[20-Sep-2025 15:59:50 Europe/Berlin]   price - decimal(10,2) - NO -  -  - 
+[20-Sep-2025 15:59:50 Europe/Berlin]   created_at - timestamp - NO -  - current_timestamp() - 
+[20-Sep-2025 15:59:50 Europe/Berlin]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[20-Sep-2025 15:59:50 Europe/Berlin] Cart item 108 does not exist in cart table
+[20-Sep-2025 15:59:50 Europe/Berlin] Final user data: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [email] => alrainepascua2@gmail.com
+)
+
+[20-Sep-2025 15:59:50 Europe/Berlin] REQUEST_METHOD: POST
+[20-Sep-2025 15:59:50 Europe/Berlin] POST data: Array
+(
+    [valid_cart_ids] => 14,15,12,13
+    [selected_cart_ids] => Array
+        (
+            [0] => 15
+        )
+
+    [checkout] => 
+    [subtotal] => 690
+    [cart_items] => 15
+)
+
+[20-Sep-2025 15:59:50 Europe/Berlin] SESSION data at cart items check: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [admin_redirect_url] => /backend/pages/homepage/admin-homepage.php
+    [user_profile_image] => /assets/public/profile-images/profile_fb6545ed8cf33d8c74aeaaeb51645429.jpg
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 14
+        )
+
+    [subtotal] => 230
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Cassava Cake
+                    [price] => 230.00
+                    [quantity] => 1
+                    [cart_id] => 14
+                    [product_id] => 12
+                    [status_id] => 1
+                    [available_days] => Monday,Thursday
+                )
+
+        )
+
+    [cart_total] => 230
+    [shipping_method] => pickup
+    [has_pickup_items] => 1
+    [has_delivery_items] => 
+    [pending_payment] => Array
+        (
+            [source_id] => src_STGkks5JLkUHKaPsLso4zmrh
+            [order_id] => 4304
+            [order_type] => regular
+            [amount] => 250
+            [payment_method] => gcash
+            [order_data] => Array
+                (
+                    [cart_items] => [{"name":"Olive Sourdough Batard","price":"250.00","quantity":1,"cart_id":12,"product_id":7,"status_id":2,"available_days":"Monday,Wednesday,Friday"}]
+                    [selected_cart_ids] => 12
+                    [cart_total] => 250
+                    [user_name] => Aine Pascua
+                    [user_email] => alrainepascua2@gmail.com
+                    [delivery_method] => delivery
+                    [delivery_date] => 2025-09-24
+                    [pickup_date] => 2025-09-16
+                    [delivery_time] => 06:00
+                    [payment_method] => gcash
+                    [notes] => 
+                    [customer_name] => Aine Pascua
+                    [customer_email] => alrainepascua2@gmail.com
+                )
+
+        )
+
+    [availtoday_cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Three Cheese and Basil - 3 Slices
+                    [price] => 100.00
+                    [quantity] => 1
+                    [cart_id] => 1
+                    [product_id] => 2
+                    [status_id] => 3
+                    [availtoday_status_id] => 2
+                    [availtoday_status_name] => Delivery
+                    [available_days] => 
+                    [shipping_method] => delivery
+                )
+
+            [1] => Array
+                (
+                    [name] => Classic Sourdough Bread
+                    [price] => 200.00
+                    [quantity] => 2
+                    [cart_id] => 2
+                    [product_id] => 1
+                    [status_id] => 3
+                    [availtoday_status_id] => 2
+                    [availtoday_status_name] => Delivery
+                    [available_days] => 
+                    [shipping_method] => delivery
+                )
+
+        )
+
+    [availtoday_cart_total] => 500
+    [availtoday_shipping_method] => delivery
+    [has_mixed_availtoday_status] => 
+)
+
+[20-Sep-2025 15:59:50 Europe/Berlin] Got cart IDs from POST: 15
+[20-Sep-2025 15:59:50 Europe/Berlin] Validated cart IDs: 15
+[20-Sep-2025 15:59:50 Europe/Berlin] Final selected_cart_ids: Array
+(
+    [0] => 15
+)
+
+[20-Sep-2025 15:59:50 Europe/Berlin] Final subtotal: 690
+[20-Sep-2025 15:59:50 Europe/Berlin] Selected cart IDs: Array
+(
+    [0] => 15
+)
+
+[20-Sep-2025 15:59:50 Europe/Berlin] Subtotal: 690
+[20-Sep-2025 15:59:51 Europe/Berlin] Cart item 15 is valid for user 5
+[20-Sep-2025 15:59:51 Europe/Berlin] Validated cart IDs: 15
+[20-Sep-2025 15:59:51 Europe/Berlin] Cart contains only delivery items - setting shipping method to delivery
+[20-Sep-2025 15:59:51 Europe/Berlin] Cart analysis: 1 items, pickup: , delivery: 1, method: delivery
+[20-Sep-2025 15:59:51 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Oat Porridge Sourdough Batard
+            [price] => 230.00
+            [quantity] => 3
+            [cart_id] => 15
+            [product_id] => 8
+            [status_id] => 2
+            [available_days] => Sunday,Wednesday,Friday
+        )
+
+)
+
+[20-Sep-2025 15:59:51 Europe/Berlin] Cart total: 690
+[20-Sep-2025 15:59:51 Europe/Berlin] User data at display point: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [profile_image] => /assets/public/profile-images/profile_fb6545ed8cf33d8c74aeaaeb51645429.jpg
+)
+
+[20-Sep-2025 15:59:51 Europe/Berlin] Session data at display point: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [admin_redirect_url] => /backend/pages/homepage/admin-homepage.php
+    [user_profile_image] => /assets/public/profile-images/profile_fb6545ed8cf33d8c74aeaaeb51645429.jpg
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 15
+        )
+
+    [subtotal] => 690
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Oat Porridge Sourdough Batard
+                    [price] => 230.00
+                    [quantity] => 3
+                    [cart_id] => 15
+                    [product_id] => 8
+                    [status_id] => 2
+                    [available_days] => Sunday,Wednesday,Friday
+                )
+
+        )
+
+    [cart_total] => 690
+    [shipping_method] => delivery
+    [has_pickup_items] => 
+    [has_delivery_items] => 1
+    [pending_payment] => Array
+        (
+            [source_id] => src_STGkks5JLkUHKaPsLso4zmrh
+            [order_id] => 4304
+            [order_type] => regular
+            [amount] => 250
+            [payment_method] => gcash
+            [order_data] => Array
+                (
+                    [cart_items] => [{"name":"Olive Sourdough Batard","price":"250.00","quantity":1,"cart_id":12,"product_id":7,"status_id":2,"available_days":"Monday,Wednesday,Friday"}]
+                    [selected_cart_ids] => 12
+                    [cart_total] => 250
+                    [user_name] => Aine Pascua
+                    [user_email] => alrainepascua2@gmail.com
+                    [delivery_method] => delivery
+                    [delivery_date] => 2025-09-24
+                    [pickup_date] => 2025-09-16
+                    [delivery_time] => 06:00
+                    [payment_method] => gcash
+                    [notes] => 
+                    [customer_name] => Aine Pascua
+                    [customer_email] => alrainepascua2@gmail.com
+                )
+
+        )
+
+    [availtoday_cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Three Cheese and Basil - 3 Slices
+                    [price] => 100.00
+                    [quantity] => 1
+                    [cart_id] => 1
+                    [product_id] => 2
+                    [status_id] => 3
+                    [availtoday_status_id] => 2
+                    [availtoday_status_name] => Delivery
+                    [available_days] => 
+                    [shipping_method] => delivery
+                )
+
+            [1] => Array
+                (
+                    [name] => Classic Sourdough Bread
+                    [price] => 200.00
+                    [quantity] => 2
+                    [cart_id] => 2
+                    [product_id] => 1
+                    [status_id] => 3
+                    [availtoday_status_id] => 2
+                    [availtoday_status_name] => Delivery
+                    [available_days] => 
+                    [shipping_method] => delivery
+                )
+
+        )
+
+    [availtoday_cart_total] => 500
+    [availtoday_shipping_method] => delivery
+    [has_mixed_availtoday_status] => 
+)
+
+[21-Sep-2025 06:14:41 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[21-Sep-2025 06:14:41 Europe/Berlin] Total featured products found: 6
+[21-Sep-2025 06:14:44 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[21-Sep-2025 06:16:46 Europe/Berlin] Business hours: 08:00:00 - 21:50:00
+[21-Sep-2025 06:16:46 Europe/Berlin] Business closed - past midnight (current: 376, closing: 1310)
+[21-Sep-2025 06:16:46 Europe/Berlin] Time analysis: current=06:16:46 (376 min), opening=08:00:00 (480 min), closing=21:50:00 (1310 min), is_closed=Yes
+[21-Sep-2025 06:16:46 Europe/Berlin] Cart currently has 1 items
+[21-Sep-2025 06:16:47 Europe/Berlin] SUCCESS: Cart truncated successfully - 1 items removed
+[21-Sep-2025 06:16:47 Europe/Berlin] Cart truncation result: SUCCESS
+[21-Sep-2025 06:16:47 Europe/Berlin] PHP Warning:  Undefined variable $today in C:\xampp\htdocs\NeoCafe\frontend\pages\products\product-dashboard.php on line 342

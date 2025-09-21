@@ -16,7 +16,7 @@ $additional_css = [
     "../../confirmations.css"
 ];
 
-require_once('../../user-includes/database.php');
+require_once('../../../backend/pages/admin-includes/database.php');
 require_once __DIR__ . "/../../user-includes/navbar/customer-navigation.php";
 require_once __DIR__ . "/../../user-includes/user-header.php";
 

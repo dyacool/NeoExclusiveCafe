@@ -7,8 +7,7 @@ DELETE FROM users WHERE email != 'annadechavez@hotmail.com';
 -- Reset auto-increment for users table
 ALTER TABLE users AUTO_INCREMENT = 1;
 
--- Delete all records from related tables
-DELETE FROM user_roles;
+-- Delete all records from related tables (user_roles removed)
 DELETE FROM admin_role_permissions;
 DELETE FROM admin_permissions;
 DELETE FROM admin_roles;
@@ -36,11 +35,7 @@ SELECT
     id
 FROM admin_permissions;
 
--- Assign admin role to admin user
-INSERT INTO user_roles (user_id, role_id)
-SELECT 
-    (SELECT id FROM users WHERE email = 'annadechavez@hotmail.com'),
-    (SELECT id FROM admin_roles WHERE name = 'admin');
+-- Admin role assignment removed - using is_admin flag only
 
 -- Update admin user settings
 UPDATE users 

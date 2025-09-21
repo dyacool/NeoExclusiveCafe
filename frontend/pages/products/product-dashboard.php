@@ -20,7 +20,7 @@ $additional_css = [
 require_once __DIR__ . "/../../user-includes/navbar/customer-navigation.php";
 require_once __DIR__ . "/../../user-includes/user-header.php";
 require_once __DIR__ . "/../../user-includes/preview-mode.php";
-require_once __DIR__ . "/../../user-includes/database.php";
+require_once __DIR__ . "/../../../backend/pages/admin-includes/database.php";
 
 // Function to truncate cart_availtoday when business hours are closed
 function truncateCartIfBusinessClosed() {
