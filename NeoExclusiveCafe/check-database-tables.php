@@ -4,7 +4,7 @@ header('Content-Type: application/json');
 echo "=== Database Tables Check ===\n";
 
 try {
-    require_once __DIR__ . "/../user-includes/database.php";
+    require_once __DIR__ . "/../backend/pages/admin-includes/database.php";
     
     echo "Database connection: OK\n";
     

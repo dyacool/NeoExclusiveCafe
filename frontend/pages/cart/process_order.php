@@ -8,7 +8,7 @@ session_set_cookie_params([
     'domain' => $session_domain
 ]);
 session_start();
-require_once '../../user-includes/database.php';
+require_once '../../../backend/pages/admin-includes/database.php';
 require_once '../../../backend/pages/admin-includes/mailer.php';
 
 // Ensure no output before JSON response

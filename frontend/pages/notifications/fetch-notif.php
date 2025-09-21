@@ -11,7 +11,7 @@ if (!isset($_SESSION["user_id"]) || !isset($_SESSION["user_role"]) || $_SESSION[
     exit();
 }
 
-require_once __DIR__ . '/../../user-includes/database.php'; // Include the database connection
+require_once __DIR__ . '/../../../backend/pages/admin-includes/database.php'; // Include the database connection
 require_once __DIR__ . '/class-notif.php'; // Include the Notification class
 
 try {

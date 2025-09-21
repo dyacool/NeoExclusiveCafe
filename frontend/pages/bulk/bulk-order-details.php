@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once "../../user-includes/database.php";
+require_once "../../../backend/pages/admin-includes/database.php";
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {

@@ -9,7 +9,7 @@ $additional_css = [
     "../blog/blog-dashboard.css"
 ];
 
-require_once "../../user-includes/database.php";
+require_once "../../../backend/pages/admin-includes/database.php";
 require_once "../../user-includes/navbar/customer-navigation.php";
 
 // Only redirect to login if trying to access protected features

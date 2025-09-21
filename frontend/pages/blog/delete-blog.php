@@ -3,7 +3,7 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-require_once "../../user-includes/database.php";
+require_once "../../../backend/pages/admin-includes/database.php";
 
 // Set the content type to JSON
 header('Content-Type: application/json');

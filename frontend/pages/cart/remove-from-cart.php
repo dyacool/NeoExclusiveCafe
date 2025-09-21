@@ -22,7 +22,7 @@ $cart_id = $_POST["cart_id"];
 $user_id = $_SESSION["user_id"];
 
 // Include database connection
-require_once "../../user-includes/database.php";
+require_once "../../../backend/pages/admin-includes/database.php";
 if ($conn->connect_error) {
     echo json_encode(["success" => false, "error" => "Database connection failed"]);
     exit();

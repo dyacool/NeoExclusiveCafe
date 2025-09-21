@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once '../../user-includes/database.php';
+require_once '../../../backend/pages/admin-includes/database.php';
 
 // Check if order ID is provided
 if (!isset($_GET['order_id'])) {

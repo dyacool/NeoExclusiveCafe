@@ -1,7 +1,7 @@
 <?php
 $page_title = "Dashboard";
 
-require_once __DIR__ . "/../../user-includes/database.php";
+require_once __DIR__ . "/../../../backend/pages/admin-includes/database.php";
 require_once __DIR__ . "/../../user-includes/navbar/customer-navigation.php";
 require_once __DIR__ . "/../../user-includes/user-header.php";
 ?>

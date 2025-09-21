@@ -2,7 +2,7 @@
 session_start();
 
 // Include database connection
-require_once "../../user-includes/database.php";
+require_once "../../../backend/pages/admin-includes/database.php";
 
 $show_success_modal = false;
 $bulk_order_id = null;

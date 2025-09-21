@@ -3,7 +3,7 @@
 session_start();
 
 // Include database connection
-require_once "../../user-includes/database.php";
+require_once "../../../backend/pages/admin-includes/database.php";
 
 // Fetch privacy policy
 $sql = "SELECT * FROM privacy_policy WHERE id = 1";

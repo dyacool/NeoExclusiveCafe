@@ -27,7 +27,7 @@ function writeLog($message) {
 try {
     writeLog("Starting auto-truncate cart check");
     
-    require_once __DIR__ . "/../user-includes/database.php";
+    require_once __DIR__ . "/../backend/pages/admin-includes/database.php";
     
     // Get current time
     $current_time = date('H:i:s');

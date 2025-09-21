@@ -38,7 +38,7 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role']) || $_SESSION[
 }
 
 // Include database connection first (before any output)
-require_once '../../user-includes/database.php';
+require_once '../../../backend/pages/admin-includes/database.php';
 
 // Validate cart items BEFORE any output
 $selected_cart_ids = [];

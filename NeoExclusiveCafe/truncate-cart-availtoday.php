@@ -2,7 +2,7 @@
 header('Content-Type: application/json');
 
 try {
-    require_once __DIR__ . "/../user-includes/database.php";
+    require_once __DIR__ . "/../backend/pages/admin-includes/database.php";
     
     // Check database connection
     if (!isset($conn) || $conn->connect_error) {

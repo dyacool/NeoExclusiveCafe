@@ -1,4 +1,9 @@
 <?php
+// Start session if not already started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 // Check if headers have already been sent
 if (headers_sent()) {
     // Only output debug info if not in an API call
@@ -95,4 +100,23 @@ $conn = new mysqli($host, $username, $password, $dbname);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
-?>
+
+// Function to safely close the database connection
+function closeConnection() {
+    global $conn;
+    if (isset($conn) && $conn instanceof mysqli) {
+        try {
+            // Check if connection is still open
+            if ($conn->thread_id !== null) {
+                mysqli_close($conn);
+            }
+        } catch (Exception $e) {
+            // Silently ignore connection close errors
+            error_log("Database connection close error: " . $e->getMessage());
+        }
+    }
+}
+
+// Note: Removed automatic shutdown function to prevent conflicts
+// Connections will be closed automatically by PHP when the script ends
+// No closing PHP tag to prevent accidental whitespace output

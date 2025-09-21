@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once "../../user-includes/database.php";
+require_once "../../../backend/pages/admin-includes/database.php";
 
 // Redirect if not logged in
 if (!isset($_SESSION['user_id'])) {

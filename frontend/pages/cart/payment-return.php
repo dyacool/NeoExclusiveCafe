@@ -13,7 +13,7 @@ session_set_cookie_params([
 session_start();
 
 // Include required files
-require_once '../../user-includes/database.php';
+require_once '../../../backend/pages/admin-includes/database.php';
 require_once 'paymongo-config.php';
 require_once '../../../backend/pages/admin-includes/mailer.php';
 
@@ -403,11 +403,8 @@ function sendOrderConfirmationEmail($order_id, $order_data, $order_type) {
         
         error_log("Order details prepared for email: " . json_encode($orderDetails));
         
-        // Send email to customer
-        if (!empty($orderDetails['customer_email'])) {
-            $customerEmailSent = sendCustomerOrderConfirmation($orderDetails);
-            error_log("Customer email sent: " . ($customerEmailSent ? 'Success' : 'Failed'));
-        }
+        // Customer email sending disabled: only admin receives order notifications
+        // (per requirement: orders are sent to admin, not to the user)
         
         // Send notification to admin
         $adminEmailSent = sendOrderNotificationEmail($orderDetails);

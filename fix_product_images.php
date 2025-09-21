@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/frontend/user-includes/database.php';
+require_once __DIR__ . '/backend/pages/admin-includes/database.php';
 
 function sanitizeFilename($filename) {
     // Remove special characters and replace spaces with underscores

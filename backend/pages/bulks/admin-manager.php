@@ -18,31 +18,18 @@ class AdminManager {
 
     // Get user's role
     public function getUserRole($userId) {
-        $stmt = $this->conn->prepare("
-            SELECT r.* 
-            FROM admin_roles r
-            JOIN user_roles ur ON r.id = ur.role_id
-            WHERE ur.user_id = ?
-        ");
+        // Simplified to just check is_admin flag
+        $stmt = $this->conn->prepare("SELECT is_admin FROM users WHERE id = ?");
         $stmt->bind_param("i", $userId);
         $stmt->execute();
-        return $stmt->get_result()->fetch_assoc();
+        $result = $stmt->get_result()->fetch_assoc();
+        return $result ? ['name' => $result['is_admin'] ? 'admin' : 'user'] : null;
     }
 
     // Check if user has a specific permission
     public function hasPermission($userId, $permissionName) {
-        $stmt = $this->conn->prepare("
-            SELECT COUNT(*) as count
-            FROM users u
-            JOIN user_roles ur ON u.id = ur.user_id
-            JOIN admin_role_permissions rp ON ur.role_id = rp.role_id
-            JOIN admin_permissions p ON rp.permission_id = p.id
-            WHERE u.id = ? AND p.name = ?
-        ");
-        $stmt->bind_param("is", $userId, $permissionName);
-        $stmt->execute();
-        $result = $stmt->get_result()->fetch_assoc();
-        return $result['count'] > 0;
+        // Simplified to just check if user is admin
+        return $this->isAdmin($userId);
     }
 
     // Make a user an admin
@@ -64,10 +51,7 @@ class AdminManager {
                 throw new Exception("Admin role not found");
             }
 
-            // Assign role to user
-            $stmt = $this->conn->prepare("INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)");
-            $stmt->bind_param("ii", $userId, $role['id']);
-            $stmt->execute();
+            // Role assignment removed - using is_admin flag only
 
             $this->conn->commit();
             return true;
@@ -87,10 +71,7 @@ class AdminManager {
             $stmt->bind_param("i", $userId);
             $stmt->execute();
 
-            // Remove role assignment
-            $stmt = $this->conn->prepare("DELETE FROM user_roles WHERE user_id = ?");
-            $stmt->bind_param("i", $userId);
-            $stmt->execute();
+            // Role removal removed - using is_admin flag only
 
             $this->conn->commit();
             return true;
@@ -114,7 +95,7 @@ class AdminManager {
 
 // Example usage:
 /*
-require_once "../includes/database.php";
+require_once "../admin-includes/database.php";
 $adminManager = new AdminManager($conn);
 
 // Make a user an admin
