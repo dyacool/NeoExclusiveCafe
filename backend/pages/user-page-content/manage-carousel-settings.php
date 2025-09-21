@@ -120,7 +120,6 @@ if (!$settings) {
         
         <!-- Carousel Settings Form -->
         <section class="admin-section">
-            <h2>Edit Carousel Text & Button</h2>
             <p class="settings-info">These settings apply to all carousel slides.</p>
             
             <form action="" method="POST" class="admin-form">

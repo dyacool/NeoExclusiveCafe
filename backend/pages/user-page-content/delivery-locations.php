@@ -31,7 +31,6 @@
         <!-- Header Section -->
         <div class="page-header">
             <div class="header-content">
-                <h1>Delivery Areas & Delivery Fees</h1>
                 <p class="page-subtitle">Manage delivery locations and their associated fees</p>
             </div>
                     
@@ -88,9 +87,9 @@
                 <table class="locations-table">
                     <thead>
                         <tr>
+                            <th>Postal Code</th>
                             <th>Municipality</th>
                             <th>City</th>
-                            <th>Postal Code</th>
                             <th>Delivery Fee</th>
                             <th>Actions</th>
                         </tr>
@@ -142,14 +141,15 @@
                                     while ($row = $result->fetch_assoc()) {
                                         echo "<tr data-municipality='" . strtolower($row['municipality']) . "' data-city='" . strtolower($row['city']) . "' data-postal='" . $row['postal_code'] . "' data-fee='" . $row['delivery_fee'] . "'>
                                                 <td>
+                                                    <span class='postal-text'>" . htmlspecialchars($row['postal_code']) . "</span>
+                                                </td>
+                                                <td>
                                                     <span class='municipality-text'>" . htmlspecialchars($row['municipality']) . "</span>
                                                 </td>
                                                 <td>
                                                     <span class='city-text'>" . htmlspecialchars($row['city']) . "</span>
                                                 </td>
-                                                <td>
-                                                    <span class='postal-text'>" . htmlspecialchars($row['postal_code']) . "</span>
-                                                </td>
+
                                                 <td>
                                                     <span class='fee-text'>₱" . number_format($row['delivery_fee'], 2) . "</span>
                                                 </td>

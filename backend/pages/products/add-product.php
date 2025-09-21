@@ -276,26 +276,27 @@ $conn->close();
                     <textarea class="description" name="description"></textarea>
 
                     <div class="image-upload-container">
-                        <div class="labels">
-                            <label class="main-img">Primary Image (1 Image Only):</label>
-                            <label class="additional-img">Additional Images (Up to 3):</label>
-                        </div>
-
                         <div class="inputs">
-                            <div class="image-upload primary-image-upload">
-                                <input type="file" name="primary_image" id="primaryImageInput" accept="image/*" required style="display: none;">
-                                <label for="primaryImageInput" class="upload-btn" id="primaryUploadBtn">
-                                    Click to Upload Image
-                                </label>
-                                <div class="primary-preview-container" id="primaryPreviewContainer"></div>
+                            <div class="images-section">
+                                <label class="main-img">Primary Image (1 Image Only):</label>
+                                <div class="image-upload primary-image-upload">
+                                    <input type="file" name="primary_image" id="primaryImageInput" accept="image/*" required style="display: none;">
+                                    <label for="primaryImageInput" class="upload-btn add-img-btn" id="primaryUploadBtn">
+                                        Click to Upload Image
+                                    </label>
+                                    <div class="primary-preview-container" id="primaryPreviewContainer"></div>
+                                </div>
                             </div>
 
-                            <div class="image-upload additional-images-upload">
-                                <input type="file" name="additional_images[]" id="additionalImagesInput" accept="image/*" multiple style="display: none;">
-                                <label for="additionalImagesInput" class="upload-btn add-img-btn" id="additionalUploadBtn">
-                                    Click to Upload Image
-                                </label>
-                                <div class="additional-preview-container" id="additionalPreviewContainer"></div>
+                            <div class="images-section">
+                                <label class="additional-img">Additional Images (Up to 3):</label>
+                                <div class="image-upload additional-images-upload">
+                                    <input type="file" name="additional_images[]" id="additionalImagesInput" accept="image/*" multiple style="display: none;">
+                                    <label for="additionalImagesInput" class="upload-btn add-img-btn" id="additionalUploadBtn">
+                                        Click to Upload Image
+                                    </label>
+                                    <div class="additional-preview-container" id="additionalPreviewContainer"></div>
+                                </div>
                             </div>
                         </div>
                         <small>Supported files: .png, .jpg, .webp</small>
