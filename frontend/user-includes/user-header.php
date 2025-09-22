@@ -39,10 +39,14 @@ $is_admin_logged_in = isset($_SESSION['admin_id']) && isset($_SESSION['admin_rol
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title><?php echo isset($page_title) ? $page_title . " - " : ""; ?>NeoExclusive</title>
     <!-- Add favicon -->
     <link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico">
+    <!-- Base Styles -->
+    <link rel="stylesheet" href="/frontend/assets/css/base.css">
+    <!-- Component Styles -->
     <link rel="stylesheet" href="/frontend/user-includes/navbar/customer-navigation.css">
     <link rel="stylesheet" href="/frontend/user-includes/footer.css">
     <style>
@@ -440,5 +444,7 @@ $is_admin_logged_in = isset($_SESSION['admin_id']) && isset($_SESSION['admin_rol
             }
         }
     </script>
+    <!-- Responsive Fixes -->
+    <script src="/frontend/assets/js/responsive-fixes.js"></script>
 </body>
 </html>
