@@ -49,7 +49,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         $notification = new Notification($conn);
         $notification->createWelcomeNotification($user['id']);
 
-        echo "<script>alert('Email verified successfully! You can now log in.'); window.location.href='/frontend/pages/home/user-dashboard.php';</script>";
+        echo "<script>alert('Email verified successfully! You can now log in.'); window.location.href='/frontend/login/user/login-signup.php';</script>";
     } else {
         echo "<script>alert('Error verifying email. Please try again.'); window.location.href='/frontend/login/user/login-signup.php';</script>";
     }
