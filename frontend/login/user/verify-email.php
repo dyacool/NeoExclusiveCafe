@@ -44,7 +44,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     $stmt->bind_param("i", $user["id"]);
     
     if ($stmt->execute()) {
-        // Trigger welcome notification
+        // Trigger welcome notification (original in-app flow)
         require_once __DIR__ . "/../../../frontend/pages/notifications/class-notif.php";
         $notification = new Notification($conn);
         $notification->createWelcomeNotification($user['id']);

@@ -33,6 +33,41 @@ try {
         
         if ($stmt->execute()) {
             if ($stmt->affected_rows > 0) {
+                // Send notification and email to customer (reuse flow in update-status.php)
+                require_once __DIR__ . '/../admin-includes/mailer.php';
+                require_once __DIR__ . '/../../frontend/pages/notifications/class-notif.php';
+
+                // Create in-app notification
+                $notification = new Notification($conn);
+                $notification->createOrderNotification($orderId, 'Completed');
+
+                // Email the customer
+                try {
+                    $emailStmt = $conn->prepare("SELECT customer_email FROM orders WHERE order_id = ? LIMIT 1");
+                    $emailStmt->bind_param("i", $orderId);
+                    $emailStmt->execute();
+                    $emailStmt->bind_result($customer_email);
+                    $emailStmt->fetch();
+                    $emailStmt->close();
+
+                    if (!empty($customer_email) && filter_var($customer_email, FILTER_VALIDATE_EMAIL)) {
+                        $subject = "Order #{$orderId} Status Update: Completed";
+                        $base = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+                        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+                        $fullLink = $base . $host . "/NeoCafe/frontend/pages/cart/order-details.php?order_id=" . $orderId;
+                        $body = "<!DOCTYPE html><html><body style='font-family: Arial, sans-serif; color:#333'>"
+                              . "<h2>Order #{$orderId} Status Update</h2>"
+                              . "<p>Your order has been <strong>Completed</strong>.</p>"
+                              . "<p><a href='" . $fullLink . "' style='background:#667eea;color:#fff;padding:10px 16px;border-radius:4px;text-decoration:none;'>View Order Details</a></p>"
+                              . "<p style='font-size:12px;color:#777'>If the button doesn't work, copy and paste this URL:<br>" . $fullLink . "</p>"
+                              . "<p>Thank you,<br>Neo Exclusive Cafe</p>"
+                              . "</body></html>";
+                        sendEmail($customer_email, $subject, $body, true);
+                    }
+                } catch (Exception $e) {
+                    error_log('Done orders email send failed: ' . $e->getMessage());
+                }
+
                 echo json_encode([
                     'success' => true,
                     'message' => 'Order marked as completed successfully!'

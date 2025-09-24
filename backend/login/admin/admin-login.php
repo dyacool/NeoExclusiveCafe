@@ -6,8 +6,10 @@ ini_set('display_errors', 1);
 require_once __DIR__ . "/../../pages/admin-includes/database.php";
 require_once __DIR__ . "/../../pages/admin-includes/config.php";
 
-// Start session
-session_start();
+// Start session if not already active
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // If already logged in as admin, redirect to admin homepage
 if (isset($_SESSION["admin_id"]) && isset($_SESSION["is_admin"]) && $_SESSION["is_admin"] === true) {
@@ -37,8 +39,10 @@ if (isset($_POST["admin-login-submit"])) {
 
             if ($admin && password_verify($password, $admin["password"])) {
                 // Clear any existing session data to prevent conflicts
-                session_unset();
-                session_destroy();
+                if (session_status() === PHP_SESSION_ACTIVE) {
+                    session_unset();
+                    session_destroy();
+                }
                 session_start();
                 
                 // Set session variables with separate admin keys
