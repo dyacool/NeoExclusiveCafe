@@ -6,13 +6,19 @@ ini_set('display_errors', 1);
 require_once __DIR__ . "/../../../backend/pages/admin-includes/database.php";
 require_once __DIR__ . "/../../../backend/pages/admin-includes/config.php";
 
-session_set_cookie_params([
-    'lifetime' => 0,
-    'httponly' => true,
-    'samesite' => 'Strict',
-    'domain' => 'neocafe.cafe'
-]);
-session_start();
+// Start session safely and set cookie params only if no session is active
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'httponly' => true,
+        'samesite' => 'Strict',
+        'domain' => 'neocafe.cafe'
+    ]);
+    session_start();
+} else {
+    // Ensure session is active
+    @session_start();
+}
 
 // Check if the user is already logged in and avoid redirect loop
 $currentPage = basename($_SERVER['PHP_SELF']);
