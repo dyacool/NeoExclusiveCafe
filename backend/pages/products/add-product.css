@@ -277,6 +277,7 @@ input[type="radio"]:checked::after {
   cursor: pointer;
   font-size: 0.875rem;
   font-family: inherit;
+  text-align: center;
 }
 
 .discardBtn {
@@ -543,7 +544,7 @@ input[type="radio"]:checked::after {
 /* Large screens */
 @media (max-width: 1800px) {
   .breadcrumb {
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
   }
 
   .separator {
@@ -552,14 +553,14 @@ input[type="radio"]:checked::after {
 
   .mainContainer {
     max-width: 1300px;
-    padding: 1.875rem;
+    padding: 1.125rem;
     min-height: calc(100vh - 140px);
   }
 
   .container {
     grid-template-columns: 65% 32%;
-    gap: 1.875rem; /* 2rem - 2px */
-    padding: 1.875rem; /* 2rem - 2px */
+    gap: 1.125rem; /* 2rem - 2px */
+    padding: 1.8125rem; /* 2rem - 2px */
     min-height: 65vh;
   }
   .grp1 {
@@ -572,12 +573,8 @@ input[type="radio"]:checked::after {
   }
 
   label {
-    font-size: 0.875rem; /* 0.875rem - 2px */
-    margin-bottom: 0.375rem; /* 0.5rem - 2px */
-  }
-
-  .grp2 label {
-    margin-top: 0.5rem;
+    font-size: 0.8125rem;
+    margin-bottom: 0.375rem;
   }
 
   input[type="text"],
@@ -586,39 +583,40 @@ input[type="radio"]:checked::after {
   .description,
   .availtoday-status,
   .statusGrp {
-    padding: 0.625rem 0.875rem; /* 0.75rem - 2px, 1rem - 2px */
+    padding: 0.625rem 0.8125rem;
     border-radius: 8px;
-    font-size: 0.75rem; /* 0.875rem - 2px */
-    margin-bottom: 0.875rem; /* 1rem - 2px */
+    font-size: 0.8125rem;
+    margin-bottom: 0.8125rem;
   }
 
   .description {
     min-height: 75px;
+    word-break: break-word;
+    margin-bottom: 0rem;
   }
-
   .checkbox-group {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.625rem; /* 0.75rem - 2px */
-    margin: 0.375rem 0 0.875rem 0;
+    margin: 0.375rem 0 0.8125rem 0;
   }
 
   .checkbox-item {
-    gap: 0.375rem;
+    gap: 0.225rem;
   }
 
   .cb-itm {
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
   }
 
   .checkbox-item label {
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
   }
 
   input[type="checkbox"] {
-    width: 0.875rem;
-    height: 0.875rem;
+    width: 1rem;
+    height: 1rem;
     border-radius: 3px;
-    margin-right: 0.375rem;
+    margin-right: 0.5rem;
   }
 
   input[type="checkbox"]:checked::after {
@@ -632,7 +630,6 @@ input[type="radio"]:checked::after {
     line-height: 12px;
   }
 
-  /* Radio button styling */
   input[type="radio"] {
     width: 16px;
     height: 16px;
@@ -640,21 +637,21 @@ input[type="radio"]:checked::after {
   }
 
   .btn-changes {
-    gap: 0.875rem; /* 1rem - 2px */
-    padding-top: 1.875rem; /* 2rem - 2px */
+    gap: 0.875rem;
+    padding-top: 1.8125rem;
   }
 
   .discardBtn,
   .submitBtn {
-    padding: 0.625rem 1.375rem; /* 0.75rem - 2px, 1.5rem - 2px */
-    font-size: 0.75rem; /* 0.875rem - 2px */
+    padding: 0.625rem 1.375rem;
+    font-size: 0.8125rem;
   }
 
   .success-popup {
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
-    padding: 0.875rem 1.375rem;
+    padding: 0.8125rem 1.375rem;
     border-radius: 8px;
     font-size: 0.75rem;
     line-height: 1.5;
@@ -667,11 +664,6 @@ input[type="radio"]:checked::after {
     font-size: 1rem;
   }
 
-  .main-img,
-  .additional-img {
-    margin-top: 10px;
-  }
-
   .inputs {
     padding: 10px 50px;
     display: flex;
@@ -682,15 +674,10 @@ input[type="radio"]:checked::after {
     font-size: 1rem;
   }
 
-  .description {
-    min-height: 75px;
-    word-break: break-word;
-  }
-
   .primary-image-upload {
     border-radius: 6px;
-    width: 235px;
-    height: 235px;
+    width: 250px;
+    height: 250px;
   }
 
   .primary-preview-container {
@@ -705,8 +692,8 @@ input[type="radio"]:checked::after {
     border: 3px dashed #cbd5e0;
     border-radius: 6px;
     padding-left: 10px;
-    width: 235px;
-    height: 235px;
+    width: 250px;
+    height: 250px;
   }
 
   .primary-preview-item {
@@ -714,8 +701,210 @@ input[type="radio"]:checked::after {
   }
 
   .image-preview-item {
-    width: 95px;
-    height: 95px;
+    width: 105px;
+    height: 105px;
+  }
+
+  .images-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .add-img-btn {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    font-size: 14px;
+    border-radius: 6px;
+  }
+
+  small {
+    font-size: 0.8125rem;
+  }
+
+  .additional-preview-container.active {
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  /* Remove button for image previews */
+  .remove-btn {
+    top: 4px;
+    right: 5px;
+    width: 22px;
+    height: 22px;
+    font-size: 14px;
+  }
+
+  #todaysProductCalendar {
+    margin-bottom: 0.5rem;
+  }
+}
+
+@media (max-width: 1628px) {
+  .breadcrumb {
+    font-size: 0.75rem;
+  }
+
+  .separator {
+    margin: 0 0.4375rem;
+  }
+
+  .mainContainer {
+    max-width: 1200px;
+    padding: 1.0625rem;
+    min-height: calc(100vh - 140px);
+  }
+
+  .container {
+    grid-template-columns: 65% 32%;
+    gap: 1.625rem; /* 2rem - 2px */
+    padding: 1.75rem; /* 2rem - 2px */
+    min-height: 60vh;
+  }
+  .grp1 {
+    padding: 0 1.3125rem 0 0.3125rem; /* 1.5rem - 2px, 0.5rem - 2px */
+    border-right: 2px solid var(--gray-100);
+  }
+
+  .price-stock-container {
+    gap: 0.9375rem;
+  }
+
+  label {
+    font-size: 0.75rem;
+    margin-bottom: 0.3125rem;
+  }
+
+  input[type="text"],
+  input[type="number"],
+  select,
+  .description,
+  .availtoday-status,
+  .statusGrp {
+    padding: 0.5625rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .description {
+    min-height: 75px;
+    word-break: break-word;
+    margin-bottom: 0rem;
+  }
+  .checkbox-group {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5625rem;
+    margin: 0.3125rem 0 0.75rem 0;
+  }
+
+  .checkbox-item {
+    gap: 0.1875rem;
+  }
+
+  .cb-itm {
+    font-size: 0.75rem;
+  }
+
+  .checkbox-item label {
+    font-size: 0.75rem;
+  }
+
+  input[type="checkbox"] {
+    width: 0.875rem;
+    height: 0.875rem;
+    border-radius: 3px;
+    margin-right: 0.4375rem;
+  }
+
+  input[type="checkbox"]:checked::after {
+    position: absolute;
+    top: 2px;
+    left: 5px;
+    width: 4px;
+    height: 6px;
+    border-width: 0 2px 2px 0;
+    font-size: 10px;
+    line-height: 12px;
+  }
+
+  input[type="radio"] {
+    width: 16px;
+    height: 16px;
+    margin-right: 0.375rem;
+  }
+
+  .btn-changes {
+    gap: 0.8125rem;
+    padding-top: 1.75rem;
+  }
+
+  .discardBtn,
+  .submitBtn {
+    padding: 0.5625rem 1.3125rem;
+    font-size: 0.75rem;
+  }
+
+  .success-popup {
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.75rem 1.3125rem;
+    border-radius: 8px;
+    font-size: 0.6875rem;
+    line-height: 1.4;
+  }
+  .image-upload-container {
+    margin-bottom: 18px;
+  }
+
+  .image-upload-container small {
+    font-size: 0.9375rem;
+  }
+
+  .inputs {
+    padding: 9px 48px;
+    display: flex;
+    gap: 28px;
+  }
+
+  .upload-btn {
+    font-size: 0.9375rem;
+  }
+
+  .primary-image-upload {
+    border-radius: 6px;
+    width: 230px;
+    height: 230px;
+  }
+
+  .primary-preview-container {
+    width: calc(100% - 10px);
+    height: calc(100% - 10px);
+    margin: 0;
+    padding: 5px;
+  }
+
+  .additional-images-upload {
+    gap: 9px;
+    border: 3px dashed #cbd5e0;
+    border-radius: 6px;
+    padding-left: 10px;
+    width: 230px;
+    height: 230px;
+  }
+
+  .primary-preview-item {
+    border-radius: 8px;
+  }
+
+  .image-preview-item {
+    width: 98px;
+    height: 98px;
   }
 
   .images-section {
@@ -747,54 +936,50 @@ input[type="radio"]:checked::after {
   .remove-btn {
     top: 4px;
     right: 5px;
-    width: 22px;
-    height: 22px;
-    font-size: 14px;
+    width: 20px;
+    height: 20px;
+    font-size: 13px;
   }
 
   #todaysProductCalendar {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.4375rem;
   }
 }
 
-@media (max-width: 1628px) {
+/* Desktop */
+@media (max-width: 1440px) {
   .breadcrumb {
-    font-size: 0.8125rem;
+    font-size: 0.6875rem;
   }
 
   .separator {
-    margin: 0 0.5rem;
+    margin: 0 0.375rem;
   }
 
   .mainContainer {
-    max-width: 1200px;
-    padding: 1.75rem;
+    max-width: 1000px;
+    padding: 1.5625rem;
     min-height: calc(100vh - 140px);
   }
 
   .container {
     grid-template-columns: 65% 32%;
-    gap: 1.75rem;
-    padding: 1.75rem;
-    min-height: 60vh;
+    gap: 1.5625rem; /* 2rem - 2px */
+    padding: 1.6875rem; /* 2rem - 2px */
+    min-height: 55vh;
   }
-
   .grp1 {
-    padding: 0 1.25rem 0 0.25rem;
+    padding: 0 1.25rem 0 0.25rem; /* 1.5rem - 2px, 0.5rem - 2px */
     border-right: 2px solid var(--gray-100);
   }
 
   .price-stock-container {
-    gap: 1rem;
+    gap: 0.875rem;
   }
 
   label {
-    font-size: 0.8125rem;
+    font-size: 0.6875rem;
     margin-bottom: 0.25rem;
-  }
-
-  .grp2 label {
-    margin-top: 0.5rem;
   }
 
   input[type="text"],
@@ -803,37 +988,39 @@ input[type="radio"]:checked::after {
   .description,
   .availtoday-status,
   .statusGrp {
-    padding: 0.5rem 0.75rem;
-    border-radius: 8px;
+    padding: 0.5rem 0.6875rem;
+    border-radius: 7px;
     font-size: 0.6875rem;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.6875rem;
   }
 
   .description {
     min-height: 70px;
+    word-break: break-word;
+    margin-bottom: 0rem;
   }
 
   .checkbox-group {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.5rem;
-    margin: 0.25rem 0 0.75rem 0;
+    margin: 0.25rem 0 0.6875rem 0;
   }
 
   .checkbox-item {
-    gap: 0.25rem;
+    gap: 0.5rem;
   }
 
   .cb-itm {
-    font-size: 0.8125rem;
+    font-size: 0.6875rem;
   }
 
   .checkbox-item label {
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
   }
 
   input[type="checkbox"] {
-    width: 0.75rem;
-    height: 0.75rem;
+    width: 0.8125rem;
+    height: 0.8125rem;
     border-radius: 3px;
     margin-right: 0.25rem;
   }
@@ -841,98 +1028,87 @@ input[type="radio"]:checked::after {
   input[type="checkbox"]:checked::after {
     position: absolute;
     top: 2px;
-    left: 5px;
+    left: 4px;
     width: 4px;
-    height: 4px;
+    height: 6px;
     border-width: 0 2px 2px 0;
-    font-size: 8px;
-    line-height: 10px;
+    font-size: 10px;
+    line-height: 12px;
   }
 
   input[type="radio"] {
-    width: 14px;
-    height: 14px;
+    width: 12px;
+    height: 12px;
     margin-right: 0.25rem;
   }
 
   .btn-changes {
     gap: 0.75rem;
-    padding-top: 1.75rem;
+    padding-top: 1.6875rem;
   }
 
   .discardBtn,
   .submitBtn {
-    padding: 0.5rem 1.25rem;
+    padding: 0.56rem 1.25rem;
     font-size: 0.6875rem;
   }
 
   .success-popup {
-    top: 20px;
+    top: 18px;
     left: 50%;
     transform: translateX(-50%);
-    padding: 0.75rem 1.25rem;
-    border-radius: 8px;
+    padding: 0.6875rem 1.25rem;
+    border-radius: 6px;
     font-size: 0.6875rem;
-    line-height: 1.5;
+    line-height: 1.3;
   }
-
   .image-upload-container {
-    margin-bottom: 20px;
+    margin-bottom: 16px;
   }
 
   .image-upload-container small {
-    font-size: 1rem;
-  }
-
-  .main-img,
-  .additional-img {
-    margin-top: 8px;
+    font-size: 0.875rem;
   }
 
   .inputs {
-    padding: 10px 50px;
+    padding: 8px 46px;
     display: flex;
-    gap: 30px;
+    gap: 26px;
   }
 
   .upload-btn {
-    font-size: 1rem;
-  }
-
-  .description {
-    min-height: 70px;
-    word-break: break-word;
+    font-size: 0.875rem;
   }
 
   .primary-image-upload {
     border-radius: 6px;
-    width: 220px;
-    height: 220px;
+    width: 210px;
+    height: 210px;
   }
 
   .primary-preview-container {
-    width: calc(100% - 10px);
-    height: calc(100% - 10px);
+    width: calc(100% - 12px);
+    height: calc(100% - 12px);
     margin: 0;
-    padding: 5px;
+    padding: 4px;
   }
 
   .additional-images-upload {
-    gap: 10px;
+    gap: 8px;
     border: 3px dashed #cbd5e0;
     border-radius: 6px;
-    padding-left: 8px;
-    width: 220px;
-    height: 220px;
+    padding-left: 10px;
+    width: 210px;
+    height: 210px;
   }
 
   .primary-preview-item {
-    border-radius: 8px;
+    border-radius: 7px;
   }
 
   .image-preview-item {
-    width: 85px;
-    height: 85px;
+    width: 90px;
+    height: 90px;
   }
 
   .images-section {
@@ -947,7 +1123,7 @@ input[type="radio"]:checked::after {
     transform: translate(-50%, -50%);
     width: 100%;
     height: 100%;
-    font-size: 12px;
+    font-size: 13px;
     border-radius: 6px;
   }
 
@@ -956,62 +1132,57 @@ input[type="radio"]:checked::after {
   }
 
   .additional-preview-container.active {
-    gap: 10px;
-    margin-top: 10px;
+    gap: 9px;
+    margin-top: 9px;
   }
 
+  /* Remove button for image previews */
   .remove-btn {
-    top: 2px;
+    top: 4px;
     right: 5px;
-    width: 20px;
-    height: 20px;
-    font-size: 12px;
+    width: 18px;
+    height: 18px;
+    font-size: 13px;
   }
 
   #todaysProductCalendar {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.375rem;
   }
 }
 
-/* Desktop */
-@media (max-width: 1440px) {
+@media (max-width: 1178px) {
   .breadcrumb {
-    font-size: 0.75rem;
+    font-size: 0.625rem;
   }
 
   .separator {
-    margin: 0 0.5rem;
+    margin: 0 0.3125rem;
   }
 
   .mainContainer {
-    max-width: 1100px;
-    padding: 1.625rem;
-    min-height: calc(100vh - 140px);
+    max-width: 900px;
+    padding: 1.375rem;
   }
 
   .container {
     grid-template-columns: 65% 32%;
-    gap: 1.625rem;
-    padding: 1.625rem;
-    min-height: 55vh;
+    gap: 1.5rem; /* 2rem - 2px */
+    padding: 1.5rem; /* 2rem - 2px */
+    min-height: 50vh;
   }
 
   .grp1 {
-    padding: 0 1.125rem 0 0.125rem;
+    padding: 0 1.125rem 0 0.125rem; /* 1.5rem - 2px, 0.5rem - 2px */
     border-right: 2px solid var(--gray-100);
   }
 
   .price-stock-container {
-    gap: 1rem;
+    gap: 0.75rem;
   }
 
   label {
-    font-size: 0.75rem;
-    margin-bottom: 0.125rem;
-  }
-
-  .grp2 label {
-    margin-top: 0.5rem;
+    font-size: 0.625rem;
+    margin-bottom: 0.25rem;
   }
 
   input[type="text"],
@@ -1020,14 +1191,16 @@ input[type="radio"]:checked::after {
   .description,
   .availtoday-status,
   .statusGrp {
-    padding: 0.375rem 0.625rem;
-    border-radius: 8px;
+    padding: 0.375rem 0.5rem;
+    border-radius: 6px;
     font-size: 0.625rem;
     margin-bottom: 0.625rem;
   }
 
   .description {
-    min-height: 65px;
+    min-height: 60px;
+    word-break: break-word;
+    margin-bottom: 0rem;
   }
 
   .checkbox-group {
@@ -1037,33 +1210,33 @@ input[type="radio"]:checked::after {
   }
 
   .checkbox-item {
-    gap: 0.125rem;
+    gap: 0.3125rem;
   }
 
   .cb-itm {
-    font-size: 0.75rem;
+    font-size: 0.625rem;
   }
 
   .checkbox-item label {
-    font-size: 0.75rem;
+    font-size: 0.625rem;
   }
 
   input[type="checkbox"] {
-    width: 0.625rem;
-    height: 0.625rem;
+    width: 0.75rem;
+    height: 0.75rem;
     border-radius: 3px;
     margin-right: 0.125rem;
   }
 
   input[type="checkbox"]:checked::after {
     position: absolute;
-    top: 2px;
-    left: 5px;
+    top: 1.5px;
+    left: 4px;
     width: 4px;
-    height: 2px;
+    height: 6px;
     border-width: 0 2px 2px 0;
-    font-size: 6px;
-    line-height: 8px;
+    font-size: 9px;
+    line-height: 12px;
   }
 
   input[type="radio"] {
@@ -1073,268 +1246,42 @@ input[type="radio"]:checked::after {
   }
 
   .btn-changes {
-    gap: 0.625rem;
-    padding-top: 1.625rem;
-  }
-
-  .discardBtn,
-  .submitBtn {
-    padding: 0.375rem 1.125rem;
-    font-size: 0.625rem;
-  }
-
-  .success-popup {
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 0.625rem 1.125rem;
-    border-radius: 8px;
-    font-size: 0.625rem;
-    line-height: 1.5;
-  }
-
-  .image-upload-container {
-    margin-bottom: 20px;
-  }
-
-  .image-upload-container small {
-    font-size: 1rem;
-  }
-
-  .main-img,
-  .additional-img {
-    margin-top: 6px;
-  }
-
-  .inputs {
-    padding: 10px 50px;
-    display: flex;
-    gap: 30px;
-  }
-
-  .upload-btn {
-    font-size: 1rem;
-  }
-
-  .description {
-    min-height: 65px;
-    word-break: break-word;
-  }
-
-  .primary-image-upload {
-    border-radius: 6px;
-    width: 205px;
-    height: 205px;
-  }
-
-  .primary-preview-container {
-    width: calc(100% - 10px);
-    height: calc(100% - 10px);
-    margin: 0;
-    padding: 5px;
-  }
-
-  .additional-images-upload {
-    gap: 10px;
-    border: 3px dashed #cbd5e0;
-    border-radius: 6px;
-    padding-left: 6px;
-    width: 205px;
-    height: 205px;
-  }
-
-  .primary-preview-item {
-    border-radius: 8px;
-  }
-
-  .image-preview-item {
-    width: 75px;
-    height: 75px;
-  }
-
-  .images-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .add-img-btn {
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 100%;
-    height: 100%;
-    font-size: 10px;
-    border-radius: 6px;
-  }
-
-  small {
-    font-size: 0.625rem;
-  }
-
-  .additional-preview-container.active {
-    gap: 10px;
-    margin-top: 10px;
-  }
-
-  .remove-btn {
-    top: 0px;
-    right: 5px;
-    width: 18px;
-    height: 18px;
-    font-size: 10px;
-  }
-
-  #todaysProductCalendar {
-    margin-bottom: 0.5rem;
-  }
-}
-
-@media (max-width: 1178px) {
-  .breadcrumb {
-    font-size: 0.6875rem;
-  }
-
-  .separator {
-    margin: 0 0.5rem;
-  }
-
-  .mainContainer {
-    max-width: 1000px;
-    padding: 1.5rem;
-    min-height: calc(100vh - 140px);
-  }
-
-  .container {
-    grid-template-columns: 65% 32%;
-    gap: 1.5rem;
-    padding: 1.5rem;
-    min-height: 50vh;
-  }
-
-  .grp1 {
-    padding: 0 1rem 0 0rem;
-    border-right: 2px solid var(--gray-100);
-  }
-
-  .price-stock-container {
-    gap: 1rem;
-  }
-
-  label {
-    font-size: 0.6875rem;
-    margin-bottom: 0rem;
-  }
-
-  .grp2 label {
-    margin-top: 0.5rem;
-  }
-
-  input[type="text"],
-  input[type="number"],
-  select,
-  .description,
-  .availtoday-status,
-  .statusGrp {
-    padding: 0.25rem 0.5rem;
-    border-radius: 8px;
-    font-size: 0.5625rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .description {
-    min-height: 60px;
-  }
-
-  .checkbox-group {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.25rem;
-    margin: 0rem 0 0.5rem 0;
-  }
-
-  .checkbox-item {
-    gap: 0rem;
-  }
-
-  .cb-itm {
-    font-size: 0.6875rem;
-  }
-
-  .checkbox-item label {
-    font-size: 0.6875rem;
-  }
-
-  input[type="checkbox"] {
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: 3px;
-    margin-right: 0rem;
-  }
-
-  input[type="checkbox"]:checked::after {
-    position: absolute;
-    top: 2px;
-    left: 5px;
-    width: 4px;
-    height: 0px;
-    border-width: 0 2px 2px 0;
-    font-size: 4px;
-    line-height: 6px;
-  }
-
-  input[type="radio"] {
-    width: 10px;
-    height: 10px;
-    margin-right: 0rem;
-  }
-
-  .btn-changes {
-    gap: 0.5rem;
+    gap: 0.6875rem;
     padding-top: 1.5rem;
   }
 
   .discardBtn,
   .submitBtn {
-    padding: 0.25rem 1rem;
-    font-size: 0.5625rem;
+    padding: 0.4375rem 1.125rem;
+    font-size: 0.625rem;
   }
 
   .success-popup {
-    top: 20px;
+    top: 16px;
     left: 50%;
     transform: translateX(-50%);
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
-    font-size: 0.5625rem;
-    line-height: 1.5;
+    padding: 0.625rem 1.125rem;
+    border-radius: 6px;
+    font-size: 0.625rem;
+    line-height: 1.2;
   }
 
   .image-upload-container {
-    margin-bottom: 20px;
+    margin-bottom: 14px;
   }
 
   .image-upload-container small {
-    font-size: 1rem;
-  }
-
-  .main-img,
-  .additional-img {
-    margin-top: 4px;
+    font-size: 0.75rem;
   }
 
   .inputs {
-    padding: 10px 50px;
+    padding: 6px 44px;
     display: flex;
-    gap: 30px;
+    gap: 24px;
   }
 
   .upload-btn {
-    font-size: 1rem;
-  }
-
-  .description {
-    min-height: 60px;
-    word-break: break-word;
+    font-size: 0.75rem;
   }
 
   .primary-image-upload {
@@ -1344,28 +1291,28 @@ input[type="radio"]:checked::after {
   }
 
   .primary-preview-container {
-    width: calc(100% - 10px);
-    height: calc(100% - 10px);
+    width: calc(100% - 14px);
+    height: calc(100% - 14px);
     margin: 0;
-    padding: 5px;
+    padding: 3px;
   }
 
   .additional-images-upload {
-    gap: 10px;
+    gap: 7px;
     border: 3px dashed #cbd5e0;
     border-radius: 6px;
-    padding-left: 4px;
+    padding-left: 10px;
     width: 190px;
     height: 190px;
   }
 
   .primary-preview-item {
-    border-radius: 8px;
+    border-radius: 6px;
   }
 
   .image-preview-item {
-    width: 65px;
-    height: 65px;
+    width: 78px;
+    height: 78px;
   }
 
   .images-section {
@@ -1380,74 +1327,66 @@ input[type="radio"]:checked::after {
     transform: translate(-50%, -50%);
     width: 100%;
     height: 100%;
-    font-size: 8px;
+    font-size: 10px;
     border-radius: 6px;
   }
 
   small {
-    font-size: 0.5625rem;
+    font-size: 0.625rem;
   }
 
   .additional-preview-container.active {
-    gap: 10px;
-    margin-top: 10px;
+    gap: 8px;
+    margin-top: 9px;
   }
 
+  /* Remove button for image previews */
   .remove-btn {
-    top: -2px;
+    top: 4px;
     right: 5px;
     width: 16px;
     height: 16px;
-    font-size: 8px;
+    font-size: 11px;
   }
 
   #todaysProductCalendar {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.3125rem;
   }
 }
 
-/* Tablet */
 @media (max-width: 1024px) {
   .breadcrumb {
     font-size: 0.625rem;
   }
 
   .separator {
-    margin: 0 0.5rem;
+    margin: 0 0.3125rem;
   }
 
   .mainContainer {
     max-width: 900px;
     padding: 1.375rem;
-    min-height: calc(100vh - 140px);
   }
 
   .container {
-    grid-template-columns: 100%;
-    gap: 1.375rem;
-    padding: 1.375rem;
-    min-height: 45vh;
+    grid-template-columns: 65% 32%;
+    gap: 1.5rem; /* 2rem - 2px */
+    padding: 1.5rem; /* 2rem - 2px */
+    min-height: 50vh;
   }
 
   .grp1 {
-    padding: 0;
-    border-right: none;
-    border-bottom: 2px solid var(--gray-100);
-    padding-bottom: 1rem;
-    margin-bottom: 1rem;
+    padding: 0 1.125rem 0 0.125rem; /* 1.5rem - 2px, 0.5rem - 2px */
+    border-right: 2px solid var(--gray-100);
   }
 
   .price-stock-container {
-    gap: 1rem;
+    gap: 0.75rem;
   }
 
   label {
     font-size: 0.625rem;
-    margin-bottom: -0.125rem;
-  }
-
-  .grp2 label {
-    margin-top: 0.5rem;
+    margin-bottom: 0.25rem;
   }
 
   input[type="text"],
@@ -1456,24 +1395,26 @@ input[type="radio"]:checked::after {
   .description,
   .availtoday-status,
   .statusGrp {
-    padding: 0.125rem 0.375rem;
-    border-radius: 8px;
-    font-size: 0.5rem;
-    margin-bottom: 0.375rem;
+    padding: 0.375rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.625rem;
+    margin-bottom: 0.625rem;
   }
 
   .description {
-    min-height: 55px;
+    min-height: 60px;
+    word-break: break-word;
+    margin-bottom: 0rem;
   }
 
   .checkbox-group {
     grid-template-columns: repeat(2, 1fr);
-    gap: 0.125rem;
-    margin: -0.125rem 0 0.375rem 0;
+    gap: 0.375rem;
+    margin: 0.125rem 0 0.625rem 0;
   }
 
   .checkbox-item {
-    gap: -0.125rem;
+    gap: 0.3125rem;
   }
 
   .cb-itm {
@@ -1485,107 +1426,97 @@ input[type="radio"]:checked::after {
   }
 
   input[type="checkbox"] {
-    width: 0.375rem;
-    height: 0.375rem;
+    width: 0.75rem;
+    height: 0.75rem;
     border-radius: 3px;
-    margin-right: -0.125rem;
+    margin-right: 0.125rem;
   }
 
   input[type="checkbox"]:checked::after {
     position: absolute;
-    top: 2px;
-    left: 5px;
+    top: 1.5px;
+    left: 4px;
     width: 4px;
-    height: -2px;
+    height: 6px;
     border-width: 0 2px 2px 0;
-    font-size: 2px;
-    line-height: 4px;
+    font-size: 9px;
+    line-height: 12px;
   }
 
   input[type="radio"] {
-    width: 8px;
-    height: 8px;
-    margin-right: -0.125rem;
+    width: 12px;
+    height: 12px;
+    margin-right: 0.125rem;
   }
 
   .btn-changes {
-    gap: 0.375rem;
-    padding-top: 1.375rem;
+    gap: 0.6875rem;
+    padding-top: 1.5rem;
   }
 
   .discardBtn,
   .submitBtn {
-    padding: 0.125rem 0.875rem;
+    padding: 0.4375rem 1.125rem;
     font-size: 0.5rem;
   }
 
   .success-popup {
-    top: 20px;
+    top: 16px;
     left: 50%;
     transform: translateX(-50%);
-    padding: 0.375rem 0.875rem;
-    border-radius: 8px;
-    font-size: 0.5rem;
-    line-height: 1.5;
+    padding: 0.625rem 1.125rem;
+    border-radius: 6px;
+    font-size: 0.625rem;
+    line-height: 1.2;
   }
 
   .image-upload-container {
-    margin-bottom: 20px;
+    margin-bottom: 14px;
   }
 
   .image-upload-container small {
-    font-size: 1rem;
-  }
-
-  .main-img,
-  .additional-img {
-    margin-top: 2px;
+    font-size: 0.75rem;
   }
 
   .inputs {
-    padding: 10px 50px;
+    padding: 6px 44px;
     display: flex;
-    gap: 30px;
+    gap: 24px;
   }
 
   .upload-btn {
-    font-size: 1rem;
-  }
-
-  .description {
-    min-height: 55px;
-    word-break: break-word;
+    font-size: 0.75rem;
   }
 
   .primary-image-upload {
     border-radius: 6px;
-    width: 175px;
-    height: 175px;
+    width: 190px;
+    height: 190px;
   }
 
   .primary-preview-container {
-    width: calc(100% - 10px);
-    height: calc(100% - 10px);
+    width: calc(100% - 14px);
+    height: calc(100% - 14px);
     margin: 0;
-    padding: 5px;
+    padding: 3px;
   }
 
   .additional-images-upload {
-    gap: 10px;
+    gap: 7px;
     border: 3px dashed #cbd5e0;
     border-radius: 6px;
-    padding-left: 2px;
-    width: 175px;
-    height: 175px;
+    padding-left: 10px;
+    width: 190px;
+    height: 190px;
   }
 
   .primary-preview-item {
-    border-radius: 8px;
+    border-radius: 6px;
   }
 
   .image-preview-item {
-    width: 55px;
-    height: 55px;
+    width: 78px;
+    height: 78px;
   }
 
   .images-section {
@@ -1600,46 +1531,61 @@ input[type="radio"]:checked::after {
     transform: translate(-50%, -50%);
     width: 100%;
     height: 100%;
-    font-size: 6px;
+    font-size: 10px;
     border-radius: 6px;
   }
 
   small {
-    font-size: 0.5rem;
+    font-size: 0.625rem;
   }
 
   .additional-preview-container.active {
-    gap: 10px;
-    margin-top: 10px;
+    gap: 8px;
+    margin-top: 9px;
   }
 
+  /* Remove button for image previews */
   .remove-btn {
-    top: -4px;
+    top: 4px;
     right: 5px;
-    width: 14px;
-    height: 14px;
-    font-size: 6px;
+    width: 16px;
+    height: 16px;
+    font-size: 11px;
   }
 
   #todaysProductCalendar {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.3125rem;
   }
 }
 
-/* Mobile landscape */
 @media (max-width: 768px) {
+  .breadcrumb {
+    font-size: 0.875rem;
+    padding: 0.375rem 1.25rem;
+  }
+
+  .separator {
+    margin: 0 0.3125rem;
+  }
   .mainContainer {
-    padding: 1rem;
+    padding: 1.25rem;
   }
 
   .container {
     gap: 1.5rem;
-    padding: 1rem;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
   }
 
-  .breadcrumb {
-    font-size: 0.875rem;
-    padding: 0.5rem 0;
+  .grp1 {
+    border-right: none;
+    border-bottom: 2px solid var(--gray-100);
+    padding: 0 1.125rem 0 0.125rem; /* 1.5rem - 2px, 0.5rem - 2px */
+  }
+
+  .price-stock-container {
+    gap: 0.75rem;
   }
 
   label {
@@ -1658,7 +1604,7 @@ input[type="radio"]:checked::after {
   }
 
   .description {
-    min-height: 40px;
+    min-height: 70px;
   }
 
   .labels {
@@ -1668,134 +1614,159 @@ input[type="radio"]:checked::after {
     padding: 0;
   }
 
-  .inputs {
-    flex-direction: column;
-    align-items: center;
-    gap: 1.5rem;
-    padding: 10px 0;
-  }
-
-  .primary-image-upload,
-  .additional-images-upload {
-    width: 100%;
-    max-width: 250px; /* 300px - 50px */
-    height: 150px; /* 200px - 50px */
-  }
-
   .checkbox-group {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.5rem;
+    margin: 0.125rem 0 0.625rem 0;
   }
 
-  .days-group {
-    grid-template-columns: repeat(2, 1fr);
+  .checkbox-item {
+    gap: 0.5rem;
+  }
+
+  .cb-itm {
+    font-size: 0.8125rem;
+  }
+
+  .checkbox-item label {
+    font-size: 0.8125rem;
+  }
+
+  input[type="checkbox"] {
+    width: 1rem;
+    height: 1rem;
+    border-radius: 3px;
+    margin-right: 0.25rem;
+  }
+
+  input[type="checkbox"]:checked::after {
+    position: absolute;
+    top: 1.5px;
+    left: 4px;
+    width: 4px;
+    height: 6px;
+    border-width: 0 2px 2px 0;
+    font-size: 9px;
+    line-height: 12px;
+  }
+
+  input[type="radio"] {
+    width: 1rem;
+    height: 1rem;
+    margin-right: 0.25rem;
   }
 
   .btn-changes {
-    flex-direction: column;
     gap: 0.75rem;
     padding-top: 1.5rem;
   }
 
   .discardBtn,
   .submitBtn {
-    width: 100%;
-    padding: 0.875rem 1rem;
-  }
-
-  .price-stock-container {
-    flex-direction: column;
-    gap: 0;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.75rem;
   }
 
   .success-popup {
-    left: 1rem;
-    right: 1rem;
-    transform: none;
-    max-width: calc(100% - 2rem);
-  }
-}
-
-/* Mobile portrait */
-@media (max-width: 480px) {
-  .mainContainer {
-    padding: 0.75rem;
-  }
-
-  .container {
-    padding: 0.75rem;
-    gap: 1rem;
-  }
-
-  .grp1 {
-    padding: 0 0 1rem 0;
-    margin-bottom: 1rem;
-  }
-
-  input[type="text"],
-  input[type="number"],
-  select,
-  .description,
-  .availtoday-status,
-  .statusGrp {
-    padding: 0.625rem;
-    font-size: 0.8rem;
-  }
-
-  .primary-image-upload,
-  .additional-images-upload {
-    height: 130px; /* 180px - 50px */
-  }
-
-  .checkbox-group {
-    grid-template-columns: 1fr;
-    gap: 0.5rem;
-  }
-
-  .days-group {
-    grid-template-columns: 1fr;
-  }
-
-  .checkbox-item {
-    padding: 0.5rem;
-    background-color: var(--gray-50);
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.625rem 1.125rem;
     border-radius: 6px;
-    border: 1px solid var(--gray-200);
+    font-size: 0.625rem;
+    line-height: 1.2;
   }
 
-  .discardBtn,
-  .submitBtn {
-    padding: 1rem;
-    font-size: 0.875rem;
+  .image-upload-container {
+    margin-bottom: 14px;
   }
 
-  #primaryUploadBtn,
-  .add-img-btn {
-    font-size: 14px;
-  }
-}
-
-/* Small mobile */
-@media (max-width: 375px) {
-  .mainContainer {
-    padding: 0.5rem;
-  }
-
-  .container {
-    padding: 0.5rem;
-  }
-
-  .primary-image-upload,
-  .additional-images-upload {
-    height: 110px; /* 160px - 50px */
-  }
-
-  .labels {
-    gap: 0.75rem;
+  .image-upload-container small {
+    font-size: 0.75rem;
   }
 
   .inputs {
-    gap: 1rem;
+    padding: 6px 44px;
+    display: flex;
+    gap: 24px;
+  }
+
+  .upload-btn {
+    font-size: 0.75rem;
+  }
+
+  .primary-image-upload {
+    border-radius: 6px;
+    width: 190px;
+    height: 190px;
+  }
+
+  .primary-preview-container {
+    width: calc(100% - 14px);
+    height: calc(100% - 14px);
+    margin: 0;
+    padding: 3px;
+  }
+
+  .additional-images-upload {
+    gap: 7px;
+    border: 3px dashed #cbd5e0;
+    border-radius: 6px;
+    padding-left: 10px;
+    width: 190px;
+    height: 190px;
+  }
+
+  .primary-preview-item {
+    border-radius: 6px;
+  }
+
+  .image-preview-item {
+    width: 78px;
+    height: 78px;
+  }
+
+  .images-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .add-img-btn {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    font-size: 10px;
+    border-radius: 6px;
+  }
+
+  small {
+    font-size: 0.625rem;
+  }
+
+  .additional-preview-container.active {
+    gap: 8px;
+    margin-top: 9px;
+  }
+
+  .remove-btn {
+    top: 4px;
+    right: 5px;
+    width: 16px;
+    height: 16px;
+    font-size: 11px;
+  }
+
+  #todaysProductCalendar {
+    margin-bottom: 0.3125rem;
+  }
+}
+
+@media (max-width: 660px) {
+  label {
+    font-size: 0.75rem;
   }
 
   input[type="text"],
@@ -1804,41 +1775,242 @@ input[type="radio"]:checked::after {
   .description,
   .availtoday-status,
   .statusGrp {
+    padding: 0.625rem 0.875rem;
     font-size: 0.75rem;
-  }
-
-  label {
-    font-size: 0.8rem;
   }
 }
 
-/* Extra small mobile */
-@media (max-width: 320px) {
+@media (max-width: 425px) {
+  .content-wrapper {
+    padding: 0.5rem !important;
+  }
+
+  .breadcrumb {
+    font-size: 0.875rem;
+    padding: 0.4375rem 1.25rem;
+  }
+
+  .separator {
+    margin: 0 0.25rem;
+  }
+
   .mainContainer {
-    padding: 0.25rem;
+    padding: 1rem;
   }
 
   .container {
-    padding: 0.5rem;
+    gap: 0.875rem;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
   }
 
-  .primary-image-upload,
-  .additional-images-upload {
-    height: 90px; /* 140px - 50px */
+  .grp1 {
+    border-right: none;
+    border-bottom: 2px solid var(--gray-100);
+    padding: 0 1rem 0 0.125rem; /* 1.5rem - 2px, 0.5rem - 2px */
+  }
+
+  .price-stock-container {
+    gap: 0.75rem;
+  }
+  /* done */
+  label {
+    font-size: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  input[type="text"],
+  input[type="number"],
+  select,
+  .description,
+  .availtoday-status,
+  .statusGrp {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .description {
+    min-height: 70px;
+  }
+
+  .labels {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+    padding: 0;
+  }
+
+  .cb-itm {
+    font-size: 0.75rem;
+  }
+
+  .checkbox-item label {
+    font-size: 0.75rem;
+  }
+
+  input[type="checkbox"] {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 3px;
+    margin-right: 0.25rem;
+  }
+
+  input[type="checkbox"]:checked::after {
+    position: absolute;
+    top: 1.5px;
+    left: 4px;
+    width: 4px;
+    height: 6px;
+    border-width: 0 2px 2px 0;
+    font-size: 9px;
+    line-height: 12px;
+  }
+
+  input[type="radio"] {
+    width: 0.75rem;
+    height: 0.75rem;
+    margin-right: 0.25rem;
+  }
+
+  .btn-changes {
+    gap: 0.75rem;
+    padding-top: 1rem;
   }
 
   .discardBtn,
   .submitBtn {
-    padding: 0.875rem 0.5rem;
-    font-size: 0.8rem;
+    padding: 0.625rem 1.375rem;
+    font-size: 0.6875rem;
   }
 
-  .breadcrumb {
+  .success-popup {
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.625rem 1.125rem;
+    border-radius: 6px;
+    font-size: 0.625rem;
+    line-height: 1.2;
+  }
+
+  .image-upload-container {
+    margin-bottom: 14px;
+  }
+
+  .image-upload-container small {
+    font-size: 0.625rem;
+  }
+
+  .inputs {
+    padding: 6px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .upload-btn {
     font-size: 0.75rem;
   }
 
-  #primaryUploadBtn,
+  .primary-image-upload {
+    border-radius: 6px;
+    width: 190px;
+    height: 190px;
+  }
+
+  .primary-preview-container {
+    width: calc(100% - 14px);
+    height: calc(100% - 14px);
+    margin: 0;
+    padding: 3px;
+  }
+
+  .additional-images-upload {
+    gap: 7px;
+    border: 3px dashed #cbd5e0;
+    border-radius: 6px;
+    padding-left: 10px;
+    width: 190px;
+    height: 190px;
+  }
+
+  .primary-preview-item {
+    border-radius: 6px;
+  }
+
+  .image-preview-item {
+    width: 78px;
+    height: 78px;
+  }
+
+  .images-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
   .add-img-btn {
-    font-size: 12px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    font-size: 10px;
+    border-radius: 6px;
+  }
+
+  small {
+    font-size: 0.625rem;
+  }
+
+  .additional-preview-container.active {
+    gap: 8px;
+    margin-top: 9px;
+  }
+
+  /* Remove button for image previews */
+  .remove-btn {
+    top: 4px;
+    right: 5px;
+    width: 16px;
+    height: 16px;
+    font-size: 11px;
+  }
+
+  #todaysProductCalendar {
+    margin-bottom: 0.3125rem;
+  }
+}
+
+@media (max-width: 320px) {
+  .content-wrapper {
+    padding: 0.375rem !important;
+  }
+
+  .breadcrumb {
+    font-size: 0.8125rem;
+    padding: 0.375rem 1rem;
+  }
+
+  .separator {
+    margin: 0 0.25rem;
+  }
+
+  .mainContainer {
+    padding: 1rem;
+    padding-top: 0.5rem;
+  }
+
+  .container {
+    gap: 0.875rem;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .featured-group {
+    display: flex !important;
+    flex-direction: row !important;
   }
 }
