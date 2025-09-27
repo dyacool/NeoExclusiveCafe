@@ -38,12 +38,6 @@
   font-family: "Inter", sans-serif;
 }
 
-body {
-  background-color: var(--gray-50);
-  color: var(--gray-900);
-  line-height: 1.6;
-}
-
 /* Admin Main */
 .admin-main {
   width: 100%;

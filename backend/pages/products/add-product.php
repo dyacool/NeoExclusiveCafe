@@ -378,8 +378,8 @@ $conn->close();
                     </div>
 
                     <label>Featured</label>
-                    <div class="checkbox-group">
-                        <div class="checkbox-item">
+                    <div class="checkbox-group featured-group">
+                        <div class="checkbox-item ">
                             <input type="checkbox" name="is_featured" id="is_featured">
                             <label class="cb-itm" for="is_featured" style="display: inline;">Feature Product</label>
                         </div>

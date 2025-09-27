@@ -186,89 +186,201 @@ $conn->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About Page Management - Neo Exclusive Cafe</title>
-    <link rel="stylesheet" href="about-settings.css">
+    <link rel="stylesheet" href="terms-and-condition-management.css">
     <!-- Quill.js Editor - Free Rich Text Editor -->
     <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 </head>
 <body>
-    <div class="about-settings-container">
-        <div class="container">
-        <?php if ($success_message): ?>
-            <div class="alert success">
-                <?php echo htmlspecialchars($success_message); ?>
-            </div>
-        <?php endif; ?>
-
-        <?php if ($error_message): ?>
-            <div class="alert error">
-                <?php echo htmlspecialchars($error_message); ?>
-            </div>
-        <?php endif; ?>
-
-        <?php if ($upload_error): ?>
-            <div class="alert error">
-                <?php echo htmlspecialchars($upload_error); ?>
-            </div>
-        <?php endif; ?>
-
-        <div class="abt-header">
-            <div class="header-content">
-                <p class="subtitle">Manage your website's about page content and image</p>
-                <?php if (isset($about['last_updated'])): ?>
-                    <p class="last-updated">Last updated: <?php echo date('F j, Y, g:i a', strtotime($about['last_updated'])); ?></p>
-                <?php endif; ?>
-            </div>
-            <div class="form-actions">
-                <div class="action-buttons">
-                    <button type="button" class="btn-draft" onclick="saveDraft()">Save Draft</button>
-                    <button type="submit" class="btn-save" form="aboutForm">Update About Page</button>
-                </div>
-            </div>
-        </div>
-        <div class="settings-container">
-
-            <form method="POST" action="" id="aboutForm" enctype="multipart/form-data">
-                <div class="form-group">
-                    <label for="title">Page Title</label>
-                    <input type="text" 
-                           id="title" 
-                           name="title" 
-                           value="<?php echo htmlspecialchars($about['title'] ?? ''); ?>" 
-                           placeholder="Enter title for about page"
-                           required>
-                    <div class="help-text">This will be displayed as the main heading</div>
-                </div>
-
-                <div class="form-group">
-                    <label for="about_text">About Content</label>
-                    <div id="editor-container" style="height: 400px;"></div>
-                    <textarea id="about_text" 
-                              name="about_text" 
-                              style="display: none;"
-                              required><?php echo htmlspecialchars($about['about_text'] ?? ''); ?></textarea>
-                    <div class="help-text">Use the rich text editor to format your content with headings, lists, and styling</div>
-                </div>
-
-                <div class="form-group">
-                    <label for="about_image">About Image</label>
-                    <div class="image-preview">
-                        <?php if (!empty($about['image_path'])): ?>
-                            <img src="<?php echo htmlspecialchars($about['image_path']); ?>" alt="Current About Image" id="image-preview">
-                        <?php else: ?>
-                            <p>No image uploaded yet</p>
-                        <?php endif; ?>
+    <div class="admin-main">
+        <div class="admin-container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-header-content">
+                    <div class="page-title-section">
+                        <h1 class="page-title">About Page Management</h1>
+                        <p class="page-subtitle">Manage your website's about page content and image</p>
                     </div>
-                    <input type="file" id="about_image" name="about_image" accept="image/*">
-                    <div class="help-text">Leave empty to keep current image. Maximum file size: 5MB. Supported formats: JPG, PNG, GIF, WebP</div>
+                    <div class="page-actions">
+                        <button type="button" class="btn btn-secondary" onclick="previewAbout()">
+                            <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                            Preview
+                        </button>
+                    </div>
                 </div>
+            </div>
 
-            </form>
+            <!-- Alert Messages -->
+            <?php if ($success_message): ?>
+                <div class="alert alert-success">
+                    <svg class="alert-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span><?php echo htmlspecialchars($success_message); ?></span>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($error_message): ?>
+                <div class="alert alert-error">
+                    <svg class="alert-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span><?php echo htmlspecialchars($error_message); ?></span>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($upload_error): ?>
+                <div class="alert alert-error">
+                    <svg class="alert-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span><?php echo htmlspecialchars($upload_error); ?></span>
+                </div>
+            <?php endif; ?>
+
+            <!-- Main Content -->
+            <div class="admin-section">
+                <h2>About Page Content</h2>
+                <p class="settings-info">
+                    Configure your website's about page that will be displayed to users. 
+                    Use the rich text editor to format your content with proper styling.
+                    <?php if (isset($about['last_updated'])): ?>
+                        Last updated: <?php echo date('F j, Y, g:i a', strtotime($about['last_updated'])); ?>
+                    <?php endif; ?>
+                </p>
+
+                <form method="POST" action="" id="aboutForm" enctype="multipart/form-data" class="admin-form">
+                    <div class="form-group">
+                        <label for="title">Title</label>
+                        <input type="text" 
+                               id="title" 
+                               name="title" 
+                               class="form-input"
+                               value="<?php echo htmlspecialchars($about['title'] ?? ''); ?>" 
+                               placeholder="Enter title for about page"
+                               required>
+                        <div class="form-help">This will be displayed as the main heading</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="about_text">About Content</label>
+                        <div class="editor-wrapper">
+                            <div id="editor-container" class="rich-editor"></div>
+                            <textarea id="about_text" 
+                                      name="about_text" 
+                                      style="display: none;"
+                                      required><?php echo htmlspecialchars($about['about_text'] ?? ''); ?></textarea>
+                        </div>
+                        <div class="form-help">Use the rich text editor to format your content with headings, lists, and styling</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="about_image">About Image</label>
+                        <div class="image-upload-wrapper">
+                            <div class="image-preview">
+                                <?php if (!empty($about['image_path'])): ?>
+                                    <img src="<?php echo htmlspecialchars($about['image_path']); ?>" alt="Current About Image" id="image-preview">
+                                <?php else: ?>
+                                    <div class="no-image-placeholder">
+                                        <svg class="placeholder-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                        </svg>
+                                        <p>No image uploaded yet</p>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="file-upload-area">
+                                <input type="file" id="about_image" name="about_image" accept="image/*" class="file-input-hidden" onchange="updateFileName(this)">
+                                <button type="button" class="btn btn-secondary file-upload-btn" onclick="document.getElementById('about_image').click()">
+                                    <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                    </svg>
+                                    Choose Image
+                                </button>
+                                <span class="file-name" id="file-name">No file selected</span>
+                            </div>
+                        </div>
+                        <div class="form-help">Leave empty to keep current image. Maximum file size: 5MB. Supported formats: JPG, PNG, GIF, WebP</div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Update About Page
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Content Guidelines -->
+            <div class="admin-section">
+                <h2>Content Guidelines</h2>
+                <div class="guidelines-grid">
+                    <div class="guideline-card">
+                        <div class="guideline-icon">
+                            <svg fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V8zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <h3>Compelling Story</h3>
+                        <p>Tell your cafe's unique story - your origins, mission, and what makes you special. Make it personal and engaging.</p>
+                    </div>
+                    <div class="guideline-card">
+                        <div class="guideline-icon">
+                            <svg fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4 2a2 2 0 00-2 2v11a3 3 0 106 0V4a2 2 0 00-2-2H4zm1 14a1 1 0 100-2 1 1 0 000 2zm5-1.757l4.9-4.9a2 2 0 000-2.828L13.485 5.1a2 2 0 00-2.828 0L10 5.757v8.486zM16 18H9.071l6-6H16a2 2 0 012 2v2a2 2 0 01-2 2z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <h3>Values & Mission</h3>
+                        <p>Clearly communicate your values, mission, and commitment to quality, sustainability, and community.</p>
+                    </div>
+                    <div class="guideline-card">
+                        <div class="guideline-icon">
+                            <svg fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <h3>Visual Appeal</h3>
+                        <p>Include high-quality images that showcase your cafe's atmosphere, food, and team to create visual connection.</p>
+                    </div>
+                    <div class="guideline-card">
+                        <div class="guideline-icon">
+                            <svg fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <h3>Team & Culture</h3>
+                        <p>Introduce your team and workplace culture. Show the people behind the brand and your commitment to service.</p>
+                    </div>
+                    <div class="guideline-card">
+                        <div class="guideline-icon">
+                            <svg fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <h3>Location & Contact</h3>
+                        <p>Include information about your location, hours, and how customers can connect with you beyond just visiting.</p>
+                    </div>
+                    <div class="guideline-card">
+                        <div class="guideline-icon">
+                            <svg fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"></path>
+                                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"></path>
+                            </svg>
+                        </div>
+                        <h3>Call to Action</h3>
+                        <p>End with a clear invitation for customers to visit, try your menu, or get in touch with your establishment.</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-        </div>
-    </div>
 
-    <script src="about-settings.js"></script>
+    <script src="about-settings-new.js"></script>
 </body>
 </html>

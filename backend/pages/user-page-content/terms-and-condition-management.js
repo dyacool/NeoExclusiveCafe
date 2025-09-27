@@ -2,11 +2,9 @@
 document.addEventListener("DOMContentLoaded", function () {
   initializeEditor();
   setupFormHandling();
-  setupAutoSave();
 });
 
 let quill;
-let autoSaveInterval;
 let isContentChanged = false;
 
 // Initialize Quill.js Editor
@@ -59,8 +57,33 @@ function setupFormHandling() {
 
   // Handle form submission
   form.addEventListener("submit", function (e) {
-    e.preventDefault();
-    saveTerms();
+    const title = document.getElementById("title").value.trim();
+
+    if (!title) {
+      e.preventDefault();
+      showNotification("Please enter a title", "error");
+      document.getElementById("title").focus();
+      return;
+    }
+
+    if (!quill) {
+      e.preventDefault();
+      showNotification("Editor not initialized", "error");
+      return;
+    }
+
+    const content = quill.root.innerHTML;
+    if (!content.trim() || content === "<p><br></p>") {
+      e.preventDefault();
+      showNotification("Please enter content", "error");
+      quill.focus();
+      return;
+    }
+
+    // Update hidden textarea before submission
+    document.getElementById("content").value = content;
+
+    // Allow form to submit normally
   });
 
   // Prevent accidental navigation away with unsaved changes
@@ -72,157 +95,6 @@ function setupFormHandling() {
       return e.returnValue;
     }
   });
-}
-
-// Setup auto-save functionality
-function setupAutoSave() {
-  // Auto-save every 2 minutes
-  autoSaveInterval = setInterval(function () {
-    if (isContentChanged) {
-      saveDraft(true); // Silent auto-save
-    }
-  }, 120000); // 2 minutes
-}
-
-// Save terms and conditions
-function saveTerms() {
-  const form = document.getElementById("termsForm");
-  const saveBtn = form.querySelector(".btn-save");
-  const title = document.getElementById("title").value.trim();
-
-  if (!title) {
-    showNotification("Please enter a title", "error");
-    document.getElementById("title").focus();
-    return;
-  }
-
-  if (!quill) {
-    showNotification("Editor not initialized", "error");
-    return;
-  }
-
-  const content = quill.root.innerHTML;
-  if (!content.trim() || content === "<p><br></p>") {
-    showNotification("Please enter content", "error");
-    quill.focus();
-    return;
-  }
-
-  // Show loading state
-  setButtonLoading(saveBtn, true);
-
-  // Update hidden textarea before submission
-  document.getElementById("content").value = content;
-
-  // Create form data
-  const formData = new FormData();
-  formData.append("title", title);
-  formData.append("content", content);
-
-  // Submit form
-  fetch(window.location.href, {
-    method: "POST",
-    body: formData,
-  })
-    .then((response) => response.text())
-    .then((html) => {
-      // Parse response to check for success/error messages
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, "text/html");
-      const successAlert = doc.querySelector(".alert.success");
-      const errorAlert = doc.querySelector(".alert.error");
-
-      if (successAlert) {
-        showNotification(
-          "Terms and conditions updated successfully!",
-          "success"
-        );
-        isContentChanged = false;
-        updateSaveStatus();
-        updateLastUpdated();
-      } else if (errorAlert) {
-        showNotification(errorAlert.textContent.trim(), "error");
-      } else {
-        showNotification(
-          "Terms and conditions updated successfully!",
-          "success"
-        );
-        isContentChanged = false;
-        updateSaveStatus();
-        updateLastUpdated();
-      }
-    })
-    .catch((error) => {
-      console.error("Error:", error);
-      showNotification("An error occurred while saving", "error");
-    })
-    .finally(() => {
-      setButtonLoading(saveBtn, false);
-    });
-}
-
-// Save draft (without refreshing page)
-function saveDraft(silent = false) {
-  const title = document.getElementById("title").value.trim();
-
-  if (!title || !quill) {
-    if (!silent) {
-      showNotification("Please enter a title and content", "error");
-    }
-    return;
-  }
-
-  const content = quill.root.innerHTML;
-  if (!content.trim() || content === "<p><br></p>") {
-    if (!silent) {
-      showNotification("Please enter content", "error");
-    }
-    return;
-  }
-
-  const draftBtn = document.querySelector(".btn-draft");
-  if (draftBtn && !silent) {
-    setButtonLoading(draftBtn, true);
-  }
-
-  // Save to localStorage as backup
-  const draftData = {
-    title: title,
-    content: content,
-    timestamp: new Date().toISOString(),
-  };
-  localStorage.setItem("termsConditionsDraft", JSON.stringify(draftData));
-
-  if (!silent) {
-    setTimeout(() => {
-      showNotification("Draft saved locally", "success");
-      if (draftBtn) {
-        setButtonLoading(draftBtn, false);
-      }
-    }, 500);
-  }
-}
-
-// Load draft from localStorage
-function loadDraft() {
-  const draftData = localStorage.getItem("termsConditionsDraft");
-  if (draftData) {
-    try {
-      const draft = JSON.parse(draftData);
-      if (confirm("A draft was found. Would you like to load it?")) {
-        document.getElementById("title").value = draft.title;
-        if (quill) {
-          quill.root.innerHTML = draft.content;
-          document.getElementById("content").value = draft.content;
-        }
-        showNotification("Draft loaded", "success");
-        isContentChanged = true;
-        updateSaveStatus();
-      }
-    } catch (e) {
-      console.error("Error loading draft:", e);
-    }
-  }
 }
 
 // Update save status indicator
@@ -335,18 +207,3 @@ function showNotification(message, type = "success") {
     }
   }, 5000);
 }
-
-// Clear localStorage on successful save
-window.addEventListener("beforeunload", function () {
-  if (!isContentChanged) {
-    localStorage.removeItem("termsConditionsDraft");
-  }
-});
-
-// Check for draft on page load
-setTimeout(() => {
-  loadDraft();
-}, 1000);
-
-// Global function for save draft button
-window.saveDraft = saveDraft;
