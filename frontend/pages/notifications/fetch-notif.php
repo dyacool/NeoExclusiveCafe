@@ -18,7 +18,26 @@ try {
     $userId = $_SESSION['user_id'];
     $notification = new Notification($conn);
     
-    // Check if this is a request for dropdown (latest 5) or unread notifications
+    // Check if this is a request for specific notification details
+    if (isset($_GET['id'])) {
+        $notificationId = (int)$_GET['id'];
+        $notificationDetails = $notification->getNotificationDetails($notificationId, $userId);
+        
+        if ($notificationDetails) {
+            echo json_encode([
+                "status" => "success", 
+                "notification" => $notificationDetails
+            ]);
+        } else {
+            echo json_encode([
+                "status" => "error", 
+                "message" => "Notification not found"
+            ]);
+        }
+        exit();
+    }
+    
+    // Check if this is a request for dropdown (latest 5) or all notifications
     $isDropdown = isset($_GET['dropdown']) && $_GET['dropdown'] === 'true';
     
     if ($isDropdown) {
@@ -40,8 +59,8 @@ try {
         }
         $stmt->close();
     } else {
-        // Fetch unread notifications using the Notification class (order hidden if not verified)
-        $notifications = $notification->getUnreadNotifications($userId);
+        // Fetch all notifications for the notifications page
+        $notifications = $notification->getAllNotifications($userId);
     }
 
     $response = [];
@@ -49,18 +68,6 @@ try {
         $title = !empty($n['title']) ? $n['title'] : $n['message'];
         $msg = $n['message'];
         $img = !empty($n['image_url']) ? $n['image_url'] : '/NeoExclusiveCafe/assets/images/default-product.png';
-        $link = null;
-
-        // Compute View Details link for order notifications
-        if (isset($n['type']) && $n['type'] === 'order') {
-            $m = [];
-            if (preg_match('/Order\s*#(\d+)/i', $title . ' ' . $msg, $m)) {
-                $orderId = (int)$m[1];
-                if ($orderId > 0) {
-                    $link = "/NeoExclusiveCafe/pages/users/order-details.php?order_id=" . $orderId;
-                }
-            }
-        }
 
         $response[] = [
             'id' => (int)$n['id'],
@@ -70,8 +77,7 @@ try {
             'image_url' => $img,
             'is_read' => (int)$n['is_read'],
             'created_at' => $n['created_at'],
-            'related_id' => $n['order_id'] ?? null,
-            'link' => $link
+            'order_id' => $n['order_id'] ?? null
         ];
     }
 

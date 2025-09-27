@@ -64,6 +64,7 @@ if ($is_user_logged_in) {
 $current_page = basename($_SERVER['PHP_SELF']);
 ?>
 <link rel="stylesheet" href="/frontend/user-includes/navbar/customer-navigation.css">
+<link rel="stylesheet" href="/frontend/pages/notifications/notifications.css">
 <div class="header-wrapper">
     <!-- Page Entry Animation Container -->
     <div class="page-entry-animation">
@@ -148,29 +149,29 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     </div>
                 </a>
                 <div class="notification-container">
-                    <a href="#" class="notification-link">
+                    <a href="#" class="notification-link" aria-label="View notifications">
                         <div class="icon-wrapper">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="icon notification-icon">
                                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                                 <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                             </svg>
-                            <span class="badge" id="notifCount"></span>
+                            <span class="badge" id="notifCount" style="display: none;"></span>
                             <span class="icon-effect"></span>
                         </div>
                     </a>
                     <div class="notification-dropdown" id="notifDropdown">
                         <div class="dropdown-header">
                             <h3>Notifications</h3>
+                            <button id="markAllRead" class="mark-read" title="Mark all as read">Mark all as read</button>
                         </div>
-                        <ul id="notificationList">
+                        <ul id="notificationList" class="notification-list">
                             <!-- Notifications will appear dynamically -->
                         </ul>
                         <div class="no-notifications" id="noNotifications">
-                            <p style="color:black;"> No new notifications at the moment.</p>
+                            <p>No new notifications.</p>
                         </div>
                         <div class="dropdown-footer">
-                            <button id="markAllRead" class="mark-read" style="color:black;">Mark all as read</button>
-                            <button class="viewall" onclick="window.location.href='../../../frontend/pages/notifications/notifications.php'">See More</button>
+                            <a href="../../../frontend/pages/notifications/notifications.php" class="view-all-link">View All Notifications</a>
                         </div>
                     </div>
                 </div>
@@ -273,6 +274,37 @@ $current_page = basename($_SERVER['PHP_SELF']);
     </div>
 </div>
 
+<!-- Notification Details Modal -->
+<div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="notificationModalLabel">Notification Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="notification-details">
+                    <div class="notification-image-container" id="notificationImageContainer" style="display: none;">
+                        <img id="notificationImage" src="" alt="Notification Image" class="img-fluid rounded mb-3">
+                    </div>
+                    <h6 id="notificationTitle" class="notification-title fw-bold"></h6>
+                    <p id="notificationMessage" class="notification-message"></p>
+                    <small id="notificationTimestamp" class="text-muted"></small>
+                    
+                    <div id="orderDetailsContainer" class="order-details mt-3" style="display: none;">
+                        <hr>
+                        <h6>Order Details</h6>
+                        <div id="orderDetails"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="wrapper">
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -283,7 +315,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             const hamburgerIcon = document.querySelector('.hamburger-icon');
             const notifLink = document.querySelector('.notification-link');
             const notifDropdown = document.getElementById('notifDropdown');
-            const markAllReadButton = document.getElementById('markAllRead');
+            const markAllReadBtn = document.getElementById('markAllRead');
             const profileTrigger = document.getElementById('profile-trigger');
             const dropdownMenu = document.querySelector('.dropdown-menu');
             
@@ -504,242 +536,282 @@ $current_page = basename($_SERVER['PHP_SELF']);
             
             // ===== NOTIFICATIONS =====
             function fetchNotifications() {
-                fetch('../../pages/notifications/fetch-notif.php?dropdown=true')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    let notificationList = document.getElementById("notificationList");
-                    notificationList.innerHTML = '';
+                // Use the global function if available, otherwise define locally
+                if (window.fetchDropdownNotifications) {
+                    window.fetchDropdownNotifications()
+                        .then(notifications => {
+                            const notificationList = document.getElementById("notificationList");
+                            notificationList.innerHTML = '';
 
-                    if (data.status === "success") {
-                        // Check if there are notifications
-                        if (data.notifications && data.notifications.length > 0) {
-                            document.getElementById("noNotifications").style.display = "none";
-                            
-                            data.notifications.forEach(notif => {
-                                let newNotif = document.createElement("li");
-                                newNotif.className = notif.is_read ? "read" : "unread";
-                                newNotif.setAttribute('data-notification-id', notif.id);
-
-                                // Create clickable notification item
-                                let notificationItem = document.createElement("div");
-                                notificationItem.className = "notification-item";
-                                notificationItem.style.cursor = "pointer";
+                            if (notifications && notifications.length > 0) {
+                                document.getElementById("noNotifications").style.display = "none";
                                 
-                                // Add click handler
-                                notificationItem.addEventListener('click', function() {
-                                    handleNotificationClick(notif.id);
+                                notifications.forEach(notif => {
+                                    const listItem = document.createElement("li");
+                                    listItem.className = `notification-item ${notif.is_read ? "read" : "unread"}`;
+                                    listItem.dataset.notificationId = notif.id;
+                                    
+                                    // Click handler to open modal
+                                    listItem.addEventListener('click', () => {
+                                        if (window.handleNotificationClick) {
+                                            window.handleNotificationClick(notif.id);
+                                        }
+                                    });
+
+                                    const title = document.createElement("div");
+                                    title.className = "notification-title";
+                                    title.textContent = notif.title;
+
+                                    const message = document.createElement("div");
+                                    message.className = "notification-message";
+                                    message.textContent = notif.message.substring(0, 50) + (notif.message.length > 50 ? '...' : '');
+
+                                    const time = document.createElement("div");
+                                    time.className = "notification-time";
+                                    time.textContent = new Date(notif.created_at).toLocaleString([], {
+                                        short: 'short'
+                                    });
+
+                                    const contentDiv = document.createElement('div');
+                                    contentDiv.className = 'notification-content';
+                                    contentDiv.appendChild(title);
+                                    contentDiv.appendChild(message);
+                                    contentDiv.appendChild(time);
+
+                                    listItem.appendChild(contentDiv);
+                                    notificationList.appendChild(listItem);
                                 });
 
-                                // Notification title
-                                let title = document.createElement("div");
-                                title.className = "notification-title";
-                                title.textContent = notif.title || notif.message;
-                                title.style.fontWeight = notif.is_read ? "normal" : "bold";
-                                notificationItem.appendChild(title);
-
-                                // Notification message (truncated)
-                                let message = document.createElement("div");
-                                message.className = "notification-message";
-                                message.textContent = notif.message.length > 50 ? notif.message.substring(0, 50) + "..." : notif.message;
-                                message.style.fontSize = "0.9em";
-                                message.style.color = "#666";
-                                notificationItem.appendChild(message);
-
-                                // Timestamp
-                                let timestamp = document.createElement("small");
-                                timestamp.textContent = new Date(notif.created_at).toLocaleString();
-                                timestamp.style.color = "#999";
-                                notificationItem.appendChild(timestamp);
-
-                                newNotif.appendChild(notificationItem);
-                                notificationList.appendChild(newNotif);
-                            });
-
-                            const unreadCount = data.notifications.filter(n => !n.is_read).length;
-                            if (unreadCount > 0) {
-                                document.getElementById("notifCount").textContent = unreadCount;
-                                document.getElementById("notifCount").style.display = "block";
+                                const unreadCount = notifications.filter(n => !n.is_read).length;
+                                if (unreadCount > 0) {
+                                    document.getElementById("notifCount").textContent = unreadCount;
+                                    document.getElementById("notifCount").style.display = "block";
+                                } else {
+                                    document.getElementById("notifCount").style.display = "none";
+                                }
                             } else {
+                                document.getElementById("noNotifications").style.display = "block";
+                                document.getElementById("notifCount").style.display = "none";
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error fetching notifications:', error);
+                            document.getElementById("noNotifications").innerHTML = '<p>Could not load notifications.</p>';
+                            document.getElementById("notifCount").style.display = "none";
+                        });
+                } else {
+                    // Fallback to direct fetch if global function not available
+                    fetch('/frontend/pages/notifications/fetch-notif.php?dropdown=true')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        const notificationList = document.getElementById("notificationList");
+                        notificationList.innerHTML = '';
+
+                        if (data.status === "success") {
+                            if (data.notifications && data.notifications.length > 0) {
+                                document.getElementById("noNotifications").style.display = "none";
+                                
+                                data.notifications.forEach(notif => {
+                                    const listItem = document.createElement("li");
+                                    listItem.className = `notification-item ${notif.is_read ? "read" : "unread"}`;
+                                    listItem.dataset.notificationId = notif.id;
+                                    
+                                    listItem.addEventListener('click', () => {
+                                        handleNotificationClick(notif.id);
+                                    });
+
+                                    const title = document.createElement("div");
+                                    title.className = "notification-title";
+                                    title.textContent = notif.title;
+
+                                    const message = document.createElement("div");
+                                    message.className = "notification-message";
+                                    message.textContent = notif.message.substring(0, 50) + (notif.message.length > 50 ? '...' : '');
+
+                                    const time = document.createElement("div");
+                                    time.className = "notification-time";
+                                    time.textContent = new Date(notif.created_at).toLocaleString([], {
+                                        short: 'short'
+                                    });
+
+                                    const contentDiv = document.createElement('div');
+                                    contentDiv.className = 'notification-content';
+                                    contentDiv.appendChild(title);
+                                    contentDiv.appendChild(message);
+                                    contentDiv.appendChild(time);
+
+                                    listItem.appendChild(contentDiv);
+                                    notificationList.appendChild(listItem);
+                                });
+
+                                const unreadCount = data.notifications.filter(n => !n.is_read).length;
+                                if (unreadCount > 0) {
+                                    document.getElementById("notifCount").textContent = unreadCount;
+                                    document.getElementById("notifCount").style.display = "block";
+                                } else {
+                                    document.getElementById("notifCount").style.display = "none";
+                                }
+                            } else {
+                                document.getElementById("noNotifications").style.display = "block";
                                 document.getElementById("notifCount").style.display = "none";
                             }
                         } else {
-                            document.getElementById("noNotifications").style.display = "block";
-                            document.getElementById("notifCount").style.display = "none";
+                            throw new Error(data.message || 'Failed to fetch notifications');
                         }
-                    } else {
-                        throw new Error(data.message || 'Failed to fetch notifications');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching notifications:', error);
-                    document.getElementById("noNotifications").innerHTML = 
-                        '<p style="color:black;">Unable to load notifications. Please try again later.</p>';
-                    document.getElementById("notifCount").style.display = "none";
-                });
+                    })
+                    .catch(error => {
+                        console.error('Error fetching notifications:', error);
+                        document.getElementById("noNotifications").innerHTML = '<p>Could not load notifications.</p>';
+                        document.getElementById("notifCount").style.display = "none";
+                    });
+                }
             }
 
             // Handle notification click - mark as read and show modal
             function handleNotificationClick(notificationId) {
-                // Mark notification as read
-                fetch('../../pages/notifications/mark_read.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: 'notification_id=' + notificationId
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        // Fetch notification details and show modal
+                if (window.handleNotificationClick) {
+                    window.handleNotificationClick(notificationId);
+                } else {
+                    // Fallback implementation
+                    fetch('/frontend/pages/notifications/mark-notif.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: 'notification_id=' + notificationId
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            fetchNotifications(); 
+                        }
+                    })
+                    .finally(() => fetchNotificationDetails(notificationId))
+                    .catch(error => {
+                        console.error('Error marking notification as read:', error);
                         fetchNotificationDetails(notificationId);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error marking notification as read:', error);
-                    // Still try to show the modal even if marking as read fails
-                    fetchNotificationDetails(notificationId);
-                });
+                    });
+                }
             }
 
             // Fetch notification details and show modal
             function fetchNotificationDetails(notificationId) {
-                fetch('../../pages/notifications/notif.php?action=details&id=' + notificationId)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        showNotificationModal(data.notification);
-                    } else {
-                        console.error('Error fetching notification details:', data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching notification details:', error);
-                });
+                if (window.fetchNotificationDetails) {
+                    window.fetchNotificationDetails(notificationId)
+                        .then(notification => {
+                            if (window.showNotificationModal) {
+                                window.showNotificationModal(notification);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error fetching notification details:', error);
+                        });
+                } else {
+                    // Fallback implementation
+                    fetch(`/frontend/pages/notifications/fetch-notif.php?id=${notificationId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            showNotificationModal(data.notification);
+                        } else {
+                            console.error('Error fetching notification details:', data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching notification details:', error);
+                    });
+                }
             }
 
             // Show notification modal with details
             function showNotificationModal(notification) {
-                // Update modal content
-                document.getElementById('notificationTitle').textContent = notification.title;
-                document.getElementById('notificationMessage').textContent = notification.message;
-                document.getElementById('notificationTimestamp').textContent = 
-                    'Received: ' + new Date(notification.created_at).toLocaleString();
-
-                // Handle image
-                const imageContainer = document.getElementById('notificationImageContainer');
-                const image = document.getElementById('notificationImage');
-                if (notification.image_url) {
-                    image.src = notification.image_url;
-                    imageContainer.style.display = 'block';
+                if (window.showNotificationModal) {
+                    window.showNotificationModal(notification);
                 } else {
-                    imageContainer.style.display = 'none';
-                }
+                    // Fallback implementation
+                    document.getElementById('notificationTitle').textContent = notification.title;
+                    document.getElementById('notificationMessage').textContent = notification.message;
+                    document.getElementById('notificationTimestamp').textContent = 
+                        'Received: ' + new Date(notification.created_at).toLocaleString();
 
-                // Handle order details
-                const orderDetailsContainer = document.getElementById('orderDetailsContainer');
-                const orderDetails = document.getElementById('orderDetails');
-                if (notification.type === 'order' && notification.order_details) {
-                    const order = notification.order_details;
-                    orderDetails.innerHTML = `
-                        <div class="row">
-                            <div class="col-md-6">
-                                <p><strong>Order ID:</strong> #${order.id}</p>
-                                <p><strong>Customer:</strong> ${order.customer_name}</p>
-                                <p><strong>Email:</strong> ${order.customer_email}</p>
-                                <p><strong>Phone:</strong> ${order.customer_phone}</p>
-                            </div>
-                            <div class="col-md-6">
-                                <p><strong>Status:</strong> <span class="badge bg-primary">${order.status}</span></p>
-                                <p><strong>Total Amount:</strong> ₱${parseFloat(order.total_amount).toFixed(2)}</p>
-                                <p><strong>Order Date:</strong> ${new Date(order.order_date).toLocaleString()}</p>
-                            </div>
-                        </div>
-                        <div class="row mt-2">
-                            <div class="col-12">
-                                <p><strong>Items:</strong> ${order.items}</p>
-                                <p><strong>Delivery Address:</strong> ${order.delivery_address}</p>
-                            </div>
-                        </div>
-                    `;
-                    orderDetailsContainer.style.display = 'block';
-                } else {
-                    orderDetailsContainer.style.display = 'none';
-                }
-
-                // Show modal
-                const modal = new bootstrap.Modal(document.getElementById('notificationModal'));
-                modal.show();
-            }
-
-            // Show/hide dropdown on bell icon hover - modified to check screen width
-            if (notifLink && notifDropdown) {
-                notifLink.addEventListener('mouseenter', () => {
-                    // Only show dropdown on hover for screens larger than 768px
-                    if (window.innerWidth > 768) {
-                        notifDropdown.classList.add('active');
-                        fetchNotifications(); // Refresh notifications on hover
-                    }
-                });
-
-                notifLink.addEventListener('mouseleave', () => {
-                    // Only hide on mouseleave for screens larger than 768px
-                    if (window.innerWidth > 768) {
-                        // Delay hiding to allow hover on dropdown
-                        setTimeout(() => {
-                            if (!notifDropdown.matches(':hover')) {
-                                notifDropdown.classList.remove('active');
-                            }
-                        }, 300);
-                    }
-                });
-
-                notifDropdown.addEventListener('mouseleave', () => {
-                    // Only hide on mouseleave for screens larger than 768px
-                    if (window.innerWidth > 768) {
-                        notifDropdown.classList.remove('active');
-                    }
-                });
-
-                notifDropdown.addEventListener('mouseenter', () => {
-                    // Only show on mouseenter for screens larger than 768px
-                    if (window.innerWidth > 768) {
-                        notifDropdown.classList.add('active');
-                    }
-                });
-
-                // Mark all notifications as read when bell icon clicked
-                notifLink.addEventListener("click", function(e) {
-                    e.preventDefault();
-                    if (window.innerWidth <= 768) {
-                        notifDropdown.classList.toggle('active');
-                        fetchNotifications(); // Refresh notifications when toggling on mobile
+                    const imgContainer = document.getElementById('notificationImageContainer');
+                    const img = document.getElementById('notificationImage');
+                    if (notification.image_url) {
+                        img.src = notification.image_url;
+                        imgContainer.style.display = 'block';
                     } else {
-                        fetch('../../../frontend/pages/notifications/mark-notif.php', { 
-                            method: 'POST',
-                            credentials: 'same-origin'
-                        })
-                        .then(response => {
-                            if (!response.ok) throw new Error('Failed to mark notifications as read');
-                            window.location.href = "../../../frontend/pages/notifications/notifications.php";
-                        })
-                        .catch(error => {
-                            console.error('Error marking notifications as read:', error);
-                        });
+                        imgContainer.style.display = 'none';
+                    }
+
+                    const orderDetailsContainer = document.getElementById('orderDetailsContainer');
+                    const orderDetails = document.getElementById('orderDetails');
+                    if (notification.type === 'order' && notification.order_details) {
+                        const order = notification.order_details;
+                        orderDetails.innerHTML = `
+                            <div class="row">
+                                <div class="col-sm-6"><p><strong>Order ID:</strong> #${order.id}</p></div>
+                                <div class="col-sm-6"><p><strong>Status:</strong> <span class="badge bg-primary">${order.status}</span></p></div>
+                                <div class="col-sm-6"><p><strong>Total:</strong> ₱${parseFloat(order.total_amount).toFixed(2)}</p></div>
+                                <div class="col-sm-6"><p><strong>Date:</strong> ${new Date(order.order_date).toLocaleDateString()}</p></div>
+                                <div class="col-12 mt-2">
+                                    <p><strong>Items:</strong></p>
+                                    <p>${order.items}</p>
+                                    <p><strong>Address:</strong> ${order.delivery_address}</p>
+                                </div>
+                            </div>
+                        `;
+                        orderDetailsContainer.style.display = 'block';
+                    } else {
+                        orderDetailsContainer.style.display = 'none';
+                    }
+
+                    const modal = new bootstrap.Modal(document.getElementById('notificationModal'));
+                    modal.show();
+                }
+            }
+
+            // Toggle dropdown on bell icon click
+            if (notifLink && notifDropdown) {
+                notifLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const isActive = notifDropdown.classList.toggle('active');
+                    if (isActive) {
+                        fetchNotifications();
                     }
                 });
             }
 
-            if (markAllReadButton) {
-                markAllReadButton.addEventListener('click', () => {
-                    fetch('../../pages/notifications/mark-notif.php', { 
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (notifDropdown && !notifDropdown.contains(e.target) && !notifLink.contains(e.target)) {
+                    notifDropdown.classList.remove('active');
+                }
+            });
+
+            // Close dropdown with Escape key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && notifDropdown && notifDropdown.classList.contains('active')) {
+                    notifDropdown.classList.remove('active');
+                }
+            });
+
+
+            // Mark all as read button
+            if (markAllReadBtn) {
+                markAllReadBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    fetch('/frontend/pages/notifications/mark-notif.php', {
                         method: 'POST',
-                        credentials: 'same-origin'
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: 'mark_all=true'
                     })
                     .then(response => {
                         if (!response.ok) throw new Error('Failed to mark notifications as read');
@@ -752,9 +824,11 @@ $current_page = basename($_SERVER['PHP_SELF']);
             }
 
             // Initial fetch and polling
-            fetchNotifications();
-            setInterval(fetchNotifications, 30000);
-            
+            if (<?php echo $is_user_logged_in ? 'true' : 'false'; ?>) {
+                fetchNotifications(); // Initial fetch
+                setInterval(fetchNotifications, 30000); // Poll every 30 seconds
+            }
+
             // ===== MOBILE MENU =====
             // Mobile menu toggle with smooth transition
             if (mobileMenuToggle && navLeft) {
@@ -825,4 +899,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             });
         });
     </script>
+    
+    <!-- Include the global notification JavaScript -->
+    <script src="/frontend/pages/notifications/notifications.js"></script>
 </div>

@@ -28,6 +28,7 @@ try {
     
     // Check if marking individual notification or all notifications
     $notificationId = $_POST['notification_id'] ?? null;
+    $markAll = isset($_POST['mark_all']) && $_POST['mark_all'] === 'true';
     
     if ($notificationId) {
         // Mark individual notification as read
@@ -46,10 +47,12 @@ try {
         // Mark notification as read
         $notification->markAsRead($notificationId);
         echo json_encode(["status" => "success", "message" => "Notification marked as read"]);
-    } else {
+    } elseif ($markAll) {
         // Mark all notifications as read using the Notification class
         $notification->markAllAsRead($userId);
         echo json_encode(["status" => "success", "message" => "All notifications marked as read"]);
+    } else {
+        echo json_encode(["status" => "error", "message" => "Invalid request"]);
     }
 } catch (Exception $e) {
     http_response_code(500); // Internal Server Error
