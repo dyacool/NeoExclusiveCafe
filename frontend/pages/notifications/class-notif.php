@@ -192,12 +192,14 @@ class Notification {
     }
 
 
-    // Mark a single notification as read by notification ID
-    public function markAsRead($notificationId) {
-        $stmt = $this->db->prepare("UPDATE notifications SET is_read = 1 WHERE id = ?");
-        $stmt->bind_param("i", $notificationId);
+    // Mark a single notification as read by notification ID (with user validation)
+    public function markAsRead($notificationId, $userId) {
+        $stmt = $this->db->prepare("UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?");
+        $stmt->bind_param("ii", $notificationId, $userId);
         $stmt->execute();
+        $affectedRows = $stmt->affected_rows;
         $stmt->close();
+        return $affectedRows > 0;
     }
 
     // Fetch notification details by ID for modal display

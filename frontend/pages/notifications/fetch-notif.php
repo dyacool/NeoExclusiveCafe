@@ -4,10 +4,21 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Check if user is logged in and has proper role
 if (!isset($_SESSION["user_id"]) || !isset($_SESSION["user_role"]) || $_SESSION["user_role"] !== "user") {
     // Always return JSON for AJAX requests, even when not logged in
     header('Content-Type: application/json');
+    http_response_code(401); // Unauthorized
     echo json_encode(["status" => "error", "message" => "User not logged in", "count" => 0]);
+    exit();
+}
+
+// Validate user_id is numeric and positive
+$userId = (int)$_SESSION['user_id'];
+if ($userId <= 0) {
+    header('Content-Type: application/json');
+    http_response_code(401);
+    echo json_encode(["status" => "error", "message" => "Invalid user session", "count" => 0]);
     exit();
 }
 
@@ -15,7 +26,6 @@ require_once __DIR__ . '/../../../backend/pages/admin-includes/database.php'; //
 require_once __DIR__ . '/class-notif.php'; // Include the Notification class
 
 try {
-    $userId = $_SESSION['user_id'];
     $notification = new Notification($conn);
     
     // Check if this is a request for specific notification details

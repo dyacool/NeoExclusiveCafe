@@ -149,6 +149,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     </div>
                 </a>
                 <div class="notification-container">
+                    <?php if ($is_user_logged_in && isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'user'): ?>
                     <a href="#" class="notification-link" aria-label="View notifications">
                         <div class="icon-wrapper">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="icon notification-icon">
@@ -174,6 +175,17 @@ $current_page = basename($_SERVER['PHP_SELF']);
                             <a href="../../../frontend/pages/notifications/notifications.php" class="view-all-link">View All Notifications</a>
                         </div>
                     </div>
+                    <?php else: ?>
+                    <a href="../../../frontend/login/user/login-signup.php" class="notification-link" aria-label="Login to view notifications">
+                        <div class="icon-wrapper">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="icon notification-icon">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            </svg>
+                            <span class="icon-effect"></span>
+                        </div>
+                    </a>
+                    <?php endif; ?>
                 </div>
 
                 <style>
@@ -242,68 +254,6 @@ $current_page = basename($_SERVER['PHP_SELF']);
     </nav>
 </div>
 
-<!-- Notification Details Modal -->
-<div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="notificationModalLabel">Notification Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="notification-details">
-                    <div class="notification-image-container" id="notificationImageContainer" style="display: none;">
-                        <img id="notificationImage" src="" alt="Notification Image" class="img-fluid rounded">
-                    </div>
-                    <div class="notification-content">
-                        <h6 id="notificationTitle" class="notification-title"></h6>
-                        <p id="notificationMessage" class="notification-message"></p>
-                        <small id="notificationTimestamp" class="text-muted"></small>
-                    </div>
-                    <div id="orderDetailsContainer" class="order-details" style="display: none;">
-                        <hr>
-                        <h6>Order Details</h6>
-                        <div id="orderDetails"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Notification Details Modal -->
-<div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="notificationModalLabel">Notification Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="notification-details">
-                    <div class="notification-image-container" id="notificationImageContainer" style="display: none;">
-                        <img id="notificationImage" src="" alt="Notification Image" class="img-fluid rounded mb-3">
-                    </div>
-                    <h6 id="notificationTitle" class="notification-title fw-bold"></h6>
-                    <p id="notificationMessage" class="notification-message"></p>
-                    <small id="notificationTimestamp" class="text-muted"></small>
-                    
-                    <div id="orderDetailsContainer" class="order-details mt-3" style="display: none;">
-                        <hr>
-                        <h6>Order Details</h6>
-                        <div id="orderDetails"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
 
 <div class="wrapper">
     <script>
@@ -601,74 +551,74 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         });
                 } else {
                     // Fallback to direct fetch if global function not available
-                    fetch('/frontend/pages/notifications/fetch-notif.php?dropdown=true')
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        const notificationList = document.getElementById("notificationList");
-                        notificationList.innerHTML = '';
+                fetch('/frontend/pages/notifications/fetch-notif.php?dropdown=true')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const notificationList = document.getElementById("notificationList");
+                    notificationList.innerHTML = '';
 
-                        if (data.status === "success") {
-                            if (data.notifications && data.notifications.length > 0) {
-                                document.getElementById("noNotifications").style.display = "none";
+                    if (data.status === "success") {
+                        if (data.notifications && data.notifications.length > 0) {
+                            document.getElementById("noNotifications").style.display = "none";
+                            
+                            data.notifications.forEach(notif => {
+                                const listItem = document.createElement("li");
+                                listItem.className = `notification-item ${notif.is_read ? "read" : "unread"}`;
+                                listItem.dataset.notificationId = notif.id;
                                 
-                                data.notifications.forEach(notif => {
-                                    const listItem = document.createElement("li");
-                                    listItem.className = `notification-item ${notif.is_read ? "read" : "unread"}`;
-                                    listItem.dataset.notificationId = notif.id;
-                                    
-                                    listItem.addEventListener('click', () => {
-                                        handleNotificationClick(notif.id);
-                                    });
-
-                                    const title = document.createElement("div");
-                                    title.className = "notification-title";
-                                    title.textContent = notif.title;
-
-                                    const message = document.createElement("div");
-                                    message.className = "notification-message";
-                                    message.textContent = notif.message.substring(0, 50) + (notif.message.length > 50 ? '...' : '');
-
-                                    const time = document.createElement("div");
-                                    time.className = "notification-time";
-                                    time.textContent = new Date(notif.created_at).toLocaleString([], {
-                                        short: 'short'
-                                    });
-
-                                    const contentDiv = document.createElement('div');
-                                    contentDiv.className = 'notification-content';
-                                    contentDiv.appendChild(title);
-                                    contentDiv.appendChild(message);
-                                    contentDiv.appendChild(time);
-
-                                    listItem.appendChild(contentDiv);
-                                    notificationList.appendChild(listItem);
+                                listItem.addEventListener('click', () => {
+                                    handleNotificationClick(notif.id);
                                 });
 
-                                const unreadCount = data.notifications.filter(n => !n.is_read).length;
-                                if (unreadCount > 0) {
-                                    document.getElementById("notifCount").textContent = unreadCount;
-                                    document.getElementById("notifCount").style.display = "block";
-                                } else {
-                                    document.getElementById("notifCount").style.display = "none";
-                                }
+                                const title = document.createElement("div");
+                                title.className = "notification-title";
+                                title.textContent = notif.title;
+
+                                const message = document.createElement("div");
+                                message.className = "notification-message";
+                                message.textContent = notif.message.substring(0, 50) + (notif.message.length > 50 ? '...' : '');
+
+                                const time = document.createElement("div");
+                                time.className = "notification-time";
+                                time.textContent = new Date(notif.created_at).toLocaleString([], {
+                                    short: 'short'
+                                });
+
+                                const contentDiv = document.createElement('div');
+                                contentDiv.className = 'notification-content';
+                                contentDiv.appendChild(title);
+                                contentDiv.appendChild(message);
+                                contentDiv.appendChild(time);
+
+                                listItem.appendChild(contentDiv);
+                                notificationList.appendChild(listItem);
+                            });
+
+                            const unreadCount = data.notifications.filter(n => !n.is_read).length;
+                            if (unreadCount > 0) {
+                                document.getElementById("notifCount").textContent = unreadCount;
+                                document.getElementById("notifCount").style.display = "block";
                             } else {
-                                document.getElementById("noNotifications").style.display = "block";
                                 document.getElementById("notifCount").style.display = "none";
                             }
                         } else {
-                            throw new Error(data.message || 'Failed to fetch notifications');
+                            document.getElementById("noNotifications").style.display = "block";
+                            document.getElementById("notifCount").style.display = "none";
                         }
-                    })
-                    .catch(error => {
-                        console.error('Error fetching notifications:', error);
-                        document.getElementById("noNotifications").innerHTML = '<p>Could not load notifications.</p>';
-                        document.getElementById("notifCount").style.display = "none";
-                    });
+                    } else {
+                        throw new Error(data.message || 'Failed to fetch notifications');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching notifications:', error);
+                    document.getElementById("noNotifications").innerHTML = '<p>Could not load notifications.</p>';
+                    document.getElementById("notifCount").style.display = "none";
+                });
                 }
             }
 
@@ -678,24 +628,24 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     window.handleNotificationClick(notificationId);
                 } else {
                     // Fallback implementation
-                    fetch('/frontend/pages/notifications/mark-notif.php', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
-                        body: 'notification_id=' + notificationId
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status === 'success') {
-                            fetchNotifications(); 
-                        }
-                    })
-                    .finally(() => fetchNotificationDetails(notificationId))
-                    .catch(error => {
-                        console.error('Error marking notification as read:', error);
-                        fetchNotificationDetails(notificationId);
-                    });
+                fetch('/frontend/pages/notifications/mark-notif.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'notification_id=' + notificationId
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        fetchNotifications(); 
+                    }
+                })
+                .finally(() => fetchNotificationDetails(notificationId))
+                .catch(error => {
+                    console.error('Error marking notification as read:', error);
+                    fetchNotificationDetails(notificationId);
+                });
                 }
             }
 
@@ -713,18 +663,18 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         });
                 } else {
                     // Fallback implementation
-                    fetch(`/frontend/pages/notifications/fetch-notif.php?id=${notificationId}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status === 'success') {
-                            showNotificationModal(data.notification);
-                        } else {
-                            console.error('Error fetching notification details:', data.message);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error fetching notification details:', error);
-                    });
+                fetch(`/frontend/pages/notifications/fetch-notif.php?id=${notificationId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        showNotificationModal(data.notification);
+                    } else {
+                        console.error('Error fetching notification details:', data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching notification details:', error);
+                });
                 }
             }
 
@@ -733,45 +683,8 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 if (window.showNotificationModal) {
                     window.showNotificationModal(notification);
                 } else {
-                    // Fallback implementation
-                    document.getElementById('notificationTitle').textContent = notification.title;
-                    document.getElementById('notificationMessage').textContent = notification.message;
-                    document.getElementById('notificationTimestamp').textContent = 
-                        'Received: ' + new Date(notification.created_at).toLocaleString();
-
-                    const imgContainer = document.getElementById('notificationImageContainer');
-                    const img = document.getElementById('notificationImage');
-                    if (notification.image_url) {
-                        img.src = notification.image_url;
-                        imgContainer.style.display = 'block';
-                    } else {
-                        imgContainer.style.display = 'none';
-                    }
-
-                    const orderDetailsContainer = document.getElementById('orderDetailsContainer');
-                    const orderDetails = document.getElementById('orderDetails');
-                    if (notification.type === 'order' && notification.order_details) {
-                        const order = notification.order_details;
-                        orderDetails.innerHTML = `
-                            <div class="row">
-                                <div class="col-sm-6"><p><strong>Order ID:</strong> #${order.id}</p></div>
-                                <div class="col-sm-6"><p><strong>Status:</strong> <span class="badge bg-primary">${order.status}</span></p></div>
-                                <div class="col-sm-6"><p><strong>Total:</strong> ₱${parseFloat(order.total_amount).toFixed(2)}</p></div>
-                                <div class="col-sm-6"><p><strong>Date:</strong> ${new Date(order.order_date).toLocaleDateString()}</p></div>
-                                <div class="col-12 mt-2">
-                                    <p><strong>Items:</strong></p>
-                                    <p>${order.items}</p>
-                                    <p><strong>Address:</strong> ${order.delivery_address}</p>
-                                </div>
-                            </div>
-                        `;
-                        orderDetailsContainer.style.display = 'block';
-                    } else {
-                        orderDetailsContainer.style.display = 'none';
-                    }
-
-                    const modal = new bootstrap.Modal(document.getElementById('notificationModal'));
-                    modal.show();
+                    // If global function doesn't exist, redirect to notifications page
+                    window.location.href = '/frontend/pages/notifications/notifications.php';
                 }
             }
 
@@ -823,8 +736,8 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 });
             }
 
-            // Initial fetch and polling
-            if (<?php echo $is_user_logged_in ? 'true' : 'false'; ?>) {
+            // Initial fetch and polling - only if user is properly logged in
+            if (<?php echo ($is_user_logged_in && isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'user') ? 'true' : 'false'; ?>) {
                 fetchNotifications(); // Initial fetch
                 setInterval(fetchNotifications, 30000); // Poll every 30 seconds
             }

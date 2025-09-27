@@ -6,12 +6,19 @@ require_once 'class-notif.php';
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-if (!isset($_SESSION["user_id"])) {
+
+// Check if user is logged in and has proper role
+if (!isset($_SESSION["user_id"]) || !isset($_SESSION["user_role"]) || $_SESSION["user_role"] !== "user") {
     header('Location: ../../login/user/login-signup.php');
     exit();
 }
 
-$user_id = $_SESSION['user_id'];
+// Validate user_id is numeric and positive
+$user_id = (int)$_SESSION['user_id'];
+if ($user_id <= 0) {
+    header('Location: ../../login/user/login-signup.php');
+    exit();
+}
 
 // Initialize Notification class
 $notification = new Notification($conn); 
@@ -57,39 +64,39 @@ $notifications = $notification->getAllNotifications($user_id);
             <span class="hover-underline-animation"> Go Back </span>
         </button>
         
+        <!-- User info display -->
+        <div class="user-info" style="margin-bottom: 20px; padding: 10px; background: #f8f9fa; border-radius: 5px; border-left: 4px solid #5c8d76;">
+            <p style="margin: 0; color: #666; font-size: 14px;">
+                <strong>Logged in as:</strong> <?php echo htmlspecialchars($_SESSION['user_firstname'] ?? 'User'); ?> 
+                (ID: <?php echo $user_id; ?>)
+            </p>
+        </div>
+        
         <?php if (empty($notifications)): ?>
             <div class="empty-state">
-                <p>You have no new notifications.</p>
+                <p>You have no notifications.</p>
             </div>
         <?php else: ?>
             <div class="notifications-list">
                 <?php foreach ($notifications as $notif): ?>
-                    <div class="notification-card <?= $notif['is_read'] ? 'read' : 'unread' ?>" 
-                         onclick="handleNotificationClick(<?= $notif['id'] ?>)" 
-                         style="cursor: pointer;">
-                        <div class="notification-info">
-                            <div class="notification-label">Date</div>
-                            <div class="notification-value"><?= date("F j, Y, g:i a", strtotime($notif['created_at'])) ?></div>
-                        </div>
-                        
-                        <div class="notification-info">
-                            <div class="notification-label">Title</div>
-                            <div class="notification-value notification-title"><?= htmlspecialchars($notif['title'] ?? $notif['message']) ?></div>
-                        </div>
-                        
-                        <div class="notification-info">
-                            <div class="notification-label">Status</div>
-                            <div class="notification-value">
+                    <div class="notification-item <?= $notif['is_read'] ? 'read' : 'unread' ?>" 
+                         data-notification-id="<?= $notif['id'] ?>">
+                        <div class="notification-content">
+                            <div class="notification-header">
+                                <h4 class="notification-title"><?= htmlspecialchars($notif['title'] ?? $notif['message']) ?></h4>
+                                <span class="notification-time"><?= date("M j, Y g:i a", strtotime($notif['created_at'])) ?></span>
+                            </div>
+                            <div class="notification-preview">
+                                <p class="notification-preview-text"><?= htmlspecialchars(substr($notif['message'], 0, 100)) ?><?= strlen($notif['message']) > 100 ? '...' : '' ?></p>
+                            </div>
+                            <div class="notification-footer">
                                 <span class="status-badge <?= $notif['is_read'] ? 'read' : 'unread' ?>">
                                     <?= $notif['is_read'] ? 'Read' : 'New' ?>
                                 </span>
+                                <button class="view-details-btn" onclick="handleNotificationClick(<?= $notif['id'] ?>)">
+                                    View Details
+                                </button>
                             </div>
-                        </div>
-                        
-                        <div class="notification-action">
-                            <button class="view-details-btn" onclick="event.stopPropagation(); handleNotificationClick(<?= $notif['id'] ?>)">
-                                View Details
-                            </button>
                         </div>
                     </div>
                 <?php endforeach; ?>

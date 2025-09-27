@@ -5,15 +5,20 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-if (!isset($_SESSION["user_id"])) {
-    if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
-        // If the request is an AJAX request, return a 401 response
-        http_response_code(401);
-        echo json_encode(["status" => "error", "message" => "User not logged in"]);
-    } else {
-        // Otherwise, redirect to the login page
-        header("Location: /frontend/login/user/login-signup.php");
-    }
+// Check if user is logged in and has proper role
+if (!isset($_SESSION["user_id"]) || !isset($_SESSION["user_role"]) || $_SESSION["user_role"] !== "user") {
+    header('Content-Type: application/json');
+    http_response_code(401);
+    echo json_encode(["status" => "error", "message" => "User not logged in"]);
+    exit();
+}
+
+// Validate user_id is numeric and positive
+$userId = (int)$_SESSION['user_id'];
+if ($userId <= 0) {
+    header('Content-Type: application/json');
+    http_response_code(401);
+    echo json_encode(["status" => "error", "message" => "Invalid user session"]);
     exit();
 }
 
@@ -23,7 +28,6 @@ require_once 'class-notif.php'; // Include the Notification class
 header('Content-Type: application/json');
 
 try {
-    $userId = $_SESSION['user_id'];
     $notification = new Notification($conn);
     
     // Check if marking individual notification or all notifications
@@ -44,9 +48,13 @@ try {
         }
         $stmt->close();
         
-        // Mark notification as read
-        $notification->markAsRead($notificationId);
-        echo json_encode(["status" => "success", "message" => "Notification marked as read"]);
+        // Mark notification as read (with user validation)
+        $success = $notification->markAsRead($notificationId, $userId);
+        if ($success) {
+            echo json_encode(["status" => "success", "message" => "Notification marked as read"]);
+        } else {
+            echo json_encode(["status" => "error", "message" => "Notification not found or access denied"]);
+        }
     } elseif ($markAll) {
         // Mark all notifications as read using the Notification class
         $notification->markAllAsRead($userId);
