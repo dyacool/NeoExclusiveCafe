@@ -34,6 +34,7 @@ try {
     // Sanitize and validate input
     $id = filter_var($input['id'], FILTER_VALIDATE_INT);
     $name = trim($input['name']);
+    $description = isset($input['description']) ? trim($input['description']) : '';
     $price = filter_var($input['price'], FILTER_VALIDATE_FLOAT);
     $status_id = filter_var($input['status_id'], FILTER_VALIDATE_INT);
     $quantity = filter_var($input['quantity'], FILTER_VALIDATE_INT);
@@ -72,6 +73,7 @@ try {
     // Update product with unavailable status
     $stmt = $conn->prepare("UPDATE products SET 
         name = ?, 
+        description = ?,
         price = ?, 
         status_id = ?, 
         quantity = ?,
@@ -83,8 +85,9 @@ try {
         updated_at = CURRENT_TIMESTAMP
         WHERE id = ?");
     
-    $stmt->bind_param("sdiiiiiiii", 
+    $stmt->bind_param("ssdiiiiiiii", 
         $name, 
+        $description,
         $price, 
         $status_id, 
         $quantity,

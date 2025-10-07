@@ -152,7 +152,7 @@ function filterUnavailableByType() {
 }
 
 function formatAvailableDays(availableDays) {
-  if (!availableDays) return "Not set";
+  if (!availableDays) return "Not Applicable";
 
   const dayMap = {
     Sunday: "S",
@@ -227,7 +227,9 @@ function createProductRow(product) {
             : ""
         }
         ${
-          product.status_id != 3 && product.regular_today_dates && product.availtoday_status_name
+          product.status_id != 3 &&
+          product.regular_today_dates &&
+          product.availtoday_status_name
             ? `<span class='availtoday-badge'>also for ${product.availtoday_status_name}</span>`
             : ""
         }
@@ -405,6 +407,7 @@ function setupModal() {
 function openEditModal(
   id,
   name,
+  description,
   price,
   status,
   isFeature,
@@ -424,6 +427,7 @@ function openEditModal(
   originalFormData = {
     id,
     name,
+    description,
     price,
     status,
     isFeature,
@@ -443,6 +447,7 @@ function openEditModal(
   // Populate form fields
   document.getElementById("editProductId").value = id;
   document.getElementById("editProductName").value = name;
+  document.getElementById("editProductDescription").value = description || "";
   document.getElementById("editProductPrice").value = price;
   document.getElementById("editProductQuantity").value = quantity;
   document.getElementById("editProductStatus").value = status;
@@ -450,9 +455,10 @@ function openEditModal(
   // Handle availtoday_status dropdown visibility and value
   const availtodayOptions = document.getElementById("editAvailtodayOptions");
   const availtodaySelect = document.getElementById("editAvailtodayStatus");
-  
+
   if (availtodayOptions && availtodaySelect) {
-    if (status == 3) { // Available Today
+    if (status == 3) {
+      // Available Today
       availtodayOptions.style.display = "block";
       availtodaySelect.value = availtodayStatusId || "";
       if (availtodaySelect.value === "null") {
@@ -570,25 +576,35 @@ function openEditModal(
   }
 
   // Handle isAvailableToday radio button initial state
-  const isAvailableTodayContainer = document.getElementById("isAvailableTodayContainer");
+  const isAvailableTodayContainer = document.getElementById(
+    "isAvailableTodayContainer"
+  );
   const isAvailableTodayRadio = document.getElementById("isAvailableToday");
-  const availableTodayCalendarContainer = document.getElementById("availableTodayCalendarContainer");
-  
+  const availableTodayCalendarContainer = document.getElementById(
+    "availableTodayCalendarContainer"
+  );
+
   if (isAvailableTodayContainer && isAvailableTodayRadio) {
-        if (statusName === "Pick Up" || statusName === "Delivery") {
+    if (statusName === "Pick Up" || statusName === "Delivery") {
       isAvailableTodayContainer.style.display = "block";
 
       // Check if availtoday_status_id is not null to activate the radio button
-      if (availtodayStatusId && availtodayStatusId !== 'null' && availtodayStatusId !== '') {
+      if (
+        availtodayStatusId &&
+        availtodayStatusId !== "null" &&
+        availtodayStatusId !== ""
+      ) {
         isAvailableTodayRadio.checked = true;
-        
+
         // Show the Available Today calendar container when radio is checked
         if (availableTodayCalendarContainer) {
           availableTodayCalendarContainer.style.display = "block";
         }
-        
+
         // Set the editAvailableTodayStatus dropdown value (for isAvailableToday radio)
-        const editAvailableTodayStatusSelect = document.getElementById("editAvailableTodayStatus");
+        const editAvailableTodayStatusSelect = document.getElementById(
+          "editAvailableTodayStatus"
+        );
         if (editAvailableTodayStatusSelect) {
           editAvailableTodayStatusSelect.value = availtodayStatusId;
         }
@@ -621,22 +637,23 @@ function openEditModal(
     if (window.modalCalendarHandler) {
       window.modalCalendarHandler.initializeEditModalCalendars();
       window.modalCalendarHandler.handleEditStatusChange();
-      
+
       // Set selected dates in calendars
       if (todaysProductDates && status == 3) {
-        const dates = todaysProductDates.split(',').filter(d => d.trim());
+        const dates = todaysProductDates.split(",").filter((d) => d.trim());
         window.modalCalendarHandler.setTodaysProductDates(dates);
       }
-      
+
       if (regularTodayDates && (status == 1 || status == 2)) {
-        const dates = regularTodayDates.split(',').filter(d => d.trim());
+        const dates = regularTodayDates.split(",").filter((d) => d.trim());
         if (dates.length > 0) {
           // Check the isAvailableToday radio button
-          const isAvailableTodayRadio = document.getElementById('isAvailableToday');
+          const isAvailableTodayRadio =
+            document.getElementById("isAvailableToday");
           if (isAvailableTodayRadio) {
             isAvailableTodayRadio.checked = true;
             // Trigger change event to show the calendar
-            isAvailableTodayRadio.dispatchEvent(new Event('change'));
+            isAvailableTodayRadio.dispatchEvent(new Event("change"));
           }
           window.modalCalendarHandler.setAvailableTodayDates(dates);
         }
@@ -657,13 +674,15 @@ function setupStatusChangeListener() {
   const unavailableTypeSelect = document.getElementById("editUnavailableType");
   const availtodayOptions = document.getElementById("editAvailtodayOptions");
   const availtodaySelect = document.getElementById("editAvailtodayStatus");
-  const isAvailableTodayContainer = document.getElementById("isAvailableTodayContainer");
+  const isAvailableTodayContainer = document.getElementById(
+    "isAvailableTodayContainer"
+  );
 
   if (statusSelect) {
     statusSelect.addEventListener("change", function () {
       const selectedStatus = this.options[this.selectedIndex].text;
       const selectedValue = this.value;
-      
+
       if (availableDaysContainer) {
         if (
           selectedStatus === "Delivery" ||
@@ -683,14 +702,17 @@ function setupStatusChangeListener() {
         } else {
           isAvailableTodayContainer.style.display = "none";
           // Reset the radio button and hide related elements when not Pick Up or Delivery
-          const isAvailableTodayRadio = document.getElementById("isAvailableToday");
+          const isAvailableTodayRadio =
+            document.getElementById("isAvailableToday");
           if (isAvailableTodayRadio) {
             isAvailableTodayRadio.checked = false;
           }
           if (availtodayOptions) {
             availtodayOptions.style.display = "none";
           }
-          const availableTodayDaysContainer = document.getElementById("availableTodayDaysContainer");
+          const availableTodayDaysContainer = document.getElementById(
+            "availableTodayDaysContainer"
+          );
           if (availableTodayDaysContainer) {
             availableTodayDaysContainer.style.display = "none";
           }
@@ -699,7 +721,8 @@ function setupStatusChangeListener() {
 
       // Handle availtoday_status dropdown visibility
       if (availtodayOptions && availtodaySelect) {
-        if (selectedValue == 3) { // Available Today
+        if (selectedValue == 3) {
+          // Available Today
           availtodayOptions.style.display = "block";
           availtodaySelect.setAttribute("required", "required");
         } else {
@@ -801,8 +824,10 @@ function setupAvailabilityRadioListeners() {
 function setupIsAvailableTodayListener() {
   const isAvailableTodayRadio = document.getElementById("isAvailableToday");
   const availtodayOptions = document.getElementById("editAvailtodayOptions");
-  const availableTodayDaysContainer = document.getElementById("availableTodayDaysContainer");
-  
+  const availableTodayDaysContainer = document.getElementById(
+    "availableTodayDaysContainer"
+  );
+
   if (isAvailableTodayRadio) {
     isAvailableTodayRadio.addEventListener("change", function () {
       if (this.checked) {
@@ -818,7 +843,9 @@ function setupIsAvailableTodayListener() {
         // Hide the availtoday select dropdown
         if (availtodayOptions) {
           availtodayOptions.style.display = "none";
-          const availtodaySelect = document.getElementById("editAvailtodayStatus");
+          const availtodaySelect = document.getElementById(
+            "editAvailtodayStatus"
+          );
           if (availtodaySelect) {
             availtodaySelect.value = "";
           }
@@ -827,8 +854,10 @@ function setupIsAvailableTodayListener() {
         if (availableTodayDaysContainer) {
           availableTodayDaysContainer.style.display = "none";
           // Reset all checkboxes in checkbox-group2
-          const todayCheckboxes = availableTodayDaysContainer.querySelectorAll('input[type="checkbox"]');
-          todayCheckboxes.forEach(checkbox => {
+          const todayCheckboxes = availableTodayDaysContainer.querySelectorAll(
+            'input[type="checkbox"]'
+          );
+          todayCheckboxes.forEach((checkbox) => {
             checkbox.checked = false;
           });
         }
@@ -1223,7 +1252,7 @@ function removePrimaryImage() {
             if (data.success) {
               pendingImageChanges.primary = "remove";
               displayProductImages();
-              
+
               // Show appropriate message based on whether file was missing
               if (data.file_missing) {
                 showNotification(
@@ -1282,7 +1311,7 @@ function removeAdditionalImage(imageId) {
             if (data.success) {
               pendingImageChanges.additional.toRemove.push(imageId);
               displayProductImages();
-              
+
               // Show appropriate message based on whether file was missing
               if (data.file_missing) {
                 showNotification(
@@ -1318,8 +1347,15 @@ function handleFormSubmit(event) {
   // Validate availtoday_status when Available Today is selected
   if (selectedValue == 3) {
     const availtodaySelect = document.getElementById("editAvailtodayStatus");
-    if (!availtodaySelect || availtodaySelect.value === "" || availtodaySelect.value === "null") {
-      showNotification("Please select an option for 'Available Today'.", "error");
+    if (
+      !availtodaySelect ||
+      availtodaySelect.value === "" ||
+      availtodaySelect.value === "null"
+    ) {
+      showNotification(
+        "Please select an option for 'Available Today'.",
+        "error"
+      );
       return;
     }
   }
@@ -1328,7 +1364,7 @@ function handleFormSubmit(event) {
   if (
     selectedStatus === "Delivery" ||
     selectedStatus === "Pick Up" ||
-    selectedStatus === "Available Today"
+    selectedStatus === "Same Day Order"
   ) {
     const dayCheckboxes = {
       edit_sunday: "Sunday",
@@ -1348,7 +1384,7 @@ function handleFormSubmit(event) {
     });
   }
 
-  // Collect Available Today days from checkbox-group2
+  // Collect Same Day Order days from checkbox-group2
   const availableTodayDays = [];
   const isAvailableTodayRadio = document.getElementById("isAvailableToday");
   if (isAvailableTodayRadio && isAvailableTodayRadio.checked) {
@@ -1373,20 +1409,26 @@ function handleFormSubmit(event) {
   const isAvailable = document.getElementById("editAvailable").checked;
   const unavailableTypeId =
     document.getElementById("editUnavailableType").value || null;
-  const availtodayStatusId = document.getElementById("editAvailtodayStatus").value || null;
+  const availtodayStatusId =
+    document.getElementById("editAvailtodayStatus").value || null;
 
   // Get calendar data
   const todaysProductDatesInput = document.getElementById("todaysProductDates");
-  const availableTodayDatesInput = document.getElementById("availableTodayDates");
-  
-  const todaysProductDates = todaysProductDatesInput ? 
-    todaysProductDatesInput.value.split(',').filter(d => d.trim()) : [];
-  const availableTodayDates = availableTodayDatesInput ? 
-    availableTodayDatesInput.value.split(',').filter(d => d.trim()) : [];
+  const availableTodayDatesInput = document.getElementById(
+    "availableTodayDates"
+  );
+
+  const todaysProductDates = todaysProductDatesInput
+    ? todaysProductDatesInput.value.split(",").filter((d) => d.trim())
+    : [];
+  const availableTodayDates = availableTodayDatesInput
+    ? availableTodayDatesInput.value.split(",").filter((d) => d.trim())
+    : [];
 
   const formData = {
     id: document.getElementById("editProductId").value,
     name: document.getElementById("editProductName").value,
+    description: document.getElementById("editProductDescription").value,
     price: document.getElementById("editProductPrice").value,
     quantity: document.getElementById("editProductQuantity").value,
     status_id: document.getElementById("editProductStatus").value,
@@ -1399,7 +1441,9 @@ function handleFormSubmit(event) {
     is_available: isAvailable,
     unavailable_status_id: isAvailable ? null : unavailableTypeId,
     availtoday_status_id: availtodayStatusId,
-    is_available_today: isAvailableTodayRadio ? isAvailableTodayRadio.checked : false,
+    is_available_today: isAvailableTodayRadio
+      ? isAvailableTodayRadio.checked
+      : false,
     available_today_days: availableTodayDays,
     todays_product_dates: JSON.stringify(todaysProductDates),
     available_today_dates: JSON.stringify(availableTodayDates),
@@ -1514,18 +1558,42 @@ function handleFormSubmit(event) {
 }
 
 function softDeleteProduct(id) {
-  if (
-    !confirm(
-      "Are you sure you want to delete this product? This action will move it to the archive."
-    )
-  ) {
-    return;
+  showDeleteModal(id);
+}
+
+// Delete Modal Functions
+function showDeleteModal(productId) {
+  const modal = document.getElementById("deleteModal");
+  if (modal) {
+    modal.style.display = "flex";
+    modal.setAttribute("data-product-id", productId);
   }
+}
+
+function hideDeleteModal() {
+  const modal = document.getElementById("deleteModal");
+  if (modal) {
+    modal.style.display = "none";
+    modal.removeAttribute("data-product-id");
+  }
+}
+
+function confirmDelete() {
+  const modal = document.getElementById("deleteModal");
+  const productId = modal.getAttribute("data-product-id");
+
+  if (!productId) return;
+
+  // Hide modal first
+  hideDeleteModal();
+
+  // Show loading notification
+  showNotification("Deleting product...", "info");
 
   fetch("/backend/pages/products/delete-product.php", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: `id=${id}`,
+    body: `id=${productId}`,
   })
     .then((response) => response.text())
     .then((data) => {
@@ -1548,7 +1616,7 @@ function updateFilterCounts() {
     Delivery: 0,
     featured: 0,
     Unavailable: 0,
-    "Available Today": 0,
+    "Same Day Order": 0,
   };
 
   allProductsData.forEach((product) => {
@@ -1571,7 +1639,7 @@ function updateFilterCounts() {
   document.getElementById("count-unavailable").textContent =
     counts["Unavailable"];
   document.getElementById("count-available-today").textContent =
-    counts["Available Today"];
+    counts["Same Day Order"];
 }
 
 function showNotification(message, type = "info") {
@@ -1690,7 +1758,8 @@ function resetFormToOriginal() {
   const availtodayOptions = document.getElementById("editAvailtodayOptions");
   const availtodaySelect = document.getElementById("editAvailtodayStatus");
   if (availtodayOptions && availtodaySelect) {
-    if (originalFormData.status == 3) { // Available Today
+    if (originalFormData.status == 3) {
+      // Available Today
       availtodayOptions.style.display = "block";
       availtodaySelect.value = originalFormData.availtodayStatusId || "";
       if (availtodaySelect.value === "null") {
@@ -1773,12 +1842,19 @@ function resetFormToOriginal() {
   }
 
   // Reset isAvailableToday radio button and related elements
-  const isAvailableTodayContainer = document.getElementById("isAvailableTodayContainer");
+  const isAvailableTodayContainer = document.getElementById(
+    "isAvailableTodayContainer"
+  );
   const isAvailableTodayRadio = document.getElementById("isAvailableToday");
-  const availableTodayDaysContainer = document.getElementById("availableTodayDaysContainer");
-  
+  const availableTodayDaysContainer = document.getElementById(
+    "availableTodayDaysContainer"
+  );
+
   if (isAvailableTodayContainer && isAvailableTodayRadio) {
-    if (originalFormData.statusName === "Pick Up" || originalFormData.statusName === "Delivery") {
+    if (
+      originalFormData.statusName === "Pick Up" ||
+      originalFormData.statusName === "Delivery"
+    ) {
       isAvailableTodayContainer.style.display = "block";
     } else {
       isAvailableTodayContainer.style.display = "none";
@@ -1789,8 +1865,10 @@ function resetFormToOriginal() {
   if (availableTodayDaysContainer) {
     availableTodayDaysContainer.style.display = "none";
     // Reset all checkboxes in checkbox-group2
-    const todayCheckboxes = availableTodayDaysContainer.querySelectorAll('input[type="checkbox"]');
-    todayCheckboxes.forEach(checkbox => {
+    const todayCheckboxes = availableTodayDaysContainer.querySelectorAll(
+      'input[type="checkbox"]'
+    );
+    todayCheckboxes.forEach((checkbox) => {
       checkbox.checked = false;
     });
   }
@@ -1840,3 +1918,24 @@ function resetFormToOriginal() {
 
   originalFormData = {};
 }
+
+// Delete Modal Event Listeners
+document.addEventListener("DOMContentLoaded", function () {
+  // Close delete modal when clicking outside of it
+  window.addEventListener("click", function (event) {
+    const modal = document.getElementById("deleteModal");
+    if (modal && event.target === modal) {
+      hideDeleteModal();
+    }
+  });
+
+  // Close delete modal with Escape key
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") {
+      const modal = document.getElementById("deleteModal");
+      if (modal && modal.style.display === "flex") {
+        hideDeleteModal();
+      }
+    }
+  });
+});

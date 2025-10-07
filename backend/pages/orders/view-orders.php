@@ -18,6 +18,9 @@ $order_id = intval($_GET['order_id']);
 // Get order details
 $order_sql = "SELECT * FROM orders WHERE order_id = ?";
 $stmt = mysqli_prepare($conn, $order_sql);
+if (!$stmt) {
+    die("SQL Error: " . mysqli_error($conn));
+}
 mysqli_stmt_bind_param($stmt, "i", $order_id);
 mysqli_stmt_execute($stmt);
 $order_result = mysqli_stmt_get_result($stmt);
@@ -29,9 +32,16 @@ if (mysqli_num_rows($order_result) == 0) {
 
 $order = mysqli_fetch_assoc($order_result);
 
-// Get order items
-$items_sql = "SELECT * FROM order_items WHERE order_id = ?";
+// Get order items with product images
+$items_sql = "SELECT oi.*, pi.image_url 
+              FROM order_items oi 
+              LEFT JOIN products p ON oi.product_name = p.name 
+              LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1 
+              WHERE oi.order_id = ?";
 $stmt = mysqli_prepare($conn, $items_sql);
+if (!$stmt) {
+    die("SQL Error: " . mysqli_error($conn));
+}
 mysqli_stmt_bind_param($stmt, "i", $order_id);
 mysqli_stmt_execute($stmt);
 $items_result = mysqli_stmt_get_result($stmt);
@@ -75,6 +85,12 @@ $items_result = mysqli_stmt_get_result($stmt);
 <body>
     <?php include __DIR__ . "/../admin-includes/navbar/navbar.php"; ?>
     
+    <div class="breadcrumb">
+        <a href="/backend/pages/orders/order-list.php">Orders</a>
+        <span class="separator">></span>
+        <span class="current">Order #<?php echo $order_id; ?> - Details</span>
+    </div>
+    
     <div class="main-container">
         <div class="order-details">
             <div class="order-info">
@@ -84,7 +100,7 @@ $items_result = mysqli_stmt_get_result($stmt);
                     <div class="order-actions">
                         <form method="POST" action="update-status.php" class="status-form">
                             <input type="hidden" name="order_id" value="<?php echo $order_id; ?>">
-                            <select name="status" onchange="this.form.submit()">
+                            <select name="status" onchange="this.form.submit()" class="status-badge-select status-<?php echo strtolower(str_replace(' ', '-', $order['status'])); ?>">
                                 <?php
                                     if($order['delivery_method'] == "Pick-up"){
                                         $statuses = ["Pending", "Preparing", "Ready for Pick-up", "Picked-up"];
@@ -102,52 +118,11 @@ $items_result = mysqli_stmt_get_result($stmt);
                         <button onclick="window.print()" class="print-button">Print</button>
                     </div>
                 </div>
-                <p class="order-status">Status: <span class="status-badge status-<?php echo strtolower(str_replace(' ', '-', $order['status'])); ?>"><?php echo $order['status']; ?></span></p>
             </div>
+
+            
             
             <div class="order-grid">
-                <div class="order-summary">
-                    <h3>Order Summary</h3>
-                    <div class="table-responsive">
-                        <table class="items-table">
-                            <thead>
-                                <tr>
-
-                                <th>Name</th>
-                                    <th>Price</th>
-                                    <th>Qty</th>
-                                    <th>Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php 
-                                $subtotal = 0;
-                                while ($item = mysqli_fetch_assoc($items_result)): 
-                                    $item_total = $item['price'] * $item['quantity'];
-                                    $subtotal += $item_total;
-                                ?>
-                                    <tr>
-                                        <td><?php echo htmlspecialchars($item['product_name']); ?></td>
-                                        <td>₱<?php echo number_format($item['price'], 2); ?></td>
-                                        <td><?php echo $item['quantity']; ?></td>
-                                        <td>₱<?php echo number_format($item_total, 2); ?></td>
-                                    </tr>
-                                <?php endwhile; ?>
-                            </tbody>
-                            <tfoot>
-                                <tr>
-                                    <td colspan="3" class="total-label">Subtotal</td>
-                                    <td class="total-value">₱<?php echo number_format($subtotal, 2); ?></td>
-                                </tr>
-                                <tr>
-                                    <td colspan="3" class="total-label">Total</td>
-                                    <td class="total-value">₱<?php echo number_format($order['total_amount'], 2); ?></td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                </div>
-                
                 <div class="customer-details">
                     <h3>Customer Details</h3>
                     <div class="detail-group">
@@ -176,6 +151,62 @@ $items_result = mysqli_stmt_get_result($stmt);
                         <p><strong>Payment Method:</strong> <?php echo htmlspecialchars($order['payment_method']); ?></p>
                     </div>
                 </div>
+                <div class="order-summary">
+                    <h3>Order Summary</h3>
+                    <div class="table-responsive">
+                        <table class="items-table">
+                            <thead>
+                                <tr>
+                                    <th>Image</th>
+                                    <th>Product</th>
+                                    <th>Price</th>
+                                    <th>Qty</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php 
+                                $subtotal = 0;
+                                while ($item = mysqli_fetch_assoc($items_result)): 
+                                    $item_total = $item['price'] * $item['quantity'];
+                                    $subtotal += $item_total;
+                                    
+                                    // Construct image path same as product-list.php
+                                    $imagePath = '';
+                                    if (!empty($item['image_url'])) {
+                                        $imagePath = '/assets/' . $item['image_url'];
+                                    }
+                                ?>
+                                    <tr>
+                                        <td class="product-image">
+                                            <?php if (!empty($imagePath)): ?>
+                                                <img src="<?php echo htmlspecialchars($imagePath); ?>" alt="<?php echo htmlspecialchars($item['product_name']); ?>" loading="lazy">
+                                            <?php else: ?>
+                                                <div class="no-image">No Image</div>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td><?php echo htmlspecialchars($item['product_name']); ?></td>
+                                        <td>₱<?php echo number_format($item['price'], 2); ?></td>
+                                        <td><?php echo $item['quantity']; ?></td>
+                                        <td>₱<?php echo number_format($item_total, 2); ?></td>
+                                    </tr>
+                                <?php endwhile; ?>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="4" class="total-label">Subtotal</td>
+                                    <td class="total-value">₱<?php echo number_format($subtotal, 2); ?></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="4" class="total-label">Total</td>
+                                    <td class="total-value">₱<?php echo number_format($order['total_amount'], 2); ?></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+                
+                
             </div>
         </div>
     </div>

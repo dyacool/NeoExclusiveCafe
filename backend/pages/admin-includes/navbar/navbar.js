@@ -1,43 +1,36 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Core elements
   const sidebar = document.querySelector(".sidebar");
   const mobileMenuToggle = document.querySelector(".mobile-menu-toggle");
   const floatingCloseBtn = document.querySelector(".floating-close-btn");
   const productsToggle = document.querySelector(".products-toggle");
   const productsDropdown = document.querySelector(".products-dropdown");
 
-  // Get current page
   const currentPage = window.location.pathname.split("/").pop();
 
-  // Define product pages
   const productPages = ["product-list.php", "add-product.php"];
   const isProductPage = productPages.includes(currentPage);
 
-  // Enhanced state management with better key
   const DROPDOWN_STATE_KEY = "navbar_products_dropdown_state";
   const SIDEBAR_STATE_KEY = "navbar_sidebar_state";
 
-  // Flag to prevent multiple restoration calls
   let dropdownStateRestored = false;
 
-  // Sidebar management with state persistence
   function openSidebar() {
-    if (window.innerWidth <= 768) {
+    if (window.innerWidth <= 1024) {
       sidebar.classList.remove("mobile-hidden");
       localStorage.setItem(SIDEBAR_STATE_KEY, "open");
     }
   }
 
   function closeSidebar() {
-    if (window.innerWidth <= 768) {
+    if (window.innerWidth <= 1024) {
       sidebar.classList.add("mobile-hidden");
       localStorage.setItem(SIDEBAR_STATE_KEY, "closed");
     }
   }
 
-  // Restore sidebar state on mobile
   function restoreSidebarState() {
-    if (window.innerWidth <= 768) {
+    if (window.innerWidth <= 1024) {
       const savedState = localStorage.getItem(SIDEBAR_STATE_KEY);
       if (savedState === "open") {
         sidebar.classList.remove("mobile-hidden");
@@ -47,7 +40,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Mobile menu toggle - OPEN sidebar
   if (mobileMenuToggle) {
     mobileMenuToggle.addEventListener("click", (e) => {
       e.preventDefault();
@@ -56,7 +48,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Floating close button - CLOSE sidebar
   if (floatingCloseBtn) {
     floatingCloseBtn.addEventListener("click", (e) => {
       e.preventDefault();
@@ -65,28 +56,24 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Close sidebar when clicking outside
   document.addEventListener("click", (e) => {
-    if (window.innerWidth <= 768) {
+    if (window.innerWidth <= 1024) {
       if (!sidebar.contains(e.target) && !mobileMenuToggle.contains(e.target)) {
         closeSidebar();
       }
     }
   });
 
-  // Prevent sidebar from closing when clicking inside
   sidebar.addEventListener("click", (e) => {
     e.stopPropagation();
   });
 
-  // Enhanced Product dropdown with better state management
   function toggleDropdown(shouldOpen = null) {
     if (!productsToggle || !productsDropdown) return;
 
     const isCurrentlyActive = productsDropdown.classList.contains("active");
     const newState = shouldOpen !== null ? shouldOpen : !isCurrentlyActive;
 
-    // Only make changes if the state is actually different
     if (newState !== isCurrentlyActive) {
       if (newState) {
         productsDropdown.classList.add("active");
@@ -103,14 +90,11 @@ document.addEventListener("DOMContentLoaded", () => {
   function restoreDropdownState() {
     if (!productsToggle || !productsDropdown) return;
 
-    // Prevent multiple calls - only restore once per page load
     if (dropdownStateRestored) return;
 
     const savedState = localStorage.getItem(DROPDOWN_STATE_KEY);
-    // Always restore if saved state is open, regardless of page type
     const shouldRestoreOpen = savedState === "open";
 
-    // Apply state without animation to prevent flickering
     if (shouldRestoreOpen) {
       productsDropdown.classList.add("active");
       productsToggle.classList.add("active");
@@ -129,52 +113,38 @@ document.addEventListener("DOMContentLoaded", () => {
       toggleDropdown();
     });
 
-    // Enhanced dropdown link handling
     const dropdownLinks = document.querySelectorAll(".dropdown-link");
     dropdownLinks.forEach((link) => {
       link.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
 
-        // If link is already active, do nothing
         if (link.classList.contains("active")) {
           return false;
         }
 
         const href = link.getAttribute("data-href");
         if (href) {
-          // Keep dropdown open when navigating - don't change state
-          // The dropdown state will be preserved as is
-
-          // Navigate to new page
           window.location.href = href;
         }
       });
     });
 
-    // Prevent dropdown from closing when clicking inside
     productsDropdown.addEventListener("click", (e) => {
       e.stopPropagation();
     });
   }
 
-  // Enhanced navigation link handling
   const allNavLinks = document.querySelectorAll("a[href]:not([data-href])");
   allNavLinks.forEach((link) => {
     link.addEventListener("click", (e) => {
       const href = link.getAttribute("href");
 
-      // Don't interfere with external links or logout
       if (href.startsWith("http") || href.includes("logout")) {
         return;
       }
 
-      // Don't change dropdown state when navigating to any page
-      // The dropdown will remain open if it was open, closed if it was closed
-      // Only the toggle click can change the state
-
-      // Close mobile sidebar after navigation
-      if (window.innerWidth <= 768) {
+      if (window.innerWidth <= 1024) {
         setTimeout(() => {
           closeSidebar();
         }, 100);
@@ -182,7 +152,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Enhanced page title management
   function updatePageTitle() {
     const pageTitles = {
       "admin-homepage.php": "Dashboard",
@@ -209,27 +178,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const pageTitle = pageTitles[currentPage] || "Neo Cafe Admin";
 
-    // Update desktop title
     const desktopTitle = document.getElementById("page-title");
     if (desktopTitle) {
       desktopTitle.textContent = pageTitle;
     }
 
-    // Update mobile title
     const mobileTitle = document.getElementById("mobile-page-title");
     if (mobileTitle) {
       mobileTitle.textContent = pageTitle;
     }
 
-    // Update document title for better UX
     document.title = `${pageTitle} - Neo Cafe Admin`;
   }
 
-  // Enhanced Add Product button for product-list page
   function addProductButton() {
     if (!window.location.pathname.includes("product-list.php")) return;
 
-    // Create button for desktop header
     let headerActions = document.querySelector(".header-actions");
 
     if (!headerActions) {
@@ -244,7 +208,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const addProductButton = document.createElement("button");
     addProductButton.className = "btn add-product-button action-button";
     addProductButton.onclick = () => {
-      // Don't change dropdown state - let it preserve current state
       window.location.href = "add-product.php";
     };
 
@@ -282,7 +245,6 @@ document.addEventListener("DOMContentLoaded", () => {
     headerActions.innerHTML = "";
     headerActions.appendChild(addProductButton);
 
-    // Create button for mobile header bottom
     let mobileHeaderActions = document.querySelector(".mobile-header-actions");
 
     if (!mobileHeaderActions) {
@@ -300,7 +262,6 @@ document.addEventListener("DOMContentLoaded", () => {
     mobileAddProductButton.className =
       "btn add-product-button action-button mobile-action-button";
     mobileAddProductButton.onclick = () => {
-      // Don't change dropdown state - let it preserve current state
       window.location.href = "add-product.php";
     };
 
@@ -342,21 +303,17 @@ document.addEventListener("DOMContentLoaded", () => {
     mobileHeaderActions.appendChild(mobileAddProductButton);
   }
 
-  // Enhanced active state management
   function setActiveStates() {
-    // Remove all active classes from links only
     document
       .querySelectorAll(".nav-link, .footer-link, .dropdown-link")
       .forEach((link) => {
         link.classList.remove("active");
       });
 
-    // Only remove parent active state if we're not on a product page
     if (productsToggle && !productPages.includes(currentPage)) {
       productsToggle.classList.remove("has-active-child");
     }
 
-    // Set active states based on current page
     const pageActiveSelectors = {
       "order-list.php": 'a[href*="order-list.php"]',
       "admin-homepage.php":
@@ -372,7 +329,6 @@ document.addEventListener("DOMContentLoaded", () => {
       "promotions-settings.php": 'a[href*="promotions-settings.php"]',
     };
 
-    // Handle product pages separately
     if (currentPage === "product-list.php") {
       const productListLink = document.querySelector(
         '[data-href*="product-list.php"]'
@@ -394,7 +350,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
     } else {
-      // Handle other pages
       const selector = pageActiveSelectors[currentPage];
       if (selector) {
         const activeLink = document.querySelector(selector);
@@ -404,7 +359,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    // Special handling for "View Shop" link
     if (window.location.pathname.includes("product-dashboard.php")) {
       const shopLink = document.querySelector(
         'a[href*="product-dashboard.php"]'
@@ -413,7 +367,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Enhanced click prevention for active links
   function preventActiveClicks() {
     document
       .querySelectorAll(".nav-link, .footer-link, .dropdown-link")
@@ -430,31 +383,24 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   }
 
-  // Enhanced window resize handling
   function handleResize() {
-    if (window.innerWidth > 768) {
+    if (window.innerWidth > 1024) {
       sidebar.classList.remove("mobile-hidden");
-      // Clear mobile sidebar state when switching to desktop
       localStorage.removeItem(SIDEBAR_STATE_KEY);
     } else {
-      // Restore mobile sidebar state or default to closed
       restoreSidebarState();
     }
   }
 
-  // Page visibility change handler to maintain state
   function handleVisibilityChange() {
     if (document.visibilityState === "visible") {
-      // Only restore sidebar state on mobile, don't touch dropdown
-      if (window.innerWidth <= 768) {
+      if (window.innerWidth <= 1024) {
         restoreSidebarState();
       }
     }
   }
 
-  // Initialize everything in correct order
   function initialize() {
-    // Add loading class to prevent flicker during state restoration
     document.body.classList.add("navbar-loading");
 
     updatePageTitle();
@@ -463,27 +409,19 @@ document.addEventListener("DOMContentLoaded", () => {
     preventActiveClicks();
     handleResize();
 
-    // Restore dropdown state immediately and only once on page load
     restoreDropdownState();
 
-    // Restore sidebar state for mobile
-    if (window.innerWidth <= 768) {
+    if (window.innerWidth <= 1024) {
       restoreSidebarState();
     }
 
-    // Remove loading class after a brief delay
     setTimeout(() => {
       document.body.classList.remove("navbar-loading");
     }, 100);
   }
 
-  // Event listeners
   window.addEventListener("resize", handleResize);
   document.addEventListener("visibilitychange", handleVisibilityChange);
 
-  // Initialize
   initialize();
-
-  // Note: Dropdown state is now only controlled by manual toggle clicks
-  // No automatic cleanup - the dropdown stays in whatever state the user set it to
 });

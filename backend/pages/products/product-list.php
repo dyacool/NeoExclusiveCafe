@@ -11,15 +11,15 @@
 
     // Function to format available days in compact format
     function formatAvailableDays($availableDays) {
-        if (empty($availableDays)) return "Not set";
+        if (empty($availableDays)) return "Not Applicable";
         
         $dayMap = [
-            'Sunday' => 'S',
-            'Monday' => 'M', 
-            'Tuesday' => 'T',
-            'Wednesday' => 'W',
-            'Thursday' => 'Th',
-            'Friday' => 'F',
+            'Sunday' => 'Sun',
+            'Monday' => 'Mon', 
+            'Tuesday' => 'Tue',
+            'Wednesday' => 'Wed',
+            'Thursday' => 'Thu',
+            'Friday' => 'Fri',
             'Saturday' => 'Sa'
         ];
         
@@ -140,7 +140,7 @@
                         <option value="all-unavailable">All Unavailable</option>
                         <option value="unavailable-delivery">Unavailable Delivery</option>
                         <option value="unavailable-pickup">Unavailable Pick Up</option>
-                        <option value="unavailable-today">Unavailable Today</option>
+                        <option value="unavailable-today">Unavailable for Same Day Order</option>
                     </select>
                 </div>
             </div>
@@ -192,7 +192,7 @@
 
                             // Query with LIMIT and OFFSET for pagination
                             $sql = "SELECT 
-                                        p.id, p.sku, p.name, p.price, p.status_id, ps.name AS status_name, 
+                                        p.id, p.sku, p.name, p.description, p.price, p.status_id, ps.name AS status_name, 
                                         p.unavailable_status_id, ups.name AS unavailable_status_name,
                                         pi.image_url, p.is_featured, p.show_when_unavailable, p.hide_when_unavailable,
                                         p.quantity, p.availtoday_status_id, ats.name AS availtoday_status_name,
@@ -214,7 +214,7 @@
                                     
                             // Also get all products for JavaScript filtering (without pagination)
                             $all_products_sql = "SELECT 
-                                                    p.id, p.sku, p.name, p.price, p.status_id, ps.name AS status_name, 
+                                                    p.id, p.sku, p.name, p.description, p.price, p.status_id, ps.name AS status_name, 
                                                     p.unavailable_status_id, ups.name AS unavailable_status_name,
                                                     pi.image_url, p.is_featured, p.show_when_unavailable, p.hide_when_unavailable,
                                                     p.quantity, p.availtoday_status_id, ats.name AS availtoday_status_name,
@@ -316,6 +316,7 @@
                                                     <button class='btn-action btn-edit' onclick=\"openEditModal(
                                                         '" . $row["id"] . "',     
                                                         '" . addslashes($row["name"]) . "', 
+                                                        '" . addslashes($row["description"] ?? '') . "',
                                                         '" . $row["price"] . "', 
                                                         '" . $status_id . "',
                                                         '" . ($row["is_featured"] ? "true" : "false") . "',
@@ -439,74 +440,8 @@
         </div>
         
         <div class="modal-content-wrapper">
-            <!-- Left Side - Image Management -->
-            <div class="modal-left-panel">
-                <h3>Product Images</h3>
-                <div class="image-management-section">
-                    
-                    <!-- Primary Image Section -->
-                    <div class="primary-image-section">
-                        <label>Primary Image</label>
-                        <div class="primary-image-container" id="editPrimaryImageContainer">
-                            <div class="image-placeholder" id="editPrimaryPlaceholder">
-                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                                    <polyline points="21,15 16,10 5,21"></polyline>
-                                </svg>
-                                <span>No primary image</span>
-                            </div>
-                        </div>
-                        <div class="image-actions">
-                            <input type="file" id="editPrimaryImageInput" accept="image/*" style="display: none;">
-                            <button type="button" class="btn btn-secondary" onclick="document.getElementById('editPrimaryImageInput').click()">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                    <polyline points="7,10 12,15 17,10"></polyline>
-                                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                                </svg>
-                                Upload Primary
-                            </button>
-                            <button type="button" class="btn btn-danger" id="editRemovePrimaryBtn" style="display: none;" onclick="removePrimaryImage()">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="3,6 5,6 21,6"></polyline>
-                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                </svg>
-                                Remove
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Additional Images Section -->
-                    <div class="additional-images-section">
-                        <label>Additional Images (Max 3)</label>
-                        <div class="additional-images-container" id="editAdditionalImagesContainer">
-                            <div class="image-placeholder" id="editAdditionalPlaceholder">
-                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                                    <polyline points="21,15 16,10 5,21"></polyline>
-                                </svg>
-                                <span>No additional images</span>
-                            </div>
-                        </div>
-                        <div class="image-actions">
-                            <input type="file" id="editAdditionalImagesInput" accept="image/*" multiple style="display: none;">
-                            <button type="button" class="btn btn-secondary" onclick="document.getElementById('editAdditionalImagesInput').click()">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                    <polyline points="7,10 12,15 17,10"></polyline>
-                                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                                </svg>
-                                Add Images
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Side - Form Fields -->
-            <div class="modal-right-panel">
+            <!-- Single Panel - Form Fields -->
+            <div class="modal-form-panel">
                 <form id="editProductForm" class="modal-form">
                     <input type="hidden" id="editProductId">
                     
@@ -514,6 +449,7 @@
                         <label for="editProductName">Product Name</label>
                         <input type="text" id="editProductName" required>
                     </div>
+
 
                     <div class="form-row">
                         <div class="form-group">
@@ -523,6 +459,78 @@
                         <div class="form-group">
                             <label for="editProductQuantity">Stock Quantity</label>
                             <input type="number" id="editProductQuantity" min="0" step="1" required>
+                        </div>
+                    </div>
+
+                    
+                    <div class="form-group">
+                        <label for="editProductDescription">Product Description</label>
+                        <textarea id="editProductDescription" name="description" rows="3" placeholder="Enter product description..."></textarea>
+                    </div>
+
+                    <!-- Image Management Section -->
+                    <div class="form-group image-management-section">
+                        <h3>Product Images</h3>
+                        
+                        <div class="images-row">
+                            <!-- Primary Image Section -->
+                            <div class="primary-image-section">
+                                <label>Primary Image</label>
+                                <div class="primary-image-container" id="editPrimaryImageContainer">
+                                    <div class="image-placeholder" id="editPrimaryPlaceholder">
+                                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                            <polyline points="21,15 16,10 5,21"></polyline>
+                                        </svg>
+                                        <span>Click to Upload Image</span>
+                                    </div>
+                                </div>
+                                <div class="image-actions">
+                                    <input type="file" id="editPrimaryImageInput" accept="image/*" style="display: none;">
+                                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('editPrimaryImageInput').click()">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                            <polyline points="7,10 12,15 17,10"></polyline>
+                                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                                        </svg>
+                                        Upload Primary
+                                    </button>
+                                    <button type="button" class="btn btn-danger" id="editRemovePrimaryBtn" style="display: none;" onclick="removePrimaryImage()">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="3,6 5,6 21,6"></polyline>
+                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                        </svg>
+                                        Remove
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Additional Images Section -->
+                            <div class="additional-images-section">
+                                <label>Additional Images (Max 3)</label>
+                                <div class="additional-images-container" id="editAdditionalImagesContainer">
+                                    <div class="image-placeholder" id="editAdditionalPlaceholder">
+                                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                            <polyline points="21,15 16,10 5,21"></polyline>
+                                        </svg>
+                                        <span>Click to Upload Images</span>
+                                    </div>
+                                </div>
+                                <div class="image-actions">
+                                    <input type="file" id="editAdditionalImagesInput" accept="image/*" multiple style="display: none;">
+                                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('editAdditionalImagesInput').click()">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                            <polyline points="7,10 12,15 17,10"></polyline>
+                                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                                        </svg>
+                                        Add Images
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -624,7 +632,7 @@
 
                     <!-- Calendar for Today's Products -->
                     <div class="form-group" id="todaysProductCalendarContainer" style="display: none;">
-                        <label>Select Available Dates for Today's Product:</label>
+                        <label>Select Available Dates for Same Day Order Product:</label>
                         <div id="todaysProductCalendar"></div>
                         <input type="hidden" id="todaysProductDates" name="todays_product_dates">
                     </div>
@@ -633,7 +641,7 @@
                     <div class="form-group" id="availableTodayCalendarContainer" style="display: none;">
                         <label>Select Additional Dates for Today's Availability:</label>
                         <div class="form-group" style="margin-bottom: 15px;">
-                            <label for="editAvailableTodayStatus">Available Today Options:</label>
+                            <label for="editAvailableTodayStatus">Same Day Options:</label>
                             <select id="editAvailableTodayStatus" name="available_today_status_id">
                                 <option value="">Select...</option>
                                 <option value="1">Pick Up</option>
@@ -654,6 +662,22 @@
                 <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
                 <button type="submit" class="btn btn-primary" form="editProductForm">Save Changes</button>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="delete-modal">
+    <div class="delete-modal-content">
+        <div class="delete-modal-header">
+            <h3>Confirm Delete</h3>
+        </div>
+        <div class="delete-modal-body">
+            <p>Are you sure you want to delete this product? This action will move it to the archive and cannot be undone.</p>
+        </div>
+        <div class="delete-modal-footer">
+            <button class="delete-btn-cancel" onclick="hideDeleteModal()">Cancel</button>
+            <button class="delete-btn-confirm" onclick="confirmDelete()">Delete Product</button>
         </div>
     </div>
 </div>
