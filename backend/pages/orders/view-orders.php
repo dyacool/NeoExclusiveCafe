@@ -148,6 +148,48 @@ $items_result = mysqli_stmt_get_result($stmt);
                             <p><strong>Pickup Date:</strong> <?php echo date('F d, Y', strtotime($order['pickup_date'])); ?></p>
                         <?php endif; ?>
                         
+                        <?php
+                        // Calculate and display warning if applicable
+                        $date = !empty($order['delivery_date']) ? $order['delivery_date'] : $order['pickup_date'];
+                        $time = !empty($order['delivery_time']) ? $order['delivery_time'] : '00:00:00';
+                        
+                        if (!empty($date)) {
+                            $current_datetime = new DateTime();
+                            $delivery_datetime = new DateTime($date . ' ' . $time);
+                            $today = new DateTime(date('Y-m-d'));
+                            $tomorrow = new DateTime(date('Y-m-d', strtotime('+1 day')));
+                            $delivery_date_only = new DateTime($date);
+                            
+                            $status = $order['status'];
+                            
+                            // Check if delivery/pickup date has passed and order is still pending/preparing/ready
+                            if ($delivery_datetime < $current_datetime && 
+                                in_array($status, ['Pending', 'Preparing', 'Ready for Delivery', 'Ready for Pick-up'])) {
+                                echo '<div class="warning-message critical">';
+                                echo '<div class="warning-header"><strong> ! CRITICAL WARNING</strong></div>';
+                                echo '<div class="warning-content">This order is <span class="warning-badge critical"> OVERDUE</span></div>';
+                                echo '<div class="warning-description">The delivery/pickup date has passed and the order is still pending!</div>';
+                                echo '</div>';
+                            }
+                            // Check if delivery/pickup is tomorrow and status is still pending
+                            elseif ($delivery_date_only->format('Y-m-d') == $tomorrow->format('Y-m-d') && $status == 'Pending') {
+                                echo '<div class="warning-message urgent">';
+                                echo '<div class="warning-header"><strong> ! ATTENTION REQUIRED</strong></div>';
+                                echo '<div class="warning-content">This order is <span class="warning-badge urgent">DUE TOMORROW</span></div>';
+                                echo '<div class="warning-description">Please start preparation soon to meet the delivery/pickup schedule.</div>';
+                                echo '</div>';
+                            }
+                            // Check if delivery/pickup is today and status is still pending
+                            elseif ($delivery_date_only->format('Y-m-d') == $today->format('Y-m-d') && $status == 'Pending') {
+                                echo '<div class="warning-message today">';
+                                echo '<div class="warning-header"><strong>! REMINDER</strong></div>';
+                                echo '<div class="warning-content">This order is <span class="warning-badge today">DUE TODAY</span></div>';
+                                echo '<div class="warning-description">Please start preparation immediately to meet today\'s schedule.</div>';
+                                echo '</div>';
+                            }
+                        }
+                        ?>
+                        
                         <p><strong>Payment Method:</strong> <?php echo htmlspecialchars($order['payment_method']); ?></p>
                     </div>
                 </div>

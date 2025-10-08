@@ -210,23 +210,26 @@ if ($result && mysqli_num_rows($result) > 0) {
         }
         ?>
 
-        <!-- Statistics -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-number"><?php echo $total_orders; ?></div>
-                <div class="stat-label">Total Orders</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number"><?php echo $pending_orders; ?></div>
-                <div class="stat-label">Pending</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number"><?php echo $approved_orders; ?></div>
-                <div class="stat-label">Approved</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number"><?php echo $completed_orders; ?></div>
-                <div class="stat-label">Completed</div>
+        <!-- Statistics/Filter Buttons -->
+        <div class="filter-section">
+            <label class="filter-label">Filter by Status:</label>
+            <div class="stats-grid">
+                <button class="stat-card filter-btn active" onclick="filterOrders('all', this)" data-filter="all">
+                    <div class="stat-number"><?php echo $total_orders; ?></div>
+                    <div class="stat-label">Total Orders</div>
+                </button>
+                <button class="stat-card filter-btn" onclick="filterOrders('pending', this)" data-filter="pending">
+                    <div class="stat-number"><?php echo $pending_orders; ?></div>
+                    <div class="stat-label">Pending</div>
+                </button>
+                <button class="stat-card filter-btn" onclick="filterOrders('approved', this)" data-filter="approved">
+                    <div class="stat-number"><?php echo $approved_orders; ?></div>
+                    <div class="stat-label">Approved</div>
+                </button>
+                <button class="stat-card filter-btn" onclick="filterOrders('completed', this)" data-filter="completed">
+                    <div class="stat-number"><?php echo $completed_orders; ?></div>
+                    <div class="stat-label">Completed</div>
+                </button>
             </div>
         </div>
 
@@ -253,7 +256,7 @@ if ($result && mysqli_num_rows($result) > 0) {
                                 : ($order['username'] ?: 'Guest User');
                             $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_pad($order['id'], 6, '0', STR_PAD_LEFT);
                             ?>
-                            <tr tabindex="0" onkeydown="if(event.key==='Enter'){window.location.href='bulk-order.php?id=<?php echo $order['id']; ?>';}">
+                            <tr tabindex="0" onkeydown="if(event.key==='Enter'){window.location.href='bulk-order.php?id=<?php echo $order['id']; ?>';}" class="order-row" data-status="<?php echo strtolower($order['status']); ?>">
                                 <td onclick="window.location.href='bulk-order.php?id=<?php echo $order['id']; ?>'" style="cursor:pointer;">
                                     <div class="order-id">#<?php echo htmlspecialchars($order_id_display); ?></div>
                                 </td>
@@ -309,5 +312,57 @@ if ($result && mysqli_num_rows($result) > 0) {
             <?php endif; ?>
         </div>
     </div>
+
+    <script>
+        function filterOrders(status, buttonElement) {
+            // Remove active class from all filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Add active class to clicked button
+            buttonElement.classList.add('active');
+            
+            // Get all order rows
+            const orderRows = document.querySelectorAll('.order-row');
+            
+            // Show/hide rows based on filter
+            orderRows.forEach(row => {
+                const rowStatus = row.getAttribute('data-status');
+                
+                if (status === 'all' || rowStatus === status) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            // Update empty state visibility
+            updateEmptyState();
+        }
+        
+        function updateEmptyState() {
+            const visibleRows = document.querySelectorAll('.order-row[style=""], .order-row:not([style])');
+            const emptyState = document.querySelector('.empty-state');
+            const ordersTable = document.querySelector('.orders-table');
+            
+            if (visibleRows.length === 0 && ordersTable) {
+                if (!emptyState) {
+                    // Create empty state if it doesn't exist
+                    const tableContainer = document.querySelector('.orders-table-container');
+                    tableContainer.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <h3>No orders found</h3>
+                            <p>No orders match the selected filter.</p>
+                        </div>
+                    `;
+                }
+            } else if (emptyState && visibleRows.length > 0) {
+                // Restore table if orders are visible
+                location.reload(); // Simple approach to restore table
+            }
+        }
+    </script>
 </body>
 </html>

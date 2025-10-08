@@ -11,9 +11,9 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// If already logged in as admin, redirect to admin homepage
+// If already logged in as admin, redirect to admin dashboard
 if (isset($_SESSION["admin_id"]) && isset($_SESSION["is_admin"]) && $_SESSION["is_admin"] === true) {
-    header("Location: /backend/pages/homepage/admin-homepage.php");
+    header("Location: /backend/pages/dashboard/dashboard.php");
     exit();
 }
 

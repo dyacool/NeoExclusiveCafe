@@ -256,6 +256,28 @@
   flex: 1;
 }
 
+/* Navigation count badge */
+.nav-count-badge {
+  background: var(--green-600);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.125rem 0.375rem;
+  border-radius: 1rem;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.nav-link:hover .nav-count-badge {
+  background: var(--green-700);
+}
+
 /* Dropdown */
 .dropdown {
   position: relative;
@@ -870,6 +892,14 @@
   .logout-btn-cancel,
   .logout-btn-confirm {
     width: 100%;
+  }
+
+  /* Mobile responsive count badge */
+  .nav-count-badge {
+    font-size: 0.625rem;
+    padding: 0.125rem 0.25rem;
+    min-width: 1rem;
+    height: 1rem;
   }
 }
 

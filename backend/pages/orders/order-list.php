@@ -168,7 +168,7 @@
                         <thead>
                             <tr> 
                                 <th>Order #</th>
-                                <th>Date</th>
+                                <th>Date Placed</th>
                                 <th>Customer</th>
                                 <th>Contact</th>
                                 <th>Items</th>
@@ -194,10 +194,39 @@
                                             <?php 
                                                 echo htmlspecialchars($row['delivery_method']) . '<br>';
                                                 $date = !empty($row['delivery_date']) ? $row['delivery_date'] : $row['pickup_date'];
+                                                $time = !empty($row['delivery_time']) ? $row['delivery_time'] : '00:00:00';
+                                                
+                                                // Display date and time
                                                 echo date('M d, Y', strtotime($date));
                                                 if (!empty($row['delivery_time'])) {
                                                     echo ' at ' . date('h:i A', strtotime($row['delivery_time']));
                                                 }
+                                                
+                                                // Calculate warning based on date/time and status
+                                                $current_datetime = new DateTime();
+                                                $delivery_datetime = new DateTime($date . ' ' . $time);
+                                                $today = new DateTime(date('Y-m-d'));
+                                                $tomorrow = new DateTime(date('Y-m-d', strtotime('+1 day')));
+                                                $delivery_date_only = new DateTime($date);
+                                                
+                                                $warning_html = '';
+                                                $status = $row['status'];
+                                                
+                                                // Check if delivery/pickup date has passed and order is still pending/preparing/ready for delivery
+                                                if ($delivery_datetime < $current_datetime && 
+                                                    in_array($status, ['Pending', 'Preparing', 'Ready for Delivery', 'Ready for Pick-up'])) {
+                                                    $warning_html = '<br><span class="warning-badge critical">OVERDUE</span>';
+                                                }
+                                                // Check if delivery/pickup is tomorrow and status is still pending
+                                                elseif ($delivery_date_only->format('Y-m-d') == $tomorrow->format('Y-m-d') && $status == 'Pending') {
+                                                    $warning_html = '<br><span class="warning-badge urgent">DUE TOMORROW</span>';
+                                                }
+                                                // Check if delivery/pickup is today and status is still pending
+                                                elseif ($delivery_date_only->format('Y-m-d') == $today->format('Y-m-d') && $status == 'Pending') {
+                                                    $warning_html = '<br><span class="warning-badge today">DUE TODAY</span>';
+                                                }
+                                                
+                                                echo $warning_html;
                                             ?>
                                         </td>
                                         <td>
@@ -281,8 +310,35 @@
             orders.forEach(order => {
                 const statusClass = order.status.toLowerCase().replace(/ /g, '-');
                 const date = !isEmpty(order.delivery_date) ? order.delivery_date : order.pickup_date;
+                const time = !isEmpty(order.delivery_time) ? order.delivery_time : '00:00:00';
                 const dateFormatted = formatDate(date);
                 const timeFormatted = !isEmpty(order.delivery_time) ? ' at ' + formatTime(order.delivery_time) : '';
+                
+                // Calculate warning based on date/time and status
+                let warningHtml = '';
+                if (date && date !== '0000-00-00') {
+                    const currentDate = new Date();
+                    const deliveryDateTime = new Date(date + 'T' + time);
+                    const today = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+                    const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+                    const deliveryDateOnly = new Date(date + 'T00:00:00');
+                    
+                    const status = order.status;
+                    
+                    // Check if delivery/pickup date has passed and order is still pending/preparing/ready
+                    if (deliveryDateTime < currentDate && 
+                        ['Pending', 'Preparing', 'Ready for Delivery', 'Ready for Pick-up'].includes(status)) {
+                        warningHtml = '<br><span class="warning-badge critical">🚨 OVERDUE</span>';
+                    }
+                    // Check if delivery/pickup is tomorrow and status is still pending
+                    else if (deliveryDateOnly.toDateString() === tomorrow.toDateString() && status === 'Pending') {
+                        warningHtml = '<br><span class="warning-badge urgent">⚠️ DUE TOMORROW</span>';
+                    }
+                    // Check if delivery/pickup is today and status is still pending
+                    else if (deliveryDateOnly.toDateString() === today.toDateString() && status === 'Pending') {
+                        warningHtml = '<br><span class="warning-badge today">⏰ DUE TODAY</span>';
+                    }
+                }
                 
                 html += `
                     <tr>
@@ -295,7 +351,7 @@
                         <td>${escapeHtml(order.payment_method)}</td>
                         <td>
                             ${escapeHtml(order.delivery_method)}<br>
-                            ${dateFormatted}${timeFormatted}
+                            ${dateFormatted}${timeFormatted}${warningHtml}
                         </td>
                         <td>
                             <span class="status-badge status-${statusClass}">

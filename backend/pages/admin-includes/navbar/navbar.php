@@ -10,6 +10,14 @@ if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
 }
 
 $isAdmin = isset($_SESSION['isAdmin']) && $_SESSION['isAdmin'] == 1;
+
+// Include database connection and order count helper
+require_once __DIR__ . '/../database.php';
+require_once __DIR__ . '/order-count-helper.php';
+
+// Get order counts
+$order_counts = getOrderCounts($conn);
+$bulk_counts = getBulkOrderCounts($conn);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -18,7 +26,9 @@ $isAdmin = isset($_SESSION['isAdmin']) && $_SESSION['isAdmin'] == 1;
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../admin-includes/navbar/reset.css">
     <link rel="stylesheet" href="../admin-includes/navbar/navbar.css">
+    <link rel="stylesheet" href="../admin-includes/notifications/notifications.css">
     <script src="../admin-includes/navbar/navbar.js" defer></script>
+    <script src="../admin-includes/notifications/notifications.js" defer></script>
     <title>Neo Cafe Admin</title>
 </head>
 <body>
@@ -135,17 +145,25 @@ $isAdmin = isset($_SESSION['isAdmin']) && $_SESSION['isAdmin'] == 1;
                                 <path d="m1 1 4 4 2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
                             </svg>
                             <span class="nav-text">Orders</span>
+                            <?php if ($order_counts['active'] > 0): ?>
+                            <span class="nav-count-badge"><?php echo $order_counts['active']; ?></span>
+                            <?php endif; ?>
                         </a>
                     </li>
 
                     <li class="nav-item">
                         <a href="../bulks/bulk-order-lists.php" class="nav-link">
                             <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="9" cy="21" r="1"></circle>
-                                <circle cx="20" cy="21" r="1"></circle>
-                                <path d="m1 1 4 4 2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                                <polyline points="14,2 14,8 20,8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10,9 9,9 8,9"></polyline>
                             </svg>
                             <span class="nav-text">Bulk Orders</span>
+                            <?php if ($bulk_counts['active'] > 0): ?>
+                            <span class="nav-count-badge"><?php echo $bulk_counts['active']; ?></span>
+                            <?php endif; ?>
                         </a>
                     </li>
 
@@ -162,11 +180,10 @@ $isAdmin = isset($_SESSION['isAdmin']) && $_SESSION['isAdmin'] == 1;
                     <li class="nav-item">
                         <a href="../blog/admin-blog.php" class="nav-link">
                             <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
-                                <polyline points="14,2 14,8 20,8"></polyline>
-                                <line x1="16" y1="13" x2="8" y2="13"></line>
-                                <line x1="16" y1="17" x2="8" y2="17"></line>
-                                <polyline points="10,9 9,9 8,9"></polyline>
+                                <path d="m12 19 7-7 3 3-7 7-3-3z"></path>
+                                <path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
+                                <path d="m2 2 7.586 7.586"></path>
+                                <circle cx="11" cy="11" r="2"></circle>
                             </svg>
                             <span class="nav-text">Blog</span>
                         </a>
@@ -180,17 +197,6 @@ $isAdmin = isset($_SESSION['isAdmin']) && $_SESSION['isAdmin'] == 1;
                             </svg>
                             <span class="nav-text">User Page Content</span>
                         </a>
-                    </li>
-
-                    <li class="nav-item">
-                      <a href="../archives/archive.php" class="nav-link">
-                          <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                              <rect x="2" y="3" width="20" height="5" rx="1"></rect>
-                              <path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path>
-                              <path d="M10 12h4"></path>
-                          </svg>
-                          <span class="nav-text">Archive</span>
-                      </a>
                     </li>
 
                 </ul>
@@ -282,6 +288,7 @@ $isAdmin = isset($_SESSION['isAdmin']) && $_SESSION['isAdmin'] == 1;
                         Admin Home
                     </a>
                 <?php endif; ?>
+                <!-- Notification bell will be inserted here by JavaScript -->
             </div>
         </header>
         <div class="content-wrapper">

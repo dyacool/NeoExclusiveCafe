@@ -404,9 +404,6 @@ body {
 .detail-group {
   margin-bottom: 1.5rem;
   background: white;
-  padding: 1rem;
-  border-radius: 8px;
-  border: 1px solid var(--gray-200);
 }
 
 .detail-group p {
@@ -471,6 +468,111 @@ body {
 
   .items-table {
     min-width: 500px;
+  }
+}
+
+/* Warning Badge and Message Styles */
+.warning-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  animation: pulse 2s infinite;
+}
+
+.warning-badge.critical {
+  background-color: var(--red-600);
+  color: white;
+  animation: pulse-urgent 1s infinite;
+  box-shadow: 0 0 10px rgba(220, 38, 38, 0.5);
+}
+
+.warning-badge.urgent {
+  background-color: var(--orange-500);
+  color: white;
+  box-shadow: 0 0 8px rgba(249, 115, 22, 0.4);
+}
+
+.warning-badge.today {
+  background-color: #eab308;
+  color: var(--gray-900);
+  box-shadow: 0 0 6px rgba(234, 179, 8, 0.4);
+}
+
+.warning-message {
+  margin: 1rem 0;
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 4px solid;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.warning-message .warning-header {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.warning-message .warning-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.warning-message .warning-description {
+  font-size: 0.85rem;
+  opacity: 0.9;
+  margin-top: 0.25rem;
+}
+
+.warning-message.critical {
+  background-color: #fef2f2;
+  border-left-color: var(--red-600);
+  color: var(--red-700);
+}
+
+.warning-message.critical .warning-header {
+  color: var(--red-800);
+}
+
+.warning-message.urgent {
+  background-color: var(--orange-50);
+  border-left-color: var(--orange-500);
+  color: var(--orange-700);
+}
+
+.warning-message.urgent .warning-header {
+  color: var(--orange-800);
+}
+
+.warning-message.today {
+  background-color: #fefce8;
+  border-left-color: #eab308;
+  color: #a16207;
+}
+
+.warning-message.today .warning-header {
+  color: #92400e;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
   }
 }
 
