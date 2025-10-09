@@ -11,13 +11,30 @@ if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
 
 $isAdmin = isset($_SESSION['isAdmin']) && $_SESSION['isAdmin'] == 1;
 
-// Include database connection and order count helper
-require_once __DIR__ . '/../database.php';
+// Include database connection only if not already included
+if (!isset($conn)) {
+    require_once __DIR__ . '/../database.php';
+}
+
+// Include order count helper
 require_once __DIR__ . '/order-count-helper.php';
 
-// Get order counts
-$order_counts = getOrderCounts($conn);
-$bulk_counts = getBulkOrderCounts($conn);
+// Get order counts only if connection is valid
+$order_counts = ['total' => 0, 'active' => 0, 'pending' => 0];
+$bulk_counts = ['total' => 0, 'active' => 0];
+
+if (isset($conn) && $conn instanceof mysqli) {
+    try {
+        // Check if connection is actually open by testing thread_id
+        if ($conn->thread_id !== null) {
+            $order_counts = getOrderCounts($conn);
+            $bulk_counts = getBulkOrderCounts($conn);
+        }
+    } catch (Exception $e) {
+        // Connection is closed or invalid, use default values
+        error_log("Navbar connection error: " . $e->getMessage());
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">

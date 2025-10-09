@@ -12,6 +12,7 @@ document.addEventListener("DOMContentLoaded", function () {
   loadBusinessHours();
   loadDateLimitsForMonth(currentDate); // Add this line to load date limits
   setupEventListeners();
+  setupModalEventListeners(); // Add modal event listeners
 });
 
 function setupEventListeners() {
@@ -59,8 +60,15 @@ function setupEventListeners() {
   // Close button handlers
   document.querySelectorAll(".close").forEach((closeBtn) => {
     closeBtn.onclick = function () {
-      orderModal.style.display = "none";
-      if (dailyLimitModal) dailyLimitModal.style.display = "none";
+      // Check which modal this close button belongs to
+      const parentModal = this.closest(".modal, .order-details-modal");
+      if (parentModal) {
+        if (parentModal.id === "dateLimitModal") {
+          closeDateLimitModal();
+        } else {
+          parentModal.style.display = "none";
+        }
+      }
     };
   });
 
@@ -88,6 +96,11 @@ function setupEventListeners() {
   }
 }
 
+function setupModalEventListeners() {
+  // Additional modal event setup if needed
+  console.log("Modal event listeners setup complete");
+}
+
 function renderCalendar(date) {
   const daysContainer = document.querySelector(".days");
   const monthYear = document.getElementById("monthYear");
@@ -112,7 +125,12 @@ function renderCalendar(date) {
   // Add days of the month
   for (let i = 1; i <= daysInMonth; i++) {
     const dayDate = new Date(date.getFullYear(), date.getMonth(), i);
-    const dateStr = dayDate.toISOString().split("T")[0];
+    // Fix date string creation to avoid timezone issues
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(i).padStart(2, "0");
+    const dateStr = `${year}-${month}-${day}`;
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -131,7 +149,7 @@ function renderCalendar(date) {
       dayContent += '<div class="past-indicator">Past</div>';
     } else {
       // Check if date has orders or limits
-      clickHandler = `onclick="showDateLimit('${dateStr}')"`;
+      clickHandler = `onclick="openDateLimitModal('${dateStr}')"`;
 
       // Check if date is not accepting orders
       if (
@@ -615,42 +633,53 @@ function showOrderDetails(orderId) {
             `;
 
       orderInfo.innerHTML = `
-                <div class="order-details-grid">
-                    <div class="order-details-section">
-                        <h3>Order Information ${statusBadge}</h3>
-                        <p><strong>Order #:</strong> ${order.order_id}</p>
-                        <p><strong>Order Date:</strong> ${order.order_date}</p>
-                        <p><strong>Delivery Mode:</strong> ${
-                          order.order_type
-                        }</p>
-                        ${displayDate}
-                        <p><strong>Time:</strong> ${order.pickup_time}</p>
-                        <p><strong>Payment Method:</strong> ${
-                          order.payment_method || "N/A"
-                        }</p>
+                <div class="modal-header">
+                    <h3>Order Details</h3>
+                    <span class="close" onclick="document.getElementById('orderModal').style.display='none'">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="order-details-grid">
+                        <div class="order-details-section">
+                            <h3>Order Information ${statusBadge}</h3>
+                            <p><strong>Order #:</strong> ${order.order_id}</p>
+                            <p><strong>Order Date:</strong> ${
+                              order.order_date
+                            }</p>
+                            <p><strong>Delivery Mode:</strong> ${
+                              order.order_type
+                            }</p>
+                            ${displayDate}
+                            <p><strong>Time:</strong> ${order.pickup_time}</p>
+                            <p><strong>Payment Method:</strong> ${
+                              order.payment_method || "N/A"
+                            }</p>
+                        </div>
+                        
+                        <div class="order-details-section">
+                            <h3>Customer Information</h3>
+                            <p><strong>Name:</strong> ${order.customer_name}</p>
+                            <p><strong>Email:</strong> ${
+                              order.customer_email || "N/A"
+                            }</p>
+                            <p><strong>Contact:</strong> ${
+                              order.customer_contact || "N/A"
+                            }</p>
+                            <p><strong>Address:</strong> ${
+                              order.customer_address || "N/A"
+                            }</p>
+                            ${
+                              order.notes
+                                ? `<p><strong>Notes:</strong> ${order.notes}</p>`
+                                : ""
+                            }
+                        </div>
                     </div>
                     
-                    <div class="order-details-section">
-                        <h3>Customer Information</h3>
-                        <p><strong>Name:</strong> ${order.customer_name}</p>
-                        <p><strong>Email:</strong> ${
-                          order.customer_email || "N/A"
-                        }</p>
-                        <p><strong>Contact:</strong> ${
-                          order.customer_contact || "N/A"
-                        }</p>
-                        <p><strong>Address:</strong> ${
-                          order.customer_address || "N/A"
-                        }</p>
-                        ${
-                          order.notes
-                            ? `<p><strong>Notes:</strong> ${order.notes}</p>`
-                            : ""
-                        }
-                    </div>
+                    ${itemsHtml}
                 </div>
-                
-                ${itemsHtml}
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('orderModal').style.display='none'">Close</button>
+                </div>
             `;
 
       modal.style.display = "block";
@@ -951,3 +980,153 @@ function saveDailyLimit() {
 window.openDailyLimitModal = openDailyLimitModal;
 window.closeDailyLimitModal = closeDailyLimitModal;
 window.saveDailyLimit = saveDailyLimit;
+
+// Date Limit Modal Functions
+let selectedDate = "";
+
+function openDateLimitModal(date) {
+  selectedDate = date;
+  const modal = document.getElementById("dateLimitModal");
+  const modalTitle = document.getElementById("modalTitle");
+  const dateLimitInput = document.getElementById("dateLimitInput");
+  const notAcceptingCheckbox = document.getElementById("notAcceptingOrders");
+
+  console.log("Opening modal for date:", date); // Debug log
+
+  // Format date for display - Fix timezone issue
+  const dateParts = date.split("-");
+  const year = parseInt(dateParts[0]);
+  const month = parseInt(dateParts[1]) - 1; // Month is 0-based
+  const day = parseInt(dateParts[2]);
+  const dateObj = new Date(year, month, day);
+
+  console.log("Date parts:", { year, month: month + 1, day }); // Debug log
+  console.log("Created date object:", dateObj); // Debug log
+
+  const formattedDate = dateObj.toLocaleDateString("en-US", {
+    month: "numeric",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  console.log("Formatted date:", formattedDate); // Debug log
+
+  modalTitle.textContent = `Set Order Limit for ${formattedDate}`;
+
+  // Check if we have existing limit data for this date
+  if (dateLimits[date]) {
+    dateLimitInput.value = dateLimits[date].limit;
+    notAcceptingCheckbox.checked =
+      dateLimits[date].status === "not_accepting" ||
+      dateLimits[date].limit === 0;
+  } else {
+    // Use default daily limit
+    const defaultLimit = document.getElementById("dailyLimit").value;
+    dateLimitInput.value = defaultLimit;
+    notAcceptingCheckbox.checked = false;
+  }
+
+  // Handle checkbox change to disable/enable input
+  notAcceptingCheckbox.onchange = function () {
+    if (this.checked) {
+      dateLimitInput.value = 0;
+      dateLimitInput.disabled = true;
+    } else {
+      dateLimitInput.disabled = false;
+      // Restore default limit if available
+      const defaultLimit = document.getElementById("dailyLimit").value;
+      dateLimitInput.value = defaultLimit;
+    }
+  };
+
+  // Set initial state
+  dateLimitInput.disabled = notAcceptingCheckbox.checked;
+
+  modal.style.display = "block";
+}
+
+function closeDateLimitModal() {
+  const modal = document.getElementById("dateLimitModal");
+  modal.style.display = "none";
+  selectedDate = "";
+}
+
+function saveDateLimit() {
+  const dateLimitInput = document.getElementById("dateLimitInput");
+  const notAcceptingCheckbox = document.getElementById("notAcceptingOrders");
+
+  const limit = notAcceptingCheckbox.checked
+    ? 0
+    : parseInt(dateLimitInput.value);
+
+  if (isNaN(limit) || limit < 0) {
+    alert("Please enter a valid limit (0 or greater)");
+    return;
+  }
+
+  console.log("Saving date limit for:", selectedDate, "limit:", limit);
+
+  // Show loading state
+  const saveBtn = document.querySelector(".modal-footer .btn-primary");
+  const originalText = saveBtn.textContent;
+  saveBtn.textContent = "Updating...";
+  saveBtn.disabled = true;
+
+  fetch("update-limit.php", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      type: "date",
+      date: selectedDate,
+      limit: limit,
+    }),
+  })
+    .then((response) => response.text())
+    .then((text) => {
+      try {
+        const data = JSON.parse(text);
+        console.log("Save response:", data);
+
+        if (data.success) {
+          // Update the dateLimits object
+          dateLimits[selectedDate] = {
+            limit: limit,
+            is_full: limit === 0,
+            active_orders: dateLimits[selectedDate]?.active_orders || 0,
+            remaining_slots:
+              limit - (dateLimits[selectedDate]?.active_orders || 0),
+            status: limit === 0 ? "not_accepting" : "accepting",
+          };
+
+          // Update the calendar display
+          renderCalendar(currentDate);
+
+          // Close modal
+          closeDateLimitModal();
+
+          alert("Order limit updated successfully!");
+        } else {
+          throw new Error(data.error || "Unknown error");
+        }
+      } catch (e) {
+        console.error("Error updating date limit:", e);
+        alert("Error updating date limit: " + e.message);
+      }
+    })
+    .catch((error) => {
+      console.error("Error updating limit:", error);
+      alert("Error updating limit. Please try again.");
+    })
+    .finally(() => {
+      // Reset button state
+      saveBtn.textContent = originalText;
+      saveBtn.disabled = false;
+    });
+}
+
+// Make date limit functions available globally
+window.openDateLimitModal = openDateLimitModal;
+window.closeDateLimitModal = closeDateLimitModal;
+window.saveDateLimit = saveDateLimit;

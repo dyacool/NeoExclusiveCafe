@@ -280,10 +280,6 @@ try {
     error_log("Availtoday products query error: " . $e->getMessage());
 }
 
-// ======================
-// CALCULATE PERCENTAGE CHANGES
-// ======================
-
 // Today vs Yesterday income change
 if ($yesterday_income > 0) {
     $today_change_percent = round((($stats['today_income'] - $yesterday_income) / $yesterday_income) * 100, 1);
@@ -478,30 +474,45 @@ try {
                     </div>
                 </div>
 
-                <!-- Sidebar: Calendar -->
-                <div class="dashboard-sidebar">
-                    <!-- Calendar Widget -->
-                    <div class="calendar-card">
-                        <div class="calendar-header">
-                            <button class="calendar-nav" onclick="previousMonth()">«</button>
-                            <span class="calendar-month" id="calendar-month-year">Aug 2025</span>
-                            <button class="calendar-nav" onclick="nextMonth()">»</button>
-                        </div>
-                        <div class="calendar-body">
-                            <div class="calendar-weekdays">
-                                <div class="weekday">S</div>
-                                <div class="weekday">M</div>
-                                <div class="weekday">T</div>
-                                <div class="weekday">W</div>
-                                <div class="weekday">T</div>
-                                <div class="weekday">F</div>
-                                <div class="weekday">S</div>
+                <div class="dashboard-section-1-content">
+                    <div class="business-hours-card">
+                        <h3>Business Hours</h3>
+                        <div class="time-controls">
+                            <div class="time-group">
+                                <label>Opens:</label>
+                                <input type="time" id="openingTime" name="openingTime" value="08:00">
                             </div>
-                            <div class="calendar-days" id="calendar-days"></div>
+                            <div class="time-group">
+                                <label>Closes:</label>
+                                <input type="time" id="closingTime" name="closingTime" value="04:42">
+                            </div>
                         </div>
-                        <div class="calendar-footer">
-                            <a href="#" class="calendar-link">full calendar</a>
-                            <span class="calendar-note">note</span>
+                        <button class="btn-primary btn-full" onclick="updateBusinessHours()" id="saveHoursBtn">Save Hours</button>
+                    </div>
+
+                    <div class="dashboard-sidebar">
+                        <div class="calendar-card">
+                            <div class="calendar-header">
+                                <button class="calendar-nav" onclick="previousMonth()">«</button>
+                                <span class="calendar-month" id="calendar-month-year">Aug 2025</span>
+                                <button class="calendar-nav" onclick="nextMonth()">»</button>
+                            </div>
+                            <div class="calendar-body">
+                                <div class="calendar-weekdays">
+                                    <div class="weekday">S</div>
+                                    <div class="weekday">M</div>
+                                    <div class="weekday">T</div>
+                                    <div class="weekday">W</div>
+                                    <div class="weekday">T</div>
+                                    <div class="weekday">F</div>
+                                    <div class="weekday">S</div>
+                                </div>
+                                <div class="calendar-days" id="calendar-days"></div>
+                            </div>
+                            <div class="calendar-footer">
+                                <a href="#" class="calendar-link">full calendar</a>
+                                <span class="calendar-note">note</span>
+                            </div>
                         </div>
                     </div>
                 </div>

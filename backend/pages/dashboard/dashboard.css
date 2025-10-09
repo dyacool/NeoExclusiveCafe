@@ -37,19 +37,6 @@
   }
 }
 
-@media (max-width: 768px) {
-  .main-container {
-    margin-left: 0 !important;
-    padding: 0.75rem;
-  }
-}
-
-@media (max-width: 576px) {
-  .main-container {
-    padding: 0.5rem;
-  }
-}
-
 .dashboard-section-1 {
   display: flex;
   gap: 1.25rem;
@@ -60,7 +47,7 @@
 .service-cards-grid {
   flex: 1;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 1.5rem;
   min-width: 0; /* Allow shrinking */
 }
@@ -136,7 +123,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  height: 350px;
+  height: 345px;
 }
 
 /* Calendar Widget */
@@ -147,7 +134,7 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border: 1px solid #e9ecef;
   flex: 1;
-  min-height: 350px;
+  min-height: 345px;
   overflow: hidden; /* Prevent calendar overflow */
 }
 
@@ -218,6 +205,362 @@
 
 .calendar-day:hover {
   background: #e9ecef;
+}
+
+.dashboard-section-1-content {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+}
+
+/* Business Hours Card */
+.business-hours-card {
+  background: #fff;
+  width: 250px;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e5e7eb;
+}
+
+.business-hours-card h3 {
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #212529;
+}
+
+.time-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.time-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.time-group label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.time-group input[type="time"] {
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #fff;
+  transition: all 0.2s ease;
+}
+
+.time-group input[type="time"]:focus {
+  outline: none;
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+.btn-full {
+  width: 100%;
+}
+
+/* Breakpoint for 1628px - Scale down dashboard-section-1 contents */
+@media (max-width: 1628px) {
+  .dashboard-section-1 {
+    gap: 1rem;
+    margin-bottom: 1.125rem;
+  }
+
+  .service-cards-grid {
+    gap: 1.25rem;
+    height: 320px;
+    grid-template-rows: 1fr 1fr;
+    align-content: stretch;
+  }
+
+  .service-card {
+    height: 148px;
+    padding: 1.5rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .card-title {
+    font-size: 0.85rem;
+    margin-bottom: 0.15rem;
+  }
+
+  .card-value {
+    font-size: 1.6rem;
+    margin-bottom: 0.15rem;
+    line-height: 1;
+  }
+
+  .card-change {
+    font-size: 0.8rem;
+    line-height: 1.1;
+  }
+
+  .card-header {
+    margin-bottom: 0.35rem;
+  }
+
+  /* Scale down calendar sidebar */
+  .dashboard-sidebar {
+    width: 260px;
+    height: 320px;
+    gap: 0;
+  }
+
+  .calendar-card {
+    padding: 0.75rem;
+    min-height: 320px;
+    height: 320px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .calendar-header {
+    margin-bottom: 0.75rem;
+    flex-shrink: 0;
+  }
+
+  .calendar-body {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .calendar-weekdays {
+    flex-shrink: 0;
+    margin-bottom: 8px;
+  }
+
+  .calendar-days {
+    flex-grow: 1;
+    align-content: center;
+    min-height: 168px;
+    max-height: 168px;
+  }
+
+  .calendar-footer {
+    margin-top: 0.75rem;
+    flex-shrink: 0;
+  }
+
+  .calendar-month {
+    font-size: 0.9rem;
+  }
+
+  .calendar-nav {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .weekday {
+    font-size: 0.65rem;
+    padding: 6px 0;
+  }
+
+  .calendar-day {
+    font-size: 0.7rem;
+    min-height: 28px;
+    border-radius: 4px;
+  }
+
+  .calendar-link,
+  .calendar-note {
+    font-size: 0.75rem;
+  }
+
+  .business-hours-card {
+    padding: 20px;
+    width: 260px;
+    height: 320px;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0;
+  }
+
+  .business-hours-card h3 {
+    font-size: 16px;
+    margin-bottom: 10px;
+    flex-shrink: 0;
+  }
+
+  .time-controls {
+    gap: 16px;
+    margin-bottom: 20px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .time-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .time-group input[type="time"] {
+    padding: 12px;
+    font-size: 14px;
+  }
+
+  .btn-primary {
+    padding: 12px 20px;
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: auto;
+  }
+}
+
+@media (max-width: 1440px) {
+  .dashboard-section-1 {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Summary Cards Container */
+  .service-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 1.25rem;
+    width: 100%;
+    height: auto;
+  }
+
+  .service-card {
+    height: 140px;
+    padding: 1.25rem;
+  }
+
+  .card-title {
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .card-value {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    line-height: 1;
+  }
+
+  .card-change {
+    font-size: 0.8rem;
+    line-height: 1.1;
+  }
+
+  .card-header {
+    margin-bottom: 0.75rem;
+  }
+
+  /* Hours and Calendar Container */
+  .dashboard-section-1-content {
+    display: flex;
+    flex-direction: row;
+    gap: 1.25rem;
+    height: auto;
+    width: 100%;
+  }
+
+  .business-hours-card {
+    flex: 1;
+    width: auto;
+    padding: 1.5rem;
+    margin-bottom: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .business-hours-card h3 {
+    font-size: 16px;
+    margin-bottom: 10px;
+    flex-shrink: 0;
+  }
+
+  .time-controls {
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+
+    justify-content: center;
+  }
+
+  .time-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .time-group label {
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .time-group input[type="time"] {
+    padding: 12px;
+    font-size: 14px;
+    border-radius: 6px;
+  }
+
+  .btn-primary {
+    padding: 12px 16px;
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: auto;
+  }
+
+  .dashboard-sidebar {
+    flex: 1;
+    width: auto;
+    gap: 0;
+  }
+
+  .calendar-card {
+    padding: 1rem 2.5rem;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 1136px) {
+  .dashboard-section-2 {
+    display: flex;
+
+    flex-direction: column;
+  }
 }
 
 .calendar-day.today {
@@ -495,820 +838,7 @@
   animation-delay: 0.6s;
 }
 
-@media (max-width: 1800px) {
-  .dashboard-section-1 {
-    gap: 1rem;
-    margin-bottom: 1.125rem;
-  }
-
-  .service-cards-grid {
-    gap: 1.25rem;
-  }
-
-  .service-card {
-    border-radius: 8px;
-    height: 152px;
-    padding: 2rem 1.875rem;
-  }
-
-  .card-header {
-    margin-bottom: 0.875rem;
-  }
-
-  .card-title {
-    font-size: 0.875rem;
-  }
-
-  .card-icon {
-    width: 1.125rem;
-    height: 1.125rem;
-    font-size: 0.75rem;
-  }
-
-  .card-value {
-    gap: 0.5rem;
-    font-size: 1.625rem;
-    margin-bottom: 0.625rem;
-  }
-
-  .card-value::before {
-    padding: 0 0.375rem 0 0;
-  }
-
-  .card-change {
-    font-size: 0.75rem;
-  }
-
-  /* calendar */
-  .dashboard-sidebar {
-    width: 275px;
-    gap: 12px;
-    height: 325px;
-  }
-
-  .calendar-card {
-    border-radius: 8px;
-    padding: 0.875rem;
-    min-height: 325px;
-  }
-
-  .calendar-header {
-    margin-bottom: 0.625rem;
-  }
-
-  .calendar-nav {
-    font-size: 0.875rem;
-    padding: 0.375rem 0.5rem;
-  }
-
-  .calendar-month {
-    font-size: 0.875rem;
-  }
-
-  .calendar-weekdays {
-    gap: 2px;
-    margin-bottom: 6px;
-  }
-
-  .weekday {
-    font-size: 0.75rem;
-    padding: 6px 0;
-  }
-
-  .calendar-day {
-    font-size: 0.75rem;
-    border-radius: 4px;
-    min-height: 24px;
-  }
-
-  .calendar-link {
-    font-size: 0.75rem;
-    text-decoration: none;
-  }
-
-  .calendar-note {
-    font-size: 0.75rem;
-    color: #adb5bd;
-  }
-
-  .dashboard-section-2 {
-    gap: 24px;
-    margin-bottom: 24px;
-  }
-
-  .chart-card {
-    border-radius: 12px;
-    padding: 1.5rem;
-  }
-
-  .chart-header {
-    margin-bottom: 20px;
-  }
-
-  .chart-header h3 {
-    font-size: 18px;
-    margin-bottom: 4px;
-  }
-
-  .chart-subtitle {
-    font-size: 14px;
-  }
-
-  .chart-container {
-    height: 300px;
-  }
-
-  .dashboard-section-3 {
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-  }
-
-  .table-card {
-    border-radius: 0.75rem;
-    padding: 1.5rem;
-  }
-
-  .table-header {
-    margin-bottom: 20px;
-  }
-
-  .table-header h3 {
-    font-size: 18px;
-    margin-bottom: 4px;
-  }
-
-  .table-subtitle {
-    font-size: 14px;
-    color: #6c757d;
-  }
-
-  .data-table td {
-    padding: 16px 0;
-  }
-
-  .customer-name {
-    font-size: 14px;
-    font-weight: 500;
-  }
-
-  .transaction-id,
-  .order-id {
-    font-size: 12px;
-    color: #6c757d;
-  }
-
-  .amount {
-    font-size: 14px;
-    margin-bottom: 4px;
-  }
-
-  .status-badge {
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 11px;
-  }
-
-  .empty-state {
-    padding: 40px 20px;
-  }
-
-  .empty-state i {
-    font-size: 24px;
-    margin-bottom: 12px;
-  }
-
-  .empty-state p {
-    font-size: 14px;
-  }
-}
-
-@media (max-width: 1628px) {
-  .dashboard-section-1 {
-    gap: 1rem;
-    margin-bottom: 1.125rem;
-  }
-
-  .service-cards-grid {
-    gap: 1.125rem;
-  }
-
-  .service-card {
-    border-radius: 8px;
-    height: 130px;
-    padding: 1.75rem 1rem;
-  }
-
-  .card-header {
-    margin-bottom: 0.75rem;
-  }
-
-  .card-title {
-    font-size: 0.75rem;
-  }
-
-  .card-icon {
-    width: 1rem;
-    height: 1rem;
-    font-size: 0.625rem;
-  }
-
-  .card-value {
-    gap: 0.5rem;
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .card-value::before {
-    padding: 0 0.375rem 0 0;
-  }
-
-  .card-change {
-    font-size: 0.625rem;
-  }
-
-  /* calendar */
-  .dashboard-sidebar {
-    width: 250px;
-    gap: 10px;
-    height: 280px !important;
-  }
-
-  .calendar-card {
-    border-radius: 8px;
-    padding: 0.75rem;
-    min-height: 280px;
-  }
-
-  .calendar-header {
-    margin-bottom: 0.375rem;
-    padding: 0 0.225rem;
-  }
-
-  .calendar-nav {
-    font-size: 0.75rem;
-    padding: 0.25rem 0.375rem;
-  }
-
-  .calendar-month {
-    font-size: 0.875rem;
-  }
-
-  .calendar-weekdays {
-    gap: 1px;
-    margin-bottom: 4px;
-  }
-
-  .weekday {
-    font-size: 0.625rem;
-    padding: 4px 0;
-  }
-
-  .calendar-day {
-    font-size: 0.75rem;
-    border-radius: 3px;
-    min-height: 20px;
-  }
-
-  .calendar-footer {
-    margin-top: 8px;
-    padding-top: 6px;
-  }
-
-  .calendar-link {
-    font-size: 0.75rem;
-  }
-
-  .calendar-note {
-    font-size: 0.625rem;
-  }
-
-  /* Dashboard Section 2: Charts */
-  .dashboard-section-2 {
-    gap: 20px;
-    margin-bottom: 20px;
-  }
-
-  .chart-card {
-    border-radius: 10px;
-    padding: 1.25rem;
-  }
-
-  .chart-header {
-    margin-bottom: 16px;
-  }
-
-  .chart-header h3 {
-    font-size: 16px;
-    margin-bottom: 3px;
-  }
-
-  .chart-subtitle {
-    font-size: 12px;
-  }
-
-  .chart-container {
-    height: 280px;
-  }
-
-  /* Dashboard Section 3: Tables */
-  .dashboard-section-3 {
-    grid-template-columns: 1fr 1fr;
-    gap: 1.25rem;
-  }
-
-  .table-card {
-    border-radius: 10px;
-    padding: 1.25rem;
-  }
-
-  .table-header {
-    margin-bottom: 16px;
-  }
-
-  .table-header h3 {
-    font-size: 16px;
-    margin-bottom: 3px;
-  }
-
-  .table-subtitle {
-    font-size: 12px;
-  }
-
-  .data-table td {
-    padding: 14px 0;
-  }
-
-  .customer-name {
-    font-size: 12px;
-  }
-
-  .transaction-id,
-  .order-id {
-    font-size: 10px;
-  }
-
-  .amount {
-    font-size: 12px;
-    margin-bottom: 3px;
-  }
-
-  .status-badge {
-    padding: 3px 6px;
-    border-radius: 10px;
-    font-size: 9px;
-  }
-
-  .empty-state {
-    padding: 32px 16px;
-  }
-
-  .empty-state i {
-    font-size: 20px;
-    margin-bottom: 10px;
-  }
-
-  .empty-state p {
-    font-size: 12px;
-  }
-}
-
-@media (max-width: 1440px) {
-  .dashboard-section-1 {
-    gap: 1rem;
-    margin-bottom: 1.125rem;
-    height: 260px !important;
-  }
-
-  .service-cards-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-  }
-
-  .service-card {
-    transition: ease 0.3s;
-    border-radius: 8px;
-    height: 122px;
-    padding: 1.625rem 1.625rem;
-  }
-
-  .card-header {
-    margin-bottom: 0.625rem;
-  }
-
-  .card-title {
-    font-size: 0.625rem;
-  }
-
-  .card-icon {
-    width: 1rem;
-    height: 1rem;
-    font-size: 0.625rem;
-  }
-
-  .card-value {
-    gap: 0.5rem;
-    font-size: 1.375rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .card-value::before {
-    padding: 0 0.375rem 0 0;
-  }
-
-  .card-change {
-    font-size: 0.625rem;
-  }
-
-  /* calendar */
-  .dashboard-sidebar {
-    width: 235px;
-    gap: 8px;
-    height: 260px !important;
-  }
-
-  .calendar-card {
-    min-height: 260px;
-    border-radius: 8px;
-    padding: 0.625rem;
-  }
-
-  .calendar-header {
-    margin-bottom: 0.375rem;
-    padding: 0 0.25rem;
-  }
-
-  .calendar-nav {
-    font-size: 0.75rem;
-    padding: 0.25rem 0.375rem;
-  }
-
-  .calendar-month {
-    font-size: 0.75rem;
-  }
-
-  .calendar-weekdays {
-    gap: 1px;
-    margin-bottom: 3px;
-  }
-
-  .weekday {
-    font-size: 0.625rem;
-    padding: 4px 0;
-  }
-
-  .calendar-day {
-    font-size: 0.625rem;
-    border-radius: 3px;
-    min-height: 20px;
-  }
-
-  .calendar-footer {
-    margin-top: 8px;
-    padding-top: 6px;
-  }
-
-  .calendar-link {
-    font-size: 0.625rem;
-  }
-
-  .calendar-note {
-    font-size: 0.625rem;
-  }
-
-  /* Dashboard Section 2: Charts */
-  .dashboard-section-2 {
-    gap: 20px;
-    margin-bottom: 20px;
-  }
-
-  .chart-card {
-    border-radius: 10px;
-    padding: 1.25rem;
-  }
-
-  .chart-header {
-    margin-bottom: 14px;
-  }
-
-  .chart-header h3 {
-    font-size: 14px;
-    margin-bottom: 3px;
-  }
-
-  .chart-subtitle {
-    font-size: 10px;
-  }
-
-  .chart-container {
-    height: 240px;
-  }
-
-  /* Dashboard Section 3: Tables */
-  .dashboard-section-3 {
-    grid-template-columns: 1fr 1fr;
-    gap: 1.25rem;
-  }
-
-  .table-card {
-    border-radius: 10px;
-    padding: 1.125rem;
-  }
-
-  .table-header {
-    margin-bottom: 14px;
-  }
-
-  .table-header h3 {
-    font-size: 14px;
-    margin-bottom: 3px;
-  }
-
-  .table-subtitle {
-    font-size: 10px;
-  }
-
-  .data-table td {
-    padding: 12px 0;
-  }
-
-  .customer-name {
-    font-size: 10px;
-  }
-
-  .transaction-id,
-  .order-id {
-    font-size: 10px;
-  }
-
-  .amount {
-    font-size: 10px;
-    margin-bottom: 3px;
-  }
-
-  .status-badge {
-    padding: 3px 6px;
-    border-radius: 10px;
-    font-size: 9px;
-  }
-
-  .empty-state {
-    padding: 30px 14px;
-  }
-
-  .empty-state i {
-    font-size: 18px;
-    margin-bottom: 10px;
-  }
-
-  .empty-state p {
-    font-size: 10px;
-  }
-}
-
-/* 175% */
-@media (max-width: 1178px) {
-  .dashboard-section-1 {
-    gap: 0.875rem;
-    margin-bottom: 0.5rem;
-    height: 250px !important;
-  }
-
-  .service-cards-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.875rem;
-  }
-
-  .service-card {
-    height: 115px;
-    padding: 1.75rem 1.5rem;
-  }
-
-  .card-header {
-    margin-bottom: 0.5rem;
-  }
-
-  .card-title {
-    font-size: 0.5rem;
-  }
-
-  .card-icon {
-    width: 0.875rem;
-    height: 0.875rem;
-    font-size: 0.5rem;
-  }
-
-  .card-value {
-    font-size: 1.25rem;
-    margin-bottom: 0.375rem;
-  }
-
-  .card-change {
-    font-size: 0.5rem;
-  }
-
-  .dashboard-sidebar {
-    width: 220px;
-    height: 245px !important;
-  }
-
-  .calendar-card {
-    min-height: 245px;
-    padding: 0.75rem;
-  }
-
-  .calendar-header {
-    margin-bottom: 0.375rem;
-    padding: 0 0.25rem;
-  }
-  .calendar-nav {
-    font-size: 0.625rem;
-    padding: 0.25rem 0.375rem;
-    background-color: var(--green-100);
-  }
-
-  .calendar-month {
-    font-size: 0.75rem;
-  }
-
-  .weekday {
-    font-size: 0.625rem;
-    padding: 3px 0;
-  }
-
-  .calendar-day {
-    font-size: 0.625rem;
-    min-height: 18px;
-  }
-
-  .calendar-footer {
-    margin-top: 7px;
-    padding-top: 5px;
-  }
-
-  .calendar-link {
-    font-size: 0.625rem;
-  }
-
-  .dashboard-section-2 {
-    gap: 16px;
-    margin-bottom: 16px;
-  }
-
-  .chart-container {
-    height: 220px;
-  }
-
-  .chart-header h3 {
-    font-size: 12px;
-  }
-
-  .chart-subtitle {
-    font-size: 9px;
-  }
-
-  .dashboard-section-3 {
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-  }
-}
-
-/* 200% */
-@media (max-width: 1024px) {
-  .dashboard-section-1 {
-    gap: 0.75rem;
-    margin-bottom: 0.75rem;
-    height: 265px !important;
-  }
-
-  .service-cards-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
-  }
-
-  .service-card {
-    height: 80px;
-    padding: 1rem 1rem;
-  }
-
-  .card-title {
-    font-size: 0.45rem;
-  }
-
-  .card-icon {
-    width: 0.75rem;
-    height: 0.75rem;
-    font-size: 0.45rem;
-  }
-
-  .card-value {
-    font-size: 1.125rem;
-    margin-bottom: 0.25rem;
-  }
-
-  .card-change {
-    font-size: 0.45rem;
-  }
-
-  .dashboard-sidebar {
-    width: 250px;
-    height: 265px !important;
-  }
-
-  .calendar-card {
-    min-height: 265px;
-  }
-
-  .calendar-nav {
-    font-size: 0.75rem;
-    font-weight: 500;
-    padding: 0.25rem 0.375rem;
-  }
-
-  .calendar-month {
-    font-size: 0.75rem;
-  }
-
-  .calendar-weekdays {
-    gap: 1px;
-    margin-bottom: 8px;
-    padding: 0 5px;
-  }
-
-  .weekday {
-    font-size: 0.625rem;
-    padding: 0px 0;
-    margin: 2px 0;
-  }
-
-  .calendar-days {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 0px;
-    padding: 0 5px;
-  }
-
-  .calendar-day {
-    font-size: 0.625rem;
-    padding: 0px;
-    min-height: 8px !important;
-  }
-
-  .chart-container {
-    height: 200px;
-  }
-
-  .chart-header h3 {
-    font-size: 10px;
-  }
-
-  .chart-subtitle {
-    font-size: 8px;
-  }
-
-  .table-header h3 {
-    font-size: 10px;
-    margin-bottom: 2px;
-  }
-  .table-subtitle {
-    font-size: 8px;
-    color: #6c757d;
-  }
-}
-
-/* Add smooth transitions to key elements */
-.dashboard-container {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.main-container,
-.dashboard-section-1,
-.service-cards-grid,
-.service-card,
-.dashboard-sidebar,
-.calendar-card,
-.dashboard-section-2,
-.dashboard-section-3,
-.chart-card,
-.table-card {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Smooth font size transitions */
-.card-title,
-.card-value,
-.card-change,
-.calendar-nav,
-.calendar-month,
-.weekday,
-.calendar-day,
-.chart-header h3,
-.chart-subtitle,
-.table-header h3,
-.table-subtitle {
-  transition: font-size 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* 250% */
+/* 250% 
 @media (max-width: 768px) {
   .dashboard-section-1 {
     gap: 0.75rem;
@@ -1403,7 +933,7 @@
   }
 }
 
-/* 300% */
+/* 300% 
 @media (max-width: 480px) {
   .dashboard-section-1 {
     height: auto !important;
@@ -1431,7 +961,7 @@
   }
 }
 
-/* 400% */
+
 @media (max-width: 375px) {
   .dashboard-section-1 {
     height: auto !important;
@@ -1459,7 +989,6 @@
   }
 }
 
-/* 500% */
 @media (max-width: 320px) {
   .dashboard-section-1 {
     height: auto !important;
@@ -1490,3 +1019,4 @@
     padding: 0.125rem;
   }
 }
+ */

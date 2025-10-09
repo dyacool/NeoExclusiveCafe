@@ -182,7 +182,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $stmt->close();
 }
-$conn->close();
+// Don't close connection here - navbar needs it
+// $conn->close(); - Moved to end of file
 ?>
 
   
@@ -661,3 +662,9 @@ $conn->close();
 </script>
 </body>
 </html>
+<?php
+// Close database connection at the end
+if (isset($conn) && $conn instanceof mysqli) {
+    $conn->close();
+}
+?>

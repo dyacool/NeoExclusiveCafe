@@ -63,32 +63,15 @@ if ($count_result) {
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body>
+<body class="calendar-page-wrapper">
     <?php include '../admin-includes/navbar/navbar.php'; ?>
-        <div class="main-container">
-        <!-- Top Stats Cards -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-value"><?php echo number_format($stats['pending_orders']); ?></div>
-                <div class="stat-label">Pending Orders</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value"><?php echo number_format($stats['completed_orders']); ?></div>
-                <div class="stat-label">Completed Orders</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value"><?php echo number_format($stats['delivery_orders']); ?></div>
-                <div class="stat-label">For Delivery</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value"><?php echo number_format($stats['pickup_orders']); ?></div>
-                <div class="stat-label">For Pickup</div>
-            </div>
-        </div>
-
-        <div class="layout-container">
-            <div class="controls-section">
-                <div class="control-card order-overview">
+    
+    <div class="main-container">
+        <div class="calendar-layout">
+            <!-- Left Controls Panel -->
+            <div class="controls-panel">
+                <!-- Orders Overview -->
+                <div class="control-card">
                     <h3>Orders Overview</h3>
                     <div class="control-row">
                         <label for="toggleCompletedBtn">Show completed orders:</label>
@@ -98,49 +81,37 @@ if ($count_result) {
                         </label>
                     </div>
                 </div>
-                <div class="control-card business-hours">
-                    <h3>Business Hours</h3>
-                    <div class="time-row">
-                        <div class="time-group">
-                            <label>Opens:</label>
-                            <input type="time" id="openingTime" name="openingTime" value="08:00">
-                        </div>
-                        <div class="time-group">
-                            <label>Closes:</label>
-                            <input type="time" id="closingTime" name="closingTime" value="04:42">
-                        </div>
-                    </div>
-                    <button class="btn-green business-hour" onclick="updateBusinessHours()" id="saveHoursBtn">Save</button>
-                </div>
-                <div class="control-card order-limit">
-                    <h3>Order Limit</h3>
+
+                <!-- Order Limit -->
+                <div class="control-card">
+                    <h3>Daily Order Limit</h3>
                     <div class="control-row">
                         <label>No. of Orders:</label>
                         <input type="number" id="dailyLimit" min="0" value="5">
-                        <button class="btn-green" onclick="updateDailyLimit()">Save</button>
+                        <button class="btn-primary" onclick="updateDailyLimit()">Save</button>
                     </div>
                 </div>
 
-                <div class="control-card  same-order-limit">
+                <!-- Same Day Order Limit -->
+                <div class="control-card">
                     <h3>Same Day Order Limit</h3>
                     <div class="control-row">
                         <label>No. of Orders:</label>
                         <input type="number" id="availtodayOrderLimit" min="0" value="1">
-                        <button class="btn-green" onclick="updateAvailTodayOrderLimit()">Save</button>
+                        <button class="btn-primary" onclick="updateAvailTodayOrderLimit()">Save</button>
                     </div>
-
                 </div>
             </div>
 
-            <!-- Right Side Calendar -->
+            <!-- Right Calendar Section -->
             <div class="calendar-section">
+                <div class="calendar-header">
+                    <button id="prev">&lt;</button>
+                    <span id="monthYear"></span>
+                    <button id="next">&gt;</button>
+                </div>
                 <div class="calendar-container">
                     <div id="calendar">
-                        <div class="calendar-header">
-                            <button id="prev">&lt;</button>
-                            <span id="monthYear"></span>
-                            <button id="next">&gt;</button>
-                        </div>
                         <div class="days"></div>
                     </div>
                 </div>
@@ -152,6 +123,33 @@ if ($count_result) {
     <div class="order-details-modal" id="orderModal">
         <div class="modal-content">
             <div id="orderInfo"></div>
+        </div>
+    </div>
+
+    <!-- Date Limit Modal -->
+    <div class="modal" id="dateLimitModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Set Order Limit</h3>
+                <span class="close" onclick="closeDateLimitModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="dateLimitInput">Order Limit:</label>
+                    <input type="number" id="dateLimitInput" min="0" placeholder="Enter order limit">
+                    <div class="form-help">Set to 0 to stop accepting orders for this date</div>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="notAcceptingOrders"> 
+                        Not Accepting Orders
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeDateLimitModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveDateLimit()">Update</button>
+            </div>
         </div>
     </div>
     </div>
