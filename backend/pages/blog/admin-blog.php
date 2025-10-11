@@ -19,16 +19,16 @@
     require_once __DIR__ . "/../admin-includes/database.php";
     include __DIR__ . "/../admin-includes/navbar/navbar.php";
 
+    // Include database configuration
+    require_once __DIR__ . "/../../../config/database-config.php";
+
     // Pagination settings
     $posts_per_page = 9;
     $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
     $offset = ($page - 1) * $posts_per_page;
 
-    // Connect to database
-    $conn = new mysqli("localhost", "root", "", "crud");
-    if ($conn->connect_error) {
-        die("Connection failed: " . $conn->connect_error);
-    }
+    // Get database connection
+    $conn = getDatabaseConnection();
 
     // Fetch blog posts from the admin blog table with pagination
     $sql = "SELECT * FROM blog_posts ORDER BY created_at DESC LIMIT ? OFFSET ?";
@@ -71,8 +71,8 @@
                                     </div>
                                     <button class="action-btn" onclick="toggleActionBox(this)">⋯</button>
                                         <div class="action-box">
-                                        <button class="editBtn" data-id="<?php echo $post['id']; ?>"> 
-                                            <span style="vertical-align: middle;">Edit</span>
+                                    <button class="editBtn" data-id="<?php echo isset($post['adblog_id']) ? $post['adblog_id'] : $post['id']; ?>"> 
+                                        <span style="vertical-align: middle;">Edit</span>
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#676767" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 5px;">
                                                     <path d="M4 20.0001H20M4 20.0001V16.0001L12 8.00012M4 20.0001L8 20.0001L16 12.0001M12 8.00012L14.8686 5.13146L14.8704 5.12976C15.2652 4.73488 15.463 4.53709 15.691 4.46301C15.8919 4.39775 16.1082 4.39775 16.3091 4.46301C16.5369 4.53704 16.7345 4.7346 17.1288 5.12892L18.8686 6.86872C19.2646 7.26474 19.4627 7.46284 19.5369 7.69117C19.6022 7.89201 19.6021 8.10835 19.5369 8.3092C19.4628 8.53736 19.265 8.73516 18.8695 9.13061L18.8686 9.13146L16 12.0001M12 8.00012L16 12.0001"></path>
                                                 </svg>
@@ -99,7 +99,6 @@
                         
                         <div class="post-content">
                             <h3 class="post-title"><?php echo htmlspecialchars($post['title']); ?></h3>
-                            <p class="caption-text"><?php echo nl2br(htmlspecialchars($post['description'])); ?></p>
                         </div>
                     </div>
                 <?php endwhile; ?>
@@ -208,29 +207,26 @@
                     const postContent = this.closest(".instagram-post");
                     const postId = this.dataset.id;
                     const title = postContent.querySelector(".post-title").innerText;
-                    const fullDescription = postContent.querySelector(".caption-text").innerText;
                     
-                    // Remove "..." from truncated descriptions
-                    let description = fullDescription;
-                    if (fullDescription.endsWith('...')) {
-                        // Need to fetch full description from server as it's truncated in the UI
-                        fetch(`get-post-data.php?id=${postId}`)
-                            .then(response => response.json())
-                            .then(data => {
-                                editDescription.value = data.description;
-                            })
-                            .catch(error => {
-                                console.error('Error fetching post data:', error);
-                                editDescription.value = fullDescription;
-                            });
-                    } else {
-                        editDescription.value = description;
-                    }
-
-                    postIdField.value = postId;
-                    editTitle.value = title;
-                    
-                    modal.style.display = "flex";
+                    // Always fetch full description from server to preserve original formatting
+                    fetch(`get-post-data.php?id=${postId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            editDescription.value = data.description;
+                            editTitle.value = data.title;
+                            postIdField.value = postId;
+                            modal.style.display = "flex";
+                        })
+                        .catch(error => {
+                            console.error('Error fetching post data:', error);
+                            // Fallback: get text from DOM but convert <br> back to newlines
+                            const captionElement = postContent.querySelector(".caption-text");
+                            let description = captionElement.innerHTML.replace(/<br\s*\/?>/gi, '\n');
+                            editDescription.value = description;
+                            editTitle.value = title;
+                            postIdField.value = postId;
+                            modal.style.display = "flex";
+                        });
                 });
             });
 

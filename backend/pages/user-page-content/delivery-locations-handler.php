@@ -8,9 +8,12 @@ if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
     exit();
 }
 
-// Database connection
-$conn = new mysqli("localhost", "root", "", "crud");
-if ($conn->connect_error) {
+// Include database configuration
+require_once 'database-config.php';
+
+// Get database connection
+$conn = getDBConnection();
+if (!$conn) {
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'Database connection failed']);
     exit();
@@ -23,7 +26,7 @@ $table_result = $conn->query($table_check);
 if ($table_result->num_rows == 0) {
     // Create table if it doesn't exist
     $create_table = "CREATE TABLE delivery_locations (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        delivery_id INT AUTO_INCREMENT PRIMARY KEY,
         municipality VARCHAR(255) NOT NULL,
         city VARCHAR(255) NOT NULL,
         postal_code VARCHAR(4) NOT NULL,
@@ -83,7 +86,7 @@ function addLocation($conn) {
     }
     
     // Check for duplicate postal code
-    $check_stmt = $conn->prepare("SELECT id FROM delivery_locations WHERE postal_code = ?");
+    $check_stmt = $conn->prepare("SELECT delivery_id FROM delivery_locations WHERE postal_code = ?");
     $check_stmt->bind_param("s", $postal_code);
     $check_stmt->execute();
     $result = $check_stmt->get_result();
@@ -110,13 +113,13 @@ function addLocation($conn) {
 
 function updateLocation($conn) {
     // Validate required fields
-    $id = $_POST['id'] ?? '';
+    $delivery_id = $_POST['delivery_id'] ?? '';
     $municipality = trim($_POST['municipality'] ?? '');
     $city = trim($_POST['city'] ?? '');
     $postal_code = trim($_POST['postal_code'] ?? '');
     $delivery_fee = $_POST['delivery_fee'] ?? '';
     
-    if (empty($id) || empty($municipality) || empty($city) || empty($postal_code) || empty($delivery_fee)) {
+    if (empty($delivery_id) || empty($municipality) || empty($city) || empty($postal_code) || empty($delivery_fee)) {
         echo json_encode(['success' => false, 'message' => 'All fields are required']);
         return;
     }
@@ -134,8 +137,8 @@ function updateLocation($conn) {
     }
     
     // Check for duplicate postal code (excluding current record)
-    $check_stmt = $conn->prepare("SELECT id FROM delivery_locations WHERE postal_code = ? AND id != ?");
-    $check_stmt->bind_param("si", $postal_code, $id);
+    $check_stmt = $conn->prepare("SELECT delivery_id FROM delivery_locations WHERE postal_code = ? AND delivery_id != ?");
+    $check_stmt->bind_param("si", $postal_code, $delivery_id);
     $check_stmt->execute();
     $result = $check_stmt->get_result();
     
@@ -147,8 +150,8 @@ function updateLocation($conn) {
     $check_stmt->close();
     
     // Update location
-    $stmt = $conn->prepare("UPDATE delivery_locations SET municipality = ?, city = ?, postal_code = ?, delivery_fee = ? WHERE id = ?");
-    $stmt->bind_param("sssdi", $municipality, $city, $postal_code, $delivery_fee, $id);
+    $stmt = $conn->prepare("UPDATE delivery_locations SET municipality = ?, city = ?, postal_code = ?, delivery_fee = ? WHERE delivery_id = ?");
+    $stmt->bind_param("sssdi", $municipality, $city, $postal_code, $delivery_fee, $delivery_id);
     
     if ($stmt->execute()) {
         if ($stmt->affected_rows > 0) {
@@ -164,16 +167,16 @@ function updateLocation($conn) {
 }
 
 function deleteLocation($conn) {
-    $id = $_POST['id'] ?? '';
+    $delivery_id = $_POST['delivery_id'] ?? '';
     
-    if (empty($id) || !is_numeric($id)) {
+    if (empty($delivery_id) || !is_numeric($delivery_id)) {
         echo json_encode(['success' => false, 'message' => 'Invalid location ID']);
         return;
     }
     
     // Delete location
-    $stmt = $conn->prepare("DELETE FROM delivery_locations WHERE id = ?");
-    $stmt->bind_param("i", $id);
+    $stmt = $conn->prepare("DELETE FROM delivery_locations WHERE delivery_id = ?");
+    $stmt->bind_param("i", $delivery_id);
     
     if ($stmt->execute()) {
         if ($stmt->affected_rows > 0) {

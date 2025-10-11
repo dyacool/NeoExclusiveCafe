@@ -1,22 +1,22 @@
 <?php
     session_start();
     if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
-        header("Location: http://localdomain/pages/auth/login-signup.php");
+        header("Location: /login/admin/admin-login.php");
         exit();
     }
 
-    // Add database connection
-    require_once $_SERVER['DOCUMENT_ROOT'] . "/NeoExclusiveCafe/php/includes/database.php";
-    if (!$conn) {
-        die("Database connection failed");
-    }
+    // Include database configuration
+    require_once __DIR__ . "/../../../config/database-config.php";
+    
+    // Get database connection
+    $conn = getDatabaseConnection();
 
 ?>
 
 <!DOCTYPE html>
 <html>
     <head>
-        <link rel="stylesheet" href="http://localdomain/css/admin/admin-blog-createpost.css">
+        <link rel="stylesheet" href="/backend/pages/blog/admin-blog-createpost.css">
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
         <script src="https://kit.fontawesome.com/b99e675b6e.js"></script>
@@ -24,18 +24,18 @@
 
     <body>
         <?php
-            include $_SERVER['DOCUMENT_ROOT'] . "/NeoExclusiveCafe/php/includes/navbar.php";
+            include __DIR__ . "/../admin-includes/navbar/navbar.php";
             if ($_SERVER["REQUEST_METHOD"] == "POST") {                
-                $title = mysqli_real_escape_string($conn, $_POST['title']);
-                $description = mysqli_real_escape_string($conn, $_POST['description']);
+                $title = $_POST['title'];
+                $description = $_POST['description'];
                 $imagePath = $_FILES['image']["name"];
                 $ext = pathinfo($imagePath, PATHINFO_EXTENSION);
                 $allowedTypes = array("jpg", "jpeg", "png", "gif", "JPG", "JPEG", "PNG", "GIF");
                 $tempName = $_FILES['image']["tmp_name"];
-                $targetPath = $_SERVER['DOCUMENT_ROOT'] . "/NeoExclusiveCafe/assets/uploaded-images-admin/" . $imagePath;
+                $targetPath = $_SERVER['DOCUMENT_ROOT'] . "/NeoCafe/assets/uploaded-images-admin/" . $imagePath;
                 
                 // Create directory if it doesn't exist
-                $uploadDir = $_SERVER['DOCUMENT_ROOT'] . "/NeoExclusiveCafe/assets/uploaded-images-admin/";
+                $uploadDir = $_SERVER['DOCUMENT_ROOT'] . "/NeoCafe/assets/uploaded-images-admin/";
                 if (!file_exists($uploadDir)) {
                     mkdir($uploadDir, 0777, true);
                 }
@@ -48,7 +48,7 @@
                         mysqli_stmt_bind_param($stmt, "sss", $title, $description, $imagePath);
                         
                         if(mysqli_stmt_execute($stmt)){
-                            echo"<script>alert('New blog post created successfully'); window.location.href = '/NeoExclusiveCafe/pages/admin/admin-blog.php';</script>";
+                            echo"<script>alert('New blog post created successfully'); window.location.href = '/backend/pages/blog/admin-blog.php';</script>";
                         } else {
                             echo"<script>alert('Error creating blog post: " . mysqli_error($conn) . "');</script>";
                         }
@@ -61,192 +61,186 @@
                 }
             }
         ?>
-            <div class="mainContainer">
-                <!--back to admin-blog button-->
+
+        <div class="breadcrumb">
+            <a href="/backend/pages/blog/admin-blog.php">Blog Posts</a>
+            <span class="separator">></span>
+            <span class="current">Create Post</span>
+        </div>
+
+        <div class="mainContainer">
+            <form method="post" enctype="multipart/form-data" class="post-form">
                 <div class="container">
-                    <button class="cta" onclick="window.location.href='/NeoExclusiveCafe/pages/admin/admin-blog.php'">
-                        <svg
-                            id="arrow-horizontal"
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="30"
-                            height="10"
-                            viewBox="0 0 46 16"
-                        >
-                            <path
-                            id="Path_10"
-                            data-name="Path 10"
-                            d="M38,0,39.455,1.455,33.949,6.961H76V9.039H33.949l5.506,5.506L38,16l-8-8Z"
-                            transform="translate(-25)"
-                            ></path>
-                        </svg>
-                        <span class="hover-underline-animation"> Go Back </span>
-                    </button>                
-                    <form class="post-cont" action="admin-blog-createpost.php" method="post" enctype="multipart/form-data">
-                        <div class="post-container">
-                            <div class="dtitle">
-                                <label class="title">Title</label>
-                                <input type="text" id="title" name="title" required>
-                            </div>
+                    <div class="grp1">
+                        <label>Post Title:</label>
+                        <input class="post-title" type="text" name="title" required>
 
-                            <div class="dimage">
-                                <label class="image">Image</label>
-                                <div class="imagecont">
-                                    <label class="media" for="image">Upload image</label>
+                        <label>Post Description:</label>
+                        <textarea class="post-description" name="description" required></textarea>
+
+                        <div class="image-upload-container">
+                            <label class="main-img">Featured Image:</label>
+                            <div class="image-upload primary-image-upload">
+                                <input type="file" name="image" id="imageInput" accept="image/*" required style="display: none;">
+                                <label for="imageInput" class="upload-btn add-img-btn" id="uploadBtn">
+                                    Click to Upload Image
+                                </label>
+                                <div class="primary-preview-container" id="previewContainer"></div>
+                            </div>
+                            <small>Supported files: .png, .jpg, .jpeg, .gif</small>
+                        </div>
+
+                        <div class="btn-changes">
+                            <button class="discardBtn" type="button" onclick="showDiscardModal()">Discard</button>
+                            <button class="submitBtn" type="submit">Create Post</button>
+                        </div>
+                    </div>
+
+                    <div class="grp2">
+                        <div class="post-preview">
+                            <h3>Preview</h3>
+                            <div class="preview-card">
+                                <div class="preview-image-placeholder" id="previewImagePlaceholder">
+                                    <span>Image preview will appear here</span>
                                 </div>
-                                <input multiple type="file" class="images" id="image" name="image">
-
-                                <script>
-                                    const output = document.querySelector(".fileSelected");
-                                    const fileInput = document.querySelector(".images");
-
-                                    fileInput.addEventListener("change", () => {
-                                    for (const file of fileInput.files) {
-                                        output.innerText += `${file.name}\n`;
-                                    }
-                                    });
-                                </script>
+                                <div class="preview-content">
+                                    <h4 id="previewTitle">Post title will appear here</h4>
+                                    <p id="previewDescription">Post description will appear here</p>
+                                </div>
                             </div>
-
-                            <div class="ddescription">
-                                <label class="lbl-title">Description</label>
-                                <textarea class="description" id="description" name="description"></textarea><br>
-                            </div>
-
                         </div>
-                        <div class="buttons">
-                            <input type="button" id="discard" name="discard" value="Discard">
-                            <button class="submit" type="submit">Upload</button>
-                        </div>
-                    </form>
-                </div>            
-                <!--confirm discard modal-->
-                <div class="popup" id="popup">
-                    <div class="overlay">   
-                    </div>
-                    <div class="popup-content">
-                        <h2>Discard create post</h2>
-                        <p>Are you sure you want to discard post creation?</p>
-                        <div class="controls">
-                            <input type="button" class="cancel-btn" id="confirm-btn" value="Cancel">
-                            <input type="button" class="confirm-btn" id="confirm-btn" onclick="location='admin-blog.php'" value="Confirm">
-                        </div>
-                    </div>
                     </div>
                 </div>
-                <!--functions for modal-->
-                <script>
-                function createPopup(id){
-                    let popupNode = document.querySelector(id);
-                    let overlay = popupNode.querySelector(".overlay");
-                    let cancelBtn   = popupNode.querySelector(".cancel-btn");
-                    function openPopup(){
-                    popupNode.classList.add("active");
-                    }
-                    function closePopup(){
-                        popupNode.classList.remove("active");
-                    }
-                    overlay.addEventListener("click", closePopup);
-                    cancelBtn.addEventListener("click", closePopup);
-                    return openPopup;
-                }
-                    let openPopup = createPopup("#popup");
-                    document.querySelector("#discard").addEventListener("click",openPopup);
+            </form>
+        </div>        <!-- Discard Confirmation Modal -->
+        <div class="modal" id="discardModal">
+            <div class="modal-content confirm-modal">
+                <div class="modal-header">
+                    <div class="modal-icon">
+                        <svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                            <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="modal-title">Discard Changes</h3>
+                    <button class="close" onclick="closeDiscardModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p class="modal-message">Are you sure you want to discard this post? All changes will be lost.</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeDiscardModal()">Cancel</button>
+                    <button class="btn btn-danger" onclick="window.location.href='/backend/pages/blog/admin-blog.php'">Discard</button>
+                </div>
+            </div>
+        </div>
 
-                document.addEventListener('DOMContentLoaded', function() {
-                // Elements
-                const fileInput = document.getElementById('image');
-                const mediaLabel = document.querySelector('label.media');
-                
-                // Add content to the upload label
-                if (mediaLabel) {
-                    mediaLabel.innerHTML = '<div class="upload-text">Click to upload image</div>';
-                }
-                
-                // Create image preview element
-                const imagePreview = document.createElement('img');
-                imagePreview.className = 'image-preview';
-                mediaLabel.appendChild(imagePreview);
-                
-                // Create remove image button
-                const removeButton = document.createElement('button');
-                removeButton.className = 'remove-image';
-                removeButton.innerHTML = '×';
-                removeButton.type = 'button';
-                removeButton.setAttribute('aria-label', 'Remove image');
-                mediaLabel.appendChild(removeButton);
-                
+        <script>
+            // Image preview functionality
+            document.addEventListener('DOMContentLoaded', function() {
+                const fileInput = document.getElementById('imageInput');
+                const uploadBtn = document.getElementById('uploadBtn');
+                const previewContainer = document.getElementById('previewContainer');
+                const previewImagePlaceholder = document.getElementById('previewImagePlaceholder');
+                const titleInput = document.querySelector('input[name="title"]');
+                const descriptionInput = document.querySelector('textarea[name="description"]');
+                const previewTitle = document.getElementById('previewTitle');
+                const previewDescription = document.getElementById('previewDescription');
+
+                console.log('Elements found:', {
+                    fileInput: !!fileInput,
+                    uploadBtn: !!uploadBtn,
+                    previewContainer: !!previewContainer,
+                    previewImagePlaceholder: !!previewImagePlaceholder
+                });
+
                 // Handle file selection
                 fileInput.addEventListener('change', function(e) {
+                    console.log('File input changed');
                     const file = e.target.files[0];
                     
                     if (file) {
-                    const reader = new FileReader();
-                    
-                    reader.onload = function(e) {
-                        // Show image preview
-                        imagePreview.src = e.target.result;
-                        imagePreview.classList.add('preview-active');
+                        console.log('File selected:', file.name);
+                        const reader = new FileReader();
                         
-                        // Show remove button
-                        removeButton.classList.add('remove-active');
+                        reader.onload = function(e) {
+                            console.log('File loaded');
+                            // Create image preview
+                            const imagePreview = document.createElement('img');
+                            imagePreview.src = e.target.result;
+                            imagePreview.className = 'image-preview';
+                            
+                            // Create remove button
+                            const removeBtn = document.createElement('button');
+                            removeBtn.className = 'remove-btn';
+                            removeBtn.innerHTML = '×';
+                            removeBtn.type = 'button';
+                            removeBtn.onclick = function(event) {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                fileInput.value = '';
+                                previewContainer.innerHTML = '';
+                                uploadBtn.style.display = 'flex';
+                                previewImagePlaceholder.innerHTML = '<span>Image preview will appear here</span>';
+                            };
+                            
+                            // Clear container and add new preview
+                            previewContainer.innerHTML = '';
+                            previewContainer.appendChild(imagePreview);
+                            previewContainer.appendChild(removeBtn);
+                            
+                            // Hide upload button
+                            uploadBtn.style.display = 'none';
+                            
+                            // Update preview placeholder
+                            previewImagePlaceholder.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+                        };
                         
-                        // Hide the upload text
-                        const uploadText = mediaLabel.querySelector('.upload-text');
-                        if (uploadText) {
-                        uploadText.style.display = 'none';
-                        }
-                    };
-                    
-                    reader.readAsDataURL(file);
-                    }
-                });
-                
-                // Handle remove image button
-                removeButton.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    // Clear the file input
-                    fileInput.value = '';
-                    
-                    // Hide image preview
-                    imagePreview.classList.remove('preview-active');
-                    
-                    // Hide remove button
-                    removeButton.classList.remove('remove-active');
-                    
-                    // Show the upload text
-                    const uploadText = mediaLabel.querySelector('.upload-text');
-                    if (uploadText) {
-                    uploadText.style.display = 'block';
+                        reader.readAsDataURL(file);
                     }
                 });
 
-                // Add these lines to your existing popup script
-                document.querySelector("#discard").addEventListener("click", function() {
-                    let popupNode = document.querySelector("#popup");
-                    popupNode.classList.add("active");
-                });
-                
-                // Cancel button in popup
-                const cancelBtn = document.querySelector(".cancel-btn");
-                if (cancelBtn) {
-                    cancelBtn.addEventListener("click", function() {
-                    let popupNode = document.querySelector("#popup");
-                    popupNode.classList.remove("active");
+                // Handle live preview updates
+                if (titleInput) {
+                    titleInput.addEventListener('input', function() {
+                        previewTitle.textContent = this.value || 'Post title will appear here';
                     });
                 }
-                
-                // Overlay click to close popup
-                const overlay = document.querySelector(".popup .overlay");
-                if (overlay) {
-                    overlay.addEventListener("click", function() {
-                    let popupNode = document.querySelector("#popup");
-                    popupNode.classList.remove("active");
+
+                if (descriptionInput) {
+                    descriptionInput.addEventListener('input', function() {
+                        // Replace line breaks with <br> tags for HTML display
+                        const text = this.value || 'Post description will appear here';
+                        previewDescription.innerHTML = text.replace(/\n/g, '<br>');
                     });
                 }
-                });
-                </script>
-            </div>
+            });
+
+            // Modal functions
+            function showDiscardModal() {
+                const modal = document.getElementById('discardModal');
+                modal.style.display = 'flex';
+            }
+
+            function closeDiscardModal() {
+                const modal = document.getElementById('discardModal');
+                modal.style.display = 'none';
+            }
+
+            // Close modal when clicking outside
+            window.onclick = function(event) {
+                const modal = document.getElementById('discardModal');
+                if (event.target === modal) {
+                    closeDiscardModal();
+                }
+            };
+
+            // Close modal with Escape key
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape') {
+                    closeDiscardModal();
+                }
+            });
+        </script>
     </body>
 </html>

@@ -27,20 +27,10 @@ const VoucherTable = (function () {
 
   function renderDiscount(data, type, row) {
     if (type === "display") {
-      
       if (row.discount.includes("Free Shipping Only")) {
         return `<span class='status-badge upcoming'>Free Shipping Only</span>`;
       }
       let html = data;
-      
-      html = html.replace(/\$/g, "₱");
-      if (
-        parseInt(row.include_free_shipping) === 1 &&
-        row.type !== "free_shipping"
-      ) {
-        html += `<br><span class='status-badge' style='background:#E3FCF4;color:#039855;font-size:12px;padding:2px 8px;border-radius:12px;'>Free Shipping</span>`;
-      }
-      return html;
     }
     return data;
   }
@@ -116,7 +106,6 @@ const VoucherTable = (function () {
   };
 })();
 
-
 const VoucherControls = (function () {
   function add_events() {
     const newBtn = document.getElementById("supply-order-new-btn");
@@ -151,14 +140,12 @@ const VoucherControls = (function () {
   };
 })();
 
-
 let supplyOrderTable = null;
 document.addEventListener("DOMContentLoaded", function () {
   supplyOrderTable = VoucherTable.initDataTable();
   VoucherTable.addSelectEvent(supplyOrderTable);
   VoucherControls.add_events();
 
-  
   const reactivateBtn = document.getElementById("reactivate-voucher-btn");
   const table = document.getElementById("supply-order-table");
   function updateReactivateBtn() {
@@ -169,7 +156,7 @@ document.addEventListener("DOMContentLoaded", function () {
       reactivateBtn.disabled = true;
     }
   }
-  
+
   table.addEventListener("click", function (e) {
     // Only update if a row is clicked
     if (e.target.closest("tbody tr")) {
@@ -325,13 +312,13 @@ function viewVoucher() {
   if (selectedRows.length !== 1) {
     if (typeof Swal !== "undefined") {
       Swal.fire("Please select one voucher to view.", "warning");
-  } else {
+    } else {
       alert("Please select one voucher to view.");
     }
     return;
   }
   VoucherTable.deselectAllRows();
-  
+
   const voucher = selectedRows[0];
   Swal.fire({
     title: voucher.title,
@@ -344,7 +331,7 @@ function viewVoucher() {
         <p><strong>Valid Period:</strong> ${voucher.valid_period}</p>
       </div>
     `,
-    showConfirmButton: true
+    showConfirmButton: true,
   });
 }
 
@@ -393,7 +380,7 @@ const VoucherFilter = (function () {
     });
     if (voucherTypeFilter.value === "free_shipping") {
       valueRangeFieldset.style.display = "none";
-  } else {
+    } else {
       valueRangeFieldset.style.display = "block";
     }
     validityFrom.addEventListener(
@@ -505,128 +492,134 @@ const VoucherFilter = (function () {
   };
 })();
 
-
 if (VoucherFilter && VoucherFilter.add_events) {
   VoucherFilter.add_events();
 }
 
-
 function openAddModal() {
-  document.getElementById('addModal').style.display = 'flex';
+  document.getElementById("addModal").style.display = "flex";
 }
 
 function openEditModal(id) {
-
-  fetch('./get-coupon.php?id=' + id)
-    .then(response => response.json())
-    .then(data => {
+  fetch("./get-coupon.php?id=" + id)
+    .then((response) => response.json())
+    .then((data) => {
       if (data.success) {
         const coupon = data.coupon;
-        document.getElementById('editId').value = coupon.id;
-        document.getElementById('editTitle').value = coupon.title;
-        document.getElementById('editCode').value = coupon.code;
-        document.getElementById('editApplicationMethod').value = coupon.application_method || 'voucher_code';
-        document.getElementById('editDiscountType').value = coupon.discount_type;
-        document.getElementById('editDiscountValue').value = coupon.discount_value;
-        document.getElementById('editMinSpend').value = coupon.min_spend;
-        document.getElementById('editApplicableTo').value = coupon.applicable_to;
-        document.getElementById('editUsageLimit').value = coupon.usage_limit || '';
-        document.getElementById('editPerUserLimit').value = coupon.usage_limit_per_user || '';
-        document.getElementById('editStartDate').value = coupon.start_date;
-        document.getElementById('editEndDate').value = coupon.end_date;
-        document.getElementById('editStatus').value = coupon.status;
-        
-       
-        document.getElementById('editUnlimitedUsage').checked = !coupon.usage_limit;
-        document.getElementById('editUnlimitedPerUser').checked = !coupon.usage_limit_per_user;
-        
+        document.getElementById("editId").value = coupon.id;
+        document.getElementById("editTitle").value = coupon.title;
+        document.getElementById("editCode").value = coupon.code;
+        document.getElementById("editApplicationMethod").value =
+          coupon.application_method || "voucher_code";
+        document.getElementById("editDiscountType").value =
+          coupon.discount_type;
+        document.getElementById("editDiscountValue").value =
+          coupon.discount_value;
+        document.getElementById("editMinSpend").value = coupon.min_spend;
+        document.getElementById("editApplicableTo").value =
+          coupon.applicable_to;
+        document.getElementById("editUsageLimit").value =
+          coupon.usage_limit || "";
+        document.getElementById("editPerUserLimit").value =
+          coupon.usage_limit_per_user || "";
+        document.getElementById("editStartDate").value = coupon.start_date;
+        document.getElementById("editEndDate").value = coupon.end_date;
+        document.getElementById("editStatus").value = coupon.status;
+
+        document.getElementById("editUnlimitedUsage").checked =
+          !coupon.usage_limit;
+        document.getElementById("editUnlimitedPerUser").checked =
+          !coupon.usage_limit_per_user;
+
         toggleEditUsageLimit();
         toggleEditPerUserLimit();
         toggleEditDiscountValue();
-        
-        document.getElementById('editModal').style.display = 'flex';
+
+        document.getElementById("editModal").style.display = "flex";
       } else {
-        Swal.fire('Error', data.message, 'error');
+        Swal.fire("Error", data.message, "error");
       }
     })
-    .catch(error => {
-      Swal.fire('Error', 'Failed to load coupon data', 'error');
+    .catch((error) => {
+      Swal.fire("Error", "Failed to load coupon data", "error");
     });
 }
 
 function closeModal(modalId) {
-  document.getElementById(modalId).style.display = 'none';
+  document.getElementById(modalId).style.display = "none";
 }
 
 function toggleDiscountValue() {
-  const discountType = document.getElementById('discountType').value;
-  const discountValueGroup = document.getElementById('discountValueGroup');
-  
-  if (discountType === 'free_shipping') {
-    discountValueGroup.style.display = 'none';
-    document.getElementById('discountValue').value = '';
+  const discountType = document.getElementById("discountType").value;
+  const discountValueGroup = document.getElementById("discountValueGroup");
+
+  if (discountType === "free_shipping") {
+    discountValueGroup.style.display = "none";
+    document.getElementById("discountValue").value = "";
   } else {
-    discountValueGroup.style.display = 'block';
+    discountValueGroup.style.display = "block";
   }
 }
 
 function toggleEditDiscountValue() {
-  const discountType = document.getElementById('editDiscountType').value;
-  const discountValueGroup = document.getElementById('editDiscountValueGroup');
-  
-  if (discountType === 'free_shipping') {
-    discountValueGroup.style.display = 'none';
-    document.getElementById('editDiscountValue').value = '';
+  const discountType = document.getElementById("editDiscountType").value;
+  const discountValueGroup = document.getElementById("editDiscountValueGroup");
+
+  if (discountType === "free_shipping") {
+    discountValueGroup.style.display = "none";
+    document.getElementById("editDiscountValue").value = "";
   } else {
-    discountValueGroup.style.display = 'block';
+    discountValueGroup.style.display = "block";
   }
 }
 
 function toggleUsageLimit() {
-  const unlimitedUsage = document.getElementById('unlimitedUsage').checked;
-  const usageLimitGroup = document.getElementById('usageLimitGroup');
-  
+  const unlimitedUsage = document.getElementById("unlimitedUsage").checked;
+  const usageLimitGroup = document.getElementById("usageLimitGroup");
+
   if (unlimitedUsage) {
-    usageLimitGroup.style.display = 'none';
-    document.getElementById('usageLimit').value = '';
+    usageLimitGroup.style.display = "none";
+    document.getElementById("usageLimit").value = "";
   } else {
-    usageLimitGroup.style.display = 'block';
+    usageLimitGroup.style.display = "block";
   }
 }
 
 function toggleEditUsageLimit() {
-  const unlimitedUsage = document.getElementById('editUnlimitedUsage').checked;
-  const usageLimitGroup = document.getElementById('editUsageLimitGroup');
-  
+  const unlimitedUsage = document.getElementById("editUnlimitedUsage").checked;
+  const usageLimitGroup = document.getElementById("editUsageLimitGroup");
+
   if (unlimitedUsage) {
-    usageLimitGroup.style.display = 'none';
-    document.getElementById('editUsageLimit').value = '';
+    usageLimitGroup.style.display = "none";
+    document.getElementById("editUsageLimit").value = "";
   } else {
-    usageLimitGroup.style.display = 'block';
+    usageLimitGroup.style.display = "block";
   }
 }
 
 function togglePerUserLimit() {
-  const unlimitedPerUser = document.getElementById('unlimitedPerUser').checked;
-  const perUserLimitGroup = document.getElementById('perUserLimitGroup');
-  
+  const unlimitedPerUser = document.getElementById("unlimitedPerUser").checked;
+  const perUserLimitGroup = document.getElementById("perUserLimitGroup");
+
   if (unlimitedPerUser) {
-    perUserLimitGroup.style.display = 'none';
-    document.getElementById('perUserLimit').value = '';
+    perUserLimitGroup.style.display = "none";
+    document.getElementById("perUserLimit").value = "";
   } else {
-    perUserLimitGroup.style.display = 'block';
+    perUserLimitGroup.style.display = "block";
   }
 }
 
 function toggleEditPerUserLimit() {
-  const unlimitedPerUser = document.getElementById('editUnlimitedPerUser').checked;
-  const perUserLimitGroup = document.getElementById('editPerUserLimitGroup');
-  
+  const unlimitedPerUser = document.getElementById(
+    "editUnlimitedPerUser"
+  ).checked;
+  const perUserLimitGroup = document.getElementById("editPerUserLimitGroup");
+
   if (unlimitedPerUser) {
-    perUserLimitGroup.style.display = 'none';
-    document.getElementById('editPerUserLimit').value = '';
+    perUserLimitGroup.style.display = "none";
+    document.getElementById("editPerUserLimit").value = "";
   } else {
-    perUserLimitGroup.style.display = 'block';
+    perUserLimitGroup.style.display = "block";
   }
 }
 
@@ -634,119 +627,120 @@ function addCoupon(event) {
   event.preventDefault();
 
   const formData = new FormData(event.target);
-  formData.append('action', 'add_voucher');
-  
- 
-  if (!formData.has('include_free_shipping')) formData.append('include_free_shipping', 0);
-  if (!formData.has('prevent_discounted')) formData.append('prevent_discounted', 0);
-  
- 
-  console.log('Form data being sent:');
+  formData.append("action", "add_voucher");
+
+  if (!formData.has("include_free_shipping"))
+    formData.append("include_free_shipping", 0);
+  if (!formData.has("prevent_discounted"))
+    formData.append("prevent_discounted", 0);
+
+  console.log("Form data being sent:");
   for (let [key, value] of formData.entries()) {
     console.log(key, value);
   }
-  
-  fetch('./promotions_api.php', {
-    method: 'POST',
-    body: formData
+
+  fetch("./promotions_api.php", {
+    method: "POST",
+    body: formData,
   })
-  .then(response => {
-    console.log('Response status:', response.status);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return response.text(); 
-  })
-  .then(text => {
-    console.log('Raw response:', text);
-    try {
-      const data = JSON.parse(text);
-      if (data.success) {
-        Swal.fire('Success', data.message, 'success');
-        document.getElementById('addModal').style.display = 'none';
-        event.target.reset();
-        if (supplyOrderTable) {
-          supplyOrderTable.draw();
-        }
-      } else {
-        Swal.fire('Error', data.message, 'error');
+    .then((response) => {
+      console.log("Response status:", response.status);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-    } catch (e) {
-      console.error('JSON parse error:', e);
-      console.error('Response text:', text);
-      Swal.fire('Error', 'Invalid response from server', 'error');
-    }
-  })
-  .catch(error => {
-    console.error('Fetch error:', error);
-    Swal.fire('Error', 'Network error. Please try again.', 'error');
-  });
+      return response.text();
+    })
+    .then((text) => {
+      console.log("Raw response:", text);
+      try {
+        const data = JSON.parse(text);
+        if (data.success) {
+          Swal.fire("Success", data.message, "success");
+          document.getElementById("addModal").style.display = "none";
+          event.target.reset();
+          if (supplyOrderTable) {
+            supplyOrderTable.draw();
+          }
+        } else {
+          Swal.fire("Error", data.message, "error");
+        }
+      } catch (e) {
+        console.error("JSON parse error:", e);
+        console.error("Response text:", text);
+        Swal.fire("Error", "Invalid response from server", "error");
+      }
+    })
+    .catch((error) => {
+      console.error("Fetch error:", error);
+      Swal.fire("Error", "Network error. Please try again.", "error");
+    });
 }
 
 function updateCoupon(event) {
   event.preventDefault();
 
   const formData = new FormData(event.target);
-  formData.append('action', 'update_voucher');
-  
- 
-  if (!formData.has('include_free_shipping')) formData.append('include_free_shipping', 0);
-  if (!formData.has('prevent_discounted')) formData.append('prevent_discounted', 0);
-  
-  fetch('./promotions_api.php', {
-    method: 'POST',
-    body: formData
+  formData.append("action", "update_voucher");
+
+  if (!formData.has("include_free_shipping"))
+    formData.append("include_free_shipping", 0);
+  if (!formData.has("prevent_discounted"))
+    formData.append("prevent_discounted", 0);
+
+  fetch("./promotions_api.php", {
+    method: "POST",
+    body: formData,
   })
-  .then(response => response.json())
-  .then(data => {
+    .then((response) => response.json())
+    .then((data) => {
       if (data.success) {
-      Swal.fire('Success', data.message, 'success');
-      document.getElementById('editModal').style.display = 'none';
-      if (supplyOrderTable) {
-        supplyOrderTable.draw();
-      }
+        Swal.fire("Success", data.message, "success");
+        document.getElementById("editModal").style.display = "none";
+        if (supplyOrderTable) {
+          supplyOrderTable.draw();
+        }
       } else {
-      Swal.fire('Error', data.message, 'error');
-    }
-  })
-  .catch(error => {
-    Swal.fire('Error', 'Network error. Please try again.', 'error');
-  });
+        Swal.fire("Error", data.message, "error");
+      }
+    })
+    .catch((error) => {
+      Swal.fire("Error", "Network error. Please try again.", "error");
+    });
 }
 
 function deleteCoupon(id) {
   Swal.fire({
-    title: 'Are you sure?',
+    title: "Are you sure?",
     text: "You won't be able to revert this!",
-    icon: 'warning',
+    icon: "warning",
     showCancelButton: true,
-    confirmButtonColor: '#d33',
-    cancelButtonColor: '#3085d6',
-    confirmButtonText: 'Yes, delete it!'
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#3085d6",
+    confirmButtonText: "Yes, delete it!",
   }).then((result) => {
     if (result.isConfirmed) {
       const formData = new FormData();
-      formData.append('action', 'delete_voucher');
-      formData.append('id', id);
-      
-      fetch('./promotions_api.php', {
-        method: 'POST',
-        body: formData
+      formData.append("action", "delete_voucher");
+      formData.append("id", id);
+
+      fetch("./promotions_api.php", {
+        method: "POST",
+        body: formData,
       })
-      .then(response => response.json())
-      .then(data => {
-      if (data.success) {
-          Swal.fire('Deleted!', data.message, 'success');
-          if (supplyOrderTable) {
-            supplyOrderTable.draw();
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            Swal.fire("Deleted!", data.message, "success");
+            if (supplyOrderTable) {
+              supplyOrderTable.draw();
+            }
+          } else {
+            Swal.fire("Error", data.message, "error");
           }
-      } else {
-          Swal.fire('Error', data.message, 'error');
-        }
-      })
-      .catch(error => {
-        Swal.fire('Error', 'Network error. Please try again.', 'error');
-      });
+        })
+        .catch((error) => {
+          Swal.fire("Error", "Network error. Please try again.", "error");
+        });
     }
   });
-    }
+}

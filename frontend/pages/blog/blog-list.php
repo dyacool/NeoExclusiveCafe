@@ -71,7 +71,7 @@ $total_pages = ceil($total_posts / $posts_per_page);
         <div class="instagram-feed">
             <?php while ($post = mysqli_fetch_assoc($result)): ?>
                 <div class="instagram-post">
-                    <a href="view-blog-admin.php?id=<?php echo $post['id']; ?>" class="post-link">
+                    <a href="view-blog-admin.php?id=<?php echo isset($post['adblog_id']) ? $post['adblog_id'] : $post['id']; ?>" class="post-link">
                     <div class="post-header">
                         <div class="user-info">
                             <span class="username"><?php echo htmlspecialchars($post['author']); ?></span>
@@ -104,7 +104,7 @@ $total_pages = ceil($total_posts / $posts_per_page);
                         <h3 class="post-title"><?php echo htmlspecialchars($post['title']); ?></h3>
                         <p class="caption-text"><?php echo nl2br(htmlspecialchars(substr($post['description'], 0, 170) . (strlen($post['description']) > 170 ? '...' : ''))); ?></p>
                         <?php if (strlen($post['description']) > 170): ?>
-                            <a href="view-blog-admin.php?id=<?php echo $post['id']; ?>" class="read-more">Read more...</a>
+                            <a href="view-blog-admin.php?id=<?php echo isset($post['adblog_id']) ? $post['adblog_id'] : $post['id']; ?>" class="read-more">Read more...</a>
                         <?php endif; ?>
                     </div>
                     </a>

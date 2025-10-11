@@ -1,12 +1,10 @@
 @import url("https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,200;1,300;1,400;1,500;1,600;1,700;1,800&display=swap");
 
 :root {
-  
   --primary-color: #256035;
   --primary-hover: #1a4a28;
   --primary-light: #3a8852;
   --primary-dark: #173d22;
-  
 
   --green-50: #f0fdf4;
   --green-100: #dcfce7;
@@ -18,7 +16,6 @@
   --green-700: #15803d;
   --green-800: #166534;
   --green-900: #14532d;
-  
 
   --gray-50: #f9fafb;
   --gray-100: #f3f4f6;
@@ -30,29 +27,26 @@
   --gray-700: #374151;
   --gray-800: #1f2937;
   --gray-900: #111827;
-  
 
   --success: #22c55e;
   --warning: #f59e0b;
   --error: #ef4444;
   --info: #3b82f6;
-  
- 
+
   --bg-color: #f9fafb;
   --card-bg: #ffffff;
   --border-color: #e5e7eb;
   --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
   --border-radius: 8px;
   --border-radius-lg: 12px;
   --transition: all 0.3s ease;
-  
 
   --font-family: "Spectral", serif;
   --text-color: #111827;
   --text-light: #6b7280;
 }
-
 
 * {
   margin: 0;
@@ -67,7 +61,6 @@ body {
   line-height: 1.5;
 }
 
-
 .promotions-container {
   min-height: 100vh;
   padding: 20px;
@@ -75,14 +68,13 @@ body {
 }
 
 .main-container {
-  max-width: 1400px;
+  max-width: 1600px;
   margin: 0 auto;
   background: var(--card-bg);
   border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow);
   overflow: hidden;
 }
-
 
 .header-supply-order {
   background: var(--card-bg);
@@ -178,7 +170,6 @@ body {
   background: var(--gray-50);
   border-color: var(--gray-300);
 }
-
 
 .filter-container {
   position: absolute;
@@ -282,7 +273,6 @@ body {
   border-color: var(--primary-hover);
 }
 
-
 .table-div {
   padding: 30px;
 }
@@ -323,7 +313,6 @@ body {
   background: var(--green-50);
 }
 
-
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -338,13 +327,12 @@ body {
 }
 
 .status-badge::before {
-  content: '';
+  content: "";
   width: 6px;
   height: 6px;
   border-radius: 50%;
   display: inline-block;
 }
-
 
 .modal {
   display: none;
@@ -410,7 +398,6 @@ body {
   gap: 15px;
 }
 
-
 .form-section {
   margin-bottom: 32px;
 }
@@ -470,7 +457,6 @@ body {
   box-shadow: 0 0 0 3px rgba(37, 96, 53, 0.1);
 }
 
-
 .switch-group {
   display: flex;
   align-items: center;
@@ -524,7 +510,6 @@ input:checked + .slider:before {
   transform: translateX(20px);
 }
 
-
 .btn {
   display: inline-flex;
   align-items: center;
@@ -561,7 +546,6 @@ input:checked + .slider:before {
   background: var(--gray-50);
   border-color: var(--gray-300);
 }
-
 
 .voucher-modal-content {
   max-width: 28em;
@@ -610,7 +594,6 @@ input:checked + .slider:before {
   cursor: not-allowed;
 }
 
-
 .form-loader-spinner {
   width: 40px;
   height: 40px;
@@ -634,7 +617,6 @@ input:checked + .slider:before {
   border-radius: var(--border-radius-lg);
 }
 
-
 @keyframes slideDown {
   from {
     opacity: 0;
@@ -647,10 +629,13 @@ input:checked + .slider:before {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
-
 
 .dataTables_wrapper {
   font-family: inherit;
@@ -694,7 +679,6 @@ input:checked + .slider:before {
   border-color: var(--primary-color);
 }
 
-  
 @media (max-width: 768px) {
   .promotions-container {
     padding: 20px;
@@ -729,7 +713,7 @@ input:checked + .slider:before {
   .form-row {
     grid-template-columns: 1fr;
   }
-  
+
   .field-group {
     grid-template-columns: 1fr;
   }
@@ -745,18 +729,18 @@ input:checked + .slider:before {
     flex-wrap: wrap;
     justify-content: center;
   }
-  
+
   .controls-supply-order button {
     flex: 1;
     min-width: 120px;
     justify-content: center;
   }
-  
+
   .table-div {
     padding: 20px;
     overflow-x: auto;
   }
-  
+
   #supply-order-table {
     min-width: 800px;
   }

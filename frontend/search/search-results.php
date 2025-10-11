@@ -290,7 +290,7 @@ require_once "../user-includes/navbar/customer-navigation.php";
                     <div class="instagram-feed">
                         <?php foreach ($admin_blogs as $post): ?>
                             <div class="instagram-post">
-                                <a href="view-blog-admin.php?id=<?php echo $post['id']; ?>" class="post-link">
+                                <a href="view-blog-admin.php?id=<?php echo isset($post['adblog_id']) ? $post['adblog_id'] : $post['id']; ?>" class="post-link">
                                 <div class="post-header">
                                     <div class="user-info">
                                         <span class="username"><?php echo htmlspecialchars($post['author']); ?></span>

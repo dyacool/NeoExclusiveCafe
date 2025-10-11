@@ -184,7 +184,7 @@
                                 <?php while ($row = mysqli_fetch_assoc($result)): ?>
                                     <tr>
                                         <td><?php echo htmlspecialchars($row['order_id']); ?></td>
-                                        <td><?php echo date('M d, Y', strtotime($row['order_date'])); ?></td>
+                                        <td><?php echo date('m-d-Y', strtotime($row['order_date'])); ?></td>
                                         <td><?php echo htmlspecialchars($row['customer_name']); ?></td>
                                         <td><?php echo htmlspecialchars($row['customer_contact']); ?></td>
                                         <td><?php echo htmlspecialchars($row['total_items']); ?></td>
@@ -197,7 +197,7 @@
                                                 $time = !empty($row['delivery_time']) ? $row['delivery_time'] : '00:00:00';
                                                 
                                                 // Display date and time
-                                                echo date('M d, Y', strtotime($date));
+                                                echo date('m-d-Y', strtotime($date));
                                                 if (!empty($row['delivery_time'])) {
                                                     echo ' at ' . date('h:i A', strtotime($row['delivery_time']));
                                                 }
@@ -262,6 +262,33 @@
 
     <script>
         let searchTimeout;
+        
+        // Add click event to table rows
+        function addRowClickEvents() {
+            const tableRows = document.querySelectorAll('#orders-tbody tr');
+            tableRows.forEach(row => {
+                // Skip empty state rows
+                if (row.querySelector('.no-orders')) return;
+                
+                // Add cursor pointer style
+                row.style.cursor = 'pointer';
+                
+                // Add click event listener
+                row.addEventListener('click', function(e) {
+                    // Don't trigger if clicking on the View Details button
+                    if (e.target.classList.contains('view-btn') || e.target.closest('.view-btn')) {
+                        return;
+                    }
+                    
+                    // Get order ID from the first cell
+                    const orderIdCell = this.querySelector('td:first-child');
+                    if (orderIdCell) {
+                        const orderId = orderIdCell.textContent.trim();
+                        window.location.href = `view-orders.php?order_id=${orderId}`;
+                    }
+                });
+            });
+        }
         
         // Fetch orders data via AJAX
         function fetchOrders() {
@@ -366,6 +393,9 @@
             });
             
             tbody.innerHTML = html;
+            
+            // Add click events to the new rows
+            addRowClickEvents();
         }
         
         // Update status counts
@@ -438,11 +468,10 @@
         function formatDate(dateString) {
             if (!dateString || dateString === '0000-00-00') return 'N/A';
             const date = new Date(dateString);
-            return date.toLocaleDateString('en-US', { 
-                month: 'short', 
-                day: 'numeric', 
-                year: 'numeric' 
-            });
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${month}-${day}-${year}`;
         }
         
         function formatTime(timeString) {
@@ -458,6 +487,11 @@
         function isEmpty(value) {
             return value === null || value === undefined || value === '';
         }
+        
+        // Initialize row click events when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            addRowClickEvents();
+        });
     </script>
 </body>
 </html>

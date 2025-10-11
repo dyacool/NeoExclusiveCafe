@@ -3,8 +3,23 @@ let currentDeleteId = null;
 
 // Modal functions
 function openAddModal() {
-  document.getElementById("addModal").style.display = "block";
-  document.getElementById("addLocationForm").reset();
+  console.log("openAddModal called");
+  const modal = document.getElementById("addModal");
+  console.log("Modal element:", modal);
+  if (modal) {
+    modal.style.display = "block";
+    console.log("Modal display set to block");
+  } else {
+    console.error("Modal element not found!");
+  }
+
+  const form = document.getElementById("addLocationForm");
+  if (form) {
+    form.reset();
+    console.log("Form reset");
+  } else {
+    console.error("Form element not found!");
+  }
 }
 
 function closeAddModal() {
@@ -42,7 +57,7 @@ function confirmDelete() {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: `action=delete&id=${currentDeleteId}`,
+      body: `action=delete&delivery_id=${currentDeleteId}`,
     })
       .then((response) => response.json())
       .then((data) => {
@@ -63,18 +78,26 @@ function confirmDelete() {
 
 // Form submission functions
 function addLocation(event) {
+  console.log("addLocation called");
   event.preventDefault();
 
   const formData = new FormData(event.target);
   formData.append("action", "add");
 
+  console.log("Form data:", Object.fromEntries(formData));
+
   fetch("/backend/pages/user-page-content/delivery-locations-handler.php", {
     method: "POST",
     body: formData,
   })
-    .then((response) => response.json())
+    .then((response) => {
+      console.log("Response status:", response.status);
+      return response.json();
+    })
     .then((data) => {
+      console.log("Response data:", data);
       if (data.success) {
+        alert("Location added successfully!");
         location.reload();
       } else {
         alert("Error adding location: " + data.message);
@@ -82,7 +105,7 @@ function addLocation(event) {
     })
     .catch((error) => {
       console.error("Error:", error);
-      alert("Error adding location");
+      alert("Error adding location: " + error.message);
     });
 }
 

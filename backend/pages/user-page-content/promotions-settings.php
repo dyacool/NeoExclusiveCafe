@@ -33,7 +33,6 @@ createPromotionsTable($conn);
     <div class="main-container">
         <!-- Header Section -->
         <div class="header-supply-order">
-            <h4>Manage Promotions</h4>
             <div class="all-controls-supply-order">
                 <div class="controls-supply-order">
                     <button id="supply-order-new-btn">
@@ -191,20 +190,6 @@ createPromotionsTable($conn);
                         </tr>
                     </thead>
                 <tbody></tbody>
-                <tfoot>
-                    <tr>
-                        <th>Id</th>
-                        <th>Title</th>
-                        <th>Method</th>
-                        <th>Code</th>
-                        <th>Discount</th>
-                        <th>Restrictions</th>
-                        <th>Usage</th>
-                        <th>Valid Period</th>
-                        <th>Sale Channel</th>
-                        <th>Status</th>
-                    </tr>
-                </tfoot>
                 </table>
         </div>
     </div>
@@ -321,134 +306,6 @@ createPromotionsTable($conn);
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="closeModal('addModal')">Cancel</button>
                     <button type="submit" class="btn btn-primary">Create Coupon</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Edit Coupon Modal -->
-<div id="editModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>Edit Coupon</h2>
-            <span class="close" onclick="closeModal('editModal')">&times;</span>
-        </div>
-        <div class="modal-body">
-            <form id="editCouponForm" onsubmit="updateCoupon(event)">
-                <input type="hidden" id="editId" name="id">
-                
-                <!-- Same form structure as add modal -->
-                <div class="form-section">
-                    <h3>Basic Information</h3>
-                    <div class="form-group">
-                        <label for="editTitle">Title *</label>
-                        <input type="text" id="editTitle" name="title" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editCode">Code * (Max 10 characters)</label>
-                        <input type="text" id="editCode" name="code" maxlength="10" required pattern="[A-Za-z0-9]+" title="Only letters and numbers allowed">
-                    </div>
-                    <div class="form-group">
-                        <label for="editApplicationMethod">Application Method *</label>
-                        <select id="editApplicationMethod" name="application_method" required>
-                            <option value="voucher_code">Voucher Code</option>
-                            <option value="automatic_discount">Automatic Discount</option>
-                        </select>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="editDiscountType">Discount Type *</label>
-                            <select id="editDiscountType" name="type" required onchange="toggleEditDiscountValue()">
-                                <option value="">Select Type</option>
-                                <option value="free_shipping">Free Shipping</option>
-                                <option value="percentage">Percentage Discount</option>
-                                <option value="fixed">Fixed Amount Discount</option>
-                            </select>
-                        </div>
-                        <div class="form-group" id="editDiscountValueGroup">
-                            <label for="editDiscountValue">Discount Value *</label>
-                            <input type="number" id="editDiscountValue" name="value" step="0.01" min="0">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="editMinSpend">Minimum Spend (₱)</label>
-                        <input type="number" id="editMinSpend" name="min_purchase" step="0.01" min="0" value="0">
-                    </div>
-                </div>
-
-                <div class="form-section">
-                    <h3>Applicable To</h3>
-                    <div class="form-group">
-                        <label for="editApplicableTo">Product Type *</label>
-                        <select id="editApplicableTo" name="applicable_to" required>
-                            <option value="all">All Products</option>
-                            <option value="delivery">Delivery Products Only</option>
-                            <option value="pickup">Pickup Products Only</option>
-                            <option value="special">Special Products</option>
-                        </select>
-                    </div>
-                    
-                    <h4>Restrictions</h4>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <div class="switch-group">
-                                <label class="switch">
-                                    <input type="checkbox" id="editUnlimitedUsage" onchange="toggleEditUsageLimit()">
-                                    <span class="slider"></span>
-                                </label>
-                                <label for="editUnlimitedUsage">Unlimited Usage</label>
-                            </div>
-                            <div id="editUsageLimitGroup">
-                                <label for="editUsageLimit">Usage Limit</label>
-                                <input type="number" id="editUsageLimit" name="usage_limit" min="1">
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <div class="switch-group">
-                                <label class="switch">
-                                    <input type="checkbox" id="editUnlimitedPerUser" onchange="toggleEditPerUserLimit()">
-                                    <span class="slider"></span>
-                                </label>
-                                <label for="editUnlimitedPerUser">Unlimited Per User</label>
-                            </div>
-                            <div id="editPerUserLimitGroup">
-                                <label for="editPerUserLimit">Limit Per User</label>
-                                <input type="number" id="editPerUserLimit" name="usage_limit_per_user" min="1">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-section">
-                    <h3>Validity Period</h3>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="editStartDate">Start Date *</label>
-                            <input type="date" id="editStartDate" name="activation_date" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="editEndDate">End Date *</label>
-                            <input type="date" id="editEndDate" name="expiration_date" required>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-section">
-                    <h3>Status</h3>
-                    <div class="form-group">
-                        <label for="editStatus">Status</label>
-                        <select id="editStatus" name="status">
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('editModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Update Coupon</button>
                 </div>
             </form>
         </div>

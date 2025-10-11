@@ -1,22 +1,23 @@
 <?php
 session_start();
 if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
-    header("Location: /NeoExclusiveCafe/pages/auth/login-signup.php");
+    header("Location: /login/admin/admin-login.php");
     exit();
 }
 
-$conn = new mysqli("localhost", "root", "", "crud");
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+// Include database configuration
+require_once __DIR__ . "/../../../config/database-config.php";
+
+// Get database connection
+$conn = getDatabaseConnection();
 
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["id"])) {
     $post_id = intval($_POST["id"]);
     
-    // First, get the image path to delete the file
-    $sql = "SELECT image_path FROM blog_posts WHERE id = ?";
+    // First, get the image path to delete the file (try both column names)
+    $sql = "SELECT image_path FROM blog_posts WHERE adblog_id = ? OR id = ?";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $post_id);
+    $stmt->bind_param("ii", $post_id, $post_id);
     $stmt->execute();
     $result = $stmt->get_result();
     $row = $result->fetch_assoc();
@@ -28,9 +29,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["id"])) {
         }
     }
     
-    // Delete the post from database
-    $sql = "DELETE FROM blog_posts WHERE id = ?";
+    // Delete the post from database (try both column names)
+    $sql = "DELETE FROM blog_posts WHERE adblog_id = ? OR id = ?";
     $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ii", $post_id, $post_id);
     $stmt->bind_param("i", $post_id);
     
     if ($stmt->execute()) {

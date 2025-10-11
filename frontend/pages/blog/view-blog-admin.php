@@ -30,10 +30,10 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 
 $post_id = (int)$_GET['id'];
 
-// Fetch the blog post
-$sql = "SELECT * FROM blog_posts WHERE id = ?";
+// Fetch the blog post (try both column names)
+$sql = "SELECT * FROM blog_posts WHERE adblog_id = ? OR id = ?";
 $stmt = mysqli_prepare($conn, $sql);
-mysqli_stmt_bind_param($stmt, "i", $post_id);
+mysqli_stmt_bind_param($stmt, "ii", $post_id, $post_id);
 mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
 

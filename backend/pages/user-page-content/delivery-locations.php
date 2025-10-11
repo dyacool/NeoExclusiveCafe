@@ -36,7 +36,7 @@
                     
             <div class="header-actions">
                 <button class="btn btn-primary" onclick="openAddModal()">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="12" y1="5" x2="12" y2="19"></line>
                         <line x1="5" y1="12" x2="19" y2="12"></line>
                     </svg>
@@ -96,7 +96,13 @@
                     </thead>
                     <tbody id="locationsTableBody">
                         <?php
-                            $conn = new mysqli("localhost", "root", "", "crud");
+                            // Use online database connection
+                            $servername = "mysql-neoexclusivecafe.alwaysdata.net";
+                            $username = "429123";
+                            $password = "NeoCafe123";
+                            $dbname = "neoexclusivecafe_crud";
+                            
+                            $conn = new mysqli($servername, $username, $password, $dbname);
                             if ($conn->connect_error) {
                                 die("Connection failed: " . $conn->connect_error);
                             }
@@ -108,7 +114,7 @@
                             if ($table_result->num_rows == 0) {
                                 // Create table if it doesn't exist
                                 $create_table = "CREATE TABLE delivery_locations (
-                                    id INT AUTO_INCREMENT PRIMARY KEY,
+                                    delivery_id INT AUTO_INCREMENT PRIMARY KEY,
                                     municipality VARCHAR(255) NOT NULL,
                                     city VARCHAR(255) NOT NULL,
                                     postal_code VARCHAR(4) NOT NULL,
@@ -130,7 +136,7 @@
                                 $total_pages = ceil($total_locations / $items_per_page);
 
                                 // Query with LIMIT and OFFSET for pagination
-                                $sql = "SELECT id, municipality, city, postal_code, delivery_fee 
+                                $sql = "SELECT delivery_id, municipality, city, postal_code, delivery_fee 
                                        FROM delivery_locations 
                                        ORDER BY municipality ASC 
                                        LIMIT $items_per_page OFFSET $offset";
@@ -156,7 +162,7 @@
                                                 <td>
                                                     <div class='action-buttons'>
                                                         <button class='btn-action btn-edit' onclick=\"openEditModal(
-                                                            '" . $row["id"] . "',     
+                                                            '" . $row["delivery_id"] . "',     
                                                             '" . addslashes($row["municipality"]) . "', 
                                                             '" . addslashes($row["city"]) . "', 
                                                             '" . $row["postal_code"] . "',
@@ -167,7 +173,7 @@
                                                                 <path d='M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z'></path>
                                                             </svg>
                                                         </button>
-                                                        <button class='btn-action btn-delete' onclick='deleteLocation(" . $row["id"] . ")' title='Delete Location'>
+                                                        <button class='btn-action btn-delete' onclick='deleteLocation(" . $row["delivery_id"] . ")' title='Delete Location'>
                                                             <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>
                                                                 <polyline points='3,6 5,6 21,6'></polyline>
                                                                 <path d='M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2'></path>
@@ -244,7 +250,7 @@
             <span class="close" onclick="closeEditModal()">&times;</span>
         </div>
         <form id="editLocationForm" onsubmit="updateLocation(event)">
-            <input type="hidden" id="editLocationId" name="id">
+            <input type="hidden" id="editLocationId" name="delivery_id">
             <div class="form-group">
                 <label for="editMunicipality">Municipality *</label>
                 <input type="text" id="editMunicipality" name="municipality" required>
