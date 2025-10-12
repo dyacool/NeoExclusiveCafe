@@ -58,7 +58,7 @@ function filterProducts(status, button) {
     filteredProducts = allProductsData.filter(
       (product) => product.unavailable_status_id !== null
     );
-  } else if (status === "Available Today") {
+  } else if (status === "Same Day Order") {
     filteredProducts = allProductsData.filter(
       (product) => product.status_id == 3
     );
@@ -221,18 +221,7 @@ function createProductRow(product) {
         <span class='status-badge status-${statusClass}'>${
     product.status_name || "Unknown"
   }</span>
-        ${
-          product.status_id == 3 && product.availtoday_status_name
-            ? `<span class='availtoday-badge'>for ${product.availtoday_status_name}</span>`
-            : ""
-        }
-        ${
-          product.status_id != 3 &&
-          product.regular_today_dates &&
-          product.availtoday_status_name
-            ? `<span class='availtoday-badge'>also for ${product.availtoday_status_name}</span>`
-            : ""
-        }
+        ${product.status_id == 3 && product.availtoday_status_name ? `<span class='availtoday-badge'>for ${product.availtoday_status_name}</span>` : ""}
         <span class='stock-badge ${quantityClass}'>
           <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>
             <path d='M20 7h-9'></path><path d='M14 17H5'></path>
@@ -1620,10 +1609,10 @@ function updateFilterCounts() {
   };
 
   allProductsData.forEach((product) => {
-    const status = product.status_name;
-    if (counts.hasOwnProperty(status)) {
-      counts[status]++;
-    }
+    let status = product.status_name;
+    // Map legacy term to new label for counting
+    if (status === "Available Today") status = "Same Day Order";
+    if (counts.hasOwnProperty(status)) counts[status]++;
     if (product.is_featured == 1) {
       counts.featured++;
     }
@@ -1638,8 +1627,7 @@ function updateFilterCounts() {
   document.getElementById("count-featured").textContent = counts.featured;
   document.getElementById("count-unavailable").textContent =
     counts["Unavailable"];
-  document.getElementById("count-available-today").textContent =
-    counts["Same Day Order"];
+  document.getElementById("count-available-today").textContent = counts["Same Day Order"];
 }
 
 function showNotification(message, type = "info") {

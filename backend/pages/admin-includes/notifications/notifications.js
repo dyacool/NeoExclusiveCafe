@@ -205,17 +205,29 @@ class NotificationSystem {
     this.showLoading(true);
 
     fetch(
-      "/backend/pages/admin-includes/notifications/api.php?action=get_recent"
+      "/backend/pages/admin-includes/notifications/api.php?action=get_recent",
+      { credentials: "include" }
     )
-      .then((response) => response.json())
+      .then((response) => {
+        if (response.status === 401) {
+          this.showError("Please log in to view notifications.");
+          this.stopAutoUpdate();
+          return { success: false, error: "Unauthorized" };
+        }
+        return response.json();
+      })
       .then((data) => {
-        if (data.success) {
+        if (data && data.success) {
           this.notifications = data.notifications;
           this.unreadCount = data.unread_count;
           this.updateBadge();
           this.renderNotifications();
         } else {
-          this.showError("Failed to load notifications");
+          if (data && data.error === "Unauthorized") {
+            this.showError("Please log in to view notifications.");
+          } else {
+            this.showError("Failed to load notifications");
+          }
         }
       })
       .catch((error) => {
@@ -288,6 +300,7 @@ class NotificationSystem {
 
     fetch("/backend/pages/admin-includes/notifications/api.php", {
       method: "POST",
+      credentials: "include",
       body: formData,
     })
       .then((response) => response.json())
@@ -320,6 +333,7 @@ class NotificationSystem {
   markAllAsRead() {
     fetch("/backend/pages/admin-includes/notifications/api.php", {
       method: "POST",
+      credentials: "include",
       body: new FormData(
         Object.assign(document.createElement("form"), {
           innerHTML: '<input name="action" value="mark_all_read">',
@@ -385,11 +399,18 @@ class NotificationSystem {
     // Update unread count every 30 seconds
     this.updateInterval = setInterval(() => {
       fetch(
-        "/backend/pages/admin-includes/notifications/api.php?action=get_unread_count"
+        "/backend/pages/admin-includes/notifications/api.php?action=get_unread_count",
+        { credentials: "include" }
       )
-        .then((response) => response.json())
+        .then((response) => {
+          if (response.status === 401) {
+            this.stopAutoUpdate();
+            return { success: false, error: "Unauthorized" };
+          }
+          return response.json();
+        })
         .then((data) => {
-          if (data.success && data.unread_count !== this.unreadCount) {
+          if (data && data.success && data.unread_count !== this.unreadCount) {
             this.unreadCount = data.unread_count;
             this.updateBadge();
 
@@ -401,6 +422,7 @@ class NotificationSystem {
         })
         .catch((error) => {
           console.error("Error updating notification count:", error);
+          this.stopAutoUpdate();
         });
     }, 30000); // 30 seconds
   }
@@ -511,6 +533,7 @@ if (document.querySelector(".notifications-page")) {
 
         await fetch("/backend/pages/admin-includes/notifications/api.php", {
           method: "POST",
+          credentials: "include",
           body: formData,
         });
 
@@ -543,6 +566,7 @@ if (document.querySelector(".notifications-page")) {
 
         await fetch("/backend/pages/admin-includes/notifications/api.php", {
           method: "POST",
+          credentials: "include",
           body: formData,
         });
 

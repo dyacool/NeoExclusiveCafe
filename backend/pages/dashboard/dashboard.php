@@ -674,11 +674,12 @@ try {
         </div>
     </div>
 
-    <script src="dashboard.js"></script>
     <script>
         // Pass PHP data to JavaScript
         const topProductsData = <?php echo json_encode($top_products); ?>;
-        
+    </script>
+    <script src="dashboard.js?v=<?php echo time(); ?>"></script>
+    <script>
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function() {
             initializeDashboard();

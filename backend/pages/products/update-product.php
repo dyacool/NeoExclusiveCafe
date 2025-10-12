@@ -196,27 +196,27 @@ try {
             $delete_today_stmt->close();
         }
         
-        // Handle regular products that are also available today
-        $available_today_dates = isset($input['available_today_dates']) ? json_decode($input['available_today_dates'], true) : [];
-        
-        // Always delete existing regular product today dates
-        $delete_regular_today_stmt = $conn->prepare("DELETE FROM regular_products_today_dates WHERE product_id = ?");
-        $delete_regular_today_stmt->bind_param("i", $id);
-        $delete_regular_today_stmt->execute();
-        $delete_regular_today_stmt->close();
-        
-        // Insert new regular product today dates if isAvailableToday is checked
-        $is_available_today = isset($input['is_available_today']) ? (bool)$input['is_available_today'] : false;
-        if ($is_available_today && !empty($available_today_dates)) {
-            $regular_today_stmt = $conn->prepare("INSERT INTO regular_products_today_dates (product_id, available_date, availtoday_status_id) VALUES (?, ?, ?)");
-            foreach ($available_today_dates as $date) {
-                if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
-                    $regular_today_stmt->bind_param("isi", $id, $date, $availtoday_status_id);
-                    $regular_today_stmt->execute();
-                }
+    // Handle regular products that are also available today (keep functionality; term-only change)
+    $available_today_dates = isset($input['available_today_dates']) ? json_decode($input['available_today_dates'], true) : [];
+    
+    // Always delete existing regular product today dates
+    $delete_regular_today_stmt = $conn->prepare("DELETE FROM regular_products_today_dates WHERE product_id = ?");
+    $delete_regular_today_stmt->bind_param("i", $id);
+    $delete_regular_today_stmt->execute();
+    $delete_regular_today_stmt->close();
+    
+    // Insert new regular product today dates if isAvailableToday is checked
+    $is_available_today = isset($input['is_available_today']) ? (bool)$input['is_available_today'] : false;
+    if ($is_available_today && !empty($available_today_dates)) {
+        $regular_today_stmt = $conn->prepare("INSERT INTO regular_products_today_dates (product_id, available_date, availtoday_status_id) VALUES (?, ?, ?)");
+        foreach ($available_today_dates as $date) {
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+                $regular_today_stmt->bind_param("isi", $id, $date, $availtoday_status_id);
+                $regular_today_stmt->execute();
             }
-            $regular_today_stmt->close();
         }
+        $regular_today_stmt->close();
+    }
         
         echo json_encode(['success' => true]);
     } else {

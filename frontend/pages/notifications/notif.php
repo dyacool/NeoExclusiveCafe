@@ -110,7 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $userEmail = $user['email'];
 
             try {
-                // Insert the notification into the database
+            // Insert the notification into the database
                 $notification->create($userId, $notificationType, $message);
                 $successCount++;
 
@@ -128,7 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ];
                 } else if ($userEmail && filter_var($userEmail, FILTER_VALIDATE_EMAIL) && !$wantsEmail) {
                     error_log("User ID: $userId has disabled $notificationType emails");
-                } else {
+            } else {
                     error_log("Invalid or missing email for user ID: $userId ($userEmail)");
                 }
             } catch (Exception $e) {
@@ -550,7 +550,7 @@ function createNotificationEmailTemplate($message, $notificationType) {
                 <button type="submit" class="btn" id="submitBtn">
                     Send Notification to All Users
                 </button>
-            </form>
+</form>
             
             <div class="preview-section">
                 <h3>Email Preview</h3>

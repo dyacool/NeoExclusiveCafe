@@ -40,10 +40,10 @@ function truncateCartIfBusinessClosed() {
         }
         
         if ($business_hours_result->num_rows === 0) {
-            // No business hours set, use default
-            $opening_time = '08:00';
-            $closing_time = '17:00';
-            error_log("No business hours set, using defaults: $opening_time - $closing_time");
+            // No business hours set, show loading state
+            $opening_time = 'Loading...';
+            $closing_time = 'Loading...';
+            error_log("No business hours set, showing loading state");
         } else {
             $business_hours = $business_hours_result->fetch_assoc();
             $opening_time = $business_hours['opening_time'];
@@ -183,7 +183,7 @@ if ($cart_truncated) {
                     
                     echo "Status: " . ($is_closed ? '<span style="color: #ff6b6b;">CLOSED</span>' : '<span style="color: #4CAF50;">OPEN</span>') . "<br>";
                 } else {
-                    echo "Hours: 08:00 - 17:00 (default)<br>";
+                    echo "Hours: loading... (default)<br>";
                     echo "Status: <span style='color: #4CAF50;'>OPEN</span> (default)<br>";
                 }
                 ?>
@@ -192,10 +192,10 @@ if ($cart_truncated) {
     <?php endif; ?>
 
     <div class="main-container fade-in">
-        <h1 class="prdct-title">Available Today for Pick Up or Delivery!</h1>
+        <h1 class="prdct-title">Same Day Orders</h1>
         <div class="header-section">
-            <h2 class="prdct-subtitle" id="currentDate"><?php echo date('l, F j, Y'); ?></h2>
-            <div class="cart-dropdown">
+            <h2 class="prdct-subtitle" id="currentDate">Check again tomorrow for exciting pre-made breads!<br><span style="color:rgb(18, 110, 41); font-weight: 600;">Loading...</span></h2>
+            <div class="cart-dropdown" style="display: none;">
                 <button class="cart-btn" id="availableTodayCartBtn">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="9" cy="21" r="1"></circle>
@@ -224,7 +224,7 @@ if ($cart_truncated) {
             </div>
         </div>
         <div class="scroll-container">
-            <div class="products-grid" id="productScroll">
+            <div class="products-grid" id="productScroll" style="display: none;">
                 <?php
                     // Get today's date
                     $today_date = date('Y-m-d'); // Returns date in YYYY-MM-DD format
@@ -430,115 +430,44 @@ if ($cart_truncated) {
 
     // Business Hours Management
     let businessHours = {
-        openingTime: '08:00',
-        closingTime: '17:00'
+        openingTime: null,
+        closingTime: null
     };
 
     function initBusinessHours() {
-        // Ensure cart is visible by default
-        const cartDropdown = document.querySelector('.cart-dropdown');
-        if (cartDropdown) {
-            cartDropdown.style.display = 'block';
-            // Remove console.log
-        }
-        
         loadBusinessHours();
-        // Check immediately after loading
-        setTimeout(() => {
-            checkBusinessHoursAndUpdateDisplay();
-        }, 100);
         // Check every minute
         setInterval(checkBusinessHoursAndUpdateDisplay, 60000);
-        
-        // Fallback check after 2 seconds in case fetch fails
-        setTimeout(() => {
-            if (!businessHours.openingTime || !businessHours.closingTime) {
-                console.log('Fallback: Using default business hours');
-                businessHours.openingTime = '08:00';
-                businessHours.closingTime = '17:00';
-                checkBusinessHoursAndUpdateDisplay();
-            }
-        }, 2000);
     }
 
     function loadBusinessHours() {
         fetch('get-business-hours.php')
             .then(response => response.json())
             .then(data => {
-                console.log('Business hours data received:', data);
                 if (data.success && data.businessHours) {
                     businessHours.openingTime = data.businessHours.opening_time;
                     businessHours.closingTime = data.businessHours.closing_time;
-                    console.log('Business hours loaded:', businessHours);
                     updateTimerDisplay();
-                    
-                    // Immediately check business hours after loading
-                    setTimeout(() => {
-                        checkBusinessHoursAndUpdateDisplay();
-                    }, 50);
-                } else {
-                    console.error('Failed to load business hours:', data);
+                    // Check immediately after data loads
+                    checkBusinessHoursAndUpdateDisplay();
                 }
             })
-            .catch(error => {
-                console.error('Error loading business hours:', error);
-            });
+            .catch(error => console.error('Error loading business hours:', error));
     }
 
     function checkBusinessHoursAndUpdateDisplay() {
-        const now = new Date();
-        const currentTime = now.toTimeString().slice(0, 5); // HH:MM format
-        
-        console.log('Current date/time info:', {
-            fullDate: now.toString(),
-            timeString: now.toTimeString(),
-            currentTime: currentTime,
-            hours: now.getHours(),
-            minutes: now.getMinutes(),
-            timezone: now.getTimezoneOffset()
-        });
-        
+        const currentTime = new Date().toTimeString().slice(0, 5);
         const isOpen = isWithinBusinessHours(currentTime);
-        
-        console.log('Business Hours Check:', {
-            currentTime: currentTime,
-            openingTime: businessHours.openingTime,
-            closingTime: businessHours.closingTime,
-            isOpen: isOpen,
-            businessHours: businessHours
-        });
-        
         updateProductVisibility(isOpen);
         updateTimerDisplay();
     }
 
     function isWithinBusinessHours(currentTime) {
-        console.log('Time comparison:', {
-            currentTime: currentTime,
-            openingTime: businessHours.openingTime,
-            closingTime: businessHours.closingTime,
-            currentTimeType: typeof currentTime,
-            openingTimeType: typeof businessHours.openingTime,
-            closingTimeType: typeof businessHours.closingTime
-        });
+        if (!businessHours.openingTime || !businessHours.closingTime) return false;
         
-        // Ensure we have valid business hours
-        if (!businessHours.openingTime || !businessHours.closingTime) {
-            console.log('Business hours not loaded yet, defaulting to open');
-            return true;
-        }
-        
-        // Convert times to minutes for easier comparison
         const currentMinutes = parseInt(currentTime.split(':')[0]) * 60 + parseInt(currentTime.split(':')[1]);
         const openingMinutes = parseInt(businessHours.openingTime.split(':')[0]) * 60 + parseInt(businessHours.openingTime.split(':')[1]);
         const closingMinutes = parseInt(businessHours.closingTime.split(':')[0]) * 60 + parseInt(businessHours.closingTime.split(':')[1]);
-        
-        console.log('Time comparison in minutes:', {
-            currentMinutes: currentMinutes,
-            openingMinutes: openingMinutes,
-            closingMinutes: closingMinutes,
-            isOpen: currentMinutes >= openingMinutes && currentMinutes < closingMinutes
-        });
         
         return currentMinutes >= openingMinutes && currentMinutes < closingMinutes;
     }
@@ -549,50 +478,18 @@ if ($cart_truncated) {
         const subtitle = document.querySelector('.prdct-subtitle');
         const cartDropdown = document.querySelector('.cart-dropdown');
         
-        console.log('updateProductVisibility called with isOpen:', isOpen);
-        console.log('Products grid element:', productsGrid);
-        console.log('Title element:', title);
-        console.log('Subtitle element:', subtitle);
-        console.log('Cart dropdown element:', cartDropdown);
-        
         if (!isOpen) {
-            // Hide products and show closing message
-            console.log('Hiding products - setting display to none');
             productsGrid.style.display = 'none';
             title.textContent = 'Same Day Orders';
             subtitle.innerHTML = `Check again tomorrow for exciting pre-made breads!<br><span style="color:rgb(18, 110, 41); font-weight: 600;">${formatTimeForDisplay(businessHours.openingTime)} - ${formatTimeForDisplay(businessHours.closingTime)}</span>`;
             
-            // Hide cart and clear cart data when business hours are closed
             if (cartDropdown) {
-                console.log('Hiding cart dropdown and clearing cart data');
                 cartDropdown.style.display = 'none';
-                
-                // Clear the cart data using the function from availtoday-cart.js
                 if (typeof clearAvailableTodayCart === 'function') {
-                    console.log('Calling clearAvailableTodayCart function');
                     clearAvailableTodayCart();
-                    console.log('Cart data cleared successfully');
-                } else {
-                    console.log('clearAvailableTodayCart function not available - trying alternative approach');
-                    // Alternative: manually clear cart data
-                    if (typeof availableTodayCart !== 'undefined') {
-                        availableTodayCart = [];
-                        availableTodayCartTotal = 0;
-                        console.log('Cart data manually cleared');
-                    }
-                    // Also try to clear localStorage
-                    try {
-                        localStorage.removeItem('availableTodayCart');
-                        localStorage.removeItem('availableTodayCartTotal');
-                        console.log('Cart data cleared from localStorage');
-                    } catch (e) {
-                        console.log('Could not clear localStorage:', e);
-                    }
                 }
             }
         } else {
-            // Show products and restore original title
-            console.log('Showing products - setting display to grid');
             productsGrid.style.display = 'grid';
             title.textContent = 'Available Today for Pick Up or Delivery!';
             subtitle.textContent = new Date().toLocaleDateString('en-US', { 
@@ -602,21 +499,13 @@ if ($cart_truncated) {
                 day: 'numeric' 
             });
             
-            // Show cart when business hours are open
             if (cartDropdown) {
-                console.log('Showing cart dropdown');
                 cartDropdown.style.display = 'block';
-                
-                // Also ensure cart display is updated
                 if (typeof updateAvailableTodayCartDisplay === 'function') {
-                    console.log('Updating cart display after showing cart');
                     updateAvailableTodayCartDisplay();
                 }
             }
         }
-        
-        console.log('Final products grid display style:', productsGrid.style.display);
-        console.log('Final cart dropdown display style:', cartDropdown ? cartDropdown.style.display : 'N/A');
     }
 
     function updateTimerDisplay() {
@@ -625,6 +514,15 @@ if ($cart_truncated) {
             // Format the time to be more readable (e.g., "5:00 PM" instead of "17:00")
             const formattedTime = formatTimeForDisplay(businessHours.closingTime);
             timerValue.textContent = formattedTime;
+        }
+        
+        // Also update the subtitle with business hours if they're loaded
+        const subtitle = document.querySelector('.prdct-subtitle');
+        if (subtitle && businessHours.openingTime && businessHours.closingTime) {
+            // Only update if still showing the "Check again tomorrow" message
+            if (subtitle.innerHTML.includes('Check again tomorrow') || subtitle.innerHTML.includes('Loading...')) {
+                subtitle.innerHTML = `Check again tomorrow for exciting pre-made breads!<br><span style="color:rgb(18, 110, 41); font-weight: 600;">${formatTimeForDisplay(businessHours.openingTime)} - ${formatTimeForDisplay(businessHours.closingTime)}</span>`;
+            }
         }
     }
 

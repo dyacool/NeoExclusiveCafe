@@ -1,7 +1,51 @@
-// Dashboard JavaScript functionality
+// Dashboard JavaScript functionality - v2.0 FRESH
+console.log('[Dashboard.js v2.0] File loading started - FRESH VERSION');
+
 let currentDate = new Date();
 let topProductsChart = null;
 let salesPerProductChart = null;
+
+// Business hours update for dashboard - defined early for inline onclick
+function updateBusinessHours() {
+  console.log('[updateBusinessHours v2.0] Function called - FRESH');
+  const openingTime = document.getElementById("openingTime")?.value;
+  const closingTime = document.getElementById("closingTime")?.value;
+
+  if (!openingTime || !closingTime) {
+    alert("Please enter both opening and closing times");
+    return;
+  }
+
+  // Allow 00:00 - 00:00 as a special case (closed system). Otherwise require closing after opening
+  if (!(openingTime === "00:00" && closingTime === "00:00") && openingTime >= closingTime) {
+    alert("Closing time must be after opening time");
+    return;
+  }
+
+  fetch("../calendar/update-business-hours.php", {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ openingTime, closingTime }),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data && data.success) {
+        alert("Business hours updated successfully!");
+      } else {
+        alert("Error updating business hours: " + ((data && data.error) || "Unknown error"));
+      }
+    })
+    .catch((error) => {
+      console.error("Error updating business hours:", error);
+      alert("Error updating business hours. Please try again.");
+    });
+}
+
+// Expose for inline onclick
+window.updateBusinessHours = updateBusinessHours;
+console.log('[Dashboard.js v2.0] updateBusinessHours exposed on window, type:', typeof window.updateBusinessHours);
+console.log('[Dashboard.js v2.0] Testing global access:', typeof updateBusinessHours);
 
 // Initialize dashboard
 function initializeDashboard() {
@@ -440,4 +484,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Initialize dashboard functionality
   initializeDashboard();
+
+  // Load current business hours into inputs on admin dashboard
+  try {
+    fetch("../calendar/get-business-hours.php", { credentials: "include" })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data && data.success && data.businessHours) {
+          const opening = (data.businessHours.opening_time || "").slice(0, 5);
+          const closing = (data.businessHours.closing_time || "").slice(0, 5);
+          const openingInput = document.getElementById("openingTime");
+          const closingInput = document.getElementById("closingTime");
+          if (openingInput) openingInput.value = opening || openingInput.value || "08:00";
+          if (closingInput) closingInput.value = closing || closingInput.value || "17:00";
+        }
+      })
+      .catch(() => {});
+  } catch (_) {}
 });

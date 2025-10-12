@@ -122,9 +122,9 @@
                         <span class="filter-count" id="count-delivery">0</span>
                         Delivery
                     </button>
-                    <button class="filter-btn" onclick="filterProducts('Available Today', this)" data-filter="available-today">
+                    <button class="filter-btn" onclick="filterProducts('Same Day Order', this)" data-filter="available-today">
                         <span class="filter-count" id="count-available-today">0</span>
-                        Today
+                        Same Day
                     </button>
                     <button class="filter-btn" onclick="filterProducts('featured', this)" data-filter="featured">
                         <span class="filter-count" id="count-featured">0</span>
@@ -262,7 +262,8 @@
                                         $imagePath = '/assets/' . $row['image_url'];
                                     }
 
-                                    echo "<tr data-status='" . ($row['status_name'] ?? 'Unknown') . "' data-name='" . strtolower($row['name']) . "' data-sku='" . strtolower($row['sku']) . "'>
+                                    $displayStatus = ($row['status_id'] == 3) ? 'Same Day Order' : ($row['status_name'] ?? 'Unknown');
+                                    echo "<tr data-status='" . $displayStatus . "' data-name='" . strtolower($row['name']) . "' data-sku='" . strtolower($row['sku']) . "'>
                                             <td>
                                                 <div class='product-image-container'>
                                                     <img class='product-image' src='" . htmlspecialchars($imagePath) . "' alt='" . htmlspecialchars($row['name']) . "' loading='lazy'>
@@ -282,17 +283,14 @@
                                             </td>
                                             <td>
                                                 <div class='status-container'>
-                                                    <span class='status-badge status-" . $statusClass . "'>" . ($row['status_name'] ?? 'Unknown') . "</span>";
+                                                    <span class='status-badge status-" . $statusClass . "'>" . $displayStatus . "</span>";
                                                     
-                                                    // Show availtoday status if it's "Available Today"
+                                                    // Show badge for Same Day Order (status_id = 3)
                                                     if ($row['status_id'] == 3 && !empty($row['availtoday_status_name'])) {
                                                         echo "<span class='availtoday-badge'>for " . htmlspecialchars($row['availtoday_status_name']) . "</span>";
                                                     }
                                                     
-                                                    // Show availtoday badge for regular products with today availability
-                                                    if ($row['status_id'] != 3 && !empty($row['regular_today_dates']) && !empty($row['availtoday_status_name'])) {
-                                                        echo "<span class='availtoday-badge'>also for " . htmlspecialchars($row['availtoday_status_name']) . "</span>";
-                                                    }
+                                                    // Removed redundant 'also available today' badge for regular products
                                                     
                                                     echo "<span class='stock-badge " . $quantityClass . "'>
                                                         <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>
@@ -309,7 +307,7 @@
                                                  <span class='available-days-text'>" . formatAvailableDays($row['available_days']) . "</span>
                                              </td>
                                              <td>
-                                                 <span class='selected-dates-text'>" . formatSelectedDates($row['status_id'] == 3 ? $row['todays_product_dates'] : $row['regular_today_dates']) . "</span>
+                                                 <span class='selected-dates-text'>" . formatSelectedDates($row['status_id'] == 3 ? $row['todays_product_dates'] : '') . "</span>
                                              </td>
                                             <td>
                                                 <div class='action-buttons'>

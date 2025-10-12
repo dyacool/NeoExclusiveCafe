@@ -72,7 +72,8 @@ $openingTime = $normalizedOpeningTime;
 $closingTime = $normalizedClosingTime;
 
 // Validate that closing time is after opening time
-if ($openingTime >= $closingTime) {
+// Allow special case where both times are 00:00 to indicate closed system
+if (!($openingTime === '00:00' && $closingTime === '00:00') && $openingTime >= $closingTime) {
     echo json_encode(['success' => false, 'error' => 'Closing time must be after opening time']);
     exit;
 }
@@ -97,25 +98,23 @@ try {
         }
     }
     
-    // Check if there's already a record
-    $checkQuery = "SELECT id FROM business_hours LIMIT 1";
-    $result = $conn->query($checkQuery);
-    
-    if ($result->num_rows > 0) {
-        // Update existing record
-        $updateQuery = "UPDATE business_hours SET opening_time = ?, closing_time = ? WHERE id = 1";
+    // Upsert latest record (update newest row if exists, else insert)
+    $latestQuery = "SELECT id FROM business_hours ORDER BY id DESC LIMIT 1";
+    $latestResult = $conn->query($latestQuery);
+
+    if ($latestResult && $latestResult->num_rows > 0) {
+        $row = $latestResult->fetch_assoc();
+        $latestId = (int)$row['id'];
+        $updateQuery = "UPDATE business_hours SET opening_time = ?, closing_time = ? WHERE id = ?";
         $stmt = $conn->prepare($updateQuery);
-        $stmt->bind_param("ss", $openingTime, $closingTime);
-        
+        $stmt->bind_param("ssi", $openingTime, $closingTime, $latestId);
         if (!$stmt->execute()) {
             throw new Exception('Failed to update business hours');
         }
     } else {
-        // Insert new record
         $insertQuery = "INSERT INTO business_hours (opening_time, closing_time) VALUES (?, ?)";
         $stmt = $conn->prepare($insertQuery);
         $stmt->bind_param("ss", $openingTime, $closingTime);
-        
         if (!$stmt->execute()) {
             throw new Exception('Failed to insert business hours');
         }
