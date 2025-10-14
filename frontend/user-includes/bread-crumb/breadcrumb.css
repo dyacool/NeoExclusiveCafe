@@ -1,351 +1,452 @@
-/* Breadcrumb Navigation Styles */
-/* Consistent with NeoCafe site design using Spectral font and green color scheme */
+/**
+ * Modern Breadcrumb Navigation - NeoCafe Design System
+ * Clean, accessible, and responsive breadcrumb component
+ */
 
 :root {
-  --primary-dark: #0a5c36;
-  --primary: #0f5132;
-  --primary-light: #14452f;
-  --light-accent: #cbd5c0;
-  --lightest: #dfe6da;
-  --white: #ffffff;
-  --gray-50: #f8f9fa;
-  --gray-100: #e9ecef;
-  --gray-300: #adb5bd;
-  --gray-500: #6c757d;
-  --gray-600: #495057;
-  --gray-700: #343a40;
-  --gray-800: #212529;
-  --transition-speed: 0.3s;
+  /* NeoCafe Brand Colors */
+  --neo-primary: #256035;
+  --neo-primary-dark: #1a4128;
+  --neo-primary-light: #34804b;
+  --neo-accent: #f8f9fa;
+  --neo-hover: #2d6e3e;
+
+  /* Semantic Colors */
+  --breadcrumb-bg: #ffffff;
+  --breadcrumb-border: #e9ecef;
+  --breadcrumb-text: #495057;
+  --breadcrumb-current: #212529;
+  --breadcrumb-hover: var(--neo-primary);
+  --breadcrumb-separator: #adb5bd;
+
+  /* Spacing & Sizing */
+  --breadcrumb-padding: 1rem 2rem;
+  --breadcrumb-radius: 12px;
+  --breadcrumb-gap: 0.5rem;
+  --breadcrumb-height: 3rem;
+
+  /* Typography */
+  --breadcrumb-font: "Inter", "Segoe UI", -apple-system, BlinkMacSystemFont,
+    sans-serif;
+  --breadcrumb-font-size: 0.875rem;
+  --breadcrumb-font-weight: 500;
+  --breadcrumb-line-height: 1.5;
+
+  /* Transitions */
+  --breadcrumb-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --breadcrumb-hover-scale: 1.02;
+
+  /* Shadows */
+  --breadcrumb-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --breadcrumb-shadow-hover: 0 4px 12px rgba(37, 96, 53, 0.15);
 }
 
+/* Container */
 .breadcrumb-container {
-  padding: 1rem 0;
-  margin: 1rem 0 3rem 4rem;
-  font-family: "Spectral", serif;
-  max-width: 1200px;
   width: 100%;
-  box-sizing: border-box;
-  text-align: left;
-  background-color: transparent;
-  margin-bottom: 0.5rem;
+  max-width: 1400px;
+  padding: 1rem 0;
+  margin: 0 auto;
+  font-family: var(--breadcrumb-font);
+}
+
+/* Navigation wrapper */
+.breadcrumb-nav {
   position: relative;
-  z-index: 10;
+  background: var(--breadcrumb-bg);
+  transition: var(--breadcrumb-transition);
+  overflow: hidden;
 }
 
-.breadcrumb {
-  max-width: 100%;
-  margin: 0;
-  padding: 0;
-}
-
-.breadcrumb-list {
+/* Wrapper for content */
+.breadcrumb-wrapper {
+  position: relative;
+  min-height: var(--breadcrumb-height);
   display: flex;
-  justify-content: flex-start;
-  flex-wrap: wrap;
-  list-style: none;
-  margin: 0;
-  padding: 0 1.5rem;
-  font-size: 0.875rem;
-  gap: 0.5rem;
-  max-width: 100%;
   align-items: center;
 }
 
+/* Breadcrumb list */
+.breadcrumb-list {
+  display: flex;
+  align-items: center;
+  list-style: none;
+  margin: 0;
+  gap: var(--breadcrumb-gap);
+  flex-wrap: wrap;
+  width: 100%;
+  font-size: var(--breadcrumb-font-size);
+  line-height: var(--breadcrumb-line-height);
+}
+
+/* Breadcrumb items */
 .breadcrumb-item {
   display: flex;
   align-items: center;
-  color: #000000;
-  transition: all var(--transition-speed) ease;
+  gap: var(--breadcrumb-gap);
+  transition: var(--breadcrumb-transition);
 }
 
+/* Breadcrumb links */
 .breadcrumb-link {
-  color: #555;
-  text-decoration: none;
-  padding: 0.35rem 0.5rem;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-  font-weight: 400;
-  font-size: 0.9rem;
-  line-height: 1.4;
+  font-weight: 600;
   display: inline-flex;
   align-items: center;
+  text-decoration: none;
+  color: var(--breadcrumb-hover);
+  font-weight: var(--breadcrumb-font-weight);
+  padding: 0.5rem 0rem;
+  border-radius: 8px;
+  transition: var(--breadcrumb-transition);
+  position: relative;
+  min-height: 2.25rem;
+  box-sizing: border-box;
 }
 
 .breadcrumb-link:hover {
-  color: #1a4a28;
-  background-color: rgba(26, 74, 40, 0.05);
-  text-decoration: none;
-  transform: translateY(0);
-  box-shadow: none;
+  color: #444;
+  transform: scale(var(--breadcrumb-hover-scale));
+  text-decoration: underline;
 }
 
-.breadcrumb-link:focus,
-.breadcrumb-link:focus-visible {
-  outline: 2px solid #000000;
+.breadcrumb-link:focus {
+  outline: 2px solid var(--neo-primary);
   outline-offset: 2px;
-  background-color: #f0f0f0;
-  border-color: var(--light-accent);
 }
 
+.breadcrumb-link:active {
+  transform: scale(0.98);
+}
+
+/* Current page styling */
 .breadcrumb-current {
-  color: #1a4a28;
-  font-weight: 500;
-  padding: 0.35rem 0.5rem;
-  background-color: transparent;
-  border: none;
-  border-radius: 4px;
-  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  color: #444 !important;
+  font-weight: 600;
+  padding: 0.5rem 0.75rem;
+  color: white;
+  border-radius: 8px;
+  min-height: 2.25rem;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.breadcrumb-current::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
+  border-radius: 8px;
   pointer-events: none;
 }
 
-.breadcrumb-item.active .breadcrumb-current {
-  color: #000000;
-  background-color: #ffffff;
-  border-color: var(--light-accent);
+/* Breadcrumb text */
+.breadcrumb-text {
+  font-weight: inherit;
+  letter-spacing: 0.025em;
 }
 
+/* Separator styling */
 .breadcrumb-separator {
-  margin: 0 0.5rem;
-  color: #000000;
+  display: flex;
+  align-items: center;
+  color: var(--breadcrumb-separator);
+  margin: 0 0.25rem;
+  transition: var(--breadcrumb-transition);
+}
+
+.separator-icon {
+  width: 16px;
+  height: 16px;
   flex-shrink: 0;
-  transition: color var(--transition-speed) ease;
 }
 
-.breadcrumb-item:hover .breadcrumb-separator {
-  color: #000000;
+.current-page {
+  font-weight: 600;
+  color: var(--breadcrumb-current);
+  font-size: 0.9rem;
 }
 
-/* Responsive Design */
-@media (max-width: 992px) {
+.page-depth {
+  font-size: 0.75rem;
+  color: var(--breadcrumb-text);
+  margin-top: 0.25rem;
+}
+
+/* Responsive design */
+/* ====================================== */
+
+/* Large tablets and small desktops */
+
+@media (max-width: 1440px) {
   .breadcrumb-container {
-    padding: 0.75rem 1.25rem;
+    padding: 0 1.5rem;
+  }
+
+  :root {
+    --breadcrumb-padding: 0.875rem 1.5rem;
+    --breadcrumb-font-size: 0.8125rem;
   }
 }
 
+/* Tablets */
 @media (max-width: 768px) {
   .breadcrumb-container {
-    padding: 0.75rem 0;
-    margin-bottom: 0.5rem;
-    border-bottom: none;
-    overflow: hidden;
+    padding: 0 0.5rem;
+    margin-bottom: 1.5rem;
   }
 
-  .breadcrumb {
-    padding: 0 1rem;
+  :root {
+    --breadcrumb-padding: 0.75rem 1.25rem;
+    --breadcrumb-radius: 10px;
+    --breadcrumb-height: 2.75rem;
   }
 
   .breadcrumb-list {
-    font-size: 0.8rem;
-    gap: 0.25rem;
     flex-wrap: nowrap;
     overflow-x: auto;
-    padding: 0.25rem 1rem 0.5rem;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
-    scrollbar-color: #ddd transparent;
+    scrollbar-color: var(--breadcrumb-separator) transparent;
+    padding-bottom: 0.5rem;
   }
 
   .breadcrumb-list::-webkit-scrollbar {
-    height: 4px;
+    height: 3px;
+  }
+
+  .breadcrumb-list::-webkit-scrollbar-track {
+    background: transparent;
   }
 
   .breadcrumb-list::-webkit-scrollbar-thumb {
-    background: #ddd;
-    border-radius: 4px;
+    background: var(--breadcrumb-separator);
+    border-radius: 3px;
   }
 
   .breadcrumb-item {
-    white-space: nowrap;
     flex-shrink: 0;
+    white-space: nowrap;
   }
 
-  .breadcrumb-separator {
-    margin: 0 0.25rem;
-    width: 12px;
-    height: 12px;
+  .separator-icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  .breadcrumb-link,
+  .breadcrumb-current {
+    padding: 0.375rem 0.625rem;
+    min-height: 2rem;
+    font-size: 0.8125rem;
+  }
+}
+
+/* Mobile phones */
+@media (max-width: 480px) {
+  .breadcrumb-container {
+    margin-bottom: 0.25rem;
+  }
+
+  :root {
+    --breadcrumb-padding: 0.625rem 1rem;
+    --breadcrumb-radius: 8px;
+    --breadcrumb-height: 2.5rem;
+    --breadcrumb-font-size: 0.75rem;
+  }
+
+  .breadcrumb-nav {
+    border-radius: var(--breadcrumb-radius);
+  }
+
+  .breadcrumb-list {
+    gap: 0.375rem;
   }
 
   .breadcrumb-link,
   .breadcrumb-current {
     padding: 0.25rem 0.5rem;
-    font-size: 0.8rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .breadcrumb-container {
-    padding: 0.75rem 0.75rem 0.5rem;
-    margin-bottom: 0.5rem;
+    min-height: 1.75rem;
+    border-radius: 6px;
   }
 
-  .breadcrumb {
-    padding: 0 10px;
-  }
-
-  .breadcrumb-list {
-    font-size: 0.75rem;
-  }
-
-  .breadcrumb-separator {
+  .separator-icon {
     width: 12px;
     height: 12px;
-    margin: 0 0.25rem;
-  }
-
-  .breadcrumb-link,
-  .breadcrumb-current {
-    padding: 0.125rem 0.25rem;
-    font-size: 0.75rem;
-  }
-
-  /* Stack breadcrumbs on very small screens if needed */
-  .breadcrumb-list {
-    flex-wrap: wrap;
-  }
-}
-
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .breadcrumb-item {
-    color: #000000;
-  }
-
-  .breadcrumb-link {
-    color: #000000;
-  }
-
-  .breadcrumb-link:hover {
-    color: var(--light-accent);
-    background-color: #256035;
-  }
-
-  .breadcrumb-current {
-    color: #000000;
-    background-color: #256035;
-    border-color: var(--light-accent);
-  }
-
-  .breadcrumb-item.active .breadcrumb-current {
-    color: var(--lightest);
-    background-color: #256035;
-    border-color: var(--light-accent);
   }
 
   .breadcrumb-separator {
-    color: #000000;
+    margin: 0 0.125rem;
   }
 }
 
-/* Animation keyframes */
-@keyframes slideInFromTop {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
+/* Enhanced interactions */
+/* ====================================== */
+
+/* Hover animations */
+.breadcrumb-item:not(.current):hover .breadcrumb-link {
+  animation: breadcrumb-pulse 0.6s ease-in-out;
+}
+
+@keyframes breadcrumb-pulse {
+  0%,
+  100% {
+    transform: scale(1);
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  50% {
+    transform: scale(1.05);
   }
 }
 
-/* Enhanced hover effects */
-.breadcrumb-item:not(.active):hover {
-  transform: translateY(-1px);
-}
-
-.breadcrumb-link:active {
-  transform: translateY(0);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-/* Loading state (optional) */
-.breadcrumb-container.loading {
+/* Loading state */
+.breadcrumb-nav.loading {
   opacity: 0.7;
   pointer-events: none;
 }
 
-.breadcrumb-container.loading .breadcrumb-link {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+.breadcrumb-nav.loading .breadcrumb-item {
+  animation: breadcrumb-shimmer 2s infinite linear;
 }
 
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
+@keyframes breadcrumb-shimmer {
+  0% {
+    opacity: 0.6;
   }
   50% {
-    opacity: 0.5;
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
   }
 }
 
-/* Print styles */
-@media print {
-  .breadcrumb-container {
-    background: none !important;
-    border: none !important;
-    padding: 0.5rem 0;
-    box-shadow: none !important;
-  }
-
-  .breadcrumb {
-    padding: 0;
-  }
-
-  .breadcrumb-link {
-    color: #000 !important;
-    text-decoration: underline;
-    background: none !important;
-    border: none !important;
-    padding: 0 0.25rem;
-  }
-
-  .breadcrumb-current {
-    color: #000 !important;
-    background: none !important;
-    border: none !important;
-    font-weight: bold;
-    padding: 0 0.25rem;
-  }
-
-  .breadcrumb-separator {
-    color: #000 !important;
-  }
+/* Focus indicators */
+.breadcrumb-link:focus-visible {
+  box-shadow: 0 0 0 3px rgba(37, 96, 53, 0.2);
 }
 
-/* High contrast mode support */
+/* Accessibility enhancements */
+/* ====================================== */
+
+/* High contrast mode */
 @media (prefers-contrast: high) {
+  :root {
+    --breadcrumb-text: #000000;
+    --breadcrumb-current: #000000;
+    --breadcrumb-border: #000000;
+    --breadcrumb-separator: #000000;
+  }
+
   .breadcrumb-link {
-    border: 2px solid var(--primary);
-    font-weight: 600;
+    border: 2px solid transparent;
+  }
+
+  .breadcrumb-link:hover,
+  .breadcrumb-link:focus {
+    border-color: var(--neo-primary);
   }
 
   .breadcrumb-current {
-    border: 2px solid var(--gray-600);
-    font-weight: 700;
-  }
-
-  .breadcrumb-separator {
-    font-weight: bold;
+    border: 2px solid var(--neo-primary);
   }
 }
 
-/* Reduced motion support */
+/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .breadcrumb-container {
-    animation: none;
-  }
-
-  .breadcrumb-link,
-  .breadcrumb-item,
-  .breadcrumb-separator {
-    transition: none;
+  :root {
+    --breadcrumb-transition: none;
   }
 
   .breadcrumb-link:hover {
     transform: none;
   }
 
-  .breadcrumb-item:not(.active):hover {
-    transform: none;
+  .breadcrumb-item:not(.current):hover .breadcrumb-link {
+    animation: none;
+  }
+
+  .breadcrumb-nav.loading .breadcrumb-item {
+    animation: none;
+  }
+}
+
+/* Dark mode support */
+/* ====================================== */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --breadcrumb-bg: #1a1a1a;
+    --breadcrumb-border: #404040;
+    --breadcrumb-text: #e0e0e0;
+    --breadcrumb-current: #ffffff;
+    --breadcrumb-separator: #888888;
+    --neo-accent: #2a2a2a;
+  }
+}
+
+/* Print styles */
+/* ====================================== */
+
+@media print {
+  .breadcrumb-container {
+    margin: 0.5rem 0;
+    page-break-inside: avoid;
+  }
+
+  .breadcrumb-nav {
+    background: none !important;
+    border: 1px solid #ccc !important;
+    box-shadow: none !important;
+  }
+
+  .breadcrumb-link {
+    color: #000 !important;
+    background: none !important;
+    text-decoration: underline;
+  }
+
+  .breadcrumb-current {
+    background: none !important;
+    color: #000 !important;
+    font-weight: bold;
+    text-decoration: none;
+  }
+
+  .breadcrumb-separator {
+    color: #666 !important;
+  }
+
+  .breadcrumb-mobile-indicator {
+    display: none !important;
+  }
+}
+
+.breadcrumb-nav {
+  contain: layout style;
+  will-change: box-shadow;
+}
+
+.breadcrumb-link {
+  contain: layout;
+  will-change: transform, background-color;
+}
+
+@supports (backdrop-filter: blur(10px)) {
+  .breadcrumb-nav {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.9);
+  }
+}
+
+@supports (container-type: inline-size) {
+  .breadcrumb-container {
+    container-type: inline-size;
+  }
+
+  @container (max-width: 400px) {
+    .breadcrumb-text {
+      font-size: 0.7rem;
+    }
   }
 }

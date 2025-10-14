@@ -74,6 +74,7 @@ if ($conn->connect_error) {
             
             <!-- Mobile Dropdown -->
             <div class="mobile-filters">
+                <label for="mobileMainFilter">Filter Options:</label>
                 <select id="mobileMainFilter" onchange="handleMobileMainFilterChange()">
                     <option value="all">All Pre-order Products</option>
                     <option value="unavailable">Unavailable Products</option>
@@ -82,6 +83,56 @@ if ($conn->connect_error) {
                     <option value="price-asc">Price (Low → High)</option>
                     <option value="price-desc">Price (High → Low)</option>
                 </select>
+            </div>
+        </div>
+
+        <!-- Day Filters Section -->
+        <div class="day-filters-section" id="dayFiltersSection">
+            <h4>Filter by Days:</h4>
+            
+            <!-- Desktop Checkboxes -->
+            <div class="checkbox-group desktop-day-filters">
+                <label class="checkbox-option">
+                    <input type="checkbox" value="sunday" onchange="handleDayFilterChange()">
+                    <span class="checkbox-label">Sunday</span>
+                </label>
+                <label class="checkbox-option">
+                    <input type="checkbox" value="monday" onchange="handleDayFilterChange()">
+                    <span class="checkbox-label">Monday</span>
+                </label>
+                <label class="checkbox-option">
+                    <input type="checkbox" value="tuesday" onchange="handleDayFilterChange()">
+                    <span class="checkbox-label">Tuesday</span>
+                </label>
+                <label class="checkbox-option">
+                    <input type="checkbox" value="wednesday" onchange="handleDayFilterChange()">
+                    <span class="checkbox-label">Wednesday</span>
+                </label>
+                <label class="checkbox-option">
+                    <input type="checkbox" value="thursday" onchange="handleDayFilterChange()">
+                    <span class="checkbox-label">Thursday</span>
+                </label>
+                <label class="checkbox-option">
+                    <input type="checkbox" value="friday" onchange="handleDayFilterChange()">
+                    <span class="checkbox-label">Friday</span>
+                </label>
+                <label class="checkbox-option">
+                    <input type="checkbox" value="saturday" onchange="handleDayFilterChange()">
+                    <span class="checkbox-label">Saturday</span>
+                </label>
+            </div>
+            
+            <!-- Mobile Filter Buttons -->
+            <div class="mobile-day-filters">
+                <div class="day-button-group">
+                    <button type="button" class="day-filter-btn" data-day="sunday" onclick="toggleDayFilter(this)">Sun</button>
+                    <button type="button" class="day-filter-btn" data-day="monday" onclick="toggleDayFilter(this)">Mon</button>
+                    <button type="button" class="day-filter-btn" data-day="tuesday" onclick="toggleDayFilter(this)">Tue</button>
+                    <button type="button" class="day-filter-btn" data-day="wednesday" onclick="toggleDayFilter(this)">Wed</button>
+                    <button type="button" class="day-filter-btn" data-day="thursday" onclick="toggleDayFilter(this)">Thu</button>
+                    <button type="button" class="day-filter-btn" data-day="friday" onclick="toggleDayFilter(this)">Fri</button>
+                    <button type="button" class="day-filter-btn" data-day="saturday" onclick="toggleDayFilter(this)">Sat</button>
+                </div>
             </div>
         </div>
     </div>
@@ -188,6 +239,10 @@ if ($conn->connect_error) {
     </div>
 </div>
 
+<div id="footer-container">
+    <?php require_once "../../user-includes/user-footer.php"; ?>
+</div>
+
 <!-- Product Modal -->
 <div id="productModal" class="modal" style="display: none;">
     <div class="modal-content fade-in-pop">
@@ -222,44 +277,207 @@ if ($conn->connect_error) {
 </div>
 
 <script>
-    console.log('User products page JavaScript loaded');
-    let productModalOpen = false;
+    let pendingCartAction = null;
+    let currentMainFilter = 'all';
+    let selectedDays = [];
 
-    function handleFilterClick(event, status, button) {
-        event.preventDefault();
-        event.stopPropagation();
-        console.log('Filter button clicked:', status);
-        filterProducts(status, button);
-        return false;
+    function handleMainFilterChange() {
+        const radioButtons = document.querySelectorAll('input[name="mainFilter"]');
+        const selectedRadio = document.querySelector('input[name="mainFilter"]:checked');
+        currentMainFilter = selectedRadio.value;
+        
+        // Update mobile dropdown to match desktop selection
+        const mobileSelect = document.getElementById('mobileMainFilter');
+        if (mobileSelect) {
+            mobileSelect.value = currentMainFilter;
+        }
+        
+        // Show/hide day filters based on selection
+        const dayFiltersSection = document.getElementById('dayFiltersSection');
+        if (currentMainFilter === 'all') {
+            dayFiltersSection.style.display = 'block';
+        } else {
+            dayFiltersSection.style.display = 'none';
+            // Clear day selections when hiding
+            clearDaySelections();
+        }
+        
+        applyFiltersAndSort();
     }
 
-    function filterProducts(status, button) {
-        // Update active state of buttons
-        document.querySelectorAll('.filter-button').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        if (button) button.classList.add('active');
+    function handleMobileMainFilterChange() {
+        const mobileSelect = document.getElementById('mobileMainFilter');
+        currentMainFilter = mobileSelect.value;
+        
+        // Update radio button to match mobile selection
+        const radioButton = document.querySelector(`input[name="mainFilter"][value="${currentMainFilter}"]`);
+        if (radioButton) {
+            radioButton.checked = true;
+        }
+        
+        // Show/hide day filters based on selection
+        const dayFiltersSection = document.getElementById('dayFiltersSection');
+        if (currentMainFilter === 'all') {
+            dayFiltersSection.style.display = 'block';
+        } else {
+            dayFiltersSection.style.display = 'none';
+            // Clear day selections when hiding
+            clearDaySelections();
+        }
+        
+        applyFiltersAndSort();
+    }
 
-        // Filter products
-        let cards = document.querySelectorAll(".product-card");
-        cards.forEach(card => {
-            if (status === "all") {
-                card.style.display = "block";
-            } else if (status === "Featured") {
-                card.style.display = card.classList.contains('featured-product') ? "block" : "none";
-            } else if (status === "Pickup") {
-                // Show products with "Pick Up" status
-                card.style.display = card.getAttribute("data-status") === "Pick Up" ? "block" : "none";
-            } else if (status === "Unavailable") {
-                // Show products that have "Not Available" status
-                const statusBadge = card.querySelector('.status-badge');
-                card.style.display = statusBadge.textContent === "Not Available" ? "block" : "none";
-            } else if (card.getAttribute("data-status") === status) {
-                card.style.display = "block";
-            } else {
-                card.style.display = "none";
+    function handleDayFilterChange() {
+        const dayCheckboxes = document.querySelectorAll('.checkbox-group input[type="checkbox"]');
+        selectedDays = [];
+        
+        dayCheckboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+                selectedDays.push(checkbox.value);
+            }
+            
+            // Sync with mobile day filter buttons
+            const mobileButton = document.querySelector(`.day-filter-btn[data-day="${checkbox.value}"]`);
+            if (mobileButton) {
+                if (checkbox.checked) {
+                    mobileButton.classList.add('active');
+                } else {
+                    mobileButton.classList.remove('active');
+                }
             }
         });
+        
+        applyFiltersAndSort();
+    }
+
+    function clearDaySelections() {
+        const dayCheckboxes = document.querySelectorAll('.checkbox-group input[type="checkbox"]');
+        dayCheckboxes.forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        
+        // Clear mobile day filter buttons
+        const dayButtons = document.querySelectorAll('.day-filter-btn');
+        dayButtons.forEach(button => {
+            button.classList.remove('active');
+        });
+        
+        selectedDays = [];
+    }
+
+    function toggleDayFilter(button) {
+        const day = button.getAttribute('data-day');
+        
+        // Toggle button active state
+        button.classList.toggle('active');
+        
+        // Update selectedDays array
+        if (button.classList.contains('active')) {
+            if (!selectedDays.includes(day)) {
+                selectedDays.push(day);
+            }
+        } else {
+            selectedDays = selectedDays.filter(d => d !== day);
+        }
+        
+        // Sync with desktop checkboxes
+        const checkbox = document.querySelector(`input[type="checkbox"][value="${day}"]`);
+        if (checkbox) {
+            checkbox.checked = button.classList.contains('active');
+        }
+        
+        applyFiltersAndSort();
+    }
+
+    function applyFiltersAndSort() {
+        let cards = Array.from(document.querySelectorAll(".product-card"));
+        
+        // Filter cards first
+        cards.forEach(card => {
+            let shouldShow = false;
+            const statusName = card.getAttribute("data-status");
+            const availableDays = card.getAttribute("data-available-days") || "";
+            
+            switch (currentMainFilter) {
+                case 'all':
+                    if (selectedDays.length === 0) {
+                        // Show all non-unavailable products
+                        shouldShow = !(statusName === "Unavailable Pick Up" || statusName === "Unavailable Delivery");
+                    } else {
+                        // Filter by selected days
+                        const isUnavailable = statusName === "Unavailable Pick Up" || statusName === "Unavailable Delivery";
+                        if (!isUnavailable) {
+                            shouldShow = selectedDays.some(day => {
+                                const dayToCheck = day.charAt(0).toUpperCase() + day.slice(1);
+                                return availableDays.includes(dayToCheck);
+                            });
+                        }
+                    }
+                    break;
+                    
+                case 'unavailable':
+                    shouldShow = (statusName === "Unavailable Pick Up" || statusName === "Unavailable Delivery");
+                    break;
+                    
+                default:
+                    // For sorting options, show all non-unavailable products
+                    shouldShow = !(statusName === "Unavailable Pick Up" || statusName === "Unavailable Delivery");
+                    break;
+            }
+            
+            card.style.display = shouldShow ? "block" : "none";
+        });
+        
+        // Sort visible cards
+        if (currentMainFilter.includes('alpha-') || currentMainFilter.includes('price-')) {
+            sortProducts(currentMainFilter);
+        }
+    }
+
+    function sortProducts(sortType) {
+        const productsGrid = document.getElementById('productsGrid');
+        const cards = Array.from(productsGrid.querySelectorAll('.product-card')).filter(card => 
+            card.style.display !== 'none'
+        );
+        
+        cards.sort((a, b) => {
+            switch (sortType) {
+                case 'alpha-asc':
+                    const nameA = a.querySelector('h3').textContent.toLowerCase();
+                    const nameB = b.querySelector('h3').textContent.toLowerCase();
+                    return nameA.localeCompare(nameB);
+                    
+                case 'alpha-desc':
+                    const nameA2 = a.querySelector('h3').textContent.toLowerCase();
+                    const nameB2 = b.querySelector('h3').textContent.toLowerCase();
+                    return nameB2.localeCompare(nameA2);
+                    
+                case 'price-asc':
+                    const priceA = parseFloat(a.querySelector('.price').textContent.replace('₱', '').replace(',', ''));
+                    const priceB = parseFloat(b.querySelector('.price').textContent.replace('₱', '').replace(',', ''));
+                    return priceA - priceB;
+                    
+                case 'price-desc':
+                    const priceA2 = parseFloat(a.querySelector('.price').textContent.replace('₱', '').replace(',', ''));
+                    const priceB2 = parseFloat(b.querySelector('.price').textContent.replace('₱', '').replace(',', ''));
+                    return priceB2 - priceA2;
+                    
+                default:
+                    return 0;
+            }
+        });
+        
+        // Re-append sorted cards
+        cards.forEach(card => {
+            productsGrid.appendChild(card);
+        });
+    }
+
+    // Legacy function for backward compatibility (can be removed if not used elsewhere)
+    function filterProducts() {
+        // This function is kept for backward compatibility but redirects to new system
+        applyFiltersAndSort();
     }
 
     function updateQuantity(button, change) {
@@ -526,100 +744,6 @@ if ($conn->connect_error) {
             };
         });
     });
-
-    // ===== NEW FILTER SYSTEM FUNCTIONS =====
-    let currentMainFilter = 'all';
-
-    function handleMainFilterChange() {
-        const radioButtons = document.querySelectorAll('input[name="mainFilter"]');
-        const selectedRadio = document.querySelector('input[name="mainFilter"]:checked');
-        currentMainFilter = selectedRadio.value;
-        
-        applyFiltersAndSort();
-    }
-
-    function handleMobileMainFilterChange() {
-        const mobileSelect = document.getElementById('mobileMainFilter');
-        currentMainFilter = mobileSelect.value;
-        
-        // Update radio button to match mobile selection
-        const radioButton = document.querySelector(`input[name="mainFilter"][value="${currentMainFilter}"]`);
-        if (radioButton) {
-            radioButton.checked = true;
-        }
-        
-        applyFiltersAndSort();
-    }
-
-    function applyFiltersAndSort() {
-        let cards = Array.from(document.querySelectorAll(".product-card"));
-        
-        // Filter cards first
-        cards.forEach(card => {
-            let shouldShow = false;
-            const statusName = card.getAttribute("data-status");
-            
-            switch (currentMainFilter) {
-                case 'all':
-                    // Show all products except unavailable ones (unless specifically marked to show)
-                    shouldShow = !(statusName === "Unavailable" || statusName === "Unavailable Pick Up" || statusName === "Unavailable Delivery");
-                    break;
-                    
-                case 'unavailable':
-                    shouldShow = (statusName === "Unavailable" || statusName === "Unavailable Pick Up" || statusName === "Unavailable Delivery");
-                    break;
-                    
-                default:
-                    // For sorting options, show all non-unavailable products
-                    shouldShow = !(statusName === "Unavailable" || statusName === "Unavailable Pick Up" || statusName === "Unavailable Delivery");
-                    break;
-            }
-            
-            card.style.display = shouldShow ? "block" : "none";
-        });
-        
-        // Sort visible cards
-        if (currentMainFilter.includes('alpha-') || currentMainFilter.includes('price-')) {
-            sortProducts(currentMainFilter);
-        }
-    }
-
-    function sortProducts(sortType) {
-        const productsGrid = document.getElementById('productsGrid');
-        const cards = Array.from(productsGrid.querySelectorAll('.product-card')).filter(card => 
-            card.style.display !== 'none'
-        );
-        
-        cards.sort((a, b) => {
-            switch (sortType) {
-                case 'alpha-asc':
-                    const nameA = a.querySelector('h3').textContent.toLowerCase();
-                    const nameB = b.querySelector('h3').textContent.toLowerCase();
-                    return nameA.localeCompare(nameB);
-                    
-                case 'alpha-desc':
-                    const nameA2 = a.querySelector('h3').textContent.toLowerCase();
-                    const nameB2 = b.querySelector('h3').textContent.toLowerCase();
-                    return nameB2.localeCompare(nameA2);
-                    
-                case 'price-asc':
-                    const priceA = parseFloat(a.querySelector('.price').textContent.replace('₱', '').replace(',', ''));
-                    const priceB = parseFloat(b.querySelector('.price').textContent.replace('₱', '').replace(',', ''));
-                    return priceA - priceB;
-                    
-                case 'price-desc':
-                    const priceA2 = parseFloat(a.querySelector('.price').textContent.replace('₱', '').replace(',', ''));
-                    const priceB2 = parseFloat(b.querySelector('.price').textContent.replace('₱', '').replace(',', ''));
-                    return priceB2 - priceA2;
-                    
-                default:
-                    return 0;
-            }
-        });
-        
-        // Re-append sorted cards to the grid
-        cards.forEach(card => productsGrid.appendChild(card));
-    }
 </script>
 
 <style>
@@ -785,4 +909,97 @@ if ($conn->connect_error) {
         flex: 1;
         min-width: 0;
     }
+
+    @media (max-width: 1200px) {
+    .filters {
+        width: 280px;
+    }
+    
+    .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+}
+
+
+    @media (max-width: 1024px) {
+        .wrapper {
+            flex-direction: column;
+            padding: 10px;
+            gap: 15px;
+        }
+        
+        .filters {
+            width: 100%;
+            padding: 0px;
+            order: -1;
+            margin-bottom: 0;
+        }
+        
+        .main-container {
+            order: 1;
+        }
+        
+        .desktop-filters {
+            display: none;
+        }
+        
+        .mobile-filters {
+            display: block;
+        }
+
+                .mobile-filters label {
+            display: none !important;
+        }
+        
+        .desktop-day-filters {
+            display: none;
+        }
+        
+        .mobile-day-filters {
+            display: block;
+        }
+        
+        .main-filters-section {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+        }
+        
+        .day-filters-section h4 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .prdct-title {
+            text-align: center;
+        }
+
+        .products-grid {
+            grid-template-columns: repeat(3, 1fr);
+        } 
+    }
+
+    @media (max-width: 480px) {
+        .wrapper {
+            padding: 8px;
+        }
+        
+        .filters {
+            padding: 12px;
+        }
+
+        .products-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .day-button-group {
+            gap: 6px;
+        }
+        
+        .day-filter-btn {
+            font-size: 11px;
+            padding: 6px 10px;
+            min-width: 35px;
+        }
+    }
+
 </style>

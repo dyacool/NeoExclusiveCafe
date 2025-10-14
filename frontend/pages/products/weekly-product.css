@@ -124,7 +124,7 @@
 
 .products-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
   padding: 20px 0;
 }
@@ -201,6 +201,7 @@ h3 {
 }
 
 .available-days {
+  padding: 0 12px;
   font-size: 14px;
   font-weight: 500;
   color: #545454;
@@ -471,7 +472,17 @@ h3 {
   text-align: justify;
 }
 
+@media (max-width: 1440px) {
+  .wrapper {
+    padding: 0 1.5rem !important;
+  }
+}
+
 @media (max-width: 768px) {
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
   .product-card[data-status="Delivery"] {
     grid-column: span 1;
     grid-row: span 1;
