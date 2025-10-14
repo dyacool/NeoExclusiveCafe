@@ -24,7 +24,7 @@ if ($user_id <= 0) {
 $notification = new Notification($conn); 
 
 // Fetch all notifications
-$notifications = $notification->getAllNotifications($user_id);
+$notifications_data = $notification->getAllNotifications($user_id);
 ?>
 
 <!DOCTYPE html>
@@ -33,7 +33,9 @@ $notifications = $notification->getAllNotifications($user_id);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notifications</title>
-    <link rel="stylesheet" href="notifications.css" />
+    <link rel="stylesheet" href="/frontend/pages/notifications/notifications.css" />
+    <!-- Bootstrap CSS for modal -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
      
     <!-- Include user navigation -->
      <?php include "../../user-includes/user-header.php"; ?>
@@ -65,14 +67,11 @@ $notifications = $notification->getAllNotifications($user_id);
         </button>
         
         <!-- User info display -->
-        <div class="user-info" style="margin-bottom: 20px; padding: 10px; background: #f8f9fa; border-radius: 5px; border-left: 4px solid #5c8d76;">
-            <p style="margin: 0; color: #666; font-size: 14px;">
-                <strong>Logged in as:</strong> <?php echo htmlspecialchars($_SESSION['user_firstname'] ?? 'User'); ?> 
-                (ID: <?php echo $user_id; ?>)
-            </p>
+        <div class="notification-summary" id="notificationCount">
+            Loading notifications...
         </div>
         
-        <?php if (empty($notifications)): ?>
+        <?php if (empty($notifications_data)): ?>
             <div class="empty-state">
                 <p>You have no notifications.</p>
             </div>
@@ -100,17 +99,21 @@ $notifications = $notification->getAllNotifications($user_id);
                         </div>
                     </div>
                 <?php endforeach; ?>
+            <div class="notifications-list" id="notificationList">
+                <!-- Notifications will be loaded here by notifications.js -->
+                <p>Loading...</p>
             </div>
             
             <div class="mark-all-container">
                 <button id="markAllRead" class="mark-all-btn">Mark All as Read</button>
             </div>
+            <div id="notificationPagination" style="display:flex;gap:8px;align-items:center;margin-top:12px;"></div>
         <?php endif; ?>
-    </div>
+    </div>    
 
-    <!-- Notification Details Modal -->
+    <!-- Global Notification Details Modal -->
     <div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="notificationModalLabel">Notification Details</h5>
@@ -119,28 +122,28 @@ $notifications = $notification->getAllNotifications($user_id);
                 <div class="modal-body">
                     <div class="notification-details">
                         <div class="notification-image-container" id="notificationImageContainer" style="display: none;">
-                            <img id="notificationImage" src="" alt="Notification Image" class="img-fluid rounded">
+                            <img id="notificationImage" src="" alt="Notification Image" class="img-fluid rounded mb-3">
                         </div>
-                        <div class="notification-content">
-                            <h6 id="notificationTitle" class="notification-title"></h6>
-                            <p id="notificationMessage" class="notification-message"></p>
+                        <div class="notification-content-modal">
+                            <h6 id="notificationTitle" class="notification-title-modal"></h6>
+                            <p id="notificationMessage" class="notification-message-modal"></p>
                             <small id="notificationTimestamp" class="text-muted"></small>
                         </div>
-                        <div id="orderDetailsContainer" class="order-details" style="display: none;">
+                        <div id="orderDetailsContainer" class="order-details-modal" style="display: none;">
                             <hr>
                             <h6>Order Details</h6>
                             <div id="orderDetails"></div>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
             </div>
         </div>
     </div>
 
+    <!-- Bootstrap JS for modal -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
     <!-- Include the global notification JavaScript -->
-    <script src="notifications.js"></script>
+    <script src="/frontend/pages/notifications/notifications.js"></script>
 </body>
 </html>
