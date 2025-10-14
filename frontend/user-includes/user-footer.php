@@ -1,6 +1,6 @@
 <?php
-// Connect to database
-$conn = new mysqli("localhost", "root", "", "crud");
+// Connect to online database
+$conn = new mysqli("mysql-neoexclusivecafe.alwaysdata.net", "429123", "NeoCafe123", "neoexclusivecafe_crud");
 
 // Check connection
 if ($conn->connect_error) {
