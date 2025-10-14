@@ -3,6 +3,50 @@
  * Handles cart functionality specifically for Available Today products (status_id = 3)
  */
 
+// Checkout functions
+window.closeCheckoutConfirmModal = function() {
+    console.log('Modal closed');
+    document.getElementById('checkoutConfirmModal').style.display = 'none';
+};
+
+window.confirmCheckout = function() {
+    console.log('Checkout confirmed, redirecting...');
+    document.getElementById('checkoutConfirmModal').style.display = 'none';
+    window.location.href = '../cart/availtoday-checkout.php';
+};
+
+// Attach event listener directly to button on load
+document.addEventListener('DOMContentLoaded', function() {
+    const proceedBtn = document.getElementById('proceedCheckoutBtn');
+    if (proceedBtn) {
+        proceedBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Button clicked via event listener!');
+            console.log('Attempting redirect to checkout...');
+            
+            // Close modal
+            const modal = document.getElementById('checkoutConfirmModal');
+            if (modal) modal.style.display = 'none';
+            
+            // Build absolute URL
+            const currentPath = window.location.pathname;
+            console.log('Current path:', currentPath);
+            
+            // Get the base path (remove product-dashboard.php)
+            const basePath = currentPath.substring(0, currentPath.lastIndexOf('/'));
+            const checkoutPath = basePath.replace('/products', '/cart') + '/availtoday-checkout.php';
+            
+            console.log('Calculated checkout path:', checkoutPath);
+            console.log('Full URL will be:', window.location.origin + checkoutPath);
+            
+            // Force navigation
+            window.location.assign(checkoutPath);
+        }, true);
+        console.log('Event listener attached to proceed button');
+    }
+});
+
 // Available Today Cart State
 let availableTodayCart = [];
 let availableTodayCartTotal = 0;
@@ -403,20 +447,22 @@ function clearAvailableTodayCart() {
  * Handle checkout for Available Today cart
  */
 function handleAvailableTodayCheckout() {
+    console.log('Starting checkout...');
+    
     if (availableTodayCart.length === 0) {
-        showNotification('Your Available Today cart is empty', 'error');
+        alert('Your cart is empty');
         return;
     }
     
-    console.log('Processing Available Today checkout:', availableTodayCart);
-    
-    // Here you can implement the checkout logic
-    // For now, we'll show a confirmation
-    const confirmCheckout = confirm(`Checkout ${availableTodayCart.length} Available Today items for ₱${availableTodayCartTotal.toFixed(2)}?`);
-    
-    if (confirmCheckout) {
-        // Redirect to availtoday-specific checkout page
-        window.location.href = '../../pages/cart/availtoday-checkout.php';
+    // Show modal
+    const modal = document.getElementById('checkoutConfirmModal');
+    if (modal) {
+        document.getElementById('confirmItemCount').textContent = availableTodayCart.length;
+        document.getElementById('confirmTotal').textContent = availableTodayCartTotal.toFixed(2);
+        modal.style.display = 'block';
+        console.log('Modal shown');
+    } else {
+        console.error('ERROR: Modal not found!');
     }
 }
 
@@ -459,7 +505,9 @@ function loadAvailableTodayCartFromStorage() {
  * Sync cart with server data
  */
 window.syncWithServer = function() {
-    fetch('availtoday-cart-api.php?action=get')
+    fetch('availtoday-cart-api.php?action=get', {
+        credentials: 'include'
+    })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -533,17 +581,12 @@ function showNotification(message, type = 'info') {
     }
 }
 
-// Initialize when DOM is loaded
+// Initialize
 document.addEventListener('DOMContentLoaded', function() {
     initAvailableTodayCart();
-    
-    // Check business hours immediately
     checkBusinessHoursAndClearCart();
-    
-    // Try to sync with server first, fallback to localStorage
     syncWithServer();
     
-    // Load from localStorage as backup
     setTimeout(() => {
         if (availableTodayCart.length === 0) {
             loadAvailableTodayCartFromStorage();

@@ -78088,3 +78088,228 @@ Product ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProdu
 [14-Oct-2025 03:28:17 Europe/Berlin] Cart currently has 0 items
 [14-Oct-2025 03:28:17 Europe/Berlin] Cart is already empty - no action needed
 [14-Oct-2025 03:28:17 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 03:43:04 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[14-Oct-2025 03:43:04 Europe/Berlin] Business closed - past midnight (current: 223, closing: 1250)
+[14-Oct-2025 03:43:04 Europe/Berlin] Time analysis: current=03:43:04 (223 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=Yes
+[14-Oct-2025 03:43:04 Europe/Berlin] Cart currently has 0 items
+[14-Oct-2025 03:43:04 Europe/Berlin] Cart is already empty - no action needed
+[14-Oct-2025 03:43:04 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 03:43:34 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[14-Oct-2025 03:43:34 Europe/Berlin] Business closed - past midnight (current: 223, closing: 1250)
+[14-Oct-2025 03:43:34 Europe/Berlin] Time analysis: current=03:43:34 (223 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=Yes
+[14-Oct-2025 03:43:34 Europe/Berlin] Cart currently has 0 items
+[14-Oct-2025 03:43:34 Europe/Berlin] Cart is already empty - no action needed
+[14-Oct-2025 03:43:34 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 03:45:12 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[14-Oct-2025 03:45:12 Europe/Berlin] Business closed - past midnight (current: 225, closing: 1250)
+[14-Oct-2025 03:45:12 Europe/Berlin] Time analysis: current=03:45:11 (225 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=Yes
+[14-Oct-2025 03:45:12 Europe/Berlin] Cart currently has 0 items
+[14-Oct-2025 03:45:12 Europe/Berlin] Cart is already empty - no action needed
+[14-Oct-2025 03:45:12 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 03:45:28 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[14-Oct-2025 03:45:28 Europe/Berlin] Business closed - past midnight (current: 225, closing: 1250)
+[14-Oct-2025 03:45:28 Europe/Berlin] Time analysis: current=03:45:28 (225 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=Yes
+[14-Oct-2025 03:45:28 Europe/Berlin] Cart currently has 0 items
+[14-Oct-2025 03:45:28 Europe/Berlin] Cart is already empty - no action needed
+[14-Oct-2025 03:45:28 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 03:47:22 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[14-Oct-2025 03:47:22 Europe/Berlin] Business closed - past midnight (current: 227, closing: 1250)
+[14-Oct-2025 03:47:22 Europe/Berlin] Time analysis: current=03:47:22 (227 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=Yes
+[14-Oct-2025 03:47:22 Europe/Berlin] Cart currently has 0 items
+[14-Oct-2025 03:47:22 Europe/Berlin] Cart is already empty - no action needed
+[14-Oct-2025 03:47:22 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 03:55:39 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[14-Oct-2025 03:55:39 Europe/Berlin] Business closed - past midnight (current: 235, closing: 1250)
+[14-Oct-2025 03:55:39 Europe/Berlin] Time analysis: current=03:55:39 (235 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=Yes
+[14-Oct-2025 03:55:39 Europe/Berlin] Cart currently has 0 items
+[14-Oct-2025 03:55:39 Europe/Berlin] Cart is already empty - no action needed
+[14-Oct-2025 03:55:39 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 03:55:57 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[14-Oct-2025 03:55:57 Europe/Berlin] Business closed - past midnight (current: 235, closing: 1250)
+[14-Oct-2025 03:55:57 Europe/Berlin] Time analysis: current=03:55:56 (235 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=Yes
+[14-Oct-2025 03:55:57 Europe/Berlin] Cart currently has 0 items
+[14-Oct-2025 03:55:57 Europe/Berlin] Cart is already empty - no action needed
+[14-Oct-2025 03:55:57 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 03:56:47 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[14-Oct-2025 03:56:47 Europe/Berlin] Business closed - past midnight (current: 236, closing: 1250)
+[14-Oct-2025 03:56:47 Europe/Berlin] Time analysis: current=03:56:47 (236 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=Yes
+[14-Oct-2025 03:56:47 Europe/Berlin] Cart currently has 0 items
+[14-Oct-2025 03:56:47 Europe/Berlin] Cart is already empty - no action needed
+[14-Oct-2025 03:56:47 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 04:05:15 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[14-Oct-2025 04:05:15 Europe/Berlin] Business closed - past midnight (current: 245, closing: 1250)
+[14-Oct-2025 04:05:15 Europe/Berlin] Time analysis: current=04:05:15 (245 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=Yes
+[14-Oct-2025 04:05:15 Europe/Berlin] Cart currently has 0 items
+[14-Oct-2025 04:05:15 Europe/Berlin] Cart is already empty - no action needed
+[14-Oct-2025 04:05:15 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 04:05:32 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[14-Oct-2025 04:05:32 Europe/Berlin] Business closed - past midnight (current: 245, closing: 1250)
+[14-Oct-2025 04:05:32 Europe/Berlin] Time analysis: current=04:05:31 (245 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=Yes
+[14-Oct-2025 04:05:32 Europe/Berlin] Cart currently has 0 items
+[14-Oct-2025 04:05:32 Europe/Berlin] Cart is already empty - no action needed
+[14-Oct-2025 04:05:32 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 04:06:41 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[14-Oct-2025 04:06:41 Europe/Berlin] Business closed - past midnight (current: 246, closing: 1250)
+[14-Oct-2025 04:06:41 Europe/Berlin] Time analysis: current=04:06:40 (246 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=Yes
+[14-Oct-2025 04:06:41 Europe/Berlin] Cart currently has 0 items
+[14-Oct-2025 04:06:41 Europe/Berlin] Cart is already empty - no action needed
+[14-Oct-2025 04:06:41 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 04:08:20 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[14-Oct-2025 04:08:20 Europe/Berlin] Business closed - past midnight (current: 248, closing: 1250)
+[14-Oct-2025 04:08:20 Europe/Berlin] Time analysis: current=04:08:20 (248 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=Yes
+[14-Oct-2025 04:08:20 Europe/Berlin] Cart currently has 0 items
+[14-Oct-2025 04:08:20 Europe/Berlin] Cart is already empty - no action needed
+[14-Oct-2025 04:08:20 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 04:08:37 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[14-Oct-2025 04:08:37 Europe/Berlin] Business closed - past midnight (current: 248, closing: 1250)
+[14-Oct-2025 04:08:37 Europe/Berlin] Time analysis: current=04:08:37 (248 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=Yes
+[14-Oct-2025 04:08:37 Europe/Berlin] Cart currently has 0 items
+[14-Oct-2025 04:08:37 Europe/Berlin] Cart is already empty - no action needed
+[14-Oct-2025 04:08:37 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 04:10:49 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[14-Oct-2025 04:10:49 Europe/Berlin] Business closed - past midnight (current: 250, closing: 1250)
+[14-Oct-2025 04:10:49 Europe/Berlin] Time analysis: current=04:10:48 (250 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=Yes
+[14-Oct-2025 04:10:49 Europe/Berlin] Cart currently has 0 items
+[14-Oct-2025 04:10:49 Europe/Berlin] Cart is already empty - no action needed
+[14-Oct-2025 04:10:49 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 04:12:33 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[14-Oct-2025 04:12:33 Europe/Berlin] Business closed - past midnight (current: 252, closing: 1250)
+[14-Oct-2025 04:12:33 Europe/Berlin] Time analysis: current=04:12:32 (252 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=Yes
+[14-Oct-2025 04:12:33 Europe/Berlin] Cart currently has 0 items
+[14-Oct-2025 04:12:33 Europe/Berlin] Cart is already empty - no action needed
+[14-Oct-2025 04:12:33 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 04:13:25 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[14-Oct-2025 04:13:25 Europe/Berlin] Business closed - past midnight (current: 253, closing: 1250)
+[14-Oct-2025 04:13:25 Europe/Berlin] Time analysis: current=04:13:24 (253 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=Yes
+[14-Oct-2025 04:13:25 Europe/Berlin] Cart currently has 0 items
+[14-Oct-2025 04:13:25 Europe/Berlin] Cart is already empty - no action needed
+[14-Oct-2025 04:13:25 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 04:15:25 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[14-Oct-2025 04:15:25 Europe/Berlin] Business closed - past midnight (current: 255, closing: 1250)
+[14-Oct-2025 04:15:25 Europe/Berlin] Time analysis: current=04:15:25 (255 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=Yes
+[14-Oct-2025 04:15:25 Europe/Berlin] Cart currently has 0 items
+[14-Oct-2025 04:15:25 Europe/Berlin] Cart is already empty - no action needed
+[14-Oct-2025 04:15:25 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 04:15:38 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[14-Oct-2025 04:15:38 Europe/Berlin] Business closed - past midnight (current: 255, closing: 1250)
+[14-Oct-2025 04:15:38 Europe/Berlin] Time analysis: current=04:15:38 (255 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=Yes
+[14-Oct-2025 04:15:38 Europe/Berlin] Cart currently has 0 items
+[14-Oct-2025 04:15:38 Europe/Berlin] Cart is already empty - no action needed
+[14-Oct-2025 04:15:38 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 04:15:50 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[14-Oct-2025 04:15:50 Europe/Berlin] Business closed - past midnight (current: 255, closing: 1250)
+[14-Oct-2025 04:15:50 Europe/Berlin] Time analysis: current=04:15:50 (255 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=Yes
+[14-Oct-2025 04:15:50 Europe/Berlin] Cart currently has 0 items
+[14-Oct-2025 04:15:50 Europe/Berlin] Cart is already empty - no action needed
+[14-Oct-2025 04:15:50 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 04:20:02 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[14-Oct-2025 04:20:02 Europe/Berlin] Business closed - past midnight (current: 260, closing: 1250)
+[14-Oct-2025 04:20:02 Europe/Berlin] Time analysis: current=04:20:02 (260 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=Yes
+[14-Oct-2025 04:20:02 Europe/Berlin] Cart currently has 0 items
+[14-Oct-2025 04:20:02 Europe/Berlin] Cart is already empty - no action needed
+[14-Oct-2025 04:20:02 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 04:20:24 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[14-Oct-2025 04:20:24 Europe/Berlin] Business closed - past midnight (current: 260, closing: 1250)
+[14-Oct-2025 04:20:24 Europe/Berlin] Time analysis: current=04:20:23 (260 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=Yes
+[14-Oct-2025 04:20:24 Europe/Berlin] Cart currently has 0 items
+[14-Oct-2025 04:20:24 Europe/Berlin] Cart is already empty - no action needed
+[14-Oct-2025 04:20:24 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 04:24:35 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[14-Oct-2025 04:24:35 Europe/Berlin] Business closed - past midnight (current: 264, closing: 1250)
+[14-Oct-2025 04:24:35 Europe/Berlin] Time analysis: current=04:24:34 (264 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=Yes
+[14-Oct-2025 04:24:35 Europe/Berlin] Cart currently has 0 items
+[14-Oct-2025 04:24:35 Europe/Berlin] Cart is already empty - no action needed
+[14-Oct-2025 04:24:35 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 04:24:50 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[14-Oct-2025 04:24:50 Europe/Berlin] Business closed - past midnight (current: 264, closing: 1250)
+[14-Oct-2025 04:24:50 Europe/Berlin] Time analysis: current=04:24:50 (264 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=Yes
+[14-Oct-2025 04:24:50 Europe/Berlin] Cart currently has 0 items
+[14-Oct-2025 04:24:50 Europe/Berlin] Cart is already empty - no action needed
+[14-Oct-2025 04:24:50 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 04:25:06 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[14-Oct-2025 04:25:06 Europe/Berlin] Total featured products found: 8
+[14-Oct-2025 04:25:10 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[14-Oct-2025 04:25:17 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[14-Oct-2025 04:25:17 Europe/Berlin] Business closed - past midnight (current: 265, closing: 1250)
+[14-Oct-2025 04:25:17 Europe/Berlin] Time analysis: current=04:25:17 (265 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=Yes
+[14-Oct-2025 04:25:17 Europe/Berlin] Cart currently has 0 items
+[14-Oct-2025 04:25:17 Europe/Berlin] Cart is already empty - no action needed
+[14-Oct-2025 04:25:17 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 04:58:15 Europe/Berlin] Business hours: 06:00:00 - 19:59:00
+[14-Oct-2025 04:58:15 Europe/Berlin] Time analysis: current=04:58:15 (298 min), opening=06:00:00 (360 min), closing=19:59:00 (1199 min), is_closed=No
+[14-Oct-2025 04:58:15 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 04:58:52 Europe/Berlin] Business hours: 06:00:00 - 19:59:00
+[14-Oct-2025 04:58:52 Europe/Berlin] Time analysis: current=04:58:52 (298 min), opening=06:00:00 (360 min), closing=19:59:00 (1199 min), is_closed=No
+[14-Oct-2025 04:58:52 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 05:02:06 Europe/Berlin] Business hours: 06:00:00 - 19:59:00
+[14-Oct-2025 05:02:06 Europe/Berlin] Time analysis: current=05:02:06 (302 min), opening=06:00:00 (360 min), closing=19:59:00 (1199 min), is_closed=No
+[14-Oct-2025 05:02:06 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 05:03:56 Europe/Berlin] Business hours: 06:00:00 - 19:59:00
+[14-Oct-2025 05:03:56 Europe/Berlin] Time analysis: current=05:03:56 (303 min), opening=06:00:00 (360 min), closing=19:59:00 (1199 min), is_closed=No
+[14-Oct-2025 05:03:56 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 05:06:25 Europe/Berlin] Business hours: 06:00:00 - 19:59:00
+[14-Oct-2025 05:06:25 Europe/Berlin] Time analysis: current=05:06:25 (306 min), opening=06:00:00 (360 min), closing=19:59:00 (1199 min), is_closed=No
+[14-Oct-2025 05:06:25 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 05:07:41 Europe/Berlin] Business hours: 06:00:00 - 19:59:00
+[14-Oct-2025 05:07:41 Europe/Berlin] Time analysis: current=05:07:40 (307 min), opening=06:00:00 (360 min), closing=19:59:00 (1199 min), is_closed=No
+[14-Oct-2025 05:07:41 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 05:10:04 Europe/Berlin] Business hours: 06:00:00 - 19:59:00
+[14-Oct-2025 05:10:04 Europe/Berlin] Time analysis: current=05:10:04 (310 min), opening=06:00:00 (360 min), closing=19:59:00 (1199 min), is_closed=No
+[14-Oct-2025 05:10:04 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 05:12:55 Europe/Berlin] Business hours: 06:00:00 - 19:59:00
+[14-Oct-2025 05:12:55 Europe/Berlin] Time analysis: current=05:12:55 (312 min), opening=06:00:00 (360 min), closing=19:59:00 (1199 min), is_closed=No
+[14-Oct-2025 05:12:55 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 05:45:33 Europe/Berlin] Business hours: 06:00:00 - 19:59:00
+[14-Oct-2025 05:45:33 Europe/Berlin] Time analysis: current=05:45:33 (345 min), opening=06:00:00 (360 min), closing=19:59:00 (1199 min), is_closed=No
+[14-Oct-2025 05:45:33 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 05:54:04 Europe/Berlin] Business hours: 06:00:00 - 19:59:00
+[14-Oct-2025 05:54:04 Europe/Berlin] Time analysis: current=05:54:04 (354 min), opening=06:00:00 (360 min), closing=19:59:00 (1199 min), is_closed=No
+[14-Oct-2025 05:54:04 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 06:05:17 Europe/Berlin] Business hours: 06:00:00 - 19:59:00
+[14-Oct-2025 06:05:17 Europe/Berlin] Time analysis: current=06:05:17 (365 min), opening=06:00:00 (360 min), closing=19:59:00 (1199 min), is_closed=No
+[14-Oct-2025 06:05:17 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 07:21:58 Europe/Berlin] Business hours: 06:00:00 - 19:59:00
+[14-Oct-2025 07:21:58 Europe/Berlin] Time analysis: current=07:21:58 (441 min), opening=06:00:00 (360 min), closing=19:59:00 (1199 min), is_closed=No
+[14-Oct-2025 07:21:58 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 07:22:13 Europe/Berlin] Business hours: 06:00:00 - 19:59:00
+[14-Oct-2025 07:22:13 Europe/Berlin] Time analysis: current=07:22:13 (442 min), opening=06:00:00 (360 min), closing=19:59:00 (1199 min), is_closed=No
+[14-Oct-2025 07:22:13 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 07:22:20 Europe/Berlin] Business hours: 06:00:00 - 19:59:00
+[14-Oct-2025 07:22:20 Europe/Berlin] Time analysis: current=07:22:20 (442 min), opening=06:00:00 (360 min), closing=19:59:00 (1199 min), is_closed=No
+[14-Oct-2025 07:22:20 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 08:00:17 Europe/Berlin] Business hours: 06:00:00 - 19:59:00
+[14-Oct-2025 08:00:17 Europe/Berlin] Time analysis: current=08:00:17 (480 min), opening=06:00:00 (360 min), closing=19:59:00 (1199 min), is_closed=No
+[14-Oct-2025 08:00:17 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 08:00:31 Europe/Berlin] Business hours: 06:00:00 - 19:59:00
+[14-Oct-2025 08:00:31 Europe/Berlin] Time analysis: current=08:00:31 (480 min), opening=06:00:00 (360 min), closing=19:59:00 (1199 min), is_closed=No
+[14-Oct-2025 08:00:31 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 08:17:55 Europe/Berlin] Business hours: 06:00:00 - 19:59:00
+[14-Oct-2025 08:17:55 Europe/Berlin] Time analysis: current=08:17:55 (497 min), opening=06:00:00 (360 min), closing=19:59:00 (1199 min), is_closed=No
+[14-Oct-2025 08:17:55 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 08:19:46 Europe/Berlin] Business hours: 06:00:00 - 19:59:00
+[14-Oct-2025 08:19:46 Europe/Berlin] Time analysis: current=08:19:45 (499 min), opening=06:00:00 (360 min), closing=19:59:00 (1199 min), is_closed=No
+[14-Oct-2025 08:19:46 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 08:21:16 Europe/Berlin] Business hours: 06:00:00 - 19:59:00
+[14-Oct-2025 08:21:16 Europe/Berlin] Time analysis: current=08:21:16 (501 min), opening=06:00:00 (360 min), closing=19:59:00 (1199 min), is_closed=No
+[14-Oct-2025 08:21:16 Europe/Berlin] Cart truncation result: No action needed

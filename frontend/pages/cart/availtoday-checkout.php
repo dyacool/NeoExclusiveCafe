@@ -97,6 +97,7 @@ $availtoday_status_counts = ['pickup' => 0, 'delivery' => 0, 'null' => 0];
 
 try {
     // Get cart items with availtoday_status information
+    // Get ALL items - they can be status_id = 3 (Available Today) OR status_id = 1/2 with availtoday_status_id set
     $cart_sql = "SELECT 
                     ca.id as cart_id,
                     ca.product_id,
@@ -107,11 +108,11 @@ try {
                     p.availtoday_status_id,
                     ats.name as availtoday_status_name,
                     GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ',') as available_days
-                 FROM cart_availtoday ca
+                 FROM availtoday_cart ca
                  JOIN products p ON ca.product_id = p.id
                  LEFT JOIN availtoday_status ats ON p.availtoday_status_id = ats.id
                  LEFT JOIN product_day pd ON p.id = pd.product_id
-                 WHERE ca.user_id = ? AND p.status_id = 3 AND p.deleted_at IS NULL
+                 WHERE ca.user_id = ? AND p.deleted_at IS NULL
                  GROUP BY ca.id";
     
     $cart_stmt = $conn->prepare($cart_sql);
@@ -215,7 +216,7 @@ $debug_info = [
 <?php include '../../user-includes/navbar/customer-navigation.php'; ?>
 
 <div class="checkout-container">
-    <form id="availtoday-checkout-form" method="POST" action="process-availtoday-checkout.php">
+    <form id="availtoday-checkout-form">
         
         <!-- User Information Section -->
         <div class="section-card user-information">
@@ -414,15 +415,7 @@ $debug_info = [
         <input type="hidden" name="has_mixed_status" value="<?php echo $has_mixed_availtoday_status ? '1' : '0'; ?>">
 
         <!-- Place Order Button -->
-        <button type="button" id="place-order-btn" class="btn-primary place-order-btn" style="background-color: #256035;">
-            <span id="button-text">Place Order - ₱<?php echo number_format($cart_total, 2); ?></span>
-            <span id="loading-spinner" style="display: none;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="animate-spin">
-                    <path d="M21 12a9 9 0 11-6.219-8.56"/>
-                </svg>
-                Processing...
-            </span>
-        </button>
+        <button type="submit" class="btn-primary place-order-btn" style="background-color: #256035;">Place Order - ₱<?php echo number_format($cart_total, 2); ?></button>
     </form>
 </div>
 
@@ -552,6 +545,10 @@ if (phoneInput) {
 let paymongoInstance;
 let cardElement;
 
+// Global variable to track if order is being processed
+let orderProcessing = false;
+let countdownTimer = null;
+
 // Initialize PayMongo
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize PayMongo (we'll set the public key when needed)
@@ -563,12 +560,227 @@ document.addEventListener('DOMContentLoaded', function() {
         method.addEventListener('change', handlePaymentMethodChange);
     });
     
-    // Handle place order button
-    const placeOrderBtn = document.getElementById('place-order-btn');
-    if (placeOrderBtn) {
-        placeOrderBtn.addEventListener('click', handlePlaceOrder);
+    // Form submission handler with PayMongo integration - SAME AS checkout.php
+    const checkoutForm = document.getElementById('availtoday-checkout-form');
+    if (checkoutForm) {
+        checkoutForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            console.log('[AVAILTODAY CHECKOUT] Form submit event triggered');
+            
+            // Prevent double submission
+            if (orderProcessing) {
+                console.log('[AVAILTODAY CHECKOUT] Already processing, aborting');
+                return;
+            }
+            orderProcessing = true;
+            
+            try {
+                console.log('[AVAILTODAY CHECKOUT] Starting payment process...');
+                
+                // Show loading state
+                setLoadingState(true);
+                
+                // Get all form data
+                const formData = new FormData();
+                
+                // Add cart items and user info
+                const cartItems = <?php echo json_encode($cart_items); ?>;
+                const cartTotal = <?php echo json_encode($cart_total); ?>;
+                const userEmail = <?php echo json_encode($user['email'] ?? ''); ?>;
+                const userName = <?php echo json_encode(trim(($user['firstname'] ?? '') . ' ' . ($user['lastname'] ?? ''))); ?>;
+                
+                console.log('[AVAILTODAY CHECKOUT] Cart Items:', cartItems);
+                console.log('[AVAILTODAY CHECKOUT] Cart Total:', cartTotal);
+                console.log('[AVAILTODAY CHECKOUT] User Email:', userEmail);
+                console.log('[AVAILTODAY CHECKOUT] User Name:', userName);
+                
+                // Validate cart items
+                if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
+                    throw new Error('Please ensure you have items in your cart before proceeding with checkout.');
+                }
+                
+                // Add cart information
+                formData.append('cart_items', JSON.stringify(cartItems));
+                formData.append('selected_cart_ids', cartItems.map(item => item.cart_id).join(','));
+                formData.append('cart_total', cartTotal);
+                formData.append('user_name', userName);
+                formData.append('user_email', userEmail);
+                
+                // Add delivery/pickup information
+                const deliveryRadio = document.getElementById('delivery');
+                const isDelivery = deliveryRadio && deliveryRadio.checked;
+                const today = new Date();
+                const todayStr = today.getFullYear() + '-' + 
+                               String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                               String(today.getDate()).padStart(2, '0');
+                
+                console.log('[AVAILTODAY CHECKOUT] Is Delivery:', isDelivery);
+                console.log('[AVAILTODAY CHECKOUT] Today Date:', todayStr);
+                
+                formData.append('delivery_method', isDelivery ? 'delivery' : 'pickup');
+                formData.append('delivery_date', todayStr);
+                formData.append('pickup_date', todayStr);
+                
+                // Add delivery address if delivery is selected
+                if (isDelivery) {
+                    const deliveryAddress = document.getElementById('address');
+                    if (deliveryAddress && deliveryAddress.value) {
+                        formData.append('delivery_address', deliveryAddress.value);
+                    }
+                }
+                
+                // Add contact number
+                const contactNumber = document.getElementById('phone');
+                if (contactNumber && contactNumber.value) {
+                    formData.append('contact_number', contactNumber.value);
+                } else {
+                    throw new Error('Please enter your contact number');
+                }
+                
+                // Add payment method
+                const paymentMethodEl = document.querySelector('input[name="payment_method"]:checked');
+                if (!paymentMethodEl) {
+                    throw new Error('Please select a payment method.');
+                }
+                formData.append('payment_method', paymentMethodEl.value);
+                console.log('[AVAILTODAY CHECKOUT] Payment Method:', paymentMethodEl.value);
+                
+                // Add notes if any
+                const notesEl = document.getElementById('order_notes');
+                if (notesEl) {
+                    formData.append('notes', notesEl.value);
+                }
+                
+                // Convert FormData to regular object for PayMongo integration
+                const orderData = {};
+                for (let [key, value] of formData.entries()) {
+                    orderData[key] = value;
+                }
+                
+                // Add customer name and email
+                orderData.customer_name = userName;
+                orderData.customer_email = userEmail;
+                
+                // Prepare payment data for PayMongo
+                const paymentData = {
+                    payment_method: paymentMethodEl.value,
+                    order_type: 'availtoday',  // Different from regular checkout
+                    amount: parseFloat(cartTotal),
+                    order_data: orderData
+                };
+                
+                console.log('[AVAILTODAY CHECKOUT] Payment data being sent:', paymentData);
+                
+                // Process payment through PayMongo (same endpoint as regular checkout)
+                const response = await fetch('process-payment.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(paymentData)
+                });
+                
+                console.log('[AVAILTODAY CHECKOUT] Payment API response status:', response.status);
+                
+                const result = await response.json();
+                console.log('[AVAILTODAY CHECKOUT] Payment API result:', result);
+                
+                if (result.success) {
+                    if (result.payment_url) {
+                        console.log('[AVAILTODAY CHECKOUT] Redirecting to payment URL:', result.payment_url);
+                        // Redirect to PayMongo payment page
+                        window.location.href = result.payment_url;
+                    } else if (result.order_id) {
+                        console.log('[AVAILTODAY CHECKOUT] Payment successful, redirecting to success page');
+                        // Payment successful, redirect to success page
+                        window.location.href = `payment-success.php?order_id=${result.order_id}`;
+                    } else {
+                        throw new Error('Payment processed but no redirect URL provided');
+                    }
+                } else {
+                    throw new Error(result.message || 'Payment processing failed');
+                }
+                
+            } catch (error) {
+                console.error('[AVAILTODAY CHECKOUT] Payment error:', error);
+                alert('An error occurred while processing your payment: ' + error.message);
+                setLoadingState(false);
+                orderProcessing = false;
+            }
+        });
     }
 });
+
+// Loading state functions
+function setLoadingState(isLoading) {
+    const submitButton = document.querySelector('button[type="submit"]');
+    if (!submitButton) {
+        console.error('Submit button not found!');
+        return;
+    }
+    
+    const buttonText = submitButton.querySelector('.button-text') || submitButton;
+    
+    if (isLoading) {
+        orderProcessing = true;
+        submitButton.disabled = true;
+        submitButton.classList.add('btn-processing');
+        
+        // Add spinner and text
+        buttonText.innerHTML = '<span class="spinner"></span>Processing Order...';
+        submitButton.style.opacity = '0.7';
+        submitButton.style.cursor = 'not-allowed';
+        
+        // Start 20-second countdown to re-enable button
+        startCountdownTimer(submitButton, buttonText);
+    } else {
+        // Only re-enable if not in countdown mode
+        if (!orderProcessing) {
+            submitButton.disabled = false;
+            submitButton.classList.remove('btn-processing');
+            buttonText.textContent = 'Place Order - ₱<?php echo number_format($cart_total, 2); ?>';
+            submitButton.style.opacity = '1';
+            submitButton.style.cursor = 'pointer';
+        }
+    }
+}
+
+function startCountdownTimer(submitButton, buttonText, initialCountdown = 20) {
+    let countdown = initialCountdown;
+    
+    // Clear any existing timer
+    if (countdownTimer) {
+        clearInterval(countdownTimer);
+    }
+    
+    // Update button text with countdown
+    const updateCountdown = () => {
+        if (countdown > 0) {
+            buttonText.innerHTML = `<span class="spinner"></span>Please wait... (${countdown}s)`;
+            countdown--;
+        } else {
+            // Re-enable button after countdown
+            orderProcessing = false;
+            submitButton.disabled = false;
+            submitButton.classList.remove('btn-processing');
+            buttonText.textContent = 'Place Order - ₱<?php echo number_format($cart_total, 2); ?>';
+            submitButton.style.opacity = '1';
+            submitButton.style.cursor = 'pointer';
+            
+            // Clear the timer
+            clearInterval(countdownTimer);
+            countdownTimer = null;
+            
+            console.log('Order button re-enabled after countdown completed');
+        }
+    };
+    
+    // Start the countdown immediately
+    updateCountdown();
+    
+    // Continue countdown every second
+    countdownTimer = setInterval(updateCountdown, 1000);
+}
 
 // Handle payment method selection
 function handlePaymentMethodChange(e) {
@@ -651,93 +863,7 @@ function formatCardInputs() {
     }
 }
 
-// Handle place order
-async function handlePlaceOrder() {
-    try {
-        // Show loading state
-        setLoadingState(true);
-        
-        // Validate form
-        if (!validateForm()) {
-            setLoadingState(false);
-            return;
-        }
-        
-        // Get form data
-        const formData = getFormData();
-        
-        // Get selected payment method
-        const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
-        
-        // Prepare payment data
-        const paymentData = {
-            payment_method: paymentMethod,
-            order_type: 'availtoday',
-            amount: <?php echo $cart_total; ?>,
-            order_data: formData
-        };
-        
-        console.log('Payment data being sent:', paymentData);
-        
-        // Clean the data to remove any potential circular references
-        const cleanPaymentData = JSON.parse(JSON.stringify(paymentData));
-        console.log('Cleaned payment data:', cleanPaymentData);
-        
-        // Process payment
-        const paymentResult = await processPayment(cleanPaymentData);
-        
-        if (paymentResult.success) {
-            if (paymentResult.payment_type === 'source') {
-                // Redirect to PayMongo checkout for GCash/Maya
-                window.location.href = paymentResult.checkout_url;
-            } else if (paymentResult.payment_type === 'payment_intent') {
-                // Handle card payment confirmation
-                await handleCardPayment(paymentResult);
-            }
-        } else {
-            throw new Error(paymentResult.error || 'Payment processing failed');
-        }
-        
-    } catch (error) {
-        console.error('Order processing error:', error);
-        alert(error.message || 'An error occurred while processing your order. Please try again.');
-        setLoadingState(false);
-    }
-}
-
-// Process payment through backend
-async function processPayment(paymentData) {
-    const jsonString = JSON.stringify(paymentData);
-    console.log('JSON string being sent:', jsonString);
-    console.log('JSON string length:', jsonString.length);
-    
-    const response = await fetch('process-payment.php', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: jsonString
-    });
-    
-    console.log('Response status:', response.status);
-    console.log('Response headers:', response.headers);
-    
-    const responseText = await response.text();
-    console.log('Raw response:', responseText);
-    
-    if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    try {
-        return JSON.parse(responseText);
-    } catch (e) {
-        console.error('Failed to parse response JSON:', e);
-        throw new Error('Invalid response format');
-    }
-}
-
-// Handle card payment with PayMongo
+// Handle card payment with PayMongo (kept for card payment support)
 async function handleCardPayment(paymentResult) {
     try {
         // Initialize PayMongo with public key
@@ -853,23 +979,6 @@ function validateForm() {
     }
     
     return isValid;
-}
-
-// Set loading state
-function setLoadingState(loading) {
-    const buttonText = document.getElementById('button-text');
-    const loadingSpinner = document.getElementById('loading-spinner');
-    const placeOrderBtn = document.getElementById('place-order-btn');
-    
-    if (loading) {
-        buttonText.style.display = 'none';
-        loadingSpinner.style.display = 'inline-flex';
-        placeOrderBtn.disabled = true;
-    } else {
-        buttonText.style.display = 'inline';
-        loadingSpinner.style.display = 'none';
-        placeOrderBtn.disabled = false;
-    }
 }
 
 // Additional styles for Available Today specific elements
@@ -998,9 +1107,44 @@ const additionalStyles = `
     gap: 8px;
 }
 
+/* Loading Spinner */
+.spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s ease-in-out infinite;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.btn-processing {
+    position: relative;
+    pointer-events: none;
+}
+
+/* Place Order Button Disabled State */
+.btn-primary:disabled,
 .place-order-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+    background-color: #6c757d !important;
+    cursor: not-allowed !important;
+    opacity: 0.7 !important;
+    transform: none !important;
+    box-shadow: none !important;
+    border-color: #6c757d !important;
+}
+
+.btn-primary:disabled:hover,
+.place-order-btn:disabled:hover {
+    background-color: #6c757d !important;
+    transform: none !important;
+    box-shadow: none !important;
+    border-color: #6c757d !important;
 }
 
 @media (max-width: 768px) {

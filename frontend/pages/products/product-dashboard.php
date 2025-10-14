@@ -382,6 +382,25 @@ if ($cart_truncated) {
         </div>
     </div>
 </div>
+
+<!-- Checkout Confirmation Modal -->
+<div id="checkoutConfirmModal" class="modal" style="display: none;">
+    <div class="modal-content fade-in-pop">
+        <span class="close" onclick="closeCheckoutConfirmModal()">&times;</span>
+        <div class="modal-body">
+            <h2 style="color: #2d5016; margin-bottom: 1rem;">Confirm Checkout</h2>
+            <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>Items:</strong> <span id="confirmItemCount">0</span></p>
+                <p style="margin: 0.5rem 0; font-size: 1.2rem; color: #2d5016;"><strong>Total:</strong> ₱<span id="confirmTotal">0.00</span></p>
+            </div>
+            <p style="margin-bottom: 1.5rem; color: #666;">Are you ready to proceed to checkout?</p>
+            <div class="modal-actions" style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button type="button" class="cancel-btn" onclick="closeCheckoutConfirmModal();" style="padding: 0.75rem 1.5rem; border: 1px solid #ddd; background: white; color: #666; border-radius: 4px; cursor: pointer; font-size: 1rem;">Cancel</button>
+                <button type="button" id="proceedCheckoutBtn" class="confirm-btn" style="padding: 0.75rem 1.5rem; border: none; background: #2d5016; color: white; border-radius: 4px; cursor: pointer; font-size: 1rem;">Proceed to Checkout</button>
+            </div>
+        </div>
+    </div>
+</div>
                         </div>
             
 <!-- Available Today Cart JavaScript -->
@@ -624,10 +643,18 @@ if ($cart_truncated) {
         formData.append('quantity', finalQuantity);
         
         const apiUrl = "availtoday-cart-api.php";
+        console.log('[DEBUG] Fetching API:', apiUrl);
+        console.log('[DEBUG] Current location:', window.location.href);
+        console.log('[DEBUG] FormData contents:', {
+            action: 'add',
+            product_id: productId,
+            quantity: finalQuantity
+        });
         
         fetch(apiUrl, {
           method: "POST",
-          body: formData
+          body: formData,
+          credentials: "include"
         })
           .then(response => {
             if (!response.ok) {

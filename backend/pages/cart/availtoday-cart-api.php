@@ -50,14 +50,18 @@ $action = isset($_POST['action']) ? $_POST['action'] : (isset($_GET['action']) ?
 // Handle different HTTP methods
 
 // Check if user is logged in
+error_log("[availtoday-cart-api.php] Session check - user_id: " . (isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 'NOT SET'));
+error_log("[availtoday-cart-api.php] Full session data: " . print_r($_SESSION, true));
+
 if (!isset($_SESSION['user_id'])) {
     error_log("[availtoday-cart-api.php] User not authenticated - session user_id not found");
     http_response_code(401);
-    echo json_encode(['success' => false, 'error' => 'User not authenticated', 'debug' => 'Session user_id not found']);
+    echo json_encode(['success' => false, 'error' => 'User not authenticated', 'debug' => 'Session user_id not found', 'session_id' => session_id()]);
     exit;
 }
 
 $user_id = $_SESSION['user_id'];
+error_log("[availtoday-cart-api.php] User authenticated - user_id: $user_id");
 
 try {
     switch ($action) {
