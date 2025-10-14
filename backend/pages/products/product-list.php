@@ -248,6 +248,9 @@
 
                             if ($result->num_rows > 0) {
                                 while ($row = $result->fetch_assoc()) {
+                                    // Debug: Log availtoday_status data
+                                    error_log("Product ID: " . $row['id'] . " | availtoday_status_id: " . ($row['availtoday_status_id'] ?? 'NULL') . " | availtoday_status_name: " . ($row['availtoday_status_name'] ?? 'NULL'), 3, __DIR__ . "/../../../logs/php_errors.log");
+                                    
                                     $status_id = isset($row["status_id"]) ? $row["status_id"] : 1;
                                     $quantity = isset($row["quantity"]) ? $row["quantity"] : 0;
                                     
@@ -285,12 +288,16 @@
                                                 <div class='status-container'>
                                                     <span class='status-badge status-" . $statusClass . "'>" . $displayStatus . "</span>";
                                                     
-                                                    // Show badge for Same Day Order (status_id = 3)
-                                                    if ($row['status_id'] == 3 && !empty($row['availtoday_status_name'])) {
-                                                        echo "<span class='availtoday-badge'>for " . htmlspecialchars($row['availtoday_status_name']) . "</span>";
+                                                    // Show badge for availtoday_status
+                                                    if (!empty($row['availtoday_status_name'])) {
+                                                        if ($row['status_id'] == 3) {
+                                                            // Same Day Order - show "For [status]" (blue)
+                                                            echo "<span class='availtoday-badge'>For " . htmlspecialchars($row['availtoday_status_name']) . "</span>";
+                                                        } else if ($row['status_id'] == 1 || $row['status_id'] == 2) {
+                                                            // Pick Up or Delivery - show "Also for SDO: [status]" (green)
+                                                            echo "<span class='availtoday-badge-also'>Also for SDO: " . htmlspecialchars($row['availtoday_status_name']) . "</span>";
+                                                        }
                                                     }
-                                                    
-                                                    // Removed redundant 'also available today' badge for regular products
                                                     
                                                     echo "<span class='stock-badge " . $quantityClass . "'>
                                                         <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>
@@ -307,7 +314,7 @@
                                                  <span class='available-days-text'>" . formatAvailableDays($row['available_days']) . "</span>
                                              </td>
                                              <td>
-                                                 <span class='selected-dates-text'>" . formatSelectedDates($row['status_id'] == 3 ? $row['todays_product_dates'] : '') . "</span>
+                                                 <span class='selected-dates-text'>" . formatSelectedDates($row['status_id'] == 3 ? $row['todays_product_dates'] : $row['regular_today_dates']) . "</span>
                                              </td>
                                             <td>
                                                 <div class='action-buttons'>
@@ -534,7 +541,7 @@
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="editProductStatus">Status</label>
+                            <label for="editProductStatus">Product Status</label>
                             <select id="editProductStatus">
                                 <option value="1">Pick Up</option>
                                 <option value="2">Delivery</option>
@@ -546,7 +553,7 @@
                                 <div class="radio-group">
                                     <div class="radio-item">
                                         <input type="radio" id="isAvailableToday" name="isAvailableToday" value="true">
-                                        <label for="isAvailableToday">Display as Same Day Order product</label>
+                                        <label for="isAvailableToday">Set to same day order too</label>
                                     </div>
                                 </div>
                             </div>
@@ -556,6 +563,7 @@
                             <select id="editAvailtodayStatus">
                                 <option value="1">Pick Up</option>
                                 <option value="2">Delivery</option>
+                                <option value="3">Delivery and Pick Up</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -595,7 +603,7 @@
 
                     <!-- Available Days for regular products (Pick Up/Delivery) -->
                     <div class="form-group" id="regularAvailableDaysContainer">
-                        <label>Available Days:</label>
+                        <label>Available Days for <span id="dynamicStatusName">Product</span>:</label>
                         <div class="checkbox-group days-group">
                             <div class="checkbox-item">
                                 <input type="checkbox" name="edit_available_days[]" id="edit_sunday" value="Sunday">
@@ -630,22 +638,14 @@
 
                     <!-- Calendar for Today's Products -->
                     <div class="form-group" id="todaysProductCalendarContainer" style="display: none;">
-                        <label>Select Available Dates for Same Day Order Product:</label>
+                        <label>Select dates for same day order:</label>
                         <div id="todaysProductCalendar"></div>
                         <input type="hidden" id="todaysProductDates" name="todays_product_dates">
                     </div>
 
                     <!-- Calendar for regular products that are also available today -->
                     <div class="form-group" id="availableTodayCalendarContainer" style="display: none;">
-                        <label>Select Additional Dates for Today's Availability:</label>
-                        <div class="form-group" style="margin-bottom: 15px;">
-                            <label for="editAvailableTodayStatus">Same Day Options:</label>
-                            <select id="editAvailableTodayStatus" name="available_today_status_id">
-                                <option value="">Select...</option>
-                                <option value="1">Pick Up</option>
-                                <option value="2">Delivery</option>
-                            </select>
-                        </div>
+                        <label>Select dates for same day order:</label>
                         <div id="availableTodayCalendar"></div>
                         <input type="hidden" id="availableTodayDates" name="available_today_dates">
                     </div>

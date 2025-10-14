@@ -8,10 +8,10 @@
 session_set_cookie_params([
     'lifetime' => 0,
     'path' => '/',
-    'domain' => 'neocafe.cafe',
+    'domain' => '', // Empty domain works for all subdomains and localhost
     'secure' => false,
     'httponly' => true,
-    'samesite' => 'Strict'
+    'samesite' => 'Lax' // Changed from Strict to Lax to allow same-site requests
 ]);
 
 // Start session if not already started
@@ -23,8 +23,12 @@ if (session_status() == PHP_SESSION_NONE) {
 $suppress_db_debug = true; // Suppress database debug output for API
 require_once __DIR__ . '/../admin-includes/database.php';
 
-// Set JSON content type
+// Set JSON content type and CORS headers
 header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *'); // Allow all origins for development
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+header('Access-Control-Allow-Credentials: true');
 
 // Enable error reporting for debugging (remove in production)
 error_reporting(E_ALL);

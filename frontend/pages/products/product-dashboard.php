@@ -596,7 +596,6 @@ if ($cart_truncated) {
         console.log('addToCart called with:', { productId, button, quantity });
         
         let finalQuantity;
-        let isAvailableToday = false;
         
         if (button) {
             // Called from product card button
@@ -606,24 +605,15 @@ if ($cart_truncated) {
                 return;
             }
             
-            // Verify this is an Available Today product
-            const statusAttribute = productCard.getAttribute('data-status');
-            const statusElement = productCard.querySelector('.status-badge');
-            isAvailableToday = (statusAttribute === 'Available Today') || 
-                             (statusElement && statusElement.classList.contains('status-available-today'));
-            
             const quantityInput = button.parentElement.querySelector('input');
             finalQuantity = quantity || (quantityInput ? parseInt(quantityInput.value) : 1);
         } else {
-            // Called from modal - all products on this page are Available Today (status_id = 3)
-            isAvailableToday = true; // This page only shows Available Today products
+            // Called from modal
             finalQuantity = quantity || 1;
         }
         
-        if (!isAvailableToday) {
-            showConfirmation("Only 'Available Today' products can be added to cart from this page", true);
-            return;
-        }
+        // All products on product-dashboard.php are pre-filtered to be Available Today
+        // No need to validate - they all have availtoday_status_id and valid dates
         
         console.log('Final quantity:', finalQuantity);
 
@@ -633,9 +623,8 @@ if ($cart_truncated) {
         formData.append('product_id', productId);
         formData.append('quantity', finalQuantity);
         
-        const apiUrl = "../../../backend/pages/cart/availtoday-cart-api.php";
-        // Keep only session debug
-// Remove session debug
+        const apiUrl = "availtoday-cart-api.php";
+        
         fetch(apiUrl, {
           method: "POST",
           body: formData
@@ -644,7 +633,16 @@ if ($cart_truncated) {
             if (!response.ok) {
               throw new Error(`HTTP error! status: ${response.status}`);
             }
-            return response.json();
+            return response.text();
+          })
+          .then(text => {
+            console.log('[DEBUG] API Response:', text);
+            try {
+              return JSON.parse(text);
+            } catch (e) {
+              console.error('[DEBUG] Failed to parse JSON. Response was:', text);
+              throw new Error('Invalid JSON response from server');
+            }
           })
           .then(data => {
             if (data && data.success) {
