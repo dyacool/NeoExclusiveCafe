@@ -214,6 +214,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                                 <a href="/backend/pages/homepage/admin-homepage.php">Admin Panel</a>
                                 <a href="/backend/login/admin/logout.php">Logout</a>
                             <?php else: ?>
+                                <a href="/frontend/pages/profile/profile.php">Profile</a>
                                 <a href="/frontend/pages/profile/account-settings.php">Account Settings</a>
                                 <a href="/frontend/pages/blog/blog-list.php">View Post</a>
                                 <a href="/frontend/login/user/logout.php">Logout</a>

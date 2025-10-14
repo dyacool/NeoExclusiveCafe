@@ -183,20 +183,17 @@ echo "<!-- Current profile image path: " . ($row['profile_image'] ?? 'null') . "
             
             <!-- Profile Picture Section -->
             <div class="profile-picture-section">
-                <div class="current-profile-picture">
-                    <?php if (!empty($row['profile_image'])): ?>
-                        <?php $display_path = trim($row['profile_image']); if ($display_path !== '' && $display_path[0] !== '/') { $display_path = '/' . $display_path; } ?>
-                        <img src="<?php echo htmlspecialchars($display_path); ?>" alt="Profile Image">
-                    <?php else: ?>
-                        <img src="/assets/images/profile.svg" alt="Default Profile Image">
-                    <?php endif; ?>
-                </div>
                 <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="POST" enctype="multipart/form-data" class="profile-image-form">
-                    <div class="form-group">
-                        <label for="profile_image" class="custom-file-upload">Change Profile Picture </label>
-                        <input type="file" id="profile_image" name="profile_image" accept="image/*" style="display: none;" onchange="this.form.submit()">
-                        <small class="file-info">Supported formats: JPG, JPEG, PNG, GIF</small>
+                    <div class="current-profile-picture" onclick="document.getElementById('profile_image').click()">
+                        <?php if (!empty($row['profile_image'])): ?>
+                            <?php $display_path = trim($row['profile_image']); if ($display_path !== '' && $display_path[0] !== '/') { $display_path = '/' . $display_path; } ?>
+                            <img src="<?php echo htmlspecialchars($display_path); ?>" alt="Profile Image">
+                        <?php else: ?>
+                            <img src="/assets/images/profile.svg" alt="Default Profile Image">
+                        <?php endif; ?>
                     </div>
+                    <input type="file" id="profile_image" name="profile_image" accept="image/*" class="profile-picture-input" onchange="this.form.submit()">
+                    <small class="file-info">Click on the image to change your profile picture<br>Supported formats: JPG, JPEG, PNG, GIF</small>
                 </form>
             </div>
 
@@ -245,7 +242,7 @@ echo "<!-- Current profile image path: " . ($row['profile_image'] ?? 'null') . "
                     </div>
                     <div style="display: flex; gap: 15px; justify-content: center;">
                         <button type="button" class="btn cancel-btn" onclick="closePasswordModal()">Cancel</button>
-                        <button type="submit" name="change_password" class="btn change-btn">Change Password</button>
+                        <button type="submit" name="change_password" class="btn update-btn">Update Password</button>
                     </div>
                 </form>
             </div>
@@ -253,7 +250,6 @@ echo "<!-- Current profile image path: " . ($row['profile_image'] ?? 'null') . "
     </div>
     
     <script>
-
         function openPasswordModal() {
             document.getElementById('passwordModal').style.display = 'block';
         }
@@ -261,10 +257,19 @@ echo "<!-- Current profile image path: " . ($row['profile_image'] ?? 'null') . "
         function closePasswordModal() {
             document.getElementById('passwordModal').style.display = 'none';
         }
-        // Handle profile image upload
-        document.getElementById('profile_image')?.addEventListener('change', function() {
-            if (this.files && this.files[0]) {
-                this.closest('form').submit();
+
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            var modal = document.getElementById('passwordModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Handle ESC key to close modal
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closePasswordModal();
             }
         });
     </script>

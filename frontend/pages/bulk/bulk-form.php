@@ -1,8 +1,13 @@
 <?php
 session_start();
 
-// Include database connection
-require_once "../../../backend/pages/admin-includes/database.php";
+// Connect to online database
+$conn = new mysqli("mysql-neoexclusivecafe.alwaysdata.net", "429123", "NeoCafe123", "neoexclusivecafe_crud");
+
+// Check connection
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
 
 $show_success_modal = false;
 $bulk_order_id = null;
@@ -30,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_bulk_order']))
         // Create bulk_orders table if it doesn't exist
         $create_table_query = "
             CREATE TABLE IF NOT EXISTS bulk_orders (
-                id INT AUTO_INCREMENT PRIMARY KEY,
+                bulk_id INT AUTO_INCREMENT PRIMARY KEY,
                 user_id INT NULL,
                 name VARCHAR(255) NOT NULL,
                 contact VARCHAR(20) NOT NULL,
@@ -64,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_bulk_order']))
                 product_price DECIMAL(10,2),
                 quantity INT,
                 subtotal DECIMAL(10,2),
-                FOREIGN KEY (bulk_order_id) REFERENCES bulk_orders(id) ON DELETE CASCADE
+                FOREIGN KEY (bulk_order_id) REFERENCES bulk_orders(bulk_id) ON DELETE CASCADE
             )
         ";
         mysqli_query($conn, $create_items_table);
@@ -155,6 +160,7 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
 </head>
 <?php include "../../user-includes/navbar/customer-navigation.php"; ?>
 <body>
+    <div class="wrapper">
     <div class="container">
         <div class="form-header">
             <h1>Bulk Order Form</h1>
@@ -170,142 +176,178 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
         <form id="bulkOrderForm" method="POST" action="" autocomplete="off" data-form-restore="false" onpageshow="if(event.persisted) window.location.reload()">
             <!-- Customer Information Section -->
             <div class="form-section">
-                <h2>Customer Information</h2>
+                <div class="section-header">
+                    <h2>Customer Information</h2>
+                    <p>Please provide your contact details and billing information</p>
+                </div>
                 
-                <div class="form-group">
-                    <label for="name">Name *</label>
-                    <input type="text" id="name" name="name" required>
-                </div>
+                <div class="section-content">
+                    <div class="form-group">
+                        <label for="name">Full Name <span class="required">*</span></label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
 
-                <div class="form-group">
-                    <label for="contact">Contact Number *</label>
-                    <input type="tel" id="contact" name="contact" required>
-                </div>
+                    <div class="form-group">
+                        <label for="contact">Contact Number <span class="required">*</span></label>
+                        <input type="tel" id="contact" name="contact" required>
+                    </div>
 
-                <div class="form-group">
-                    <label for="email">Email *</label>
-                    <input type="email" id="email" name="email" required>
-                </div>
+                    <div class="form-group">
+                        <label for="email">Email Address <span class="required">*</span></label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
 
-                <div class="form-group">
-                    <label for="billing_address">Billing Address *</label>
-                    <textarea id="billing_address" name="billing_address" rows="3" required style="resize: none;"></textarea>
-                </div>
+                    <div class="form-group">
+                        <label for="billing_address">Billing Address <span class="required">*</span></label>
+                        <textarea id="billing_address" name="billing_address" rows="3" required style="resize: none;"></textarea>
+                    </div>
 
-                <div class="form-group">
-                    <label for="order_type">Order Type *</label>
-                    <select id="order_type" name="order_type" required>
-                        <option value="">Select Order Type</option>
-                        <option value="delivery">Delivery</option>
-                        <option value="pickup">Pick Up</option>
-                    </select>
-                </div>
+                    <div class="form-group">
+                        <label for="order_type">Order Type <span class="required">*</span></label>
+                        <select id="order_type" name="order_type" required>
+                            <option value="">Select Order Type</option>
+                            <option value="delivery">Delivery</option>
+                            <option value="pickup">Pick Up</option>
+                        </select>
+                    </div>
 
-                <div class="form-group" id="delivery_address_group" style="display: none;">
-                    <label for="delivery_address">Delivery Address *</label>
-                    <textarea id="delivery_address" name="delivery_address" rows="3"></textarea>
-                </div>
+                    <div class="form-group" id="delivery_address_group" style="display: none;">
+                        <label for="delivery_address">Delivery Address <span class="required">*</span></label>
+                        <textarea id="delivery_address" name="delivery_address" rows="3"></textarea>
+                    </div>
 
-                <div class="form-group">
-                    <label for="purpose">Purpose of Order *</label>
-                    <textarea id="purpose" name="purpose" rows="2" required placeholder="e.g., Corporate event, Wedding, Birthday party, etc." style="resize: none;"></textarea>
-                </div>
+                    <div class="form-group">
+                        <label for="purpose">Purpose of Order <span class="required">*</span></label>
+                        <textarea id="purpose" name="purpose" rows="2" required placeholder="e.g., Corporate event, Wedding, Birthday party, etc." style="resize: none;"></textarea>
+                    </div>
 
-                <div class="form-group">
-                    <label for="date_needed">Date Needed *</label>
-                    <input type="date" id="date_needed" name="date_needed" min="<?php echo $min_date; ?>" required>
-                    <small>Minimum 2 weeks advance notice required</small>
-                </div>
+                    <div class="form-group">
+                        <label for="date_needed">Date Needed <span class="required">*</span></label>
+                        <input type="date" id="date_needed" name="date_needed" min="<?php echo $min_date; ?>" required>
+                        <small>Minimum 2 weeks advance notice required</small>
+                    </div>
 
-                <div class="form-group">
-                    <label for="time_needed">Time Needed *</label>
-                    <select id="time_needed" name="time_needed" required>
-                        <option value="">Select Time</option>
-                        <option value="06:00">6:00 AM</option>
-                        <option value="06:30">6:30 AM</option>
-                        <option value="07:00">7:00 AM</option>
-                        <option value="07:30">7:30 AM</option>
-                        <option value="08:00">8:00 AM</option>
-                        <option value="08:30">8:30 AM</option>
-                        <option value="09:00">9:00 AM</option>
-                        <option value="09:30">9:30 AM</option>
-                        <option value="10:00">10:00 AM</option>
-                        <option value="10:30">10:30 AM</option>
-                        <option value="11:00">11:00 AM</option>
-                        <option value="11:30">11:30 AM</option>
-                        <option value="12:00">12:00 PM</option>
-                        <option value="12:30">12:30 PM</option>
-                        <option value="13:00">1:00 PM</option>
-                        <option value="13:30">1:30 PM</option>
-                        <option value="14:00">2:00 PM</option>
-                        <option value="14:30">2:30 PM</option>
-                        <option value="15:00">3:00 PM</option>
-                        <option value="15:30">3:30 PM</option>
-                        <option value="16:00">4:00 PM</option>
-                        <option value="16:30">4:30 PM</option>
-                        <option value="17:00">5:00 PM</option>
-                        <option value="17:30">5:30 PM</option>
-                        <option value="18:00">6:00 PM</option>
-                    </select>
-                    <small>Available times: 6:00 AM - 6:00 PM</small>
+                    <div class="form-group">
+                        <label for="time_needed">Time Needed <span class="required">*</span></label>
+                        <select id="time_needed" name="time_needed" required>
+                            <option value="">Select Time</option>
+                            <option value="06:00">6:00 AM</option>
+                            <option value="06:30">6:30 AM</option>
+                            <option value="07:00">7:00 AM</option>
+                            <option value="07:30">7:30 AM</option>
+                            <option value="08:00">8:00 AM</option>
+                            <option value="08:30">8:30 AM</option>
+                            <option value="09:00">9:00 AM</option>
+                            <option value="09:30">9:30 AM</option>
+                            <option value="10:00">10:00 AM</option>
+                            <option value="10:30">10:30 AM</option>
+                            <option value="11:00">11:00 AM</option>
+                            <option value="11:30">11:30 AM</option>
+                            <option value="12:00">12:00 PM</option>
+                            <option value="12:30">12:30 PM</option>
+                            <option value="13:00">1:00 PM</option>
+                            <option value="13:30">1:30 PM</option>
+                            <option value="14:00">2:00 PM</option>
+                            <option value="14:30">2:30 PM</option>
+                            <option value="15:00">3:00 PM</option>
+                            <option value="15:30">3:30 PM</option>
+                            <option value="16:00">4:00 PM</option>
+                            <option value="16:30">4:30 PM</option>
+                            <option value="17:00">5:00 PM</option>
+                            <option value="17:30">5:30 PM</option>
+                            <option value="18:00">6:00 PM</option>
+                        </select>
+                        <small>Available times: 6:00 AM - 6:00 PM</small>
+                    </div>
                 </div>
             </div>
 
             <!-- Product Selection Section -->
             <div class="form-section">
-                <h2>Product Selection</h2>
-                <p>Select the products you want to include in your bulk order:</p>
+                <div class="section-header">
+                    <h2>Product Selection</h2>
+                    <p>Choose the products you want to include in your bulk order (minimum 12 pieces per item)</p>
+                </div>
                 
-                <div class="products-grid" id="productsGrid">
-                    <?php if (count($products) > 0): ?>
-                        <?php foreach ($products as $product): ?>
-                            <div class="product-item">
-                                <div class="product-checkbox">
-                                    <input type="checkbox" 
-                                           id="product_<?php echo $product['id']; ?>" 
-                                           value="<?php echo $product['id']; ?>"
-                                           data-name="<?php echo htmlspecialchars($product['name']); ?>"
-                                           data-price="<?php echo $product['price']; ?>"
-                                           data-status="<?php echo isset($product['status_name']) ? $product['status_name'] : 'available'; ?>"
-                                           class="product-select">
-                                    <label for="product_<?php echo $product['id']; ?>">
-                                        <strong><?php echo htmlspecialchars($product['name']); ?></strong>
-                                        <span class="product-price">₱<?php echo number_format($product['price'], 2); ?></span>
-                                    </label>
+                <div class="section-content">
+                    <div class="products-grid" id="productsGrid">
+                        <?php if (count($products) > 0): ?>
+                            <?php foreach ($products as $product): ?>
+                                <div class="product-card" id="card_<?php echo $product['id']; ?>">
+                                    <div class="product-header">
+                                        <div class="product-checkbox-wrapper">
+                                            <input type="checkbox" 
+                                                   id="product_<?php echo $product['id']; ?>" 
+                                                   value="<?php echo $product['id']; ?>"
+                                                   data-name="<?php echo htmlspecialchars($product['name']); ?>"
+                                                   data-price="<?php echo $product['price']; ?>"
+                                                   class="product-checkbox product-select">
+                                        </div>
+                                        <div class="product-info">
+                                            <label for="product_<?php echo $product['id']; ?>" class="product-name">
+                                                <?php echo htmlspecialchars($product['name']); ?>
+                                            </label>
+                                            <div class="product-price"><?php echo number_format($product['price'], 2); ?></div>
+                                        </div>
+                                    </div>
+                                    <div class="quantity-section" id="quantity_section_<?php echo $product['id']; ?>">
+                                        <label class="quantity-label">Quantity (Min: 12 pieces)</label>
+                                        <div class="quantity-controls">
+                                            <div class="quantity-input-group">
+                                                <button type="button" class="quantity-btn" onclick="decreaseQuantity(<?php echo $product['id']; ?>)">−</button>
+                                                <input type="number" 
+                                                       id="quantity_<?php echo $product['id']; ?>" 
+                                                       min="12" 
+                                                       value="12" 
+                                                       class="quantity-field"
+                                                       onchange="updateQuantity(<?php echo $product['id']; ?>)">
+                                                <button type="button" class="quantity-btn" onclick="increaseQuantity(<?php echo $product['id']; ?>)">+</button>
+                                            </div>
+                                            <div class="item-subtotal" id="subtotal_<?php echo $product['id']; ?>">
+                                                <?php echo number_format($product['price'] * 12, 2); ?>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="quantity-input" style="display: none;">
-                                    <label for="quantity_<?php echo $product['id']; ?>">Quantity (Min: 12):</label>
-                                    <input type="number" 
-                                           id="quantity_<?php echo $product['id']; ?>" 
-                                           min="12" 
-                                           value="12" 
-                                           class="quantity-field">
-                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="no-products-message">
+                                <h3>No Products Available</h3>
+                                <p>We're currently updating our product inventory.</p>
+                                <p>Please contact the administrator to add products or try again later.</p>
                             </div>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <div class="no-products-message">
-                            <p><strong>No products found in the database.</strong></p>
-                            <p>Please contact the administrator to add products.</p>
-                        </div>
-                    <?php endif; ?>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
 
             <!-- Order Summary Section -->
-            <div class="form-section">
-                <h2>Order Summary</h2>
-                <div id="orderSummary" class="order-summary">
-                    <p>No products selected</p>
+            <div class="form-section order-summary-section">
+                <div class="summary-header">
+                    <h3>Order Summary</h3>
+                </div>
+                <div class="summary-content">
+                    <div id="orderSummary" class="order-summary">
+                        <div class="summary-empty">
+                            <h4>No Products Selected</h4>
+                            <p>Choose products from the selection above to see your order summary</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- Notes Section -->
             <div class="form-section">
-                <h2>Additional Notes</h2>
-                <div class="form-group">
-                    <label for="note">Special Instructions or Notes</label>
-                    <textarea id="note" name="note" rows="4" placeholder="Any special requirements, dietary restrictions, or additional information..."></textarea>
+                <div class="section-header">
+                    <h2>Additional Notes</h2>
+                    <p>Any special instructions or requirements for your order</p>
+                </div>
+                
+                <div class="section-content">
+                    <div class="form-group">
+                        <label for="note">Special Instructions or Notes</label>
+                        <textarea id="note" name="note" rows="4" placeholder="Any special requirements, dietary restrictions, packaging instructions, or additional information..."></textarea>
+                    </div>
                 </div>
             </div>
 
@@ -315,8 +357,12 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
 
             <!-- Form Actions -->
             <div class="form-actions">
-                <button type="button" id="discardBtn" class="btn btn-secondary">Discard</button>
-                <button type="submit" name="submit_bulk_order" class="btn btn-primary" id="submitBtn" disabled>Submit Order</button>
+                <button type="button" id="discardBtn" class="btn btn-secondary">
+                    Discard Order
+                </button>
+                <button type="submit" name="submit_bulk_order" class="btn btn-primary" id="submitBtn" disabled>
+                    Submit Order
+                </button>
             </div>
         </form>
     </div>
@@ -341,6 +387,7 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
         </div>
     </div>
     <?php endif; ?>
+    </div> <!-- End of wrapper -->
 
     <script src="bulk-form.js"></script>
     <script>
