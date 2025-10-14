@@ -49,7 +49,9 @@ $route_mappings = [
     'saved-posts' => ['Saved Posts', '/frontend/pages/profile/saved-posts.php'],
     
     // Cart routes
-    'cart' => ['Cart', '/frontend/pages/cart/cart.php'],
+    'cart' => ['Shopping Cart', '/frontend/pages/cart/cart.php'],
+    'shopping-cart-preorder' => ['Pre-Order Cart', '/frontend/pages/cart/shopping-cart-preorder.php'],
+    'shopping-cart-sameday' => ['Same-Day Cart', '/frontend/pages/cart/shopping-cart-sameday.php'],
     'checkout' => ['Checkout', '/frontend/pages/cart/checkout.php'],
     'order-confirmation' => ['Order Confirmation', ''],
     
@@ -97,6 +99,8 @@ $hierarchy = [
     
     // Cart hierarchy
     'cart' => ['user-dashboard'],
+    'shopping-cart-preorder' => ['user-dashboard'],
+    'shopping-cart-sameday' => ['user-dashboard'],
     'checkout' => ['user-dashboard', 'cart'],
     'order-confirmation' => ['user-dashboard', 'cart'],
     
@@ -207,45 +211,56 @@ if (!empty($breadcrumb_items) && $current_page !== 'user-dashboard' && $current_
 <link rel="stylesheet" href="/frontend/user-includes/bread-crumb/breadcrumb.css">
 
 <div class="breadcrumb-container">
-    <nav class="breadcrumb" aria-label="Breadcrumb navigation">
-        <ol class="breadcrumb-list" itemscope itemtype="https://schema.org/BreadcrumbList">
-            <?php foreach ($breadcrumb_items as $index => $item): ?>
-                <li class="breadcrumb-item <?php echo $item[2] ? 'active' : ''; ?>" 
-                    itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-                    
-                    <?php if (!$item[2] && !empty($item[1])): // Not current page and has URL ?>
-                        <a href="<?php echo htmlspecialchars($item[1]); ?>" 
-                           class="breadcrumb-link"
-                           itemprop="item"
-                           title="Go to <?php echo htmlspecialchars($item[0]); ?>">
-                            <span itemprop="name"><?php echo htmlspecialchars($item[0]); ?></span>
-                        </a>
-                        <meta itemprop="position" content="<?php echo $index + 1; ?>">
-                    <?php else: // Current page ?>
-                        <span class="breadcrumb-current" 
-                              aria-current="page" 
-                              itemprop="item">
-                            <span itemprop="name"><?php echo htmlspecialchars($item[0]); ?></span>
-                        </span>
-                        <meta itemprop="position" content="<?php echo $index + 1; ?>">
-                    <?php endif; ?>
-                    
-                    <?php if ($index < count($breadcrumb_items) - 1): // Not the last item ?>
-                        <svg class="breadcrumb-separator" 
-                             width="16" height="16" 
-                             viewBox="0 0 24 24" 
-                             fill="none" 
-                             stroke="currentColor" 
-                             stroke-width="2" 
-                             stroke-linecap="round" 
-                             stroke-linejoin="round"
-                             aria-hidden="true">
-                            <polyline points="9,18 15,12 9,6"></polyline>
-                        </svg>
-                    <?php endif; ?>
-                </li>
-            <?php endforeach; ?>
-        </ol>
+    <nav class="breadcrumb-nav" aria-label="Breadcrumb navigation" role="navigation">
+        <div class="breadcrumb-wrapper">
+            <ol class="breadcrumb-list" itemscope itemtype="https://schema.org/BreadcrumbList">
+                <?php foreach ($breadcrumb_items as $index => $item): ?>
+                    <li class="breadcrumb-item <?php echo $item[2] ? 'current' : ''; ?>" 
+                        itemprop="itemListElement" 
+                        itemscope 
+                        itemtype="https://schema.org/ListItem">
+                        
+                        <?php if (!$item[2] && !empty($item[1])): // Not current page and has URL ?>
+                            <a href="<?php echo htmlspecialchars($item[1]); ?>" 
+                               class="breadcrumb-link"
+                               itemprop="item"
+                               title="Navigate to <?php echo htmlspecialchars($item[0]); ?>"
+                               aria-label="Go to <?php echo htmlspecialchars($item[0]); ?>">
+                                <span class="breadcrumb-text" itemprop="name">
+                                    <?php echo htmlspecialchars($item[0]); ?>
+                                </span>
+                            </a>
+                            <meta itemprop="position" content="<?php echo $index + 1; ?>">
+                        <?php else: // Current page ?>
+                            <span class="breadcrumb-current" 
+                                  aria-current="page" 
+                                  itemprop="item">
+                                <span class="breadcrumb-text" itemprop="name">
+                                    <?php echo htmlspecialchars($item[0]); ?>
+                                </span>
+                            </span>
+                            <meta itemprop="position" content="<?php echo $index + 1; ?>">
+                        <?php endif; ?>
+                        
+                        <?php if ($index < count($breadcrumb_items) - 1): // Not the last item ?>
+                            <span class="breadcrumb-separator" aria-hidden="true">
+                                <svg class="separator-icon" 
+                                     width="20" height="20" 
+                                     viewBox="0 0 24 24" 
+                                     fill="none" 
+                                     stroke="currentColor" 
+                                     stroke-width="2" 
+                                     stroke-linecap="round" 
+                                     stroke-linejoin="round">
+                                    <path d="m9 18 6-6-6-6"/>
+                                </svg>
+                            </span>
+                        <?php endif; ?>
+                    </li>
+                <?php endforeach; ?>
+            </ol>
+            
+        </div>
     </nav>
 </div>
 

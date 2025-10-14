@@ -25,7 +25,7 @@
   --transition: all 0.3s ease;
 
   /* mobile Sizes */
-  --mobile: 768px;
+  --mobile: 1024px;
   --mobile2: 480px;
 
   --h2-font-size: 24px;
@@ -97,6 +97,23 @@
   margin: 0 auto;
 }
 
+.filter-button {
+  width: auto;
+  font-size: var(--font-size0);
+  padding: 5px 20px;
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  font-family: "Spectral", serif;
+}
+
+.filter-button:hover {
+  background-color: var(--text-green);
+  color: var(--text-white);
+  transform: translateY(-1px);
+}
+
 .filter-container {
   margin-bottom: 10px;
   display: flex;
@@ -119,7 +136,7 @@
 
 .products-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
   padding: 20px 0;
 }
@@ -136,12 +153,12 @@
   height: 100%;
 }
 
-.product-card[data-status="Delivery"] .product-image {
+.product-card[data-status="Pickup"] .product-image {
   /* Using standard height */
   height: 200px;
 }
 
-.product-card[data-status="Delivery"] .add-to-cart {
+.product-card[data-status="Pickup"] .add-to-cart {
   /* Using standard font size and padding */
   font-size: 1em;
   padding: 10px;
@@ -189,7 +206,14 @@ h3 {
   text-overflow: ellipsis;
 }
 
-.prdct-availability, .product-availability {
+.product-availability {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 10px;
+}
+
+.product-availability {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -432,6 +456,12 @@ h3 {
   margin: 10px 0 0 0;
   text-align: left;
 }
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+  padding: 0;
+}
 
 .prdct-qty {
   margin-top: 20px;
@@ -563,10 +593,27 @@ h3 {
 }
 
 /* Product Availability and Days Display */
-.available-day { padding: 0 10px; margin-top: 3px; align-items: left; }
-.available-days { font-size: 14px; font-weight: 500; color: #545454; }
-.p-days { font-size: 14px; color: #666; }
-.display-days { display: flex; gap: 15px; }
+.available-day {
+  padding: 0 10px;
+  margin-top: 3px;
+  align-items: left;
+}
+
+.available-days {
+  padding: 0 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #545454;
+}
+
+.p-days {
+  font-size: 14px;
+  color: #666;
+}
+.display-days {
+  display: flex;
+  gap: 15px;
+}
 
 /* Modal Controls and Text Styling */
 .modal-controls {
@@ -593,4 +640,364 @@ h3 {
   color: var(--text-black);
   margin: 10px 0 0 0;
   text-align: left;
+}
+
+/* ========================================
+   NEW FILTER SYSTEM STYLES
+   ======================================== */
+
+/* Main Filters Section */
+.main-filters-section {
+  margin-bottom: 25px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.main-filters-section h2 {
+  text-align: left;
+  font-size: 1.2em;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 15px;
+  letter-spacing: 0.5px;
+}
+
+/* Desktop Radio Buttons */
+.desktop-filters {
+  display: block;
+}
+
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: background-color 0.3s ease;
+}
+
+.radio-option:hover {
+  background-color: #f8f9fa;
+}
+
+.radio-option input[type="radio"] {
+  margin-right: 10px;
+  width: 16px;
+  height: 16px;
+  accent-color: #1a4a28;
+}
+
+.radio-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+/* Mobile Dropdown */
+.mobile-filters {
+  display: none;
+}
+
+.mobile-filters select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #f8f9fa;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.mobile-filters select:focus {
+  outline: none;
+  border-color: #1a4a28;
+  box-shadow: 0 0 0 3px rgba(26, 74, 40, 0.1);
+}
+
+/* Day Filters Section */
+.day-filters-section {
+  display: block;
+}
+
+.day-filters-section h4 {
+  font-size: 1em;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+}
+
+.checkbox-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+}
+
+.checkbox-option {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: background-color 0.3s ease;
+}
+
+.checkbox-option:hover {
+  background-color: #f8f9fa;
+}
+
+.checkbox-option input[type="checkbox"] {
+  margin-right: 10px;
+  width: 16px;
+  height: 16px;
+  accent-color: #1a4a28;
+}
+
+.checkbox-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+/* Desktop Day Filters (Checkboxes) */
+.desktop-day-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+/* Mobile Day Filters (Buttons) */
+.mobile-day-filters {
+  display: none;
+}
+
+.day-button-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.day-filter-btn {
+  padding: 8px 12px;
+  border: 2px solid #e5e7eb;
+  background: #f8f9fa;
+  color: #333;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 40px;
+}
+
+.day-filter-btn:hover {
+  border-color: #1a4a28;
+  background: #f0f8f0;
+}
+
+.day-filter-btn.active {
+  background: #1a4a28;
+  color: white;
+  border-color: #1a4a28;
+}
+
+/* Mobile Filter Responsive Styles */
+@media (max-width: 1024px) {
+  .wrapper {
+    flex-direction: column;
+    padding: 10px;
+    gap: 15px;
+  }
+
+  .filters {
+    width: 100%;
+    padding: 15px;
+    order: -1;
+    margin-bottom: 0;
+  }
+
+  .main-container {
+    order: 1;
+  }
+
+  .desktop-filters {
+    display: none;
+  }
+
+  .mobile-filters {
+    display: block;
+  }
+
+  .mobile-filters label {
+    display: none;
+  }
+
+  .desktop-day-filters {
+    display: none;
+  }
+
+  .mobile-day-filters {
+    display: block;
+  }
+
+  .main-filters-section {
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+  }
+
+  .day-filters-section h4 {
+    text-align: center;
+    margin-bottom: 10px;
+  }
+
+  .prdct-title {
+    text-align: center;
+  }
+
+  .products-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .day-button-group {
+    gap: 6px;
+  }
+
+  .day-filter-btn {
+    font-size: 12px;
+    padding: 7px 11px;
+    min-width: 38px;
+  }
+}
+
+@media (max-width: 480px) {
+  .wrapper {
+    padding: 8px;
+  }
+
+  .filters {
+    padding: 12px;
+  }
+
+  .products-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+  }
+
+  .day-button-group {
+    gap: 4px;
+  }
+
+  .day-filter-btn {
+    font-size: 11px;
+    padding: 6px 10px;
+    min-width: 35px;
+  }
+}
+
+@media (max-width: 1440px) {
+  .wrapper {
+    padding: 0 1.5rem !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .product-card[data-status="Delivery"] {
+    grid-column: span 1;
+    grid-row: span 1;
+  }
+
+  .product-card[data-status="Delivery"] .product-image {
+    height: 200px;
+  }
+
+  .product-card[data-status="Delivery"] .product-info h3 {
+    font-size: 1.2em;
+  }
+
+  .product-card[data-status="Delivery"] .price {
+    font-size: 1.3em;
+  }
+
+  .product-card[data-status="Delivery"] .status-badge {
+    font-size: 0.8em;
+  }
+
+  .product-card[data-status="Delivery"] .add-to-cart {
+    font-size: 1em;
+  }
+
+  .modal {
+    padding: 0 20px;
+  }
+
+  .modal-body {
+    flex-direction: column;
+  }
+
+  .main-image {
+    height: 300px;
+  }
+
+  .thumbnail-container {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) and (min-width: 320px) {
+  .products-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .title {
+    font-size: var(--h2-font-size);
+    text-align: left;
+  }
+
+  .filter-container {
+    margin-bottom: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+  }
+
+  .sort-container {
+    display: flex;
+    gap: 3px;
+  }
+
+  .filter-button {
+    width: auto;
+    font-size: var(--font-size3);
+    padding: 3px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  .filter-button:hover {
+    background-color: var(--text-green);
+    color: var(--text-white);
+    transform: translateY(-1px);
+  }
 }

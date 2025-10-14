@@ -281,6 +281,11 @@ if ($conn->connect_error) {
     </div>
 </div>
 
+<div id="footer-container">
+    <?php require_once "../../user-includes/user-footer.php"; ?>
+</div>
+
+
 <!-- Product Modal -->
 <div id="productModal" class="modal" style="display: none;">
     <div class="modal-content fade-in-pop">
@@ -1090,7 +1095,10 @@ if ($conn->connect_error) {
         }
     }
 
-    @media (max-width: 768px) {
+    @media (max-width: 1024px) {
+
+
+
         .wrapper {
             flex-direction: column;
             padding: 10px;
@@ -1099,7 +1107,7 @@ if ($conn->connect_error) {
         
         .filters {
             width: 100%;
-            padding: 15px;
+            padding: 0px;
             order: -1;
             margin-bottom: 0;
         }
@@ -1133,9 +1141,19 @@ if ($conn->connect_error) {
             text-align: center;
             margin-bottom: 10px;
         }
-        
+
+        .prdct-title {
+            text-align: center;
+        }
+
         .products-grid {
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(3, 1fr) ;
+        } 
+    }
+
+    @media (max-width: 768px) {
+        .products-grid {
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
         }
     }
 
@@ -1149,7 +1167,7 @@ if ($conn->connect_error) {
         }
         
         .products-grid {
-            grid-template-columns: 1fr;
+            grid-template-columns: 1fr !important;
             gap: 12px;
         }
         
