@@ -282,24 +282,6 @@ function getDayAbbreviations($availableDays) {
             Orders must be placed at least 24 hours in advance.
         </p>
 
-        <button class="cta" onclick="window.location.href='/frontend/pages/home/user-dashboard.php'">
-            <svg
-                id="arrow-horizontal"
-                xmlns="http://www.w3.org/2000/svg"
-                width="30"
-                height="10"
-                viewBox="0 0 46 16"
-            >
-                <path
-                id="Path_10"
-                data-name="Path 10"
-                d="M38,0,39.455,1.455,33.949,6.961H76V9.039H33.949l5.506,5.506L38,16l-8-8Z"
-                transform="translate(-25)"
-                ></path>
-            </svg>
-            <span class="hover-underline-animation"> Go Back </span>
-        </button>
-
         <div id="mixedSelectionWarning" class="mixed-selection-warning">
             <strong>⚠️ Mixed Selection Warning:</strong> You cannot mix Pickup and Delivery products in the same order. Please select items from only one category.
         </div>
