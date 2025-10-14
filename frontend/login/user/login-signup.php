@@ -631,105 +631,32 @@ if (isset($_POST["signin-submit"])) {
             }
         };
     
-        // Enable page-level scrolling only when zoomed in AND content actually overflows.
-        // Keeps default view static (no scroll) but allows scrolling when user zooms or
-        // the viewport becomes smaller than content (accessibility / pinch-zoom scenarios).
+        // Enable page-level scrolling only when content overflows the viewport
         (function() {
-            // store baseline viewport size and devicePixelRatio (used to detect zoom changes)
-            let baseInnerWidth = window.innerWidth;
-            let baseInnerHeight = window.innerHeight;
-            let baseDevicePixelRatio = window.devicePixelRatio || 1;
-
-            function isZoomed() {
-                try {
-                    // visualViewport gives a scale factor in many modern browsers
-                    if (window.visualViewport && typeof window.visualViewport.scale === 'number') {
-                        if (window.visualViewport.scale && window.visualViewport.scale !== 1) return window.visualViewport.scale > 1;
-                    }
-
-                    // if devicePixelRatio increased compared to baseline, likely a zoom-in (helpful in some browsers)
-                    if ((window.devicePixelRatio || 1) > baseDevicePixelRatio + 0.01) return true;
-
-                    // fallback: compare innerWidth/innerHeight to baseline
-                    return window.innerWidth < baseInnerWidth || window.innerHeight < baseInnerHeight;
-                } catch (e) {
-                    return false;
-                }
-            }
-
-            function contentOverflows() {
-                try {
-                    const docHeight = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
-                    const winHeight = window.innerHeight || document.documentElement.clientHeight;
-                    const docWidth = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
-                    const winWidth = window.innerWidth || document.documentElement.clientWidth;
-                    return docHeight > winHeight || docWidth > winWidth;
-                } catch (e) {
-                    return false;
-                }
-            }
-
             function updateBodyScroll() {
                 try {
-                    const shouldAllowScroll = isZoomed() && contentOverflows();
-
-                    if (shouldAllowScroll) {
-                        document.documentElement.style.overflow = 'auto';
-                        document.body.style.overflow = 'auto';
-                        // remove any fixed positioning so scrolling works naturally
-                        document.body.style.position = '';
+                    var docHeight = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
+                    var winHeight = window.innerHeight || document.documentElement.clientHeight;
+                    if (docHeight > winHeight) {
+                        document.documentElement.style.overflowY = 'auto';
+                        document.body.style.overflowY = 'auto';
                     } else {
-                        // keep page static at default size
-                        document.documentElement.style.overflow = 'hidden';
-                        document.body.style.overflow = 'hidden';
-                        // ensure body doesn't become taller than viewport due to margin collapse etc.
-                        document.body.style.position = 'relative';
+                        document.documentElement.style.overflowY = 'hidden';
+                        document.body.style.overflowY = 'hidden';
                     }
                 } catch (e) {
+                    // Fail silently
                     console.error('updateBodyScroll error', e);
                 }
             }
 
-            // Refresh baseline on load (accurate baseline after fonts/images render)
-            window.addEventListener('load', function() {
-                baseInnerWidth = window.innerWidth;
-                baseInnerHeight = window.innerHeight;
-                baseDevicePixelRatio = window.devicePixelRatio || 1;
-                updateBodyScroll();
-                // run again shortly after to catch late content
-                setTimeout(updateBodyScroll, 300);
-            });
-
-            // Update on viewport changes
+            window.addEventListener('load', updateBodyScroll);
             window.addEventListener('resize', updateBodyScroll);
-            window.addEventListener('orientationchange', function() {
-                // reset baseline for orientation change (user rotated device)
-                baseInnerWidth = window.innerWidth;
-                baseInnerHeight = window.innerHeight;
-                setTimeout(updateBodyScroll, 120);
-            });
+            window.addEventListener('orientationchange', updateBodyScroll);
 
-            // visualViewport provides better zoom detection and fires resize events when pinch-zooming
-            if (window.visualViewport) {
-                window.visualViewport.addEventListener('resize', updateBodyScroll);
-                window.visualViewport.addEventListener('scroll', updateBodyScroll);
-            }
-
-            // also observe DOM changes (forms toggling) that could change height
-            try {
-                const ro = new MutationObserver(function() {
-                    updateBodyScroll();
-                });
-                ro.observe(document.body, { childList: true, subtree: true, attributes: true });
-            } catch (e) {
-                // MutationObserver not available or blocked - ignore
-            }
-
-            // initial run
-            updateBodyScroll();
-            // safety runs for dynamic content
-            setTimeout(updateBodyScroll, 500);
-            setTimeout(updateBodyScroll, 1500);
+            // Also run after a small delay to catch dynamic content changes
+            setTimeout(updateBodyScroll, 250);
+            setTimeout(updateBodyScroll, 1000);
         })();
     </script>
 </body>
