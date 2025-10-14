@@ -483,6 +483,11 @@ body {
     overflow: hidden;
 }
 
+/* Align with product modal overlay behavior */
+.modal-backdrop.show { opacity: 0.5; }
+.modal { z-index: 1050; }
+.modal-backdrop { z-index: 1040; }
+
 .modal-header {
     background: linear-gradient(135deg, #5c8d76, #4a7c6a);
     color: white;

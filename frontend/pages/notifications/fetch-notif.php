@@ -69,8 +69,29 @@ try {
         }
         $stmt->close();
     } else {
-        // Fetch all notifications for the notifications page
-        $notifications = $notification->getAllNotifications($userId);
+        // Pagination for notifications page
+        $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+        $perPage = isset($_GET['per_page']) ? max(1, min(50, (int)$_GET['per_page'])) : 10;
+        $offset = ($page - 1) * $perPage;
+
+        $stmt = $conn->prepare("
+            SELECT id, user_id, type, title, message, image_url, is_read, created_at, order_id
+            FROM notifications
+            WHERE user_id = ?
+            ORDER BY created_at DESC
+            LIMIT ? OFFSET ?
+        ");
+        $stmt->bind_param("iii", $userId, $perPage, $offset);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $notifications = [];
+        while ($row = $result->fetch_assoc()) {
+            $notifications[] = $row;
+        }
+        $stmt->close();
+
+        // Determine if there are more rows for next page (cheap check)
+        $hasMore = count($notifications) === $perPage;
     }
 
     $response = [];
@@ -91,7 +112,17 @@ try {
         ];
     }
 
-    echo json_encode(["status" => "success", "count" => count($response), "notifications" => $response]);
+    $payload = [
+        "status" => "success",
+        "count" => count($response),
+        "notifications" => $response
+    ];
+    if (!$isDropdown && !isset($_GET['id'])) {
+        $payload['page'] = $page;
+        $payload['per_page'] = $perPage;
+        $payload['has_more'] = isset($hasMore) ? $hasMore : false;
+    }
+    echo json_encode($payload);
 } catch (Exception $e) {
     http_response_code(500); // Internal Server Error
     echo json_encode(["status" => "error", "message" => "Failed to fetch notifications"]);

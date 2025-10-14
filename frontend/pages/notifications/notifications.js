@@ -203,16 +203,24 @@ document.addEventListener("DOMContentLoaded", function() {
         const modalElement = document.getElementById('notificationModal');
         if (modalElement) {
             try {
-                const modal = new bootstrap.Modal(modalElement, {
-                    backdrop: 'static',
-                    keyboard: true
-                });
-                modal.show();
+                if (!window.__notificationModalInstance) {
+                    window.__notificationModalInstance = new bootstrap.Modal(modalElement, {
+                        backdrop: true,
+                        keyboard: true
+                    });
+                    // Ensure cleanup so navbar remains clickable
+                    modalElement.addEventListener('hidden.bs.modal', () => {
+                        document.body.classList.remove('modal-open');
+                        const backdrops = document.querySelectorAll('.modal-backdrop');
+                        backdrops.forEach(b => b.parentNode && b.parentNode.removeChild(b));
+                    });
+                }
+                window.__notificationModalInstance.show();
             } catch (error) {
                 console.error('Error showing modal:', error);
                 // Fallback: try to show modal without options
-                const modal = new bootstrap.Modal(modalElement);
-                modal.show();
+                const fallback = new bootstrap.Modal(modalElement);
+                fallback.show();
             }
         } else {
             console.error('Notification modal not found on this page');
@@ -288,8 +296,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
     if (notificationList) {
         // Fetch all notifications for the notifications page
-        function fetchAllNotifications() {
-            fetch('/frontend/pages/notifications/fetch-notif.php')
+        function fetchAllNotifications(page = 1) {
+            fetch(`/frontend/pages/notifications/fetch-notif.php?page=${page}&per_page=10`)
             .then(response => response.json())
             .then(data => {
                 if (data.status === "success") {
@@ -309,10 +317,6 @@ document.addEventListener("DOMContentLoaded", function() {
                             title.className = "notification-title";
                             title.textContent = notif.title || notif.message;
 
-                            const message = document.createElement("div");
-                            message.className = "notification-message";
-                            message.textContent = notif.message.substring(0, 50) + (notif.message.length > 50 ? '...' : '');
-
                             const time = document.createElement("div");
                             time.className = "notification-time";
                             time.textContent = new Date(notif.created_at).toLocaleString([], {
@@ -322,7 +326,6 @@ document.addEventListener("DOMContentLoaded", function() {
                             const contentDiv = document.createElement('div');
                             contentDiv.className = 'notification-content';
                             contentDiv.appendChild(title);
-                            contentDiv.appendChild(message);
                             contentDiv.appendChild(time);
 
                         li.appendChild(contentDiv);
@@ -340,6 +343,25 @@ document.addEventListener("DOMContentLoaded", function() {
                             notificationCountElem.textContent = "";
                             notificationCountElem.style.display = "none";
                         }
+                    }
+                    // Simple pagination controls
+                    const pagination = document.getElementById('notificationPagination');
+                    if (pagination) {
+                        pagination.innerHTML = '';
+                        const prev = document.createElement('button');
+                        prev.textContent = 'Prev';
+                        prev.disabled = (data.page || 1) <= 1;
+                        prev.addEventListener('click', () => fetchAllNotifications((data.page || 1) - 1));
+                        const next = document.createElement('button');
+                        next.textContent = 'Next';
+                        next.disabled = !data.has_more;
+                        next.addEventListener('click', () => fetchAllNotifications((data.page || 1) + 1));
+                        pagination.appendChild(prev);
+                        const info = document.createElement('span');
+                        info.style.margin = '0 8px';
+                        info.textContent = `Page ${data.page || 1}`;
+                        pagination.appendChild(info);
+                        pagination.appendChild(next);
                     }
                 } else {
                     console.error("Failed to fetch notifications:", data.message);

@@ -172,7 +172,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                             <p>No new notifications.</p>
                         </div>
                         <div class="dropdown-footer">
-                            <a href="../../../frontend/pages/notifications/notifications.php" class="view-all-link">View All Notifications</a>
+                            <a href="/frontend/pages/notifications/notifications.php" class="view-all-link">View All</a>
                         </div>
                     </div>
                     <?php else: ?>
@@ -493,7 +493,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         .then(notifications => {
                             const notificationList = document.getElementById("notificationList");
                             notificationList.innerHTML = '';
-
+                            
                             if (notifications && notifications.length > 0) {
                                 document.getElementById("noNotifications").style.display = "none";
                                 
