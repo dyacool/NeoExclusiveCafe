@@ -139,7 +139,7 @@ function clearAvailableTodayCart() {
     updateAvailableTodayCartDisplay();
     
     // Clear server cart
-    fetch('../../../backend/pages/cart/availtoday-cart-api.php', {
+    fetch('availtoday-cart-api.php', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -196,14 +196,15 @@ function addToAvailableTodayCart(productId, quantity, button) {
         return;
     }
     
-    // Verify this is an Available Today product
-    const statusAttribute = productCard.getAttribute('data-status');
-    const statusElement = productCard.querySelector('.status-badge');
-    const isAvailableToday = (statusAttribute === 'Available Today') || 
-                             (statusElement && statusElement.classList.contains('status-available-today'));
+    // Verify this is an Available Today product (from product-dashboard.php)
+    // Products on the Available Today page have availtoday-badge, not a specific status
+    const hasAvailTodayBadge = productCard.querySelector('.availtoday-badge');
+    const isOnAvailTodayPage = window.location.pathname.includes('product-dashboard');
     
-    if (!isAvailableToday) {
+    // Only allow adding to cart if on the Available Today page OR product has availtoday badge
+    if (!isOnAvailTodayPage && !hasAvailTodayBadge) {
         console.log('Product is not Available Today, skipping cart addition');
+        showNotification('Only Available Today products can be added to this cart', 'error');
         return;
     }
     
@@ -213,7 +214,7 @@ function addToAvailableTodayCart(productId, quantity, button) {
     formData.append('product_id', productId);
     formData.append('quantity', quantity);
     
-    fetch('../../../backend/pages/cart/availtoday-cart-api.php', {
+    fetch('availtoday-cart-api.php', {
         method: 'POST',
         body: formData
     })
@@ -338,7 +339,7 @@ function updateAvailableTodayCartQuantity(productId, change) {
         formData.append('product_id', productId);
         formData.append('quantity', newQuantity);
         
-        fetch('../../../backend/pages/cart/availtoday-cart-api.php', {
+        fetch('availtoday-cart-api.php', {
             method: 'POST',
             body: formData
         })
@@ -458,19 +459,23 @@ function loadAvailableTodayCartFromStorage() {
  * Sync cart with server data
  */
 window.syncWithServer = function() {
-    fetch('../../../backend/pages/cart/availtoday-cart-api.php?action=get')
+    fetch('availtoday-cart-api.php?action=get')
         .then(response => response.json())
         .then(data => {
             if (data.success) {
                 // Update local cart with server data
                 availableTodayCart = data.cart_items.map(item => ({
                     id: item.product_id,
-                    name: item.product_name,
-                    price: item.price,
-                    quantity: item.quantity
+                    name: item.name || '',
+                    price: parseFloat(item.price) || 0,
+                    quantity: parseInt(item.quantity) || 0,
+                    image_url: item.image_url || ''
                 }));
                 
-                availableTodayCartTotal = data.total;
+                // Calculate total
+                availableTodayCartTotal = availableTodayCart.reduce((sum, item) => {
+                    return sum + (item.price * item.quantity);
+                }, 0);
                 
                 console.log('Synced with server cart:', availableTodayCart);
                 updateAvailableTodayCartDisplay();
@@ -502,6 +507,7 @@ function getAvailableTodayCartSummary() {
  * @returns {string} Escaped text
  */
 function escapeHtml(text) {
+    if (!text) return '';
     const map = {
         '&': '&amp;',
         '<': '&lt;',
@@ -509,7 +515,7 @@ function escapeHtml(text) {
         '"': '&quot;',
         "'": '&#039;'
     };
-    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+    return String(text).replace(/[&<>"']/g, function(m) { return map[m]; });
 }
 
 /**

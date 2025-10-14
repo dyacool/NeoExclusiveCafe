@@ -77644,3 +77644,447 @@ Stack trace:
 [12-Oct-2025 12:58:40 Europe/Berlin] Time analysis: current=12:58:40 (778 min), opening=09:00:00 (540 min), closing=20:50:00 (1250 min), is_closed=No
 [12-Oct-2025 12:58:40 Europe/Berlin] Cart truncation result: No action needed
 [12-Oct-2025 12:58:41 Europe/Berlin] PHP Warning:  Undefined variable $today in C:\xampp\htdocs\NeoCafe\frontend\pages\products\product-dashboard.php on line 342
+[12-Oct-2025 13:04:14 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[12-Oct-2025 13:04:14 Europe/Berlin] Total featured products found: 8
+[12-Oct-2025 13:04:18 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[12-Oct-2025 13:41:07 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[12-Oct-2025 13:41:07 Europe/Berlin] Total featured products found: 8
+[12-Oct-2025 13:41:10 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[12-Oct-2025 13:41:24 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[12-Oct-2025 13:41:24 Europe/Berlin] Total featured products found: 8
+[12-Oct-2025 13:41:28 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[12-Oct-2025 13:41:42 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[12-Oct-2025 13:41:42 Europe/Berlin] Total featured products found: 8
+[12-Oct-2025 13:41:46 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[2025-10-12 15:58:18] Availtoday Status ID received: 2
+[2025-10-12 15:58:18] Availtoday Status ID after filter: 2
+[2025-10-12 16:07:06] Availtoday Status ID received: 2
+[2025-10-12 16:07:06] Availtoday Status ID after filter: 2
+[2025-10-12 17:01:34] Availtoday Status ID received: 1
+[2025-10-12 17:01:34] Availtoday Status ID after filter: 1
+[2025-10-12 17:04:37] Availtoday Status ID received: 2
+[2025-10-12 17:04:37] Availtoday Status ID after filter: 2
+[2025-10-12 17:04:59] Availtoday Status ID received: NOT SET
+[2025-10-12 17:04:59] Availtoday Status ID after filter: NULL
+[2025-10-12 17:06:52] Availtoday Status ID received: NOT SET
+[2025-10-12 17:06:52] Availtoday Status ID after filter: NULL
+[2025-10-12 17:07:14] Availtoday Status ID received: 1
+[2025-10-12 17:07:14] Availtoday Status ID after filter: 1
+[2025-10-12 17:08:44] Availtoday Status ID received: 3
+[2025-10-12 17:08:44] Availtoday Status ID after filter: 3
+[2025-10-13 01:36:00] Availtoday Status ID received: 1
+[2025-10-13 01:36:00] Availtoday Status ID after filter: 1
+[2025-10-13 01:36:23] Availtoday Status ID received: NOT SET
+[2025-10-13 01:36:23] Availtoday Status ID after filter: NULL
+[2025-10-13 01:37:17] Availtoday Status ID received: NOT SET
+[2025-10-13 01:37:17] Availtoday Status ID after filter: NULL
+[2025-10-13 01:44:45] Availtoday Status ID received: 2
+[2025-10-13 01:44:45] Availtoday Status ID after filter: 2
+[2025-10-13 01:49:10] Availtoday Status ID received: 3
+[2025-10-13 01:49:10] Availtoday Status ID after filter: 3
+[2025-10-13 01:56:48] Availtoday Status ID received: NOT SET
+[2025-10-13 01:56:48] Availtoday Status ID after filter: NULL
+Product ID: 14 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery and Pick UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 2 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-13 02:00:46] Availtoday Status ID received: 2
+[2025-10-13 02:00:46] Availtoday Status ID after filter: 2
+[2025-10-13 02:00:46] Status ID: 2
+[2025-10-13 02:00:46] Is Available Today: 1
+[2025-10-13 02:00:46] Todays Product Dates: []
+[2025-10-13 02:00:46] Available Today Dates: ["2025-10-13","2025-10-14"]
+Product ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery and Pick UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 2 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery and Pick UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 2 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery and Pick UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 2 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery and Pick UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 2 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-13 02:04:37] Availtoday Status ID received: 2
+[2025-10-13 02:04:37] Availtoday Status ID after filter: 2
+[2025-10-13 02:04:37] Status ID: 2
+[2025-10-13 02:04:37] Is Available Today: 1
+[2025-10-13 02:04:37] Todays Product Dates: []
+[2025-10-13 02:04:37] Available Today Dates: []
+Product ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery and Pick UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 2 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-13 02:04:55] Availtoday Status ID received: 2
+[2025-10-13 02:04:55] Availtoday Status ID after filter: 2
+[2025-10-13 02:04:55] Status ID: 2
+[2025-10-13 02:04:55] Is Available Today: 1
+[2025-10-13 02:04:55] Todays Product Dates: []
+[2025-10-13 02:04:55] Available Today Dates: ["2025-10-13","2025-10-14"]
+Product ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery and Pick UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 2 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery and Pick UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 2 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-13 02:07:28] Availtoday Status ID received: 1
+[2025-10-13 02:07:28] Availtoday Status ID after filter: 1
+[2025-10-13 02:07:28] Status ID: 1
+[2025-10-13 02:07:28] Is Available Today: 1
+[2025-10-13 02:07:28] Todays Product Dates: []
+[2025-10-13 02:07:28] Available Today Dates: ["2025-10-14","2025-10-15"]
+Product ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery and Pick UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 2 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery and Pick UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 2 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery and Pick UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 2 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery and Pick UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 2 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery and Pick UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 2 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery and Pick UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 2 | availtoday_status_id: 2 | availtoday_status_name: Delivery[13-Oct-2025 02:12:43 Europe/Berlin] Business hours: 09:00:00 - 20:50:00
+[13-Oct-2025 02:12:43 Europe/Berlin] Business closed - past midnight (current: 132, closing: 1250)
+[13-Oct-2025 02:12:43 Europe/Berlin] Time analysis: current=02:12:43 (132 min), opening=09:00:00 (540 min), closing=20:50:00 (1250 min), is_closed=Yes
+[13-Oct-2025 02:12:43 Europe/Berlin] Cart currently has 0 items
+[13-Oct-2025 02:12:43 Europe/Berlin] Cart is already empty - no action needed
+[13-Oct-2025 02:12:43 Europe/Berlin] Cart truncation result: No action needed
+[13-Oct-2025 02:13:39 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[13-Oct-2025 02:13:39 Europe/Berlin] Business closed - past midnight (current: 133, closing: 1250)
+[13-Oct-2025 02:13:39 Europe/Berlin] Time analysis: current=02:13:39 (133 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=Yes
+[13-Oct-2025 02:13:39 Europe/Berlin] Cart currently has 0 items
+[13-Oct-2025 02:13:39 Europe/Berlin] Cart is already empty - no action needed
+[13-Oct-2025 02:13:39 Europe/Berlin] Cart truncation result: No action needed
+[13-Oct-2025 04:37:41 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[13-Oct-2025 04:37:41 Europe/Berlin] Business closed - past midnight (current: 277, closing: 1250)
+[13-Oct-2025 04:37:41 Europe/Berlin] Time analysis: current=04:37:41 (277 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=Yes
+[13-Oct-2025 04:37:41 Europe/Berlin] Cart currently has 0 items
+[13-Oct-2025 04:37:41 Europe/Berlin] Cart is already empty - no action needed
+[13-Oct-2025 04:37:41 Europe/Berlin] Cart truncation result: No action needed
+[13-Oct-2025 05:43:37 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[13-Oct-2025 05:43:37 Europe/Berlin] Business closed - past midnight (current: 343, closing: 1250)
+[13-Oct-2025 05:43:37 Europe/Berlin] Time analysis: current=05:43:37 (343 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=Yes
+[13-Oct-2025 05:43:37 Europe/Berlin] Cart currently has 0 items
+[13-Oct-2025 05:43:37 Europe/Berlin] Cart is already empty - no action needed
+[13-Oct-2025 05:43:37 Europe/Berlin] Cart truncation result: No action needed
+[13-Oct-2025 05:44:01 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[13-Oct-2025 05:44:01 Europe/Berlin] Total featured products found: 8
+[13-Oct-2025 05:44:04 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[13-Oct-2025 05:44:17 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[13-Oct-2025 05:44:17 Europe/Berlin] Business closed - past midnight (current: 344, closing: 1250)
+[13-Oct-2025 05:44:17 Europe/Berlin] Time analysis: current=05:44:17 (344 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=Yes
+[13-Oct-2025 05:44:17 Europe/Berlin] Cart currently has 0 items
+[13-Oct-2025 05:44:17 Europe/Berlin] Cart is already empty - no action needed
+[13-Oct-2025 05:44:17 Europe/Berlin] Cart truncation result: No action needed
+[13-Oct-2025 07:15:48 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[13-Oct-2025 07:15:48 Europe/Berlin] Business closed - past midnight (current: 435, closing: 1250)
+[13-Oct-2025 07:15:48 Europe/Berlin] Time analysis: current=07:15:47 (435 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=Yes
+[13-Oct-2025 07:15:48 Europe/Berlin] Cart currently has 0 items
+[13-Oct-2025 07:15:48 Europe/Berlin] Cart is already empty - no action needed
+[13-Oct-2025 07:15:48 Europe/Berlin] Cart truncation result: No action needed
+Product ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery and Pick UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 2 | availtoday_status_id: 2 | availtoday_status_name: Delivery[13-Oct-2025 11:52:22 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[13-Oct-2025 11:52:22 Europe/Berlin] Total featured products found: 8
+[13-Oct-2025 11:52:26 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[13-Oct-2025 12:08:14 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[13-Oct-2025 12:08:14 Europe/Berlin] Time analysis: current=12:08:14 (728 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=No
+[13-Oct-2025 12:08:14 Europe/Berlin] Cart truncation result: No action needed
+[13-Oct-2025 12:11:52 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[13-Oct-2025 12:11:52 Europe/Berlin] Time analysis: current=12:11:52 (731 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=No
+[13-Oct-2025 12:11:52 Europe/Berlin] Cart truncation result: No action needed
+[13-Oct-2025 12:46:53 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[13-Oct-2025 12:46:53 Europe/Berlin] Time analysis: current=12:46:53 (766 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=No
+[13-Oct-2025 12:46:53 Europe/Berlin] Cart truncation result: No action needed
+[13-Oct-2025 12:53:21 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[13-Oct-2025 12:53:21 Europe/Berlin] Time analysis: current=12:53:21 (773 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=No
+[13-Oct-2025 12:53:21 Europe/Berlin] Cart truncation result: No action needed
+[13-Oct-2025 12:57:41 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[13-Oct-2025 12:57:41 Europe/Berlin] Time analysis: current=12:57:41 (777 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=No
+[13-Oct-2025 12:57:41 Europe/Berlin] Cart truncation result: No action needed
+[13-Oct-2025 13:00:39 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[13-Oct-2025 13:00:39 Europe/Berlin] Time analysis: current=13:00:39 (780 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=No
+[13-Oct-2025 13:00:39 Europe/Berlin] Cart truncation result: No action needed
+[13-Oct-2025 13:02:54 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[13-Oct-2025 13:02:54 Europe/Berlin] Time analysis: current=13:02:54 (782 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=No
+[13-Oct-2025 13:02:54 Europe/Berlin] Cart truncation result: No action needed
+[13-Oct-2025 13:07:01 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[13-Oct-2025 13:07:01 Europe/Berlin] Time analysis: current=13:07:01 (787 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=No
+[13-Oct-2025 13:07:01 Europe/Berlin] Cart truncation result: No action needed
+[13-Oct-2025 13:08:31 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[13-Oct-2025 13:08:31 Europe/Berlin] Time analysis: current=13:08:31 (788 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=No
+[13-Oct-2025 13:08:31 Europe/Berlin] Cart truncation result: No action needed
+[13-Oct-2025 13:08:33 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[13-Oct-2025 13:08:33 Europe/Berlin] Time analysis: current=13:08:33 (788 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=No
+[13-Oct-2025 13:08:33 Europe/Berlin] Cart truncation result: No action needed
+[13-Oct-2025 14:00:45 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[13-Oct-2025 14:00:45 Europe/Berlin] Time analysis: current=14:00:45 (840 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=No
+[13-Oct-2025 14:00:45 Europe/Berlin] Cart truncation result: No action needed
+[13-Oct-2025 14:01:30 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[13-Oct-2025 14:01:30 Europe/Berlin] Time analysis: current=14:01:30 (841 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=No
+[13-Oct-2025 14:01:30 Europe/Berlin] Cart truncation result: No action needed
+[13-Oct-2025 14:04:48 Europe/Berlin] Database connection successful
+[13-Oct-2025 14:04:48 Europe/Berlin] User has 4 items in cart table
+[13-Oct-2025 14:04:48 Europe/Berlin] Cart table structure:
+[13-Oct-2025 14:04:48 Europe/Berlin]   id - int(11) - NO - PRI -  - auto_increment
+[13-Oct-2025 14:04:48 Europe/Berlin]   user_id - int(11) - NO -  -  - 
+[13-Oct-2025 14:04:48 Europe/Berlin]   product_id - int(11) - NO -  -  - 
+[13-Oct-2025 14:04:48 Europe/Berlin]   quantity - int(11) - NO -  - 1 - 
+[13-Oct-2025 14:04:48 Europe/Berlin]   price - decimal(10,2) - NO -  -  - 
+[13-Oct-2025 14:04:48 Europe/Berlin]   created_at - timestamp - NO -  - current_timestamp() - 
+[13-Oct-2025 14:04:48 Europe/Berlin]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[13-Oct-2025 14:04:49 Europe/Berlin] Cart item 108 does not exist in cart table
+[13-Oct-2025 14:04:49 Europe/Berlin] Final user data: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [email] => alrainepascua2@gmail.com
+)
+
+[13-Oct-2025 14:04:49 Europe/Berlin] REQUEST_METHOD: POST
+[13-Oct-2025 14:04:49 Europe/Berlin] POST data: Array
+(
+    [valid_cart_ids] => 14,17,12,13
+    [selected_cart_ids] => Array
+        (
+            [0] => 13
+        )
+
+    [checkout] => 
+    [subtotal] => 880
+    [cart_items] => 13
+)
+
+[13-Oct-2025 14:04:49 Europe/Berlin] SESSION data at cart items check: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [error_message] => No items found in your Available Today cart. Please add items and try again.
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+)
+
+[13-Oct-2025 14:04:49 Europe/Berlin] Got cart IDs from POST: 13
+[13-Oct-2025 14:04:49 Europe/Berlin] Validated cart IDs: 13
+[13-Oct-2025 14:04:49 Europe/Berlin] Final selected_cart_ids: Array
+(
+    [0] => 13
+)
+
+[13-Oct-2025 14:04:49 Europe/Berlin] Final subtotal: 880
+[13-Oct-2025 14:04:49 Europe/Berlin] Selected cart IDs: Array
+(
+    [0] => 13
+)
+
+[13-Oct-2025 14:04:49 Europe/Berlin] Subtotal: 880
+[13-Oct-2025 14:04:50 Europe/Berlin] Cart item 13 is valid for user 5
+[13-Oct-2025 14:04:50 Europe/Berlin] Validated cart IDs: 13
+[13-Oct-2025 14:04:50 Europe/Berlin] Cart contains only delivery items - setting shipping method to delivery
+[13-Oct-2025 14:04:50 Europe/Berlin] Cart analysis: 1 items, pickup: , delivery: 1, method: delivery
+[13-Oct-2025 14:04:50 Europe/Berlin] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Sesame Sourdough Batard
+            [price] => 220.00
+            [quantity] => 4
+            [cart_id] => 13
+            [product_id] => 6
+            [status_id] => 2
+            [available_days] => Monday,Thursday
+        )
+
+)
+
+[13-Oct-2025 14:04:50 Europe/Berlin] Cart total: 880
+[13-Oct-2025 14:04:50 Europe/Berlin] User data at display point: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [profile_image] => 
+)
+
+[13-Oct-2025 14:04:50 Europe/Berlin] Session data at display point: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [error_message] => No items found in your Available Today cart. Please add items and try again.
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 13
+        )
+
+    [subtotal] => 880
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 4
+                    [cart_id] => 13
+                    [product_id] => 6
+                    [status_id] => 2
+                    [available_days] => Monday,Thursday
+                )
+
+        )
+
+    [cart_total] => 880
+    [shipping_method] => delivery
+    [has_pickup_items] => 
+    [has_delivery_items] => 1
+)
+
+[13-Oct-2025 14:07:48 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[13-Oct-2025 14:07:48 Europe/Berlin] Time analysis: current=14:07:48 (847 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=No
+[13-Oct-2025 14:07:48 Europe/Berlin] Cart truncation result: No action needed
+[13-Oct-2025 14:08:22 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[13-Oct-2025 14:08:22 Europe/Berlin] Total featured products found: 8
+[13-Oct-2025 14:08:27 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[13-Oct-2025 15:48:58 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[13-Oct-2025 15:48:58 Europe/Berlin] Time analysis: current=15:48:58 (948 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=No
+[13-Oct-2025 15:48:58 Europe/Berlin] Cart truncation result: No action needed
+[13-Oct-2025 18:34:51 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[13-Oct-2025 18:34:51 Europe/Berlin] Time analysis: current=18:34:51 (1114 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=No
+[13-Oct-2025 18:34:51 Europe/Berlin] Cart truncation result: No action needed
+[13-Oct-2025 19:50:20 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[13-Oct-2025 19:50:20 Europe/Berlin] Time analysis: current=19:50:20 (1190 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=No
+[13-Oct-2025 19:50:20 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 03:28:17 Europe/Berlin] Business hours: 08:00:00 - 20:50:00
+[14-Oct-2025 03:28:17 Europe/Berlin] Business closed - past midnight (current: 208, closing: 1250)
+[14-Oct-2025 03:28:17 Europe/Berlin] Time analysis: current=03:28:17 (208 min), opening=08:00:00 (480 min), closing=20:50:00 (1250 min), is_closed=Yes
+[14-Oct-2025 03:28:17 Europe/Berlin] Cart currently has 0 items
+[14-Oct-2025 03:28:17 Europe/Berlin] Cart is already empty - no action needed
+[14-Oct-2025 03:28:17 Europe/Berlin] Cart truncation result: No action needed

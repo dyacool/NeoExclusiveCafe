@@ -440,22 +440,28 @@ function openEditModal(
   document.getElementById("editProductPrice").value = price;
   document.getElementById("editProductQuantity").value = quantity;
   document.getElementById("editProductStatus").value = status;
+  
+  // Update dynamic status name label
+  const dynamicStatusLabel = document.getElementById("dynamicStatusName");
+  if (dynamicStatusLabel) {
+    dynamicStatusLabel.textContent = statusName || "Product";
+  }
 
-  // Handle availtoday_status dropdown visibility and value
+  // Handle availtoday_status dropdown - set value first (always preserve it)
   const availtodayOptions = document.getElementById("editAvailtodayOptions");
   const availtodaySelect = document.getElementById("editAvailtodayStatus");
 
   if (availtodayOptions && availtodaySelect) {
+    // Always set the value (preserve it even when hidden)
+    availtodaySelect.value = (availtodayStatusId && availtodayStatusId !== "null") ? availtodayStatusId : "";
+    
+    // Show/hide dropdown based on status
     if (status == 3) {
-      // Available Today
+      // Same Day Order - always show dropdown
       availtodayOptions.style.display = "block";
-      availtodaySelect.value = availtodayStatusId || "";
-      if (availtodaySelect.value === "null") {
-        availtodaySelect.value = "";
-      }
     } else {
+      // Pick Up or Delivery - hide by default (will be shown if "Set to same day order too" is checked)
       availtodayOptions.style.display = "none";
-      availtodaySelect.value = "";
     }
   }
 
@@ -585,6 +591,11 @@ function openEditModal(
       ) {
         isAvailableTodayRadio.checked = true;
 
+        // Show the availtoday_status dropdown when radio is checked
+        if (availtodayOptions) {
+          availtodayOptions.style.display = "block";
+        }
+
         // Show the Available Today calendar container when radio is checked
         if (availableTodayCalendarContainer) {
           availableTodayCalendarContainer.style.display = "block";
@@ -671,6 +682,12 @@ function setupStatusChangeListener() {
     statusSelect.addEventListener("change", function () {
       const selectedStatus = this.options[this.selectedIndex].text;
       const selectedValue = this.value;
+      
+      // Update dynamic status name label
+      const dynamicStatusLabel = document.getElementById("dynamicStatusName");
+      if (dynamicStatusLabel) {
+        dynamicStatusLabel.textContent = selectedStatus || "Product";
+      }
 
       if (availableDaysContainer) {
         if (
@@ -832,12 +849,7 @@ function setupIsAvailableTodayListener() {
         // Hide the availtoday select dropdown
         if (availtodayOptions) {
           availtodayOptions.style.display = "none";
-          const availtodaySelect = document.getElementById(
-            "editAvailtodayStatus"
-          );
-          if (availtodaySelect) {
-            availtodaySelect.value = "";
-          }
+          // Don't clear the value - preserve it in case user switches back
         }
         // Hide the checkbox-group2 for Available Today days
         if (availableTodayDaysContainer) {
@@ -1398,8 +1410,28 @@ function handleFormSubmit(event) {
   const isAvailable = document.getElementById("editAvailable").checked;
   const unavailableTypeId =
     document.getElementById("editUnavailableType").value || null;
-  const availtodayStatusId =
-    document.getElementById("editAvailtodayStatus").value || null;
+  
+  // Get availtoday_status_id logic:
+  // - If status is "Same Day Order" (3), always use the dropdown value
+  // - If status is "Pick Up" (1) or "Delivery" (2) AND "Set to same day order too" is checked, use the dropdown value
+  // - Otherwise, set to null
+  const selectedStatusId = document.getElementById("editProductStatus").value;
+  // Reuse isAvailableTodayRadio from line 1385
+  const isSetToSameDayToo = isAvailableTodayRadio ? isAvailableTodayRadio.checked : false;
+  
+  let availtodayStatusId = null;
+  if (selectedStatusId == 3) {
+    // Same Day Order - always use dropdown value
+    availtodayStatusId = document.getElementById("editAvailtodayStatus").value || null;
+  } else if ((selectedStatusId == 1 || selectedStatusId == 2) && isSetToSameDayToo) {
+    // Pick Up or Delivery with "Set to same day order too" checked
+    availtodayStatusId = document.getElementById("editAvailtodayStatus").value || null;
+  }
+  
+  console.log("DEBUG: Selected status_id:", selectedStatusId);
+  console.log("DEBUG: Is set to same day too:", isSetToSameDayToo);
+  console.log("DEBUG: availtodayStatusId value:", availtodayStatusId);
+  console.log("DEBUG: editAvailtodayStatus dropdown value:", document.getElementById("editAvailtodayStatus")?.value);
 
   // Get calendar data
   const todaysProductDatesInput = document.getElementById("todaysProductDates");
@@ -1438,11 +1470,15 @@ function handleFormSubmit(event) {
     available_today_dates: JSON.stringify(availableTodayDates),
     pending_image_changes: pendingImageChanges,
   };
+  
+  console.log("DEBUG: Final formData being sent:", formData);
 
-  const submitBtn = event.target.querySelector('button[type="submit"]');
-  const originalText = submitBtn.textContent;
-  submitBtn.textContent = "Saving...";
-  submitBtn.disabled = true;
+  const submitBtn = document.querySelector('button[type="submit"][form="editProductForm"]');
+  const originalText = submitBtn ? submitBtn.textContent : null;
+  if (submitBtn) {
+    submitBtn.textContent = "Saving...";
+    submitBtn.disabled = true;
+  }
 
   const uploadPromises = [];
 
@@ -1541,8 +1577,10 @@ function handleFormSubmit(event) {
       );
     })
     .finally(() => {
-      submitBtn.textContent = originalText;
-      submitBtn.disabled = false;
+      if (submitBtn && originalText) {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+      }
     });
 }
 
