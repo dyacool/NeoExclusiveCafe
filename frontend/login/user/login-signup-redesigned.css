@@ -601,6 +601,22 @@ form a:hover {
   }
 }
 
+/* Fade-to-left animation for forms */
+.fade-in {
+  animation: fadeToLeft 0.5s ease-in-out;
+}
+
+@keyframes fadeToLeft {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 /* Apply animations */
 .form-wrapper {
   animation: fadeInRight 0.8s ease-out;
