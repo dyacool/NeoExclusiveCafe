@@ -411,10 +411,15 @@ function getDayAbbreviations($availableDays) {
 
         <?php
         // Fetch same-day cart items (Available Today products from availtoday_cart table)
+        // Business logic for same-day cart:
+        // 1. Products with status_id = 3 (Available Today)
+        // 2. Products with status_id IN (1, 2) AND availtoday_status_id IS NOT NULL (1, 2, or 3)
         $stmt = $conn->prepare("
             SELECT cat.id AS cart_id, cat.quantity, p.price,
                    p.id AS product_id, p.name AS product_name, p.quantity as product_stock,
-                   'Available Today' as status_name,
+                   ps.name as status_name,
+                   p.availtoday_status_id,
+                   ats.name as availtoday_status_name,
                    'Today' as available_days,
                    (
                       SELECT image_url FROM product_images pi2
@@ -423,7 +428,13 @@ function getDayAbbreviations($availableDays) {
                    ) AS image_url
             FROM availtoday_cart cat
             JOIN products p ON cat.product_id = p.id
-            WHERE cat.user_id = ? AND p.status_id = 3
+            LEFT JOIN product_statuses ps ON p.status_id = ps.id
+            LEFT JOIN availtoday_status ats ON p.availtoday_status_id = ats.id
+            WHERE cat.user_id = ? 
+            AND (
+                p.status_id = 3 
+                OR (p.status_id IN (1, 2) AND p.availtoday_status_id IS NOT NULL)
+            )
             ORDER BY p.name ASC
         ");
         $stmt->bind_param("i", $user_id);

@@ -78512,3 +78512,109 @@ Stack trace:
     [updated_at] => 2025-05-20 08:21:14
 )
 
+[16-Oct-2025 02:59:39 Europe/Berlin] Business hours: 06:00:00 - 21:59:00
+[16-Oct-2025 02:59:39 Europe/Berlin] Business closed - past midnight (current: 179, closing: 1319)
+[16-Oct-2025 02:59:39 Europe/Berlin] Time analysis: current=02:59:39 (179 min), opening=06:00:00 (360 min), closing=21:59:00 (1319 min), is_closed=Yes
+[16-Oct-2025 02:59:39 Europe/Berlin] Cart currently has 0 items
+[16-Oct-2025 02:59:39 Europe/Berlin] Cart is already empty - no action needed
+[16-Oct-2025 02:59:39 Europe/Berlin] Cart truncation result: No action needed
+[16-Oct-2025 02:59:39 Europe/Berlin] PHP Warning:  Undefined variable $today in C:\xampp\htdocs\NeoCafe\frontend\pages\products\product-dashboard.php on line 342
+[16-Oct-2025 03:03:50 Europe/Berlin] Shopping Cart Same Day - User ID: 5
+[16-Oct-2025 03:03:50 Europe/Berlin] Shopping Cart Same Day - Total items in availtoday_cart for user 5: 2
+[16-Oct-2025 03:03:50 Europe/Berlin] Shopping Cart Same Day - Cart item: Array
+(
+    [id] => 2
+    [user_id] => 5
+    [product_id] => 13
+    [quantity] => 2
+    [created_at] => 2025-10-14 04:06:17
+    [updated_at] => 2025-10-14 04:58:30
+)
+
+[16-Oct-2025 03:03:50 Europe/Berlin] Shopping Cart Same Day - Cart item: Array
+(
+    [id] => 3
+    [user_id] => 5
+    [product_id] => 14
+    [quantity] => 1
+    [created_at] => 2025-10-14 15:14:58
+    [updated_at] => 2025-10-14 15:14:58
+)
+
+[16-Oct-2025 03:03:50 Europe/Berlin] Shopping Cart Same Day - Products found: 2
+[16-Oct-2025 03:03:50 Europe/Berlin] Shopping Cart Same Day - Product: Array
+(
+    [id] => 13
+    [name] => Banana Cake
+    [status_id] => 1
+)
+
+[16-Oct-2025 03:03:50 Europe/Berlin] Shopping Cart Same Day - Product: Array
+(
+    [id] => 14
+    [name] => Cassava Cake
+    [status_id] => 2
+)
+
+[16-Oct-2025 03:03:51 Europe/Berlin] Shopping Cart Same Day - Final query returned: 0 rows
+[16-Oct-2025 03:06:08 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Table 'neoexclusivecafe_crud.status' doesn't exist in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\shopping-cart-sameday.php:416
+Stack trace:
+#0 C:\xampp\htdocs\NeoCafe\frontend\pages\cart\shopping-cart-sameday.php(416): mysqli->prepare('\r\n            S...')
+#1 {main}
+  thrown in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\shopping-cart-sameday.php on line 416
+[16-Oct-2025 03:08:36 Europe/Berlin] Shopping Cart Debug - Products with availtoday_status_id:
+[16-Oct-2025 03:08:36 Europe/Berlin] Product 13 (Banana Cake): status_id=1, availtoday_status_id=1
+[16-Oct-2025 03:08:36 Europe/Berlin] Product 14 (Cassava Cake): status_id=2, availtoday_status_id=2
+[16-Oct-2025 03:08:36 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Table 'neoexclusivecafe_crud.status' doesn't exist in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\shopping-cart-sameday.php:432
+Stack trace:
+#0 C:\xampp\htdocs\NeoCafe\frontend\pages\cart\shopping-cart-sameday.php(432): mysqli->prepare('\r\n            S...')
+#1 {main}
+  thrown in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\shopping-cart-sameday.php on line 432
+[16-Oct-2025 09:04:44 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[16-Oct-2025 09:04:44 Europe/Berlin] Total featured products found: 8
+[16-Oct-2025 09:04:48 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[16-Oct-2025 09:04:49 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[16-Oct-2025 09:04:49 Europe/Berlin] Total featured products found: 8
+[16-Oct-2025 09:04:53 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+

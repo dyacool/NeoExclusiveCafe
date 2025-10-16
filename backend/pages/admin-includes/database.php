@@ -1,4 +1,8 @@
 <?php
+// Set timezone to Philippines (Asia/Manila)
+// This overrides the server's default timezone (Europe/Berlin)
+date_default_timezone_set('Asia/Manila');
+
 // Start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -100,6 +104,9 @@ $conn = new mysqli($host, $username, $password, $dbname);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
+
+// Set MySQL timezone to Philippines
+$conn->query("SET time_zone = '+08:00'");
 
 // Function to safely close the database connection
 function closeConnection() {
