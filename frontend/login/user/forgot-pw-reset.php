@@ -21,8 +21,8 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 } elseif ($_SERVER["REQUEST_METHOD"] === "POST") {
     $token = $_POST["token"] ?? "";
     $token_hash = hash("sha256", $token);
-    $password = trim($_POST["password"] ?? "");
-    $confirm_password = trim($_POST["confirm-password"] ?? "");
+    $password = $_POST["password"] ?? "";
+    $confirm_password = $_POST["confirm-password"] ?? "";
     
     // Debug logging with character analysis
     error_log("Password reset form submitted - Token: " . substr($token, 0, 10) . "..., Password length: " . strlen($password));
@@ -180,6 +180,51 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             opacity: 0.7;
             transform: scale(1.1);
         }
+        
+        /* Password toggle icon styling */
+        .password-input-group {
+            position: relative;
+        }
+        
+        .toggle-password {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            color: #6b7280;
+            transition: color 0.3s ease;
+        }
+        
+        .toggle-password:hover {
+            color: #374151;
+        }
+        
+        .toggle-password .eye-icon {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .toggle-password .eye-slash {
+            display: none;
+        }
+        
+        .toggle-password.active .eye-icon {
+            display: none;
+        }
+        
+        .toggle-password.active .eye-slash {
+            display: block;
+        }
+        
+        .password-input-group .input-field {
+            padding-right: 45px;
+        }
     </style>
 </head>
 <?php include __DIR__ . "/../../../frontend/user-includes/navbar/customer-navigation.php"; ?>
@@ -226,12 +271,24 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
                         
                         <input type="hidden" name="token" value="<?= htmlspecialchars($token) ?>">
                         
-                        <div class="input-group">
+                        <div class="input-group password-input-group">
                             <input type="password" name="password" id="password" class="input-field" placeholder="New Password" required>
+                            <span class="toggle-password" onclick="togglePassword('password', this)">
+                                <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </span>
                         </div>
                         
-                        <div class="input-group">
+                        <div class="input-group password-input-group">
                             <input type="password" name="confirm-password" id="confirm-password" class="input-field" placeholder="Confirm Password" required>
+                            <span class="toggle-password" onclick="togglePassword('confirm-password', this)">
+                                <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </span>
                         </div>
                         
                         <input type="submit" value="Update Password" class="submit-btn">
@@ -247,6 +304,29 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     </div>
 
     <script>
+    function togglePassword(inputId, toggleIcon) {
+        const passwordInput = document.getElementById(inputId);
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleIcon.classList.add('active');
+            toggleIcon.innerHTML = `
+                <svg class="eye-slash" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+            `;
+        } else {
+            passwordInput.type = 'password';
+            toggleIcon.classList.remove('active');
+            toggleIcon.innerHTML = `
+                <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+            `;
+        }
+    }
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.querySelector('form');
             const errorAlert = document.getElementById('errorAlert');

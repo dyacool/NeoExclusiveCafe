@@ -78313,3 +78313,202 @@ Product ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProdu
 [14-Oct-2025 08:21:16 Europe/Berlin] Business hours: 06:00:00 - 19:59:00
 [14-Oct-2025 08:21:16 Europe/Berlin] Time analysis: current=08:21:16 (501 min), opening=06:00:00 (360 min), closing=19:59:00 (1199 min), is_closed=No
 [14-Oct-2025 08:21:16 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 14:57:36 Europe/Berlin] Business hours: 06:00:00 - 19:59:00
+[14-Oct-2025 14:57:36 Europe/Berlin] Time analysis: current=14:57:36 (897 min), opening=06:00:00 (360 min), closing=19:59:00 (1199 min), is_closed=No
+[14-Oct-2025 14:57:36 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 15:01:15 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Table 'neoexclusivecafe_crud.cart_availToday' doesn't exist in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\shopping-cart-sameday.php:417
+Stack trace:
+#0 C:\xampp\htdocs\NeoCafe\frontend\pages\cart\shopping-cart-sameday.php(417): mysqli->prepare('\r\n            S...')
+#1 {main}
+  thrown in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\shopping-cart-sameday.php on line 417
+[14-Oct-2025 15:01:45 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Table 'neoexclusivecafe_crud.cart_availToday' doesn't exist in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\shopping-cart-sameday.php:417
+Stack trace:
+#0 C:\xampp\htdocs\NeoCafe\frontend\pages\cart\shopping-cart-sameday.php(417): mysqli->prepare('\r\n            S...')
+#1 {main}
+  thrown in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\shopping-cart-sameday.php on line 417
+[14-Oct-2025 15:02:08 Europe/Berlin] Business hours: 06:00:00 - 19:59:00
+[14-Oct-2025 15:02:08 Europe/Berlin] Time analysis: current=15:02:08 (902 min), opening=06:00:00 (360 min), closing=19:59:00 (1199 min), is_closed=No
+[14-Oct-2025 15:02:08 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 15:04:05 Europe/Berlin] Business hours: 06:00:00 - 21:59:00
+[14-Oct-2025 15:04:05 Europe/Berlin] Time analysis: current=15:04:04 (904 min), opening=06:00:00 (360 min), closing=21:59:00 (1319 min), is_closed=No
+[14-Oct-2025 15:04:05 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 15:13:45 Europe/Berlin] Business hours: 06:00:00 - 21:59:00
+[14-Oct-2025 15:13:45 Europe/Berlin] Time analysis: current=15:13:45 (913 min), opening=06:00:00 (360 min), closing=21:59:00 (1319 min), is_closed=No
+[14-Oct-2025 15:13:45 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 15:14:03 Europe/Berlin] Business hours: 06:00:00 - 21:59:00
+[14-Oct-2025 15:14:03 Europe/Berlin] Time analysis: current=15:14:03 (914 min), opening=06:00:00 (360 min), closing=21:59:00 (1319 min), is_closed=No
+[14-Oct-2025 15:14:03 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 15:14:14 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Table 'neoexclusivecafe_crud.cart_availToday' doesn't exist in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\shopping-cart-sameday.php:414
+Stack trace:
+#0 C:\xampp\htdocs\NeoCafe\frontend\pages\cart\shopping-cart-sameday.php(414): mysqli->prepare('\r\n            S...')
+#1 {main}
+  thrown in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\shopping-cart-sameday.php on line 414
+[14-Oct-2025 15:14:56 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Table 'neoexclusivecafe_crud.cart_availToday' doesn't exist in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\shopping-cart-sameday.php:414
+Stack trace:
+#0 C:\xampp\htdocs\NeoCafe\frontend\pages\cart\shopping-cart-sameday.php(414): mysqli->prepare('\r\n            S...')
+#1 {main}
+  thrown in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\shopping-cart-sameday.php on line 414
+[14-Oct-2025 15:18:01 Europe/Berlin] Business hours: 06:00:00 - 21:59:00
+[14-Oct-2025 15:18:01 Europe/Berlin] Time analysis: current=15:18:01 (918 min), opening=06:00:00 (360 min), closing=21:59:00 (1319 min), is_closed=No
+[14-Oct-2025 15:18:01 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 17:09:54 Europe/Berlin] Business hours: 06:00:00 - 21:59:00
+[14-Oct-2025 17:09:54 Europe/Berlin] Time analysis: current=17:09:54 (1029 min), opening=06:00:00 (360 min), closing=21:59:00 (1319 min), is_closed=No
+[14-Oct-2025 17:09:54 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 17:27:41 Europe/Berlin] Business hours: 06:00:00 - 21:59:00
+[14-Oct-2025 17:27:41 Europe/Berlin] Time analysis: current=17:27:41 (1047 min), opening=06:00:00 (360 min), closing=21:59:00 (1319 min), is_closed=No
+[14-Oct-2025 17:27:41 Europe/Berlin] Cart truncation result: No action needed
+[14-Oct-2025 18:30:11 Europe/Berlin] Business hours: 06:00:00 - 21:59:00
+[14-Oct-2025 18:30:11 Europe/Berlin] Time analysis: current=18:30:11 (1110 min), opening=06:00:00 (360 min), closing=21:59:00 (1319 min), is_closed=No
+[14-Oct-2025 18:30:11 Europe/Berlin] Cart truncation result: No action needed
+[15-Oct-2025 05:20:14 Europe/Berlin] Business hours: 06:00:00 - 21:59:00
+[15-Oct-2025 05:20:14 Europe/Berlin] Business closed - past midnight (current: 320, closing: 1319)
+[15-Oct-2025 05:20:14 Europe/Berlin] Time analysis: current=05:20:14 (320 min), opening=06:00:00 (360 min), closing=21:59:00 (1319 min), is_closed=Yes
+[15-Oct-2025 05:20:14 Europe/Berlin] Cart currently has 0 items
+[15-Oct-2025 05:20:14 Europe/Berlin] Cart is already empty - no action needed
+[15-Oct-2025 05:20:14 Europe/Berlin] Cart truncation result: No action needed
+[15-Oct-2025 11:59:29 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[15-Oct-2025 11:59:29 Europe/Berlin] Total featured products found: 8
+[15-Oct-2025 14:02:43 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[15-Oct-2025 14:02:43 Europe/Berlin] Total featured products found: 8
+[15-Oct-2025 14:02:48 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[15-Oct-2025 14:03:09 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[15-Oct-2025 14:03:09 Europe/Berlin] Total featured products found: 8
+[15-Oct-2025 14:03:13 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[15-Oct-2025 14:06:08 Europe/Berlin] Business hours: 06:00:00 - 21:59:00
+[15-Oct-2025 14:06:08 Europe/Berlin] Time analysis: current=14:06:07 (846 min), opening=06:00:00 (360 min), closing=21:59:00 (1319 min), is_closed=No
+[15-Oct-2025 14:06:08 Europe/Berlin] Cart truncation result: No action needed
+[16-Oct-2025 02:00:35 Europe/Berlin] Business hours: 06:00:00 - 21:59:00
+[16-Oct-2025 02:00:35 Europe/Berlin] Business closed - past midnight (current: 120, closing: 1319)
+[16-Oct-2025 02:00:35 Europe/Berlin] Time analysis: current=02:00:34 (120 min), opening=06:00:00 (360 min), closing=21:59:00 (1319 min), is_closed=Yes
+[16-Oct-2025 02:00:35 Europe/Berlin] Cart currently has 0 items
+[16-Oct-2025 02:00:35 Europe/Berlin] Cart is already empty - no action needed
+[16-Oct-2025 02:00:35 Europe/Berlin] Cart truncation result: No action needed
+[16-Oct-2025 02:00:35 Europe/Berlin] PHP Warning:  Undefined variable $today in C:\xampp\htdocs\NeoCafe\frontend\pages\products\product-dashboard.php on line 342
+[16-Oct-2025 02:11:04 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[16-Oct-2025 02:11:04 Europe/Berlin] Total featured products found: 8
+[16-Oct-2025 02:11:08 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[16-Oct-2025 02:12:50 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[16-Oct-2025 02:12:50 Europe/Berlin] Total featured products found: 8
+[16-Oct-2025 02:12:53 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
+[16-Oct-2025 02:56:55 Europe/Berlin] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[16-Oct-2025 02:56:55 Europe/Berlin] Total featured products found: 8
+[16-Oct-2025 02:56:59 Europe/Berlin] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 08:21:14
+)
+
