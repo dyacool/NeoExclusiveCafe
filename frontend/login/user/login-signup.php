@@ -659,6 +659,8 @@ if (isset($_POST["signin-submit"])) {
                 showSignupLink.addEventListener('click', function(e) {
                     e.preventDefault();
                     showForm(signupForm);
+                    // Add animation to signup form
+                    signupForm.classList.add('fade-in');
                 });
             }
 
@@ -673,6 +675,8 @@ if (isset($_POST["signin-submit"])) {
                 showForgotLink.addEventListener('click', function(e) {
                     e.preventDefault();
                     showForm(forgotForm);
+                    // Add animation to forgot password form
+                    forgotForm.classList.add('fade-in');
                 });
             }
 
