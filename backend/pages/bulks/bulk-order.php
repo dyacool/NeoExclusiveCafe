@@ -7,19 +7,18 @@ if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
 
 require_once __DIR__ . "/../admin-includes/database.php";
 
-// Get the order ID from URL
+// Get the order ID from URL (now expecting unique_order_id)
 if (!isset($_GET['id']) || empty($_GET['id'])) {
     header("Location: bulk-order-lists.php");
     exit();
 }
 
-$order_id = (int)$_GET['id'];
+$order_id = $_GET['id']; // This is now the unique_order_id like "BO000001"
 
-// Create bulk_orders table if it doesn't exist (match form structure)
+// Create bulk_orders table with unique_order_id as primary key
 $create_table_query = "
     CREATE TABLE IF NOT EXISTS `bulk_orders` (
-        `id` int(11) NOT NULL AUTO_INCREMENT,
-        `unique_order_id` varchar(20) DEFAULT NULL,
+        `unique_order_id` varchar(20) NOT NULL PRIMARY KEY,
         `user_id` int(11) DEFAULT NULL,
         `name` varchar(255) NOT NULL,
         `contact` varchar(20) NOT NULL,
@@ -33,20 +32,35 @@ $create_table_query = "
         `note` text DEFAULT NULL,
         `total_amount` decimal(10,2) NOT NULL,
         `total_items` int(11) NOT NULL DEFAULT 0,
-        `status` enum('pending','approved','payment_received','ready_for_delivery','cancelled','completed') NOT NULL DEFAULT 'pending',
+        `status` enum('pending','approved','payment_received','ready_for_delivery','ready_for_pickup','cancelled','completed') NOT NULL DEFAULT 'pending',
         `proof_of_payment` varchar(500) DEFAULT NULL,
-        `admin_updated` timestamp NULL DEFAULT NULL,
+        `admin_updated` boolean DEFAULT FALSE,
         `admin_notes` text DEFAULT NULL,
         `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
         `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        PRIMARY KEY (`id`),
-        UNIQUE KEY `unique_order_id` (`unique_order_id`),
         KEY `user_id` (`user_id`),
         KEY `status` (`status`),
         KEY `created_at` (`created_at`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
 ";
 mysqli_query($conn, $create_table_query);
+
+// Create bulk_order_items table
+$create_items_table_query = "
+    CREATE TABLE IF NOT EXISTS `bulk_order_items` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `bulk_order_id` varchar(20) NOT NULL,
+        `product_id` int(11) NOT NULL,
+        `product_name` varchar(255) NOT NULL,
+        `product_price` decimal(10,2) NOT NULL,
+        `quantity` int(11) NOT NULL,
+        `subtotal` decimal(10,2) NOT NULL,
+        PRIMARY KEY (`id`),
+        KEY `bulk_order_id` (`bulk_order_id`),
+        CONSTRAINT `bulk_order_items_ibfk_1` FOREIGN KEY (`bulk_order_id`) REFERENCES `bulk_orders` (`unique_order_id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+";
+mysqli_query($conn, $create_items_table_query);
 
 // Check if columns exist and add them if they don't
 $check_columns = [
@@ -64,33 +78,18 @@ foreach ($check_columns as $column => $alter_query) {
     }
 }
 
-// Create bulk_order_items table if it doesn't exist
-$create_items_table_query = "
-    CREATE TABLE IF NOT EXISTS `bulk_order_items` (
-        `id` int(11) NOT NULL AUTO_INCREMENT,
-        `bulk_order_id` int(11) NOT NULL,
-        `product_id` int(11) DEFAULT NULL,
-        `product_name` varchar(255) NOT NULL,
-        `product_price` decimal(10,2) NOT NULL,
-        `quantity` int(11) NOT NULL,
-        `subtotal` decimal(10,2) NOT NULL,
-        PRIMARY KEY (`id`),
-        KEY `bulk_order_id` (`bulk_order_id`),
-        CONSTRAINT `bulk_order_items_ibfk_1` FOREIGN KEY (`bulk_order_id`) REFERENCES `bulk_orders` (`id`) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-";
-mysqli_query($conn, $create_items_table_query);
+
 
 // Handle status updates
 if ($_POST && isset($_POST['action']) && $_POST['action'] === 'update_status') {
     $new_status = $_POST['new_status'];
     
     // Validate status
-    $allowed_statuses = ['pending', 'approved', 'payment_received', 'ready_for_delivery', 'cancelled', 'completed'];
+    $allowed_statuses = ['pending', 'approved', 'payment_received', 'ready_for_delivery', 'ready_for_pickup', 'cancelled', 'completed'];
     if (in_array($new_status, $allowed_statuses)) {
-        $update_sql = "UPDATE bulk_orders SET status = ?, admin_updated = NOW() WHERE id = ?";
+        $update_sql = "UPDATE bulk_orders SET status = ?, admin_updated = TRUE WHERE unique_order_id = ?";
         $update_stmt = mysqli_prepare($conn, $update_sql);
-        mysqli_stmt_bind_param($update_stmt, "si", $new_status, $order_id);
+        mysqli_stmt_bind_param($update_stmt, "ss", $new_status, $order_id);
         
         if (mysqli_stmt_execute($update_stmt)) {
             $success_message = "Order status updated successfully to " . ucfirst(str_replace('_', ' ', $new_status)) . "!";
@@ -112,9 +111,9 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'update_order') {
     $admin_notes = $_POST['admin_notes'];
     
     // Update order details
-    $update_order_sql = "UPDATE bulk_orders SET customer_name = ?, customer_phone = ?, customer_email = ?, notes = ?, admin_notes = ?, admin_updated = NOW() WHERE unique_order_id = ?";
+    $update_order_sql = "UPDATE bulk_orders SET name = ?, contact = ?, email = ?, note = ?, admin_notes = ?, admin_updated = TRUE WHERE unique_order_id = ?";
     $update_order_stmt = mysqli_prepare($conn, $update_order_sql);
-    mysqli_stmt_bind_param($update_order_stmt, "ssssss", $customer_name, $customer_phone, $customer_email, $notes, $admin_notes, $unique_order_id);
+    mysqli_stmt_bind_param($update_order_stmt, "ssssss", $customer_name, $customer_phone, $customer_email, $notes, $admin_notes, $order_id);
     
     if (mysqli_stmt_execute($update_order_stmt)) {
         // Update order items
@@ -122,11 +121,12 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'update_order') {
         foreach ($_POST['items'] as $item_id => $item_data) {
             $quantity = (int)$item_data['quantity'];
             $price = (float)$item_data['price'];
+            $subtotal = $quantity * $price;
             
             if ($quantity > 0) {
-                $update_item_sql = "UPDATE bulk_order_items SET quantity = ?, price = ? WHERE id = ? AND bulk_order_id = (SELECT id FROM bulk_orders WHERE unique_order_id = ?)";
+                $update_item_sql = "UPDATE bulk_order_items SET quantity = ?, product_price = ?, subtotal = ? WHERE id = ? AND bulk_order_id = ?";
                 $update_item_stmt = mysqli_prepare($conn, $update_item_sql);
-                mysqli_stmt_bind_param($update_item_stmt, "idis", $quantity, $price, $item_id, $unique_order_id);
+                mysqli_stmt_bind_param($update_item_stmt, "iddis", $quantity, $price, $subtotal, $item_id, $order_id);
                 
                 if (!mysqli_stmt_execute($update_item_stmt)) {
                     $items_updated = false;
@@ -150,9 +150,9 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'update_order') {
 $order_sql = "SELECT bo.*, u.firstname, u.lastname, u.username, u.email as user_email 
               FROM bulk_orders bo
               LEFT JOIN users u ON bo.user_id = u.id 
-              WHERE bo.id = ?";
+              WHERE bo.unique_order_id = ?";
 $order_stmt = mysqli_prepare($conn, $order_sql);
-mysqli_stmt_bind_param($order_stmt, "i", $order_id);
+mysqli_stmt_bind_param($order_stmt, "s", $order_id);
 mysqli_stmt_execute($order_stmt);
 $order_result = mysqli_stmt_get_result($order_stmt);
 $order = mysqli_fetch_assoc($order_result);
@@ -165,7 +165,7 @@ if (!$order) {
 // Fetch order items with IDs for editing
 $items_sql = "SELECT * FROM bulk_order_items WHERE bulk_order_id = ? ORDER BY id";
 $items_stmt = mysqli_prepare($conn, $items_sql);
-mysqli_stmt_bind_param($items_stmt, "i", $order['id']);
+mysqli_stmt_bind_param($items_stmt, "s", $order_id);
 mysqli_stmt_execute($items_stmt);
 $items_result = mysqli_stmt_get_result($items_stmt);
 

@@ -51,7 +51,7 @@ function setupEventListeners() {
     discardBtn.addEventListener("click", function () {
       if (
         confirm(
-          "Are you sure you want to discard this order? All entered information will be lost."
+          "Are you sure you want to discard this order? All information will be lost."
         )
       ) {
         clearForm();
@@ -59,25 +59,19 @@ function setupEventListeners() {
     });
   }
 
-  // Form submission
-  const form = document.getElementById("bulkOrderForm");
-  if (form) {
-    form.addEventListener("submit", function (e) {
-      if (!validateForm()) {
-        e.preventDefault();
-      } else {
-        // Update hidden fields before submission
-        document.getElementById("selectedProducts").value =
-          JSON.stringify(selectedProducts);
-        document.getElementById("totalAmount").value = totalAmount;
-
-        // Show loading state
-        const submitBtn = document.getElementById("submitBtn");
-        submitBtn.classList.add("loading");
-        submitBtn.disabled = true;
+  // Review Order button (renamed from submitBtn)
+  const reviewOrderBtn = document.getElementById("reviewOrderBtn");
+  if (reviewOrderBtn) {
+    reviewOrderBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      if (validateForm()) {
+        showConfirmationModal();
       }
     });
   }
+
+  // Confirmation modal event listeners
+  setupConfirmationModal();
 }
 
 function handleProductSelection(checkbox) {
@@ -251,15 +245,15 @@ function updateOrderSummary() {
 }
 
 function updateSubmitButton() {
-  const submitBtn = document.getElementById("submitBtn");
-  if (!submitBtn) return;
+  const reviewOrderBtn = document.getElementById("reviewOrderBtn");
+  if (!reviewOrderBtn) return;
 
   if (selectedProducts.length > 0) {
-    submitBtn.disabled = false;
-    submitBtn.innerHTML = `Submit Order (₱${totalAmount.toFixed(2)})`;
+    reviewOrderBtn.disabled = false;
+    reviewOrderBtn.innerHTML = `Review Order (₱${totalAmount.toFixed(2)})`;
   } else {
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = "Submit Order";
+    reviewOrderBtn.disabled = true;
+    reviewOrderBtn.innerHTML = "Review Order";
   }
 }
 
@@ -373,3 +367,153 @@ window.addEventListener("pageshow", function (event) {
 // Global functions for quantity buttons (called from HTML onclick)
 window.increaseQuantity = increaseQuantity;
 window.decreaseQuantity = decreaseQuantity;
+
+// Confirmation Modal Functions
+function setupConfirmationModal() {
+  const modal = document.getElementById("confirmationModal");
+  const closeBtn = modal.querySelector(".close");
+  const editOrderBtn = document.getElementById("editOrderBtn");
+  const confirmSubmitBtn = document.getElementById("confirmSubmitBtn");
+
+  // Close modal event listeners
+  closeBtn.addEventListener("click", closeConfirmationModal);
+  editOrderBtn.addEventListener("click", closeConfirmationModal);
+
+  // Click outside modal to close
+  window.addEventListener("click", function (event) {
+    if (event.target === modal) {
+      closeConfirmationModal();
+    }
+  });
+
+  // Confirm submit button
+  confirmSubmitBtn.addEventListener("click", function () {
+    submitFinalOrder();
+  });
+}
+
+function showConfirmationModal() {
+  const modal = document.getElementById("confirmationModal");
+
+  // Populate customer information
+  document.getElementById("confirm-name").textContent =
+    document.getElementById("name").value;
+  document.getElementById("confirm-contact").textContent =
+    document.getElementById("contact").value;
+  document.getElementById("confirm-email").textContent =
+    document.getElementById("email").value;
+  document.getElementById("confirm-billing-address").textContent =
+    document.getElementById("billing_address").value;
+
+  // Populate order details
+  const orderType = document.getElementById("order_type").value;
+  document.getElementById("confirm-order-type").textContent =
+    orderType === "delivery" ? "Delivery" : "Pickup";
+
+  const deliveryAddressSection = document.getElementById(
+    "delivery-address-section"
+  );
+  if (orderType === "delivery") {
+    deliveryAddressSection.style.display = "block";
+    document.getElementById("confirm-delivery-address").textContent =
+      document.getElementById("delivery_address").value;
+  } else {
+    deliveryAddressSection.style.display = "none";
+  }
+
+  document.getElementById("confirm-purpose").textContent =
+    document.getElementById("purpose").value;
+  document.getElementById("confirm-date-needed").textContent = formatDate(
+    document.getElementById("date_needed").value
+  );
+  document.getElementById("confirm-time-needed").textContent = formatTime(
+    document.getElementById("time_needed").value
+  );
+  document.getElementById("confirm-note").textContent =
+    document.getElementById("note").value || "None";
+
+  // Populate order items
+  const orderItemsContainer = document.getElementById("confirm-order-items");
+  orderItemsContainer.innerHTML = "";
+
+  selectedProducts.forEach((product) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${product.name}</td>
+      <td>₱${product.price.toFixed(2)}</td>
+      <td>${product.quantity}</td>
+      <td>₱${(product.price * product.quantity).toFixed(2)}</td>
+    `;
+    orderItemsContainer.appendChild(row);
+  });
+
+  // Update total amount
+  document.getElementById(
+    "confirm-total-amount"
+  ).textContent = `₱${totalAmount.toFixed(2)}`;
+
+  // Show modal
+  modal.style.display = "block";
+  document.body.style.overflow = "hidden"; // Prevent background scrolling
+}
+
+function closeConfirmationModal() {
+  const modal = document.getElementById("confirmationModal");
+  modal.style.display = "none";
+  document.body.style.overflow = "auto"; // Restore scrolling
+}
+
+function submitFinalOrder() {
+  // Populate hidden form with all data
+  document.getElementById("final-name").value =
+    document.getElementById("name").value;
+  document.getElementById("final-contact").value =
+    document.getElementById("contact").value;
+  document.getElementById("final-email").value =
+    document.getElementById("email").value;
+  document.getElementById("final-billing-address").value =
+    document.getElementById("billing_address").value;
+  document.getElementById("final-order-type").value =
+    document.getElementById("order_type").value;
+  document.getElementById("final-delivery-address").value =
+    document.getElementById("delivery_address").value;
+  document.getElementById("final-purpose").value =
+    document.getElementById("purpose").value;
+  document.getElementById("final-date-needed").value =
+    document.getElementById("date_needed").value;
+  document.getElementById("final-time-needed").value =
+    document.getElementById("time_needed").value;
+  document.getElementById("final-note").value =
+    document.getElementById("note").value;
+  document.getElementById("final-selected-products").value =
+    JSON.stringify(selectedProducts);
+  document.getElementById("final-total-amount").value = totalAmount;
+
+  // Show loading state
+  const confirmSubmitBtn = document.getElementById("confirmSubmitBtn");
+  confirmSubmitBtn.innerHTML = "Submitting...";
+  confirmSubmitBtn.disabled = true;
+
+  // Submit the form
+  document.getElementById("finalSubmissionForm").submit();
+}
+
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
+function formatTime(timeString) {
+  const [hours, minutes] = timeString.split(":");
+  const date = new Date();
+  date.setHours(parseInt(hours), parseInt(minutes));
+  return date.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
