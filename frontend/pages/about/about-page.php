@@ -44,7 +44,6 @@ $conn->close();
     <link rel="icon" type="image/x-icon" href="../../../assets/images/favicon.ico">
     
     <!-- Include user navigation -->
-    <?php include "../../user-includes/user-header.php"; ?>
 </head>
 <body>
         
