@@ -85,7 +85,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: 1rem 2rem;
   position: relative;
   box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
   height: 100vh;
@@ -568,6 +568,81 @@ form a:hover {
   .submit-btn {
     padding: 0.75rem;
     font-size: 0.9rem;
+  }
+}
+
+/* Responsive adjustments for zoom levels 200% and above */
+@media (min-resolution: 2dppx) {
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
+    position: relative;
+  }
+
+  .main-container {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  .left-side {
+    flex: 0 0 auto;
+    height: 40vh;
+    min-height: 300px;
+  }
+
+  .right-side {
+    flex: 1;
+    height: auto;
+    min-height: 60vh;
+    padding: 1rem;
+    overflow-y: auto;
+    box-shadow: none;
+  }
+
+  .form-wrapper {
+    max-width: 100%;
+    padding: 1rem;
+    margin: 0 auto;
+  }
+
+  /* Adjust form elements for better zooming */
+  .form-title {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .form-subtitle {
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .input-field {
+    padding: 0.7rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .submit-btn {
+    padding: 0.7rem 1.5rem;
+    font-size: 0.9rem;
+  }
+
+  .input-group {
+    margin-bottom: 1rem;
+  }
+
+  .utility-row {
+    margin-bottom: 1.25rem;
+  }
+
+  .form-switch {
+    margin-top: 1.25rem;
+    font-size: 0.85rem;
+  }
+
+  .back-home {
+    margin-top: 1.25rem;
   }
 }
 
