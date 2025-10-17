@@ -138,7 +138,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         <button type="submit" class="search-btn">Search</button>
                     </form>
                 </div>
-                <a href="<?php echo isset($_SESSION['user_id']) ? '../../../frontend/pages/cart/cart.php' : '../../../frontend/login/user/login-signup.php'; ?>" class="cart-link">
+                <a href="<?php echo isset($_SESSION['user_id']) ? '../../../frontend/pages/cart/shopping-cart-preorder.php' : '../../../frontend/login/user/login-signup.php'; ?>" class="cart-link">
                     <div class="icon-wrapper">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="icon cart-icon">
                             <path d="M5 8h14l1 13H4L5 8z"></path>

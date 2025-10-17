@@ -461,8 +461,14 @@ if (isset($_POST["signin-submit"])) {
                             <input type="text" name="username" class="input-field" placeholder="Username" required>
                         </div>
                         
-                        <div class="input-group">
-                            <input type="password" name="password" class="input-field" placeholder="Password" required>
+                        <div class="input-group password-input-group">
+                            <input type="password" name="password" id="login-password" class="input-field" placeholder="Password" required>
+                            <span class="toggle-password" onclick="togglePassword('login-password', this)">
+                                <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </span>
                         </div>
                         
                         <div class="utility-row">
@@ -519,12 +525,24 @@ if (isset($_POST["signin-submit"])) {
                             <input type="email" name="email" class="input-field" placeholder="Email" required>
                         </div>
                         
-                        <div class="input-group">
-                            <input type="password" name="password" class="input-field" placeholder="Password" required>
+                        <div class="input-group password-input-group">
+                            <input type="password" name="password" id="signup-password" class="input-field" placeholder="Password" required>
+                            <span class="toggle-password" onclick="togglePassword('signup-password', this)">
+                                <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </span>
                         </div>
                         
-                        <div class="input-group">
-                            <input type="password" name="confirm-password" class="input-field" placeholder="Confirm Password" required>
+                        <div class="input-group password-input-group">
+                            <input type="password" name="confirm-password" id="confirm-password" class="input-field" placeholder="Confirm Password" required>
+                            <span class="toggle-password" onclick="togglePassword('confirm-password', this)">
+                                <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </span>
                         </div>
                         
                         <input type="submit" name="signup-submit" value="Create Account" class="submit-btn">
@@ -546,7 +564,77 @@ if (isset($_POST["signin-submit"])) {
         }
     </style>
 
+    <style>
+        /* Password toggle icon styling */
+        .password-input-group {
+            position: relative;
+        }
+        
+        .toggle-password {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            color: #6b7280;
+            transition: color 0.3s ease;
+        }
+        
+        .toggle-password:hover {
+            color: #374151;
+        }
+        
+        .toggle-password .eye-icon {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .toggle-password .eye-slash {
+            display: none;
+        }
+        
+        .toggle-password.active .eye-icon {
+            display: none;
+        }
+        
+        .toggle-password.active .eye-slash {
+            display: block;
+        }
+        
+        .password-input-group .input-field {
+            padding-right: 45px;
+        }
+    </style>
+
     <script>
+        function togglePassword(inputId, toggleIcon) {
+            const passwordInput = document.getElementById(inputId);
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.add('active');
+                toggleIcon.innerHTML = `
+                    <svg class="eye-slash" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                        <line x1="1" y1="1" x2="23" y2="23"></line>
+                    </svg>
+                `;
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('active');
+                toggleIcon.innerHTML = `
+                    <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                `;
+            }
+        }
         // Simple form switching without complex validation
         document.addEventListener('DOMContentLoaded', function() {
             const loginForm = document.getElementById('login-form');
@@ -571,6 +659,8 @@ if (isset($_POST["signin-submit"])) {
                 showSignupLink.addEventListener('click', function(e) {
                     e.preventDefault();
                     showForm(signupForm);
+                    // Add animation to signup form
+                    signupForm.classList.add('fade-in');
                 });
             }
 
@@ -585,6 +675,8 @@ if (isset($_POST["signin-submit"])) {
                 showForgotLink.addEventListener('click', function(e) {
                     e.preventDefault();
                     showForm(forgotForm);
+                    // Add animation to forgot password form
+                    forgotForm.classList.add('fade-in');
                 });
             }
 
@@ -631,105 +723,32 @@ if (isset($_POST["signin-submit"])) {
             }
         };
     
-        // Enable page-level scrolling only when zoomed in AND content actually overflows.
-        // Keeps default view static (no scroll) but allows scrolling when user zooms or
-        // the viewport becomes smaller than content (accessibility / pinch-zoom scenarios).
+        // Enable page-level scrolling only when content overflows the viewport
         (function() {
-            // store baseline viewport size and devicePixelRatio (used to detect zoom changes)
-            let baseInnerWidth = window.innerWidth;
-            let baseInnerHeight = window.innerHeight;
-            let baseDevicePixelRatio = window.devicePixelRatio || 1;
-
-            function isZoomed() {
-                try {
-                    // visualViewport gives a scale factor in many modern browsers
-                    if (window.visualViewport && typeof window.visualViewport.scale === 'number') {
-                        if (window.visualViewport.scale && window.visualViewport.scale !== 1) return window.visualViewport.scale > 1;
-                    }
-
-                    // if devicePixelRatio increased compared to baseline, likely a zoom-in (helpful in some browsers)
-                    if ((window.devicePixelRatio || 1) > baseDevicePixelRatio + 0.01) return true;
-
-                    // fallback: compare innerWidth/innerHeight to baseline
-                    return window.innerWidth < baseInnerWidth || window.innerHeight < baseInnerHeight;
-                } catch (e) {
-                    return false;
-                }
-            }
-
-            function contentOverflows() {
-                try {
-                    const docHeight = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
-                    const winHeight = window.innerHeight || document.documentElement.clientHeight;
-                    const docWidth = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
-                    const winWidth = window.innerWidth || document.documentElement.clientWidth;
-                    return docHeight > winHeight || docWidth > winWidth;
-                } catch (e) {
-                    return false;
-                }
-            }
-
             function updateBodyScroll() {
                 try {
-                    const shouldAllowScroll = isZoomed() && contentOverflows();
-
-                    if (shouldAllowScroll) {
-                        document.documentElement.style.overflow = 'auto';
-                        document.body.style.overflow = 'auto';
-                        // remove any fixed positioning so scrolling works naturally
-                        document.body.style.position = '';
+                    var docHeight = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
+                    var winHeight = window.innerHeight || document.documentElement.clientHeight;
+                    if (docHeight > winHeight) {
+                        document.documentElement.style.overflowY = 'auto';
+                        document.body.style.overflowY = 'auto';
                     } else {
-                        // keep page static at default size
-                        document.documentElement.style.overflow = 'hidden';
-                        document.body.style.overflow = 'hidden';
-                        // ensure body doesn't become taller than viewport due to margin collapse etc.
-                        document.body.style.position = 'relative';
+                        document.documentElement.style.overflowY = 'hidden';
+                        document.body.style.overflowY = 'hidden';
                     }
                 } catch (e) {
+                    // Fail silently
                     console.error('updateBodyScroll error', e);
                 }
             }
 
-            // Refresh baseline on load (accurate baseline after fonts/images render)
-            window.addEventListener('load', function() {
-                baseInnerWidth = window.innerWidth;
-                baseInnerHeight = window.innerHeight;
-                baseDevicePixelRatio = window.devicePixelRatio || 1;
-                updateBodyScroll();
-                // run again shortly after to catch late content
-                setTimeout(updateBodyScroll, 300);
-            });
-
-            // Update on viewport changes
+            window.addEventListener('load', updateBodyScroll);
             window.addEventListener('resize', updateBodyScroll);
-            window.addEventListener('orientationchange', function() {
-                // reset baseline for orientation change (user rotated device)
-                baseInnerWidth = window.innerWidth;
-                baseInnerHeight = window.innerHeight;
-                setTimeout(updateBodyScroll, 120);
-            });
+            window.addEventListener('orientationchange', updateBodyScroll);
 
-            // visualViewport provides better zoom detection and fires resize events when pinch-zooming
-            if (window.visualViewport) {
-                window.visualViewport.addEventListener('resize', updateBodyScroll);
-                window.visualViewport.addEventListener('scroll', updateBodyScroll);
-            }
-
-            // also observe DOM changes (forms toggling) that could change height
-            try {
-                const ro = new MutationObserver(function() {
-                    updateBodyScroll();
-                });
-                ro.observe(document.body, { childList: true, subtree: true, attributes: true });
-            } catch (e) {
-                // MutationObserver not available or blocked - ignore
-            }
-
-            // initial run
-            updateBodyScroll();
-            // safety runs for dynamic content
-            setTimeout(updateBodyScroll, 500);
-            setTimeout(updateBodyScroll, 1500);
+            // Also run after a small delay to catch dynamic content changes
+            setTimeout(updateBodyScroll, 250);
+            setTimeout(updateBodyScroll, 1000);
         })();
     </script>
 </body>

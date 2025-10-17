@@ -397,9 +397,6 @@ function getDayAbbreviations($availableDays) {
             <a href="shopping-cart-sameday.php" class="cart-tab active" id="samedayTab" onclick="smoothSwitchToPage('shopping-cart-sameday.php', event); return false;">Same-Day Order</a>
         </div>
 
-        <!-- Temporary test button -->
-        <button onclick="testClick()" style="background: red; color: white; padding: 10px; margin: 10px;">Test Click (Remove this later)</button>
-
         <!-- Page transition overlay -->
         <div id="pageTransitionOverlay" class="page-transition-overlay">
             <div class="transition-content">
@@ -413,20 +410,31 @@ function getDayAbbreviations($availableDays) {
         </div>
 
         <?php
-        // Fetch same-day cart items (Available Today products from cart_availToday table)
+        // Fetch same-day cart items (Available Today products from availtoday_cart table)
+        // Business logic for same-day cart:
+        // 1. Products with status_id = 3 (Available Today)
+        // 2. Products with status_id IN (1, 2) AND availtoday_status_id IS NOT NULL (1, 2, or 3)
         $stmt = $conn->prepare("
-            SELECT cat.id AS cart_id, cat.quantity, cat.price,
+            SELECT cat.id AS cart_id, cat.quantity, p.price,
                    p.id AS product_id, p.name AS product_name, p.quantity as product_stock,
-                   'Available Today' as status_name,
+                   ps.name as status_name,
+                   p.availtoday_status_id,
+                   ats.name as availtoday_status_name,
                    'Today' as available_days,
                    (
                       SELECT image_url FROM product_images pi2
                       WHERE pi2.product_id = p.id AND pi2.is_primary = 1
                       LIMIT 1
                    ) AS image_url
-            FROM cart_availToday cat
+            FROM availtoday_cart cat
             JOIN products p ON cat.product_id = p.id
-            WHERE cat.user_id = ? AND p.status_id = 3
+            LEFT JOIN product_statuses ps ON p.status_id = ps.id
+            LEFT JOIN availtoday_status ats ON p.availtoday_status_id = ats.id
+            WHERE cat.user_id = ? 
+            AND (
+                p.status_id = 3 
+                OR (p.status_id IN (1, 2) AND p.availtoday_status_id IS NOT NULL)
+            )
             ORDER BY p.name ASC
         ");
         $stmt->bind_param("i", $user_id);
@@ -442,7 +450,7 @@ function getDayAbbreviations($availableDays) {
                 $sameday_items[] = $row;
             }
         ?>
-        <form method="POST" action="checkout-sameday.php" id="cartForm">
+        <form method="POST" action="availtoday-checkout.php" id="cartForm">
             <input type="hidden" name="valid_cart_ids" value="<?= implode(',', array_column($sameday_items, 'cart_id')) ?>">
             <input type="hidden" name="cart_type" value="sameday">
             <div class="cart-layout">
@@ -535,150 +543,20 @@ function getDayAbbreviations($availableDays) {
     </div>
 </div>
 
-<script src="shopping-cart.js"></script>
+<script src="shopping-cart-sameday.js"></script>
 
 <script>
-// Test function to verify clicks are working
-function testClick() {
-    alert('Click detected! JavaScript is working.');
-}
+// Additional page-specific functionality
 
-// Seamless page switching functionality
-function smoothSwitchToPage(targetPage, event) {
-    console.log('smoothSwitchToPage called with:', targetPage);
-    console.log('Event object:', event);
-    
-    if (event) {
-        event.preventDefault();
-    }
-    
-    // Don't switch if already on the target page
-    const currentPage = window.location.pathname.split('/').pop();
-    console.log('Current page:', currentPage);
-    
-    if (currentPage === targetPage) {
-        console.log('Already on target page, returning');
-        return;
-    }
-    
-    // Show transition overlay
-    const overlay = document.getElementById('pageTransitionOverlay');
-    console.log('Overlay element found:', overlay);
-    
-    if (overlay) {
-        console.log('Showing overlay...');
-        overlay.style.display = 'block';
-        
-        // Force reflow to ensure display change takes effect
-        overlay.offsetHeight;
-        
-        // Add active class to trigger opacity transition
-        overlay.classList.add('active');
-        console.log('Added active class to overlay');
-        
-        // Navigate after short delay
-        setTimeout(() => {
-            console.log('Navigating to:', targetPage);
-            window.location.href = targetPage;
-        }, 500);
-    } else {
-        // Fallback if overlay not found
-        console.error('Overlay not found, navigating directly');
-        window.location.href = targetPage;
-    }
-}
-
-// Preload target page for instant switching
-function preloadPage(targetPage) {
-    return new Promise((resolve, reject) => {
-        const link = document.createElement('link');
-        link.rel = 'prefetch';
-        link.href = targetPage;
-        
-        link.onload = () => {
-            showPreloadIndicator(`${targetPage.includes('preorder') ? 'Pre-Order' : 'Same-Day'} cart ready`);
-            resolve();
-        };
-        
-        link.onerror = () => {
-            reject();
-        };
-        
-        document.head.appendChild(link);
-        
-        // Also preload via fetch for better caching
-        fetch(targetPage, { method: 'HEAD' })
-            .then(() => resolve())
-            .catch(() => reject());
-    });
-}
-
-// Show preload status indicator
-function showPreloadIndicator(message) {
-    const indicator = document.createElement('div');
-    indicator.className = 'preload-indicator';
-    indicator.textContent = message;
-    document.body.appendChild(indicator);
-    
-    setTimeout(() => {
-        indicator.classList.add('show');
-    }, 100);
-    
-    setTimeout(() => {
-        indicator.classList.remove('show');
-        setTimeout(() => {
-            if (indicator.parentNode) {
-                indicator.parentNode.removeChild(indicator);
-            }
-        }, 300);
-    }, 2000);
-}
 
 // Enhanced page load experience
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOMContentLoaded event fired');
-    
     // Hide transition overlay if coming from another cart page
     const overlay = document.getElementById('pageTransitionOverlay');
     if (overlay) {
         overlay.style.display = 'none';
-        console.log('Overlay hidden on page load');
     }
     
-    // Set up backup event listeners for navigation tabs
-    const preorderTab = document.querySelector('a[onclick*="shopping-cart-preorder.php"]');
-    const samedayTab = document.querySelector('a[onclick*="shopping-cart-sameday.php"]');
-    
-    console.log('Preorder tab found:', preorderTab);
-    console.log('Sameday tab found:', samedayTab);
-    
-    if (preorderTab) {
-        preorderTab.addEventListener('click', function(event) {
-            console.log('Preorder tab clicked via event listener');
-            smoothSwitchToPage('shopping-cart-preorder.php', event);
-        });
-    }
-    
-    if (samedayTab) {
-        samedayTab.addEventListener('click', function(event) {
-            console.log('Sameday tab clicked via event listener');
-            smoothSwitchToPage('shopping-cart-sameday.php', event);
-        });
-    }
-    
-    // Test function to verify JavaScript is working
-    console.log('Shopping cart same-day page JavaScript loaded successfully');
-    
-    // Preload the other cart page for instant switching
-    const otherPage = 'shopping-cart-preorder.php';
-    preloadPage(otherPage);
-    
-    // Setup enhanced interactions
-    setupEnhancedInteractions();
-});
-
-// Add enhanced interactions
-function setupEnhancedInteractions() {
     // Enhanced tab hover effects
     const tabs = document.querySelectorAll('.cart-tab');
     tabs.forEach(tab => {
@@ -697,143 +575,12 @@ function setupEnhancedInteractions() {
         });
     });
     
-    // Smooth scroll to top when switching
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-// Handle browser back/forward with smooth transitions
-window.addEventListener('popstate', function(event) {
-    // Add smooth transition for browser navigation
-    document.body.style.opacity = '0.8';
-    document.body.style.transform = 'translateY(-10px)';
-    
-    setTimeout(() => {
-        document.body.style.opacity = '1';
-        document.body.style.transform = 'translateY(0)';
-    }, 200);
-});
-
-// Prefetch both cart pages on page load for instant switching
-window.addEventListener('load', function() {
-    // Prefetch pre-order cart
+    // Prefetch pre-order cart page for fast switching
     const prefetchLink = document.createElement('link');
     prefetchLink.rel = 'prefetch';
     prefetchLink.href = 'shopping-cart-preorder.php';
     document.head.appendChild(prefetchLink);
-    
-    // Also prefetch critical resources
-    const cssPrefetch = document.createElement('link');
-    cssPrefetch.rel = 'prefetch';
-    cssPrefetch.href = 'shopping-cart.css';
-    document.head.appendChild(cssPrefetch);
-    
-    const jsPrefetch = document.createElement('link');
-    jsPrefetch.rel = 'prefetch';
-    jsPrefetch.href = 'shopping-cart.js';
-    document.head.appendChild(jsPrefetch);
 });
-
-// Additional functions specific to same-day cart functionality
-function updateQuantitySameDay(cartId, newQuantity) {
-    if (newQuantity < 1) {
-        showConfirmationModalSameDay(cartId);
-        return;
-    }
-
-    const row = document.querySelector(`tr[data-cart-id="${cartId}"]`);
-    const stock = parseInt(row.dataset.stock);
-    
-    if (newQuantity > stock) {
-        showConfirmation(`Cannot exceed available stock of ${stock}`, true);
-        return;
-    }
-
-    fetch("update-cart-quantity-sameday.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: `cart_id=${cartId}&quantity=${newQuantity}`
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) location.reload();
-        else showConfirmation("Error: " + (data.error || "Failed to update quantity"), true);
-    })
-    .catch(err => {
-        console.error("Error:", err);
-        showConfirmation("An error occurred while updating the cart", true);
-    });
-}
-
-function showConfirmationModalSameDay(cartId) {
-    currentCartId = cartId;
-    document.getElementById('confirmationModal').style.display = 'block';
-    
-    // Override the confirm button for same-day removal
-    document.getElementById('confirmRemoveBtn').onclick = function() {
-        if (currentCartId) {
-            removeFromCartSameDay(currentCartId);
-            closeConfirmationModal();
-        }
-    };
-}
-
-function removeFromCartSameDay(cartId) {
-    fetch("remove-from-cart-sameday.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: `cart_id=${cartId}`
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            showConfirmation("Item removed successfully");
-            setTimeout(() => location.reload(), 1000);
-        }
-        else showConfirmation("Error: " + data.error, true);
-    })
-    .catch(err => {
-        console.error("Error:", err);
-        showConfirmation("An error occurred while removing the item", true);
-    });
-}
-
-// Override the DOMContentLoaded event listener to handle same-day specific functionality
-document.addEventListener('DOMContentLoaded', function() {
-    // Setup select all for same-day items
-    const selectAllSameDay = document.getElementById('selectAllSameDay');
-    if (selectAllSameDay) {
-        selectAllSameDay.addEventListener('change', function() {
-            const samedayCheckboxes = document.querySelectorAll('.sameday-checkbox');
-            samedayCheckboxes.forEach(checkbox => {
-                checkbox.checked = this.checked;
-            });
-            updateSubtotal();
-        });
-    }
-    
-    // Setup individual checkbox listeners for same-day items
-    const allItemCheckboxes = document.querySelectorAll('.sameday-checkbox');
-    allItemCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            updateSubtotal();
-            updateSamedaySelectAllState();
-        });
-    });
-    
-    // Initialize subtotal
-    updateSubtotal();
-});
-
-function updateSamedaySelectAllState() {
-    const samedayCheckboxes = document.querySelectorAll('.sameday-checkbox');
-    const selectAllSameDay = document.getElementById('selectAllSameDay');
-    
-    const checkedSameday = document.querySelectorAll('.sameday-checkbox:checked');
-    
-    if (selectAllSameDay) {
-        selectAllSameDay.checked = checkedSameday.length === samedayCheckboxes.length && samedayCheckboxes.length > 0;
-    }
-}
 </script>
 
 </body>
