@@ -67,9 +67,6 @@ $conn->close();
     <title><?php echo htmlspecialchars($privacy['title']); ?> - Neo Exclusive Cafe</title>
     <link rel="stylesheet" href="privacy-policy.css">
     <link rel="icon" type="image/x-icon" href="../../../assets/images/favicon.ico">
-    
-    <!-- Include user navigation -->
-    <?php include "../../user-includes/user-header.php"; ?>
 </head>
 <body>
     <!-- Navigation -->
