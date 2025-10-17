@@ -78618,3 +78618,60 @@ Stack trace:
     [updated_at] => 2025-05-20 08:21:14
 )
 
+[16-Oct-2025 18:07:48 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[16-Oct-2025 18:07:48 Asia/Manila] Total featured products found: 8
+[16-Oct-2025 22:00:52 Asia/Manila] Business hours: 06:00:00 - 23:59:00
+[16-Oct-2025 22:00:52 Asia/Manila] Time analysis: current=22:00:52 (1320 min), opening=06:00:00 (360 min), closing=23:59:00 (1439 min), is_closed=No
+[16-Oct-2025 22:00:52 Asia/Manila] Cart truncation result: No action needed
+[16-Oct-2025 22:00:52 Asia/Manila] PHP Warning:  Undefined variable $today in C:\xampp\htdocs\NeoCafe\frontend\pages\products\product-dashboard.php on line 342
+Product ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery and Pick UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 2 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-16 22:01:21] Availtoday Status ID received: 2
+[2025-10-16 22:01:21] Availtoday Status ID after filter: 2
+[2025-10-16 22:01:21] Status ID: 2
+[2025-10-16 22:01:21] Is Available Today: 1
+[2025-10-16 22:01:21] Todays Product Dates: []
+[2025-10-16 22:01:21] Available Today Dates: ["2025-10-13","2025-10-14","2025-10-16"]
+Product ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery and Pick UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 2 | availtoday_status_id: 2 | availtoday_status_name: Delivery[16-Oct-2025 22:01:36 Asia/Manila] Business hours: 06:00:00 - 23:59:00
+[16-Oct-2025 22:01:36 Asia/Manila] Time analysis: current=22:01:36 (1321 min), opening=06:00:00 (360 min), closing=23:59:00 (1439 min), is_closed=No
+[16-Oct-2025 22:01:36 Asia/Manila] Cart truncation result: No action needed
+[16-Oct-2025 22:11:49 Asia/Manila] Business hours: 06:00:00 - 22:03:00
+[16-Oct-2025 22:11:49 Asia/Manila] Business closed - after closing time (current: 1331, closing: 1323)
+[16-Oct-2025 22:11:49 Asia/Manila] Time analysis: current=22:11:49 (1331 min), opening=06:00:00 (360 min), closing=22:03:00 (1323 min), is_closed=Yes
+[16-Oct-2025 22:11:49 Asia/Manila] Cart currently has 0 items
+[16-Oct-2025 22:11:49 Asia/Manila] Cart is already empty - no action needed
+[16-Oct-2025 22:11:49 Asia/Manila] Cart truncation result: No action needed
+[17-Oct-2025 09:33:15 Asia/Manila] Business hours: 06:00:00 - 22:03:00
+[17-Oct-2025 09:33:15 Asia/Manila] Business closed - past midnight (current: 573, closing: 1323)
+[17-Oct-2025 09:33:15 Asia/Manila] Time analysis: current=09:33:15 (573 min), opening=06:00:00 (360 min), closing=22:03:00 (1323 min), is_closed=Yes
+[17-Oct-2025 09:33:16 Asia/Manila] Cart currently has 0 items
+[17-Oct-2025 09:33:16 Asia/Manila] Cart is already empty - no action needed
+[17-Oct-2025 09:33:16 Asia/Manila] Cart truncation result: No action needed
+[17-Oct-2025 09:33:16 Asia/Manila] PHP Warning:  Undefined variable $today in C:\xampp\htdocs\NeoCafe\frontend\pages\products\product-dashboard.php on line 342
+Product ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery and Pick UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 2 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-17 13:24:50] Availtoday Status ID received: 2
+[2025-10-17 13:24:50] Availtoday Status ID after filter: 2
+[2025-10-17 13:24:50] Status ID: 2
+[2025-10-17 13:24:50] Is Available Today: 1
+[2025-10-17 13:24:50] Todays Product Dates: []
+[2025-10-17 13:24:50] Available Today Dates: ["2025-10-17","2025-10-18"]
+Product ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery and Pick UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 2 | availtoday_status_id: 2 | availtoday_status_name: Delivery[17-Oct-2025 13:25:07 Asia/Manila] Business hours: 06:00:00 - 22:03:00
+[17-Oct-2025 13:25:07 Asia/Manila] Time analysis: current=13:25:07 (805 min), opening=06:00:00 (360 min), closing=22:03:00 (1323 min), is_closed=No
+[17-Oct-2025 13:25:07 Asia/Manila] Cart truncation result: No action needed
+[17-Oct-2025 13:26:40 Asia/Manila] Business hours: 06:00:00 - 10:03:00
+[17-Oct-2025 13:26:40 Asia/Manila] Business closed - after closing time (current: 806, closing: 603)
+[17-Oct-2025 13:26:40 Asia/Manila] Time analysis: current=13:26:40 (806 min), opening=06:00:00 (360 min), closing=10:03:00 (603 min), is_closed=Yes
+[17-Oct-2025 13:26:41 Asia/Manila] Cart currently has 1 items
+[17-Oct-2025 13:26:41 Asia/Manila] SUCCESS: Cart truncated successfully - 1 items removed
+[17-Oct-2025 13:26:41 Asia/Manila] Cart truncation result: SUCCESS

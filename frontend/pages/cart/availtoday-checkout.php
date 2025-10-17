@@ -88,7 +88,7 @@ if (isset($_SESSION['user_id'])) {
     error_log("No user_id in session");
 }
 
-// Get Available Today cart items from cart_availtoday table
+// Get Available Today cart items from availtoday_cart table
 $cart_total = 0;
 $cart_items = [];
 $shipping_method = 'pickup'; // Default

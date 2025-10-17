@@ -1,18 +1,4 @@
 <?php
-/**
- * AvailToday Cart Auto-Truncation System
- * 
- * This script handles automatic truncation of the availtoday_cart table
- * when business hours close.
- * 
- * Usage Modes:
- * 1. Cron Job (CLI): php truncate-availtoday-cart.php
- * 2. Web API: http://domain.com/NeoExclusiveCafe/truncate-availtoday-cart.php
- * 3. Force Mode: Add ?force=1 parameter to bypass time check
- * 
- * Example Cron Job:
- * */1 * * * * /usr/bin/php /path/to/NeoExclusiveCafe/truncate-availtoday-cart.php
- */
 
 // Detect if running from CLI or web
 $isCLI = (php_sapi_name() === 'cli');
@@ -167,11 +153,14 @@ try {
         $output['items_before'] = $cart_count;
         
         if ($cart_count > 0) {
+            outputMessage("Executing TRUNCATE TABLE availtoday_cart...", $isCLI);
+            
             // Truncate the availtoday_cart table
             $truncate_query = "TRUNCATE TABLE availtoday_cart";
             $truncate_result = $conn->query($truncate_query);
             
             if ($truncate_result) {
+                outputMessage("✓ TRUNCATE query executed successfully!", $isCLI);
                 outputMessage("SUCCESS: Cart truncated successfully - $cart_count items removed", $isCLI);
                 
                 // Verify truncation
@@ -179,20 +168,31 @@ try {
                 $verify_result = $conn->query($verify_query);
                 if ($verify_result) {
                     $verify_data = $verify_result->fetch_assoc();
-                    $new_count = $verify_data['cart_count'];
+                    $new_count = (int)$verify_data['cart_count']; // Convert to integer
                     outputMessage("Verification: Cart now has $new_count items", $isCLI);
-                    $output['items_after'] = $new_count;
+                    
+                    if ($new_count === 0) {
+                        outputMessage("✓ CONFIRMED: Cart is now empty!", $isCLI);
+                        $output['items_after'] = $new_count;
+                    } else {
+                        outputMessage("⚠ WARNING: Cart still has $new_count items after truncation!", $isCLI);
+                        $output['items_after'] = $new_count;
+                        $output['warning'] = "Cart not fully emptied";
+                    }
                 }
                 
                 $output['success'] = true;
                 $output['message'] = 'Cart truncated successfully - business hours closed';
                 $output['action'] = 'truncated';
                 $output['items_removed'] = $cart_count;
+                $output['sql_executed'] = $truncate_query;
                 
             } else {
                 $error = 'Failed to truncate cart: ' . $conn->error;
                 outputMessage("ERROR: $error", $isCLI);
+                outputMessage("SQL Query: $truncate_query", $isCLI);
                 $output['error'] = $error;
+                $output['failed_query'] = $truncate_query;
                 throw new Exception($error);
             }
         } else {

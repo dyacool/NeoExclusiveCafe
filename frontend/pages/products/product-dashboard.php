@@ -75,7 +75,7 @@ function truncateCartIfBusinessClosed() {
         
         if ($is_closed) {
             // Check if cart has items before truncating
-            $count_query = "SELECT COUNT(*) as cart_count FROM cart_availtoday";
+            $count_query = "SELECT COUNT(*) as cart_count FROM availtoday_cart";
             $count_result = $conn->query($count_query);
             
             if ($count_result) {
@@ -84,8 +84,8 @@ function truncateCartIfBusinessClosed() {
                 error_log("Cart currently has $cart_count items");
                 
                 if ($cart_count > 0) {
-                    // Business is closed, truncate the cart_availtoday table
-                    $truncate_query = "TRUNCATE TABLE cart_availtoday";
+                    // Business is closed, truncate the availtoday_cart table
+                    $truncate_query = "TRUNCATE TABLE availtoday_cart";
                     $truncate_result = $conn->query($truncate_query);
                     
                     if ($truncate_result) {

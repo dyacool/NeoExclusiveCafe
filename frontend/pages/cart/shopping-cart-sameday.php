@@ -18,6 +18,51 @@ if (!isset($_SESSION["user_id"])) {
 require_once '../../user-includes/navbar/customer-navigation.php';
 $user_id = $_SESSION['user_id'];
 
+// Auto-truncate cart if business is closed
+// This ensures cart is emptied even without cron job
+function checkAndTruncateCart($conn) {
+    // Get business hours
+    $hours_query = "SELECT opening_time, closing_time FROM business_hours ORDER BY id DESC LIMIT 1";
+    $hours_result = $conn->query($hours_query);
+    
+    if ($hours_result && $hours_result->num_rows > 0) {
+        $hours = $hours_result->fetch_assoc();
+        $closing_time = $hours['closing_time'];
+        $current_time = date('H:i:s');
+        
+        // Convert to minutes for comparison
+        $current_minutes = (intval(substr($current_time, 0, 2)) * 60) + intval(substr($current_time, 3, 2));
+        $closing_minutes = (intval(substr($closing_time, 0, 2)) * 60) + intval(substr($closing_time, 3, 2));
+        
+        // Check if business is closed
+        $is_closed = false;
+        if ($current_minutes < $closing_minutes && $current_minutes < 600) {
+            // Past midnight
+            $is_closed = true;
+        } else if ($current_minutes >= $closing_minutes) {
+            // After closing time
+            $is_closed = true;
+        }
+        
+        // Truncate cart if closed
+        if ($is_closed) {
+            $count_query = "SELECT COUNT(*) as count FROM availtoday_cart";
+            $count_result = $conn->query($count_query);
+            if ($count_result) {
+                $count_data = $count_result->fetch_assoc();
+                if ($count_data['count'] > 0) {
+                    // Truncate the cart
+                    $conn->query("TRUNCATE TABLE availtoday_cart");
+                    error_log("Auto-truncate: Cart cleared (business closed at $closing_time, current time $current_time)");
+                }
+            }
+        }
+    }
+}
+
+// Run the auto-truncate check
+checkAndTruncateCart($conn);
+
 // Function to convert day names to abbreviations
 function getDayAbbreviations($availableDays) {
     if (empty($availableDays)) {

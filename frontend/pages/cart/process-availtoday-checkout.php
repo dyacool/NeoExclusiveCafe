@@ -227,7 +227,7 @@ try {
     }
     
     // Clear the availtoday cart for this user
-    $clear_cart_sql = "DELETE FROM cart_availtoday WHERE user_id = ?";
+    $clear_cart_sql = "DELETE FROM availtoday_cart WHERE user_id = ?";
     $clear_cart_stmt = $conn->prepare($clear_cart_sql);
     if (!$clear_cart_stmt) {
         throw new Exception("Failed to prepare clear cart statement: " . $conn->error);

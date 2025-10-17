@@ -233,7 +233,7 @@ function addToAvailTodayCart() {
     }
     
     // Check if item already exists in cart
-    $check_query = "SELECT quantity FROM cart_availtoday WHERE user_id = ? AND product_id = ?";
+    $check_query = "SELECT quantity FROM availtoday_cart WHERE user_id = ? AND product_id = ?";
     $check_stmt = $conn->prepare($check_query);
     $check_stmt->bind_param("ii", $user_id, $product_id);
     $check_stmt->execute();
@@ -246,13 +246,13 @@ function addToAvailTodayCart() {
         
         // Check if updated_at column exists
         $hasUpdatedAt = false;
-        $updColCheck = $conn->query("SHOW COLUMNS FROM cart_availtoday LIKE 'updated_at'");
+        $updColCheck = $conn->query("SHOW COLUMNS FROM availtoday_cart LIKE 'updated_at'");
         if ($updColCheck && $updColCheck->num_rows > 0) { $hasUpdatedAt = true; }
 
         if ($hasUpdatedAt) {
-            $update_query = "UPDATE cart_availtoday SET quantity = ?, updated_at = NOW() WHERE user_id = ? AND product_id = ?";
+            $update_query = "UPDATE availtoday_cart SET quantity = ?, updated_at = NOW() WHERE user_id = ? AND product_id = ?";
         } else {
-            $update_query = "UPDATE cart_availtoday SET quantity = ? WHERE user_id = ? AND product_id = ?";
+            $update_query = "UPDATE availtoday_cart SET quantity = ? WHERE user_id = ? AND product_id = ?";
         }
         $update_stmt = $conn->prepare($update_query);
         $update_stmt->bind_param("iii", $new_quantity, $user_id, $product_id);
@@ -270,34 +270,34 @@ function addToAvailTodayCart() {
     } else {
         // Insert new item (handle optional price column)
         $hasPriceColumn = false;
-        $priceColCheck = $conn->query("SHOW COLUMNS FROM cart_availtoday LIKE 'price'");
+        $priceColCheck = $conn->query("SHOW COLUMNS FROM availtoday_cart LIKE 'price'");
         if ($priceColCheck && $priceColCheck->num_rows > 0) {
             $hasPriceColumn = true;
         }
 
         // Check created_at/updated_at columns
         $hasCreatedAt = false; $hasUpdatedAt = false;
-        $crtColCheck = $conn->query("SHOW COLUMNS FROM cart_availtoday LIKE 'created_at'");
+        $crtColCheck = $conn->query("SHOW COLUMNS FROM availtoday_cart LIKE 'created_at'");
         if ($crtColCheck && $crtColCheck->num_rows > 0) { $hasCreatedAt = true; }
-        $updColCheck2 = $conn->query("SHOW COLUMNS FROM cart_availtoday LIKE 'updated_at'");
+        $updColCheck2 = $conn->query("SHOW COLUMNS FROM availtoday_cart LIKE 'updated_at'");
         if ($updColCheck2 && $updColCheck2->num_rows > 0) { $hasUpdatedAt = true; }
 
         if ($hasPriceColumn && $hasCreatedAt && $hasUpdatedAt) {
-            $insert_query = "INSERT INTO cart_availtoday (user_id, product_id, quantity, price, created_at, updated_at) VALUES (?, ?, ?, ?, NOW(), NOW())";
+            $insert_query = "INSERT INTO availtoday_cart (user_id, product_id, quantity, price, created_at, updated_at) VALUES (?, ?, ?, ?, NOW(), NOW())";
             $insert_stmt = $conn->prepare($insert_query);
             $priceValue = (float)$product['price'];
             $insert_stmt->bind_param("iiid", $user_id, $product_id, $quantity, $priceValue);
         } elseif ($hasPriceColumn) {
-            $insert_query = "INSERT INTO cart_availtoday (user_id, product_id, quantity, price) VALUES (?, ?, ?, ?)";
+            $insert_query = "INSERT INTO availtoday_cart (user_id, product_id, quantity, price) VALUES (?, ?, ?, ?)";
             $insert_stmt = $conn->prepare($insert_query);
             $priceValue = (float)$product['price'];
             $insert_stmt->bind_param("iiid", $user_id, $product_id, $quantity, $priceValue);
         } elseif ($hasCreatedAt && $hasUpdatedAt) {
-            $insert_query = "INSERT INTO cart_availtoday (user_id, product_id, quantity, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())";
+            $insert_query = "INSERT INTO availtoday_cart (user_id, product_id, quantity, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())";
             $insert_stmt = $conn->prepare($insert_query);
             $insert_stmt->bind_param("iii", $user_id, $product_id, $quantity);
         } else {
-            $insert_query = "INSERT INTO cart_availtoday (user_id, product_id, quantity) VALUES (?, ?, ?)";
+            $insert_query = "INSERT INTO availtoday_cart (user_id, product_id, quantity) VALUES (?, ?, ?)";
             $insert_stmt = $conn->prepare($insert_query);
             $insert_stmt->bind_param("iii", $user_id, $product_id, $quantity);
         }
@@ -335,7 +335,7 @@ function updateAvailTodayCartItem() {
     
     if ($quantity <= 0) {
         // Remove item if quantity is 0 or negative
-        $delete_query = "DELETE FROM cart_availtoday WHERE user_id = ? AND product_id = ?";
+        $delete_query = "DELETE FROM availtoday_cart WHERE user_id = ? AND product_id = ?";
         $delete_stmt = $conn->prepare($delete_query);
         $delete_stmt->bind_param("ii", $user_id, $product_id);
         
@@ -350,7 +350,7 @@ function updateAvailTodayCartItem() {
         $delete_stmt->close();
     } else {
         // Update quantity
-        $update_query = "UPDATE cart_availtoday SET quantity = ?, updated_at = NOW() WHERE user_id = ? AND product_id = ?";
+        $update_query = "UPDATE availtoday_cart SET quantity = ?, updated_at = NOW() WHERE user_id = ? AND product_id = ?";
         $update_stmt = $conn->prepare($update_query);
         $update_stmt->bind_param("iii", $quantity, $user_id, $product_id);
         
@@ -380,7 +380,7 @@ function removeFromAvailTodayCart() {
         return;
     }
     
-    $stmt = $conn->prepare("DELETE FROM cart_availtoday WHERE user_id = ? AND product_id = ?");
+    $stmt = $conn->prepare("DELETE FROM availtoday_cart WHERE user_id = ? AND product_id = ?");
     $stmt->bind_param("ii", $user_id, $product_id);
     
     if ($stmt->execute()) {
@@ -401,7 +401,7 @@ function removeFromAvailTodayCart() {
 function clearAvailTodayCart() {
     global $conn, $user_id;
     
-    $clear_query = "DELETE FROM cart_availtoday WHERE user_id = ?";
+    $clear_query = "DELETE FROM availtoday_cart WHERE user_id = ?";
     $clear_stmt = $conn->prepare($clear_query);
     $clear_stmt->bind_param("i", $user_id);
     
@@ -440,7 +440,7 @@ function getAvailTodayCart() {
             '' as available_days,
             ca.created_at,
             ca.updated_at
-        FROM cart_availtoday ca
+        FROM availtoday_cart ca
         JOIN products p ON ca.product_id = p.id
         LEFT JOIN product_statuses ps ON p.status_id = ps.id
         WHERE ca.user_id = ? 
@@ -492,7 +492,7 @@ function getAvailTodayCart() {
 function getAvailTodayCartCount() {
     global $conn, $user_id;
     
-    $count_query = "SELECT COUNT(*) as item_count FROM cart_availtoday WHERE user_id = ?";
+    $count_query = "SELECT COUNT(*) as item_count FROM availtoday_cart WHERE user_id = ?";
     $count_stmt = $conn->prepare($count_query);
     $count_stmt->bind_param("i", $user_id);
     $count_stmt->execute();
@@ -516,7 +516,7 @@ function getAvailTodayCartTotal() {
     // Calculate total directly instead of using stored function
     $stmt = $conn->prepare("
         SELECT COALESCE(SUM(ca.quantity * p.price), 0) as cart_total
-        FROM cart_availtoday ca
+        FROM availtoday_cart ca
         JOIN products p ON ca.product_id = p.id
         WHERE ca.user_id = ?
     ");
