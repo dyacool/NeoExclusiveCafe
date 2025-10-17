@@ -18,10 +18,39 @@ if (!isset($_SESSION["user_id"])) {
 require_once '../../user-includes/navbar/customer-navigation.php';
 $user_id = $_SESSION['user_id'];
 
-// Auto-truncate cart if business is closed
+// Auto-truncate cart if business is closed OR items are from previous days
 // This ensures cart is emptied even without cron job
 function checkAndTruncateCart($conn) {
-    // Get business hours
+    $truncated = false;
+    
+    // STEP 1: Remove old date assignments from products (date-based cleanup)
+    // Remove dates from previous days so products are no longer marked for same-day delivery
+    
+    // Remove old dates from Today's products table
+    $old_todays_dates = "DELETE FROM todays_products_dates WHERE available_date < CURDATE()";
+    $result1 = $conn->query($old_todays_dates);
+    $removed_todays = ($result1 && $conn->affected_rows > 0) ? $conn->affected_rows : 0;
+    
+    // Remove old dates from regular products' today dates table
+    $old_regular_dates = "DELETE FROM regular_products_today_dates WHERE available_date < CURDATE()";
+    $result2 = $conn->query($old_regular_dates);
+    $removed_regular = ($result2 && $conn->affected_rows > 0) ? $conn->affected_rows : 0;
+    
+    $total_removed = $removed_todays + $removed_regular;
+    if ($total_removed > 0) {
+        error_log("Auto-cleanup: Removed $removed_todays old dates from todays_products_dates, $removed_regular from regular_products_today_dates");
+        $truncated = true;
+    }
+    
+    // STEP 1B: Clean up cart items for products that no longer have valid same-day dates
+    $cleanup_cart = "DELETE FROM availtoday_cart WHERE DATE(created_at) < CURDATE()";
+    $cleanup_result = $conn->query($cleanup_cart);
+    if ($cleanup_result && $conn->affected_rows > 0) {
+        error_log("Auto-cleanup: Removed {$conn->affected_rows} old cart items from previous days");
+        $truncated = true;
+    }
+    
+    // STEP 2: Check if business is closed (time-based truncation)
     $hours_query = "SELECT opening_time, closing_time FROM business_hours ORDER BY id DESC LIMIT 1";
     $hours_result = $conn->query($hours_query);
     
@@ -44,7 +73,7 @@ function checkAndTruncateCart($conn) {
             $is_closed = true;
         }
         
-        // Truncate cart if closed
+        // Truncate remaining cart items if closed
         if ($is_closed) {
             $count_query = "SELECT COUNT(*) as count FROM availtoday_cart";
             $count_result = $conn->query($count_query);
@@ -54,10 +83,13 @@ function checkAndTruncateCart($conn) {
                     // Truncate the cart
                     $conn->query("TRUNCATE TABLE availtoday_cart");
                     error_log("Auto-truncate: Cart cleared (business closed at $closing_time, current time $current_time)");
+                    $truncated = true;
                 }
             }
         }
     }
+    
+    return $truncated;
 }
 
 // Run the auto-truncate check

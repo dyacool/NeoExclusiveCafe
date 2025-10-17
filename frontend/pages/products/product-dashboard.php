@@ -22,11 +22,41 @@ require_once __DIR__ . "/../../user-includes/user-header.php";
 require_once __DIR__ . "/../../user-includes/preview-mode.php";
 require_once __DIR__ . "/../../../backend/pages/admin-includes/database.php";
 
-// Function to truncate cart_availtoday when business hours are closed
+// Function to truncate cart_availtoday when business hours are closed OR items are from previous days
 function truncateCartIfBusinessClosed() {
     global $conn;
     
     try {
+        $truncated = false;
+        
+        // STEP 1: Remove old date assignments from products (date-based cleanup)
+        // Remove dates from previous days so products are no longer marked for same-day delivery
+        
+        // Remove old dates from Today's products table
+        $old_todays_dates = "DELETE FROM todays_products_dates WHERE available_date < CURDATE()";
+        $result1 = $conn->query($old_todays_dates);
+        $removed_todays = ($result1 && $conn->affected_rows > 0) ? $conn->affected_rows : 0;
+        
+        // Remove old dates from regular products' today dates table
+        $old_regular_dates = "DELETE FROM regular_products_today_dates WHERE available_date < CURDATE()";
+        $result2 = $conn->query($old_regular_dates);
+        $removed_regular = ($result2 && $conn->affected_rows > 0) ? $conn->affected_rows : 0;
+        
+        $total_removed = $removed_todays + $removed_regular;
+        if ($total_removed > 0) {
+            error_log("Auto-cleanup (product-dashboard): Removed $removed_todays old dates from todays_products_dates, $removed_regular from regular_products_today_dates");
+            $truncated = true;
+        }
+        
+        // STEP 1B: Clean up cart items for products that no longer have valid same-day dates
+        $cleanup_cart = "DELETE FROM availtoday_cart WHERE DATE(created_at) < CURDATE()";
+        $cleanup_result = $conn->query($cleanup_cart);
+        if ($cleanup_result && $conn->affected_rows > 0) {
+            error_log("Auto-cleanup (product-dashboard): Removed {$conn->affected_rows} old cart items from previous days");
+            $truncated = true;
+        }
+        
+        // STEP 2: Check if business is closed (time-based truncation)
         // Get current time
         $current_time = date('H:i:s');
         
@@ -36,7 +66,7 @@ function truncateCartIfBusinessClosed() {
         
         if (!$business_hours_result) {
             error_log("Failed to get business hours: " . $conn->error);
-            return false;
+            return $truncated;
         }
         
         if ($business_hours_result->num_rows === 0) {
@@ -90,14 +120,14 @@ function truncateCartIfBusinessClosed() {
                     
                     if ($truncate_result) {
                         error_log("SUCCESS: Cart truncated successfully - $cart_count items removed");
-                        return true; // Successfully truncated
+                        $truncated = true;
                     } else {
                         error_log("ERROR: Failed to truncate cart: " . $conn->error);
-                        return false;
+                        return $truncated;
                     }
                 } else {
                     error_log("Cart is already empty - no action needed");
-                    return false;
+                    return $truncated;
                 }
             } else {
                 error_log("ERROR: Failed to count cart items: " . $conn->error);

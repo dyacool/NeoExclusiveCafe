@@ -100,6 +100,71 @@ try {
     $output['opening_time'] = $opening_time;
     $output['closing_time'] = $closing_time;
     
+    // ==========================================
+    // STEP 1: Date-based cleanup (remove old date assignments from products)
+    // ==========================================
+    outputMessage("=== STEP 1: Date-based Cleanup ===", $isCLI);
+    
+    // STEP 1A: Remove old dates from Today's products
+    outputMessage("→ Cleaning up todays_products_dates...", $isCLI);
+    $todays_dates_query = "DELETE FROM todays_products_dates WHERE available_date < CURDATE()";
+    $todays_dates_result = $conn->query($todays_dates_query);
+    $removed_todays = ($todays_dates_result && $conn->affected_rows > 0) ? $conn->affected_rows : 0;
+    
+    if ($removed_todays > 0) {
+        outputMessage("✓ Removed $removed_todays old dates from todays_products_dates", $isCLI);
+    } else {
+        outputMessage("→ No old dates in todays_products_dates", $isCLI);
+    }
+    
+    // STEP 1B: Remove old dates from regular products' today dates
+    outputMessage("→ Cleaning up regular_products_today_dates...", $isCLI);
+    $regular_dates_query = "DELETE FROM regular_products_today_dates WHERE available_date < CURDATE()";
+    $regular_dates_result = $conn->query($regular_dates_query);
+    $removed_regular = ($regular_dates_result && $conn->affected_rows > 0) ? $conn->affected_rows : 0;
+    
+    if ($removed_regular > 0) {
+        outputMessage("✓ Removed $removed_regular old dates from regular_products_today_dates", $isCLI);
+    } else {
+        outputMessage("→ No old dates in regular_products_today_dates", $isCLI);
+    }
+    
+    // STEP 1C: Clean up cart items from previous days
+    outputMessage("→ Cleaning up old cart items...", $isCLI);
+    $cart_cleanup_query = "DELETE FROM availtoday_cart WHERE DATE(created_at) < CURDATE()";
+    $cart_cleanup_result = $conn->query($cart_cleanup_query);
+    $removed_cart_items = ($cart_cleanup_result && $conn->affected_rows > 0) ? $conn->affected_rows : 0;
+    
+    if ($removed_cart_items > 0) {
+        outputMessage("✓ Removed $removed_cart_items old cart items", $isCLI);
+    } else {
+        outputMessage("→ No old cart items to remove", $isCLI);
+    }
+    
+    // Summary of date-based cleanup
+    $total_cleaned = $removed_todays + $removed_regular + $removed_cart_items;
+    if ($total_cleaned > 0) {
+        outputMessage("✓ Date cleanup complete: $removed_todays product dates + $removed_regular regular dates + $removed_cart_items cart items = $total_cleaned total", $isCLI);
+        $output['date_cleanup'] = [
+            'executed' => true,
+            'todays_dates_removed' => $removed_todays,
+            'regular_dates_removed' => $removed_regular,
+            'cart_items_removed' => $removed_cart_items,
+            'total_cleaned' => $total_cleaned
+        ];
+    } else {
+        outputMessage("→ All dates and cart items are current", $isCLI);
+        $output['date_cleanup'] = [
+            'executed' => true,
+            'total_cleaned' => 0
+        ];
+    }
+    
+    // ==========================================
+    // STEP 2: Time-based truncation (clear all items if business is closed)
+    // ==========================================
+    outputMessage("=== STEP 2: Time-based Truncation ===", $isCLI);
+    
     // Determine if business is closed
     $is_closed = false;
     
