@@ -52,7 +52,7 @@
     $sql = "SELECT o.order_id, o.order_date, o.customer_name, o.payment_method, o.total_amount, o.status, o.delivery_method as order_type,
             o.pickup_date, o.delivery_date, o.customer_contact, o.customer_address
             FROM orders o
-            WHERE (o.status IN ('Delivered', 'Picked-up'))
+            WHERE (o.status IN ('Delivered', 'Picked-up', 'Completed'))
             AND (DATE(o.order_date) BETWEEN ? AND ?)
             ORDER BY o.$sort_field $sort_direction";
     
@@ -102,6 +102,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="transactions.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.1.7/css/dataTables.dataTables.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <script src="https://cdn.datatables.net/2.1.7/js/dataTables.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <title>Transactions</title>
 </head>
 <body>
@@ -207,6 +214,51 @@
                 </div>
             </div>
 
+            <!-- Charts Section -->
+            <div class="charts-section">
+                <div class="charts-grid">
+                    <div class="chart-card wide">
+                        <div class="chart-header">
+                            <span class="chart-title">Revenue Trend</span>
+                            <span class="chart-subtitle">Daily revenue over selected period</span>
+                        </div>
+                        <canvas id="revenueTrendChart"></canvas>
+                    </div>
+                    <div class="chart-card pie-narrow">
+                        <div class="chart-header">
+                            <span class="chart-title">Payment Methods</span>
+                            <span class="chart-subtitle">Distribution by payment type</span>
+                        </div>
+                        <canvas id="paymentMethodsChart"></canvas>
+                    </div>
+                </div>
+                <div class="charts-grid">
+                    <div class="chart-card wide">
+                        <div class="chart-header">
+                            <span class="chart-title">Order Status Distribution</span>
+                            <span class="chart-subtitle">Breakdown of order statuses</span>
+                        </div>
+                        <canvas id="orderStatusChart"></canvas>
+                    </div>
+                    <div class="chart-card pie-narrow">
+                        <div class="chart-header">
+                            <span class="chart-title">Delivery Methods</span>
+                            <span class="chart-subtitle">Pickup vs Delivery orders</span>
+                        </div>
+                        <canvas id="deliveryMethodsChart"></canvas>
+                    </div>
+                </div>
+                <div class="charts-grid">
+                    <div class="chart-card full-width">
+                        <div class="chart-header">
+                            <span class="chart-title">Top Products by Sales</span>
+                            <span class="chart-subtitle">Best-selling products by quantity and revenue</span>
+                        </div>
+                        <canvas id="topProductsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
             <!-- Filter Controls -->
             <div class="controls-section">
                 <div class="filter-group">
@@ -225,6 +277,11 @@
                             Custom Range
                         </button>
                     </div>
+                </div>
+                <div class="filter-group">
+                    <button class="export-btn" onclick="exportTransactions()">
+                        <i class="fa-solid fa-download"></i> Export Transactions
+                    </button>
                 </div>
             </div>
 
@@ -265,7 +322,15 @@
                                         <td><?php echo htmlspecialchars($transaction['order_id']); ?></td>
                                         <td><?php echo date('M d, Y', strtotime($transaction['order_date'])); ?></td>
                                         <td><?php echo htmlspecialchars($transaction['customer_name']); ?></td>
-                                        <td><?php echo htmlspecialchars($transaction['payment_method']); ?></td>
+                                        <td><?php 
+                                            $paymentMethods = [
+                                                '0' => 'Cash on Delivery',
+                                                '1' => 'GCash',
+                                                '2' => 'PayMaya',
+                                                '3' => 'Bank Transfer'
+                                            ];
+                                            echo htmlspecialchars($paymentMethods[$transaction['payment_method']] ?? $transaction['payment_method']);
+                                        ?></td>
                                         <td>
                                             <span class="status-badge status-<?php echo strtolower(str_replace([' ', '-'], ['_', '_'], $transaction['status'])); ?>">
                                                 <?php echo htmlspecialchars($transaction['status']); ?>
@@ -297,6 +362,7 @@
             </div>
         </div>
     </div>
+
 
     <!-- Hidden Print Section -->
     <div class="print-section" style="display: none;">
@@ -370,7 +436,7 @@
                         <td>${escapeHtml(transaction.order_id)}</td>
                         <td>${formatDate(transaction.order_date)}</td>
                         <td>${escapeHtml(transaction.customer_name)}</td>
-                        <td>${escapeHtml(transaction.payment_method)}</td>
+                        <td>${formatPaymentMethod(transaction.payment_method)}</td>
                         <td>
                             <span class="status-badge status-${statusClass}">
                                 ${escapeHtml(transaction.status)}
@@ -432,6 +498,16 @@
                 year: 'numeric' 
             });
         }
+
+        function formatPaymentMethod(paymentMethod) {
+            const paymentMethods = {
+                '0': 'Cash on Delivery',
+                '1': 'GCash',
+                '2': 'PayMaya',
+                '3': 'Bank Transfer'
+            };
+            return paymentMethods[paymentMethod] || paymentMethod;
+        }
         
         // Period filter functions
         function filterByPeriod(period) {
@@ -450,6 +526,7 @@
             
             // Fetch updated data
             fetchTransactions();
+            fetchAndRenderCharts();
         }
 
         function toggleCustomFilter() {
@@ -486,6 +563,7 @@
                 
                 // Fetch updated data
                 fetchTransactions();
+                fetchAndRenderCharts();
             } else {
                 alert('Please select both start and end dates');
             }
@@ -511,6 +589,7 @@
             
             // Fetch updated data
             fetchTransactions();
+            fetchAndRenderCharts();
         }
         
         function sortSummary(field) {
@@ -532,6 +611,7 @@
             
             // Fetch updated data
             fetchTransactions();
+            fetchAndRenderCharts();
         }
         
 
@@ -649,7 +729,7 @@
                         ${displayDate}
                         <div class="detail-row">
                             <div class="detail-label">Payment Method:</div>
-                            <div class="detail-value">${order.payment_method || 'Cash on Delivery'}</div>
+                            <div class="detail-value">${formatPaymentMethod(order.payment_method) || 'Cash on Delivery'}</div>
                         </div>
                         <div class="detail-row">
                             <div class="detail-label">Status:</div>
@@ -669,6 +749,376 @@
         function closeModal() {
             document.getElementById('transactionModal').style.display = 'none';
         }
+
+        // Chart instances
+        let revenueTrendChart = null;
+        let paymentMethodsChart = null;
+        let orderStatusChart = null;
+        let deliveryMethodsChart = null;
+        let topProductsChart = null;
+
+        // Fetch and render all charts
+        async function fetchAndRenderCharts() {
+            // Show loading states
+            const chartCards = document.querySelectorAll('.chart-card');
+            chartCards.forEach(card => card.classList.add('loading'));
+            
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const queryString = urlParams.toString();
+                
+                const response = await fetch(`get-chart-data.php?${queryString}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    renderRevenueTrendChart(data.data.revenue_trend);
+                    renderPaymentMethodsChart(data.data.payment_methods);
+                    renderOrderStatusChart(data.data.order_status);
+                    renderDeliveryMethodsChart(data.data.delivery_methods);
+                    renderTopProductsChart(data.data.top_products);
+                } else {
+                    console.error('Error fetching chart data:', data.error);
+                }
+            } catch (error) {
+                console.error('Error fetching chart data:', error);
+            } finally {
+                // Remove loading states
+                chartCards.forEach(card => card.classList.remove('loading'));
+            }
+        }
+
+        // Render Revenue Trend Chart
+        function renderRevenueTrendChart(chartData) {
+            const ctx = document.getElementById('revenueTrendChart').getContext('2d');
+            
+            if (revenueTrendChart) {
+                revenueTrendChart.destroy();
+            }
+            
+            if (!chartData || !chartData.labels || chartData.labels.length === 0) {
+                // Show empty state
+                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                ctx.fillStyle = '#6b7280';
+                ctx.font = '16px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('No data available', ctx.canvas.width / 2, ctx.canvas.height / 2);
+                return;
+            }
+            
+            revenueTrendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [{
+                        label: 'Daily Revenue',
+                        data: chartData.data,
+                        borderColor: '#22c55e',
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        spanGaps: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `₱${context.parsed.y.toLocaleString()}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '₱' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Render Payment Methods Chart
+        function renderPaymentMethodsChart(chartData) {
+            const ctx = document.getElementById('paymentMethodsChart').getContext('2d');
+            
+            if (paymentMethodsChart) {
+                paymentMethodsChart.destroy();
+            }
+            
+            if (!chartData || !chartData.labels || chartData.labels.length === 0) {
+                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                ctx.fillStyle = '#6b7280';
+                ctx.font = '16px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('No data available', ctx.canvas.width / 2, ctx.canvas.height / 2);
+                return;
+            }
+            
+            paymentMethodsChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [{
+                        data: chartData.data,
+                        backgroundColor: chartData.colors,
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                    return `${context.label}: ${context.parsed} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Render Order Status Chart
+        function renderOrderStatusChart(chartData) {
+            const ctx = document.getElementById('orderStatusChart').getContext('2d');
+            
+            if (orderStatusChart) {
+                orderStatusChart.destroy();
+            }
+            
+            if (!chartData || !chartData.labels || chartData.labels.length === 0) {
+                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                ctx.fillStyle = '#6b7280';
+                ctx.font = '16px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('No data available', ctx.canvas.width / 2, ctx.canvas.height / 2);
+                return;
+            }
+            
+            orderStatusChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [{
+                        label: 'Number of Orders',
+                        data: chartData.data,
+                        backgroundColor: chartData.colors,
+                        borderColor: chartData.colors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Render Delivery Methods Chart
+        function renderDeliveryMethodsChart(chartData) {
+            const ctx = document.getElementById('deliveryMethodsChart').getContext('2d');
+            
+            if (deliveryMethodsChart) {
+                deliveryMethodsChart.destroy();
+            }
+            
+            if (!chartData || !chartData.labels || chartData.labels.length === 0) {
+                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                ctx.fillStyle = '#6b7280';
+                ctx.font = '16px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('No data available', ctx.canvas.width / 2, ctx.canvas.height / 2);
+                return;
+            }
+            
+            deliveryMethodsChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [{
+                        data: chartData.data,
+                        backgroundColor: chartData.colors,
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                    return `${context.label}: ${context.parsed} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Render Top Products Chart
+        function renderTopProductsChart(chartData) {
+            const ctx = document.getElementById('topProductsChart').getContext('2d');
+            
+            if (topProductsChart) {
+                topProductsChart.destroy();
+            }
+            
+            if (!chartData || !chartData.labels || chartData.labels.length === 0) {
+                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                ctx.fillStyle = '#6b7280';
+                ctx.font = '16px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('No data available', ctx.canvas.width / 2, ctx.canvas.height / 2);
+                return;
+            }
+            
+            topProductsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [
+                        {
+                            label: 'Quantity Sold',
+                            data: chartData.quantity_data,
+                            backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                            borderColor: '#22c55e',
+                            borderWidth: 1,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Revenue (₱)',
+                            data: chartData.revenue_data,
+                            backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                            borderColor: '#3b82f6',
+                            borderWidth: 1,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if (context.datasetIndex === 0) {
+                                        return `Quantity: ${context.parsed.y} units`;
+                                    } else {
+                                        return `Revenue: ₱${context.parsed.y.toLocaleString()}`;
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 0
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Quantity Sold'
+                            },
+                            ticks: {
+                                stepSize: 1
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Revenue (₱)'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '₱' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize charts on page load
+        // Export functionality
+        function exportTransactions() {
+            // Get current URL parameters to maintain the same filters
+            const urlParams = new URLSearchParams(window.location.search);
+            const exportUrl = 'export-transactions.php?' + urlParams.toString();
+            
+            // Create a temporary link and click it to download
+            const link = document.createElement('a');
+            link.href = exportUrl;
+            link.download = 'transactions.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchAndRenderCharts();
+        });
+
     </script>
 </body>
 </html>

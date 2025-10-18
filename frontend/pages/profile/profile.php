@@ -135,7 +135,7 @@ if (mysqli_num_rows($result) > 0) {
 }
 
 // Fetch user bulk orders
-$bulk_orders_sql = "SELECT unique_order_id, 
+$bulk_orders_sql = "SELECT id, 
                            unique_order_id as display_order_id,
                            name, contact, email, billing_address, order_type, delivery_address, purpose, date_needed, time_needed, created_at, status, total_items, total_amount, proof_of_payment, admin_updated, note, admin_notes 
                     FROM bulk_orders 
@@ -337,9 +337,9 @@ if ($bulk_orders_stmt === false) {
                             <td>₱<?php echo htmlspecialchars(number_format($bulk_order['total_amount'], 2)); ?></td>
                             <td><span class="status-<?php echo htmlspecialchars(strtolower($bulk_order['status'])); ?>"><?php echo htmlspecialchars(ucfirst(str_replace('_', ' ', $bulk_order['status']))); ?></span></td>
                             <td>
-                                <a href="../bulk/bulk-order-details.php?id=<?php echo $bulk_order['unique_order_id']; ?>" class="btn-view">View Details</a>
+                                <a href="../bulk/bulk-order-details.php?id=<?php echo $bulk_order['id']; ?>" class="btn-view">View Details</a>
                                 <?php if ($bulk_order['status'] == 'approved' && empty($bulk_order['proof_of_payment'])): ?>
-                                    <a href="../bulk-orders/bulk-order-details.php?id=<?php echo $bulk_order['unique_order_id']; ?>#proof-upload" class="btn-proof">Attach Proof</a>
+                                    <a href="../bulk-orders/bulk-order-details.php?id=<?php echo $bulk_order['id']; ?>#proof-upload" class="btn-proof">Attach Proof</a>
                                 <?php endif; ?>
                             </td>
                         </tr>

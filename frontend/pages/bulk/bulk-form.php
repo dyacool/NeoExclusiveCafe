@@ -32,10 +32,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_bulk_order']))
         // Get selected products
         $selected_products = json_decode($_POST['selected_products'], true);
         
-        // Create bulk_orders table with unique_order_id as primary key
+        // Create bulk_orders table with id as primary key
         $create_table_query = "
             CREATE TABLE IF NOT EXISTS bulk_orders (
-                unique_order_id VARCHAR(20) PRIMARY KEY,
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                unique_order_id VARCHAR(20) UNIQUE,
                 user_id INT NULL,
                 name VARCHAR(255) NOT NULL,
                 contact VARCHAR(20) NOT NULL,
@@ -63,13 +64,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_bulk_order']))
         $create_items_table = "
             CREATE TABLE IF NOT EXISTS bulk_order_items (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                bulk_order_id VARCHAR(20),
+                bulk_order_id INT,
                 product_id INT,
                 product_name VARCHAR(255),
                 product_price DECIMAL(10,2),
                 quantity INT,
                 subtotal DECIMAL(10,2),
-                FOREIGN KEY (bulk_order_id) REFERENCES bulk_orders(unique_order_id) ON DELETE CASCADE
+                FOREIGN KEY (bulk_order_id) REFERENCES bulk_orders(id) ON DELETE CASCADE
             )
         ";
         mysqli_query($conn, $create_items_table);
@@ -80,19 +81,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_bulk_order']))
             $total_items += intval($product['quantity']);
         }
         
-        // Generate next unique order ID
-        $get_next_id_query = "SELECT COUNT(*) + 1 as next_id FROM bulk_orders";
-        $next_id_result = mysqli_query($conn, $get_next_id_query);
-        $next_id_row = mysqli_fetch_assoc($next_id_result);
-        $next_id = $next_id_row['next_id'];
-        $unique_order_id = 'BO' . str_pad($next_id, 6, '0', STR_PAD_LEFT);
-        
-        // Insert bulk order with unique_order_id as primary key
-        $insert_order = "INSERT INTO bulk_orders (unique_order_id, user_id, name, contact, email, billing_address, order_type, delivery_address, purpose, date_needed, time_needed, note, total_amount, total_items) 
-                        VALUES ('$unique_order_id', '$user_id', '$name', '$contact', '$email', '$billing_address', '$order_type', '$delivery_address', '$purpose', '$date_needed', '$time_needed', '$note', '$total_amount', '$total_items')";
+        // Insert bulk order first (id will auto-increment, unique_order_id will be updated after)
+        $insert_order = "INSERT INTO bulk_orders (user_id, name, contact, email, billing_address, order_type, delivery_address, purpose, date_needed, time_needed, note, total_amount, total_items) 
+                        VALUES ('$user_id', '$name', '$contact', '$email', '$billing_address', '$order_type', '$delivery_address', '$purpose', '$date_needed', '$time_needed', '$note', '$total_amount', '$total_items')";
         
         if (mysqli_query($conn, $insert_order)) {
-            $bulk_order_id = $unique_order_id;
+            $bulk_order_id = mysqli_insert_id($conn); // Get the auto-increment ID
+            
+            // Generate and update unique_order_id based on the actual auto-incremented ID
+            $unique_order_id = 'BO' . str_pad($bulk_order_id, 6, '0', STR_PAD_LEFT);
+            $update_unique_id = "UPDATE bulk_orders SET unique_order_id = '$unique_order_id' WHERE id = $bulk_order_id";
+            mysqli_query($conn, $update_unique_id);
             
             // Insert order items
             foreach ($selected_products as $product) {
