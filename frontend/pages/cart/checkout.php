@@ -1802,6 +1802,24 @@ $debug_info = [
                     formData.append('delivery_date', isDelivery ? (document.getElementById('delivery_date').value || todayStr) : todayStr);
                     formData.append('pickup_date', !isDelivery ? (document.getElementById('pickup_date').value || todayStr) : todayStr);
                     
+                    // Add contact number
+                    const contactNumber = document.getElementById('contact_number');
+                    if (contactNumber && contactNumber.value) {
+                        formData.append('contact_number', contactNumber.value);
+                    } else {
+                        throw new Error('Please enter your contact number');
+                    }
+                    
+                    // Add delivery address if delivery is selected
+                    if (isDelivery) {
+                        const deliveryAddress = document.getElementById('delivery_address');
+                        if (deliveryAddress && deliveryAddress.value) {
+                            formData.append('delivery_address', deliveryAddress.value);
+                        } else {
+                            throw new Error('Please enter your delivery address');
+                        }
+                    }
+                    
                     // Add delivery/pickup time
                     if (isDelivery && document.getElementById('delivery_time')) {
                         formData.append('delivery_time', document.getElementById('delivery_time').value);

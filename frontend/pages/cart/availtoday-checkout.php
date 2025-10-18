@@ -88,7 +88,23 @@ if (isset($_SESSION['user_id'])) {
     error_log("No user_id in session");
 }
 
-// Get Available Today cart items from availtoday_cart table
+// Get selected cart IDs from POST
+$selected_cart_ids = [];
+if (isset($_POST['cart_items']) && !empty($_POST['cart_items'])) {
+    $selected_cart_ids = array_filter(array_map('intval', explode(',', $_POST['cart_items'])));
+} elseif (isset($_POST['selected_cart_ids']) && is_array($_POST['selected_cart_ids'])) {
+    $selected_cart_ids = array_filter(array_map('intval', $_POST['selected_cart_ids']));
+}
+
+// If no items selected, redirect back to cart
+if (empty($selected_cart_ids)) {
+    error_log("No items selected for checkout - redirecting to cart");
+    $_SESSION['error_message'] = "Please select items to checkout.";
+    header("Location: shopping-cart-sameday.php");
+    exit();
+}
+
+// Get Available Today cart items from availtoday_cart table (ONLY SELECTED ITEMS)
 $cart_total = 0;
 $cart_items = [];
 $shipping_method = 'pickup'; // Default
@@ -96,8 +112,10 @@ $has_mixed_availtoday_status = false;
 $availtoday_status_counts = ['pickup' => 0, 'delivery' => 0, 'null' => 0];
 
 try {
-    // Get cart items with availtoday_status information
-    // Get ALL items - they can be status_id = 3 (Available Today) OR status_id = 1/2 with availtoday_status_id set
+    // Build placeholders for IN clause
+    $placeholders = implode(',', array_fill(0, count($selected_cart_ids), '?'));
+    
+    // Get cart items with availtoday_status information (FILTERED BY SELECTED IDs)
     $cart_sql = "SELECT 
                     ca.id as cart_id,
                     ca.product_id,
@@ -112,12 +130,15 @@ try {
                  JOIN products p ON ca.product_id = p.id
                  LEFT JOIN availtoday_status ats ON p.availtoday_status_id = ats.id
                  LEFT JOIN product_day pd ON p.id = pd.product_id
-                 WHERE ca.user_id = ? AND p.deleted_at IS NULL
+                 WHERE ca.user_id = ? AND ca.id IN ($placeholders) AND p.deleted_at IS NULL
                  GROUP BY ca.id";
     
     $cart_stmt = $conn->prepare($cart_sql);
     if ($cart_stmt) {
-        $cart_stmt->bind_param("i", $_SESSION['user_id']);
+        // Bind user_id first, then all selected cart IDs
+        $types = 'i' . str_repeat('i', count($selected_cart_ids));
+        $params = array_merge([$_SESSION['user_id']], $selected_cart_ids);
+        $cart_stmt->bind_param($types, ...$params);
         
         if ($cart_stmt->execute()) {
             $cart_result = $cart_stmt->get_result();

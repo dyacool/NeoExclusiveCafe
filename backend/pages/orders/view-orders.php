@@ -79,6 +79,265 @@ $items_result = mysqli_stmt_get_result($stmt);
                 margin-top: 10px;
             }
         }
+        
+        /* Print styles for 48mm thermal receipt printer */
+        @media print {
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+            
+            @page {
+                size: 48mm auto;
+                margin: 0;
+            }
+            
+            body {
+                width: 48mm;
+                max-width: 48mm;
+                margin: 0 auto;
+                padding: 2mm;
+                font-family: 'Courier New', monospace;
+                font-size: 7px;
+                line-height: 1.2;
+                color: #000;
+                background: #fff;
+            }
+            
+            /* Hide non-receipt elements */
+            .breadcrumb,
+            .order-actions,
+            .print-button,
+            .status-form,
+            .warning-message,
+            .product-image,
+            h3,
+            .mobile-header,
+            .sidebar,
+            .header,
+            .logout-modal {
+                display: none !important;
+            }
+            
+            /* Receipt header */
+            .main-container {
+                width: 100%;
+                max-width: 100%;
+                padding: 0;
+                margin: 0;
+                overflow: hidden;
+            }
+            
+            .order-details {
+                width: 100%;
+                max-width: 100%;
+                padding: 0;
+                margin: 0;
+                overflow: hidden;
+            }
+            
+            /* Add NeoCafe header */
+            .order-info::before {
+                content: "NEO CAFE";
+                display: block;
+                text-align: center;
+                font-size: 11px;
+                font-weight: 900;
+                letter-spacing: 0.5px;
+                margin: 0 0 3px 0;
+                padding-bottom: 3px;
+                border-bottom: 2px solid #000;
+            }
+            
+            .order-info h2 {
+                text-align: center;
+                font-size: 9px;
+                font-weight: bold;
+                margin: 0 0 2px 0;
+                padding: 3px 0 2px 0;
+                border-bottom: 1px solid #000;
+            }
+            
+            .order-date {
+                text-align: center;
+                font-size: 6px;
+                margin: 2px 0 4px 0;
+                padding-bottom: 2px;
+                border-bottom: 1px dashed #000;
+            }
+            
+            /* Customer details */
+            .order-grid {
+                display: block;
+                width: 100%;
+                max-width: 100%;
+                overflow: hidden;
+            }
+            
+            .customer-details,
+            .order-summary {
+                width: 100%;
+                max-width: 100%;
+                padding: 0;
+                margin: 0;
+                box-shadow: none;
+                border: none;
+                overflow: hidden;
+            }
+            
+            .detail-group {
+                margin-bottom: 10px;
+                padding-bottom: 5px;
+                border-bottom: 1px dashed #000;
+                max-width: 100%;
+                overflow: hidden;
+            }
+            
+            .detail-group p {
+                margin: 2px 0;
+                font-size: 7px;
+                line-height: 1.2;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
+            }
+            
+            .detail-group strong {
+                display: inline-block;
+                width: 35px;
+                font-weight: bold;
+                font-size: 7px;
+            }
+            
+            /* Order items table */
+            .table-responsive {
+                width: 100%;
+                max-width: 100%;
+                overflow: hidden;
+            }
+            
+            .items-table {
+                width: 100%;
+                max-width: 100%;
+                border-collapse: collapse;
+                margin: 10px 0;
+                table-layout: fixed;
+            }
+            
+            .items-table thead th {
+                display: none;
+            }
+            
+            .items-table tbody tr {
+                border-bottom: 1px dotted #000;
+            }
+            
+            .items-table tbody td {
+                padding: 2px 0;
+                border: none;
+                font-size: 7px;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
+            }
+            
+            /* Simplified item layout for receipt */
+            .items-table tbody tr {
+                display: block;
+                margin-bottom: 4px;
+                max-width: 100%;
+            }
+            
+            .items-table tbody td:nth-child(1) {
+                display: none; /* Hide image column */
+            }
+            
+            .items-table tbody td:nth-child(2) {
+                display: block;
+                font-weight: bold;
+                font-size: 7px;
+                margin-bottom: 1px;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
+                max-width: 100%;
+            }
+            
+            .items-table tbody td:nth-child(3),
+            .items-table tbody td:nth-child(4),
+            .items-table tbody td:nth-child(5) {
+                display: inline;
+                font-size: 6px;
+            }
+            
+            .items-table tbody td:nth-child(3)::before {
+                content: "₱";
+            }
+            
+            .items-table tbody td:nth-child(4)::before {
+                content: " x ";
+            }
+            
+            .items-table tbody td:nth-child(5)::before {
+                content: " = ₱";
+            }
+            
+            /* Totals */
+            .items-table tfoot {
+                border-top: 2px solid #000;
+                margin-top: 10px;
+                width: 100%;
+            }
+            
+            .items-table tfoot tr {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 4px 0;
+                width: 100%;
+                max-width: 100%;
+            }
+            
+            .items-table tfoot td {
+                display: block !important;
+                border: none;
+                font-size: 7px;
+                font-weight: bold;
+                white-space: nowrap;
+            }
+            
+            .total-label {
+                font-weight: bold;
+                text-align: left;
+            }
+            
+            .total-value {
+                text-align: right;
+                font-weight: bold;
+            }
+            
+            .items-table tfoot tr:last-child {
+                font-size: 8px;
+                font-weight: bold;
+                border-top: 1px solid #000;
+                padding-top: 3px;
+                margin-top: 2px;
+            }
+            
+            .items-table tfoot tr:last-child td {
+                font-size: 8px;
+            }
+            
+            /* Footer */
+            .order-summary::after {
+                content: "Thank you!";
+                display: block;
+                text-align: center;
+                margin-top: 6px;
+                padding-top: 4px;
+                border-top: 1px dashed #000;
+                font-size: 7px;
+                font-weight: bold;
+            }
+        }
     </style>
     <title>Order #<?php echo $order_id; ?> | Neo Exclusive Cafe</title>
 </head>
