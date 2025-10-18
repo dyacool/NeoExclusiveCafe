@@ -124,9 +124,11 @@ $items_result = mysqli_stmt_get_result($stmt);
             .main-container {
                 width: 100%;
                 max-width: 100%;
-                padding: 0;
+                padding: 0.5rem;
                 margin: 0;
                 overflow: hidden;
+                border-radius: 0 !important;
+                border: none !important;
             }
             
             .order-details {
@@ -136,6 +138,8 @@ $items_result = mysqli_stmt_get_result($stmt);
                 margin: 0;
                 overflow: hidden;
             }
+            
+
             
             /* Add NeoCafe header */
             .order-info::before {
@@ -147,7 +151,17 @@ $items_result = mysqli_stmt_get_result($stmt);
                 letter-spacing: 0.5px;
                 margin: 0 0 3px 0;
                 padding-bottom: 3px;
-                border-bottom: 2px solid #000;
+                border-bottom: none;
+            }
+
+            .order-info {
+                margin-bottom: 0;
+                padding-bottom: 0;
+                border-bottom: none;
+            }
+
+            .order-actions {
+                display: none !important;
             }
             
             .order-info h2 {
@@ -161,9 +175,10 @@ $items_result = mysqli_stmt_get_result($stmt);
             
             .order-date {
                 text-align: center;
+                width: 100%;
                 font-size: 6px;
-                margin: 2px 0 4px 0;
-                padding-bottom: 2px;
+                margin: 4px 0 4px 0;
+                padding-bottom: 0.5rem;
                 border-bottom: 1px dashed #000;
             }
             
@@ -174,39 +189,52 @@ $items_result = mysqli_stmt_get_result($stmt);
                 max-width: 100%;
                 overflow: hidden;
             }
-            
-            .customer-details,
-            .order-summary {
-                width: 100%;
-                max-width: 100%;
-                padding: 0;
-                margin: 0;
-                box-shadow: none;
-                border: none;
-                overflow: hidden;
+
+            .order-summary::before {
+                content: "Purchased Products";
+                display: block;
+                text-align: center;
+                font-size: 8px;
+                font-weight: 600;
             }
-            
+
+
+            .order-summary,
+            .customer-details {
+                width: 100%;
+                font-weight: 700;
+                background: white !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                border-radius: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
+                transition: none !important;
+            }
+
             .detail-group {
-                margin-bottom: 10px;
-                padding-bottom: 5px;
+                margin-bottom: 0.3rem;
+                padding-bottom: 0.2rem;
                 border-bottom: 1px dashed #000;
-                max-width: 100%;
                 overflow: hidden;
             }
             
             .detail-group p {
-                margin: 2px 0;
-                font-size: 7px;
+                color: #000;
+                margin: 0.2rem 0;
+                font-size: 8px;
+                font-weight: 500;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
                 line-height: 1.2;
-                word-wrap: break-word;
-                overflow-wrap: break-word;
             }
             
             .detail-group strong {
                 display: inline-block;
-                width: 35px;
                 font-weight: bold;
-                font-size: 7px;
+                font-size: 9px;
+                min-width: 15mm;
             }
             
             /* Order items table */
@@ -220,8 +248,11 @@ $items_result = mysqli_stmt_get_result($stmt);
                 width: 100%;
                 max-width: 100%;
                 border-collapse: collapse;
-                margin: 10px 0;
+                margin: 0.5rem 0;
                 table-layout: fixed;
+                border: none !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
             }
             
             .items-table thead th {
@@ -230,42 +261,50 @@ $items_result = mysqli_stmt_get_result($stmt);
             
             .items-table tbody tr {
                 border-bottom: 1px dotted #000;
+                display: block;
+                margin-bottom: 0.3rem;
+                max-width: 100%;
+                background: transparent !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+            }
+
+            .items-table tbody tr:last-child {
+                border-bottom: none;
             }
             
             .items-table tbody td {
-                padding: 2px 0;
-                border: none;
+                padding: 1px 0;
+                border: none !important;
                 font-size: 7px;
                 word-wrap: break-word;
                 overflow-wrap: break-word;
+                background: transparent !important;
             }
             
             /* Simplified item layout for receipt */
-            .items-table tbody tr {
-                display: block;
-                margin-bottom: 4px;
-                max-width: 100%;
-            }
-            
             .items-table tbody td:nth-child(1) {
                 display: none; /* Hide image column */
             }
             
             .items-table tbody td:nth-child(2) {
-                display: block;
+                display: block !important;
                 font-weight: bold;
-                font-size: 7px;
-                margin-bottom: 1px;
+                font-size: 8px;
+                margin-bottom: 2px;
                 word-wrap: break-word;
                 overflow-wrap: break-word;
                 max-width: 100%;
+                color: #000 !important;
+                text-align: left !important;
             }
             
             .items-table tbody td:nth-child(3),
             .items-table tbody td:nth-child(4),
             .items-table tbody td:nth-child(5) {
-                display: inline;
-                font-size: 6px;
+                display: inline !important;
+                font-size: 7px;
+                color: #000 !important;
             }
             
             .items-table tbody td:nth-child(3)::before {
@@ -280,50 +319,68 @@ $items_result = mysqli_stmt_get_result($stmt);
                 content: " = ₱";
             }
             
-            /* Totals */
+            /* Totals - Target specific classes */
             .items-table tfoot {
                 border-top: 2px solid #000;
-                margin-top: 10px;
+                margin-top: 0.5rem;
                 width: 100%;
+                background: transparent !important;
+                display: block !important;
             }
             
             .items-table tfoot tr {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 4px 0;
-                width: 100%;
-                max-width: 100%;
-            }
-            
-            .items-table tfoot td {
                 display: block !important;
-                border: none;
-                font-size: 7px;
-                font-weight: bold;
-                white-space: nowrap;
+                width: 100%;
+                padding: 2px 0;
+                gap: 20px !important;
+                border: none !important;
+                background: transparent !important;
+                box-shadow: none !important;
+                margin-bottom: 0;
+                position: relative;
+                height: auto;
+                min-height: 14px;
             }
             
-            .total-label {
-                font-weight: bold;
-                text-align: left;
+            /* Target the specific classes used in HTML */
+            .items-table tfoot .total-label {
+                border: none !important;
+                font-size: 8px !important;
+                font-weight: 700 !important;
+                color: #000 !important;
+                background: transparent !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                display: inline-block !important;
+                text-align: left !important;
+                line-height: 1.2;
             }
             
-            .total-value {
-                text-align: right;
-                font-weight: bold;
+            .items-table tfoot .total-value {
+                border: none !important;
+                font-size: 7px !important;
+                font-weight: 600 !important;
+                color: #000 !important;
+                background: transparent !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                display: inline-block !important;
+                text-align: right !important;
+                line-height: 1.2;
             }
             
-            .items-table tfoot tr:last-child {
-                font-size: 8px;
-                font-weight: bold;
-                border-top: 1px solid #000;
-                padding-top: 3px;
-                margin-top: 2px;
+            /* Clear floats after each row */
+            .items-table tfoot tr::after {
+                content: "";
+                display: table;
+                clear: both;
             }
             
-            .items-table tfoot tr:last-child td {
-                font-size: 8px;
+            /* Special styling for Total row */
+            .items-table tfoot tr:last-child .total-label,
+            .items-table tfoot tr:last-child .total-value {
+                font-size: 10px !important;
+                font-weight: bold !important;
             }
             
             /* Footer */
@@ -331,11 +388,36 @@ $items_result = mysqli_stmt_get_result($stmt);
                 content: "Thank you!";
                 display: block;
                 text-align: center;
-                margin-top: 6px;
                 padding-top: 4px;
                 border-top: 1px dashed #000;
                 font-size: 7px;
                 font-weight: bold;
+            }
+
+            .back-button,
+            .order-actions {
+                display: none;
+            }
+
+            .order-grid {
+                grid-template-columns: 1fr;
+                gap: 1.25rem;
+            }
+
+            .order-summary,
+            .customer-details {
+                box-shadow: none;
+                border: 1px solid var(--gray-300);
+                page-break-inside: avoid;
+            }
+
+            .items-table {
+                border-collapse: collapse;
+            }
+
+            .items-table th,
+            .items-table td {
+                border: 1px solid var(--gray-300);
             }
         }
     </style>
@@ -487,9 +569,9 @@ $items_result = mysqli_stmt_get_result($stmt);
                                             <?php endif; ?>
                                         </td>
                                         <td><?php echo htmlspecialchars($item['product_name']); ?></td>
-                                        <td>₱<?php echo number_format($item['price'], 2); ?></td>
+                                        <td><?php echo number_format($item['price'], 2); ?></td>
                                         <td><?php echo $item['quantity']; ?></td>
-                                        <td>₱<?php echo number_format($item_total, 2); ?></td>
+                                        <td><?php echo number_format($item_total, 2); ?></td>
                                     </tr>
                                 <?php endwhile; ?>
                             </tbody>
