@@ -199,6 +199,8 @@ try {
                 // Inventory update
                 if (!empty($it['product_id'])) {
                     $pid = intval($it['product_id']);
+                    error_log("Updating inventory for product ID: $pid, quantity: $qty");
+                    
                     // Check stock first
                     $stock_stmt = $conn->prepare("SELECT quantity, status_id, name FROM products WHERE id = ?");
                     $stock_stmt->bind_param("i", $pid);
@@ -206,24 +208,36 @@ try {
                     $stock_res = $stock_stmt->get_result();
                     if ($row = $stock_res->fetch_assoc()) {
                         $current_stock = intval($row['quantity']);
+                        $product_name = $row['name'];
+                        error_log("Product '$product_name' current stock: $current_stock");
+                        
                         if ($current_stock >= $qty) {
                             $upd = $conn->prepare("UPDATE products SET quantity = quantity - ? WHERE id = ?");
                             $upd->bind_param("ii", $qty, $pid);
                             $upd->execute();
                             $upd->close();
+                            
+                            $new_stock = $current_stock - $qty;
+                            error_log("Product '$product_name' stock updated: $current_stock -> $new_stock");
 
                             // If stock hits 0, mark unavailable similar to existing logic
-                            $new_stock = $current_stock - $qty;
                             if ($new_stock <= 0) {
                                 $new_status_id = ($row['status_id'] == 1) ? 4 : 5; // pickup->4, delivery->5, default 5
                                 $updS = $conn->prepare("UPDATE products SET status_id = ? WHERE id = ?");
                                 $updS->bind_param("ii", $new_status_id, $pid);
                                 $updS->execute();
                                 $updS->close();
+                                error_log("Product '$product_name' marked as unavailable (status_id: $new_status_id)");
                             }
+                        } else {
+                            error_log("WARNING: Insufficient stock for product '$product_name'. Requested: $qty, Available: $current_stock");
                         }
+                    } else {
+                        error_log("WARNING: Product ID $pid not found in database");
                     }
                     $stock_stmt->close();
+                } else {
+                    error_log("WARNING: Cart item missing product_id: " . json_encode($it));
                 }
             }
             $item_stmt->close();
@@ -235,11 +249,16 @@ try {
                 if (!empty($ids)) {
                     $placeholders = implode(',', array_fill(0, count($ids), '?'));
                     $types = str_repeat('i', count($ids));
-                    $del_sql = "DELETE FROM cart WHERE id IN ($placeholders)";
+                    
+                    // Determine which cart table to delete from based on order type
+                    $cart_table = ($type === 'availtoday') ? 'availtoday_cart' : 'cart';
+                    $del_sql = "DELETE FROM $cart_table WHERE id IN ($placeholders)";
                     $del = $conn->prepare($del_sql);
                     $del->bind_param($types, ...$ids);
                     $del->execute();
                     $del->close();
+                    
+                    error_log("Cleared " . $del->affected_rows . " items from $cart_table for order type: $type");
                 }
             }
 

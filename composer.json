@@ -1,0 +1,12 @@
+{
+    "name": "dyacool/neocafe",
+    "description": "Thesis",
+    "type": "project",
+    "authors": [
+        {
+            "name": "Enianya",
+            "email": "ainepascua4@gmail.com"
+        }
+    ],
+    "require": {}
+}

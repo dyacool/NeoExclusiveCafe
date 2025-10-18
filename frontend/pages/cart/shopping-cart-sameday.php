@@ -361,6 +361,31 @@ function getDayAbbreviations($availableDays) {
             font-weight: bold;
         }
         
+        /* Status-specific styling */
+        .cart-table tbody tr[data-availtoday-status="Pick-Up"] .days-column {
+            color: #256035;
+            background-color: #e8f5e9;
+        }
+        
+        .cart-table tbody tr[data-availtoday-status="Delivery"] .days-column {
+            color: #e67e22;
+            background-color: #fff3e0;
+        }
+        
+        .cart-table tbody tr[data-availtoday-status="Delivery and Pick-Up"] .days-column,
+        .cart-table tbody tr[data-availtoday-status="Delivery or Pick-Up"] .days-column {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+        
+        /* Status badge styling */
+        .day-abbreviations.available-today-day {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 12px;
+        }
+        
         /* Mobile responsive styles */
         @media (max-width: 768px) {
             .section-controls {
@@ -512,7 +537,7 @@ function getDayAbbreviations($availableDays) {
                 p.status_id = 3 
                 OR (p.status_id IN (1, 2) AND p.availtoday_status_id IS NOT NULL)
             )
-            ORDER BY p.name ASC
+            ORDER BY ats.name, p.name ASC
         ");
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
@@ -520,12 +545,24 @@ function getDayAbbreviations($availableDays) {
 
         
         if ($result->num_rows > 0): 
-            // For same-day orders, all items are treated as "Available Today" items
-            $sameday_items = [];
+            // For same-day orders, separate items by availtoday status
+            $pickup_sameday = [];
+            $delivery_sameday = [];
+            $both_sameday = [];
             
             while ($row = $result->fetch_assoc()) {
-                $sameday_items[] = $row;
+                $availtoday_status = $row['availtoday_status_name'];
+                if ($availtoday_status === 'Pick-Up') {
+                    $pickup_sameday[] = $row;
+                } elseif ($availtoday_status === 'Delivery') {
+                    $delivery_sameday[] = $row;
+                } else {
+                    // Delivery or Pick-Up (status_id 3)
+                    $both_sameday[] = $row;
+                }
             }
+            
+            $sameday_items = array_merge($pickup_sameday, $delivery_sameday, $both_sameday);
         ?>
         <form method="POST" action="availtoday-checkout.php" id="cartForm">
             <input type="hidden" name="valid_cart_ids" value="<?= implode(',', array_column($sameday_items, 'cart_id')) ?>">
@@ -538,6 +575,15 @@ function getDayAbbreviations($availableDays) {
                             <div class="section-header">
                                 <h3>Available Today</h3>
                                 <div class="section-controls">
+                                    <div class="days-filter">
+                                        <label for="statusFilter">Filter by Status:</label>
+                                        <select id="statusFilter" onchange="filterByStatus()">
+                                            <option value="">All Status</option>
+                                            <option value="Pick-Up">Pick-Up</option>
+                                            <option value="Delivery">Delivery</option>
+                                            <option value="Delivery or Pick-Up">Delivery or Pick-Up</option>
+                                        </select>
+                                    </div>
                                     <div class="section-select-all">
                                         <input type="checkbox" id="selectAllSameDay" class="section-checkbox" data-section="sameday">
                                         <label for="selectAllSameDay">Select All Available Today</label>
@@ -552,7 +598,7 @@ function getDayAbbreviations($availableDays) {
                                     <th>Select</th>
                                     <th></th>
                                     <th>Product Name</th>
-                                    <th>Availability</th>
+                                    <th>Status</th>
                                     <th>Quantity</th>
                                     <th>Price</th>
                                     <th>Total</th>
@@ -564,15 +610,16 @@ function getDayAbbreviations($availableDays) {
                                 foreach ($sameday_items as $row):
                                     $imageUrl = $row['image_url'] ? "/assets/" . $row['image_url'] : "/assets/images/no-image.jpg";
                                     $item_total = $row['price'] * $row['quantity'];
+                                    $availtoday_status = $row['availtoday_status_name'] ?? 'Delivery or Pick-Up';
                                 ?>
-                                <tr data-cart-id="<?= $row['cart_id'] ?>" data-product-id="<?= $row['product_id'] ?>" data-stock="<?= $row['product_stock'] ?>" data-price="<?= $row['price'] ?>" data-quantity="<?= $row['quantity'] ?>" data-status="sameday">
+                                <tr data-cart-id="<?= $row['cart_id'] ?>" data-product-id="<?= $row['product_id'] ?>" data-stock="<?= $row['product_stock'] ?>" data-price="<?= $row['price'] ?>" data-quantity="<?= $row['quantity'] ?>" data-status="sameday" data-availtoday-status="<?= htmlspecialchars($availtoday_status) ?>">
                                     <td>
-                                        <input type="checkbox" name="selected_cart_ids[]" value="<?= $row['cart_id'] ?>" class="item-checkbox sameday-checkbox" data-total="<?= $item_total ?>" data-status="sameday">
+                                        <input type="checkbox" name="selected_cart_ids[]" value="<?= $row['cart_id'] ?>" class="item-checkbox sameday-checkbox" data-total="<?= $item_total ?>" data-status="sameday" data-availtoday-status="<?= htmlspecialchars($availtoday_status) ?>">
                                     </td>
                                     <td><img src="<?= $imageUrl ?>" alt="<?= htmlspecialchars($row['product_name']) ?>" style="width: 60px; height: 60px; object-fit: cover;"></td>
                                     <td><?= htmlspecialchars($row['product_name']) ?></td>
                                     <td class="days-column">
-                                        <span class="day-abbreviations available-today-day">Today</span>
+                                        <span class="day-abbreviations available-today-day"><?= htmlspecialchars($availtoday_status) ?></span>
                                     </td>
                                     <td>
                                         <div class="quantity-controls">
@@ -625,6 +672,230 @@ function getDayAbbreviations($availableDays) {
 <script>
 // Additional page-specific functionality
 
+// Function to filter items by status (manual dropdown filter)
+function filterByStatus() {
+    const selectedStatus = document.getElementById('statusFilter').value;
+    const table = document.querySelector('.cart-table');
+    
+    if (!table) return;
+    
+    const rows = table.querySelectorAll('tbody tr');
+    let visibleRows = 0;
+    
+    // Clear all selections first when using manual filter
+    const checkboxes = document.querySelectorAll('.sameday-checkbox:checked');
+    checkboxes.forEach(cb => cb.checked = false);
+    
+    rows.forEach(row => {
+        const availtodayStatus = row.dataset.availtodayStatus || '';
+        let shouldShow = false;
+        
+        if (selectedStatus === '') {
+            // Show all items
+            shouldShow = true;
+        } else if (availtodayStatus === selectedStatus) {
+            // Exact match
+            shouldShow = true;
+        } else if ((availtodayStatus === 'Delivery and Pick-Up' || availtodayStatus === 'Delivery or Pick-Up') && 
+                   (selectedStatus === 'Pick-Up' || selectedStatus === 'Delivery')) {
+            // "Delivery or Pick-Up" items show when either Pick-Up or Delivery is selected
+            shouldShow = true;
+        }
+        
+        if (shouldShow) {
+            row.style.display = '';
+            visibleRows++;
+        } else {
+            row.style.display = 'none';
+            // Uncheck the checkbox if the row is hidden
+            const checkbox = row.querySelector('.item-checkbox');
+            if (checkbox && checkbox.checked) {
+                checkbox.checked = false;
+            }
+        }
+    });
+    
+    // Update subtotal and select all state
+    updateSubtotalSameDay();
+    updateSelectAllStateSameDay();
+}
+
+// Function to filter visible items based on selected status
+function applyStatusFilter() {
+    const table = document.querySelector('.cart-table');
+    if (!table) return;
+    
+    const rows = table.querySelectorAll('tbody tr');
+    const checkedCheckboxes = document.querySelectorAll('.sameday-checkbox:checked');
+    
+    // If nothing is selected, show all items
+    if (checkedCheckboxes.length === 0) {
+        rows.forEach(row => {
+            row.style.display = '';
+        });
+        return;
+    }
+    
+    // Find what types are selected
+    let hasPickUp = false;
+    let hasDelivery = false;
+    let hasBoth = false;
+    
+    for (const checkbox of checkedCheckboxes) {
+        const status = checkbox.dataset.availtodayStatus;
+        if (status === 'Pick-Up') {
+            hasPickUp = true;
+        } else if (status === 'Delivery') {
+            hasDelivery = true;
+        } else if (status === 'Delivery and Pick-Up' || status === 'Delivery or Pick-Up') {
+            hasBoth = true;
+        }
+    }
+    
+    // Scenario 1: Only "Delivery or Pick-Up" items selected → Show all
+    if (hasBoth && !hasPickUp && !hasDelivery) {
+        rows.forEach(row => {
+            row.style.display = '';
+        });
+        return;
+    }
+    
+    // Scenario 2: Pick-Up selected (with or without "Delivery or Pick-Up") → Show only Pick-Up + "Delivery or Pick-Up"
+    // Scenario 3: Delivery selected (with or without "Delivery or Pick-Up") → Show only Delivery + "Delivery or Pick-Up"
+    rows.forEach(row => {
+        const rowStatus = row.dataset.availtodayStatus;
+        const checkbox = row.querySelector('.sameday-checkbox');
+        
+        // Always show checked items
+        if (checkbox && checkbox.checked) {
+            row.style.display = '';
+            return;
+        }
+        
+        let shouldShow = false;
+        
+        // If Pick-Up is selected (even with "Delivery or Pick-Up"), show only Pick-Up and "Delivery or Pick-Up"
+        if (hasPickUp) {
+            if (rowStatus === 'Pick-Up' || rowStatus === 'Delivery and Pick-Up' || rowStatus === 'Delivery or Pick-Up') {
+                shouldShow = true;
+            }
+        }
+        // If Delivery is selected (even with "Delivery or Pick-Up"), show only Delivery and "Delivery or Pick-Up"
+        else if (hasDelivery) {
+            if (rowStatus === 'Delivery' || rowStatus === 'Delivery and Pick-Up' || rowStatus === 'Delivery or Pick-Up') {
+                shouldShow = true;
+            }
+        }
+        
+        if (shouldShow) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+            // Uncheck hidden items
+            if (checkbox) {
+                checkbox.checked = false;
+            }
+        }
+    });
+}
+
+// Function to prevent mixed status selection
+function preventMixedStatusSelection(clickedCheckbox) {
+    const clickedStatus = clickedCheckbox.dataset.availtodayStatus;
+    
+    if (!clickedStatus) return true;
+    
+    // Get all checked checkboxes except the currently clicked one
+    const checkedCheckboxes = Array.from(document.querySelectorAll('.sameday-checkbox:checked'))
+        .filter(cb => cb !== clickedCheckbox);
+    
+    if (checkedCheckboxes.length === 0) {
+        // No other items selected, allow this selection
+        return true;
+    }
+    
+    // Find if there's a specific status (Pick-Up or Delivery) already selected
+    let hasPickUp = false;
+    let hasDelivery = false;
+    let hasOnlyBoth = true;
+    
+    for (const checkbox of checkedCheckboxes) {
+        const status = checkbox.dataset.availtodayStatus;
+        if (status === 'Pick-Up') {
+            hasPickUp = true;
+            hasOnlyBoth = false;
+        } else if (status === 'Delivery') {
+            hasDelivery = true;
+            hasOnlyBoth = false;
+        }
+    }
+    
+    // If only "Delivery or Pick-Up" items are selected, allow anything
+    if (hasOnlyBoth) {
+        return true;
+    }
+    
+    // If clicking a "Delivery or Pick-Up" item, always allow
+    if (clickedStatus === 'Delivery and Pick-Up' || clickedStatus === 'Delivery or Pick-Up') {
+        return true;
+    }
+    
+    // If Pick-Up is already selected, only allow Pick-Up and "Delivery or Pick-Up"
+    if (hasPickUp && clickedStatus === 'Delivery') {
+        showConfirmation(
+            `⚠️ Status Conflict: You have Pick-Up items selected. You can only add more Pick-Up or "Delivery or Pick-Up" items.`,
+            true
+        );
+        clickedCheckbox.checked = false;
+        return false;
+    }
+    
+    // If Delivery is already selected, only allow Delivery and "Delivery or Pick-Up"
+    if (hasDelivery && clickedStatus === 'Pick-Up') {
+        showConfirmation(
+            `⚠️ Status Conflict: You have Delivery items selected. You can only add more Delivery or "Delivery or Pick-Up" items.`,
+            true
+        );
+        clickedCheckbox.checked = false;
+        return false;
+    }
+    
+    return true;
+}
+
+// Function to update subtotal for same-day cart
+function updateSubtotalSameDay() {
+    let subtotal = 0;
+    const selectedCartIds = [];
+    
+    document.querySelectorAll('.sameday-checkbox:checked').forEach(checkbox => {
+        const row = checkbox.closest('tr');
+        const price = parseFloat(row.dataset.price);
+        const quantity = parseInt(row.dataset.quantity);
+        subtotal += price * quantity;
+        selectedCartIds.push(checkbox.value);
+    });
+    
+    document.getElementById('displaySubtotal').textContent = subtotal.toFixed(2);
+    document.getElementById('subtotalInput').value = subtotal;
+    document.getElementById('cartItemsInput').value = selectedCartIds.join(',');
+}
+
+// Function to update select all state
+function updateSelectAllStateSameDay() {
+    const samedayCheckboxes = Array.from(document.querySelectorAll('.sameday-checkbox')).filter(cb => {
+        const row = cb.closest('tr');
+        return row && row.style.display !== 'none';
+    });
+    
+    const selectAllSameDay = document.getElementById('selectAllSameDay');
+    
+    if (selectAllSameDay && samedayCheckboxes.length > 0) {
+        const checkedCount = samedayCheckboxes.filter(cb => cb.checked).length;
+        selectAllSameDay.checked = checkedCount === samedayCheckboxes.length;
+        selectAllSameDay.indeterminate = checkedCount > 0 && checkedCount < samedayCheckboxes.length;
+    }
+}
 
 // Enhanced page load experience
 document.addEventListener('DOMContentLoaded', function() {
@@ -632,6 +903,41 @@ document.addEventListener('DOMContentLoaded', function() {
     const overlay = document.getElementById('pageTransitionOverlay');
     if (overlay) {
         overlay.style.display = 'none';
+    }
+    
+    // Setup individual checkbox listeners with status enforcement
+    const samedayCheckboxes = document.querySelectorAll('.sameday-checkbox');
+    samedayCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                // Check if this would create a mixed status selection
+                if (!preventMixedStatusSelection(this)) {
+                    return; // Checkbox was unchecked by preventMixedStatusSelection
+                }
+            }
+            // Apply status-based filtering
+            applyStatusFilter();
+            updateSubtotalSameDay();
+            updateSelectAllStateSameDay();
+        });
+    });
+    
+    // Setup select all checkbox
+    const selectAllSameDay = document.getElementById('selectAllSameDay');
+    if (selectAllSameDay) {
+        selectAllSameDay.addEventListener('change', function() {
+            const visibleCheckboxes = Array.from(document.querySelectorAll('.sameday-checkbox')).filter(cb => {
+                const row = cb.closest('tr');
+                return row && row.style.display !== 'none';
+            });
+            
+            visibleCheckboxes.forEach(checkbox => {
+                checkbox.checked = selectAllSameDay.checked;
+            });
+            // Apply status-based filtering after select all
+            applyStatusFilter();
+            updateSubtotalSameDay();
+        });
     }
     
     // Enhanced tab hover effects
@@ -651,6 +957,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+    
+    // Initialize subtotal on page load
+    updateSubtotalSameDay();
     
     // Prefetch pre-order cart page for fast switching
     const prefetchLink = document.createElement('link');
