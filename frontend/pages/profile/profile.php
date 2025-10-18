@@ -135,7 +135,12 @@ if (mysqli_num_rows($result) > 0) {
 }
 
 // Fetch user bulk orders
-$bulk_orders_sql = "SELECT id, name, contact, email, billing_address, order_type, delivery_address, purpose, date_needed, time_needed, created_at, status, total_items, total_amount, proof_of_payment, admin_updated, note, admin_notes FROM bulk_orders WHERE user_id = ? ORDER BY created_at DESC";
+$bulk_orders_sql = "SELECT unique_order_id, 
+                           unique_order_id as display_order_id,
+                           name, contact, email, billing_address, order_type, delivery_address, purpose, date_needed, time_needed, created_at, status, total_items, total_amount, proof_of_payment, admin_updated, note, admin_notes 
+                    FROM bulk_orders 
+                    WHERE user_id = ? 
+                    ORDER BY created_at DESC";
 $bulk_orders_stmt = mysqli_prepare($conn, $bulk_orders_sql);
 
 // Check if bulk_orders table exists and statement prepared successfully
@@ -326,15 +331,15 @@ if ($bulk_orders_stmt === false) {
                     <?php if (mysqli_num_rows($bulk_orders_result) > 0): ?>
                         <?php while ($bulk_order = mysqli_fetch_assoc($bulk_orders_result)): ?>
                         <tr>
-                            <td>#<?php echo htmlspecialchars($bulk_order['id']); ?></td>
+                            <td>#<?php echo htmlspecialchars($bulk_order['display_order_id']); ?></td>
                             <td><?php echo htmlspecialchars(date("M j, Y", strtotime($bulk_order['created_at']))); ?></td>
                             <td><?php echo htmlspecialchars($bulk_order['total_items']); ?> items</td>
                             <td>₱<?php echo htmlspecialchars(number_format($bulk_order['total_amount'], 2)); ?></td>
                             <td><span class="status-<?php echo htmlspecialchars(strtolower($bulk_order['status'])); ?>"><?php echo htmlspecialchars(ucfirst(str_replace('_', ' ', $bulk_order['status']))); ?></span></td>
                             <td>
-                                <a href="../bulk/bulk-order-details.php?id=<?php echo $bulk_order['id']; ?>" class="btn-view">View Details</a>
+                                <a href="../bulk/bulk-order-details.php?id=<?php echo $bulk_order['unique_order_id']; ?>" class="btn-view">View Details</a>
                                 <?php if ($bulk_order['status'] == 'approved' && empty($bulk_order['proof_of_payment'])): ?>
-                                    <a href="../bulk-orders/bulk-order-details.php?id=<?php echo $bulk_order['id']; ?>#proof-upload" class="btn-proof">Attach Proof</a>
+                                    <a href="../bulk-orders/bulk-order-details.php?id=<?php echo $bulk_order['unique_order_id']; ?>#proof-upload" class="btn-proof">Attach Proof</a>
                                 <?php endif; ?>
                             </td>
                         </tr>

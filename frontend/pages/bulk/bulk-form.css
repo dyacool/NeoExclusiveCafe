@@ -1316,3 +1316,356 @@ select {
   margin-top: 4px;
   font-weight: 500;
 }
+
+/* Base Modal Styles */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.modal.show {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background-color: white;
+  margin: auto;
+  padding: 0;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  animation: slideIn 0.3s ease-out;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--light-accent);
+  background: var(--primary) !important;
+  color: white;
+  border-radius: 12px 12px 0 0;
+  position: relative;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.modal-header .close {
+  position: absolute;
+  right: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: white;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  line-height: 1;
+  transition: opacity 0.3s ease;
+}
+
+.modal-header .close:hover {
+  opacity: 0.7;
+}
+
+.modal-body {
+  padding: 2rem;
+  max-height: calc(90vh - 200px);
+  overflow-y: auto;
+}
+
+.modal-footer {
+  padding: 1rem 2rem;
+  border-top: 1px solid var(--light-accent);
+  background: #f8faf9;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  border-radius: 0 0 12px 12px;
+}
+
+.modal-footer .btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.modal-footer .btn-secondary {
+  background: var(--neutral);
+  color: white;
+}
+
+.modal-footer .btn-secondary:hover {
+  background: var(--secondary);
+}
+
+.modal-footer .btn-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.modal-footer .btn-primary:hover {
+  background: var(--primary-dark);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Confirmation Modal Styles */
+.confirmation-modal {
+  max-width: 800px;
+  width: 95%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.confirmation-section {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: #f8faf9;
+  border-radius: 12px;
+  border: 1px solid var(--light-accent);
+}
+
+.confirmation-section h3 {
+  color: var(--primary);
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--light-accent);
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.info-item label {
+  font-weight: 600;
+  color: var(--secondary-dark);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-item span {
+  color: var(--secondary);
+  font-size: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(203, 213, 192, 0.3);
+}
+
+.order-summary-table {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.order-summary-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.order-summary-table th,
+.order-summary-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--light-accent);
+}
+
+.order-summary-table th {
+  background: var(--primary);
+  color: white;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.85rem;
+}
+
+.order-summary-table td {
+  color: var(--secondary);
+}
+
+.order-summary-table .total-row {
+  background: #f8faf9;
+  font-weight: 600;
+  color: var(--primary-dark);
+}
+
+.order-summary-table .total-row td {
+  font-size: 1.1rem;
+  border-bottom: none;
+}
+
+/* Success Modal Enhancements */
+.success-details {
+  background: #f8faf9;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+  border-left: 4px solid var(--success);
+}
+
+.success-details ul {
+  margin: 0.5rem 0 0 1rem;
+  color: var(--secondary);
+}
+
+.success-details li {
+  margin: 0.5rem 0;
+  line-height: 1.5;
+}
+
+.contact-note {
+  background: var(--warm-accent);
+  color: white;
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 500;
+  margin-top: 1rem;
+}
+
+/* Responsive Design for Confirmation Modal */
+@media (max-width: 768px) {
+  .confirmation-modal {
+    width: 98%;
+    margin: 1%;
+    max-height: 95vh;
+  }
+
+  .confirmation-section {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .order-summary-table th,
+  .order-summary-table td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .order-summary-table th {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .confirmation-section h3 {
+    font-size: 1.1rem;
+  }
+
+  .order-summary-table {
+    font-size: 0.85rem;
+  }
+
+  .order-summary-table th,
+  .order-summary-table td {
+    padding: 0.5rem 0.25rem;
+  }
+}
+
+/* Modal Responsive Styles */
+@media (max-width: 768px) {
+  .modal-content {
+    width: 95%;
+    max-height: 95vh;
+    margin: 1rem;
+  }
+
+  .modal-header {
+    padding: 1rem 1.5rem;
+  }
+
+  .modal-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .modal-body {
+    padding: 1.5rem;
+    max-height: calc(95vh - 150px);
+  }
+
+  .modal-footer {
+    padding: 1rem 1.5rem;
+    flex-direction: column;
+  }
+
+  .modal-footer .btn {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  .modal-footer .btn:last-child {
+    margin-bottom: 0;
+  }
+}
+
+@media (max-width: 576px) {
+  .modal-content {
+    width: 98%;
+    margin: 0.5rem;
+  }
+
+  .modal-header {
+    padding: 1rem;
+  }
+
+  .modal-body {
+    padding: 1rem;
+  }
+
+  .modal-footer {
+    padding: 1rem;
+  }
+}

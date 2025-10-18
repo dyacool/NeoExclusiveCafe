@@ -14,7 +14,7 @@ if (!isset($_GET['id'])) {
     exit();
 }
 
-$order_id = intval($_GET['id']);
+$order_id = trim($_GET['id']); // Keep as string for unique_order_id
 $user_id = $_SESSION['user_id'];
 
 // Handle proof of payment upload
@@ -33,9 +33,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_proof'])) {
             $filepath = $upload_dir . $filename;
             
             if (move_uploaded_file($_FILES['proof_file']['tmp_name'], $filepath)) {
-                $update_sql = "UPDATE bulk_orders SET proof_of_payment = ? WHERE id = ? AND user_id = ?";
+                $update_sql = "UPDATE bulk_orders SET proof_of_payment = ? WHERE unique_order_id = ? AND user_id = ?";
                 $update_stmt = mysqli_prepare($conn, $update_sql);
-                mysqli_stmt_bind_param($update_stmt, "sii", $filename, $order_id, $user_id);
+                mysqli_stmt_bind_param($update_stmt, "ssi", $filename, $order_id, $user_id);
                 
                 if (mysqli_stmt_execute($update_stmt)) {
                     $success_message = "Proof of payment uploaded successfully!";
@@ -55,9 +55,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_proof'])) {
 }
 
 // Fetch order details with user verification
-$order_sql = "SELECT * FROM bulk_orders WHERE id = ? AND user_id = ?";
+$order_sql = "SELECT * FROM bulk_orders WHERE unique_order_id = ? AND user_id = ?";
 $stmt = mysqli_prepare($conn, $order_sql);
-mysqli_stmt_bind_param($stmt, "ii", $order_id, $user_id);
+mysqli_stmt_bind_param($stmt, "si", $order_id, $user_id);
 mysqli_stmt_execute($stmt);
 $order_result = mysqli_stmt_get_result($stmt);
 $order = mysqli_fetch_assoc($order_result);
@@ -67,10 +67,10 @@ if (!$order) {
     exit();
 }
 
-// Fetch order items
-$items_sql = "SELECT * FROM bulk_order_items WHERE bulk_order_id = ?";
+// Fetch order items from the single bulk_orders table
+$items_sql = "SELECT product_id, product_name, product_price, quantity, subtotal FROM bulk_orders WHERE unique_order_id = ? ORDER BY id";
 $items_stmt = mysqli_prepare($conn, $items_sql);
-mysqli_stmt_bind_param($items_stmt, "i", $order_id);
+mysqli_stmt_bind_param($items_stmt, "s", $order_id);
 mysqli_stmt_execute($items_stmt);
 $items_result = mysqli_stmt_get_result($items_stmt);
 $items = mysqli_fetch_all($items_result, MYSQLI_ASSOC);

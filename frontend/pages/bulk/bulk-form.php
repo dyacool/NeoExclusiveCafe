@@ -32,10 +32,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_bulk_order']))
         // Get selected products
         $selected_products = json_decode($_POST['selected_products'], true);
         
-        // Create bulk_orders table if it doesn't exist
+        // Create bulk_orders table with unique_order_id as primary key
         $create_table_query = "
             CREATE TABLE IF NOT EXISTS bulk_orders (
-                bulk_id INT AUTO_INCREMENT PRIMARY KEY,
+                unique_order_id VARCHAR(20) PRIMARY KEY,
                 user_id INT NULL,
                 name VARCHAR(255) NOT NULL,
                 contact VARCHAR(20) NOT NULL,
@@ -63,13 +63,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_bulk_order']))
         $create_items_table = "
             CREATE TABLE IF NOT EXISTS bulk_order_items (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                bulk_order_id INT,
+                bulk_order_id VARCHAR(20),
                 product_id INT,
                 product_name VARCHAR(255),
                 product_price DECIMAL(10,2),
                 quantity INT,
                 subtotal DECIMAL(10,2),
-                FOREIGN KEY (bulk_order_id) REFERENCES bulk_orders(bulk_id) ON DELETE CASCADE
+                FOREIGN KEY (bulk_order_id) REFERENCES bulk_orders(unique_order_id) ON DELETE CASCADE
             )
         ";
         mysqli_query($conn, $create_items_table);
@@ -80,12 +80,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_bulk_order']))
             $total_items += intval($product['quantity']);
         }
         
-        // Insert bulk order
-        $insert_order = "INSERT INTO bulk_orders (user_id, name, contact, email, billing_address, order_type, delivery_address, purpose, date_needed, time_needed, note, total_amount, total_items) 
-                        VALUES ('$user_id', '$name', '$contact', '$email', '$billing_address', '$order_type', '$delivery_address', '$purpose', '$date_needed', '$time_needed', '$note', '$total_amount', '$total_items')";
+        // Generate next unique order ID
+        $get_next_id_query = "SELECT COUNT(*) + 1 as next_id FROM bulk_orders";
+        $next_id_result = mysqli_query($conn, $get_next_id_query);
+        $next_id_row = mysqli_fetch_assoc($next_id_result);
+        $next_id = $next_id_row['next_id'];
+        $unique_order_id = 'BO' . str_pad($next_id, 6, '0', STR_PAD_LEFT);
+        
+        // Insert bulk order with unique_order_id as primary key
+        $insert_order = "INSERT INTO bulk_orders (unique_order_id, user_id, name, contact, email, billing_address, order_type, delivery_address, purpose, date_needed, time_needed, note, total_amount, total_items) 
+                        VALUES ('$unique_order_id', '$user_id', '$name', '$contact', '$email', '$billing_address', '$order_type', '$delivery_address', '$purpose', '$date_needed', '$time_needed', '$note', '$total_amount', '$total_items')";
         
         if (mysqli_query($conn, $insert_order)) {
-            $bulk_order_id = mysqli_insert_id($conn);
+            $bulk_order_id = $unique_order_id;
             
             // Insert order items
             foreach ($selected_products as $product) {
@@ -360,29 +367,152 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
                 <button type="button" id="discardBtn" class="btn btn-secondary">
                     Discard Order
                 </button>
-                <button type="submit" name="submit_bulk_order" class="btn btn-primary" id="submitBtn" disabled>
-                    Submit Order
+                <button type="button" id="reviewOrderBtn" class="btn btn-primary" disabled>
+                    Review Order
                 </button>
             </div>
         </form>
     </div>
+
+    <!-- Order Confirmation Modal -->
+    <div id="confirmationModal" class="modal">
+        <div class="modal-content confirmation-modal">
+            <div class="modal-header">
+                <h2>Review Your Bulk Order</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <!-- Customer Information -->
+                <div class="confirmation-section">
+                    <h3>Customer Information</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Name:</label>
+                            <span id="confirm-name"></span>
+                        </div>
+                        <div class="info-item">
+                            <label>Contact:</label>
+                            <span id="confirm-contact"></span>
+                        </div>
+                        <div class="info-item">
+                            <label>Email:</label>
+                            <span id="confirm-email"></span>
+                        </div>
+                        <div class="info-item">
+                            <label>Billing Address:</label>
+                            <span id="confirm-billing-address"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Details -->
+                <div class="confirmation-section">
+                    <h3>Order Details</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Order Type:</label>
+                            <span id="confirm-order-type"></span>
+                        </div>
+                        <div class="info-item" id="delivery-address-section" style="display: none;">
+                            <label>Delivery Address:</label>
+                            <span id="confirm-delivery-address"></span>
+                        </div>
+                        <div class="info-item">
+                            <label>Purpose:</label>
+                            <span id="confirm-purpose"></span>
+                        </div>
+                        <div class="info-item">
+                            <label>Date Needed:</label>
+                            <span id="confirm-date-needed"></span>
+                        </div>
+                        <div class="info-item">
+                            <label>Time Needed:</label>
+                            <span id="confirm-time-needed"></span>
+                        </div>
+                        <div class="info-item">
+                            <label>Special Notes:</label>
+                            <span id="confirm-note"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Items -->
+                <div class="confirmation-section">
+                    <h3>Order Items</h3>
+                    <div class="order-summary-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Price</th>
+                                    <th>Quantity</th>
+                                    <th>Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody id="confirm-order-items">
+                            </tbody>
+                            <tfoot>
+                                <tr class="total-row">
+                                    <td colspan="3"><strong>Total Amount:</strong></td>
+                                    <td><strong id="confirm-total-amount">₱0.00</strong></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="editOrderBtn">
+                    Edit Order
+                </button>
+                <button type="button" class="btn btn-primary" id="confirmSubmitBtn">
+                    Confirm & Submit Order
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Form for Final Submission -->
+    <form id="finalSubmissionForm" method="POST" style="display: none;">
+        <input type="hidden" name="submit_bulk_order" value="1">
+        <input type="hidden" name="name" id="final-name">
+        <input type="hidden" name="contact" id="final-contact">
+        <input type="hidden" name="email" id="final-email">
+        <input type="hidden" name="billing_address" id="final-billing-address">
+        <input type="hidden" name="order_type" id="final-order-type">
+        <input type="hidden" name="delivery_address" id="final-delivery-address">
+        <input type="hidden" name="purpose" id="final-purpose">
+        <input type="hidden" name="date_needed" id="final-date-needed">
+        <input type="hidden" name="time_needed" id="final-time-needed">
+        <input type="hidden" name="note" id="final-note">
+        <input type="hidden" name="selected_products" id="final-selected-products">
+        <input type="hidden" name="total_amount" id="final-total-amount">
+    </form>
 
     <!-- Success Modal -->
     <?php if ($show_success_modal): ?>
     <div id="successModal" class="modal show">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Order Submitted Successfully!</h2>
+                <h2>🎉 Order Submitted Successfully!</h2>
             </div>
             <div class="modal-body">
                 <div class="success-icon">✓</div>
-                <p>Your bulk order has been submitted successfully.</p>
+                <p><strong>Thank you for your bulk order!</strong></p>
                 <p><strong>Order ID: #<?php echo str_pad($bulk_order_id, 6, '0', STR_PAD_LEFT); ?></strong></p>
-                <p>We will review your order and get back to you within 24-48 hours.</p>
+                <div class="success-details">
+                    <p>✉️ <strong>What happens next?</strong></p>
+                    <ul>
+                        <li>Our team will review your order within <strong>24-72 hours</strong></li>
+                        <li>We'll contact you at <strong><?php echo htmlspecialchars($_POST['email'] ?? ''); ?></strong> with pricing and availability</li>
+                        <li>You can track your order status in your profile</li>
+                    </ul>
+                </div>
+                <p class="contact-note">📞 For urgent inquiries, please contact us directly.</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="window.location.href='../products/user-products.php'">Back to Products</button>
-                <button type="button" class="btn btn-primary" onclick="window.location.href='bulk-order-details.php?id=<?php echo $bulk_order_id; ?>'">View Order Details</button>
+                <button type="button" class="btn btn-primary" onclick="window.location.href='../profile/profile.php'">View in Profile</button>
             </div>
         </div>
     </div>
