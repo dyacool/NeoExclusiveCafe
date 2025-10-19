@@ -46,32 +46,16 @@ $total_pages = ceil($total_posts / $posts_per_page);
 ?>
 
 
-            <button class="cta" onclick="window.location.href='/frontend/pages/blog/blog-dashboard.php'">
-            <svg
-                id="arrow-horizontal"
-                xmlns="http://www.w3.org/2000/svg"
-                width="30"
-                height="10"
-                viewBox="0 0 46 16"
-            >
-                <path
-                id="Path_10"
-                data-name="Path 10"
-                d="M38,0,39.455,1.455,33.949,6.961H76V9.039H33.949l5.506,5.506L38,16l-8-8Z"
-                transform="translate(-25)"
-                ></path>
-            </svg>
-            <span class="hover-underline-animation"> Go Back </span>
-        </button>
-<div class="blog-container fade-in">
+<?php include __DIR__ . "/../../user-includes/bread-crumb/bread-crumb.php"; ?>
 
+<div class= "blog-container">
     <h1>Neo Cafe's Corner</h1>
     
     <?php if (mysqli_num_rows($result) > 0): ?>
         <div class="instagram-feed">
             <?php while ($post = mysqli_fetch_assoc($result)): ?>
                 <div class="instagram-post">
-                    <a href="view-blog-admin.php?id=<?php echo isset($post['adblog_id']) ? $post['adblog_id'] : $post['id']; ?>" class="post-link">
+                    <a href="view-blog-admin.php?id=<?php echo $post['adblog_id']; ?>" class="post-link">
                     <div class="post-header">
                         <div class="user-info">
                             <span class="username"><?php echo htmlspecialchars($post['author']); ?></span>
@@ -84,28 +68,19 @@ $total_pages = ceil($total_posts / $posts_per_page);
                     <?php if (!empty($post['image_path'])): ?>
                         <div class="post-image">
                             <?php
-                            $image_path = '../../assets/uploaded-images-admin/' . $post['image_path'];
-                            // Check if the file actually exists
-                            $file_path = $_SERVER['DOCUMENT_ROOT'] . '/NeoCafe/' . str_replace('../../', '', $image_path);
-                            if (file_exists($file_path)) {
+                            // Debug and create image URL
+                            echo "<!-- DEBUG: Image path from DB: " . htmlspecialchars($post['image_path']) . " -->";
+                            $image_url = '/assets/uploaded-images-admin/' . $post['image_path'];
+                            echo "<!-- DEBUG: Final image URL: " . htmlspecialchars($image_url) . " -->";
                             ?>
-                                <img src="<?= htmlspecialchars($image_path) ?>" 
-                                    alt="<?php echo htmlspecialchars($post['title']); ?>" onerror="this.style.display='none';">
-                            <?php
-                            } else {
-                                // File doesn't exist, don't show the image
-                                echo "<!-- Image file not found: " . htmlspecialchars($file_path) . " -->";
-                            }
-                            ?>
+                            <img src="<?= htmlspecialchars($image_url) ?>" 
+                                alt="<?php echo htmlspecialchars($post['title']); ?>" 
+                                onerror="console.log('Image load failed: <?= htmlspecialchars($image_url) ?>'); this.style.display='none';">
                         </div>
                     <?php endif; ?>
                     
                     <div class="post-content">
                         <h3 class="post-title"><?php echo htmlspecialchars($post['title']); ?></h3>
-                        <p class="caption-text"><?php echo nl2br(htmlspecialchars(substr($post['description'], 0, 170) . (strlen($post['description']) > 170 ? '...' : ''))); ?></p>
-                        <?php if (strlen($post['description']) > 170): ?>
-                            <a href="view-blog-admin.php?id=<?php echo isset($post['adblog_id']) ? $post['adblog_id'] : $post['id']; ?>" class="read-more">Read more...</a>
-                        <?php endif; ?>
                     </div>
                     </a>
                 </div>

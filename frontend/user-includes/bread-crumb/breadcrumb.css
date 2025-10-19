@@ -12,7 +12,7 @@
   --neo-hover: #2d6e3e;
 
   /* Semantic Colors */
-  --breadcrumb-bg: #ffffff;
+  --breadcrumb-bg: #f8faf9;
   --breadcrumb-border: #e9ecef;
   --breadcrumb-text: #495057;
   --breadcrumb-current: #212529;
@@ -53,7 +53,7 @@
 /* Navigation wrapper */
 .breadcrumb-nav {
   position: relative;
-  background: var(--breadcrumb-bg);
+  background-color: #f8faf9;
   transition: var(--breadcrumb-transition);
   overflow: hidden;
 }
@@ -435,7 +435,7 @@
 @supports (backdrop-filter: blur(10px)) {
   .breadcrumb-nav {
     backdrop-filter: blur(10px);
-    background: rgba(255, 255, 255, 0.9);
+    background-color: #f8faf9;
   }
 }
 

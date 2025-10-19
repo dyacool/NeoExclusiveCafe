@@ -1,6 +1,4 @@
 <?php
-// Redirect if not logged in
-// Don't start session if it's already active
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -17,12 +15,10 @@ $additional_css = [
     "view-blog.css"
 ];
 
-// Font for headings
 $head_extra = '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">';
 
 require_once "../../user-includes/user-header.php";
 
-// Get the blog post ID from URL
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     header("Location: blog-list.php");
     exit();
@@ -30,10 +26,9 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 
 $post_id = (int)$_GET['id'];
 
-// Fetch the blog post (try both column names)
-$sql = "SELECT * FROM blog_posts WHERE adblog_id = ? OR id = ?";
+$sql = "SELECT * FROM blog_posts WHERE adblog_id = ?";
 $stmt = mysqli_prepare($conn, $sql);
-mysqli_stmt_bind_param($stmt, "ii", $post_id, $post_id);
+mysqli_stmt_bind_param($stmt, "i", $post_id);
 mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
 
@@ -44,37 +39,31 @@ if (mysqli_num_rows($result) === 0) {
 
 $post = mysqli_fetch_assoc($result);
 ?>
+<?php include __DIR__ . "/../../user-includes/bread-crumb/bread-crumb.php"; ?>
 
 <div class="blog-view-container">
-    <div class="back-link">
-        <a href="blog-list.php">&larr; Back to Blog List</a>
-    </div>
 
     <article class="blog-post">
         <header class="post-header">
+            <h1 class="post-title"><?php echo htmlspecialchars($post['title']); ?></h1>
             <div class="post-meta">
                 <span class="post-author"><?php echo htmlspecialchars($post['author']); ?></span>
                 <span class="post-date"><?php echo date('F j, Y', strtotime($post['created_at'])); ?></span>
             </div>
-            <h1 class="post-title"><?php echo htmlspecialchars($post['title']); ?></h1>
         </header>
 
         <?php if (!empty($post['image_path'])): ?>
         <div class="post-image">
             <?php
-            $image_path = '../../assets/uploaded-images-admin/' . $post['image_path'];
-            // Check if the file actually exists
-            $file_path = $_SERVER['DOCUMENT_ROOT'] . '/NeoCafe/' . str_replace('../../', '', $image_path);
-            if (file_exists($file_path)) {
+            echo "<!-- DEBUG: Original image_path from DB: " . htmlspecialchars($post['image_path']) . " -->";
+            
+            $image_url = '/assets/uploaded-images-admin/' . $post['image_path'];
+            
+            echo "<!-- DEBUG: Constructed image URL: " . htmlspecialchars($image_url) . " -->";
             ?>
-                <img src="<?= htmlspecialchars($image_path) ?>" 
-                     alt="<?php echo htmlspecialchars($post['title']); ?>" onerror="this.style.display='none';">
-            <?php
-            } else {
-                // File doesn't exist, don't show the image
-                echo "<!-- Image file not found: " . htmlspecialchars($file_path) . " -->";
-            }
-            ?>
+            <img src="<?= htmlspecialchars($image_url) ?>" 
+                 alt="<?php echo htmlspecialchars($post['title']); ?>" 
+                 onerror="console.log('Image failed to load: <?= htmlspecialchars($image_url) ?>'); this.style.display='none';">
         </div>
         <?php endif; ?>
 
@@ -84,4 +73,4 @@ $post = mysqli_fetch_assoc($result);
     </article>
 </div>
 
-<?php require_once "../../user-includes/footer.php"; ?>
+<?php require_once "../../user-includes/user-footer.php"; ?>

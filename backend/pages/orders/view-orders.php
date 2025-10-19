@@ -94,8 +94,8 @@ $items_result = mysqli_stmt_get_result($stmt);
             }
             
             body {
-                width: 48mm;
-                max-width: 48mm;
+                width: 55mm;
+                max-width: 55mm;
                 margin: 0 auto;
                 padding: 2mm;
                 font-family: 'Courier New', monospace;
@@ -146,7 +146,7 @@ $items_result = mysqli_stmt_get_result($stmt);
                 content: "NEO CAFE";
                 display: block;
                 text-align: center;
-                font-size: 11px;
+                font-size: 16pt;
                 font-weight: 900;
                 letter-spacing: 0.5px;
                 margin: 0 0 3px 0;
@@ -166,7 +166,7 @@ $items_result = mysqli_stmt_get_result($stmt);
             
             .order-info h2 {
                 text-align: center;
-                font-size: 9px;
+                font-size: 12pt;
                 font-weight: bold;
                 margin: 0 0 2px 0;
                 padding: 3px 0 2px 0;
@@ -176,7 +176,8 @@ $items_result = mysqli_stmt_get_result($stmt);
             .order-date {
                 text-align: center;
                 width: 100%;
-                font-size: 6px;
+                font-size: 8pt;
+                font-weight: 500;
                 margin: 4px 0 4px 0;
                 padding-bottom: 0.5rem;
                 border-bottom: 1px dashed #000;
@@ -194,7 +195,7 @@ $items_result = mysqli_stmt_get_result($stmt);
                 content: "Purchased Products";
                 display: block;
                 text-align: center;
-                font-size: 8px;
+                font-size: 9pt;
                 font-weight: 600;
             }
 
@@ -221,8 +222,8 @@ $items_result = mysqli_stmt_get_result($stmt);
             
             .detail-group p {
                 color: #000;
-                margin: 0.2rem 0;
-                font-size: 8px;
+                margin: 0.25rem 0;
+                font-size: 9pt;
                 font-weight: 500;
                 display: flex;
                 flex-direction: column;
@@ -233,7 +234,7 @@ $items_result = mysqli_stmt_get_result($stmt);
             .detail-group strong {
                 display: inline-block;
                 font-weight: bold;
-                font-size: 9px;
+                font-size: 8pt;
                 min-width: 15mm;
             }
             
@@ -276,7 +277,7 @@ $items_result = mysqli_stmt_get_result($stmt);
             .items-table tbody td {
                 padding: 1px 0;
                 border: none !important;
-                font-size: 7px;
+                font-size: 8pt;
                 word-wrap: break-word;
                 overflow-wrap: break-word;
                 background: transparent !important;
@@ -290,7 +291,7 @@ $items_result = mysqli_stmt_get_result($stmt);
             .items-table tbody td:nth-child(2) {
                 display: block !important;
                 font-weight: bold;
-                font-size: 8px;
+                font-size: 7pt;
                 margin-bottom: 2px;
                 word-wrap: break-word;
                 overflow-wrap: break-word;
@@ -303,7 +304,7 @@ $items_result = mysqli_stmt_get_result($stmt);
             .items-table tbody td:nth-child(4),
             .items-table tbody td:nth-child(5) {
                 display: inline !important;
-                font-size: 7px;
+                font-size: 7pt;
                 color: #000 !important;
             }
             
@@ -345,7 +346,7 @@ $items_result = mysqli_stmt_get_result($stmt);
             /* Target the specific classes used in HTML */
             .items-table tfoot .total-label {
                 border: none !important;
-                font-size: 8px !important;
+                font-size: 8pt !important;
                 font-weight: 700 !important;
                 color: #000 !important;
                 background: transparent !important;
@@ -358,8 +359,8 @@ $items_result = mysqli_stmt_get_result($stmt);
             
             .items-table tfoot .total-value {
                 border: none !important;
-                font-size: 7px !important;
-                font-weight: 600 !important;
+                font-size: 9pt !important;
+                font-weight: 800 !important;
                 color: #000 !important;
                 background: transparent !important;
                 padding: 0 !important;
@@ -379,7 +380,7 @@ $items_result = mysqli_stmt_get_result($stmt);
             /* Special styling for Total row */
             .items-table tfoot tr:last-child .total-label,
             .items-table tfoot tr:last-child .total-value {
-                font-size: 10px !important;
+                font-size: 8pt !important;
                 font-weight: bold !important;
             }
             
@@ -390,7 +391,7 @@ $items_result = mysqli_stmt_get_result($stmt);
                 text-align: center;
                 padding-top: 4px;
                 border-top: 1px dashed #000;
-                font-size: 7px;
+                font-size: 9pt;
                 font-weight: bold;
             }
 

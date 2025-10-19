@@ -49,9 +49,10 @@ $conn->close();
         
     <!-- Navigation -->
     <?php include "../../user-includes/navbar/customer-navigation.php"; ?>
+    <?php include __DIR__ . "/../../user-includes/bread-crumb/bread-crumb.php"; ?>
+
     <div class="about-container">
         <div class="container">
-        <?php include __DIR__ . "/../../user-includes/bread-crumb/bread-crumb.php"; ?>
 
             <!-- Header -->
             <header class="about-header">

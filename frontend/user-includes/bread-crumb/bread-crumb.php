@@ -34,7 +34,12 @@ $route_mappings = [
     'bulk-confirmation' => ['Order Confirmation', ''],
     
     // Blog routes
-    'blog-dashboard' => ['Blog', '/frontend/pages/blog/blog-dashboard.php'],
+    'blog-dashboard' => ['Blog Dashboard', '/frontend/pages/blog/blog-dashboard.php'],
+    'blog-list' => ['Neo Cafe\' Corner', '/frontend/pages/blog/blog-list.php'],
+    'user-blog' => ['Customer Testimonials', '/frontend/pages/blog/user-blog.php'],
+    'create-blog' => ['Create Post', '/frontend/pages/blog/create-blog.php'],
+    'view-blog-admin' => ['View Post', ''],
+    'view-blog' => ['View Post', ''],
     'blog-post' => ['Blog Post', ''],
     'blog-detail' => ['Blog Post', ''],
     
@@ -84,6 +89,11 @@ $hierarchy = [
     
     // Blog hierarchy
     'blog-dashboard' => ['user-dashboard'],
+    'blog-list' => ['user-dashboard', 'blog-dashboard'],
+    'user-blog' => ['user-dashboard', 'blog-dashboard'],
+    'create-blog' => ['user-blog'],
+    'view-blog-admin' => ['user-dashboard',  'blog-list'],
+    'view-blog' => ['user-dashboard', 'user-blog'],
     'blog-post' => ['user-dashboard', 'blog-dashboard'],
     'blog-detail' => ['user-dashboard', 'blog-dashboard'],
     

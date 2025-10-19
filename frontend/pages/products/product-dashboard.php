@@ -374,10 +374,10 @@ if ($cart_truncated) {
                     $stmt->close();
                     $conn->close();
                 ?>
-            </div> <!-- End products-grid -->
-        </div> <!-- End scroll-container -->
-    </div> <!-- End main-container -->
-</div> <!-- End wrapper -->
+            </div> 
+        </div> 
+    </div>
+</div> 
 
 <!-- Product Modal -->
 <div id="productModal" class="modal" style="display: none;">
@@ -540,7 +540,7 @@ if ($cart_truncated) {
             }
         } else {
             productsGrid.style.display = 'grid';
-            title.textContent = 'Available Today for Pick Up or Delivery!';
+            title.textContent = 'Same Day Order Products';
             subtitle.textContent = new Date().toLocaleDateString('en-US', { 
                 weekday: 'long', 
                 year: 'numeric', 
