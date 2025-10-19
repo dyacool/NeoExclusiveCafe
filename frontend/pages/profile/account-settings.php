@@ -167,6 +167,8 @@ echo "<!-- Current profile image path: " . ($row['profile_image'] ?? 'null') . "
 </head>
 <body>
     <?php include "../../user-includes/navbar/customer-navigation.php"; ?>
+    <?php include __DIR__ . "/../../user-includes/bread-crumb/bread-crumb.php"; ?>
+
     
     <div class="container">
         <h1> Account Settings</h1>

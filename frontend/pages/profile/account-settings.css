@@ -32,7 +32,7 @@
 }
 
 body {
-  background-color: var(--background);
+  background-color: #f8faf9 !important;
   color: var(--secondary);
   line-height: 1.6;
   overflow-x: hidden;
@@ -42,18 +42,16 @@ body {
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 30px 20px;
-  background-color: var(--background);
 }
 
 /* Page Header */
 h1 {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: var(--primary);
   text-align: center;
-  margin-bottom: 16px;
-  position: relative;
+  font-size: 2.5em;
+  font-weight: 700;
+  color: #444;
+  text-shadow: 1px 1px 2px #6c6c6c;
+  margin-bottom: 15px;
 }
 
 /* Section Headers */
@@ -406,11 +404,6 @@ input[readonly] {
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(
-    90deg,
-    var(--primary) 0%,
-    var(--primary-dark) 100%
-  );
   border-radius: 16px 16px 0 0;
 }
 

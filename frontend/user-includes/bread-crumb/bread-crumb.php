@@ -30,6 +30,7 @@ $route_mappings = [
     
     // Bulk order routes
     'bulk-form' => ['Bulk Order', '/frontend/pages/bulk/bulk-form.php'],
+    'bulk-order-details' => ['Order Details', ''],
     'bulk-order-success' => ['Order Success', ''],
     'bulk-confirmation' => ['Order Confirmation', ''],
     
@@ -84,6 +85,7 @@ $hierarchy = [
     
     // Bulk order hierarchy
     'bulk-form' => ['user-dashboard'],
+    'bulk-order-details' => ['user-dashboard', 'profile'],
     'bulk-order-success' => ['user-dashboard', 'bulk-form'],
     'bulk-confirmation' => ['user-dashboard', 'bulk-form'],
     
