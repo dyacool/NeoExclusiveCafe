@@ -196,13 +196,35 @@ if (empty($cart_items)) {
 }
 
 // Determine overall shipping method
-if ($availtoday_status_counts['delivery'] > 0 && $availtoday_status_counts['pickup'] > 0) {
+// Count items by their restrictions (not flexible items)
+$has_pickup_only_items = false;
+$has_delivery_only_items = false;
+
+foreach ($cart_items as $item) {
+    // Check if item is pickup-only (status_id = 1 or availtoday_status_id = 1)
+    if ($item['availtoday_status_id'] == 1 || ($item['availtoday_status_id'] === null && $item['status_id'] == 1)) {
+        $has_pickup_only_items = true;
+    }
+    // Check if item is delivery-only (status_id = 2 or availtoday_status_id = 2)
+    if ($item['availtoday_status_id'] == 2 || ($item['availtoday_status_id'] === null && $item['status_id'] == 2)) {
+        $has_delivery_only_items = true;
+    }
+}
+
+// Determine available options based on item restrictions
+if ($has_pickup_only_items && $has_delivery_only_items) {
+    // Both pickup-only and delivery-only items - conflict (force pickup)
     $has_mixed_availtoday_status = true;
-    $shipping_method = 'mixed'; // We'll handle this case in the UI
-} elseif ($availtoday_status_counts['delivery'] > 0) {
+    $shipping_method = 'pickup';
+} elseif ($has_pickup_only_items) {
+    // Has pickup-only items - only pickup allowed
+    $shipping_method = 'pickup';
+} elseif ($has_delivery_only_items) {
+    // Has delivery-only items - only delivery allowed
     $shipping_method = 'delivery';
 } else {
-    $shipping_method = 'pickup';
+    // All items are flexible - allow both options
+    $shipping_method = 'pickup'; // Default
 }
 
 // Store in session
@@ -308,34 +330,74 @@ $debug_info = [
         </div>
         <?php endif; ?>
 
-        <!-- Shipping Options & Details (Auto-assigned) -->
+        <!-- Shipping Options & Details -->
         <div class="section-card shipping-details">
-            <h2>Delivery Method</h2>
+            <h2>Shipping Options</h2>
             
-            <?php if ($has_mixed_availtoday_status): ?>
-                <div class="method-notice">
-                    <p><strong>Mixed Methods:</strong> Your items have different delivery methods as shown in the order summary below.</p>
+            <?php 
+            // Determine what options should be enabled based on item restrictions
+            if ($has_pickup_only_items && $has_delivery_only_items) {
+                // Conflict: both types exist - force pickup only
+                $allow_pickup = true;
+                $allow_delivery = false;
+            } else {
+                $allow_pickup = !$has_delivery_only_items; // Pickup allowed if no delivery-only items
+                $allow_delivery = !$has_pickup_only_items; // Delivery allowed if no pickup-only items
+            }
+            ?>
+            
+            <?php if ($has_pickup_only_items && $has_delivery_only_items): ?>
+                <div class="shipping-method-notice">
+                    <p><strong>Mixed Cart:</strong> Your cart contains both pickup-only and delivery-only items. Only pickup is available.</p>
+                </div>
+            <?php elseif ($has_delivery_only_items): ?>
+                <div class="shipping-method-notice">
+                    <p><strong>Delivery Required:</strong> Your cart contains delivery-only products.</p>
+                    <p><strong>Delivery Areas:</strong> We deliver to Sta. Rosa, Cabuyao, Calamba, Binan (Laguna), Silang, and Tagaytay (Cavite) only.</p>
+                </div>
+            <?php elseif ($has_pickup_only_items): ?>
+                <div class="shipping-method-notice">
+                    <p><strong>Pickup Required:</strong> Your cart contains pickup-only products.</p>
                 </div>
             <?php else: ?>
-                <div class="method-notice">
-                    <p><strong>Method: <?php echo ucfirst($shipping_method); ?></strong></p>
-                    <p class="auto-assigned-note">(Auto-assigned based on product availability - no calendar or time selection needed for Available Today items)</p>
+                <div class="shipping-method-notice">
+                    <p><strong>Flexible Options:</strong> All items in your cart can be either picked up or delivered. Choose your preferred method.</p>
                 </div>
             <?php endif; ?>
             
-            <!-- Hidden input to pass shipping method -->
-            <input type="hidden" name="shipping_method" value="<?php echo htmlspecialchars($shipping_method); ?>">
+            <div class="delivery-type">
+                <label class="radio-option">
+                    <input type="radio" id="pickup" name="delivery_method" value="pickup" 
+                           <?= $shipping_method === 'pickup' ? 'checked' : '' ?>
+                           <?= !$allow_pickup ? 'disabled' : '' ?>>
+                    <span>Pick Up <?= !$allow_pickup ? '(Not available - cart has delivery-only items)' : '' ?></span>
+                </label>
+                <label class="radio-option">
+                    <input type="radio" id="delivery" name="delivery_method" value="delivery"
+                           <?= $shipping_method === 'delivery' ? 'checked' : '' ?>
+                           <?= !$allow_delivery ? 'disabled' : '' ?>>
+                    <span>Delivery <?= !$allow_delivery ? '(Not available - cart has pickup-only items)' : '' ?></span>
+                </label>
+            </div>
+            
+            <!-- Pickup Details -->
+            <div id="pickup-details" class="delivery-content" style="display: none;">
+                <div class="method-notice">
+                    <p class="auto-assigned-note">Note: Available Today orders are prepared for same-day pickup. No calendar or time selection needed.</p>
+                </div>
+            </div>
 
-            <!-- Delivery Address (only show if delivery items exist) -->
-            <?php if ($availtoday_status_counts['delivery'] > 0 || $shipping_method === 'delivery'): ?>
-            <div class="delivery-content" id="delivery-address-section">
+            <!-- Delivery Details -->
+            <div id="delivery-details" class="delivery-content" style="display: none;">
+                <div class="method-notice">
+                    <p class="auto-assigned-note">Note: Available Today orders are prepared for same-day delivery. No calendar or time selection needed.</p>
+                </div>
                 <div class="address-section">
-                    <input type="text" id="address" name="address" 
-                           placeholder="Enter delivery address" required>
+                    <input type="text" id="delivery_address" name="delivery_address" 
+                           placeholder="Enter delivery address" readonly>
                     <button type="button" id="setLocationBtn" class="btn-secondary">Set Location</button>
                 </div>
             </div>
-            <?php endif; ?>
         </div>
 
         <!-- Order Summary -->
@@ -440,8 +502,7 @@ $debug_info = [
     </form>
 </div>
 
-<!-- Location Modal (only if delivery items exist) -->
-<?php if ($availtoday_status_counts['delivery'] > 0 || $shipping_method === 'delivery'): ?>
+<!-- Location Modal -->
 <div id="locationModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -450,28 +511,29 @@ $debug_info = [
         </div>
         <div class="modal-body">
             <div class="form-group mb-3">
-                <label class="form-label">Region *</label>
-                <select name="region" class="form-control form-control-md" id="region"></select>
-                <input type="hidden" class="form-control form-control-md" name="region_text" id="region-text" required>
+                <label class="form-label">Select Delivery Location *</label>
+                <select name="delivery_location" class="form-control form-control-md" id="delivery_location" required>
+                    <option value="">Choose your delivery location</option>
+                    <optgroup label="Laguna">
+                        <option value="Sta. Rosa, Laguna 4026">Sta. Rosa, Laguna 4026</option>
+                        <option value="Sta. Rosa, Laguna 4034">Sta. Rosa, Laguna 4034</option>
+                        <option value="Cabuyao, Laguna 4025">Cabuyao, Laguna 4025</option>
+                        <option value="Calamba, Laguna 4027">Calamba, Laguna 4027</option>
+                        <option value="Calamba, Laguna 4028">Calamba, Laguna 4028</option>
+                        <option value="Calamba, Laguna 4029">Calamba, Laguna 4029</option>
+                        <option value="Binan, Laguna 4024">Binan, Laguna 4024</option>
+                    </optgroup>
+                    <optgroup label="Cavite">
+                        <option value="Silang, Cavite 4118">Silang, Cavite 4118</option>
+                        <option value="Tagaytay, Cavite 4120">Tagaytay, Cavite 4120</option>
+                    </optgroup>
+                </select>
             </div>
             <div class="form-group mb-3">
-                <label class="form-label">Province *</label>
-                <select name="province" class="form-control form-control-md" id="province"></select>
-                <input type="hidden" class="form-control form-control-md" name="province_text" id="province-text" required>
-            </div>
-            <div class="form-group mb-3">
-                <label class="form-label">City / Municipality *</label>
-                <select name="city" class="form-control form-control-md" id="city"></select>
-                <input type="hidden" class="form-control form-control-md" name="city_text" id="city-text" required>
-            </div>
-            <div class="form-group mb-3">
-                <label class="form-label">Barangay *</label>
-                <select name="barangay" class="form-control form-control-md" id="barangay"></select>
-                <input type="hidden" class="form-control form-control-md" name="barangay_text" id="barangay-text" required>
-            </div>
-            <div class="form-group mb-3">
-                <label for="street-text" class="form-label">Street (Optional)</label>
-                <input type="text" class="form-control form-control-md" name="street_text" id="street-text">
+                <label class="form-label">Complete Address *</label>
+                <textarea name="complete_address" class="form-control" id="complete_address" rows="3" 
+                         placeholder="Enter your complete address (house number, street, subdivision, etc.)" required></textarea>
+                <small class="form-text text-muted">Please provide specific details like house/building number, street name, subdivision, landmarks, etc.</small>
             </div>
             <button type="button" id="saveLocationBtn" class="btn btn-success">Save Location</button>
         </div>
@@ -482,22 +544,44 @@ $debug_info = [
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 <!-- Add jQuery -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<!-- Add Address Selector Script -->
-<script src="ph-address-selector.js"></script>
-<?php endif; ?>
 
 <!-- PayMongo SDK -->
 <script src="https://js.paymongo.com/v1"></script>
 
 <script>
-// Modal functionality (only if delivery items exist)
-<?php if ($availtoday_status_counts['delivery'] > 0 || $shipping_method === 'delivery'): ?>
+// Modal functionality
 document.addEventListener('DOMContentLoaded', function() {
     const modal = document.getElementById('locationModal');
     const setLocationBtn = document.getElementById('setLocationBtn');
     const closeBtn = document.querySelector('.close-btn');
     const saveLocationBtn = document.getElementById('saveLocationBtn');
-    const deliveryAddressInput = document.getElementById('address');
+    const deliveryAddressInput = document.getElementById('delivery_address');
+    const pickupRadio = document.getElementById('pickup');
+    const deliveryRadio = document.getElementById('delivery');
+    const pickupDetails = document.getElementById('pickup-details');
+    const deliveryDetails = document.getElementById('delivery-details');
+
+    // Handle radio button changes
+    function updateVisibility() {
+        const isPickup = pickupRadio && pickupRadio.checked;
+        
+        if (pickupDetails) {
+            pickupDetails.style.display = isPickup ? 'block' : 'none';
+        }
+        if (deliveryDetails) {
+            deliveryDetails.style.display = isPickup ? 'none' : 'block';
+        }
+    }
+
+    if (pickupRadio) {
+        pickupRadio.addEventListener('change', updateVisibility);
+    }
+    if (deliveryRadio) {
+        deliveryRadio.addEventListener('change', updateVisibility);
+    }
+
+    // Initialize visibility
+    updateVisibility();
 
     if (setLocationBtn) {
         setLocationBtn.addEventListener('click', function() {
@@ -519,30 +603,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (saveLocationBtn) {
         saveLocationBtn.addEventListener('click', function() {
-            const region = document.getElementById('region-text').value;
-            const province = document.getElementById('province-text').value;
-            const city = document.getElementById('city-text').value;
-            const barangay = document.getElementById('barangay-text').value;
-            const street = document.getElementById('street-text').value;
+            const deliveryLocation = document.getElementById('delivery_location').value;
+            const completeAddress = document.getElementById('complete_address').value;
 
-            if (!region || !province || !city || !barangay) {
-                alert('Please fill in all required fields');
+            if (!deliveryLocation) {
+                alert('Please select a delivery location');
                 return;
             }
 
-            const address = street 
-                ? `${street}, Brgy. ${barangay}, ${city}, ${province}, ${region}`
-                : `Brgy. ${barangay}, ${city}, ${province}, ${region}`;
+            if (!completeAddress.trim()) {
+                alert('Please enter your complete address');
+                return;
+            }
+
+            // Combine the selected location with the complete address
+            const fullAddress = `${completeAddress.trim()}, ${deliveryLocation}`;
 
             if (deliveryAddressInput) {
-                deliveryAddressInput.value = address;
+                deliveryAddressInput.value = fullAddress;
             }
 
             modal.style.display = 'none';
         });
     }
 });
-<?php endif; ?>
 
 // Phone input validation
 const phoneInput = document.getElementById('phone');
@@ -644,9 +728,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Add delivery address if delivery is selected
                 if (isDelivery) {
-                    const deliveryAddress = document.getElementById('address');
+                    const deliveryAddress = document.getElementById('delivery_address');
                     if (deliveryAddress && deliveryAddress.value) {
                         formData.append('delivery_address', deliveryAddress.value);
+                        console.log('[AVAILTODAY CHECKOUT] Delivery Address:', deliveryAddress.value);
+                    } else {
+                        throw new Error('Please enter your delivery address');
                     }
                 }
                 
@@ -1005,6 +1092,203 @@ function validateForm() {
 // Additional styles for Available Today specific elements
 const additionalStyles = `
 <style>
+/* Location Modal Styling */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 15% auto;
+    padding: 0;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+    background-color: #256035;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px 8px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.close-btn:hover {
+    opacity: 0.7;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #333;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #256035;
+    box-shadow: 0 0 0 2px rgba(37, 96, 53, 0.2);
+}
+
+optgroup {
+    font-weight: bold;
+    color: #256035;
+}
+
+option {
+    font-weight: normal;
+    color: #333;
+    padding: 5px;
+}
+
+.form-text {
+    font-size: 12px;
+    color: #6c757d;
+    margin-top: 5px;
+}
+
+#saveLocationBtn {
+    background-color: #256035;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    width: 100%;
+}
+
+#saveLocationBtn:hover {
+    background-color: #1e4a2a;
+}
+
+/* Shipping Method Notice */
+.shipping-method-notice {
+    background: #e8f5e9;
+    border: 1px solid #c8e6c9;
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin: 15px 0;
+    color: #2e7d32;
+}
+
+.shipping-method-notice p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.shipping-method-notice strong {
+    color: #1b5e20;
+}
+
+/* Delivery Type Radio Buttons */
+.delivery-type {
+    margin-bottom: 20px;
+}
+
+.radio-option {
+    display: inline-block;
+    margin-right: 20px;
+    cursor: pointer;
+}
+
+.radio-option input[type="radio"] {
+    margin-right: 8px;
+}
+
+.radio-option span {
+    font-weight: 500;
+    color: #333;
+}
+
+/* Disabled Radio Button Styles */
+.radio-option input[type="radio"]:disabled + span {
+    color: #999;
+    cursor: not-allowed;
+}
+
+.radio-option input[type="radio"]:disabled {
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+}
+
+.address-section {
+    margin-bottom: 20px;
+}
+
+.address-section input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.delivery-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
 .method-notice {
     background: #e8f5e8;
     padding: 15px;

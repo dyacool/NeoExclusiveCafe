@@ -78812,3 +78812,263 @@ Product ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProdu
                   GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
                   ORDER BY p.created_at DESC
 [18-Oct-2025 18:16:26 Asia/Manila] Total featured products found: 8
+Product ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 2 | availtoday_status_id: 2 | availtoday_status_name: Delivery[19-Oct-2025 00:54:08 Asia/Manila] Auto-cleanup (product-dashboard): Removed 7 old dates from todays_products_dates, 2 from regular_products_today_dates
+[19-Oct-2025 00:54:08 Asia/Manila] Business hours: 06:00:00 - 19:00:00
+[19-Oct-2025 00:54:08 Asia/Manila] Time analysis: current=00:54:08 (54 min), opening=06:00:00 (360 min), closing=19:00:00 (1140 min), is_closed=No
+[19-Oct-2025 00:54:08 Asia/Manila] Cart truncation result: No action needed
+[19-Oct-2025 00:56:20 Asia/Manila] Business hours: 00:00:00 - 19:00:00
+[19-Oct-2025 00:56:20 Asia/Manila] Time analysis: current=00:56:19 (56 min), opening=00:00:00 (0 min), closing=19:00:00 (1140 min), is_closed=No
+[19-Oct-2025 00:56:20 Asia/Manila] Cart truncation result: No action needed
+[19-Oct-2025 00:56:52 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[19-Oct-2025 00:56:52 Asia/Manila] Total featured products found: 8
+[19-Oct-2025 00:56:56 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[19-Oct-2025 00:57:08 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[19-Oct-2025 00:57:08 Asia/Manila] Total featured products found: 8
+[19-Oct-2025 00:57:11 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[19-Oct-2025 00:57:21 Asia/Manila] Business hours: 00:00:00 - 19:00:00
+[19-Oct-2025 00:57:21 Asia/Manila] Time analysis: current=00:57:21 (57 min), opening=00:00:00 (0 min), closing=19:00:00 (1140 min), is_closed=No
+[19-Oct-2025 00:57:21 Asia/Manila] Cart truncation result: No action needed
+[19-Oct-2025 00:58:35 Asia/Manila] Business hours: 00:00:00 - 19:00:00
+[19-Oct-2025 00:58:35 Asia/Manila] Time analysis: current=00:58:34 (58 min), opening=00:00:00 (0 min), closing=19:00:00 (1140 min), is_closed=No
+[19-Oct-2025 00:58:35 Asia/Manila] Cart truncation result: No action needed
+[19-Oct-2025 00:58:39 Asia/Manila] Business hours: 00:00:00 - 19:00:00
+[19-Oct-2025 00:58:39 Asia/Manila] Time analysis: current=00:58:39 (58 min), opening=00:00:00 (0 min), closing=19:00:00 (1140 min), is_closed=No
+[19-Oct-2025 00:58:39 Asia/Manila] Cart truncation result: No action needed
+[19-Oct-2025 00:58:55 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[19-Oct-2025 00:58:55 Asia/Manila] Total featured products found: 8
+[19-Oct-2025 00:58:58 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[19-Oct-2025 00:59:05 Asia/Manila] Business hours: 00:00:00 - 19:00:00
+[19-Oct-2025 00:59:05 Asia/Manila] Time analysis: current=00:59:04 (59 min), opening=00:00:00 (0 min), closing=19:00:00 (1140 min), is_closed=No
+[19-Oct-2025 00:59:05 Asia/Manila] Cart truncation result: No action needed
+Product ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 2 | availtoday_status_id: 2 | availtoday_status_name: Delivery[19-Oct-2025 11:10:52 Asia/Manila] Database connection successful
+[19-Oct-2025 11:10:52 Asia/Manila] User has 4 items in cart table
+[19-Oct-2025 11:10:52 Asia/Manila] Cart table structure:
+[19-Oct-2025 11:10:52 Asia/Manila]   id - int(11) - NO - PRI -  - auto_increment
+[19-Oct-2025 11:10:52 Asia/Manila]   user_id - int(11) - NO -  -  - 
+[19-Oct-2025 11:10:52 Asia/Manila]   product_id - int(11) - NO -  -  - 
+[19-Oct-2025 11:10:52 Asia/Manila]   quantity - int(11) - NO -  - 1 - 
+[19-Oct-2025 11:10:52 Asia/Manila]   price - decimal(10,2) - NO -  -  - 
+[19-Oct-2025 11:10:52 Asia/Manila]   created_at - timestamp - NO -  - current_timestamp() - 
+[19-Oct-2025 11:10:52 Asia/Manila]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[19-Oct-2025 11:10:52 Asia/Manila] Cart item 108 does not exist in cart table
+[19-Oct-2025 11:10:53 Asia/Manila] Final user data: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [email] => alrainepascua2@gmail.com
+)
+
+[19-Oct-2025 11:10:53 Asia/Manila] REQUEST_METHOD: POST
+[19-Oct-2025 11:10:53 Asia/Manila] POST data: Array
+(
+    [valid_cart_ids] => 14,22,17,12
+    [cart_type] => preorder
+    [selected_cart_ids] => Array
+        (
+            [0] => 22
+        )
+
+    [checkout] => 
+    [subtotal] => 200
+    [cart_items] => 22
+)
+
+[19-Oct-2025 11:10:53 Asia/Manila] SESSION data at cart items check: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [admin_redirect_url] => /backend/pages/dashboard/dashboard.php
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+)
+
+[19-Oct-2025 11:10:53 Asia/Manila] Got cart IDs from POST: 22
+[19-Oct-2025 11:10:53 Asia/Manila] Validated cart IDs: 22
+[19-Oct-2025 11:10:53 Asia/Manila] Final selected_cart_ids: Array
+(
+    [0] => 22
+)
+
+[19-Oct-2025 11:10:53 Asia/Manila] Final subtotal: 200
+[19-Oct-2025 11:10:53 Asia/Manila] Selected cart IDs: Array
+(
+    [0] => 22
+)
+
+[19-Oct-2025 11:10:53 Asia/Manila] Subtotal: 200
+[19-Oct-2025 11:10:53 Asia/Manila] Cart item 22 is valid for user 5
+[19-Oct-2025 11:10:53 Asia/Manila] Validated cart IDs: 22
+[19-Oct-2025 11:10:53 Asia/Manila] Cart contains only delivery items - setting shipping method to delivery
+[19-Oct-2025 11:10:53 Asia/Manila] Cart analysis: 1 items, pickup: , delivery: 1, method: delivery
+[19-Oct-2025 11:10:53 Asia/Manila] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Cassava Cake
+            [price] => 200.00
+            [quantity] => 1
+            [cart_id] => 22
+            [product_id] => 14
+            [status_id] => 2
+            [available_days] => Sunday,Monday,Tuesday
+        )
+
+)
+
+[19-Oct-2025 11:10:53 Asia/Manila] Cart total: 200
+[19-Oct-2025 11:10:53 Asia/Manila] User data at display point: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [profile_image] => 
+)
+
+[19-Oct-2025 11:10:53 Asia/Manila] Session data at display point: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [admin_redirect_url] => /backend/pages/dashboard/dashboard.php
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 22
+        )
+
+    [subtotal] => 200
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Cassava Cake
+                    [price] => 200.00
+                    [quantity] => 1
+                    [cart_id] => 22
+                    [product_id] => 14
+                    [status_id] => 2
+                    [available_days] => Sunday,Monday,Tuesday
+                )
+
+        )
+
+    [cart_total] => 200
+    [shipping_method] => delivery
+    [has_pickup_items] => 
+    [has_delivery_items] => 1
+)
+
+[19-Oct-2025 11:10:53 Asia/Manila] PHP Warning:  include(../../user-includes/footer.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\checkout.php on line 2400
+[19-Oct-2025 11:10:53 Asia/Manila] PHP Warning:  include(): Failed opening '../../user-includes/footer.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\checkout.php on line 2400
+[19-Oct-2025 11:12:03 Asia/Manila] Business hours: 00:00:00 - 19:00:00
+[19-Oct-2025 11:12:03 Asia/Manila] Time analysis: current=11:12:03 (672 min), opening=00:00:00 (0 min), closing=19:00:00 (1140 min), is_closed=No
+[19-Oct-2025 11:12:03 Asia/Manila] Cart truncation result: No action needed
+[19-Oct-2025 17:55:16 Asia/Manila] Business hours: 00:00:00 - 19:00:00
+[19-Oct-2025 17:55:16 Asia/Manila] Time analysis: current=17:55:16 (1075 min), opening=00:00:00 (0 min), closing=19:00:00 (1140 min), is_closed=No
+[19-Oct-2025 17:55:16 Asia/Manila] Cart truncation result: No action needed
+[19-Oct-2025 18:08:07 Asia/Manila] Business hours: 00:00:00 - 19:00:00
+[19-Oct-2025 18:08:07 Asia/Manila] Time analysis: current=18:08:07 (1088 min), opening=00:00:00 (0 min), closing=19:00:00 (1140 min), is_closed=No
+[19-Oct-2025 18:08:07 Asia/Manila] Cart truncation result: No action needed
+[19-Oct-2025 18:19:15 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[19-Oct-2025 18:19:15 Asia/Manila] Total featured products found: 8
+[19-Oct-2025 18:24:00 Asia/Manila] Business hours: 00:00:00 - 19:00:00
+[19-Oct-2025 18:24:00 Asia/Manila] Time analysis: current=18:24:00 (1104 min), opening=00:00:00 (0 min), closing=19:00:00 (1140 min), is_closed=No
+[19-Oct-2025 18:24:00 Asia/Manila] Cart truncation result: No action needed
+[19-Oct-2025 18:31:53 Asia/Manila] Business hours: 00:00:00 - 19:00:00
+[19-Oct-2025 18:31:53 Asia/Manila] Time analysis: current=18:31:53 (1111 min), opening=00:00:00 (0 min), closing=19:00:00 (1140 min), is_closed=No
+[19-Oct-2025 18:31:53 Asia/Manila] Cart truncation result: No action needed
+Product ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 2 | availtoday_status_id: 2 | availtoday_status_name: Delivery

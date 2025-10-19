@@ -67,10 +67,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $todays_product_dates = array_filter($todays_product_dates); // Remove empty values
     }
 
-    // Handle availtoday_status_id for Available Today products
+    // Handle availtoday_status_id for Available Today products and regular products set as available today
     $availtoday_status_id = null;
+    $isAvailableToday = isset($_POST['isAvailableToday']) && $_POST['isAvailableToday'] === 'true';
+    
     if ($status_id == 3 && isset($_POST['availtoday_status_id']) && !empty($_POST['availtoday_status_id'])) {
+        // Same Day Order product
         $availtoday_status_id = $_POST['availtoday_status_id'];
+    } elseif (($status_id == 1 || $status_id == 2) && $isAvailableToday && isset($_POST['availtoday_status_id']) && !empty($_POST['availtoday_status_id'])) {
+        // Regular product (Pick Up/Delivery) also set as available today
+        $availtoday_status_id = $_POST['availtoday_status_id'];
+    }
+    
+    // Handle available today dates for regular products
+    $available_today_dates = [];
+    if (($status_id == 1 || $status_id == 2) && $isAvailableToday && isset($_POST['available_today_dates']) && !empty($_POST['available_today_dates'])) {
+        $available_today_dates = explode(',', $_POST['available_today_dates']);
+        $available_today_dates = array_filter($available_today_dates);
     }
 
     // Insert product with availtoday_status_id field
@@ -168,6 +181,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 }
             }
             $date_stmt->close();
+        }
+
+        // Insert available today dates for regular products into regular_products_today_dates table
+        if (($status_id == 1 || $status_id == 2) && !empty($available_today_dates)) {
+            $regular_date_stmt = $conn->prepare("INSERT INTO regular_products_today_dates (product_id, available_date, availtoday_status_id) VALUES (?, ?, ?)");
+            
+            foreach ($available_today_dates as $date) {
+                $trimmed_date = trim($date);
+                // Validate date format
+                if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $trimmed_date)) {
+                    $regular_date_stmt->bind_param("isi", $product_id, $trimmed_date, $availtoday_status_id);
+                    if (!$regular_date_stmt->execute()) {
+                        error_log("Failed to insert regular product date $trimmed_date: " . $regular_date_stmt->error);
+                    }
+                }
+            }
+            $regular_date_stmt->close();
         }
 
         // Set success message in session
@@ -314,13 +344,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                      </select>
                      
 
+                     <!-- isAvailableToday checkbox - only shown when Pick Up or Delivery is selected -->
+                     <div id="isAvailableTodayContainer" style="display: none; margin-top: 10px;">
+                         <div class="checkbox-group">
+                             <div class="checkbox-item">
+                                 <input type="checkbox" id="isAvailableToday" name="isAvailableToday" value="true">
+                                 <label class="cb-itm" for="isAvailableToday" style="display: inline;">Set to same day order too</label>
+                             </div>
+                         </div>
+                     </div>
+
                      <!-- New dropdown for Available Today options -->
                      <div id="availtodayOptions" style="display: none;">
-                         <label>Delivery Option:</label>
-                         <select class="availtoday-status" name="availtoday_status_id">
+                         <label>Same Day Order Options:</label>
+                         <select class="availtoday-status" name="availtoday_status_id" id="availtodayStatusSelect">
                              <option value="">Select option...</option>
                              <option value="1">Pick Up</option>
                              <option value="2">Delivery</option>
+                             <option value="3">Delivery and Pick Up</option>
                          </select>
                      </div>
 
@@ -361,9 +402,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                     <!-- Calendar for Today's Products -->
                     <div id="todaysProductCalendarContainer" style="display: none;">
-                        <label>Select Available Dates:</label>
+                        <label>Select dates for same day order:</label>
                         <div id="todaysProductCalendar"></div>
                         <input type="hidden" id="todaysProductDates" name="todays_product_dates">
+                    </div>
+
+                    <!-- Calendar for regular products that are also available today -->
+                    <div id="availableTodayCalendarContainer" style="display: none;">
+                        <label>Select dates for same day order:</label>
+                        <div id="availableTodayCalendar"></div>
+                        <input type="hidden" id="availableTodayDates" name="available_today_dates">
                     </div>
 
                     <label>Visibility</label>
@@ -420,35 +468,54 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // Function to toggle available days/calendar visibility based on status
         function toggleAvailableDaysVisibility() {
-
             const statusSelect = document.querySelector('select[name="status_id"]');
             const regularDaysContainer = document.getElementById('regularAvailableDaysContainer');
             const todaysCalendarContainer = document.getElementById('todaysProductCalendarContainer');
             const availtodayOptions = document.getElementById('availtodayOptions');
             const availtodaySelect = document.querySelector('select[name="availtoday_status_id"]');
+            const isAvailableTodayContainer = document.getElementById('isAvailableTodayContainer');
+            const availableTodayCalendarContainer = document.getElementById('availableTodayCalendarContainer');
             
             if (statusSelect) {
                 const selectedValue = statusSelect.value;
-
                 
                 if (selectedValue === '1' || selectedValue === '2') { // Pick Up or Delivery
                     if (regularDaysContainer) regularDaysContainer.style.display = 'block';
                     if (todaysCalendarContainer) todaysCalendarContainer.style.display = 'none';
-                    if (availtodayOptions) availtodayOptions.style.display = 'none';
-                    if (availtodaySelect) {
-                        availtodaySelect.removeAttribute('required');
+                    if (isAvailableTodayContainer) isAvailableTodayContainer.style.display = 'block';
+                    
+                    // Show availtoday options and calendar only if checkbox is checked
+                    const isAvailableTodayCheckbox = document.getElementById('isAvailableToday');
+                    if (isAvailableTodayCheckbox && isAvailableTodayCheckbox.checked) {
+                        if (availtodayOptions) availtodayOptions.style.display = 'block';
+                        if (availableTodayCalendarContainer) availableTodayCalendarContainer.style.display = 'block';
+                        if (availtodaySelect) {
+                            availtodaySelect.setAttribute('required', 'required');
+                        }
+                        
+                        // Initialize available today calendar if not already initialized
+                        if (!window.availableTodayCalendar) {
+                            initializeAvailableTodayCalendar();
+                        }
+                    } else {
+                        if (availtodayOptions) availtodayOptions.style.display = 'none';
+                        if (availableTodayCalendarContainer) availableTodayCalendarContainer.style.display = 'none';
+                        if (availtodaySelect) {
+                            availtodaySelect.removeAttribute('required');
+                        }
                     }
                 } else if (selectedValue === '3') { // Today's Product
                     // For Today's Product: Show calendar and availtoday options
                     if (regularDaysContainer) regularDaysContainer.style.display = 'none';
                     if (todaysCalendarContainer) todaysCalendarContainer.style.display = 'block';
-                    if (availtodayOptions) availtodayOptions.style.display = 'block'; // Show availtoday options
+                    if (availtodayOptions) availtodayOptions.style.display = 'block';
+                    if (isAvailableTodayContainer) isAvailableTodayContainer.style.display = 'none';
+                    if (availableTodayCalendarContainer) availableTodayCalendarContainer.style.display = 'none';
                     if (availtodaySelect) {
-                        availtodaySelect.setAttribute('required', 'required'); // Keep required
+                        availtodaySelect.setAttribute('required', 'required');
                     }
                     
                     // Initialize calendar for Today's products
-
 
                     
                     // Always ensure calendar has proper callback, even if it exists
@@ -493,10 +560,39 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     if (regularDaysContainer) regularDaysContainer.style.display = 'none';
                     if (todaysCalendarContainer) todaysCalendarContainer.style.display = 'none';
                     if (availtodayOptions) availtodayOptions.style.display = 'none';
+                    if (isAvailableTodayContainer) isAvailableTodayContainer.style.display = 'none';
+                    if (availableTodayCalendarContainer) availableTodayCalendarContainer.style.display = 'none';
                     if (availtodaySelect) {
                         availtodaySelect.removeAttribute('required');
                     }
                 }
+            }
+        }
+
+        // Function to initialize Available Today calendar for regular products
+        function initializeAvailableTodayCalendar() {
+            try {
+                if (typeof DateCalendar !== 'undefined') {
+                    window.availableTodayCalendar = new DateCalendar('availableTodayCalendar', {
+                        onSelectionChange: function(selectedDates) {
+                            const hiddenInput = document.getElementById('availableTodayDates');
+                            if (hiddenInput) {
+                                hiddenInput.value = selectedDates.join(',');
+                            }
+                        }
+                    });
+                } else if (typeof initializeDateCalendar !== 'undefined') {
+                    window.availableTodayCalendar = initializeDateCalendar('availableTodayCalendar', {
+                        onSelectionChange: function(selectedDates) {
+                            const hiddenInput = document.getElementById('availableTodayDates');
+                            if (hiddenInput) {
+                                hiddenInput.value = selectedDates.join(',');
+                            }
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error creating available today calendar:', error);
             }
         }
 
@@ -507,6 +603,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         const statusSelect = document.querySelector('select[name="status_id"]');
         if (statusSelect) {
             statusSelect.addEventListener('change', toggleAvailableDaysVisibility);
+        }
+
+        // Add event listener to "Set to same day order too" checkbox
+        const isAvailableTodayCheckbox = document.getElementById('isAvailableToday');
+        if (isAvailableTodayCheckbox) {
+            isAvailableTodayCheckbox.addEventListener('change', toggleAvailableDaysVisibility);
         }
 
         // Primary image handling
@@ -642,20 +744,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             const statusSelect = document.getElementById('statusSelect');
             const todaysProductDates = document.getElementById('todaysProductDates');
             const availtodaySelect = document.querySelector('select[name="availtoday_status_id"]');
+            const isAvailableTodayCheckbox = document.getElementById('isAvailableToday');
+            const availableTodayDates = document.getElementById('availableTodayDates');
 
-
-
-            // For Today's products, ensure both date and availtoday status are selected
+            // For Same Day Order products, ensure both date and availtoday status are selected
             if (statusSelect.value === '3') {
                 if (!availtodaySelect || !availtodaySelect.value) {
-                    alert('Please select an option for "Available Today".');
+                    alert('Please select a "Same Day Order Options".');
                     return false;
                 }
                 if (!todaysProductDates || !todaysProductDates.value.trim()) {
-                    alert('Please select at least one date for Today\'s product.');
+                    alert('Please select at least one date for Same Day Order.');
                     return false;
                 }
             }
+
+            // For regular products (Pick Up/Delivery) set as available today
+            if ((statusSelect.value === '1' || statusSelect.value === '2') && isAvailableTodayCheckbox && isAvailableTodayCheckbox.checked) {
+                if (!availtodaySelect || !availtodaySelect.value) {
+                    alert('Please select a "Same Day Order Options".');
+                    return false;
+                }
+                if (!availableTodayDates || !availableTodayDates.value.trim()) {
+                    alert('Please select at least one date for Same Day Order.');
+                    return false;
+                }
+            }
+
             return true;
         }
     });

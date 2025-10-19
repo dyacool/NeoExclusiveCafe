@@ -256,9 +256,10 @@ try {
                     $del = $conn->prepare($del_sql);
                     $del->bind_param($types, ...$ids);
                     $del->execute();
+                    $affected_rows = $del->affected_rows;
                     $del->close();
                     
-                    error_log("Cleared " . $del->affected_rows . " items from $cart_table for order type: $type");
+                    error_log("Cleared " . $affected_rows . " items from $cart_table for order type: $type");
                 }
             }
 
