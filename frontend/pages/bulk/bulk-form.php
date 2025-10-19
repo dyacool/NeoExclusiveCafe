@@ -32,49 +32,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_bulk_order']))
         // Get selected products
         $selected_products = json_decode($_POST['selected_products'], true);
         
-        // Create bulk_orders table with id as primary key
-        $create_table_query = "
-            CREATE TABLE IF NOT EXISTS bulk_orders (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                unique_order_id VARCHAR(20) UNIQUE,
-                user_id INT NULL,
-                name VARCHAR(255) NOT NULL,
-                contact VARCHAR(20) NOT NULL,
-                email VARCHAR(255) NOT NULL,
-                billing_address TEXT NOT NULL,
-                order_type ENUM('delivery', 'pickup') NOT NULL,
-                delivery_address TEXT,
-                purpose TEXT NOT NULL,
-                date_needed DATE NOT NULL,
-                time_needed TIME NOT NULL,
-                note TEXT,
-                total_amount DECIMAL(10,2) NOT NULL,
-                total_items INT NOT NULL DEFAULT 0,
-                status ENUM('pending', 'approved', 'payment_received', 'ready_for_delivery', 'ready_for_pickup', 'cancelled', 'completed') DEFAULT 'pending',
-                proof_of_payment VARCHAR(255) NULL,
-                admin_updated BOOLEAN DEFAULT FALSE,
-                admin_notes TEXT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-            )
-        ";
-        mysqli_query($conn, $create_table_query);
-        
-        // Create bulk_order_items table if it doesn't exist
-        $create_items_table = "
-            CREATE TABLE IF NOT EXISTS bulk_order_items (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                bulk_order_id INT,
-                product_id INT,
-                product_name VARCHAR(255),
-                product_price DECIMAL(10,2),
-                quantity INT,
-                subtotal DECIMAL(10,2),
-                FOREIGN KEY (bulk_order_id) REFERENCES bulk_orders(id) ON DELETE CASCADE
-            )
-        ";
-        mysqli_query($conn, $create_items_table);
-        
         // Calculate total items
         $total_items = 0;
         foreach ($selected_products as $product) {
@@ -190,22 +147,27 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
                 <div class="section-content">
                     <div class="form-group">
                         <label for="name">Full Name <span class="required">*</span></label>
-                        <input type="text" id="name" name="name" required>
+                        <input type="text" id="name" name="name" required placeholder="FName LName">
                     </div>
 
                     <div class="form-group">
                         <label for="contact">Contact Number <span class="required">*</span></label>
-                        <input type="tel" id="contact" name="contact" required>
+                        <input type="tel" id="contact" name="contact" required 
+                               pattern="[0-9]{11}" 
+                               maxlength="11" 
+                               title="Please enter exactly 11 digits" 
+                               placeholder="09XXXXXXXXX"
+                               oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11)">
                     </div>
 
                     <div class="form-group">
                         <label for="email">Email Address <span class="required">*</span></label>
-                        <input type="email" id="email" name="email" required>
+                        <input type="email" id="email" name="email" required placeholder="example@email.com">
                     </div>
 
                     <div class="form-group">
                         <label for="billing_address">Billing Address <span class="required">*</span></label>
-                        <textarea id="billing_address" name="billing_address" rows="3" required style="resize: none;"></textarea>
+                        <textarea id="billing_address" name="billing_address" rows="3" required placeholder="House No., Street, Barangay, Municipality, Province, Postal Code" style="resize: none;"></textarea>
                     </div>
 
                     <div class="form-group">
@@ -218,8 +180,13 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
                     </div>
 
                     <div class="form-group" id="delivery_address_group" style="display: none;">
-                        <label for="delivery_address">Delivery Address <span class="required">*</span></label>
-                        <textarea id="delivery_address" name="delivery_address" rows="3"></textarea>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <label for="delivery_address">Delivery Address <span class="required">*</span></label>
+                            <button type="button" id="sameAsBillingBtn" class="btn-same-address" onclick="copyBillingToDelivery()">
+                                Same as Billing Address
+                            </button>
+                        </div>
+                        <textarea id="delivery_address" name="delivery_address" rows="3" placeholder="House No., Street, Barangay, Municipality, Province, Postal Code"></textarea>
                     </div>
 
                     <div class="form-group">
@@ -306,7 +273,8 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
                                                        min="12" 
                                                        value="12" 
                                                        class="quantity-field"
-                                                       onchange="updateQuantity(<?php echo $product['id']; ?>)">
+                                                       onchange="updateQuantity(<?php echo $product['id']; ?>)"
+                                                       oninput="updateQuantity(<?php echo $product['id']; ?>)">
                                                 <button type="button" class="quantity-btn" onclick="increaseQuantity(<?php echo $product['id']; ?>)">+</button>
                                             </div>
                                             <div class="item-subtotal" id="subtotal_<?php echo $product['id']; ?>">
@@ -493,21 +461,19 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
     <div id="successModal" class="modal show">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>🎉 Order Submitted Successfully!</h2>
+                <h2>Order Submitted Successfully!</h2>
             </div>
             <div class="modal-body">
-                <div class="success-icon">✓</div>
                 <p><strong>Thank you for your bulk order!</strong></p>
-                <p><strong>Order ID: #<?php echo str_pad($bulk_order_id, 6, '0', STR_PAD_LEFT); ?></strong></p>
                 <div class="success-details">
-                    <p>✉️ <strong>What happens next?</strong></p>
+                    <p><strong>What happens next?</strong></p>
                     <ul>
                         <li>Our team will review your order within <strong>24-72 hours</strong></li>
                         <li>We'll contact you at <strong><?php echo htmlspecialchars($_POST['email'] ?? ''); ?></strong> with pricing and availability</li>
-                        <li>You can track your order status in your profile</li>
+                        <li>You can track your request status in your profile</li>
                     </ul>
                 </div>
-                <p class="contact-note">📞 For urgent inquiries, please contact us directly.</p>
+                <p class="contact-note">For urgent inquiries, please contact us directly.</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="window.location.href='../products/user-products.php'">Back to Products</button>
@@ -518,8 +484,43 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
     <?php endif; ?>
     </div> <!-- End of wrapper -->
 
-    <script src="bulk-form.js"></script>
+    <script src="bulk-form.js?v=<?php echo time(); ?>"></script>
     <script>
+        // Copy billing address to delivery address
+        function copyBillingToDelivery() {
+            const billingAddress = document.getElementById('billing_address').value.trim();
+            const deliveryAddress = document.getElementById('delivery_address');
+            
+            if (billingAddress === '') {
+                alert('Please fill in the billing address first!');
+                document.getElementById('billing_address').focus();
+                return;
+            }
+            
+            deliveryAddress.value = billingAddress;
+            
+            // Add visual feedback
+            const btn = document.getElementById('sameAsBillingBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '✓ Address Copied!';
+            btn.style.background = 'linear-gradient(135deg, #28a745 0%, #20963d 100%)';
+            
+            // Reset button after 2 seconds
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.style.background = '';
+            }, 2000);
+            
+            // Highlight the delivery address field briefly
+            deliveryAddress.style.borderColor = '#28a745';
+            deliveryAddress.style.boxShadow = '0 0 0 3px rgba(40, 167, 69, 0.2)';
+            
+            setTimeout(() => {
+                deliveryAddress.style.borderColor = '';
+                deliveryAddress.style.boxShadow = '';
+            }, 2000);
+        }
+        
         // Comprehensive form restoration prevention
         (function() {
             // Clear all storage

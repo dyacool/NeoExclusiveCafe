@@ -37,10 +37,8 @@ body {
 
 /* Profile Container */
 .neo-profile-container {
-  max-width: 1200px;
+  max-width: 1600px;
   margin: 0 auto;
-  padding: 30px 20px;
-  background-color: var(--background);
   font-family: "Spectral", serif;
   color: var(--secondary);
 }

@@ -337,9 +337,9 @@ if ($bulk_orders_stmt === false) {
                             <td>₱<?php echo htmlspecialchars(number_format($bulk_order['total_amount'], 2)); ?></td>
                             <td><span class="status-<?php echo htmlspecialchars(strtolower($bulk_order['status'])); ?>"><?php echo htmlspecialchars(ucfirst(str_replace('_', ' ', $bulk_order['status']))); ?></span></td>
                             <td>
-                                <a href="../bulk/bulk-order-details.php?id=<?php echo $bulk_order['id']; ?>" class="btn-view">View Details</a>
+                                <a href="../bulk/bulk-order-details.php?id=<?php echo $bulk_order['display_order_id']; ?>" class="btn-view">View Details</a>
                                 <?php if ($bulk_order['status'] == 'approved' && empty($bulk_order['proof_of_payment'])): ?>
-                                    <a href="../bulk-orders/bulk-order-details.php?id=<?php echo $bulk_order['id']; ?>#proof-upload" class="btn-proof">Attach Proof</a>
+                                    <a href="../bulk/bulk-order-details.php?id=<?php echo $bulk_order['display_order_id']; ?>#proof-upload" class="btn-proof">Attach Proof</a>
                                 <?php endif; ?>
                             </td>
                         </tr>

@@ -17,44 +17,7 @@ if (!isset($_GET['id'])) {
 $order_id = trim($_GET['id']); // Keep as string for unique_order_id
 $user_id = $_SESSION['user_id'];
 
-// Handle proof of payment upload
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_proof'])) {
-    if (isset($_FILES['proof_file']) && $_FILES['proof_file']['error'] === 0) {
-        $upload_dir = '../../../assets/bulk_payments/';
-        if (!file_exists($upload_dir)) {
-            mkdir($upload_dir, 0777, true);
-        }
-        
-        $file_extension = strtolower(pathinfo($_FILES['proof_file']['name'], PATHINFO_EXTENSION));
-        $allowed_extensions = ['jpg', 'jpeg', 'png', 'pdf'];
-        
-        if (in_array($file_extension, $allowed_extensions)) {
-            $filename = 'bulk_payment_' . $order_id . '_' . time() . '.' . $file_extension;
-            $filepath = $upload_dir . $filename;
-            
-            if (move_uploaded_file($_FILES['proof_file']['tmp_name'], $filepath)) {
-                $update_sql = "UPDATE bulk_orders SET proof_of_payment = ? WHERE unique_order_id = ? AND user_id = ?";
-                $update_stmt = mysqli_prepare($conn, $update_sql);
-                mysqli_stmt_bind_param($update_stmt, "ssi", $filename, $order_id, $user_id);
-                
-                if (mysqli_stmt_execute($update_stmt)) {
-                    $success_message = "Proof of payment uploaded successfully!";
-                } else {
-                    $error_message = "Error updating database.";
-                }
-                mysqli_stmt_close($update_stmt);
-            } else {
-                $error_message = "Error uploading file.";
-            }
-        } else {
-            $error_message = "Invalid file type. Please upload JPG, PNG, or PDF files only.";
-        }
-    } else {
-        $error_message = "Please select a file to upload.";
-    }
-}
-
-// Fetch order details with user verification
+// Fetch order details with user verification first
 $order_sql = "SELECT * FROM bulk_orders WHERE unique_order_id = ? AND user_id = ?";
 $stmt = mysqli_prepare($conn, $order_sql);
 mysqli_stmt_bind_param($stmt, "si", $order_id, $user_id);
@@ -67,18 +30,89 @@ if (!$order) {
     exit();
 }
 
-// Fetch order items from the single bulk_orders table
-$items_sql = "SELECT product_id, product_name, product_price, quantity, subtotal FROM bulk_orders WHERE unique_order_id = ? ORDER BY id";
+// Handle proof of payment upload
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_proof'])) {
+    if (isset($_FILES['proof_file']) && $_FILES['proof_file']['error'] === 0) {
+        $upload_dir = '../../../assets/bulk_payments/';
+        if (!file_exists($upload_dir)) {
+            mkdir($upload_dir, 0777, true);
+        }
+        
+        $file_extension = strtolower(pathinfo($_FILES['proof_file']['name'], PATHINFO_EXTENSION));
+        $allowed_extensions = ['jpg', 'jpeg', 'png', 'pdf'];
+        
+        if (in_array($file_extension, $allowed_extensions)) {
+            $payment_type = isset($_POST['payment_type']) ? $_POST['payment_type'] : 'full';
+            $timestamp = time();
+            $filename = 'bulk_payment_' . $payment_type . '_' . $order_id . '_' . $timestamp . '.' . $file_extension;
+            $filepath = $upload_dir . $filename;
+            
+            if (move_uploaded_file($_FILES['proof_file']['tmp_name'], $filepath)) {
+                // Get existing proofs
+                $existing_proofs = !empty($order['proof_of_payment']) ? json_decode($order['proof_of_payment'], true) : [];
+                if (!is_array($existing_proofs)) {
+                    $existing_proofs = [];
+                }
+                
+                // Add new proof
+                $new_proof = [
+                    'filename' => $filename,
+                    'type' => $payment_type,
+                    'uploaded_at' => date('Y-m-d H:i:s'),
+                    'original_name' => $_FILES['proof_file']['name']
+                ];
+                
+                $existing_proofs[] = $new_proof;
+                $proofs_json = json_encode($existing_proofs);
+                
+                $update_sql = "UPDATE bulk_orders SET proof_of_payment = ? WHERE unique_order_id = ? AND user_id = ?";
+                $update_stmt = mysqli_prepare($conn, $update_sql);
+                mysqli_stmt_bind_param($update_stmt, "ssi", $proofs_json, $order_id, $user_id);
+                
+                if (mysqli_stmt_execute($update_stmt)) {
+                    $_SESSION['flash_success'] = ucfirst($payment_type) . " payment proof uploaded successfully!";
+                    // Refresh order data to show new proof
+                    $order['proof_of_payment'] = $proofs_json;
+                    // Redirect to prevent resubmission
+                    header("Location: " . $_SERVER['REQUEST_URI']);
+                    exit();
+                } else {
+                    $_SESSION['flash_error'] = "Error updating database.";
+                }
+                mysqli_stmt_close($update_stmt);
+            } else {
+                $_SESSION['flash_error'] = "Error uploading file.";
+            }
+        } else {
+            $_SESSION['flash_error'] = "Invalid file type. Please upload JPG, PNG, or PDF files only.";
+        }
+    } else {
+        $_SESSION['flash_error'] = "Please select a file to upload.";
+    }
+}
+
+// Fetch order items from the bulk_order_items table
+$items_sql = "SELECT boi.product_id, boi.product_name, boi.product_price, boi.quantity, boi.subtotal 
+              FROM bulk_order_items boi 
+              INNER JOIN bulk_orders bo ON boi.bulk_order_id = bo.id 
+              WHERE bo.unique_order_id = ? AND bo.user_id = ?
+              ORDER BY boi.id";
 $items_stmt = mysqli_prepare($conn, $items_sql);
-mysqli_stmt_bind_param($items_stmt, "s", $order_id);
+mysqli_stmt_bind_param($items_stmt, "si", $order_id, $user_id);
 mysqli_stmt_execute($items_stmt);
 $items_result = mysqli_stmt_get_result($items_stmt);
 $items = mysqli_fetch_all($items_result, MYSQLI_ASSOC);
 
-// Debug: Check if items were found
-$items_count = count($items);
-if ($items_count == 0) {
-    $debug_message = "No items found for bulk order ID: " . $order_id;
+// Handle flash messages
+$success_message = '';
+$error_message = '';
+if (isset($_SESSION['flash_success'])) {
+    $success_message = $_SESSION['flash_success'];
+    unset($_SESSION['flash_success']);
+}
+if (isset($_SESSION['flash_error'])) {
+    $error_message = $_SESSION['flash_error'];
+    unset($_SESSION['flash_error']);
 }
 ?>
 
@@ -93,28 +127,25 @@ if ($items_count == 0) {
 </head>
 <body>
     <?php include "../../user-includes/navbar/customer-navigation.php"; ?>
-    
+    <?php include __DIR__ . "/../../user-includes/bread-crumb/bread-crumb.php"; ?>
+
     <div class="container">
         <div class="header">
             <h1>Bulk Order Details</h1>
             <div class="order-info">
-                <span class="order-id">Order #<?php echo str_pad($order['id'], 6, '0', STR_PAD_LEFT); ?></span>
+                <span class="order-id">Order #<?php echo htmlspecialchars($order['unique_order_id']); ?></span>
                 <span class="order-status status-<?php echo $order['status']; ?>">
                     <?php echo ucwords(str_replace('_', ' ', $order['status'])); ?>
                 </span>
             </div>
         </div>
 
-        <?php if (isset($success_message)): ?>
+        <?php if (!empty($success_message)): ?>
             <div class="alert alert-success"><?php echo $success_message; ?></div>
         <?php endif; ?>
 
-        <?php if (isset($error_message)): ?>
+        <?php if (!empty($error_message)): ?>
             <div class="alert alert-error"><?php echo $error_message; ?></div>
-        <?php endif; ?>
-
-        <?php if (isset($debug_message)): ?>
-            <div class="alert alert-warning"><?php echo $debug_message; ?></div>
         <?php endif; ?>
 
         <?php if ($order['admin_updated']): ?>
@@ -192,10 +223,8 @@ if ($items_count == 0) {
                     </div>
                 </div>
             </div>
-        </div>
-
         <!-- Order Items -->
-        <div class="details-section">
+        <div class="details-section full-width">
             <h2>Order Items</h2>
             <div class="items-table">
                 <table>
@@ -235,7 +264,7 @@ if ($items_count == 0) {
 
         <!-- Notes -->
         <?php if ($order['note']): ?>
-        <div class="details-section">
+        <div class="details-section full-width">
             <h2>Additional Notes</h2>
             <p><?php echo nl2br(htmlspecialchars($order['note'])); ?></p>
         </div>
@@ -243,32 +272,82 @@ if ($items_count == 0) {
 
         <!-- Proof of Payment Section -->
         <?php if ($order['status'] === 'approved'): ?>
-        <div class="details-section">
+        <div class="details-section full-width">
             <h2>Proof of Payment</h2>
-            <?php if ($order['proof_of_payment']): ?>
+            <?php 
+            $proofs = [];
+            if (!empty($order['proof_of_payment'])) {
+                $decoded_proofs = json_decode($order['proof_of_payment'], true);
+                if (is_array($decoded_proofs)) {
+                    $proofs = $decoded_proofs;
+                } else {
+                    // Handle old single file format
+                    $proofs = [[
+                        'filename' => $order['proof_of_payment'],
+                        'type' => 'full',
+                        'uploaded_at' => 'Unknown',
+                        'original_name' => $order['proof_of_payment']
+                    ]];
+                }
+            }
+            ?>
+            
+            <?php if (!empty($proofs)): ?>
                 <div class="proof-display">
-                    <p><strong>Proof of payment has been uploaded.</strong></p>
-                    <img src="../../../assets/bulk_payments/<?php echo $order['proof_of_payment']; ?>" alt="Proof of Payment" style="max-width: 300px; height: auto;">
+                    <h3>Uploaded Proofs</h3>
+                    <?php foreach ($proofs as $index => $proof): ?>
+                        <div class="proof-item">
+                            <div class="proof-info">
+                                <p><strong>Type:</strong> <?php echo ucfirst($proof['type']); ?> Payment</p>
+                                <p><strong>Uploaded:</strong> <?php echo $proof['uploaded_at']; ?></p>
+                            </div>
+                            <div class="proof-preview">
+                                <?php 
+                                $file_path = "../../../assets/bulk_payments/" . $proof['filename'];
+                                $file_extension = strtolower(pathinfo($proof['filename'], PATHINFO_EXTENSION));
+                                ?>
+                                <?php if (in_array($file_extension, ['jpg', 'jpeg', 'png'])): ?>
+                                    <img src="<?php echo $file_path; ?>" alt="Proof of Payment">
+                                <?php else: ?>
+                                    <p><a href="<?php echo $file_path; ?>" target="_blank" class="btn btn-secondary">View PDF</a></p>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
+                
+                <div class="additional-upload">
+                    <h4>Upload Additional Proof</h4>
+                    <p>You can upload additional proofs or replace incorrect ones.</p>
             <?php else: ?>
                 <div class="proof-upload">
                     <p>Your order has been approved. Please upload your proof of payment.</p>
+            <?php endif; ?>
+            
                     <form method="POST" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="payment_type">Payment Type:</label>
+                            <select name="payment_type" id="payment_type" required>
+                                <option value="">Select payment type</option>
+                                <option value="full">Full Payment</option>
+                                <option value="downpayment">Downpayment</option>
+                                <option value="remaining">Remaining Balance</option>
+                            </select>
+                        </div>
                         <div class="form-group">
                             <label for="proof_file">Select proof of payment file (JPG, PNG, PDF):</label>
                             <input type="file" name="proof_file" id="proof_file" accept=".jpg,.jpeg,.png,.pdf" required>
                         </div>
                         <button type="submit" name="upload_proof" class="btn btn-primary">Upload Proof</button>
                     </form>
+            <?php if (!empty($proofs)): ?>
+                </div>
+            <?php else: ?>
                 </div>
             <?php endif; ?>
         </div>
         <?php endif; ?>
 
-        <div class="actions">
-            <button type="button" class="btn btn-secondary" onclick="window.location.href='../profile/profile.php'">Back to Profile</button>
-            <button type="button" class="btn btn-primary" onclick="window.print()">Print Order</button>
-        </div>
     </div>
 </body>
 </html>

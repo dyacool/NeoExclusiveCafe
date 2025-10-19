@@ -75,7 +75,7 @@ function setupEventListeners() {
 }
 
 function handleProductSelection(checkbox) {
-  const productId = checkbox.value;
+  const productId = String(checkbox.value); // Ensure it's a string for consistency
   const productCard = document.getElementById("card_" + productId);
   const quantitySection = document.getElementById(
     "quantity_section_" + productId
@@ -86,14 +86,22 @@ function handleProductSelection(checkbox) {
     if (productCard) productCard.classList.add("selected");
     if (quantitySection) quantitySection.classList.add("show");
 
+    // Get current quantity from the field (in case it was changed before checking)
+    const quantityField = document.getElementById("quantity_" + productId);
+    const currentQuantity = quantityField
+      ? parseInt(quantityField.value) || 12
+      : 12;
+
     // Add to selected products array
     const productData = {
       id: productId,
       name: checkbox.dataset.name,
       price: parseFloat(checkbox.dataset.price),
-      quantity: 12,
+      quantity: currentQuantity,
     };
     selectedProducts.push(productData);
+
+    console.log("Product added to selection:", productData); // Debug log
 
     // Initialize quantity controls
     initializeQuantityControls(productId);
@@ -103,7 +111,11 @@ function handleProductSelection(checkbox) {
     if (quantitySection) quantitySection.classList.remove("show");
 
     // Remove from selected products array
-    selectedProducts = selectedProducts.filter((p) => p.id !== productId);
+    selectedProducts = selectedProducts.filter(
+      (p) => String(p.id) !== String(productId)
+    );
+
+    console.log("Product removed from selection:", productId); // Debug log
   }
 
   updateOrderSummary();
@@ -118,8 +130,17 @@ function initializeQuantityControls(productId) {
     quantityField.min = 12;
     quantityField.value = 12;
 
-    // Add event listener for quantity changes
+    // Add event listeners for quantity changes (both change and input events)
     quantityField.addEventListener("change", function () {
+      updateQuantity(productId);
+    });
+
+    quantityField.addEventListener("input", function () {
+      updateQuantity(productId);
+    });
+
+    // Add event listener for keyboard input
+    quantityField.addEventListener("keyup", function () {
       updateQuantity(productId);
     });
 
@@ -150,7 +171,10 @@ function decreaseQuantity(productId) {
 
 function updateQuantity(productId) {
   const quantityField = document.getElementById("quantity_" + productId);
-  if (!quantityField) return;
+  if (!quantityField) {
+    console.error("Quantity field not found for product:", productId);
+    return;
+  }
 
   let quantity = parseInt(quantityField.value) || 12;
 
@@ -160,16 +184,34 @@ function updateQuantity(productId) {
     quantityField.value = 12;
   }
 
+  // Convert productId to string for consistent comparison
+  const productIdStr = String(productId);
+
   // Update the selected products array
-  const productIndex = selectedProducts.findIndex((p) => p.id === productId);
+  const productIndex = selectedProducts.findIndex(
+    (p) => String(p.id) === productIdStr
+  );
+
   if (productIndex !== -1) {
     selectedProducts[productIndex].quantity = quantity;
+    console.log(
+      `✓ Updated product ${productId} quantity to ${quantity}`,
+      selectedProducts[productIndex]
+    ); // Debug log
+  } else {
+    console.error(
+      `✗ Product ${productId} not found in selectedProducts array`,
+      selectedProducts
+    );
   }
 
   updateSubtotal(productId);
   updateOrderSummary();
   updateSubmitButton();
 }
+
+// Make updateQuantity globally accessible for HTML onchange attribute
+window.updateQuantity = updateQuantity;
 
 function updateSubtotal(productId) {
   const quantityField = document.getElementById("quantity_" + productId);
@@ -181,13 +223,22 @@ function updateSubtotal(productId) {
     const price = parseFloat(checkbox.dataset.price) || 0;
     const subtotal = price * quantity;
 
+    // Add visual feedback
+    subtotalElement.classList.add("updating");
     subtotalElement.textContent = subtotal.toFixed(2);
+
+    // Remove visual feedback after animation
+    setTimeout(() => {
+      subtotalElement.classList.remove("updating");
+    }, 300);
   }
 }
 
 function updateOrderSummary() {
   const orderSummary = document.getElementById("orderSummary");
   if (!orderSummary) return;
+
+  console.log("📊 Updating Order Summary with products:", selectedProducts); // Debug log
 
   if (selectedProducts.length === 0) {
     orderSummary.innerHTML = `
@@ -208,6 +259,10 @@ function updateOrderSummary() {
     const subtotal = product.price * product.quantity;
     total += subtotal;
     totalItems += product.quantity;
+
+    console.log(
+      `  - ${product.name}: ${product.quantity} × ₱${product.price} = ₱${subtotal}`
+    ); // Debug log
 
     summaryHTML += `
             <div class="summary-item">
@@ -242,6 +297,10 @@ function updateOrderSummary() {
 
   orderSummary.innerHTML = summaryHTML;
   totalAmount = total;
+
+  console.log(
+    `💰 Order Summary Total: ₱${total.toFixed(2)} (${totalItems} items)`
+  ); // Debug log
 }
 
 function updateSubmitButton() {

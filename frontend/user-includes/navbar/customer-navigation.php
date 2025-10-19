@@ -64,7 +64,6 @@ if ($is_user_logged_in) {
 $current_page = basename($_SERVER['PHP_SELF']);
 ?>
 <link rel="stylesheet" href="/frontend/user-includes/navbar/customer-navigation.css">
-<link rel="stylesheet" href="/frontend/pages/notifications/notifications.css">
 <div class="header-wrapper">
     <!-- Page Entry Animation Container -->
     <div class="page-entry-animation">

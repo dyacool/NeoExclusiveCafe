@@ -30,13 +30,11 @@
 }
 
 .wrapper {
-  background-color: #f8faf9;
   max-width: 1600px;
   margin: 0 auto;
 }
 
 body {
-  background-color: #f8faf9;
   color: var(--secondary);
   line-height: 1.6;
   overflow-x: hidden;
@@ -99,8 +97,6 @@ body {
 
 /* Form Container */
 .container {
-  background-color: #f8faf9;
-  padding: 1rem;
   transition: all var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
@@ -560,6 +556,12 @@ select {
   min-width: 100px;
   text-align: center;
   box-shadow: 0 2px 8px rgba(15, 81, 50, 0.1);
+  transition: all 0.3s ease;
+}
+
+.item-subtotal.updating {
+  background: rgba(15, 81, 50, 0.1);
+  transform: scale(1.05);
 }
 
 .quantity-input-group {
@@ -703,6 +705,7 @@ select {
   border-bottom: 1px solid #f0f5f0;
   transition: all var(--transition-speed) ease;
   gap: 16px;
+  animation: fadeInUp 0.3s ease-out;
 }
 
 .summary-item:last-child {
@@ -715,6 +718,11 @@ select {
   padding-left: 8px;
   padding-right: 8px;
   border-radius: 8px;
+}
+
+.summary-item.updating {
+  background: rgba(15, 81, 50, 0.05);
+  transform: scale(1.02);
 }
 
 .item-details {
@@ -1142,6 +1150,12 @@ select {
   .form-actions {
     padding: 20px 16px;
   }
+
+  .btn-same-address {
+    padding: 5px 10px;
+    font-size: 0.75rem;
+    gap: 3px;
+  }
 }
 
 @media (max-width: 360px) {
@@ -1161,6 +1175,11 @@ select {
   .btn {
     padding: 14px 24px;
     font-size: 1rem;
+  }
+
+  .btn-same-address {
+    font-size: 0.7rem;
+    padding: 4px 8px;
   }
 }
 
@@ -1317,6 +1336,39 @@ select {
   font-weight: 500;
 }
 
+/* Same as Billing Address Button */
+.btn-same-address {
+  padding: 6px 12px;
+  background: linear-gradient(
+    135deg,
+    var(--primary) 0%,
+    var(--primary-dark) 100%
+  );
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 8px rgba(15, 81, 50, 0.2);
+}
+
+.btn-same-address:hover {
+  background: linear-gradient(135deg, var(--primary-dark) 0%, #0a4a2a 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(15, 81, 50, 0.3);
+}
+
+.btn-same-address:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(15, 81, 50, 0.2);
+}
+
 /* Base Modal Styles */
 .modal {
   display: none;
@@ -1331,23 +1383,29 @@ select {
 }
 
 .modal.show {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 20px;
+  box-sizing: border-box;
+  margin: 0 auto;
+  align-content: center;
 }
 
 .modal-content {
   background-color: white;
-  margin: auto;
+  margin: 0 auto;
   padding: 0;
   border-radius: 12px;
   width: 90%;
   max-width: 600px;
-  max-height: 90vh;
+  max-height: calc(100vh - 40px);
   overflow-y: auto;
   position: relative;
   animation: slideIn 0.3s ease-out;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
 }
 
 .modal-header {
@@ -1384,8 +1442,9 @@ select {
 
 .modal-body {
   padding: 2rem;
-  max-height: calc(90vh - 200px);
+  max-height: calc(100vh - 240px);
   overflow-y: auto;
+  flex: 1;
 }
 
 .modal-footer {
@@ -1410,7 +1469,7 @@ select {
 }
 
 .modal-footer .btn-secondary {
-  background: var(--neutral);
+  background: gray;
   color: white;
 }
 
@@ -1451,8 +1510,9 @@ select {
 .confirmation-modal {
   max-width: 800px;
   width: 95%;
-  max-height: 90vh;
+  max-height: calc(100vh - 40px);
   overflow-y: auto;
+  margin: 0 auto;
 }
 
 .confirmation-section {
@@ -1562,8 +1622,7 @@ select {
 }
 
 .contact-note {
-  background: var(--warm-accent);
-  color: white;
+  color: var(--secondary);
   padding: 1rem;
   border-radius: 8px;
   text-align: center;
@@ -1617,10 +1676,23 @@ select {
 
 /* Modal Responsive Styles */
 @media (max-width: 768px) {
+  .modal.show {
+    padding: 15px !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
   .modal-content {
-    width: 95%;
-    max-height: 95vh;
-    margin: 1rem;
+    width: 100%;
+    max-width: calc(100vw - 30px);
+    max-height: calc(100vh - 30px);
+    margin: 0;
+  }
+
+  .confirmation-modal {
+    width: 100%;
+    max-width: calc(100vw - 30px);
+    max-height: calc(100vh - 30px);
   }
 
   .modal-header {
@@ -1633,7 +1705,7 @@ select {
 
   .modal-body {
     padding: 1.5rem;
-    max-height: calc(95vh - 150px);
+    max-height: calc(100vh - 180px);
   }
 
   .modal-footer {
@@ -1652,9 +1724,23 @@ select {
 }
 
 @media (max-width: 576px) {
+  .modal.show {
+    padding: 10px !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
   .modal-content {
-    width: 98%;
-    margin: 0.5rem;
+    width: 100%;
+    max-width: calc(100vw - 20px);
+    max-height: calc(100vh - 20px);
+    margin: 0;
+  }
+
+  .confirmation-modal {
+    width: 100%;
+    max-width: calc(100vw - 20px);
+    max-height: calc(100vh - 20px);
   }
 
   .modal-header {
@@ -1663,6 +1749,7 @@ select {
 
   .modal-body {
     padding: 1rem;
+    max-height: calc(100vh - 160px);
   }
 
   .modal-footer {
