@@ -53,7 +53,7 @@
 /* Navigation wrapper */
 .breadcrumb-nav {
   position: relative;
-  background-color: #f8faf9;
+  background-color: transparent;
   transition: var(--breadcrumb-transition);
   overflow: hidden;
 }
@@ -434,8 +434,8 @@
 
 @supports (backdrop-filter: blur(10px)) {
   .breadcrumb-nav {
-    backdrop-filter: blur(10px);
-    background-color: #f8faf9;
+    backdrop-filter: none;
+    background-color: transparent;
   }
 }
 
