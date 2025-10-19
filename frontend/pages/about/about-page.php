@@ -49,45 +49,73 @@ $conn->close();
         
     <!-- Navigation -->
     <?php include "../../user-includes/navbar/customer-navigation.php"; ?>
-    <?php include __DIR__ . "/../../user-includes/bread-crumb/bread-crumb.php"; ?>
 
-    <div class="about-container">
-        <div class="container">
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>Our Story</h1>
+        <p>Where passion for quality bread meets exceptional service, creating moments of comfort and joy in every bite</p>
+    </section>
 
-            <!-- Header -->
-            <header class="about-header">
-                <h1><?php echo htmlspecialchars($about['title']); ?></h1>
-                <?php if (isset($about['last_updated'])): ?>
-                    <p class="last-updated">
-                        Last updated: <?php echo date('F j, Y', strtotime($about['last_updated'])); ?>
-                    </p>
-                <?php endif; ?>
-            </header>
+    <!-- Content Section -->
+    <div class="content">
+        <div class="card-container">
+            <div class="image-card">
+                <?php
+                // Adjust image path for frontend access
+                $image_src = !empty($about['image_path']) ? $about['image_path'] : 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800';
+                if (strpos($image_src, '/images/') === 0) {
+                    $image_src = '../../../' . ltrim($image_src, '/');
+                }
+                ?>
+                <img src="<?php echo htmlspecialchars($image_src); ?>" alt="Neo Exclusive Cafe">
+            </div>
+            <div class="image-card">
+                <img src="https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800" alt="Artisan Bread">
+            </div>
+        </div>
 
-            <!-- Content -->
-            <section class="about-content">
-                <div class="content-wrapper">
-                    <?php if (!empty($about['image_path'])): ?>
-                        <div class="about-image">
-                            <?php
-                            // Adjust image path for frontend access
-                            $image_src = $about['image_path'];
-                            // If the path starts with /images/, make it relative to the frontend
-                            if (strpos($image_src, '/images/') === 0) {
-                                $image_src = '../../../' . ltrim($image_src, '/');
-                            }
-                            ?>
-                            <img src="<?php echo htmlspecialchars($image_src); ?>" alt="About Neo Exclusive Cafe">
-                        </div>
-                    <?php endif; ?>
-                    <div class="about-text">
-                        <?php echo $about['about_text']; ?>
-                    </div>
+        <div class="story-section">
+            <h2>Welcome to Neo Exclusive Cafe</h2>
+            <div class="about-text-content">
+                <?php 
+                // Convert the about text to HTML paragraphs
+                $paragraphs = explode("\n\n", $about['about_text']);
+                foreach ($paragraphs as $paragraph) {
+                    if (trim($paragraph)) {
+                        echo '<p>' . nl2br(htmlspecialchars(trim($paragraph))) . '</p>';
+                    }
+                }
+                ?>
+            </div>
+        </div>
 
-                </div>
-            </section>
+        <!-- Values Section -->
+        <div class="values">
+            <div class="value-card">
+                <div class="value-icon">🍞</div>
+                <h3>Quality First</h3>
+                <p>We source only the finest ingredients and use traditional methods to ensure every product meets our exacting standards.</p>
+            </div>
+            <div class="value-card">
+                <div class="value-icon">❤️</div>
+                <h3>Made with Love</h3>
+                <p>Each item is crafted with passion and dedication, bringing warmth and comfort to your table.</p>
+            </div>
+            <div class="value-card">
+                <div class="value-icon">🌱</div>
+                <h3>Sustainable</h3>
+                <p>We're committed to sustainable practices and supporting local suppliers whenever possible.</p>
+            </div>
+        </div>
+
+        <!-- CTA Section -->
+        <div class="cta">
+            <h2>Experience the Difference</h2>
+            <p>Join us and discover why Neo Exclusive Cafe has become a beloved destination for quality baked goods</p>
+            <a href="/frontend/pages/products/products-categories.php" class="cta-button">Explore Our Products</a>
         </div>
     </div>
+
     <!-- Footer -->
     <?php include "../../user-includes/user-footer.php"; ?>
 
