@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", function() {
     
     // Fetch notifications for dropdown (latest 5)
     function fetchDropdownNotifications() {
-        return fetch('/frontend/pages/notifications/fetch-notif.php?dropdown=true')
+        return fetch('.../../pages/notifications/fetch-notif.php?dropdown=true')
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Fetch notification details by ID
     function fetchNotificationDetails(notificationId) {
-        return fetch(`/frontend/pages/notifications/fetch-notif.php?id=${notificationId}`)
+        return fetch(`.../../pages/notifications/fetch-notif.php?id=${notificationId}`)
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Mark notification as read
     function markNotificationAsRead(notificationId) {
-        return fetch('/frontend/pages/notifications/mark-notif.php', {
+        return fetch('.../../pages/notifications/mark-notif.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -52,7 +52,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Mark all notifications as read
     function markAllNotificationsAsRead() {
-        return fetch('/frontend/pages/notifications/mark-notif.php', {
+        return fetch('.../../pages/notifications/mark-notif.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -90,7 +90,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const image = document.getElementById('notificationImage');
         if (imageContainer && image) {
             if (notification.image_url && 
-                notification.image_url !== '/NeoExclusiveCafe/assets/images/default-product.png' &&
+                notification.image_url !== '.../../assets/images/default-product.png' &&
                 notification.image_url !== '' &&
                 notification.image_url !== null) {
                 image.src = notification.image_url;
@@ -120,10 +120,11 @@ document.addEventListener("DOMContentLoaded", function() {
             // Handle order notifications
             if (notification.order_details && Object.keys(notification.order_details).length > 0) {
                 const order = notification.order_details;
+                const orderLink = notification.link ? `<a href="${notification.link}" class="btn btn-primary btn-sm">View Order Details</a>` : '';
                 orderDetails.innerHTML = `
                     <div class="row">
                         <div class="col-md-6">
-                            <p><strong>Order ID:</strong> #${order.id || 'N/A'}</p>
+                            <p><strong>Order ID:</strong> #${order.id || 'N/A'} ${orderLink}</p>
                             <p><strong>Customer:</strong> ${order.customer_name || 'N/A'}</p>
                             <p><strong>Email:</strong> ${order.customer_email || 'N/A'}</p>
                             <p><strong>Phone:</strong> ${order.customer_phone || 'N/A'}</p>
@@ -323,12 +324,29 @@ document.addEventListener("DOMContentLoaded", function() {
                                 short: 'short'
                             });
 
+                            // Create link wrapper if notification has a link
                             const contentDiv = document.createElement('div');
                             contentDiv.className = 'notification-content';
-                            contentDiv.appendChild(title);
+                            
+                            if (notif.link) {
+                                const linkWrapper = document.createElement('a');
+                                linkWrapper.href = notif.link;
+                                linkWrapper.className = 'notification-link';
+                                linkWrapper.onclick = (e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    markNotificationAsRead(notif.id).then(() => {
+                                        window.location.href = notif.link;
+                                    });
+                                };
+                                linkWrapper.appendChild(title);
+                                contentDiv.appendChild(linkWrapper);
+                            } else {
+                                contentDiv.appendChild(title);
+                            }
+                            
                             contentDiv.appendChild(time);
-
-                        li.appendChild(contentDiv);
+                            li.appendChild(contentDiv);
                             notificationList.appendChild(li);
                             
                         if (!notif.is_read) unreadCount++;
