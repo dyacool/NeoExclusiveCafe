@@ -170,8 +170,9 @@ if ($cart_truncated) {
 }
 ?>
     <?php include __DIR__ . "/../../user-includes/bread-crumb/bread-crumb.php"; ?>
-<div class="wrapper">
     <div id="confirmationPopup" class="confirmation-popup"></div>
+
+<div class="wrapper">
 
     <?php if (isset($_SESSION['cart_truncated_notification']) && $_SESSION['cart_truncated_notification']): ?>
         <div class="cart-truncated-notification" id="cartTruncatedNotification">
@@ -222,39 +223,35 @@ if ($cart_truncated) {
     <?php endif; ?>
 
     <div class="main-container fade-in">
-        <h1 class="prdct-title">Same Day Orders</h1>
-        <div class="header-section">
-            <h2 class="prdct-subtitle" id="currentDate">Check again tomorrow for exciting pre-made breads!<br><span style="color:rgb(18, 110, 41); font-weight: 600;">Loading...</span></h2>
-            <div class="cart-dropdown" style="display: none;">
-                <button class="cart-btn" id="availableTodayCartBtn">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="9" cy="21" r="1"></circle>
-                        <circle cx="20" cy="21" r="1"></circle>
-                        <path d="m1 1 4 4 6.5 13h9"></path>
-                        <path d="m7 13 10-10-1.5-1.5L5.5 11.5"></path>
-                    </svg>
-                    <span class="cart-count" id="availableTodayCartCount">0</span>
-                </button>
-                <div class="cart-dropdown-content" id="availableTodayCartContent">
-                    <div class="cart-header">
-                        <h3>Available Today Cart</h3>
-                    </div>
-                    <div class="availToday_timer" id="availToday_timer">
-                        <span class="timer-label">Order before:</span>
-                        <span class="timer-value" id="availTodayTimerValue">Loading...</span>
-                    </div>
-                    <div class="cart-items" id="availableTodayCartItems">
-                        <p class="empty-cart">No items in cart</p>
-                    </div>
-                    <div class="cart-footer">
-                        <div class="cart-total" id="availableTodayCartTotal">Total: ₱0.00</div>
-                        <button class="checkout-btn" id="availableTodayCheckoutBtn" disabled>Checkout</button>
-                    </div>
-                </div>
+        <!-- Title - Always visible across all states -->
+        <h1 class="prdct-title">Same Day Order Products</h1>
+        
+        <!-- Subtitle - Only shown when business is open -->
+        <div class="header-section" id="headerSection" style="display: none;">
+            <h2 class="prdct-subtitle" id="currentDate"></h2>
+        </div>
+        
+        <!-- Loading state message -->
+        <div id="loadingMessage" class="loading-state-message">
+            <div class="loading-spinner-container">
+                <div class="loading-spinner"></div>
+                <p>Loading contents...</p>
             </div>
         </div>
-        <div class="scroll-container">
-            <div class="products-grid" id="productScroll" style="display: none;">
+        
+        <!-- Centered message for when business is closed -->
+        <div id="closedMessage" class="business-closed-message" style="display: none;">
+            <div class="closed-icon">🕐</div>
+            <h2>Business Hours Have Ended</h2>
+            <p>Check again tomorrow for exciting pre-made breads!</p>
+            <div class="business-hours-display" id="businessHoursDisplay">
+                <div class="loading-spinner-small"></div>
+                <span>Loading hours...</span>
+            </div>
+        </div>
+        
+        <div class="scroll-container" id="scrollContainer" style="display: none;">
+            <div class="products-grid" id="productScroll">
                 <?php
                     // Get today's date
                     $today_date = date('Y-m-d'); // Returns date in YYYY-MM-DD format
@@ -329,18 +326,20 @@ if ($cart_truncated) {
                                         <img src='../../../assets/" . htmlspecialchars($row['image_url'] ?: 'images/no-image.jpg') . "' alt='" . htmlspecialchars($row['name']) . "'>
                                     </div>
                                     <div class='product-info'>
-                                        <h3>" . htmlspecialchars($row['name']) . "</h3>";
+                                        <h3>" . htmlspecialchars($row['name']) . "</h3>
+                                        <p class='price'>₱" . number_format($row['price'], 2) . "</p>";
                             
-                            // Display availtoday status badge if available
+                            // First row: availtoday status badge and stock
+                            echo "<div class='info-row-1'>";
                             if (!empty($row['availtoday_status_name'])) {
                                 echo "<span class='availtoday-badge'>" . htmlspecialchars($row['availtoday_status_name']) . "</span>";
                             }
+                            echo "<p class='stock'>Stock: " . $row['quantity'] . "</p>
+                                  </div>";
                             
-                            echo "<p class='price'>₱" . number_format($row['price'], 2) . "</p>
-                                  
-                                    <div class='prdct-availability'>
-                                        <span class='status-badge status-{$statusClass}'>" . htmlspecialchars($row['status_name']) . "</span>
-                                        <p class='stock'>Stock: " . $row['quantity'] . "</p>";
+                            // Second row: status badge and available dates
+                            echo "<div class='info-row-2'>
+                                    <span class='status-badge status-{$statusClass}'>" . htmlspecialchars($row['status_name']) . "</span>";
                             
                             // Display available dates if product has them
                             if (!empty($available_dates)) {
@@ -353,7 +352,7 @@ if ($cart_truncated) {
                                         $formatted_dates[] = $dateObj->format('n/j'); // Format as M/D (e.g., 8/27)
                                     }
                                 }
-                                echo "<p class='available-dates'>Available: " . htmlspecialchars(implode(', ', $formatted_dates)) . "</p>";
+                                echo "<p class='available-dates'>Available Dates: " . htmlspecialchars(implode(', ', $formatted_dates)) . "</p>";
                             }
                             
                             echo "</div>
@@ -377,7 +376,7 @@ if ($cart_truncated) {
             </div> 
         </div> 
     </div>
-</div> 
+</div>
 
 <!-- Product Modal -->
 <div id="productModal" class="modal" style="display: none;">
@@ -413,26 +412,6 @@ if ($cart_truncated) {
     </div>
 </div>
 
-<!-- Checkout Confirmation Modal -->
-<div id="checkoutConfirmModal" class="modal" style="display: none;">
-    <div class="modal-content fade-in-pop">
-        <span class="close" onclick="closeCheckoutConfirmModal()">&times;</span>
-        <div class="modal-body">
-            <h2 style="color: #2d5016; margin-bottom: 1rem;">Confirm Checkout</h2>
-            <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-                <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>Items:</strong> <span id="confirmItemCount">0</span></p>
-                <p style="margin: 0.5rem 0; font-size: 1.2rem; color: #2d5016;"><strong>Total:</strong> ₱<span id="confirmTotal">0.00</span></p>
-            </div>
-            <p style="margin-bottom: 1.5rem; color: #666;">Are you ready to proceed to checkout?</p>
-            <div class="modal-actions" style="display: flex; gap: 1rem; justify-content: flex-end;">
-                <button type="button" class="cancel-btn" onclick="closeCheckoutConfirmModal();" style="padding: 0.75rem 1.5rem; border: 1px solid #ddd; background: white; color: #666; border-radius: 4px; cursor: pointer; font-size: 1rem;">Cancel</button>
-                <button type="button" id="proceedCheckoutBtn" class="confirm-btn" style="padding: 0.75rem 1.5rem; border: none; background: #2d5016; color: white; border-radius: 4px; cursor: pointer; font-size: 1rem;">Proceed to Checkout</button>
-            </div>
-        </div>
-    </div>
-</div>
-                        </div>
-            
 <!-- Available Today Cart JavaScript -->
 <script src="availtoday-cart.js"></script>
 
@@ -499,9 +478,21 @@ if ($cart_truncated) {
                     updateTimerDisplay();
                     // Check immediately after data loads
                     checkBusinessHoursAndUpdateDisplay();
+                    // Hide loading message once data is loaded
+                    hideLoadingMessage();
                 }
             })
-            .catch(error => console.error('Error loading business hours:', error));
+            .catch(error => {
+                console.error('Error loading business hours:', error);
+                hideLoadingMessage();
+            });
+    }
+    
+    function hideLoadingMessage() {
+        const loadingMessage = document.getElementById('loadingMessage');
+        if (loadingMessage) {
+            loadingMessage.style.display = 'none';
+        }
     }
 
     function checkBusinessHoursAndUpdateDisplay() {
@@ -523,55 +514,53 @@ if ($cart_truncated) {
 
     function updateProductVisibility(isOpen) {
         const productsGrid = document.getElementById('productScroll');
-        const title = document.querySelector('.prdct-title');
-        const subtitle = document.querySelector('.prdct-subtitle');
-        const cartDropdown = document.querySelector('.cart-dropdown');
+        const scrollContainer = document.getElementById('scrollContainer');
+        const headerSection = document.getElementById('headerSection');
+        const closedMessage = document.getElementById('closedMessage');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const businessHoursDisplay = document.getElementById('businessHoursDisplay');
+        
+        // Hide loading message once we know the state
+        if (loadingMessage) {
+            loadingMessage.style.display = 'none';
+        }
         
         if (!isOpen) {
+            // Business is closed - show closed message
             productsGrid.style.display = 'none';
-            title.textContent = 'Same Day Orders';
-            subtitle.innerHTML = `Check again tomorrow for exciting pre-made breads!<br><span style="color:rgb(18, 110, 41); font-weight: 600;">${formatTimeForDisplay(businessHours.openingTime)} - ${formatTimeForDisplay(businessHours.closingTime)}</span>`;
+            scrollContainer.style.display = 'none';
+            headerSection.style.display = 'none';
+            closedMessage.style.display = 'flex';
             
-            if (cartDropdown) {
-                cartDropdown.style.display = 'none';
-                if (typeof clearAvailableTodayCart === 'function') {
-                    clearAvailableTodayCart();
-                }
+            // Update business hours display with formatted time
+            if (businessHours.openingTime && businessHours.closingTime) {
+                businessHoursDisplay.innerHTML = `<span>Business Hours: ${formatTimeForDisplay(businessHours.openingTime)} - ${formatTimeForDisplay(businessHours.closingTime)}</span>`;
             }
         } else {
+            // Business is open - show products
             productsGrid.style.display = 'grid';
-            title.textContent = 'Same Day Order Products';
-            subtitle.textContent = new Date().toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-            });
+            scrollContainer.style.display = 'block';
+            headerSection.style.display = 'block';
+            closedMessage.style.display = 'none';
             
-            if (cartDropdown) {
-                cartDropdown.style.display = 'block';
-                if (typeof updateAvailableTodayCartDisplay === 'function') {
-                    updateAvailableTodayCartDisplay();
-                }
+            // Update subtitle with current date
+            const subtitle = document.getElementById('currentDate');
+            if (subtitle) {
+                subtitle.textContent = new Date().toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
             }
         }
     }
 
     function updateTimerDisplay() {
-        const timerValue = document.getElementById('availTodayTimerValue');
-        if (timerValue) {
-            // Format the time to be more readable (e.g., "5:00 PM" instead of "17:00")
-            const formattedTime = formatTimeForDisplay(businessHours.closingTime);
-            timerValue.textContent = formattedTime;
-        }
-        
-        // Also update the subtitle with business hours if they're loaded
-        const subtitle = document.querySelector('.prdct-subtitle');
-        if (subtitle && businessHours.openingTime && businessHours.closingTime) {
-            // Only update if still showing the "Check again tomorrow" message
-            if (subtitle.innerHTML.includes('Check again tomorrow') || subtitle.innerHTML.includes('Loading...')) {
-                subtitle.innerHTML = `Check again tomorrow for exciting pre-made breads!<br><span style="color:rgb(18, 110, 41); font-weight: 600;">${formatTimeForDisplay(businessHours.openingTime)} - ${formatTimeForDisplay(businessHours.closingTime)}</span>`;
-            }
+        // Update business hours display in closed message if visible
+        const businessHoursDisplay = document.getElementById('businessHoursDisplay');
+        if (businessHoursDisplay && businessHours.openingTime && businessHours.closingTime) {
+            businessHoursDisplay.innerHTML = `<span>Business Hours: ${formatTimeForDisplay(businessHours.openingTime)} - ${formatTimeForDisplay(businessHours.closingTime)}</span>`;
         }
     }
 
@@ -629,7 +618,7 @@ if ($cart_truncated) {
     function showConfirmation(message, isError = false) {
         const popup = document.getElementById('confirmationPopup');
         popup.textContent = message;
-        popup.className = 'confirmation-popup' + (isError ? ' error' : '');
+        popup.className = 'confirmation-popup' + (isError ? ' error' : ' success');
         popup.classList.add('show');
         
         setTimeout(() => {
@@ -704,23 +693,7 @@ if ($cart_truncated) {
           .then(data => {
             if (data && data.success) {
                 console.log('Product added to Available Today cart successfully');
-                showConfirmation(`${data.product_name || 'Product'} added to Available Today cart!`);
-                
-                // Update local cart immediately for responsive UI
-                if (button && typeof updateLocalCart === 'function') {
-                    const productCard = button.closest('.product-card');
-                    if (productCard) {
-                        updateLocalCart(productId, finalQuantity, productCard);
-                        if (typeof updateAvailableTodayCartDisplay === 'function') {
-                            updateAvailableTodayCartDisplay();
-                        }
-                    }
-                }
-                
-                // Sync with server to ensure consistency (works for both modal and card cases)
-                if (typeof syncWithServer === 'function') {
-                    syncWithServer();
-                }
+                showConfirmation(`${data.product_name || 'Product'} added to cart successfully!`);
                 
                 if (productModalOpen) closeProductModal();
             } else if (data) {
@@ -824,24 +797,23 @@ if ($cart_truncated) {
             addToCartBtn.classList.remove('unavailable');
             quantityInput.disabled = false;
             addToCartBtn.onclick = () => {
-                if (product.id) {
-                    addToCart(product.id, null, parseInt(quantityInput.value));
-                }
-            };
+            if (product.id) {
+                addToCart(product.id, null, parseInt(quantityInput.value));
+            }
+        };
 
-            modal.style.display = 'block';
-        } catch (error) {
-            console.error('Error in openProductModal:', error);
-            showConfirmation('An error occurred while opening the product details', true);
-        }
+        modal.classList.add('show');
+    } catch (error) {
+        console.error('Error in openProductModal:', error);
+        showConfirmation('An error occurred while opening the product details', true);
     }
+}
 
-    function closeProductModal() {
-        productModalOpen = false;
-        document.getElementById('productModal').style.display = 'none';
-    }
-
-    // Close modal when clicking outside
+function closeProductModal() {
+    productModalOpen = false;
+    const modal = document.getElementById('productModal');
+    modal.classList.remove('show');
+}    // Close modal when clicking outside
     window.onclick = function(event) {
         const modal = document.getElementById('productModal');
         if (event.target == modal) {
@@ -987,11 +959,11 @@ if ($cart_truncated) {
 </style>
             
         </div>
+        <div id="footer-container">
+    <?php require_once "../../user-includes/user-footer.php"; ?>
+</div>
 
-        <div class="footer">
-            <a href="about-page.php">About Us</a>
-            <a href="terms.php">Terms and Conditions</a>
-            <a href="privacy.php">Privacy Policy</a>
-        </div>
+
+
     </div>
 </div>

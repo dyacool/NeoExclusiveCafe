@@ -722,34 +722,6 @@ if (isset($_POST["signin-submit"])) {
                 fadeOut(successBox);
             }
         };
-    
-        // Enable page-level scrolling only when content overflows the viewport
-        (function() {
-            function updateBodyScroll() {
-                try {
-                    var docHeight = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
-                    var winHeight = window.innerHeight || document.documentElement.clientHeight;
-                    if (docHeight > winHeight) {
-                        document.documentElement.style.overflowY = 'auto';
-                        document.body.style.overflowY = 'auto';
-                    } else {
-                        document.documentElement.style.overflowY = 'hidden';
-                        document.body.style.overflowY = 'hidden';
-                    }
-                } catch (e) {
-                    // Fail silently
-                    console.error('updateBodyScroll error', e);
-                }
-            }
-
-            window.addEventListener('load', updateBodyScroll);
-            window.addEventListener('resize', updateBodyScroll);
-            window.addEventListener('orientationchange', updateBodyScroll);
-
-            // Also run after a small delay to catch dynamic content changes
-            setTimeout(updateBodyScroll, 250);
-            setTimeout(updateBodyScroll, 1000);
-        })();
     </script>
 </body>
 </html>
