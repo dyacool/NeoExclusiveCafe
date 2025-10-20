@@ -108,6 +108,20 @@
             <div class="controls-section">
                 <div class="filter-group">
                     <label class="filter-label">Filter by Status:</label>
+                    
+                    <!-- Mobile Dropdown (visible on 425px and below) -->
+                    <select id="mobile-filter-dropdown" onchange="filterByStatus(this.value)" class="mobile-filter-select">
+                        <option value="all" <?php echo $status_filter == 'all' ? 'selected' : ''; ?>>All Orders (<?php echo $status_counts['all']; ?>)</option>
+                        <option value="Pending" <?php echo $status_filter == 'Pending' ? 'selected' : ''; ?>>Pending (<?php echo $status_counts['Pending']; ?>)</option>
+                        <option value="Preparing" <?php echo $status_filter == 'Preparing' ? 'selected' : ''; ?>>Preparing (<?php echo $status_counts['Preparing']; ?>)</option>
+                        <option value="Ready for Delivery" <?php echo $status_filter == 'Ready for Delivery' ? 'selected' : ''; ?>>Ready for Delivery (<?php echo $status_counts['Ready for Delivery']; ?>)</option>
+                        <option value="Out for Delivery" <?php echo $status_filter == 'Out for Delivery' ? 'selected' : ''; ?>>Out for Delivery (<?php echo $status_counts['Out for Delivery']; ?>)</option>
+                        <option value="Ready for Pick-up" <?php echo $status_filter == 'Ready for Pick-up' ? 'selected' : ''; ?>>Ready for Pick-up (<?php echo $status_counts['Ready for Pick-up']; ?>)</option>
+                        <option value="Picked-up" <?php echo $status_filter == 'Picked-up' ? 'selected' : ''; ?>>Picked-up (<?php echo $status_counts['Picked-up']; ?>)</option>
+                        <option value="Delivered" <?php echo $status_filter == 'Delivered' ? 'selected' : ''; ?>>Delivered (<?php echo $status_counts['Delivered']; ?>)</option>
+                    </select>
+                    
+                    <!-- Desktop Buttons (hidden on 425px and below) -->
                     <div class="filter-buttons">
                         <button onclick="filterByStatus('all')" 
                                 class="filter-btn <?php echo $status_filter == 'all' ? 'active' : ''; ?>" 
@@ -176,60 +190,63 @@
                                 <th>Payment</th>
                                 <th>Delivery/Pickup</th>
                                 <th>Status</th>
-                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="orders-tbody">
                             <?php if (mysqli_num_rows($result) > 0): ?>
                                 <?php while ($row = mysqli_fetch_assoc($result)): ?>
-                                    <tr>
-                                        <td><?php echo htmlspecialchars($row['order_id']); ?></td>
-                                        <td><?php echo date('m-d-Y', strtotime($row['order_date'])); ?></td>
-                                        <td><?php echo htmlspecialchars($row['customer_name']); ?></td>
-                                        <td><?php echo htmlspecialchars($row['customer_contact']); ?></td>
-                                        <td><?php echo htmlspecialchars($row['total_items']); ?></td>
-                                        <td>₱<?php echo number_format($row['total_amount'], 2); ?></td>
-                                        <td><?php echo htmlspecialchars($row['payment_method']); ?></td>
-                                        <td>
-                                            <?php 
-                                                echo htmlspecialchars($row['delivery_method']) . '<br>';
-                                                $date = !empty($row['delivery_date']) ? $row['delivery_date'] : $row['pickup_date'];
-                                                $time = !empty($row['delivery_time']) ? $row['delivery_time'] : '00:00:00';
-                                                
-                                                // Display date and time
-                                                echo date('m-d-Y', strtotime($date));
-                                                if (!empty($row['delivery_time'])) {
-                                                    echo ' at ' . date('h:i A', strtotime($row['delivery_time']));
-                                                }
-                                                
-                                                // Calculate warning based on date/time and status
-                                                $current_datetime = new DateTime();
-                                                $delivery_datetime = new DateTime($date . ' ' . $time);
-                                                $today = new DateTime(date('Y-m-d'));
-                                                $tomorrow = new DateTime(date('Y-m-d', strtotime('+1 day')));
-                                                $delivery_date_only = new DateTime($date);
-                                                
-                                                $warning_html = '';
-                                                $status = $row['status'];
-                                                
-                                                // Check if delivery/pickup date has passed and order is still pending/preparing/ready for delivery
-                                                if ($delivery_datetime < $current_datetime && 
-                                                    in_array($status, ['Pending', 'Preparing', 'Ready for Delivery', 'Ready for Pick-up'])) {
-                                                    $warning_html = '<br><span class="warning-badge critical">OVERDUE</span>';
-                                                }
-                                                // Check if delivery/pickup is tomorrow and status is still pending
-                                                elseif ($delivery_date_only->format('Y-m-d') == $tomorrow->format('Y-m-d') && $status == 'Pending') {
-                                                    $warning_html = '<br><span class="warning-badge urgent">DUE TOMORROW</span>';
-                                                }
-                                                // Check if delivery/pickup is today and status is still pending
-                                                elseif ($delivery_date_only->format('Y-m-d') == $today->format('Y-m-d') && $status == 'Pending') {
-                                                    $warning_html = '<br><span class="warning-badge today">DUE TODAY</span>';
-                                                }
-                                                
-                                                echo $warning_html;
-                                            ?>
+                                    <tr onclick="window.location.href='view-orders.php?order_id=<?php echo $row['order_id']; ?>'">
+                                        <td data-label="Order #"><?php echo htmlspecialchars($row['order_id']); ?></td>
+                                        <td data-label="Date Placed"><?php echo date('m-d-Y', strtotime($row['order_date'])); ?></td>
+                                        <td data-label="Customer"><?php echo htmlspecialchars($row['customer_name']); ?></td>
+                                        <td data-label="Contact"><?php echo htmlspecialchars($row['customer_contact']); ?></td>
+                                        <td data-label="Items"><?php echo htmlspecialchars($row['total_items']); ?></td>
+                                        <td data-label="Total">₱<?php echo number_format($row['total_amount'], 2); ?></td>
+                                        <td data-label="Payment"><?php echo htmlspecialchars($row['payment_method']); ?></td>
+                                        <td data-label="Delivery/Pickup">
+                                            <div class="delivery-info-wrapper">
+                                                <span class="delivery-method"><?php echo htmlspecialchars($row['delivery_method']); ?></span>
+                                                <?php 
+                                                    $date = !empty($row['delivery_date']) ? $row['delivery_date'] : $row['pickup_date'];
+                                                    $time = !empty($row['delivery_time']) ? $row['delivery_time'] : '00:00:00';
+                                                    
+                                                    // Display date and time
+                                                    echo '<span class="delivery-datetime">';
+                                                    echo date('m-d-Y', strtotime($date));
+                                                    if (!empty($row['delivery_time'])) {
+                                                        echo ' at ' . date('h:i A', strtotime($row['delivery_time']));
+                                                    }
+                                                    echo '</span>';
+                                                    
+                                                    // Calculate warning based on date/time and status
+                                                    $current_datetime = new DateTime();
+                                                    $delivery_datetime = new DateTime($date . ' ' . $time);
+                                                    $today = new DateTime(date('Y-m-d'));
+                                                    $tomorrow = new DateTime(date('Y-m-d', strtotime('+1 day')));
+                                                    $delivery_date_only = new DateTime($date);
+                                                    
+                                                    $warning_html = '';
+                                                    $status = $row['status'];
+                                                    
+                                                    // Check if delivery/pickup date has passed and order is still pending/preparing/ready for delivery
+                                                    if ($delivery_datetime < $current_datetime && 
+                                                        in_array($status, ['Pending', 'Preparing', 'Ready for Delivery', 'Ready for Pick-up'])) {
+                                                        $warning_html = '<span class="warning-badge critical">OVERDUE</span>';
+                                                    }
+                                                    // Check if delivery/pickup is tomorrow and status is still pending
+                                                    elseif ($delivery_date_only->format('Y-m-d') == $tomorrow->format('Y-m-d') && $status == 'Pending') {
+                                                        $warning_html = '<span class="warning-badge urgent">DUE TOMORROW</span>';
+                                                    }
+                                                    // Check if delivery/pickup is today and status is still pending
+                                                    elseif ($delivery_date_only->format('Y-m-d') == $today->format('Y-m-d') && $status == 'Pending') {
+                                                        $warning_html = '<span class="warning-badge today">DUE TODAY</span>';
+                                                    }
+                                                    
+                                                    echo $warning_html;
+                                                ?>
+                                            </div>
                                         </td>
-                                        <td>
+                                        <td data-label="Status" onclick="event.stopPropagation();">
                                             <form method="POST" action="update-status.php" class="status-form">
                                                 <input type="hidden" name="order_id" value="<?php echo $row['order_id']; ?>">
                                                 <input type="hidden" name="redirect_to" value="order-list.php">
@@ -248,9 +265,7 @@
                                                 </select>
                                             </form>
                                         </td>
-                                        <td>
-                                            <a href="view-orders.php?order_id=<?php echo $row['order_id']; ?>" class="view-btn">View Details</a>
-                                        </td>
+
                                     </tr>
                                 <?php endwhile; ?>
                             <?php else: ?>
@@ -276,35 +291,6 @@
 
     <script>
         let searchTimeout;
-        
-        // Add click event to table rows
-        function addRowClickEvents() {
-            const tableRows = document.querySelectorAll('#orders-tbody tr');
-            tableRows.forEach(row => {
-                // Skip empty state rows
-                if (row.querySelector('.no-orders')) return;
-                
-                // Add cursor pointer style
-                row.style.cursor = 'pointer';
-                
-                // Add click event listener
-                row.addEventListener('click', function(e) {
-                    // Don't trigger if clicking on the View Details button or status select
-                    if (e.target.classList.contains('view-btn') || e.target.closest('.view-btn') ||
-                        e.target.tagName === 'SELECT' || e.target.closest('.status-form')) {
-                        return;
-                    }
-                    
-                    // Get order ID from the first cell
-                    const orderIdCell = this.querySelector('td:first-child');
-                    if (orderIdCell) {
-                        const orderId = orderIdCell.textContent.trim();
-                    }
-                });
-            });
-        }
-        
-        // Fetch orders data via AJAX
         function fetchOrders() {
             const urlParams = new URLSearchParams(window.location.search);
             const queryString = urlParams.toString();
@@ -393,19 +379,19 @@
                 });
                 
                 html += `
-                    <tr>
-                        <td>${escapeHtml(order.order_id)}</td>
-                        <td>${formatDate(order.order_date)}</td>
-                        <td>${escapeHtml(order.customer_name)}</td>
-                        <td>${escapeHtml(order.customer_contact)}</td>
-                        <td>${escapeHtml(order.total_items)}</td>
-                        <td>₱${parseFloat(order.total_amount).toFixed(2)}</td>
-                        <td>${escapeHtml(order.payment_method)}</td>
-                        <td>
+                    <tr onclick="window.location.href='view-orders.php?order_id=${order.order_id}'">
+                        <td data-label="Order #">${escapeHtml(order.order_id)}</td>
+                        <td data-label="Date Placed">${formatDate(order.order_date)}</td>
+                        <td data-label="Customer">${escapeHtml(order.customer_name)}</td>
+                        <td data-label="Contact">${escapeHtml(order.customer_contact)}</td>
+                        <td data-label="Items">${escapeHtml(order.total_items)}</td>
+                        <td data-label="Total">₱${parseFloat(order.total_amount).toFixed(2)}</td>
+                        <td data-label="Payment">${escapeHtml(order.payment_method)}</td>
+                        <td data-label="Delivery/Pickup">
                             ${escapeHtml(order.delivery_method)}<br>
                             ${dateFormatted}${timeFormatted}${warningHtml}
                         </td>
-                        <td>
+                        <td data-label="Status" onclick="event.stopPropagation();">
                             <form method="POST" action="update-status.php" class="status-form">
                                 <input type="hidden" name="order_id" value="${order.order_id}">
                                 <input type="hidden" name="redirect_to" value="order-list.php">
@@ -414,7 +400,7 @@
                                 </select>
                             </form>
                         </td>
-                        <td>
+                        <td data-label="Actions">
                             <a href="view-orders.php?order_id=${order.order_id}" class="view-btn">View Details</a>
                         </td>
                     </tr>
@@ -422,9 +408,6 @@
             });
             
             tbody.innerHTML = html;
-            
-            // Add click events to the new rows
-            addRowClickEvents();
         }
         
         // Update status counts
@@ -517,10 +500,7 @@
             return value === null || value === undefined || value === '';
         }
         
-        // Initialize row click events when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            addRowClickEvents();
-        });
+        // No need for DOMContentLoaded listener anymore since we removed addRowClickEvents
     </script>
 </body>
 </html>

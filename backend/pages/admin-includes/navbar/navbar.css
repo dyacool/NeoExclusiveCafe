@@ -504,6 +504,15 @@
   font-size: 0.875rem !important;
   transition: all 0.2s ease;
   box-shadow: 0 2px 4px rgba(22, 163, 74, 0.2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.action-button svg {
+  flex-shrink: 0;
+  vertical-align: middle;
 }
 
 .action-button:hover {

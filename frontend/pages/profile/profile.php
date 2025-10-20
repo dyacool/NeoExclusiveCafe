@@ -181,6 +181,8 @@ if ($bulk_orders_stmt === false) {
 </head>
 <body>
 <?php include "../../user-includes/navbar/customer-navigation.php"; ?>
+<?php include "../../user-includes/bread-crumb/bread-crumb.php"; ?>
+
 
     <!-- Profile content with namespaced classes -->
     <div class="neo-profile-container">
@@ -243,33 +245,18 @@ if ($bulk_orders_stmt === false) {
 
         <div class="neo-profile-stats">
             <div class="neo-stat-card">
-                <div class="neo-stat-icon">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M6,2A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2H6M6,4H13V9H18V20H6V4Z"/>
-                    </svg>
-                </div>
                 <div class="neo-stat-content">
                     <div class="neo-stat-number"><?php echo $stats['total_posts']; ?></div>
                     <div class="neo-stat-label">Total Posts</div>
                 </div>
             </div>
             <div class="neo-stat-card">
-                <div class="neo-stat-icon">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M17,18C17.5,18 18,17.5 18,17A1,1 0 0,0 17,16C16.5,16 16,16.5 16,17A1,1 0 0,0 17,18M1,2V4H3L6.6,11.59L5.24,14.04C5.09,14.32 5,14.65 5,15A2,2 0 0,0 7,17H19V15H7.42A0.25,0.25 0 0,1 7.17,14.75C7.17,14.7 7.18,14.66 7.2,14.63L8.1,13H15.55C16.3,13 16.96,12.58 17.3,11.97L20.88,5H5.21L4.27,3H1M7,18C7.5,18 8,17.5 8,17A1,1 0 0,0 7,16C6.5,16 6,16.5 6,17A1,1 0 0,0 7,18Z"/>
-                    </svg>
-                </div>
                 <div class="neo-stat-content">
                     <div class="neo-stat-number"><?php echo $orders_count; ?></div>
                     <div class="neo-stat-label">Total Orders</div>
                 </div>
             </div>
             <div class="neo-stat-card">
-                <div class="neo-stat-icon">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z"/>
-                    </svg>
-                </div>
                 <div class="neo-stat-content">
                     <div class="neo-stat-number"><?php echo $bulk_orders_count; ?></div>
                     <div class="neo-stat-label">Bulk Orders</div>

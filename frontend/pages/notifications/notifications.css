@@ -352,9 +352,6 @@
   flex: 1;
 }
 
-.modal-notification-title {
-}
-
 .modal-notification-message {
   color: var(--text-secondary);
   line-height: 1.8;

@@ -29,48 +29,33 @@
   padding: 0;
   box-sizing: border-box;
 }
-
-body {
+z body {
   line-height: 1.6;
   overflow-x: hidden;
 }
 
 /* Profile Container */
 .neo-profile-container {
-  max-width: 1600px;
-  margin: 0 auto;
+  max-width: 1200px;
+  margin: 0 auto !important;
+  padding: 0;
   font-family: "Spectral", serif;
   color: var(--secondary);
 }
 
 /* Profile Header */
 .neo-profile-header-card {
-  background: var(--white);
+  background-color: #0f5132;
   border: 2px solid var(--border);
   border-radius: 16px;
   padding: 32px;
   display: flex;
   flex-direction: column;
-  gap: 0.5 rem;
   transition: all var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 20px rgba(15, 81, 50, 0.08);
   position: relative;
   overflow: hidden;
-  margin-bottom: 40px;
-}
-
-.neo-profile-header-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(
-    90deg,
-    var(--primary) 0%,
-    var(--primary-dark) 100%
-  );
+  margin-bottom: 1rem;
 }
 
 .neo-profile-header-card:hover {
@@ -128,7 +113,7 @@ body {
 .neo-profile-info h1 {
   font-size: 2rem;
   font-weight: 700;
-  color: var(--primary);
+  color: white !important;
   margin-bottom: 12px;
   letter-spacing: -0.02em;
 }
@@ -141,7 +126,7 @@ body {
 
 .neo-profile-meta p {
   font-size: 1rem;
-  color: var(--secondary);
+  color: white !important;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -149,7 +134,7 @@ body {
 }
 
 .neo-profile-meta svg {
-  color: var(--primary);
+  color: white !important;
   width: 24px;
   height: 24px;
 }
@@ -175,32 +160,32 @@ body {
   border: none;
   cursor: pointer;
   background: none;
-  color: var(--primary);
+  color: white;
   position: relative;
 }
 
 .neo-profile-link svg {
   width: 14px;
   height: 14px;
-  color: var(--primary);
+  color: white;
 }
 
 .neo-profile-link:hover {
   background: rgba(15, 81, 50, 0.05);
-  color: var(--primary-dark);
+  color: rgb(236, 236, 236);
   transform: translateX(4px);
 }
 
 .neo-profile-link:hover svg {
-  color: var(--primary-dark);
+  color: rgb(236, 236, 236);
 }
 
 .neo-profile-link.logout-link {
-  color: #dc3545;
+  color: #f56d7b;
 }
 
 .neo-profile-link.logout-link svg {
-  color: #dc3545;
+  color: #f56d7b;
 }
 
 .neo-profile-link.logout-link:hover {
@@ -213,7 +198,7 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 24px;
-  margin-bottom: 40px;
+  margin-bottom: 1rem;
 }
 
 .neo-stat-card {
@@ -234,28 +219,13 @@ body {
   border: none;
 }
 
-.neo-stat-icon {
-  width: 56px;
-  height: 56px;
-  background: linear-gradient(
-    135deg,
-    var(--primary) 0%,
-    var(--primary-dark) 100%
-  );
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.neo-stat-icon svg {
-  width: 24px;
-  height: 24px;
-  color: var(--white);
-}
-
 .neo-stat-content {
+  padding: 0.375rem 0;
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
   flex: 1;
 }
 
@@ -264,7 +234,6 @@ body {
   font-weight: 700;
   color: var(--primary);
   line-height: 1;
-  margin-bottom: 6px;
 }
 
 .neo-stat-label {
@@ -323,7 +292,6 @@ body {
 
 .orders-table tbody td {
   padding: 16px;
-  border-bottom: 1px solid var(--border);
   vertical-align: middle;
   color: var(--text);
 }
@@ -763,11 +731,6 @@ body {
     margin-bottom: 8px;
     text-align: center;
   }
-}
-.neo-profile-container {
-  max-width: 1200px;
-  margin: 2rem auto;
-  padding: 2rem;
 }
 
 .neo-profile-header {
