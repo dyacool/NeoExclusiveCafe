@@ -230,9 +230,23 @@
                                             ?>
                                         </td>
                                         <td>
-                                            <span class="status-badge status-<?php echo strtolower(str_replace(' ', '-', $row['status'])); ?>">
-                                                <?php echo htmlspecialchars($row['status']); ?>
-                                            </span>
+                                            <form method="POST" action="update-status.php" class="status-form">
+                                                <input type="hidden" name="order_id" value="<?php echo $row['order_id']; ?>">
+                                                <input type="hidden" name="redirect_to" value="order-list.php">
+                                                <select name="status" onchange="this.form.submit()" class="status-badge-select status-<?php echo strtolower(str_replace(' ', '-', $row['status'])); ?>">
+                                                    <?php
+                                                        if($row['delivery_method'] == "Pick-up"){
+                                                            $statuses = ["Pending", "Preparing", "Ready for Pick-up", "Picked-up"];
+                                                        }elseif($row['delivery_method'] == "Delivery"){
+                                                            $statuses = ["Pending", "Preparing", "Ready for Delivery", "Out for Delivery", "Delivered"];
+                                                        }
+                                                        foreach ($statuses as $status) {
+                                                            $selected = ($row['status'] == $status) ? 'selected' : '';
+                                                            echo "<option value=\"$status\" $selected>$status</option>";
+                                                        }
+                                                    ?>
+                                                </select>
+                                            </form>
                                         </td>
                                         <td>
                                             <a href="view-orders.php?order_id=<?php echo $row['order_id']; ?>" class="view-btn">View Details</a>
@@ -275,8 +289,9 @@
                 
                 // Add click event listener
                 row.addEventListener('click', function(e) {
-                    // Don't trigger if clicking on the View Details button
-                    if (e.target.classList.contains('view-btn') || e.target.closest('.view-btn')) {
+                    // Don't trigger if clicking on the View Details button or status select
+                    if (e.target.classList.contains('view-btn') || e.target.closest('.view-btn') ||
+                        e.target.tagName === 'SELECT' || e.target.closest('.status-form')) {
                         return;
                     }
                     
@@ -284,7 +299,6 @@
                     const orderIdCell = this.querySelector('td:first-child');
                     if (orderIdCell) {
                         const orderId = orderIdCell.textContent.trim();
-                        window.location.href = `view-orders.php?order_id=${orderId}`;
                     }
                 });
             });
@@ -367,6 +381,17 @@
                     }
                 }
                 
+                // Generate status options based on delivery method
+                let statusOptions = '';
+                const statuses = order.delivery_method === 'Pick-up' 
+                    ? ['Pending', 'Preparing', 'Ready for Pick-up', 'Picked-up']
+                    : ['Pending', 'Preparing', 'Ready for Delivery', 'Out for Delivery', 'Delivered'];
+                
+                statuses.forEach(status => {
+                    const selected = status === order.status ? 'selected' : '';
+                    statusOptions += `<option value="${escapeHtml(status)}" ${selected}>${escapeHtml(status)}</option>`;
+                });
+                
                 html += `
                     <tr>
                         <td>${escapeHtml(order.order_id)}</td>
@@ -381,9 +406,13 @@
                             ${dateFormatted}${timeFormatted}${warningHtml}
                         </td>
                         <td>
-                            <span class="status-badge status-${statusClass}">
-                                ${escapeHtml(order.status)}
-                            </span>
+                            <form method="POST" action="update-status.php" class="status-form">
+                                <input type="hidden" name="order_id" value="${order.order_id}">
+                                <input type="hidden" name="redirect_to" value="order-list.php">
+                                <select name="status" onchange="this.form.submit()" class="status-badge-select status-${statusClass}">
+                                    ${statusOptions}
+                                </select>
+                            </form>
                         </td>
                         <td>
                             <a href="view-orders.php?order_id=${order.order_id}" class="view-btn">View Details</a>

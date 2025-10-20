@@ -52,12 +52,22 @@ if (mysqli_stmt_execute($stmt)) {
         error_log('Order status email send failed: ' . $e->getMessage());
     }
 
-    // Success - redirect back to the order details
-    header("Location: view-orders.php?order_id=$order_id&status_updated=1");
+    // Success - redirect back to the appropriate page
+    $redirect_to = isset($_POST['redirect_to']) ? $_POST['redirect_to'] : 'view-orders.php';
+    if ($redirect_to === 'order-list.php') {
+        header("Location: order-list.php?status_updated=1");
+    } else {
+        header("Location: view-orders.php?order_id=$order_id&status_updated=1");
+    }
     exit();
 } else {
     // Error - redirect with error message
-    header("Location: view-orders.php?order_id=$order_id&error=1");
+    $redirect_to = isset($_POST['redirect_to']) ? $_POST['redirect_to'] : 'view-orders.php';
+    if ($redirect_to === 'order-list.php') {
+        header("Location: order-list.php?error=1");
+    } else {
+        header("Location: view-orders.php?order_id=$order_id&error=1");
+    }
     exit();
 }
 } else {

@@ -79071,4 +79071,171 @@ Product ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProdu
 [19-Oct-2025 18:31:53 Asia/Manila] Business hours: 00:00:00 - 19:00:00
 [19-Oct-2025 18:31:53 Asia/Manila] Time analysis: current=18:31:53 (1111 min), opening=00:00:00 (0 min), closing=19:00:00 (1140 min), is_closed=No
 [19-Oct-2025 18:31:53 Asia/Manila] Cart truncation result: No action needed
-Product ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 2 | availtoday_status_id: 2 | availtoday_status_name: Delivery
+Product ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 2 | availtoday_status_id: 2 | availtoday_status_name: Delivery[20-Oct-2025 12:21:23 Asia/Manila] Processing dates: start=2025-09-30, end=2025-10-30
+[20-Oct-2025 12:21:23 Asia/Manila] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) IN (LOWER('pending'), LOWER('picked-up'), LOWER('delivered')) ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[20-Oct-2025 12:21:23 Asia/Manila] With parameters: start=2025-09-30, end=2025-10-30, showCompleted=true
+[20-Oct-2025 12:21:37 Asia/Manila] Processing dates: start=2025-09-30, end=2025-10-30
+[20-Oct-2025 12:21:37 Asia/Manila] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) IN (LOWER('pending'), LOWER('picked-up'), LOWER('delivered')) ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[20-Oct-2025 12:21:37 Asia/Manila] With parameters: start=2025-09-30, end=2025-10-30, showCompleted=true
+[20-Oct-2025 12:22:05 Asia/Manila] Processing dates: start=2025-09-30, end=2025-10-30
+[20-Oct-2025 12:22:05 Asia/Manila] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[20-Oct-2025 12:22:05 Asia/Manila] With parameters: start=2025-09-30, end=2025-10-30, showCompleted=false
+[20-Oct-2025 12:22:09 Asia/Manila] Processing dates: start=2025-09-30, end=2025-10-30
+[20-Oct-2025 12:22:09 Asia/Manila] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) IN (LOWER('pending'), LOWER('picked-up'), LOWER('delivered')) ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[20-Oct-2025 12:22:09 Asia/Manila] With parameters: start=2025-09-30, end=2025-10-30, showCompleted=true
+[20-Oct-2025 12:22:11 Asia/Manila] Processing dates: start=2025-09-30, end=2025-10-30
+[20-Oct-2025 12:22:11 Asia/Manila] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[20-Oct-2025 12:22:11 Asia/Manila] With parameters: start=2025-09-30, end=2025-10-30, showCompleted=false
+[20-Oct-2025 12:22:15 Asia/Manila] Processing dates: start=2025-08-31, end=2025-09-29
+[20-Oct-2025 12:22:15 Asia/Manila] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[20-Oct-2025 12:22:15 Asia/Manila] With parameters: start=2025-08-31, end=2025-09-29, showCompleted=false
+[20-Oct-2025 12:22:23 Asia/Manila] Processing dates: start=2025-09-30, end=2025-10-30
+[20-Oct-2025 12:22:23 Asia/Manila] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[20-Oct-2025 12:22:23 Asia/Manila] With parameters: start=2025-09-30, end=2025-10-30, showCompleted=false
+[20-Oct-2025 12:22:25 Asia/Manila] Processing dates: start=2025-08-31, end=2025-09-29
+[20-Oct-2025 12:22:25 Asia/Manila] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[20-Oct-2025 12:22:25 Asia/Manila] With parameters: start=2025-08-31, end=2025-09-29, showCompleted=false
