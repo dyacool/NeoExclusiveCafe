@@ -10,25 +10,31 @@ require_once __DIR__ . "/../admin-includes/database.php";
 // Handle status updates (approve/reject from list)
 if ($_POST && isset($_POST['action']) && $_POST['action'] === 'update_status') {
     $bulk_order_id = (int)$_POST['bulk_order_id'];
-    $new_status = $_POST['new_status'];
-    // Allow approve/reject from list
-    $allowed_statuses = ['pending', 'approved', 'completed', 'cancelled', 'rejected'];
+    $new_status = $_POST['new_status'] ?? '';
+    $is_ajax = isset($_POST['is_ajax']) && $_POST['is_ajax'] === '1';
+    // Allow all statuses
+    $allowed_statuses = ['pending','approved','payment_received','payment_rejected','ready_for_delivery','cancelled','rejected','completed'];
     if (in_array($new_status, $allowed_statuses)) {
         $update_sql = "UPDATE bulk_orders SET status = ?, admin_updated = NOW() WHERE id = ?";
         $update_stmt = mysqli_prepare($conn, $update_sql);
         mysqli_stmt_bind_param($update_stmt, "si", $new_status, $bulk_order_id);
-        if (mysqli_stmt_execute($update_stmt)) {
-            $success_message = "Order status updated successfully!";
-        } else {
-            $error_message = "Error updating order status: " . mysqli_error($conn);
-        }
+        $ok = mysqli_stmt_execute($update_stmt);
+        $err = mysqli_error($conn);
         mysqli_stmt_close($update_stmt);
+        if ($is_ajax) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => (bool)$ok, 'error' => $ok ? null : ($err ?: 'Update failed')]);
+            exit();
+        }
+        if ($ok) { $success_message = "Order status updated successfully!"; } else { $error_message = "Error updating order status: " . $err; }
     } else {
+        if ($is_ajax) { header('Content-Type: application/json'); echo json_encode(['success'=>false,'error'=>'Invalid status']); exit(); }
         $error_message = "Invalid status selected.";
     }
 }
 
 // Create bulk_orders table if it doesn't exist
+// Ensure table exists with extended statuses
 $create_table_query = "
     CREATE TABLE IF NOT EXISTS `bulk_orders` (
         `id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -46,7 +52,7 @@ $create_table_query = "
         `note` text DEFAULT NULL,
         `total_amount` decimal(10,2) NOT NULL,
         `total_items` int(11) NOT NULL DEFAULT 0,
-        `status` enum('pending','approved','payment_received','ready_for_delivery','cancelled','completed') NOT NULL DEFAULT 'pending',
+        `status` enum('pending','approved','payment_received','payment_rejected','ready_for_delivery','cancelled','rejected','completed') NOT NULL DEFAULT 'pending',
         `proof_of_payment` varchar(500) DEFAULT NULL,
         `admin_updated` timestamp NULL DEFAULT NULL,
         `admin_notes` text DEFAULT NULL,
@@ -58,6 +64,22 @@ $create_table_query = "
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
 ";
 mysqli_query($conn, $create_table_query);
+
+// Ensure status enum includes new values
+$desired_statuses = ['pending','approved','payment_received','payment_rejected','ready_for_delivery','cancelled','rejected','completed'];
+$colRes = mysqli_query($conn, "SHOW COLUMNS FROM `bulk_orders` LIKE 'status'");
+if ($colRes && mysqli_num_rows($colRes) > 0) {
+    $colInfo = mysqli_fetch_assoc($colRes);
+    if (isset($colInfo['Type']) && stripos($colInfo['Type'], "enum(") === 0) {
+        preg_match_all("/'([^']+)'/", $colInfo['Type'], $matches);
+        $current = $matches[1] ?? [];
+        $missing = array_diff($desired_statuses, $current);
+        if (!empty($missing)) {
+            $enumList = "'" . implode("','", $desired_statuses) . "'";
+            @mysqli_query($conn, "ALTER TABLE `bulk_orders` MODIFY COLUMN `status` enum($enumList) NOT NULL DEFAULT 'pending'");
+        }
+    }
+}
 
 // Add missing columns if they don't exist
 $add_columns_queries = [
@@ -279,23 +301,22 @@ if ($result && mysqli_num_rows($result) > 0) {
                                     ₱<?php echo number_format($totals['total_amount'], 2); ?>
                                 </td>
                                 <td>
-                                    <span class="status-badge status-<?php echo strtolower($order['status']); ?>">
-                                        <?php echo ucfirst(str_replace('_', ' ', $order['status'])); ?>
-                                    </span>
-                                    <?php if ($order['status'] === 'pending'): ?>
-                                        <form method="POST" style="display:inline-block; margin-left:8px;">
-                                            <input type="hidden" name="action" value="update_status">
-                                            <input type="hidden" name="bulk_order_id" value="<?php echo $order['id']; ?>">
-                                            <input type="hidden" name="new_status" value="approved">
-                                            <button type="submit" class="btn btn-success btn-xs" onclick="return confirm('Approve this order?');" title="Approve"><i class="fas fa-check"></i></button>
-                                        </form>
-                                        <form method="POST" style="display:inline-block;">
-                                            <input type="hidden" name="action" value="update_status">
-                                            <input type="hidden" name="bulk_order_id" value="<?php echo $order['id']; ?>">
-                                            <input type="hidden" name="new_status" value="rejected">
-                                            <button type="submit" class="btn btn-danger btn-xs" onclick="return confirm('Reject this order?');" title="Reject"><i class="fas fa-times"></i></button>
-                                        </form>
-                                    <?php endif; ?>
+                                    <select class="status-select-list status-badge status-<?php echo strtolower($order['status']); ?>" data-order-id="<?php echo (int)$order['id']; ?>" style="margin-left:8px;">
+                                        <?php $statuses = [
+                                            'pending' => 'Pending',
+                                            'approved' => 'Approved',
+                                            'payment_received' => 'Payment Received',
+                                            'payment_rejected' => 'Payment Rejected',
+                                            'ready_for_delivery' => 'Ready for Delivery',
+                                            'cancelled' => 'Cancelled',
+                                            'rejected' => 'Rejected',
+                                            'completed' => 'Completed',
+                                        ];
+                                        foreach ($statuses as $val => $label): ?>
+                                            <option value="<?php echo $val; ?>" <?php echo ($order['status'] === $val) ? 'selected' : ''; ?>><?php echo $label; ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <span class="saved-indicator" style="display:none; color:#16a34a; margin-left:6px;"><i class="fas fa-check"></i> Saved</span>
                                 </td>
                             </tr>
                         <?php endwhile; ?>
@@ -312,6 +333,32 @@ if ($result && mysqli_num_rows($result) > 0) {
     </div>
 
     <script>
+        // Auto-save status changes from list
+        (function(){
+            function onChange(e){
+                const select = e.target;
+                if (!select.classList.contains('status-select-list')) return;
+                const orderId = select.getAttribute('data-order-id');
+                const row = select.closest('tr');
+                const saved = row ? row.querySelector('.saved-indicator') : null;
+                const form = new FormData();
+                form.append('action', 'update_status');
+                form.append('is_ajax', '1');
+                form.append('bulk_order_id', orderId);
+                form.append('new_status', select.value);
+                fetch('', { method: 'POST', body: form }).then(r => r.json()).then(data => {
+                    if (data && data.success) {
+                        if (saved) { saved.style.display = 'inline-flex'; setTimeout(()=> saved.style.display='none', 1500); }
+                        // Update select styling class to reflect status and row filter attribute
+                        select.className = 'status-select-list status-badge status-' + select.value;
+                        row.setAttribute('data-status', select.value);
+                    } else {
+                        alert('Failed to update status: ' + (data && data.error ? data.error : 'Unknown error'));
+                    }
+                }).catch(() => alert('Request failed. Please try again.'));
+            }
+            document.addEventListener('change', onChange);
+        })();
         function filterOrders(status, buttonElement) {
             // Remove active class from all filter buttons
             document.querySelectorAll('.filter-btn').forEach(btn => {

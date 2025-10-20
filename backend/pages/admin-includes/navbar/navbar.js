@@ -303,6 +303,118 @@ document.addEventListener("DOMContentLoaded", () => {
     mobileHeaderActions.appendChild(mobileAddProductButton);
   }
 
+  function addBlogPostButton() {
+    if (!window.location.pathname.includes("admin-blog.php")) return;
+
+    let headerActions = document.querySelector(".header-actions");
+
+    if (!headerActions) {
+      headerActions = document.createElement("div");
+      headerActions.className = "header-actions";
+      const header = document.querySelector(".header");
+      if (header) {
+        header.appendChild(headerActions);
+      }
+    }
+
+    const addPostButton = document.createElement("button");
+    addPostButton.className = "btn add-product-button action-button";
+    addPostButton.onclick = () => {
+      window.location.href = "admin-blog-createpost.php";
+    };
+
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("width", "20");
+    svg.setAttribute("height", "20");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("fill", "none");
+    svg.setAttribute("stroke", "currentColor");
+    svg.setAttribute("stroke-width", "2");
+
+    const line1 = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "line"
+    );
+    line1.setAttribute("x1", "12");
+    line1.setAttribute("y1", "5");
+    line1.setAttribute("x2", "12");
+    line1.setAttribute("y2", "19");
+
+    const line2 = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "line"
+    );
+    line2.setAttribute("x1", "5");
+    line2.setAttribute("y1", "12");
+    line2.setAttribute("x2", "19");
+    line2.setAttribute("y2", "12");
+
+    svg.appendChild(line1);
+    svg.appendChild(line2);
+    addPostButton.appendChild(svg);
+    addPostButton.appendChild(document.createTextNode(" Add Post"));
+
+    headerActions.innerHTML = "";
+    headerActions.appendChild(addPostButton);
+
+    let mobileHeaderActions = document.querySelector(".mobile-header-actions");
+
+    if (!mobileHeaderActions) {
+      mobileHeaderActions = document.createElement("div");
+      mobileHeaderActions.className = "mobile-header-actions";
+      const mobileHeaderBottom = document.querySelector(
+        ".mobile-header-bottom"
+      );
+      if (mobileHeaderBottom) {
+        mobileHeaderBottom.appendChild(mobileHeaderActions);
+      }
+    }
+
+    const mobileAddPostButton = document.createElement("button");
+    mobileAddPostButton.className =
+      "btn add-product-button action-button mobile-action-button";
+    mobileAddPostButton.onclick = () => {
+      window.location.href = "admin-blog-createpost.php";
+    };
+
+    const mobileSvg = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "svg"
+    );
+    mobileSvg.setAttribute("width", "20");
+    mobileSvg.setAttribute("height", "20");
+    mobileSvg.setAttribute("viewBox", "0 0 24 24");
+    mobileSvg.setAttribute("fill", "none");
+    mobileSvg.setAttribute("stroke", "currentColor");
+    mobileSvg.setAttribute("stroke-width", "2");
+
+    const mobileLine1 = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "line"
+    );
+    mobileLine1.setAttribute("x1", "12");
+    mobileLine1.setAttribute("y1", "5");
+    mobileLine1.setAttribute("x2", "12");
+    mobileLine1.setAttribute("y2", "19");
+
+    const mobileLine2 = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "line"
+    );
+    mobileLine2.setAttribute("x1", "5");
+    mobileLine2.setAttribute("y1", "12");
+    mobileLine2.setAttribute("x2", "19");
+    mobileLine2.setAttribute("y2", "12");
+
+    mobileSvg.appendChild(mobileLine1);
+    mobileSvg.appendChild(mobileLine2);
+    mobileAddPostButton.appendChild(mobileSvg);
+    mobileAddPostButton.appendChild(document.createTextNode(" Add Post"));
+
+    mobileHeaderActions.innerHTML = "";
+    mobileHeaderActions.appendChild(mobileAddPostButton);
+  }
+
   function setActiveStates() {
     document
       .querySelectorAll(".nav-link, .footer-link, .dropdown-link")
@@ -405,6 +517,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     updatePageTitle();
     addProductButton();
+    addBlogPostButton();
     setActiveStates();
     preventActiveClicks();
     handleResize();
