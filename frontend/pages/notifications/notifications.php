@@ -34,7 +34,7 @@ $notifications = $notifications_data; // Use consistent variable name
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notifications - NeoExclusiveCafe</title>
-        <link rel="stylesheet" href="../../user-includes/user-header.css">
+    <link rel="stylesheet" href="/frontend/user-includes/user-header.css">
     <link rel="stylesheet" href="notifications.css" />
 </head>
 <body>
@@ -283,7 +283,13 @@ $notifications = $notifications_data; // Use consistent variable name
                 
                 // Populate modal
                 modalTitle.textContent = notificationData.title || 'Notification';
-                modalMessage.textContent = notificationData.message || '';
+                
+                // Build message with link if available
+                let messageHtml = notificationData.message || '';
+                if (notificationData.link) {
+                    messageHtml += `<br><br><a href="${notificationData.link}" class="notif-link btn btn-primary btn-sm" style="color: white; text-decoration: none; padding: 8px 16px; border-radius: 4px; display: inline-block; margin-top: 10px;">View Details</a>`;
+                }
+                modalMessage.innerHTML = messageHtml;
                 
                 const timestamp = new Date(notificationData.created_at);
                 modalTimestamp.textContent = timestamp.toLocaleString('en-US', {
