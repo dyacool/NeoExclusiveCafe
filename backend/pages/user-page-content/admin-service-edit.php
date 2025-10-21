@@ -14,6 +14,7 @@ $page_title = "Edit Service Section";
 if (!isset($conn)) {
     require_once "../admin-includes/database.php";
 }
+require_once "../admin-includes/activity-logger.php";
 
 // Include admin header
 require_once "../admin-includes/navbar/navbar.php";
@@ -146,6 +147,8 @@ if (isset($_POST['add_card'])) {
     if (mysqli_query($conn, $insert_query)) {
         $success_message = "New service card added successfully!";
         debug_log("New service card added successfully");
+        $new_card_id = mysqli_insert_id($conn);
+        logAdminActivity($conn, 'CREATE', "Added new service card: $title", 'service_cards', $new_card_id);
     } else {
         $error_message = "Error adding card: " . mysqli_error($conn);
         debug_log("Error adding card: " . mysqli_error($conn));
@@ -170,6 +173,7 @@ if (isset($_POST['update_card'])) {
     if (mysqli_query($conn, $update_query)) {
         $success_message = "Service card updated successfully!";
         debug_log("Service card updated successfully");
+        logAdminActivity($conn, 'UPDATE', "Updated service card: $title", 'service_cards', $card_id);
     } else {
         $error_message = "Error updating card: " . mysqli_error($conn);
         debug_log("Error updating card: " . mysqli_error($conn));
@@ -180,11 +184,17 @@ if (isset($_POST['update_card'])) {
 if (isset($_GET['delete_card']) && isset($_GET['id'])) {
     $card_id = (int)$_GET['id'];
     
+    // Get card title for logging
+    $get_title_query = "SELECT title FROM service_cards WHERE id = $card_id";
+    $title_result = mysqli_query($conn, $get_title_query);
+    $card_title = ($title_result && mysqli_num_rows($title_result) > 0) ? mysqli_fetch_assoc($title_result)['title'] : 'Unknown';
+    
     $delete_query = "DELETE FROM service_cards WHERE id = $card_id";
     
     if (mysqli_query($conn, $delete_query)) {
         $success_message = "Service card deleted successfully!";
         debug_log("Service card deleted successfully");
+        logAdminActivity($conn, 'DELETE', "Deleted service card: $card_title", 'service_cards', $card_id);
     } else {
         $error_message = "Error deleting card: " . mysqli_error($conn);
         debug_log("Error deleting card: " . mysqli_error($conn));

@@ -11,6 +11,7 @@ if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
 // Include the navbar and database
 require_once __DIR__ . "/../admin-includes/navbar/navbar.php";
 require_once __DIR__ . "/../admin-includes/database.php";
+require_once __DIR__ . "/../admin-includes/activity-logger.php";
 
 // Initialize variables
 $success_message = '';
@@ -97,6 +98,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($stmt->execute()) {
                 if ($stmt->affected_rows > 0) {
                     $success_message = "Terms and conditions updated successfully!";
+                    logAdminActivity($conn, 'UPDATE', "Updated terms and conditions content", 'terms_conditions', 1);
                     // Refresh the data
                     $terms['title'] = $title;
                     $terms['content'] = $content;

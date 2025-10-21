@@ -6,6 +6,7 @@ if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
 }
 
 require_once __DIR__ . "/../admin-includes/database.php";
+require_once __DIR__ . "/../admin-includes/activity-logger.php";
 
 // Handle status updates (approve/reject from list)
 if ($_POST && isset($_POST['action']) && $_POST['action'] === 'update_status') {
@@ -22,6 +23,11 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'update_status') {
         $ok = mysqli_stmt_execute($update_stmt);
         $err = mysqli_error($conn);
         mysqli_stmt_close($update_stmt);
+        
+        // Log the activity
+        if ($ok) {
+            logAdminActivity($conn, 'UPDATE', "Changed refund request #$refund_id status to '$new_status'", 'order_refunds', $refund_id);
+        }
         
         if ($is_ajax) {
             header('Content-Type: application/json');

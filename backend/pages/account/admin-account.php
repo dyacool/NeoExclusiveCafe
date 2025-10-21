@@ -12,6 +12,7 @@ if (!isset($_SESSION["admin_id"]) || !isset($_SESSION["is_admin"]) || $_SESSION[
 // Include database and navbar
 require_once __DIR__ . "/../admin-includes/database.php";
 require_once __DIR__ . "/../admin-includes/navbar/navbar.php";
+require_once __DIR__ . "/../admin-includes/activity-logger.php";
 
 // Fetch admin information including profile_image
 $stmt = $conn->prepare("SELECT username, firstname, lastname, email, profile_image FROM users WHERE id = ? AND is_admin = TRUE");
@@ -52,6 +53,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
     if ($stmt->execute()) {
         $success_message = "Profile updated successfully!";
+        
+        // Log the activity
+        logAdminActivity($conn, 'UPDATE', "Updated account profile information", 'users', $_SESSION["admin_id"]);
+        
         // Refresh admin data
         $stmt = $conn->prepare("SELECT username, firstname, lastname, email, profile_image FROM users WHERE id = ? AND is_admin = TRUE");
         $stmt->bind_param("i", $_SESSION["admin_id"]);

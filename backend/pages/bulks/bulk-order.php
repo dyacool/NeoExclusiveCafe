@@ -6,6 +6,7 @@ if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
 }
 
 require_once __DIR__ . "/../admin-includes/database.php";
+require_once __DIR__ . "/../admin-includes/activity-logger.php";
 
 // Get the order ID from URL
 if (!isset($_GET['id']) || empty($_GET['id'])) {
@@ -110,6 +111,12 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'update_status') {
         $ok = mysqli_stmt_execute($update_stmt);
         $err = mysqli_error($conn);
         mysqli_stmt_close($update_stmt);
+        
+        // Log the activity
+        if ($ok) {
+            logAdminActivity($conn, 'UPDATE', "Changed bulk order #$target_id status to '$new_status'", 'bulk_orders', $target_id);
+        }
+        
         if ($is_ajax) {
             header('Content-Type: application/json');
             echo json_encode(['success' => (bool)$ok, 'error' => $ok ? null : ($err ?: 'Update failed')]);
@@ -144,6 +151,12 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'save_customer_inf
     $ok = mysqli_stmt_execute($stmt);
     $err = mysqli_error($conn);
     mysqli_stmt_close($stmt);
+    
+    // Log the activity
+    if ($ok) {
+        logAdminActivity($conn, 'UPDATE', "Updated customer info for bulk order #$target_id", 'bulk_orders', $target_id);
+    }
+    
     header('Content-Type: application/json');
     echo json_encode(['success' => (bool)$ok, 'error' => $ok ? null : ($err ?: 'Update failed')]);
     exit();
@@ -162,6 +175,12 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'save_order_detail
     $ok = mysqli_stmt_execute($stmt);
     $err = mysqli_error($conn);
     mysqli_stmt_close($stmt);
+    
+    // Log the activity
+    if ($ok) {
+        logAdminActivity($conn, 'UPDATE', "Updated order details for bulk order #$target_id", 'bulk_orders', $target_id);
+    }
+    
     header('Content-Type: application/json');
     echo json_encode(['success' => (bool)$ok, 'error' => $ok ? null : ($err ?: 'Update failed')]);
     exit();

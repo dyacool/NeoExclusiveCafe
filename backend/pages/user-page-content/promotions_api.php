@@ -9,7 +9,9 @@ if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
 }
 
 
+// Include database configuration
 require_once __DIR__ . '/database-config.php';
+require_once __DIR__ . '/../admin-includes/activity-logger.php';
 
 $conn = getDBConnection();
 createPromotionsTable($conn);
@@ -428,7 +430,9 @@ function handleAddVoucher($conn) {
     $stmt->bind_param(implode('', $placeholders), ...$values);
     
     if ($stmt->execute()) {
-        echo json_encode(['success' => true, 'message' => 'Coupon created successfully', 'id' => $conn->insert_id]);
+        $new_promo_id = $conn->insert_id;
+        logAdminActivity($conn, 'CREATE', "Created promotion/coupon: {$data['coupon_code']}", 'promotions', $new_promo_id);
+        echo json_encode(['success' => true, 'message' => 'Coupon created successfully', 'id' => $new_promo_id]);
     } else {
         echo json_encode(['success' => false, 'message' => 'Error creating coupon: ' . $conn->error]);
     }
@@ -528,7 +532,16 @@ function handleUpdateVoucher($conn) {
 }
 
 function handleDeleteVoucher($conn) {
-    $id = intval($_POST['id']);
+    $id = $_POST['id'] ?? null;
+    
+    // Get coupon code for logging
+    $get_coupon_query = "SELECT coupon_code FROM promotions WHERE id = ?";
+    $get_coupon_stmt = $conn->prepare($get_coupon_query);
+    $get_coupon_stmt->bind_param("i", $id);
+    $get_coupon_stmt->execute();
+    $coupon_result = $get_coupon_stmt->get_result();
+    $coupon_data = $coupon_result->fetch_assoc();
+    $get_coupon_stmt->close();
     
     $sql = "DELETE FROM promotions WHERE id = ?";
     $stmt = $conn->prepare($sql);
@@ -536,6 +549,9 @@ function handleDeleteVoucher($conn) {
     
     if ($stmt->execute()) {
         if ($stmt->affected_rows > 0) {
+            if ($coupon_data) {
+                logAdminActivity($conn, 'DELETE', "Deleted promotion/coupon: {$coupon_data['coupon_code']}", 'promotions', $id);
+            }
             echo json_encode(['success' => true, 'message' => 'Coupon deleted successfully']);
         } else {
             echo json_encode(['success' => false, 'message' => 'Coupon not found']);

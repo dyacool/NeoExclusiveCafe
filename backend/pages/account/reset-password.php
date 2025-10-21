@@ -12,6 +12,7 @@ if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
 // Include database and navbar
 require_once __DIR__ . "/../admin-includes/database.php";
 require_once __DIR__ . "/../admin-includes/navbar/navbar.php";
+require_once __DIR__ . "/../admin-includes/activity-logger.php";
 
 $errorMessage = "";
 $successMessage = "";
@@ -45,6 +46,9 @@ if (isset($_POST["reset_password"])) {
             mysqli_stmt_bind_param($update_stmt, "si", $hashed_password, $admin_id);
             
             if (mysqli_stmt_execute($update_stmt)) {
+                // Log the activity
+                logAdminActivity($conn, 'UPDATE', "Changed account password", 'users', $admin_id);
+                
                 mysqli_stmt_close($update_stmt);
                 $successMessage = "Password updated successfully!";
             } else {
