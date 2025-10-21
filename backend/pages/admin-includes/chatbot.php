@@ -26,7 +26,7 @@ class CafeChatbot {
     private $useOpenAI = false;
     private $useCohere = true;
     private $cohereApiKey = '';
-    private $cohereModel = 'command-a-03-2025';
+    private $cohereModel = 'command-r-plus';
     private $customApiEndpoint = '';
     private $debugMode = true;
     
