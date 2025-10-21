@@ -334,7 +334,7 @@
   padding: 0.5rem;
   cursor: pointer;
   border-radius: 8px;
-  color: var(--text-muted);
+  color: #e2e8f0;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
@@ -1331,7 +1331,7 @@ body {
 }
 
 .modal-header {
-  background: linear-gradient(135deg, #5c8d76, #4a7c6a);
+  background: var(--primary);
   color: white;
   border-bottom: none;
   padding: 1.5rem;

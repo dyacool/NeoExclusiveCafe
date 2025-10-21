@@ -241,7 +241,7 @@ if ($cart_truncated) {
         
         <!-- Centered message for when business is closed -->
         <div id="closedMessage" class="business-closed-message" style="display: none;">
-            <div class="closed-icon">🕐</div>
+            <div class="closed-icon"></div>
             <h2>Business Hours Have Ended</h2>
             <p>Check again tomorrow for exciting pre-made breads!</p>
             <div class="business-hours-display" id="businessHoursDisplay">
