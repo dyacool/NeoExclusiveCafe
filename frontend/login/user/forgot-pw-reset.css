@@ -1,25 +1,46 @@
-@import url("https://fonts.googleapis.com/css?family=Montserrat:400,800");
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap");
 
+/* =================================
+  Base Styles & Reset
+  ================================= */
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
+:root {
+  --primary-color: #033813;
+  --text-color: #1f2937;
+  --bg-color: #ecf1ec;
+  --white: #ffffff;
+  --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 10px 20px rgba(0, 0, 0, 0.2);
+  --transition: all 0.3s ease-in-out;
+}
+
+/* =================================
+  Page Layout
+  ================================= */
 body {
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
-  flex-direction: column;
+  min-height: 100vh;
   font-family: "Montserrat", sans-serif;
-  height: 100vh;
   margin: 0;
-  padding: 0;
-  overflow: hidden;
+  padding: 20px;
+  background-color: var(--bg-color);
+  overflow-x: hidden;
+  overflow-y: auto;
+  line-height: 1.5;
+  color: var(--text-color);
 }
 
 body::before {
   content: "";
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
@@ -33,117 +54,270 @@ body::before {
   z-index: -1;
 }
 
+/* =================================
+  Card Container
+  ================================= */
 .center {
-  background-color: #ecf1ec;
+  background-color: var(--bg-color);
   border-radius: 10px;
-  box-shadow: 0 19px 30px rgba(0, 0, 0, 0.25), 0 15px 20px rgba(0, 0, 0, 0.22);
+  box-shadow: 0 19px 30px rgba(0, 0, 0, 0.1), 0 15px 20px rgba(0, 0, 0, 0.08);
   position: relative;
-  overflow: hidden;
-  width: 768px;
-  max-width: 100%;
+  width: 100%;
+  max-width: 768px;
   min-height: 480px;
+  margin: 20px 0;
+  padding: 30px 0;
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
+  overflow: auto;
 }
 
-.text {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
+/* =================================
+  Typography
+  ================================= */
 h1 {
-  font-weight: bold;
-  margin: 0;
-}
-
-.title {
-  color: #033813;
+  font-weight: 700;
+  margin: 0 0 10px;
+  color: var(--primary-color);
   text-transform: uppercase;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  text-align: center;
+  line-height: 1.2;
 }
 
 h4 {
-  color: #033813;
+  color: var(--primary-color);
   font-weight: 400;
+  font-size: 1rem;
+  text-align: center;
+  padding: 0 20px;
+  margin-bottom: 1.5rem;
 }
 
 a {
-  color: #333;
-  font-size: 14px;
+  color: var(--text-color);
+  font-size: 0.875rem;
   text-decoration: underline;
-  margin: 15px 0;
-  float: right;
+  margin: 10px 0;
+  transition: color 0.2s ease;
 }
 
 a:hover {
-  color: #333;
+  color: var(--primary-color);
   text-decoration: none;
-  float: right;
+}
+
+/* =================================
+  Form Elements
+  ================================= */
+form {
+  width: 100%;
+  max-width: 400px;
+  padding: 0 30px;
+  margin: 0 auto;
+  background-color: transparent;
+}
+
+input {
+  width: 100%;
+  max-width: 300px;
+  padding: 12px 20px;
+  margin: 8px 0;
+  border: 1px solid var(--primary-color);
+  border-radius: 25px;
+  background-color: var(--bg-color);
+  color: var(--primary-color);
+  font-size: 1rem;
+  transition: var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+
+input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(3, 56, 19, 0.2);
+  outline: none;
 }
 
 button {
-  border-radius: 20px;
-  border: 1px solid #033813;
-  background-color: #033813;
-  color: #ffffff;
-  width: 300px;
-  font-size: 12px;
-  font-weight: 200px;
-  margin: 9px;
-  padding: 12px 45px;
-  letter-spacing: 2px;
+  width: 100%;
+  max-width: 300px;
+  padding: 12px 24px;
+  margin: 15px 0;
+  background-color: var(--primary-color);
+  color: var(--white);
+  border: 1px solid var(--primary-color);
+  border-radius: 25px;
+  font-size: 0.75rem;
+  font-weight: 500;
   text-transform: uppercase;
-  transition: transform 80ms ease-in;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+  letter-spacing: 1.5px;
   cursor: pointer;
+  transition: var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 button:active {
-  transform: scale(0.95);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+  transform: scale(0.98);
 }
 
 button:focus {
   outline: none;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 0 3px rgba(3, 56, 19, 0.3);
 }
 
-button.ghost {
-  background-color: transparent;
-  border-color: #ffffff;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-}
-
-form {
-  background-color: #ecf1ec;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  padding: 0 50px;
-  height: 100%;
+/* =================================
+  Utility Classes
+  ================================= */
+.text-center {
   text-align: center;
 }
 
-input {
-  display: flex;
-  flex-direction: column;
-  background-color: #ecf1ec;
-  border: solid 1px #033813;
-  padding: 11px 15px;
-  margin: 9px 0;
-  width: 300px;
-  border-radius: 25px;
-  font-size: 16px;
-  color: #033813;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-  transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+/* =================================
+  Responsive Styles
+  ================================= */
+/* High DPI/High Zoom Level Support */
+@media (min-resolution: 192dpi) {
+  body {
+    min-height: 100vh;
+  }
+  
+  .center {
+    margin: 20px auto;
+    max-height: 90vh;
+  }
 }
 
-input:focus {
-  border-color: #033813;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
-  outline: none;
+/* Laptop L - 1440px */
+@media (max-width: 1440px) {
+  .center {
+    max-width: 700px;
+    min-height: 450px;
+  }
+}
+
+/* Laptop - 1024px */
+@media (max-width: 1024px) {
+  .center {
+    max-width: 600px;
+    min-height: 400px;
+  }
+  
+  form {
+    padding: 0 25px;
+  }
+  
+  h1 {
+    font-size: 1.75rem;
+  }
+  
+  h4 {
+    font-size: 0.9375rem;
+  }
+}
+
+/* Tablet - 768px */
+@media (max-width: 768px) {
+  body {
+    padding: 15px;
+  }
+  
+  .center {
+    width: 95%;
+    min-height: auto;
+    padding: 25px 0;
+  }
+  
+  form {
+    padding: 0 20px;
+  }
+  
+  button, 
+  input {
+    max-width: 100%;
+  }
+  
+  h1 {
+    font-size: 1.625rem;
+  }
+  
+  h4 {
+    font-size: 0.875rem;
+    padding: 0 15px;
+  }
+  
+  a {
+    font-size: 0.8125rem;
+  }
+}
+
+/* Mobile L - 425px */
+@media (max-width: 425px) {
+  body {
+    padding: 10px;
+  }
+  
+  .center {
+    width: 100%;
+    border-radius: 8px;
+    padding: 20px 0;
+  }
+  
+  form {
+    padding: 0 15px;
+  }
+  
+  button {
+    padding: 10px 20px;
+    font-size: 0.6875rem;
+  }
+  
+  h1 {
+    font-size: 1.5rem;
+  }
+  
+  h4 {
+    font-size: 0.8125rem;
+    padding: 0 10px;
+  }
+  
+  a {
+    font-size: 0.75rem;
+  }
+}
+
+/* Mobile S - 320px */
+@media (max-width: 320px) {
+  body {
+    padding: 5px;
+  }
+  
+  .center {
+    border-radius: 6px;
+  }
+  
+  button {
+    font-size: 0.625rem;
+    letter-spacing: 1px;
+    padding: 8px 16px;
+  }
+  
+  h1 {
+    font-size: 1.375rem;
+  }
+  
+  h4 {
+    font-size: 0.75rem;
+    padding: 0 5px;
+  }
+  
+  a {
+    font-size: 0.6875rem;
+  }
 }

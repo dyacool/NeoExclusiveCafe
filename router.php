@@ -32,7 +32,14 @@ function getBasePath($current_domain, $config) {
         return '/frontend';
     }
 }
-
+// Check if user(neocafe.cafe) trying to access admin domain
+if (isAdminDomain($current_domain, $config['admin_domain'])) {
+    // Admin domain routing
+    if ($request_uri === '/' || $request_uri === '') {
+        // Root admin domain - redirect to admin login
+        safeRedirect($config['admin_path']);
+    }
+}
 // Function to redirect with proper error handling
 function safeRedirect($url) {
     if (!headers_sent()) {

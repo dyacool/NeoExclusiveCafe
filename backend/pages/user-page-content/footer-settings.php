@@ -13,6 +13,7 @@ include __DIR__ . "/../admin-includes/navbar/navbar.php";
 
 // Database connection
 require_once __DIR__ . "/../admin-includes/database.php";
+require_once __DIR__ . "/../admin-includes/activity-logger.php";
 
 // Check connection
 if ($conn->connect_error) {
@@ -77,6 +78,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($conn->query($update_sql) === TRUE) {
         $success_message = "Footer settings updated successfully!";
         
+        // Log the activity
+        logAdminActivity($conn, 'UPDATE', "Updated footer settings", 'footer_settings', 1);
+        
         // Update local settings variable to reflect changes
         $settings['address'] = $address;
         $settings['phone'] = $phone;
@@ -102,73 +106,93 @@ $conn->close();
     <link rel="stylesheet" href="footer-settings.css">
 </head>
 <body>
-    <div class="admin-container">
-        <header>
-            <h1>Footer Settings</h1>
-        </header>
+    <div class="admin-main">
+        <div class="admin-container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-header-content">
+                    <div class="page-title-section">
+                        <p class="page-subtitle">Manage your website's footer content, contact information, and social media links</p>
+                    </div>
+                </div>
+            </div>
 
-        <main>
+            <!-- Alert Messages -->
             <?php if (!empty($success_message)): ?>
-                <div class="alert success">
-                    <?php echo $success_message; ?>
+                <div class="alert alert-success">
+                    <svg class="alert-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span><?php echo htmlspecialchars($success_message); ?></span>
                 </div>
             <?php endif; ?>
             
             <?php if (!empty($error_message)): ?>
-                <div class="alert error">
-                    <?php echo $error_message; ?>
+                <div class="alert alert-error">
+                    <svg class="alert-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span><?php echo htmlspecialchars($error_message); ?></span>
                 </div>
             <?php endif; ?>
-            
-            <form method="post" class="admin-form" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
-                <div class="form-section">
-                    <h2>Contact Information</h2>
-                    
-                    <div class="form-group">
-                        <label for="address">Address:</label>
-                        <textarea id="address" name="address" required><?php echo htmlspecialchars($settings['address']); ?></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="phone">Phone:</label>
-                        <input type="text" id="phone" name="phone" value="<?php echo htmlspecialchars($settings['phone']); ?>" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="email">Email:</label>
-                        <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($settings['email']); ?>" required>
-                    </div>
-                </div>
+
+            <!-- Contact Information Section -->
+            <div class="admin-section">
+                <h2>Contact Information</h2>
+                <p class="settings-info">Configure the contact details that will be displayed in your website's footer.</p>
                 
-                <div class="form-section">
-                    <h2>Social Media Links</h2>
-                    
+                <form method="post" class="admin-form" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
                     <div class="form-group">
-                        <label for="facebook_link">Facebook Link:</label>
-                        <input type="url" id="facebook_link" name="facebook_link" value="<?php echo htmlspecialchars($settings['facebook_link']); ?>">
+                        <label for="address">Address</label>
+                        <textarea id="address" name="address" class="form-textarea" rows="3" required><?php echo htmlspecialchars($settings['address']); ?></textarea>
+                        <div class="form-help">Enter your business address as it should appear on the website</div>
                     </div>
                     
-                    <div class="form-group">
-                        <label for="instagram_link">Instagram Link:</label>
-                        <input type="url" id="instagram_link" name="instagram_link" value="<?php echo htmlspecialchars($settings['instagram_link']); ?>">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="phone">Phone Number</label>
+                            <input type="text" id="phone" name="phone" class="form-input" value="<?php echo htmlspecialchars($settings['phone']); ?>" required>
+                            <div class="form-help">Format: +63 123-456-7890</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" name="email" class="form-input" value="<?php echo htmlspecialchars($settings['email']); ?>" required>
+                            <div class="form-help">Contact email for customers</div>
+                        </div>
                     </div>
-                    
-                    <div class="form-group">
-                        <label for="email_link">Email Link:</label>
-                        <input type="text" id="email_link" name="email_link" value="<?php echo htmlspecialchars($settings['email_link']); ?>">
-                    </div>
-                </div>
+            </div>
+
+            <!-- Social Media Section -->
+            <div class="admin-section">
+                <h2>Social Media Links</h2>
+                <p class="settings-info">Add your social media profiles to be displayed in the footer.</p>
                 
-                <div class="form-section">
-                    <h2>Map Settings</h2>
+                    <div class="form-group">
+                        <label for="facebook_link">Facebook Page URL</label>
+                        <input type="url" id="facebook_link" name="facebook_link" class="form-input" value="<?php echo htmlspecialchars($settings['facebook_link']); ?>" placeholder="https://www.facebook.com/yourpage">
+                        <div class="form-help">Link to your Facebook business page</div>
+                    </div>
                     
                     <div class="form-group">
-                        <label for="map_iframe_src">Map Iframe Source:</label>
-                        <textarea id="map_iframe_src" name="map_iframe_src" required><?php echo htmlspecialchars($settings['map_iframe_src']); ?></textarea>
-                        <p class="help-text">Paste the full iframe src URL from Google Maps embed code.</p>
+                        <label for="instagram_link">Instagram Profile URL</label>
+                        <input type="url" id="instagram_link" name="instagram_link" class="form-input" value="<?php echo htmlspecialchars($settings['instagram_link']); ?>" placeholder="https://www.instagram.com/yourprofile">
+                        <div class="form-help">Link to your Instagram account</div>
                     </div>
-                </div>
+                    
+                    <div class="form-group">
+                        <label for="email_link">Email Contact Link</label>
+                        <input type="text" id="email_link" name="email_link" class="form-input" value="<?php echo htmlspecialchars($settings['email_link']); ?>" placeholder="mailto:contact@yoursite.com">
+                        <div class="form-help">Email link for direct contact (mailto: format)</div>
+                    </div>
+            </div>
+
+            <!-- Map Settings Section -->
+            <div class="admin-section">
+                <h2>Location Map</h2>
+                <p class="settings-info">Configure the Google Maps embed to show your business location.</p>
                 
+<<<<<<< HEAD
                 <div class="form-actions">
                     <button type="submit" class="btn-save">Save Changes</button>
                     <button type="button" class="btn-preview" onclick="loadPreview()">Update Preview</button>
@@ -176,7 +200,35 @@ $conn->close();
             </form>
             
             <div class="preview-section">
+=======
+                    <div class="form-group">
+                        <label for="map_iframe_src">Google Maps Embed URL</label>
+                        <textarea id="map_iframe_src" name="map_iframe_src" class="form-textarea" rows="4" required><?php echo htmlspecialchars($settings['map_iframe_src']); ?></textarea>
+                        <div class="form-help">
+                            <strong>How to get the embed URL:</strong><br>
+                            1. Go to Google Maps and search for your location<br>
+                            2. Click "Share" → "Embed a map"<br>
+                            3. Copy the src URL from the iframe code (starting with https://www.google.com/maps/embed...)
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Footer Preview Section -->
+            <div class="admin-section">
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
                 <h2>Footer Preview</h2>
+                <p class="settings-info">Live preview of how your footer will appear on the website.</p>
+                
                 <div class="preview-container">
                     <div id="footer-preview-content">
                         <!-- Initial preview will load here -->
@@ -233,4 +285,14 @@ $conn->close();
                                         </iframe>
                                     </div>
                                 </div>
+<<<<<<< HEAD
                             </footer>
+=======
+                            </footer>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1

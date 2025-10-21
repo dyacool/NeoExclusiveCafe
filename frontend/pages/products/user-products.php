@@ -1,5 +1,11 @@
 <?php
 // Redirect if not logged in
+session_set_cookie_params([
+    'lifetime' => 0,
+    'httponly' => true,
+    'samesite' => 'Strict',
+    'domain' => 'neocafe.cafe'
+]);
 session_start();
 $page_title = "Our Products";
 $additional_css = [
@@ -17,45 +23,121 @@ $filter = isset($_GET['filter']) ? $_GET['filter'] : 'all';
 $activeFilter = $filter;
 
 // Database connection
-$conn = new mysqli("localhost", "root", "", "crud");
+$conn = new mysqli("mysql-neoexclusivecafe.alwaysdata.net", "429123", "NeoCafe123", "neoexclusivecafe_crud");
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 ?>
 
+<?php include __DIR__ . "/../../user-includes/bread-crumb/bread-crumb.php"; ?>
+
 <div id="confirmationPopup" class="confirmation-popup"></div>
 
 <div class="wrapper">
-   <button class="cta" onclick="window.location.href='/frontend/pages/products/product-dashboard.php'">
-            <svg
-                id="arrow-horizontal"
-                xmlns="http://www.w3.org/2000/svg"
-                width="30"
-                height="10"
-                viewBox="0 0 46 16"
-            >
-                <path
-                id="Path_10"
-                data-name="Path 10"
-                d="M38,0,39.455,1.455,33.949,6.961H76V9.039H33.949l5.506,5.506L38,16l-8-8Z"
-                transform="translate(-25)"
-                ></path>
-            </svg>
-            <span class="hover-underline-animation"> Go Back </span>
-        </button>
-    <h1 class= "prdct-title"> Products </h1>
 
-    <div class="main-container fade-in">
+    <div class="filters">
+        <h1 class="prdct-title">Pick-up Products</h1>
+        
+        <!-- Sorting & Main Filters Section -->
+        <div class="main-filters-section">
+            <h2>Filters:</h2>
 
-        <div class="filter-container">
-            <div class="sort-container">
-                <button class="filter-button active" data-filter="all" type="button" onclick="handleFilterClick(event, 'all', this)">All</button>
-                <button class="filter-button" data-filter="Pickup" type="button" onclick="handleFilterClick(event, 'Pickup', this)">Pickup</button>
-                <button class="filter-button" data-filter="Unavailable" type="button" onclick="handleFilterClick(event, 'Unavailable', this)">Unavailable</button>
-                <button class="filter-button" data-filter="Featured" type="button" onclick="handleFilterClick(event, 'Featured', this)">Featured</button>
+            <!-- Desktop Radio Buttons -->
+            <div class="desktop-filters">
+                <div class="radio-group">
+                    <label class="radio-option">
+                        <input type="radio" name="mainFilter" value="all" checked onchange="handleMainFilterChange()">
+                        <span class="radio-label">All Pre-order Products</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="mainFilter" value="unavailable" onchange="handleMainFilterChange()">
+                        <span class="radio-label">Unavailable Products</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="mainFilter" value="alpha-asc" onchange="handleMainFilterChange()">
+                        <span class="radio-label">Alphabetical (A–Z)</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="mainFilter" value="alpha-desc" onchange="handleMainFilterChange()">
+                        <span class="radio-label">Alphabetical (Z–A)</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="mainFilter" value="price-asc" onchange="handleMainFilterChange()">
+                        <span class="radio-label">Price (Low → High)</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="mainFilter" value="price-desc" onchange="handleMainFilterChange()">
+                        <span class="radio-label">Price (High → Low)</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Mobile Dropdown -->
+            <div class="mobile-filters">
+                <label for="mobileMainFilter">Filter Options:</label>
+                <select id="mobileMainFilter" onchange="handleMobileMainFilterChange()">
+                    <option value="all">All Pre-order Products</option>
+                    <option value="unavailable">Unavailable Products</option>
+                    <option value="alpha-asc">Alphabetical (A–Z)</option>
+                    <option value="alpha-desc">Alphabetical (Z–A)</option>
+                    <option value="price-asc">Price (Low → High)</option>
+                    <option value="price-desc">Price (High → Low)</option>
+                </select>
             </div>
         </div>
 
+        <!-- Day Filters Section -->
+        <div class="day-filters-section" id="dayFiltersSection">
+            <h4>Filter by Days:</h4>
+            
+            <!-- Desktop Checkboxes -->
+            <div class="checkbox-group desktop-day-filters">
+                <label class="checkbox-option">
+                    <input type="checkbox" value="sunday" onchange="handleDayFilterChange()">
+                    <span class="checkbox-label">Sunday</span>
+                </label>
+                <label class="checkbox-option">
+                    <input type="checkbox" value="monday" onchange="handleDayFilterChange()">
+                    <span class="checkbox-label">Monday</span>
+                </label>
+                <label class="checkbox-option">
+                    <input type="checkbox" value="tuesday" onchange="handleDayFilterChange()">
+                    <span class="checkbox-label">Tuesday</span>
+                </label>
+                <label class="checkbox-option">
+                    <input type="checkbox" value="wednesday" onchange="handleDayFilterChange()">
+                    <span class="checkbox-label">Wednesday</span>
+                </label>
+                <label class="checkbox-option">
+                    <input type="checkbox" value="thursday" onchange="handleDayFilterChange()">
+                    <span class="checkbox-label">Thursday</span>
+                </label>
+                <label class="checkbox-option">
+                    <input type="checkbox" value="friday" onchange="handleDayFilterChange()">
+                    <span class="checkbox-label">Friday</span>
+                </label>
+                <label class="checkbox-option">
+                    <input type="checkbox" value="saturday" onchange="handleDayFilterChange()">
+                    <span class="checkbox-label">Saturday</span>
+                </label>
+            </div>
+            
+            <!-- Mobile Filter Buttons -->
+            <div class="mobile-day-filters">
+                <div class="day-button-group">
+                    <button type="button" class="day-filter-btn" data-day="sunday" onclick="toggleDayFilter(this)">Sun</button>
+                    <button type="button" class="day-filter-btn" data-day="monday" onclick="toggleDayFilter(this)">Mon</button>
+                    <button type="button" class="day-filter-btn" data-day="tuesday" onclick="toggleDayFilter(this)">Tue</button>
+                    <button type="button" class="day-filter-btn" data-day="wednesday" onclick="toggleDayFilter(this)">Wed</button>
+                    <button type="button" class="day-filter-btn" data-day="thursday" onclick="toggleDayFilter(this)">Thu</button>
+                    <button type="button" class="day-filter-btn" data-day="friday" onclick="toggleDayFilter(this)">Fri</button>
+                    <button type="button" class="day-filter-btn" data-day="saturday" onclick="toggleDayFilter(this)">Sat</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-container fade-in">
         <div class="products-grid" id="productsGrid">
             <?php
                 $sql = "SELECT 
@@ -66,10 +148,8 @@ if ($conn->connect_error) {
                         LEFT JOIN product_statuses ps ON p.status_id = ps.id
                         LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
                         LEFT JOIN product_day pd ON p.id = pd.product_id
-                        WHERE p.deleted_at IS NULL 
-                        AND ps.name != 'Delivery'
-                        AND (p.status_id != 3 
-                            OR (p.status_id = 3 AND p.show_when_unavailable = 1))
+                            WHERE p.deleted_at IS NULL AND p.id > 0
+                        AND (p.status_id = 1 OR p.availtoday_status_id = 1)
                         GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, ps.name, pi.image_url, p.quantity, p.show_when_unavailable
                         ORDER BY p.is_featured DESC, p.status_id ASC";
         
@@ -107,6 +187,7 @@ if ($conn->connect_error) {
                         
                         $productDataJson = htmlspecialchars(json_encode($productData), ENT_QUOTES, 'UTF-8');
                         echo "<div class='product-card {$featuredClass}' data-status='" . htmlspecialchars($row['status_name']) . "' 
+                              data-available-days='" . htmlspecialchars($row['available_days'] ?? '') . "' 
                               data-product='" . $productDataJson . "' onclick='openProductModalFromData(this)'>
                                 <div class='product-image'>
                                     <img src='../../../assets/" . htmlspecialchars($row['image_url'] ?: 'images/no-image.jpg') . "' alt='" . htmlspecialchars($row['name']) . "'>";
@@ -118,17 +199,30 @@ if ($conn->connect_error) {
                                     <h3>" . htmlspecialchars($row['name']) . "</h3>
                                     <p class='price'>₱" . number_format($row['price'], 2) . "</p>
                                     
-                                    <div class='prdct-availability'>
+                                    <div class='product-availability'>
                                         <span class='status-badge status-{$statusClass}'>" . ($isUnavailable ? "Not Available" : htmlspecialchars($row['status_name'])) . "</span>
                                         <p class='stock'>Stock: " . $row['quantity'] . "</p>
                                     </div>";
+                        
+                        // Display available days similar to weekly-product
+                        if (!$isUnavailable && !empty($row['available_days'])) {
+                            $abbreviated_days = str_replace(
+                                ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+                                ['S', 'M', 'T', 'W', 'Th', 'F', 'Sa'],
+                                $row['available_days']
+                            );
+                            echo "<div class='available-day'>";
+                            echo "<div class = 'display-days'> <p class='available-days'>Pick-Up days: </p>";
+                            echo "<p class='p-days'>" . htmlspecialchars($abbreviated_days) . "</p> </div>";
+                            echo "</div>";
+                        }
                         if (!$isUnavailable) {
                             echo "<div class='quantity-controls'>
                                     <button type='button' onclick='event.stopPropagation(); updateQuantity(this, -1)'>-</button>
                                     <input type='number' value='1' min='1' max='" . $row['quantity'] . "' onclick='event.stopPropagation()' onchange='validateQuantity(this)'>
                                     <button type='button' onclick='event.stopPropagation(); updateQuantity(this, 1)'>+</button>
                                 </div>";
-                            echo "<button class='add-to-cart' onclick='event.stopPropagation(); console.log(\"Add to Cart button clicked for product ID: " . $row['id'] . "\"); addToCart(" . $row['id'] . ", this)'>Add to Cart</button>";
+                            echo "<button class='add-to-cart' onclick='event.stopPropagation(); addToCart(" . $row['id'] . ", this)'>Add to Cart</button>";
                         
                         } else {
                             echo "<button class='add-to-cart unavailable' disabled>Currently Unavailable</button>";
@@ -143,6 +237,10 @@ if ($conn->connect_error) {
             ?>
         </div>
     </div>
+</div>
+
+<div id="footer-container">
+    <?php require_once "../../user-includes/user-footer.php"; ?>
 </div>
 
 <!-- Product Modal -->
@@ -165,7 +263,7 @@ if ($conn->connect_error) {
                     <span class="status-badge" id="modalProductStatus"></span>
                     <p class="stock" id="modalProductStock"></p>
                 </div>
-                <h3>Description:</h3>
+                <h3 class="dscrptn">Description:</h3>
                 <div class="description" id="modalProductDescription"></div>
                 <div class="quantity-controls modal-quantity">
                     <button type="button" onclick="updateModalQuantity(-1)">-</button>
@@ -179,44 +277,207 @@ if ($conn->connect_error) {
 </div>
 
 <script>
-    console.log('User products page JavaScript loaded');
-    let productModalOpen = false;
+    let pendingCartAction = null;
+    let currentMainFilter = 'all';
+    let selectedDays = [];
 
-    function handleFilterClick(event, status, button) {
-        event.preventDefault();
-        event.stopPropagation();
-        console.log('Filter button clicked:', status);
-        filterProducts(status, button);
-        return false;
+    function handleMainFilterChange() {
+        const radioButtons = document.querySelectorAll('input[name="mainFilter"]');
+        const selectedRadio = document.querySelector('input[name="mainFilter"]:checked');
+        currentMainFilter = selectedRadio.value;
+        
+        // Update mobile dropdown to match desktop selection
+        const mobileSelect = document.getElementById('mobileMainFilter');
+        if (mobileSelect) {
+            mobileSelect.value = currentMainFilter;
+        }
+        
+        // Show/hide day filters based on selection
+        const dayFiltersSection = document.getElementById('dayFiltersSection');
+        if (currentMainFilter === 'all') {
+            dayFiltersSection.style.display = 'block';
+        } else {
+            dayFiltersSection.style.display = 'none';
+            // Clear day selections when hiding
+            clearDaySelections();
+        }
+        
+        applyFiltersAndSort();
     }
 
-    function filterProducts(status, button) {
-        // Update active state of buttons
-        document.querySelectorAll('.filter-button').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        if (button) button.classList.add('active');
+    function handleMobileMainFilterChange() {
+        const mobileSelect = document.getElementById('mobileMainFilter');
+        currentMainFilter = mobileSelect.value;
+        
+        // Update radio button to match mobile selection
+        const radioButton = document.querySelector(`input[name="mainFilter"][value="${currentMainFilter}"]`);
+        if (radioButton) {
+            radioButton.checked = true;
+        }
+        
+        // Show/hide day filters based on selection
+        const dayFiltersSection = document.getElementById('dayFiltersSection');
+        if (currentMainFilter === 'all') {
+            dayFiltersSection.style.display = 'block';
+        } else {
+            dayFiltersSection.style.display = 'none';
+            // Clear day selections when hiding
+            clearDaySelections();
+        }
+        
+        applyFiltersAndSort();
+    }
 
-        // Filter products
-        let cards = document.querySelectorAll(".product-card");
-        cards.forEach(card => {
-            if (status === "all") {
-                card.style.display = "block";
-            } else if (status === "Featured") {
-                card.style.display = card.classList.contains('featured-product') ? "block" : "none";
-            } else if (status === "Pickup") {
-                // Show products with "Pick Up" status
-                card.style.display = card.getAttribute("data-status") === "Pick Up" ? "block" : "none";
-            } else if (status === "Unavailable") {
-                // Show products that have "Not Available" status
-                const statusBadge = card.querySelector('.status-badge');
-                card.style.display = statusBadge.textContent === "Not Available" ? "block" : "none";
-            } else if (card.getAttribute("data-status") === status) {
-                card.style.display = "block";
-            } else {
-                card.style.display = "none";
+    function handleDayFilterChange() {
+        const dayCheckboxes = document.querySelectorAll('.checkbox-group input[type="checkbox"]');
+        selectedDays = [];
+        
+        dayCheckboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+                selectedDays.push(checkbox.value);
+            }
+            
+            // Sync with mobile day filter buttons
+            const mobileButton = document.querySelector(`.day-filter-btn[data-day="${checkbox.value}"]`);
+            if (mobileButton) {
+                if (checkbox.checked) {
+                    mobileButton.classList.add('active');
+                } else {
+                    mobileButton.classList.remove('active');
+                }
             }
         });
+        
+        applyFiltersAndSort();
+    }
+
+    function clearDaySelections() {
+        const dayCheckboxes = document.querySelectorAll('.checkbox-group input[type="checkbox"]');
+        dayCheckboxes.forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        
+        // Clear mobile day filter buttons
+        const dayButtons = document.querySelectorAll('.day-filter-btn');
+        dayButtons.forEach(button => {
+            button.classList.remove('active');
+        });
+        
+        selectedDays = [];
+    }
+
+    function toggleDayFilter(button) {
+        const day = button.getAttribute('data-day');
+        
+        // Toggle button active state
+        button.classList.toggle('active');
+        
+        // Update selectedDays array
+        if (button.classList.contains('active')) {
+            if (!selectedDays.includes(day)) {
+                selectedDays.push(day);
+            }
+        } else {
+            selectedDays = selectedDays.filter(d => d !== day);
+        }
+        
+        // Sync with desktop checkboxes
+        const checkbox = document.querySelector(`input[type="checkbox"][value="${day}"]`);
+        if (checkbox) {
+            checkbox.checked = button.classList.contains('active');
+        }
+        
+        applyFiltersAndSort();
+    }
+
+    function applyFiltersAndSort() {
+        let cards = Array.from(document.querySelectorAll(".product-card"));
+        
+        // Filter cards first
+        cards.forEach(card => {
+            let shouldShow = false;
+            const statusName = card.getAttribute("data-status");
+            const availableDays = card.getAttribute("data-available-days") || "";
+            
+            switch (currentMainFilter) {
+                case 'all':
+                    if (selectedDays.length === 0) {
+                        // Show all non-unavailable products
+                        shouldShow = !(statusName === "Unavailable Pick Up" || statusName === "Unavailable Delivery");
+                    } else {
+                        // Filter by selected days
+                        const isUnavailable = statusName === "Unavailable Pick Up" || statusName === "Unavailable Delivery";
+                        if (!isUnavailable) {
+                            shouldShow = selectedDays.some(day => {
+                                const dayToCheck = day.charAt(0).toUpperCase() + day.slice(1);
+                                return availableDays.includes(dayToCheck);
+                            });
+                        }
+                    }
+                    break;
+                    
+                case 'unavailable':
+                    shouldShow = (statusName === "Unavailable Pick Up" || statusName === "Unavailable Delivery");
+                    break;
+                    
+                default:
+                    // For sorting options, show all non-unavailable products
+                    shouldShow = !(statusName === "Unavailable Pick Up" || statusName === "Unavailable Delivery");
+                    break;
+            }
+            
+            card.style.display = shouldShow ? "block" : "none";
+        });
+        
+        // Sort visible cards
+        if (currentMainFilter.includes('alpha-') || currentMainFilter.includes('price-')) {
+            sortProducts(currentMainFilter);
+        }
+    }
+
+    function sortProducts(sortType) {
+        const productsGrid = document.getElementById('productsGrid');
+        const cards = Array.from(productsGrid.querySelectorAll('.product-card')).filter(card => 
+            card.style.display !== 'none'
+        );
+        
+        cards.sort((a, b) => {
+            switch (sortType) {
+                case 'alpha-asc':
+                    const nameA = a.querySelector('h3').textContent.toLowerCase();
+                    const nameB = b.querySelector('h3').textContent.toLowerCase();
+                    return nameA.localeCompare(nameB);
+                    
+                case 'alpha-desc':
+                    const nameA2 = a.querySelector('h3').textContent.toLowerCase();
+                    const nameB2 = b.querySelector('h3').textContent.toLowerCase();
+                    return nameB2.localeCompare(nameA2);
+                    
+                case 'price-asc':
+                    const priceA = parseFloat(a.querySelector('.price').textContent.replace('₱', '').replace(',', ''));
+                    const priceB = parseFloat(b.querySelector('.price').textContent.replace('₱', '').replace(',', ''));
+                    return priceA - priceB;
+                    
+                case 'price-desc':
+                    const priceA2 = parseFloat(a.querySelector('.price').textContent.replace('₱', '').replace(',', ''));
+                    const priceB2 = parseFloat(b.querySelector('.price').textContent.replace('₱', '').replace(',', ''));
+                    return priceB2 - priceA2;
+                    
+                default:
+                    return 0;
+            }
+        });
+        
+        // Re-append sorted cards
+        cards.forEach(card => {
+            productsGrid.appendChild(card);
+        });
+    }
+
+    // Legacy function for backward compatibility (can be removed if not used elsewhere)
+    function filterProducts() {
+        // This function is kept for backward compatibility but redirects to new system
+        applyFiltersAndSort();
     }
 
     function updateQuantity(button, change) {
@@ -415,7 +676,7 @@ if ($conn->connect_error) {
                 };
             }
 
-            modal.style.display = 'block';
+            modal.classList.add('show');
         } catch (error) {
             console.error('Error in openProductModal:', error);
             showConfirmation('An error occurred while opening the product details', true);
@@ -424,7 +685,9 @@ if ($conn->connect_error) {
 
     function closeProductModal() {
         productModalOpen = false;
-        document.getElementById('productModal').style.display = 'none';
+        const modal = document.getElementById('productModal');
+        modal.classList.remove('show');
+        modal.style.display = 'none';
     }
 
     // Close modal when clicking outside
@@ -486,28 +749,259 @@ if ($conn->connect_error) {
 </script>
 
 <style>
+    #confirmAddToCartModal .modal-content {
+        max-width: 400px;
+        background: #fff;
+        border-radius: 8px;
+        padding: 20px;
+    }
+
+    #confirmAddToCartModal .modal-body {
+        text-align: center;
+    }
+
+    #confirmAddToCartModal h2 {
+        color: #333;
+        margin-bottom: 15px;
+    }
+
+    #confirmAddToCartModal p {
+        color: #666;
+        margin-bottom: 20px;
+    }
+
+    #confirmAddToCartModal .modal-actions {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+    }
+
+    #confirmAddToCartModal .cancel-btn,
+    #confirmAddToCartModal .confirm-btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    #confirmAddToCartModal .cancel-btn {
+        background: #f0f0f0;
+        color: #333;
+    }
+
+    #confirmAddToCartModal .confirm-btn {
+        background: #4CAF50;
+        color: white;
+    }
+
+    #confirmAddToCartModal .cancel-btn:hover {
+        background: #e0e0e0;
+    }
+
+    #confirmAddToCartModal .confirm-btn:hover {
+        background: #45a049;
+    }
+
     input[type="number"] {
         -moz-appearance: textfield;
     }
+
     input[type="number"]::-webkit-outer-spin-button,
     input[type="number"]::-webkit-inner-spin-button {
         -webkit-appearance: none;
         margin: 0;
     }
-    .back-btn-basic {
-        display: inline-block;
-        margin: 18px 0 10px 0;
-        padding: 8px 18px;
-        background: #256029;
-        color: #fff;
-        border-radius: 4px;
-        text-decoration: none;
+
+    /* New Filter Section Styles */
+
+
+    .main-filters-section {
+        margin-bottom: 25px;
+        padding-bottom: 20px;
+    }
+
+    .main-filters-section h2 {
+        align: left;
+        font-size: 1.2em;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 15px;
+        letter-spacing: 0.5px;
+    }
+
+    /* Desktop Radio Buttons */
+    .desktop-filters {
+        display: block;
+    }
+
+    .radio-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .radio-option {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        padding: 8px 12px;
+        border-radius: 6px;
+        transition: background-color 0.3s ease;
+    }
+
+    .radio-option:hover {
+        background-color: #f8f9fa;
+    }
+
+    .radio-option input[type="radio"] {
+        margin-right: 10px;
+        width: 16px;
+        height: 16px;
+        accent-color: #1a4a28;
+    }
+
+    .radio-label {
+        font-size: 14px;
         font-weight: 500;
-        font-size: 1rem;
-        border: none;
-        transition: background 0.2s;
+        color: #333;
     }
-    .back-btn-basic:hover {
-        background: #1e4d2b;
+
+    /* Mobile Dropdown */
+    .mobile-filters {
+        display: none;
     }
+
+    .mobile-filters label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+        display: block;
+        font-size: 14px;
+    }
+
+    .mobile-filters select {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+        background: #f8f9fa;
+        color: #333;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .mobile-filters select:focus {
+        outline: none;
+        border-color: #1a4a28;
+        box-shadow: 0 0 0 3px rgba(26, 74, 40, 0.1);
+    }
+
+
+    /* Responsive Design */
+    .filters {
+        width: 320px;
+        height: fit-content;
+        flex-shrink: 0;
+    }
+
+    .main-container {
+        flex: 1;
+        min-width: 0;
+    }
+
+    @media (max-width: 1200px) {
+    .filters {
+        width: 280px;
+    }
+    
+    .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+}
+
+
+    @media (max-width: 1024px) {
+        .wrapper {
+            flex-direction: column;
+            padding: 10px;
+            gap: 15px;
+        }
+        
+        .filters {
+            width: 100%;
+            padding: 0px;
+            order: -1;
+            margin-bottom: 0;
+        }
+        
+        .main-container {
+            order: 1;
+        }
+        
+        .desktop-filters {
+            display: none;
+        }
+        
+        .mobile-filters {
+            display: block;
+        }
+
+                .mobile-filters label {
+            display: none !important;
+        }
+        
+        .desktop-day-filters {
+            display: none;
+        }
+        
+        .mobile-day-filters {
+            display: block;
+        }
+        
+        .main-filters-section {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+        }
+        
+        .day-filters-section h4 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .prdct-title {
+            text-align: center;
+        }
+
+        .products-grid {
+            grid-template-columns: repeat(3, 1fr);
+        } 
+    }
+
+    @media (max-width: 480px) {
+        .wrapper {
+            padding: 8px;
+        }
+        
+        .filters {
+            padding: 12px;
+        }
+
+        .products-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .day-button-group {
+            gap: 6px;
+        }
+        
+        .day-filter-btn {
+            font-size: 11px;
+            padding: 6px 10px;
+            min-width: 35px;
+        }
+    }
+
 </style>

@@ -90,16 +90,34 @@ if (!file_exists($originalFilePath)) {
     // Check if the directory exists
     $imageDir = dirname($originalFilePath);
     if (!is_dir($imageDir)) {
-        error_log("Image directory does not exist: " . $imageDir);
-        echo json_encode([
-            'success' => false, 
-            'error' => 'Image directory not found',
-            'debug_info' => [
-                'image_directory' => $imageDir,
-                'database_url' => $image['image_url'],
-                'constructed_path' => $originalFilePath
-            ]
-        ]);
+        error_log("Image directory does not exist: " . $imageDir . ", but proceeding with database cleanup");
+        
+        // Since the directory doesn't exist, we'll just mark it as removed in the database
+        // This allows admins to clean up orphaned database records
+        $updateStmt = $conn->prepare("UPDATE product_images SET is_removed = 1, temp_filename = NULL WHERE id = ?");
+        if (!$updateStmt) {
+            error_log("Database prepare failed: " . $conn->error);
+            echo json_encode(['success' => false, 'error' => 'Database prepare failed: ' . $conn->error]);
+            exit;
+        }
+        
+        $updateStmt->bind_param("i", $imageId);
+        
+        if ($updateStmt->execute()) {
+            error_log("Successfully marked orphaned image as removed in database for image ID: " . $imageId . " (directory was missing)");
+            echo json_encode([
+                'success' => true,
+                'message' => 'Orphaned image record removed from database (directory was missing)',
+                'temp_filename' => null,
+                'image_id' => $imageId,
+                'is_primary' => $image['is_primary'],
+                'file_missing' => true,
+                'directory_missing' => true
+            ]);
+        } else {
+            error_log("Database update failed: " . $updateStmt->error);
+            echo json_encode(['success' => false, 'error' => 'Failed to update database: ' . $updateStmt->error]);
+        }
         exit;
     }
     
@@ -123,18 +141,34 @@ if (!file_exists($originalFilePath)) {
         $originalFilePath = $directory . "/" . $actualFilename;
         error_log("Found file with different case: " . $actualFilename);
     } else {
-        // File truly doesn't exist
-        error_log("File not found in directory. Directory contents: " . implode(", ", array_values(array_diff($files, ['.', '..']))));
-        echo json_encode([
-            'success' => false, 
-            'error' => 'Original image file not found',
-            'debug_info' => [
-                'database_url' => $image['image_url'],
-                'constructed_path' => $originalFilePath,
-                'image_directory' => $imageDir,
-                'directory_contents' => array_values(array_diff($files, ['.', '..']))
-            ]
-        ]);
+        // File truly doesn't exist - but we can still remove the database record
+        error_log("File not found in directory, but proceeding with database cleanup. Directory contents: " . implode(", ", array_values(array_diff($files, ['.', '..']))));
+        
+        // Since the file doesn't exist, we'll just mark it as removed in the database
+        // This allows admins to clean up orphaned database records
+        $updateStmt = $conn->prepare("UPDATE product_images SET is_removed = 1, temp_filename = NULL WHERE id = ?");
+        if (!$updateStmt) {
+            error_log("Database prepare failed: " . $conn->error);
+            echo json_encode(['success' => false, 'error' => 'Database prepare failed: ' . $conn->error]);
+            exit;
+        }
+        
+        $updateStmt->bind_param("i", $imageId);
+        
+        if ($updateStmt->execute()) {
+            error_log("Successfully marked orphaned image as removed in database for image ID: " . $imageId);
+            echo json_encode([
+                'success' => true,
+                'message' => 'Orphaned image record removed from database (file was already missing)',
+                'temp_filename' => null,
+                'image_id' => $imageId,
+                'is_primary' => $image['is_primary'],
+                'file_missing' => true
+            ]);
+        } else {
+            error_log("Database update failed: " . $updateStmt->error);
+            echo json_encode(['success' => false, 'error' => 'Failed to update database: ' . $updateStmt->error]);
+        }
         exit;
     }
 }

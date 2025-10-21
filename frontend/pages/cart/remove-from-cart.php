@@ -1,4 +1,10 @@
 <?php
+session_set_cookie_params([
+    'lifetime' => 0,
+    'httponly' => true,
+    'samesite' => 'Strict',
+    'domain' => 'neocafe.cafe'
+]);
 session_start();
 header('Content-Type: application/json');
 
@@ -15,7 +21,8 @@ if (!isset($_POST["cart_id"])) {
 $cart_id = $_POST["cart_id"];
 $user_id = $_SESSION["user_id"];
 
-$conn = new mysqli("localhost", "root", "", "crud");
+// Include database connection
+require_once "../../../backend/pages/admin-includes/database.php";
 if ($conn->connect_error) {
     echo json_encode(["success" => false, "error" => "Database connection failed"]);
     exit();

@@ -10,6 +10,31 @@ if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
 }
 
 $isAdmin = isset($_SESSION['isAdmin']) && $_SESSION['isAdmin'] == 1;
+
+// Include database connection only if not already included
+if (!isset($conn)) {
+    require_once __DIR__ . '/../database.php';
+}
+
+// Include order count helper
+require_once __DIR__ . '/order-count-helper.php';
+
+// Get order counts only if connection is valid
+$order_counts = ['total' => 0, 'active' => 0, 'pending' => 0];
+$bulk_counts = ['total' => 0, 'active' => 0];
+
+if (isset($conn) && $conn instanceof mysqli) {
+    try {
+        // Check if connection is actually open by testing thread_id
+        if ($conn->thread_id !== null) {
+            $order_counts = getOrderCounts($conn);
+            $bulk_counts = getBulkOrderCounts($conn);
+        }
+    } catch (Exception $e) {
+        // Connection is closed or invalid, use default values
+        error_log("Navbar connection error: " . $e->getMessage());
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -18,7 +43,9 @@ $isAdmin = isset($_SESSION['isAdmin']) && $_SESSION['isAdmin'] == 1;
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../admin-includes/navbar/reset.css">
     <link rel="stylesheet" href="../admin-includes/navbar/navbar.css">
+    <link rel="stylesheet" href="../admin-includes/notifications/notifications.css">
     <script src="../admin-includes/navbar/navbar.js" defer></script>
+    <script src="../admin-includes/notifications/notifications.js" defer></script>
     <title>Neo Cafe Admin</title>
 </head>
 <body>
@@ -37,7 +64,7 @@ $isAdmin = isset($_SESSION['isAdmin']) && $_SESSION['isAdmin'] == 1;
                 <div class="logo-circle">
                     <img src="../../assets/images/user-logo.png" alt="Neo Cafe Logo">
                 </div>
-                <span class="mobile-logo-text">ADMIN</span>
+                <span class="mobile-logo-text">Admin</span>
             </div>
         </div>
         
@@ -72,7 +99,7 @@ $isAdmin = isset($_SESSION['isAdmin']) && $_SESSION['isAdmin'] == 1;
             <nav class="sidebar-nav">
                 <ul class="nav-menu">
                     <li class="nav-item">
-                        <a href="../homepage/admin-homepage.php" class="nav-link">
+                        <a href="../dashboard/dashboard.php" class="nav-link">
                             <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="3" y="3" width="7" height="7"></rect>
                                 <rect x="14" y="3" width="7" height="7"></rect>
@@ -135,6 +162,35 @@ $isAdmin = isset($_SESSION['isAdmin']) && $_SESSION['isAdmin'] == 1;
                                 <path d="m1 1 4 4 2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
                             </svg>
                             <span class="nav-text">Orders</span>
+                            <?php if ($order_counts['active'] > 0): ?>
+                            <span class="nav-count-badge"><?php echo $order_counts['active']; ?></span>
+                            <?php endif; ?>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="../bulks/bulk-order-lists.php" class="nav-link">
+                            <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                                <polyline points="14,2 14,8 20,8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10,9 9,9 8,9"></polyline>
+                            </svg>
+                            <span class="nav-text">Bulk Orders</span>
+                            <?php if ($bulk_counts['active'] > 0): ?>
+                            <span class="nav-count-badge"><?php echo $bulk_counts['active']; ?></span>
+                            <?php endif; ?>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="../refund/refund-request-lists.php" class="nav-link">
+                            <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="3"/>
+                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                            </svg>
+                            <span class="nav-text">Refund Requests</span>
                         </a>
                     </li>
 
@@ -151,37 +207,56 @@ $isAdmin = isset($_SESSION['isAdmin']) && $_SESSION['isAdmin'] == 1;
                     <li class="nav-item">
                         <a href="../blog/admin-blog.php" class="nav-link">
                             <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
-                                <polyline points="14,2 14,8 20,8"></polyline>
-                                <line x1="16" y1="13" x2="8" y2="13"></line>
-                                <line x1="16" y1="17" x2="8" y2="17"></line>
-                                <polyline points="10,9 9,9 8,9"></polyline>
+                                <path d="m12 19 7-7 3 3-7 7-3-3z"></path>
+                                <path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
+                                <path d="m2 2 7.586 7.586"></path>
+                                <circle cx="11" cy="11" r="2"></circle>
                             </svg>
                             <span class="nav-text">Blog</span>
                         </a>
                     </li>
 
-                    <li class="footer-item">
-                      <a href="../archives/archive.php" class="footer-link">
-                          <svg class="footer-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                              <rect x="2" y="3" width="20" height="5" rx="1"></rect>
-                              <path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path>
-                              <path d="M10 12h4"></path>
-                          </svg>
-                          <span class="footer-text">Archive</span>
-                      </a>
-                    </li>
-                    <li class="footer-item">
-                        <a href="../user-page-content/user-content-settings.php" class="footer-link">
-                            <svg class="footer-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <li class="nav-item">
+                        <a href="../user-page-content/user-content-settings.php" class="nav-link">
+                            <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="12" cy="12" r="3"/>
                                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
                             </svg>
-                            <span class="footer-text">User Page Content</span>
+                            <span class="nav-text">User Page Content</span>
                         </a>
                     </li>
+<<<<<<< HEAD
+=======
+
                 </ul>
             </nav>
+            
+            <!-- Mobile Footer Content (hidden on desktop, shown on mobile within sidebar-content) -->
+            <div class="mobile-footer-content">
+                <ul class="mobile-footer-menu">
+                    <li class="mobile-footer-item">
+                        <a href="../account/admin-profile.php" class="mobile-footer-link">
+                            <svg class="mobile-footer-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            <span class="mobile-footer-text">Account</span>
+                        </a>
+                    </li>
+
+                    <li class="mobile-footer-item">
+                        <a href="#" class="mobile-footer-link logout" onclick="showLogoutModal(event)">
+                            <svg class="mobile-footer-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                <polyline points="16,17 21,12 16,7"></polyline>
+                                <line x1="21" y1="12" x2="9" y2="12"></line>
+                            </svg>
+                            <span class="mobile-footer-text">Logout</span>
+                        </a>
+                    </li>
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
+                </ul>
+            </div>
         </div>
 
         <!-- Sidebar Footer -->
@@ -198,7 +273,7 @@ $isAdmin = isset($_SESSION['isAdmin']) && $_SESSION['isAdmin'] == 1;
                 </li>
 
                 <li class="footer-item">
-                    <a href="../../login/admin/logout.php" class="footer-link logout">
+                    <a href="#" class="footer-link logout" onclick="showLogoutModal(event)">
                         <svg class="footer-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                             <polyline points="16,17 21,12 16,7"></polyline>
@@ -208,6 +283,22 @@ $isAdmin = isset($_SESSION['isAdmin']) && $_SESSION['isAdmin'] == 1;
                     </a>
                 </li>
             </ul>
+        </div>
+    </div>
+
+    <!-- Logout Confirmation Modal -->
+    <div id="logoutModal" class="logout-modal">
+        <div class="logout-modal-content">
+            <div class="logout-modal-header">
+                <h3>Confirm Logout</h3>
+            </div>
+            <div class="logout-modal-body">
+                <p>Are you sure you want to log out?</p>
+            </div>
+            <div class="logout-modal-footer">
+                <button class="logout-btn-cancel" onclick="hideLogoutModal()">Cancel</button>
+                <button class="logout-btn-confirm" onclick="confirmLogout()">Logout</button>
+            </div>
         </div>
     </div>
 
@@ -227,6 +318,7 @@ $isAdmin = isset($_SESSION['isAdmin']) && $_SESSION['isAdmin'] == 1;
                         Admin Home
                     </a>
                 <?php endif; ?>
+                <!-- Notification bell will be inserted here by JavaScript -->
             </div>
         </header>
         <div class="content-wrapper">
@@ -253,6 +345,35 @@ document.addEventListener("DOMContentLoaded", function() {
         });
         
         observer.observe(pageTitleElement, { childList: true });
+    }
+});
+
+// Logout Modal Functions
+function showLogoutModal(event) {
+    event.preventDefault();
+    document.getElementById('logoutModal').style.display = 'flex';
+}
+
+function hideLogoutModal() {
+    document.getElementById('logoutModal').style.display = 'none';
+}
+
+function confirmLogout() {
+    window.location.href = '../../login/admin/logout.php';
+}
+
+// Close modal when clicking outside of it
+window.onclick = function(event) {
+    const modal = document.getElementById('logoutModal');
+    if (event.target === modal) {
+        hideLogoutModal();
+    }
+}
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        hideLogoutModal();
     }
 });
 </script>

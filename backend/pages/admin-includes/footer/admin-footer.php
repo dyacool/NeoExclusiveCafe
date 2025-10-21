@@ -4,6 +4,7 @@
 
 <style>
 .admin-footer {
+  height: 20px;
   margin-top: auto;
   padding: 20px 0;
   text-align: center;

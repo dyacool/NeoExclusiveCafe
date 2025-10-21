@@ -106,6 +106,38 @@
                             </div>
                         </a>
                     </div>
+
+                    <div class="setting-card">
+                        <a href="/backend/pages/user-page-content/cb-knowledge-settings.php" class="setting-card-link">
+                            <div class="setting-card-content">
+                                <div class="setting-icon cb-knowledge">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                        <path d="M13 8H7"></path>
+                                        <path d="M17 12H7"></path>
+                                    </svg>
+                                </div>
+                                <h3 class="setting-title">Chatbot knowledge</h3>
+                                <p class="setting-description">Manage chatbot responses, training data, and knowledge base</p>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="setting-card">
+                        <a href="/backend/pages/user-page-content/delivery-locations.php" class="setting-card-link">
+                            <div class="setting-card-content">
+                                <div class="setting-icon delivery">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="1" y="3" width="15" height="13"></rect>
+                                        <polygon points="16,8 20,8 23,11 23,16 16,16"></polygon>
+                                        <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                                        <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                                    </svg>
+                                </div>
+                                <h3 class="setting-title">Delivery Locations</h3>
+                                <p class="setting-description">Manage delivery locations and delivery fees</p>
+                            </div>
+                        </a>
+                    </div>
                 </div>
             </div>
 
@@ -141,7 +173,7 @@
                     </div>
 
                     <div class="setting-card">
-                        <a href="/backend/pages/user-page-content/terms-conditions-settings.php" class="setting-card-link">
+                        <a href="/backend/pages/user-page-content/terms-and-condition-management.php" class="setting-card-link">
                             <div class="setting-card-content">
                                 <div class="setting-icon terms">
                                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -159,7 +191,7 @@
                     </div>
 
                     <div class="setting-card">
-                        <a href="/backend/pages/user-page-content/privacy-policy-settings.php" class="setting-card-link">
+                        <a href="/backend/pages/user-page-content/privacy-policy-management.php" class="setting-card-link">
                             <div class="setting-card-content">
                                 <div class="setting-icon footer">
                                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

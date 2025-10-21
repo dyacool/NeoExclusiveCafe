@@ -14,6 +14,10 @@ $page_title = "Edit Service Section";
 if (!isset($conn)) {
     require_once "../admin-includes/database.php";
 }
+<<<<<<< HEAD
+=======
+require_once "../admin-includes/activity-logger.php";
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
 
 // Include admin header
 require_once "../admin-includes/navbar/navbar.php";
@@ -146,6 +150,11 @@ if (isset($_POST['add_card'])) {
     if (mysqli_query($conn, $insert_query)) {
         $success_message = "New service card added successfully!";
         debug_log("New service card added successfully");
+<<<<<<< HEAD
+=======
+        $new_card_id = mysqli_insert_id($conn);
+        logAdminActivity($conn, 'CREATE', "Added new service card: $title", 'service_cards', $new_card_id);
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
     } else {
         $error_message = "Error adding card: " . mysqli_error($conn);
         debug_log("Error adding card: " . mysqli_error($conn));
@@ -170,6 +179,10 @@ if (isset($_POST['update_card'])) {
     if (mysqli_query($conn, $update_query)) {
         $success_message = "Service card updated successfully!";
         debug_log("Service card updated successfully");
+<<<<<<< HEAD
+=======
+        logAdminActivity($conn, 'UPDATE', "Updated service card: $title", 'service_cards', $card_id);
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
     } else {
         $error_message = "Error updating card: " . mysqli_error($conn);
         debug_log("Error updating card: " . mysqli_error($conn));
@@ -180,11 +193,23 @@ if (isset($_POST['update_card'])) {
 if (isset($_GET['delete_card']) && isset($_GET['id'])) {
     $card_id = (int)$_GET['id'];
     
+<<<<<<< HEAD
+=======
+    // Get card title for logging
+    $get_title_query = "SELECT title FROM service_cards WHERE id = $card_id";
+    $title_result = mysqli_query($conn, $get_title_query);
+    $card_title = ($title_result && mysqli_num_rows($title_result) > 0) ? mysqli_fetch_assoc($title_result)['title'] : 'Unknown';
+    
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
     $delete_query = "DELETE FROM service_cards WHERE id = $card_id";
     
     if (mysqli_query($conn, $delete_query)) {
         $success_message = "Service card deleted successfully!";
         debug_log("Service card deleted successfully");
+<<<<<<< HEAD
+=======
+        logAdminActivity($conn, 'DELETE', "Deleted service card: $card_title", 'service_cards', $card_id);
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
     } else {
         $error_message = "Error deleting card: " . mysqli_error($conn);
         debug_log("Error deleting card: " . mysqli_error($conn));
@@ -242,10 +267,15 @@ if (!$cards_result) {
     debug_log("Retrieved " . count($cards) . " service cards from database");
 }
 ?>
+<<<<<<< HEAD
 
 <div class="admin-container">
     <h1>Edit Service Section</h1>
     
+=======
+<link rel="stylesheet" href="admin-service-edit.css">
+<div class="admin-container">    
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
     <?php if (isset($success_message)): ?>
         <div class="alert alert-success"><?php echo $success_message; ?></div>
     <?php endif; ?>
@@ -391,6 +421,7 @@ if (!$cards_result) {
     </div>
 </div>
 
+<<<<<<< HEAD
 <style>
 /* Admin page styles */
 .admin-container {
@@ -647,6 +678,8 @@ if (!$cards_result) {
 }
 </style>
 
+=======
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Add new card button

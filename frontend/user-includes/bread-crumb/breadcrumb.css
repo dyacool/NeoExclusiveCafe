@@ -1,0 +1,452 @@
+/**
+ * Modern Breadcrumb Navigation - NeoCafe Design System
+ * Clean, accessible, and responsive breadcrumb component
+ */
+
+:root {
+  /* NeoCafe Brand Colors */
+  --neo-primary: #256035;
+  --neo-primary-dark: #1a4128;
+  --neo-primary-light: #34804b;
+  --neo-accent: #f8f9fa;
+  --neo-hover: #2d6e3e;
+
+  /* Semantic Colors */
+  --breadcrumb-bg: #f8faf9;
+  --breadcrumb-border: #e9ecef;
+  --breadcrumb-text: #495057;
+  --breadcrumb-current: #212529;
+  --breadcrumb-hover: var(--neo-primary);
+  --breadcrumb-separator: #adb5bd;
+
+  /* Spacing & Sizing */
+  --breadcrumb-padding: 1rem 2rem;
+  --breadcrumb-radius: 12px;
+  --breadcrumb-gap: 0.5rem;
+  --breadcrumb-height: 3rem;
+
+  /* Typography */
+  --breadcrumb-font: "Inter", "Segoe UI", -apple-system, BlinkMacSystemFont,
+    sans-serif;
+  --breadcrumb-font-size: 0.875rem;
+  --breadcrumb-font-weight: 500;
+  --breadcrumb-line-height: 1.5;
+
+  /* Transitions */
+  --breadcrumb-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --breadcrumb-hover-scale: 1.02;
+
+  /* Shadows */
+  --breadcrumb-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --breadcrumb-shadow-hover: 0 4px 12px rgba(37, 96, 53, 0.15);
+}
+
+/* Container */
+.breadcrumb-container {
+  width: 100%;
+  max-width: 1400px;
+  padding: 1rem 0;
+  margin: 0 auto;
+  font-family: var(--breadcrumb-font);
+}
+
+/* Navigation wrapper */
+.breadcrumb-nav {
+  position: relative;
+  background-color: transparent;
+  transition: var(--breadcrumb-transition);
+  overflow: hidden;
+}
+
+/* Wrapper for content */
+.breadcrumb-wrapper {
+  position: relative;
+  min-height: var(--breadcrumb-height);
+  display: flex;
+  align-items: center;
+}
+
+/* Breadcrumb list */
+.breadcrumb-list {
+  display: flex;
+  align-items: center;
+  list-style: none;
+  margin: 0;
+  gap: var(--breadcrumb-gap);
+  flex-wrap: wrap;
+  width: 100%;
+  font-size: var(--breadcrumb-font-size);
+  line-height: var(--breadcrumb-line-height);
+}
+
+/* Breadcrumb items */
+.breadcrumb-item {
+  display: flex;
+  align-items: center;
+  gap: var(--breadcrumb-gap);
+  transition: var(--breadcrumb-transition);
+}
+
+/* Breadcrumb links */
+.breadcrumb-link {
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  color: var(--breadcrumb-hover);
+  font-weight: var(--breadcrumb-font-weight);
+  padding: 0.5rem 0rem;
+  border-radius: 8px;
+  transition: var(--breadcrumb-transition);
+  position: relative;
+  min-height: 2.25rem;
+  box-sizing: border-box;
+}
+
+.breadcrumb-link:hover {
+  color: #444;
+  transform: scale(var(--breadcrumb-hover-scale));
+  text-decoration: underline;
+}
+
+.breadcrumb-link:focus {
+  outline: 2px solid var(--neo-primary);
+  outline-offset: 2px;
+}
+
+.breadcrumb-link:active {
+  transform: scale(0.98);
+}
+
+/* Current page styling */
+.breadcrumb-current {
+  display: inline-flex;
+  align-items: center;
+  color: #444 !important;
+  font-weight: 600;
+  padding: 0.5rem 0.75rem;
+  color: white;
+  border-radius: 8px;
+  min-height: 2.25rem;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.breadcrumb-current::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+/* Breadcrumb text */
+.breadcrumb-text {
+  font-weight: inherit;
+  letter-spacing: 0.025em;
+}
+
+/* Separator styling */
+.breadcrumb-separator {
+  display: flex;
+  align-items: center;
+  color: var(--breadcrumb-separator);
+  margin: 0 0.25rem;
+  transition: var(--breadcrumb-transition);
+}
+
+.separator-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.current-page {
+  font-weight: 600;
+  color: var(--breadcrumb-current);
+  font-size: 0.9rem;
+}
+
+.page-depth {
+  font-size: 0.75rem;
+  color: var(--breadcrumb-text);
+  margin-top: 0.25rem;
+}
+
+/* Responsive design */
+/* ====================================== */
+
+/* Large tablets and small desktops */
+
+@media (max-width: 1440px) {
+  .breadcrumb-container {
+    padding: 0 1.5rem;
+  }
+
+  :root {
+    --breadcrumb-padding: 0.875rem 1.5rem;
+    --breadcrumb-font-size: 0.8125rem;
+  }
+}
+
+/* Tablets */
+@media (max-width: 768px) {
+  .breadcrumb-container {
+    padding: 0 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  :root {
+    --breadcrumb-padding: 0.75rem 1.25rem;
+    --breadcrumb-radius: 10px;
+    --breadcrumb-height: 2.75rem;
+  }
+
+  .breadcrumb-list {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--breadcrumb-separator) transparent;
+    padding-bottom: 0.5rem;
+  }
+
+  .breadcrumb-list::-webkit-scrollbar {
+    height: 3px;
+  }
+
+  .breadcrumb-list::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .breadcrumb-list::-webkit-scrollbar-thumb {
+    background: var(--breadcrumb-separator);
+    border-radius: 3px;
+  }
+
+  .breadcrumb-item {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .separator-icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  .breadcrumb-link,
+  .breadcrumb-current {
+    padding: 0.375rem 0.625rem;
+    min-height: 2rem;
+    font-size: 0.8125rem;
+  }
+}
+
+/* Mobile phones */
+@media (max-width: 480px) {
+  .breadcrumb-container {
+    margin-bottom: 0.25rem;
+  }
+
+  :root {
+    --breadcrumb-padding: 0.625rem 1rem;
+    --breadcrumb-radius: 8px;
+    --breadcrumb-height: 2.5rem;
+    --breadcrumb-font-size: 0.75rem;
+  }
+
+  .breadcrumb-nav {
+    border-radius: var(--breadcrumb-radius);
+  }
+
+  .breadcrumb-list {
+    gap: 0.375rem;
+  }
+
+  .breadcrumb-link,
+  .breadcrumb-current {
+    padding: 0.25rem 0.5rem;
+    min-height: 1.75rem;
+    border-radius: 6px;
+  }
+
+  .separator-icon {
+    width: 12px;
+    height: 12px;
+  }
+
+  .breadcrumb-separator {
+    margin: 0 0.125rem;
+  }
+}
+
+/* Enhanced interactions */
+/* ====================================== */
+
+/* Hover animations */
+.breadcrumb-item:not(.current):hover .breadcrumb-link {
+  animation: breadcrumb-pulse 0.6s ease-in-out;
+}
+
+@keyframes breadcrumb-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* Loading state */
+.breadcrumb-nav.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.breadcrumb-nav.loading .breadcrumb-item {
+  animation: breadcrumb-shimmer 2s infinite linear;
+}
+
+@keyframes breadcrumb-shimmer {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
+
+/* Focus indicators */
+.breadcrumb-link:focus-visible {
+  box-shadow: 0 0 0 3px rgba(37, 96, 53, 0.2);
+}
+
+/* Accessibility enhancements */
+/* ====================================== */
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  :root {
+    --breadcrumb-text: #000000;
+    --breadcrumb-current: #000000;
+    --breadcrumb-border: #000000;
+    --breadcrumb-separator: #000000;
+  }
+
+  .breadcrumb-link {
+    border: 2px solid transparent;
+  }
+
+  .breadcrumb-link:hover,
+  .breadcrumb-link:focus {
+    border-color: var(--neo-primary);
+  }
+
+  .breadcrumb-current {
+    border: 2px solid var(--neo-primary);
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --breadcrumb-transition: none;
+  }
+
+  .breadcrumb-link:hover {
+    transform: none;
+  }
+
+  .breadcrumb-item:not(.current):hover .breadcrumb-link {
+    animation: none;
+  }
+
+  .breadcrumb-nav.loading .breadcrumb-item {
+    animation: none;
+  }
+}
+
+/* Dark mode support */
+/* ====================================== */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --breadcrumb-bg: #1a1a1a;
+    --breadcrumb-border: #404040;
+    --breadcrumb-text: #e0e0e0;
+    --breadcrumb-current: #ffffff;
+    --breadcrumb-separator: #888888;
+    --neo-accent: #2a2a2a;
+  }
+}
+
+/* Print styles */
+/* ====================================== */
+
+@media print {
+  .breadcrumb-container {
+    margin: 0.5rem 0;
+    page-break-inside: avoid;
+  }
+
+  .breadcrumb-nav {
+    background: none !important;
+    border: 1px solid #ccc !important;
+    box-shadow: none !important;
+  }
+
+  .breadcrumb-link {
+    color: #000 !important;
+    background: none !important;
+    text-decoration: underline;
+  }
+
+  .breadcrumb-current {
+    background: none !important;
+    color: #000 !important;
+    font-weight: bold;
+    text-decoration: none;
+  }
+
+  .breadcrumb-separator {
+    color: #666 !important;
+  }
+
+  .breadcrumb-mobile-indicator {
+    display: none !important;
+  }
+}
+
+.breadcrumb-nav {
+  contain: layout style;
+  will-change: box-shadow;
+}
+
+.breadcrumb-link {
+  contain: layout;
+  will-change: transform, background-color;
+}
+
+@supports (backdrop-filter: blur(10px)) {
+  .breadcrumb-nav {
+    backdrop-filter: none;
+    background-color: transparent;
+  }
+}
+
+@supports (container-type: inline-size) {
+  .breadcrumb-container {
+    container-type: inline-size;
+  }
+
+  @container (max-width: 400px) {
+    .breadcrumb-text {
+      font-size: 0.7rem;
+    }
+  }
+}

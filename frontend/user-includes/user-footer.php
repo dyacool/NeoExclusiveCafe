@@ -1,6 +1,6 @@
 <?php
-// Connect to database
-$conn = new mysqli("localhost", "root", "", "crud");
+// Connect to online database
+$conn = new mysqli("mysql-neoexclusivecafe.alwaysdata.net", "429123", "NeoCafe123", "neoexclusivecafe_crud");
 
 // Check connection
 if ($conn->connect_error) {
@@ -94,9 +94,9 @@ $conn->close();
     <!-- Footer Links and Copyright Section (Outside the main footer for better layout) -->
     <div class="footer-bottom">
         <div class="footer-links">
-            <a href="about-page.php">About Us</a>
-            <a href="terms.html">Terms & Conditions</a>
-            <a href="privacy.html">Order Policy</a>
+        <a href="/frontend/pages/about/about-page.php">About Us</a>
+        <a href="/frontend/pages/terms/terms-and-condition.php">Terms & Conditions</a>
+        <a href="/frontend/pages/privacy-policy/privacy-policy.php">Privacy Policy</a>
         </div>
         
         <div class="copyright">

@@ -5,22 +5,35 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-if (!isset($_SESSION["user_id"])) {
-    if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
-        // If the request is an AJAX request, return a 401 response
-        http_response_code(401);
-        echo json_encode(["status" => "error", "message" => "User not logged in"]);
-    } else {
-        // Otherwise, redirect to the login page
-        header("Location: /frontend/login/user/login-signup.php");
-    }
+// Check if user is logged in and has proper role
+if (!isset($_SESSION["user_id"]) || !isset($_SESSION["user_role"]) || $_SESSION["user_role"] !== "user") {
+    header('Content-Type: application/json');
+    http_response_code(401);
+    echo json_encode(["status" => "error", "message" => "User not logged in"]);
     exit();
 }
 
+<<<<<<< HEAD
 require_once '../../user-includes/database.php';
 require_once 'class-notif.php';
+=======
+// Validate user_id is numeric and positive
+$userId = (int)$_SESSION['user_id'];
+if ($userId <= 0) {
+    header('Content-Type: application/json');
+    http_response_code(401);
+    echo json_encode(["status" => "error", "message" => "Invalid user session"]);
+    exit();
+}
+
+require_once '../../../backend/pages/admin-includes/database.php'; // Include the database connection
+require_once 'class-notif.php'; // Include the Notification class
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
+
+header('Content-Type: application/json');
 
 try {
+<<<<<<< HEAD
     $userId = $_SESSION['user_id'];
     $notification = new Notification($conn);
 
@@ -28,6 +41,42 @@ try {
     $notification->markAllAsRead($userId);
 
     echo json_encode(["status" => "success", "message" => "All notifications marked as read"]);
+=======
+    $notification = new Notification($conn);
+    
+    // Check if marking individual notification or all notifications
+    $notificationId = $_POST['notification_id'] ?? null;
+    $markAll = isset($_POST['mark_all']) && $_POST['mark_all'] === 'true';
+    
+    if ($notificationId) {
+        // Mark individual notification as read
+        // Verify the notification belongs to the current user
+        $stmt = $conn->prepare("SELECT id FROM notifications WHERE id = ? AND user_id = ?");
+        $stmt->bind_param("ii", $notificationId, $userId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows === 0) {
+            echo json_encode(["status" => "error", "message" => "Notification not found"]);
+            exit();
+        }
+        $stmt->close();
+        
+        // Mark notification as read (with user validation)
+        $success = $notification->markAsRead($notificationId, $userId);
+        if ($success) {
+            echo json_encode(["status" => "success", "message" => "Notification marked as read"]);
+        } else {
+            echo json_encode(["status" => "error", "message" => "Notification not found or access denied"]);
+        }
+    } elseif ($markAll) {
+        // Mark all notifications as read using the Notification class
+        $notification->markAllAsRead($userId);
+        echo json_encode(["status" => "success", "message" => "All notifications marked as read"]);
+    } else {
+        echo json_encode(["status" => "error", "message" => "Invalid request"]);
+    }
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
 } catch (Exception $e) {
     http_response_code(500); // Internal Server Error
     echo json_encode(["status" => "error", "message" => "Failed to mark notifications as read"]);

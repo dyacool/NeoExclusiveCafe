@@ -5,15 +5,16 @@
         exit();
     }
 
+    // Include database configuration
+    require_once __DIR__ . '/../../../config/database-config.php';
+    
     // Pagination settings
     $items_per_page = 12;
     $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
     $offset = ($current_page - 1) * $items_per_page;
 
-    $conn = new mysqli("localhost", "root", "", "crud");
-    if ($conn->connect_error) {
-        die("Connection failed: " . $conn->connect_error);
-    }
+    // Get database connection
+    $conn = getDatabaseConnection();
     
     // Count total archived products
     $count_sql = "SELECT COUNT(*) as total FROM products WHERE deleted_at IS NOT NULL";

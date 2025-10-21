@@ -63,16 +63,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Create Blog Post - NeoExclusiveCafe</title>
+  <link rel="icon" type="image/x-icon" href="/frontend/favicon.ico">
+</head>
+<body>
+        <?php include __DIR__ . "/../../user-includes/bread-crumb/bread-crumb.php"; ?>
+
 <div class="wrapper">
+
     <div class="create-blog-header">
-            <button class="back-btn" onclick="location='user-blog.php'">
-            <div class="arrow-wrapper">
-                <div class="arrow"></div>
-            </div>
-            Back
-            </button>
         <div class="title-container">
-            <h2 class="cont-title">Create New Blog Post</h2>
+            <h2 class="cont-title">Create a Post</h2>
         </div>
 
     </div>
@@ -119,7 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 </div>
-<br>
+</body>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -209,5 +214,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         });
     });
 </script>
+
 <?php require_once "../../user-includes/footer.php"; ?>
 <?php ob_end_flush(); ?>

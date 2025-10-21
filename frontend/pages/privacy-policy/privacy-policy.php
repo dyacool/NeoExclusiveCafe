@@ -3,7 +3,11 @@
 session_start();
 
 // Include database connection
+<<<<<<< HEAD
 require_once "../../user-includes/database.php";
+=======
+require_once "../../../backend/pages/admin-includes/database.php";
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
 
 // Fetch privacy policy
 $sql = "SELECT * FROM privacy_policy WHERE id = 1";
@@ -67,13 +71,17 @@ $conn->close();
     <title><?php echo htmlspecialchars($privacy['title']); ?> - Neo Exclusive Cafe</title>
     <link rel="stylesheet" href="privacy-policy.css">
     <link rel="icon" type="image/x-icon" href="../../../assets/images/favicon.ico">
+<<<<<<< HEAD
     
     <!-- Include user navigation -->
     <?php include "../../user-includes/user-header.php"; ?>
+=======
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
 </head>
 <body>
     <!-- Navigation -->
     <?php include "../../user-includes/navbar/customer-navigation.php"; ?>
+<<<<<<< HEAD
 
     <div class="privacy-container">
         <div class="container">
@@ -84,6 +92,13 @@ $conn->close();
                 <span class="current">Privacy Policy</span>
             </nav>
 
+=======
+    <?php include __DIR__ . "/../../user-includes/bread-crumb/bread-crumb.php"; ?>
+
+
+    <div class="privacy-container">
+        <div class="container">
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
             <!-- Header -->
             <header class="privacy-header">
                 <h1><?php echo htmlspecialchars($privacy['title']); ?></h1>
@@ -99,6 +114,7 @@ $conn->close();
                 <div class="content-wrapper">
                     <?php echo $privacy['content']; ?>
                 </div>
+<<<<<<< HEAD
 
                 <!-- Action Buttons -->
                 <div class="privacy-actions">
@@ -121,6 +137,8 @@ $conn->close();
                         Back to Home
                     </a>
                 </div>
+=======
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
             </main>
         </div>
     </div>

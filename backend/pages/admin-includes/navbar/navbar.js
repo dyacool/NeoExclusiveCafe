@@ -1,32 +1,45 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Core elements
   const sidebar = document.querySelector(".sidebar");
   const mobileMenuToggle = document.querySelector(".mobile-menu-toggle");
   const floatingCloseBtn = document.querySelector(".floating-close-btn");
   const productsToggle = document.querySelector(".products-toggle");
   const productsDropdown = document.querySelector(".products-dropdown");
 
-  // Get current page
   const currentPage = window.location.pathname.split("/").pop();
 
-  // Define product pages
   const productPages = ["product-list.php", "add-product.php"];
   const isProductPage = productPages.includes(currentPage);
 
-  // Sidebar management
+  const DROPDOWN_STATE_KEY = "navbar_products_dropdown_state";
+  const SIDEBAR_STATE_KEY = "navbar_sidebar_state";
+
+  let dropdownStateRestored = false;
+
   function openSidebar() {
-    if (window.innerWidth <= 768) {
+    if (window.innerWidth <= 1024) {
       sidebar.classList.remove("mobile-hidden");
+      localStorage.setItem(SIDEBAR_STATE_KEY, "open");
     }
   }
 
   function closeSidebar() {
-    if (window.innerWidth <= 768) {
+    if (window.innerWidth <= 1024) {
       sidebar.classList.add("mobile-hidden");
+      localStorage.setItem(SIDEBAR_STATE_KEY, "closed");
     }
   }
 
-  // Mobile menu toggle - OPEN sidebar
+  function restoreSidebarState() {
+    if (window.innerWidth <= 1024) {
+      const savedState = localStorage.getItem(SIDEBAR_STATE_KEY);
+      if (savedState === "open") {
+        sidebar.classList.remove("mobile-hidden");
+      } else {
+        sidebar.classList.add("mobile-hidden");
+      }
+    }
+  }
+
   if (mobileMenuToggle) {
     mobileMenuToggle.addEventListener("click", (e) => {
       e.preventDefault();
@@ -35,7 +48,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Floating close button - CLOSE sidebar
   if (floatingCloseBtn) {
     floatingCloseBtn.addEventListener("click", (e) => {
       e.preventDefault();
@@ -44,91 +56,106 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Close sidebar when clicking outside
   document.addEventListener("click", (e) => {
-    if (window.innerWidth <= 768) {
+    if (window.innerWidth <= 1024) {
       if (!sidebar.contains(e.target) && !mobileMenuToggle.contains(e.target)) {
         closeSidebar();
       }
     }
   });
 
-  // Prevent sidebar from closing when clicking inside
   sidebar.addEventListener("click", (e) => {
     e.stopPropagation();
   });
 
-  // FIXED: Product dropdown with localStorage persistence
+  function toggleDropdown(shouldOpen = null) {
+    if (!productsToggle || !productsDropdown) return;
+
+    const isCurrentlyActive = productsDropdown.classList.contains("active");
+    const newState = shouldOpen !== null ? shouldOpen : !isCurrentlyActive;
+
+    if (newState !== isCurrentlyActive) {
+      if (newState) {
+        productsDropdown.classList.add("active");
+        productsToggle.classList.add("active");
+        localStorage.setItem(DROPDOWN_STATE_KEY, "open");
+      } else {
+        productsDropdown.classList.remove("active");
+        productsToggle.classList.remove("active");
+        localStorage.setItem(DROPDOWN_STATE_KEY, "closed");
+      }
+    }
+  }
+
+  function restoreDropdownState() {
+    if (!productsToggle || !productsDropdown) return;
+
+    if (dropdownStateRestored) return;
+
+    const savedState = localStorage.getItem(DROPDOWN_STATE_KEY);
+    const shouldRestoreOpen = savedState === "open";
+
+    if (shouldRestoreOpen) {
+      productsDropdown.classList.add("active");
+      productsToggle.classList.add("active");
+    } else {
+      productsDropdown.classList.remove("active");
+      productsToggle.classList.remove("active");
+    }
+
+    dropdownStateRestored = true;
+  }
+
   if (productsToggle && productsDropdown) {
     productsToggle.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
-
-      // Toggle dropdown
-      productsDropdown.classList.toggle("active");
-      productsToggle.classList.toggle("active");
-
-      // Save state to localStorage
-      const isActive = productsDropdown.classList.contains("active");
-      localStorage.setItem("isDropdownActive", isActive);
+      toggleDropdown();
     });
 
-    // Handle dropdown links - maintain state
     const dropdownLinks = document.querySelectorAll(".dropdown-link");
     dropdownLinks.forEach((link) => {
       link.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
 
-        // If link is already active, do nothing
         if (link.classList.contains("active")) {
           return false;
         }
 
-        // Get the target page
         const href = link.getAttribute("data-href");
         if (href) {
-          // Check if navigating to a product page
-          const targetIsProductPage = productPages.some((page) =>
-            href.includes(page)
-          );
-
-          // If navigating to non-product page, clear dropdown state
-          if (!targetIsProductPage) {
-            localStorage.setItem("isDropdownActive", "false");
-          }
-
-          // Navigate to new page
           window.location.href = href;
         }
       });
     });
 
-    // Prevent dropdown from closing when clicking inside
     productsDropdown.addEventListener("click", (e) => {
       e.stopPropagation();
     });
   }
 
-  // FIXED: Clear dropdown state when navigating to non-product pages via other links
   const allNavLinks = document.querySelectorAll("a[href]:not([data-href])");
   allNavLinks.forEach((link) => {
     link.addEventListener("click", (e) => {
       const href = link.getAttribute("href");
-      // If navigating to non-product page, clear dropdown state
-      const targetIsProductPage = productPages.some((page) =>
-        href.includes(page)
-      );
-      if (!targetIsProductPage) {
-        localStorage.setItem("isDropdownActive", "false");
+
+      if (href.startsWith("http") || href.includes("logout")) {
+        return;
+      }
+
+      if (window.innerWidth <= 1024) {
+        setTimeout(() => {
+          closeSidebar();
+        }, 100);
       }
     });
   });
 
-  // Page title management
   function updatePageTitle() {
     const pageTitles = {
       "admin-homepage.php": "Dashboard",
+      "dashboard.php": "Dashboard",
       "order-list.php": "Order Management",
       "product-list.php": "Product Management",
       "add-product.php": "Add Product",
@@ -137,35 +164,46 @@ document.addEventListener("DOMContentLoaded", () => {
       "admin-profile.php": "Profile",
       "archive.php": "Archive",
       "userShop.php": "View Shop",
+<<<<<<< HEAD
       "user-content-settings.php": "User Page Contents Setting",
       "manage-carousel-images.php": "User Carousel Image Setting",
       "manage-carousel-settings.php": "User Carousel Text Setting",
+=======
+      "user-content-settings.php": "Content Management",
+      "manage-carousel-images.php": "Dashboard Hero Images",
+      "manage-carousel-settings.php": "Dashboard Hero Text",
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
       "admin-service-edit.php": "Service",
       "promotions-settings.php": "Coupons & Promotions",
-      "about-settings.php": "User About",
-      "terms-conditions-settings.php": "User Terms & Conditions",
-      "privacy-policy-settings.php": "User Privacy Policy",
-      "footer-settings.php": "Footer Settings",
+      "about-settings.php": "User About Management",
+      "terms-conditions-settings.php": "User Terms & Conditions Management",
+      "privacy-policy-settings.php": "User Privacy Policy Management",
+      "footer-settings.php": "Footer Settings Management",
       "calendar.php": "Calendar Management",
+      "refund-request-lists.php": "Refund Requests",
+      "bulk-order-lists.php": "Bulk Orders",
+      "bulk-order.php": "Bulk Order Details",
+      "view-orders.php": "Order Details",
     };
 
     const pageTitle = pageTitles[currentPage] || "Neo Cafe Admin";
 
-    // Update desktop title
     const desktopTitle = document.getElementById("page-title");
     if (desktopTitle) {
       desktopTitle.textContent = pageTitle;
     }
 
-    // Update mobile title
     const mobileTitle = document.getElementById("mobile-page-title");
     if (mobileTitle) {
       mobileTitle.textContent = pageTitle;
     }
+
+    document.title = `${pageTitle} - Neo Cafe Admin`;
   }
 
-  // Add "Add Product" button dynamically
-  if (window.location.pathname.includes("product-list.php")) {
+  function addProductButton() {
+    if (!window.location.pathname.includes("product-list.php")) return;
+
     let headerActions = document.querySelector(".header-actions");
 
     if (!headerActions) {
@@ -215,10 +253,76 @@ document.addEventListener("DOMContentLoaded", () => {
     addBlogButton.appendChild(document.createTextNode(" Create Blog"));
 
     headerActions.innerHTML = "";
+<<<<<<< HEAD
     headerActions.appendChild(addBlogButton);
   }
   // Add "Create blog" button dynamically
   if (window.location.pathname.includes("admin-blog.php")) {
+=======
+    headerActions.appendChild(addProductButton);
+
+    let mobileHeaderActions = document.querySelector(".mobile-header-actions");
+
+    if (!mobileHeaderActions) {
+      mobileHeaderActions = document.createElement("div");
+      mobileHeaderActions.className = "mobile-header-actions";
+      const mobileHeaderBottom = document.querySelector(
+        ".mobile-header-bottom"
+      );
+      if (mobileHeaderBottom) {
+        mobileHeaderBottom.appendChild(mobileHeaderActions);
+      }
+    }
+
+    const mobileAddProductButton = document.createElement("button");
+    mobileAddProductButton.className =
+      "btn add-product-button action-button mobile-action-button";
+    mobileAddProductButton.onclick = () => {
+      window.location.href = "add-product.php";
+    };
+
+    const mobileSvg = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "svg"
+    );
+    mobileSvg.setAttribute("width", "20");
+    mobileSvg.setAttribute("height", "20");
+    mobileSvg.setAttribute("viewBox", "0 0 24 24");
+    mobileSvg.setAttribute("fill", "none");
+    mobileSvg.setAttribute("stroke", "currentColor");
+    mobileSvg.setAttribute("stroke-width", "2");
+
+    const mobileLine1 = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "line"
+    );
+    mobileLine1.setAttribute("x1", "12");
+    mobileLine1.setAttribute("y1", "5");
+    mobileLine1.setAttribute("x2", "12");
+    mobileLine1.setAttribute("y2", "19");
+
+    const mobileLine2 = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "line"
+    );
+    mobileLine2.setAttribute("x1", "5");
+    mobileLine2.setAttribute("y1", "12");
+    mobileLine2.setAttribute("x2", "19");
+    mobileLine2.setAttribute("y2", "12");
+
+    mobileSvg.appendChild(mobileLine1);
+    mobileSvg.appendChild(mobileLine2);
+    mobileAddProductButton.appendChild(mobileSvg);
+    mobileAddProductButton.appendChild(document.createTextNode(" Add Product"));
+
+    mobileHeaderActions.innerHTML = "";
+    mobileHeaderActions.appendChild(mobileAddProductButton);
+  }
+
+  function addBlogPostButton() {
+    if (!window.location.pathname.includes("admin-blog.php")) return;
+
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
     let headerActions = document.querySelector(".header-actions");
 
     if (!headerActions) {
@@ -230,9 +334,15 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
+<<<<<<< HEAD
     const addBlogButton = document.createElement("button");
     addBlogButton.className = "btn add-blog-button action-button";
     addBlogButton.onclick = () => {
+=======
+    const addPostButton = document.createElement("button");
+    addPostButton.className = "btn add-product-button action-button";
+    addPostButton.onclick = () => {
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
       window.location.href = "admin-blog-createpost.php";
     };
 
@@ -264,78 +374,142 @@ document.addEventListener("DOMContentLoaded", () => {
 
     svg.appendChild(line1);
     svg.appendChild(line2);
+<<<<<<< HEAD
     addBlogButton.appendChild(svg);
     addBlogButton.appendChild(document.createTextNode(" Create Blog"));
 
     headerActions.innerHTML = "";
     headerActions.appendChild(addBlogButton);
+=======
+    addPostButton.appendChild(svg);
+    addPostButton.appendChild(document.createTextNode(" Add Post"));
+
+    headerActions.innerHTML = "";
+    headerActions.appendChild(addPostButton);
+
+    let mobileHeaderActions = document.querySelector(".mobile-header-actions");
+
+    if (!mobileHeaderActions) {
+      mobileHeaderActions = document.createElement("div");
+      mobileHeaderActions.className = "mobile-header-actions";
+      const mobileHeaderBottom = document.querySelector(
+        ".mobile-header-bottom"
+      );
+      if (mobileHeaderBottom) {
+        mobileHeaderBottom.appendChild(mobileHeaderActions);
+      }
+    }
+
+    const mobileAddPostButton = document.createElement("button");
+    mobileAddPostButton.className =
+      "btn add-product-button action-button mobile-action-button";
+    mobileAddPostButton.onclick = () => {
+      window.location.href = "admin-blog-createpost.php";
+    };
+
+    const mobileSvg = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "svg"
+    );
+    mobileSvg.setAttribute("width", "20");
+    mobileSvg.setAttribute("height", "20");
+    mobileSvg.setAttribute("viewBox", "0 0 24 24");
+    mobileSvg.setAttribute("fill", "none");
+    mobileSvg.setAttribute("stroke", "currentColor");
+    mobileSvg.setAttribute("stroke-width", "2");
+
+    const mobileLine1 = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "line"
+    );
+    mobileLine1.setAttribute("x1", "12");
+    mobileLine1.setAttribute("y1", "5");
+    mobileLine1.setAttribute("x2", "12");
+    mobileLine1.setAttribute("y2", "19");
+
+    const mobileLine2 = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "line"
+    );
+    mobileLine2.setAttribute("x1", "5");
+    mobileLine2.setAttribute("y1", "12");
+    mobileLine2.setAttribute("x2", "19");
+    mobileLine2.setAttribute("y2", "12");
+
+    mobileSvg.appendChild(mobileLine1);
+    mobileSvg.appendChild(mobileLine2);
+    mobileAddPostButton.appendChild(mobileSvg);
+    mobileAddPostButton.appendChild(document.createTextNode(" Add Post"));
+
+    mobileHeaderActions.innerHTML = "";
+    mobileHeaderActions.appendChild(mobileAddPostButton);
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
   }
 
-  // UPDATED: Set active navigation states with dropdown persistence
   function setActiveStates() {
-    // Remove all active classes
     document
       .querySelectorAll(".nav-link, .footer-link, .dropdown-link")
       .forEach((link) => {
         link.classList.remove("active");
       });
 
-    // Remove parent active state
-    if (productsToggle) {
+    if (productsToggle && !productPages.includes(currentPage)) {
       productsToggle.classList.remove("has-active-child");
     }
 
-    // Set active based on current page
-    if (currentPage === "order-list.php") {
-      const ordersLink = document.querySelector('a[href="order-list.php"]');
-      if (ordersLink) ordersLink.classList.add("active");
-    }
+    const pageActiveSelectors = {
+      "order-list.php": 'a[href*="order-list.php"]',
+      "admin-homepage.php":
+        'a[href*="dashboard.php"], a[href*="admin-homepage.php"]',
+      "dashboard.php":
+        'a[href*="dashboard.php"], a[href*="admin-homepage.php"]',
+      "transactions.php": 'a[href*="transactions.php"]',
+      "admin-blog.php": 'a[href*="admin-blog.php"]',
+      "admin-profile.php": 'a[href*="admin-profile.php"]',
+      "archive.php": 'a[href*="archive.php"]',
+      "user-content-settings.php": 'a[href*="user-content-settings.php"]',
+      "calendar.php": 'a[href*="calendar.php"]',
+      "promotions-settings.php": 'a[href*="promotions-settings.php"]',
+    };
 
     if (currentPage === "product-list.php") {
       const productListLink = document.querySelector(
-        '[data-href="product-list.php"]'
+        '[data-href*="product-list.php"]'
       );
       if (productListLink) {
         productListLink.classList.add("active");
-        // Add active state to parent toggle
         if (productsToggle) {
           productsToggle.classList.add("has-active-child");
         }
       }
-    }
-
-    if (currentPage === "add-product.php") {
+    } else if (currentPage === "add-product.php") {
       const addProductLink = document.querySelector(
-        '[data-href="add-product.php"]'
+        '[data-href*="add-product.php"]'
       );
       if (addProductLink) {
         addProductLink.classList.add("active");
-        // Add active state to parent toggle
         if (productsToggle) {
           productsToggle.classList.add("has-active-child");
         }
       }
+    } else {
+      const selector = pageActiveSelectors[currentPage];
+      if (selector) {
+        const activeLink = document.querySelector(selector);
+        if (activeLink) {
+          activeLink.classList.add("active");
+        }
+      }
     }
 
-    // Handle other pages
-    const pageSelectors = {
-      "admin-homepage.php": 'a[href*="admin-homepage.php"]',
-      "transactions.php": 'a[href="transactions.php"]',
-      "admin-blog.php": 'a[href="admin-blog.php"]',
-      "admin-profile.php": 'a[href="admin-profile.php"]',
-      "archive.php": 'a[href="archive.php"]',
-      "user-content-settings.php": 'a[href="user-content-settings.php"]',
-      "userShop.php": 'a[href*="product-dashboard.php"]',
-    };
-
-    const selector = pageSelectors[currentPage];
-    if (selector) {
-      const activeLink = document.querySelector(selector);
-      if (activeLink) activeLink.classList.add("active");
+    if (window.location.pathname.includes("product-dashboard.php")) {
+      const shopLink = document.querySelector(
+        'a[href*="product-dashboard.php"]'
+      );
+      if (shopLink) shopLink.classList.add("active");
     }
   }
 
-  // Prevent active links from being clicked (except logout)
   function preventActiveClicks() {
     document
       .querySelectorAll(".nav-link, .footer-link, .dropdown-link")
@@ -352,50 +526,46 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   }
 
-  // Handle window resize
   function handleResize() {
-    if (window.innerWidth > 768) {
+    if (window.innerWidth > 1024) {
       sidebar.classList.remove("mobile-hidden");
+      localStorage.removeItem(SIDEBAR_STATE_KEY);
     } else {
-      sidebar.classList.add("mobile-hidden");
+      restoreSidebarState();
     }
   }
 
-  // FIXED: Only restore dropdown state if on a product page
-  if (isProductPage && localStorage.getItem("isDropdownActive") === "true") {
-    if (productsDropdown && productsToggle) {
-      productsDropdown.classList.add("active");
-      productsToggle.classList.add("active");
-    }
-  } else if (!isProductPage) {
-    // Clear dropdown state if not on product page
-    localStorage.setItem("isDropdownActive", "false");
-    // Ensure dropdown is closed
-    if (productsDropdown && productsToggle) {
-      productsDropdown.classList.remove("active");
-      productsToggle.classList.remove("active");
+  function handleVisibilityChange() {
+    if (document.visibilityState === "visible") {
+      if (window.innerWidth <= 1024) {
+        restoreSidebarState();
+      }
     }
   }
 
-  // Initialize everything
-  updatePageTitle();
-  setActiveStates();
-  preventActiveClicks();
-  handleResize();
+  function initialize() {
+    document.body.classList.add("navbar-loading");
 
-  // Listen for resize
+    updatePageTitle();
+    addProductButton();
+    addBlogPostButton();
+    setActiveStates();
+    preventActiveClicks();
+    handleResize();
+
+    restoreDropdownState();
+
+    if (window.innerWidth <= 1024) {
+      restoreSidebarState();
+    }
+
+    setTimeout(() => {
+      document.body.classList.remove("navbar-loading");
+    }, 100);
+  }
+
   window.addEventListener("resize", handleResize);
+  document.addEventListener("visibilitychange", handleVisibilityChange);
 
-  // Special fix for order-list page navigation
-  const ordersLink = document.querySelector('a[href="order-list.php"]');
-  if (ordersLink) {
-    ordersLink.addEventListener("click", () => {
-      // Close sidebar after navigation on mobile
-      setTimeout(() => {
-        if (window.innerWidth <= 768) {
-          closeSidebar();
-        }
-      }, 100);
-    });
-  }
+  initialize();
 });

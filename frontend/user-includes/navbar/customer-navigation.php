@@ -1,27 +1,69 @@
 <?php
+// Ensure session is started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 // Get user information if logged in - check for both user and admin sessions
 $user = null;
-$is_user_logged_in = isset($_SESSION['user_id']) && isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'user';
+$is_user_logged_in = isset($_SESSION['user_id']);
 $is_admin_logged_in = isset($_SESSION['admin_id']) && isset($_SESSION['admin_role']) && $_SESSION['admin_role'] === 'admin';
 
 if ($is_user_logged_in) {
     // Use session data for user
     $user = [
         'firstname' => $_SESSION['user_firstname'] ?? '',
-        'lastname' => $_SESSION['user_lastname'] ?? ''
+        'lastname' => $_SESSION['user_lastname'] ?? '',
+        'profile_image' => $_SESSION['user_profile_image'] ?? ''
     ];
+
+    // Fallback: fetch from database if profile image (or names) missing
+    if (($user['profile_image'] ?? '') === '' || ($user['firstname'] ?? '') === '' || ($user['lastname'] ?? '') === '') {
+        $user_id = (int)($_SESSION['user_id'] ?? 0);
+        if ($user_id > 0) {
+            // Include database connection
+            $db_path = __DIR__ . '/../database.php';
+            if (file_exists($db_path)) {
+                require_once $db_path;
+                if (isset($conn) && $conn instanceof mysqli) {
+                    $stmt = mysqli_prepare($conn, "SELECT firstname, lastname, profile_image FROM users WHERE id = ?");
+                    if ($stmt) {
+                        mysqli_stmt_bind_param($stmt, "i", $user_id);
+                        mysqli_stmt_execute($stmt);
+                        $result = mysqli_stmt_get_result($stmt);
+                        if ($result && ($row = mysqli_fetch_assoc($result))) {
+                            $user['firstname'] = $user['firstname'] !== '' ? $user['firstname'] : ($row['firstname'] ?? '');
+                            $user['lastname'] = $user['lastname'] !== '' ? $user['lastname'] : ($row['lastname'] ?? '');
+                            $user['profile_image'] = $user['profile_image'] !== '' ? $user['profile_image'] : (trim($row['profile_image'] ?? ''));
+                            // Update session for future requests
+                            if (!empty($user['profile_image'])) {
+                                $_SESSION['user_profile_image'] = $user['profile_image'];
+                            }
+                            if (!empty($user['firstname'])) {
+                                $_SESSION['user_firstname'] = $user['firstname'];
+                            }
+                            if (!empty($user['lastname'])) {
+                                $_SESSION['user_lastname'] = $user['lastname'];
+                            }
+                        }
+                        mysqli_stmt_close($stmt);
+                    }
+                }
+            }
+        }
+    }
 } elseif ($is_admin_logged_in) {
     // Use session data for admin
     $user = [
         'firstname' => $_SESSION['admin_firstname'] ?? '',
-        'lastname' => $_SESSION['admin_lastname'] ?? ''
+        'lastname' => $_SESSION['admin_lastname'] ?? '',
+        'profile_image' => $_SESSION['admin_profile_image'] ?? ''
     ];
 }
 
 $current_page = basename($_SERVER['PHP_SELF']);
 ?>
-<link rel="stylesheet" href="../../../frontend/user-includes/navbar/customer-navigation.css">
-
+<link rel="stylesheet" href="/frontend/user-includes/navbar/customer-navigation.css">
 <div class="header-wrapper">
     <!-- Page Entry Animation Container -->
     <div class="page-entry-animation">
@@ -41,19 +83,38 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 <span class="hamburger-icon">☰</span>
             </button>
             <div class="nav-left">
-                <a href="../../../frontend/pages/home/user-dashboard.php" class="nav-link <?php echo $current_page === 'user-dashboard.php' ? 'active' : ''; ?>">
+                <a href="../../../frontend/pages/home/user-dashboard.php" class="nav-link smooth-nav <?php echo $current_page === 'user-dashboard.php' ? 'active' : ''; ?>" data-target="../../../frontend/pages/home/user-dashboard.php">
                     <span class="link-text">Home</span>
                     <span class="link-underline"></span>
                 </a>
-                <a href="/frontend/pages/products/product-dashboard.php" class="nav-link <?php echo $current_page === 'product-dashboard.php' ? 'active' : ''; ?>">
-                    <span class="link-text">Products</span>
-                    <span class="link-underline"></span>
-                </a>
-                <a href="../../../frontend/pages/blog/blog-dashboard.php" class="nav-link <?php echo $current_page === 'blog-page.php' ? 'active' : ''; ?>">
+                <div class="products-container">
+                    <a href="/frontend/pages/products/products-categories.php" class="nav-link smooth-nav <?php echo $current_page === 'product-dashboard.php' ? 'active' : ''; ?>" data-target="/frontend/pages/products/product-dashboard.php">
+                        <span class="link-text">Products</span>
+                        <span class="link-underline"></span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="dropdown-arrow">
+                            <polyline points="6,9 12,15 18,9"></polyline>
+                        </svg>
+                    </a>
+                    <div class="products-dropdown">
+                        <a href="/frontend/pages/products/product-dashboard.php">Same Day Order</a>
+                        <a href="/frontend/pages/products/weekly-product.php">For Delivery</a>
+                        <a href="/frontend/pages/products/user-products.php">For Pick Up</a>
+                        <a href="/frontend/pages/bulk/bulk-form.php">Bulk Order</a>
+                    </div>
+                    <!-- Mobile Products Dropdown - Inside nav-left for better visibility -->
+                    <div class="mobile-products-dropdown">
+                        <a href="/frontend/pages/products/product-dashboard.php" class="mobile-dropdown-item">Special Offer</a>
+                        <a href="/frontend/pages/products/weekly-product.php" class="mobile-dropdown-item">For Delivery</a>
+                        <a href="/frontend/pages/products/user-products.php" class="mobile-dropdown-item">For Pick Up</a>
+                        <a href="/frontend/pages/bulk/bulk-form.php" class="mobile-dropdown-item">Bulk Order</a>
+
+                    </div>
+                </div>
+                <a href="../../../frontend/pages/blog/blog-dashboard.php" class="nav-link smooth-nav <?php echo $current_page === 'blog-page.php' ? 'active' : ''; ?>" data-target="../../../frontend/pages/blog/blog-dashboard.php">
                     <span class="link-text">Blog</span>
                     <span class="link-underline"></span>
                 </a>
-                <a href="../../../frontend/pages/about/about-page.php" class="nav-link <?php echo $current_page === 'about-page.php' ? 'active' : ''; ?>">
+                <a href="../../../frontend/pages/about/about-page.php" class="nav-link smooth-nav <?php echo $current_page === 'about-page.php' ? 'active' : ''; ?>" data-target="../../../frontend/pages/about/about-page.php">
                     <span class="link-text">About</span>
                     <span class="link-underline"></span>
                 </a>
@@ -70,8 +131,13 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     <button class="search-toggle" aria-label="Toggle search">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                     </button>
+                    <!-- Desktop Search Box - Positioned relative to search icon -->
+                    <form action="../../../frontend/search/search-results.php" method="GET" class="desktop-search-box">
+                        <input type="text" name="query" placeholder="Search..." class="search-input" required>
+                        <button type="submit" class="search-btn">Search</button>
+                    </form>
                 </div>
-                <a href="<?php echo isset($_SESSION['user_id']) ? '../../../frontend/pages/cart/cart.php' : '../../../frontend/login/user/login-signup.php'; ?>" class="cart-link">
+                <a href="<?php echo isset($_SESSION['user_id']) ? '../../../frontend/pages/cart/shopping-cart-preorder.php' : '../../../frontend/login/user/login-signup.php'; ?>" class="cart-link">
                     <div class="icon-wrapper">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="icon cart-icon">
                             <path d="M5 8h14l1 13H4L5 8z"></path>
@@ -82,38 +148,63 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     </div>
                 </a>
                 <div class="notification-container">
-                    <a href="#" class="notification-link">
+                    <?php if ($is_user_logged_in && isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'user'): ?>
+                    <a href="#" class="notification-link" aria-label="View notifications">
                         <div class="icon-wrapper">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="icon notification-icon">
                                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                                 <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                             </svg>
-                            <span class="badge" id="notifCount"></span>
+                            <span class="badge" id="notifCount" style="display: none;"></span>
                             <span class="icon-effect"></span>
                         </div>
                     </a>
                     <div class="notification-dropdown" id="notifDropdown">
                         <div class="dropdown-header">
                             <h3>Notifications</h3>
+                            <button id="markAllRead" class="mark-read" title="Mark all as read">Mark all as read</button>
                         </div>
-                        <ul id="notificationList">
+                        <ul id="notificationList" class="notification-list">
                             <!-- Notifications will appear dynamically -->
                         </ul>
                         <div class="no-notifications" id="noNotifications">
-                            <p style="color:black;"> No new notifications at the moment.</p>
+                            <p>No new notifications.</p>
                         </div>
                         <div class="dropdown-footer">
-                            <button id="markAllRead" class="mark-read" style="color:black;">Mark all as read</button>
-                            <button class="viewall" onclick="window.location.href='../../../frontend/pages/notifications/notifications.php'">View all</button>
+                            <a href="/frontend/pages/notifications/notifications.php" class="view-all-link">View All</a>
                         </div>
                     </div>
+                    <?php else: ?>
+                    <a href="../../../frontend/login/user/login-signup.php" class="notification-link" aria-label="Login to view notifications">
+                        <div class="icon-wrapper">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="icon notification-icon">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            </svg>
+                            <span class="icon-effect"></span>
+                        </div>
+                    </a>
+                    <?php endif; ?>
                 </div>
 
+                <style>
+                    .hide-on-login {
+                        display: none !important;
+                    }
+                </style>
                 <?php if ($user): ?>
-                    <div class="profile-container">
-                        <a href="<?php echo $is_admin_logged_in ? '/backend/pages/homepage/admin-homepage.php' : '../../../frontend/pages/profile/account-settings.php'; ?>" class="profile-link" id="profile-trigger">
+                    <div class="profile-container auth-buttons">
+                    <a href="<?php echo $is_admin_logged_in ? '/backend/pages/homepage/admin-homepage.php' : '/frontend/pages/profile/profile.php'; ?>"class="profile-link" id="profile-trigger">
                             <div class="profile-avatar">
-                                <span class="profile-initial"><?php echo substr(htmlspecialchars($user['firstname']), 0, 1); ?></span>
+                                <?php 
+                                $sessionProfileImage = isset($user['profile_image']) ? trim($user['profile_image']) : '';
+                                if ($sessionProfileImage !== '') {
+                                    if ($sessionProfileImage[0] !== '/') { $sessionProfileImage = '/' . $sessionProfileImage; }
+                                    echo '<img src="' . htmlspecialchars($sessionProfileImage) . '" alt="Profile Image">';
+                                } else {
+                                    echo '<span class="profile-initial">' . substr(htmlspecialchars($user['firstname']), 0, 1) . '</span>';
+                                }
+                                ?>
                             </div>
                             <span class="profile-name"><?php echo htmlspecialchars($user['firstname']); ?></span>
                         </a>
@@ -122,6 +213,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                                 <a href="/backend/pages/homepage/admin-homepage.php">Admin Panel</a>
                                 <a href="/backend/login/admin/logout.php">Logout</a>
                             <?php else: ?>
+                                <a href="/frontend/pages/profile/profile.php">Profile</a>
                                 <a href="/frontend/pages/profile/account-settings.php">Account Settings</a>
                                 <a href="/frontend/pages/blog/blog-list.php">View Post</a>
                                 <a href="/frontend/login/user/logout.php">Logout</a>
@@ -129,10 +221,28 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         </div>
                     </div>
                 <?php else: ?>
-                    <a href="../../login/user/login-signup.php" class="login-link">
+                    <a href="../../login/user/login-signup.php" class="login-link auth-buttons">
                         <span>Login</span>
                     </a>
                 <?php endif; ?>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        // Check if we're on the login/signup page
+                        const isLoginPage = window.location.pathname.includes('/frontend/login/user/login-signup.php');
+                        
+                        // Get all auth buttons
+                        const authButtons = document.querySelectorAll('.auth-buttons');
+                        
+                        // Add or remove the hide class based on the current page
+                        authButtons.forEach(button => {
+                            if (isLoginPage) {
+                                button.classList.add('hide-on-login');
+                            } else {
+                                button.classList.remove('hide-on-login');
+                            }
+                        });
+                    });
+                </script>
             </div>
         </div>
 
@@ -141,14 +251,10 @@ $current_page = basename($_SERVER['PHP_SELF']);
             <input type="text" name="query" placeholder="Search..." class="search-input" required>
             <button type="submit" class="search-btn">Search</button>
         </form>
-
-        <!-- Desktop Search Box - Popup style -->
-        <form action="../../../frontend/search/search-results.php" method="GET" class="desktop-search-box">
-            <input type="text" name="query" placeholder="Search..." class="search-input" required>
-            <button type="submit" class="search-btn">Search</button>
-        </form>
     </nav>
 </div>
+
+
 <div class="wrapper">
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -159,7 +265,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             const hamburgerIcon = document.querySelector('.hamburger-icon');
             const notifLink = document.querySelector('.notification-link');
             const notifDropdown = document.getElementById('notifDropdown');
-            const markAllReadButton = document.getElementById('markAllRead');
+            const markAllReadBtn = document.getElementById('markAllRead');
             const profileTrigger = document.getElementById('profile-trigger');
             const dropdownMenu = document.querySelector('.dropdown-menu');
             
@@ -169,6 +275,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
             const desktopSearchBox = document.querySelector('.desktop-search-box');
             const mobileSearchInput = mobileSearchBox.querySelector('.search-input');
             const desktopSearchInput = desktopSearchBox.querySelector('.search-input');
+            
+            // ===== PRODUCTS DROPDOWN FUNCTIONALITY =====
+            const productsContainer = document.querySelector('.products-container');
+            const productsLink = productsContainer ? productsContainer.querySelector('.nav-link') : null;
+            const mobileProductsDropdown = document.querySelector('.mobile-products-dropdown');
+            const desktopProductsDropdown = productsContainer ? productsContainer.querySelector('.products-dropdown') : null;
             
             // Add click event to toggle search visibility
             searchToggle.addEventListener('click', function(e) {
@@ -231,29 +343,215 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     mobileSearchBox.classList.remove('active');
                 }
                 searchToggle.classList.remove('active');
+                
+                // Hide products dropdown when resizing across breakpoint
+                if (window.innerWidth <= 992) {
+                    // On mobile, hide desktop dropdown
+                    if (desktopProductsDropdown) {
+                        desktopProductsDropdown.style.display = 'none';
+                    }
+                } else {
+                    // On desktop, hide mobile dropdown and restore desktop dropdown
+                    if (mobileProductsDropdown) {
+                        mobileProductsDropdown.classList.remove('active');
+                    }
+                    if (desktopProductsDropdown) {
+                        desktopProductsDropdown.style.display = '';
+                    }
+                }
             });
             
+            // ===== PRODUCTS DROPDOWN FUNCTIONALITY =====
+            if (productsLink && mobileProductsDropdown) {
+                productsLink.addEventListener('click', function(e) {
+                    if (window.innerWidth <= 992) {
+                        e.preventDefault(); // Prevent navigation on mobile
+                        mobileProductsDropdown.classList.toggle('active');
+                        
+                        // Close search dropdown if open
+                        mobileSearchBox.classList.remove('active');
+                        searchToggle.classList.remove('active');
+                    }
+                    // On desktop, let the hover CSS handle the dropdown
+                });
+            }
+            
+            // Close mobile products dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (window.innerWidth <= 992 && mobileProductsDropdown && 
+                    !productsContainer.contains(e.target) && 
+                    !mobileProductsDropdown.contains(e.target)) {
+                    mobileProductsDropdown.classList.remove('active');
+                }
+            });
+            
+            // Close products dropdown when pressing Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && window.innerWidth <= 992) {
+                    if (mobileProductsDropdown) {
+                        mobileProductsDropdown.classList.remove('active');
+                    }
+                }
+            });
+            
+            // Hide/show appropriate dropdowns based on screen size
+            function handleProductsDropdownVisibility() {
+                if (window.innerWidth <= 992) {
+                    // Mobile: hide desktop dropdown
+                    if (desktopProductsDropdown) {
+                        desktopProductsDropdown.style.display = 'none';
+                    }
+                } else {
+                    // Desktop: hide mobile dropdown and show desktop dropdown
+                    if (mobileProductsDropdown) {
+                        mobileProductsDropdown.classList.remove('active');
+                    }
+                    if (desktopProductsDropdown) {
+                        desktopProductsDropdown.style.display = '';
+                    }
+                }
+            }
+            
+            // Initial setup
+            handleProductsDropdownVisibility();
+            
+            // Handle window resize for products dropdown
+            window.addEventListener('resize', handleProductsDropdownVisibility);
+            
             // ===== PAGE ENTRY ANIMATION =====
-            // Check if this is the first visit to the page in this session
-            if (!sessionStorage.getItem('navigationAnimationPlayed')) {
-                pageEntryAnimation.classList.add('play-animation');
-                
-                // Hide the animation after it completes
-                setTimeout(() => {
-                    pageEntryAnimation.classList.remove('play-animation');
+            // Only show animation on user-dashboard.php page
+            const isUserDashboard = window.location.pathname.includes('user-dashboard.php') || 
+                                   window.location.pathname.endsWith('/') || 
+                                   window.location.pathname.includes('home');
+            
+            if (isUserDashboard) {
+                // Check if this is the first visit to the page in this session
+                if (!sessionStorage.getItem('navigationAnimationPlayed')) {
+                    pageEntryAnimation.classList.add('play-animation');
+                    
+                    // Hide the animation after it completes and show navbar content
+                    setTimeout(() => {
+                        pageEntryAnimation.classList.remove('play-animation');
+                        pageEntryAnimation.classList.add('animation-completed');
+                        
+                        // Show navbar content then trigger animations
+                        showNavbarContent();
+                        setTimeout(() => {
+                            triggerNavbarAnimations();
+                        }, 100); // Small delay to ensure content is visible first
+                    }, 2000); // Match this timing with your CSS animation duration
+                    
+                    // Mark that we've played the animation in this session
+                    sessionStorage.setItem('navigationAnimationPlayed', 'true');
+                } else {
+                    // If we've already played the animation, show content immediately
                     pageEntryAnimation.classList.add('animation-completed');
-                }, 2000); // Match this timing with your CSS animation duration
-                
-                // Mark that we've played the animation in this session
-                sessionStorage.setItem('navigationAnimationPlayed', 'true');
+                    showNavbarContent();
+                    // Don't trigger animations on subsequent visits
+                }
             } else {
-                // If we've already played the animation, hide it
+                // On other pages, immediately hide logo animation and show navbar content
                 pageEntryAnimation.classList.add('animation-completed');
+                showNavbarContent();
+                // Don't trigger animations on other pages
+            }
+            
+            // Function to show navbar content
+            function showNavbarContent() {
+                const announcementBar = document.querySelector('.announcement-bar');
+                const mainNav = document.querySelector('.main-nav');
+                
+                if (announcementBar) {
+                    announcementBar.classList.add('show-content');
+                }
+                
+                if (mainNav) {
+                    mainNav.classList.add('show-content');
+                }
+            }
+            
+            // Function to trigger navbar animations
+            function triggerNavbarAnimations() {
+                const announcementText = document.querySelector('.announcement-text');
+                const mainNav = document.querySelector('.main-nav');
+                
+                if (announcementText) {
+                    announcementText.classList.add('animate-in');
+                }
+                
+                if (mainNav) {
+                    mainNav.classList.add('animate-in');
+                }
             }
             
             // ===== NOTIFICATIONS =====
             function fetchNotifications() {
-                fetch('../../pages/notifications/fetch-notif.php')
+                // Use the global function if available, otherwise define locally
+                if (window.fetchDropdownNotifications) {
+                    window.fetchDropdownNotifications()
+                        .then(notifications => {
+                            const notificationList = document.getElementById("notificationList");
+                            notificationList.innerHTML = '';
+                            
+                            if (notifications && notifications.length > 0) {
+                                document.getElementById("noNotifications").style.display = "none";
+                                
+                                notifications.forEach(notif => {
+                                    const listItem = document.createElement("li");
+                                    listItem.className = `notification-item ${notif.is_read ? "read" : "unread"}`;
+                                    listItem.dataset.notificationId = notif.id;
+                                    
+                                    // Click handler to open modal
+                                    listItem.addEventListener('click', () => {
+                                        if (window.handleNotificationClick) {
+                                            window.handleNotificationClick(notif.id);
+                                        }
+                                    });
+
+                                    const title = document.createElement("div");
+                                    title.className = "notification-title";
+                                    title.textContent = notif.title;
+
+                                    const message = document.createElement("div");
+                                    message.className = "notification-message";
+                                    message.textContent = notif.message.substring(0, 50) + (notif.message.length > 50 ? '...' : '');
+
+                                    const time = document.createElement("div");
+                                    time.className = "notification-time";
+                                    time.textContent = new Date(notif.created_at).toLocaleString([], {
+                                        short: 'short'
+                                    });
+
+                                    const contentDiv = document.createElement('div');
+                                    contentDiv.className = 'notification-content';
+                                    contentDiv.appendChild(title);
+                                    contentDiv.appendChild(message);
+                                    contentDiv.appendChild(time);
+
+                                    listItem.appendChild(contentDiv);
+                                    notificationList.appendChild(listItem);
+                                });
+
+                                const unreadCount = notifications.filter(n => !n.is_read).length;
+                                if (unreadCount > 0) {
+                                    document.getElementById("notifCount").textContent = unreadCount;
+                                    document.getElementById("notifCount").style.display = "block";
+                                } else {
+                                    document.getElementById("notifCount").style.display = "none";
+                                }
+                            } else {
+                                document.getElementById("noNotifications").style.display = "block";
+                                document.getElementById("notifCount").style.display = "none";
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error fetching notifications:', error);
+                            document.getElementById("noNotifications").innerHTML = '<p>Could not load notifications.</p>';
+                            document.getElementById("notifCount").style.display = "none";
+                        });
+                } else {
+                    // Fallback to direct fetch if global function not available
+                fetch('/frontend/pages/notifications/fetch-notif.php?dropdown=true')
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
@@ -261,39 +559,50 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     return response.json();
                 })
                 .then(data => {
-                    let notificationList = document.getElementById("notificationList");
+                    const notificationList = document.getElementById("notificationList");
                     notificationList.innerHTML = '';
 
                     if (data.status === "success") {
-                        // Check if there are notifications
                         if (data.notifications && data.notifications.length > 0) {
                             document.getElementById("noNotifications").style.display = "none";
                             
                             data.notifications.forEach(notif => {
-                                let newNotif = document.createElement("li");
-                                newNotif.className = notif.is_read ? "read" : "unread";
+                                const listItem = document.createElement("li");
+                                listItem.className = `notification-item ${notif.is_read ? "read" : "unread"}`;
+                                listItem.dataset.notificationId = notif.id;
+                                
+                                listItem.addEventListener('click', () => {
+                                    handleNotificationClick(notif.id);
+                                });
 
-                                // Create clickable link for notification message
-                                let link = document.createElement("a");
-                                link.href = `../../../frontend/pages/profile/order-details.php?order_id=${notif.order_id}`;
-                                link.textContent = notif.message;
-                                link.style.textDecoration = "none";
-                                link.style.color = "inherit";
+                                const title = document.createElement("div");
+                                title.className = "notification-title";
+                                title.textContent = notif.title;
 
-                                newNotif.appendChild(link);
+                                const message = document.createElement("div");
+                                message.className = "notification-message";
+                                message.textContent = notif.message.substring(0, 50) + (notif.message.length > 50 ? '...' : '');
 
-                                // Add timestamp
-                                let small = document.createElement("small");
-                                small.textContent = new Date(notif.created_at).toLocaleString();
-                                newNotif.appendChild(small);
+                                const time = document.createElement("div");
+                                time.className = "notification-time";
+                                time.textContent = new Date(notif.created_at).toLocaleString([], {
+                                    short: 'short'
+                                });
 
-                                notificationList.appendChild(newNotif);
+                                const contentDiv = document.createElement('div');
+                                contentDiv.className = 'notification-content';
+                                contentDiv.appendChild(title);
+                                contentDiv.appendChild(message);
+                                contentDiv.appendChild(time);
+
+                                listItem.appendChild(contentDiv);
+                                notificationList.appendChild(listItem);
                             });
 
                             const unreadCount = data.notifications.filter(n => !n.is_read).length;
                             if (unreadCount > 0) {
                                 document.getElementById("notifCount").textContent = unreadCount;
-                            document.getElementById("notifCount").style.display = "block";
+                                document.getElementById("notifCount").style.display = "block";
                             } else {
                                 document.getElementById("notifCount").style.display = "none";
                             }
@@ -307,75 +616,115 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 })
                 .catch(error => {
                     console.error('Error fetching notifications:', error);
-                    document.getElementById("noNotifications").innerHTML = 
-                        '<p style="color:black;">Unable to load notifications. Please try again later.</p>';
-                        document.getElementById("notifCount").style.display = "none";
+                    document.getElementById("noNotifications").innerHTML = '<p>Could not load notifications.</p>';
+                    document.getElementById("notifCount").style.display = "none";
                 });
+                }
             }
 
-            // Show/hide dropdown on bell icon hover - modified to check screen width
-            if (notifLink && notifDropdown) {
-                notifLink.addEventListener('mouseenter', () => {
-                    // Only show dropdown on hover for screens larger than 768px
-                    if (window.innerWidth > 768) {
-                        notifDropdown.classList.add('active');
-                        fetchNotifications(); // Refresh notifications on hover
+            // Handle notification click - mark as read and show modal
+            function handleNotificationClick(notificationId) {
+                if (window.handleNotificationClick) {
+                    window.handleNotificationClick(notificationId);
+                } else {
+                    // Fallback implementation
+                fetch('/frontend/pages/notifications/mark-notif.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'notification_id=' + notificationId
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        fetchNotifications(); 
                     }
+                })
+                .finally(() => fetchNotificationDetails(notificationId))
+                .catch(error => {
+                    console.error('Error marking notification as read:', error);
+                    fetchNotificationDetails(notificationId);
                 });
+                }
+            }
 
-                notifLink.addEventListener('mouseleave', () => {
-                    // Only hide on mouseleave for screens larger than 768px
-                    if (window.innerWidth > 768) {
-                        // Delay hiding to allow hover on dropdown
-                        setTimeout(() => {
-                            if (!notifDropdown.matches(':hover')) {
-                                notifDropdown.classList.remove('active');
+            // Fetch notification details and show modal
+            function fetchNotificationDetails(notificationId) {
+                if (window.fetchNotificationDetails) {
+                    window.fetchNotificationDetails(notificationId)
+                        .then(notification => {
+                            if (window.showNotificationModal) {
+                                window.showNotificationModal(notification);
                             }
-                        }, 300);
-                    }
-                });
-
-                notifDropdown.addEventListener('mouseleave', () => {
-                    // Only hide on mouseleave for screens larger than 768px
-                    if (window.innerWidth > 768) {
-                        notifDropdown.classList.remove('active');
-                    }
-                });
-
-                notifDropdown.addEventListener('mouseenter', () => {
-                    // Only show on mouseenter for screens larger than 768px
-                    if (window.innerWidth > 768) {
-                        notifDropdown.classList.add('active');
-                    }
-                });
-
-                // Mark all notifications as read when bell icon clicked
-                notifLink.addEventListener("click", function(e) {
-                    e.preventDefault();
-                    if (window.innerWidth <= 768) {
-                        notifDropdown.classList.toggle('active');
-                        fetchNotifications(); // Refresh notifications when toggling on mobile
-                    } else {
-                        fetch('../../../frontend/pages/notifications/mark-notif.php', { 
-                            method: 'POST',
-                            credentials: 'same-origin'
-                        })
-                        .then(response => {
-                            if (!response.ok) throw new Error('Failed to mark notifications as read');
-                            window.location.href = "../../../frontend/pages/notifications/notifications.php";
                         })
                         .catch(error => {
-                            console.error('Error marking notifications as read:', error);
+                            console.error('Error fetching notification details:', error);
                         });
+                } else {
+                    // Fallback implementation
+                fetch(`/frontend/pages/notifications/fetch-notif.php?id=${notificationId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        showNotificationModal(data.notification);
+                    } else {
+                        console.error('Error fetching notification details:', data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching notification details:', error);
+                });
+                }
+            }
+
+            // Show notification modal with details
+            function showNotificationModal(notification) {
+                if (window.showNotificationModal) {
+                    window.showNotificationModal(notification);
+                } else {
+                    // If global function doesn't exist, redirect to notifications page
+                    window.location.href = '/frontend/pages/notifications/notifications.php';
+                }
+            }
+
+            // Toggle dropdown on bell icon click
+            if (notifLink && notifDropdown) {
+                notifLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const isActive = notifDropdown.classList.toggle('active');
+                    if (isActive) {
+                        fetchNotifications();
                     }
                 });
             }
 
-            if (markAllReadButton) {
-                markAllReadButton.addEventListener('click', () => {
-                    fetch('../../../frontend/pages/notifications/mark-notif.php', { 
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (notifDropdown && !notifDropdown.contains(e.target) && !notifLink.contains(e.target)) {
+                    notifDropdown.classList.remove('active');
+                }
+            });
+
+            // Close dropdown with Escape key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && notifDropdown && notifDropdown.classList.contains('active')) {
+                    notifDropdown.classList.remove('active');
+                }
+            });
+
+
+            // Mark all as read button
+            if (markAllReadBtn) {
+                markAllReadBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    fetch('/frontend/pages/notifications/mark-notif.php', {
                         method: 'POST',
-                        credentials: 'same-origin'
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: 'mark_all=true'
                     })
                     .then(response => {
                         if (!response.ok) throw new Error('Failed to mark notifications as read');
@@ -387,10 +736,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 });
             }
 
-            // Initial fetch and polling
-            fetchNotifications();
-            setInterval(fetchNotifications, 30000);
-            
+            // Initial fetch and polling - only if user is properly logged in
+            if (<?php echo ($is_user_logged_in && isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'user') ? 'true' : 'false'; ?>) {
+                fetchNotifications(); // Initial fetch
+                setInterval(fetchNotifications, 30000); // Poll every 30 seconds
+            }
+
             // ===== MOBILE MENU =====
             // Mobile menu toggle with smooth transition
             if (mobileMenuToggle && navLeft) {
@@ -461,4 +812,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             });
         });
     </script>
+    
+    <!-- Include the global notification JavaScript -->
+    <script src="/frontend/pages/notifications/notifications.js"></script>
 </div>

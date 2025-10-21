@@ -1,7 +1,15 @@
 <?php
+// Start session with dynamic domain
+$session_domain = $_SERVER['HTTP_HOST'] ?? 'localhost';
+session_set_cookie_params([
+    'lifetime' => 0,
+    'httponly' => true,
+    'samesite' => 'Strict',
+    'domain' => $session_domain
+]);
 session_start();
-require_once '../../user-includes/database.php';
-require_once '../../backend/config/mailer/mailer.php';
+require_once '../../../backend/pages/admin-includes/database.php';
+require_once '../../../backend/pages/admin-includes/mailer.php';
 
 // Ensure no output before JSON response
 ob_start();
@@ -26,7 +34,9 @@ function sendOrderEmail($orderDetails, $adminEmail) {
             'cart_total' => $orderDetails['cart_total'],
             'shipping_fee' => $orderDetails['shipping_fee'],
             'total_amount' => $orderDetails['total_amount'],
-            'order_notes' => $orderDetails['order_notes'] ?? ''
+            'order_notes' => $orderDetails['order_notes'] ?? '',
+            'discount_amount' => $orderDetails['discount_amount'] ?? 0,
+            'applied_coupon' => $orderDetails['applied_coupon'] ?? null
         ];
 
         // Use the mailer function from mailer.php
@@ -79,7 +89,21 @@ try {
 
     $orderDetails['cart_items'] = $cart_items;
     $orderDetails['cart_total'] = floatval($_POST['cart_total']);
-    $orderDetails['total_amount'] = $orderDetails['cart_total'] + $orderDetails['shipping_fee'];
+    
+    // Process coupon data if provided
+    $discount_amount = 0;
+    $applied_coupon = null;
+    
+    if (!empty($_POST['applied_coupon'])) {
+        $applied_coupon = json_decode($_POST['applied_coupon'], true);
+        $discount_amount = floatval($_POST['discount_amount'] ?? 0);
+        
+        // Update total amount with discount
+        $orderDetails['discount_amount'] = $discount_amount;
+        $orderDetails['applied_coupon'] = $applied_coupon;
+    }
+    
+    $orderDetails['total_amount'] = $orderDetails['cart_total'] + $orderDetails['shipping_fee'] - $discount_amount;
     
     // Debug log
     error_log("Cart Items Data: " . print_r($orderDetails['cart_items'], true));
@@ -203,7 +227,12 @@ try {
     $delivery_time = $orderDetails['delivery_method'] === 'delivery' ? $orderDetails['delivery_time'] : null;
     $pickup_date = $orderDetails['delivery_method'] === 'pickup' ? $orderDetails['pickup_date'] : null;
     $pickup_time = $orderDetails['delivery_method'] === 'pickup' ? $orderDetails['pickup_time'] : null;
+    // Include coupon information in notes if applied
     $notes = $orderDetails['order_notes'];
+    if ($applied_coupon) {
+        $coupon_info = "\n\nCoupon Applied: " . $applied_coupon['code'] . " - Discount: ₱" . number_format($discount_amount, 2);
+        $notes .= $coupon_info;
+    }
     
     // Save order to database with the customer_id
     $order_sql = "INSERT INTO orders (
@@ -349,6 +378,76 @@ try {
         }
 
         error_log("Successfully inserted order item with order_id: " . $order_id);
+        
+        // Update product inventory - subtract ordered quantity
+        $product_id = $item['product_id'] ?? null;
+        $ordered_quantity = $item['quantity'];
+        
+        if ($product_id) {
+            // First, check current stock
+            $stock_check_sql = "SELECT quantity, status_id, name FROM products WHERE id = ?";
+            $stock_check_stmt = $conn->prepare($stock_check_sql);
+            $stock_check_stmt->bind_param("i", $product_id);
+            $stock_check_stmt->execute();
+            $stock_result = $stock_check_stmt->get_result();
+            
+            if ($stock_row = $stock_result->fetch_assoc()) {
+                $current_stock = $stock_row['quantity'];
+                $current_status_id = $stock_row['status_id'];
+                $product_name = $stock_row['name'];
+                
+                // Check if there's sufficient stock
+                if ($current_stock >= $ordered_quantity) {
+                    // Update product stock
+                    $update_stock_sql = "UPDATE products SET quantity = quantity - ? WHERE id = ?";
+                    $update_stock_stmt = $conn->prepare($update_stock_sql);
+                    $update_stock_stmt->bind_param("ii", $ordered_quantity, $product_id);
+                    
+                    if ($update_stock_stmt->execute()) {
+                        error_log("Successfully updated inventory for product ID $product_id: reduced by $ordered_quantity");
+                        
+                        // Check if product quantity reached 0 and update status to unavailable
+                        $new_stock = $current_stock - $ordered_quantity;
+                        if ($new_stock <= 0) {
+                            $new_status_id = 0;
+                            
+                            // Determine the appropriate unavailable status based on current status
+                            if ($current_status_id == 1) {
+                                // Currently Pick Up - set to Unavailable Pick Up (ID 4)
+                                $new_status_id = 4;
+                            } else if ($current_status_id == 2) {
+                                // Currently Delivery - set to Unavailable Delivery (ID 5)
+                                $new_status_id = 5;
+                            } else {
+                                // For any other status, default to Unavailable Delivery (ID 5)
+                                $new_status_id = 5;
+                            }
+                            
+                            $update_status_sql = "UPDATE products SET status_id = ? WHERE id = ?";
+                            $update_status_stmt = $conn->prepare($update_status_sql);
+                            $update_status_stmt->bind_param("ii", $new_status_id, $product_id);
+                            
+                            if ($update_status_stmt->execute()) {
+                                error_log("Product '$product_name' (ID: $product_id) marked as unavailable due to zero stock");
+                            } else {
+                                error_log("Failed to update product status for product ID $product_id: " . $update_status_stmt->error);
+                            }
+                            $update_status_stmt->close();
+                        }
+                    } else {
+                        error_log("Failed to update inventory for product ID $product_id: " . $update_stock_stmt->error);
+                    }
+                    $update_stock_stmt->close();
+                } else {
+                    error_log("Insufficient stock for product '$product_name' (ID: $product_id). Available: $current_stock, Requested: $ordered_quantity");
+                }
+            } else {
+                error_log("Product not found for inventory update: product ID $product_id");
+            }
+            $stock_check_stmt->close();
+        } else {
+            error_log("No product_id found for inventory update in item: " . print_r($item, true));
+        }
     }
     
     // Add the generated order_id to orderDetails for email
@@ -371,30 +470,50 @@ try {
         }
     }
     
-    // Clear any output buffers before sending JSON
+    // Clear any output buffers
     while (ob_get_level()) {
         ob_end_clean();
     }
     
-    // Set JSON header
-    header('Content-Type: application/json');
+    // Check if this is an AJAX request or form submission
+    $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+              strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest' ||
+              (isset($_SERVER['CONTENT_TYPE']) && strpos($_SERVER['CONTENT_TYPE'], 'application/json') !== false);
     
-    // Return success response with the order_id
-    echo json_encode([
-        'success' => true, 
-        'order_id' => $order_id,
-        'receipt_url' => 'order_receipt.php?order_id=' . $order_id
-    ]);
+    if ($isAjax) {
+        // Return JSON response for AJAX requests
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => true, 
+            'order_id' => $order_id,
+            'receipt_url' => 'order_receipt.php?order_id=' . $order_id
+        ]);
+    } else {
+        // Redirect to receipt page for form submissions
+        header('Location: order_receipt.php?order_id=' . $order_id);
+        exit();
+    }
     
 } catch (Exception $e) {
-    // Clear any output buffers before sending JSON
+    // Clear any output buffers
     while (ob_get_level()) {
         ob_end_clean();
     }
     
-    // Set JSON header
-    header('Content-Type: application/json');
-    
     error_log("Order processing error: " . $e->getMessage());
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    
+    // Check if this is an AJAX request or form submission
+    $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+              strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest' ||
+              (isset($_SERVER['CONTENT_TYPE']) && strpos($_SERVER['CONTENT_TYPE'], 'application/json') !== false);
+    
+    if ($isAjax) {
+        // Return JSON response for AJAX requests
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    } else {
+        // Redirect to an error page or back to checkout for form submissions
+        header('Location: checkout.php?error=' . urlencode($e->getMessage()));
+        exit();
+    }
 } 

@@ -53,23 +53,26 @@ body {
 .cart-info {
   color: #333;
   text-align: center;
+  padding-bottom: 20px;
 }
 
-.cart-section {
-  margin-bottom: 30px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+.cart-container {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
 }
+
+.cart-sections {
+  flex: 1; /* pickup + delivery */
+}
+
 
 .section-header {
   background: linear-gradient(135deg, #256035, #1a4a2a);
   color: white;
-  padding: 15px 20px;
+  padding: 20px 365px 15px 25px;
   margin-bottom: 0;
   display: flex;
-  justify-content: space-between;
   align-items: center;
 }
 
@@ -80,6 +83,7 @@ body {
 }
 
 .section-select-all {
+  order: 1;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -97,6 +101,11 @@ body {
   font-weight: 500;
   cursor: pointer;
   font-size: 0.9em;
+}
+
+.section-controls {
+  order: 2;  /* pushes filter to the far right */
+  margin-left: auto; /* makes sure it hugs the right */
 }
 
 .cart-table {
@@ -264,9 +273,13 @@ body {
 
 .cart-summary {
   flex: 1;
-  padding: 20px 20px 20px 63%;
-  height: fit-content;
+  padding: 20px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
+
+
 
 .cart-summary h2 {
   margin-top: 0;
@@ -344,4 +357,60 @@ body {
   .cart-summary {
     padding: 20px;
   }
+}
+
+/* BACK BUTTON */
+.cta {
+  border: none;
+  background: none;
+  cursor: pointer;
+  align-self: flex-start;
+  margin: 30px;
+}
+
+.cta span {
+  padding-bottom: 7px;
+  letter-spacing: 1px;
+  font-size: 18px;
+  font-weight: 500;
+  padding-right: 15px;
+  text-transform: uppercase;
+}
+
+.cta svg {
+  transform: translateX(0);
+  transition: all 0.3s ease;
+}
+
+.cta:hover svg {
+  transform: translateX(-8px);
+}
+
+.cta:active svg {
+  transform: scale(0.9);
+}
+
+.hover-underline-animation {
+  position: relative;
+  color: black;
+  padding-bottom: 20px;
+  padding-left: 5px;
+}
+
+.hover-underline-animation:after {
+  content: "";
+  position: absolute;
+  width: 85%;
+  transform: scaleX(0);
+  height: 2px;
+  bottom: 0;
+  left: 0;
+  background-color: var(--primary-color);
+  transform-origin: bottom right;
+  transition: transform 0.3s ease-out;
+}
+
+.cta:hover .hover-underline-animation:after {
+  transform: scaleX(1);
+  transform-origin: bottom left;
 }

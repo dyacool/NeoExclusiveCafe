@@ -10,7 +10,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 // Database connection
-require_once "../../user-includes/database.php";
+require_once "../../../backend/pages/admin-includes/database.php";
 
 $page_title = "Neo Cafe's Corner";
 $additional_css = [
@@ -47,27 +47,13 @@ $total_row = mysqli_fetch_assoc($count_result);
 $total_posts = $total_row['total'];
 $total_pages = ceil($total_posts / $posts_per_page);
 ?>
-    <button class="cta" onclick="window.location.href='/frontend/pages/blog/blog-dashboard.php'">
-    <svg
-        id="arrow-horizontal"
-        xmlns="http://www.w3.org/2000/svg"
-        width="30"
-        height="10"
-        viewBox="0 0 46 16"
-    >
-        <path
-        id="Path_10"
-        data-name="Path 10"
-        d="M38,0,39.455,1.455,33.949,6.961H76V9.039H33.949l5.506,5.506L38,16l-8-8Z"
-        transform="translate(-25)"
-        ></path>
-    </svg>
-    <span class="hover-underline-animation"> Go Back </span>
-</button>
+
+<?php include __DIR__ . "/../../user-includes/bread-crumb/bread-crumb.php"; ?>
+
 <div class="blog-container fade-in">
 
     <div class="blog-header">
-        <h1>Customer Reviews & Stories</h1>
+        <h1>Customer Testimonials</h1>
         <?php if (isset($_SESSION['user_id'])): ?>
             <a href="create-blog.php" class="create-post-btn">
                 <i class="fas fa-plus"></i> Create Post

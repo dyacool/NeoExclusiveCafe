@@ -479,6 +479,12 @@ body.checkout-page {
   letter-spacing: 0.5px;
 }
 
+.delivery-content {
+  display: flex;
+  flex-direction: column;
+
+}
+
 /* Calendar responsiveness */
 @media (max-width: 768px) {
   .calendar-container {

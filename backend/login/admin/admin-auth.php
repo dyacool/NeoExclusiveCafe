@@ -1,5 +1,7 @@
 <?php
-session_start();
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
 
 // Include the config file
 require_once __DIR__ . "/../../pages/admin-includes/config.php";

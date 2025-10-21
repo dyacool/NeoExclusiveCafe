@@ -37,7 +37,12 @@ class Notification {
                     $imageUrl = '/' . ltrim($row['image_url'], '/');
                 }
             }
+<<<<<<< HEAD
             $ps->close();
+=======
+            $imgStmt->close();
+            $link = "../../pages/users/product-details.php?product_id=" . $productId;
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
         }
         $productName = $productName ?: 'Product';
         $title = "Promotion: {$productName}";
@@ -47,9 +52,14 @@ class Notification {
 
     // Create a notification for system updates
     public function createWelcomeNotification($userId) {
+<<<<<<< HEAD
         $title = 'Welcome to NeoExclusiveCafe';
         $message = 'Your account has been verified.';
         return $this->create($userId, 'system', $title, $message, null);
+=======
+        $message = "Welcome to NeoExclusiveCafe! Your account has been verified.";
+        $this->create($userId, 'system_alert', $message);
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
     }
 
     // Create a notification for order status updates with image from products table
@@ -103,9 +113,16 @@ class Notification {
             }
             $pi->close();
 
+<<<<<<< HEAD
             $safeStatus = trim($status);
             $title = "Order #{$orderId} Status Update";
             $message = "Your order #{$orderId} has been {$safeStatus}.";
+=======
+            // Prepare notification details
+            $title = "Order Status Update";
+            $message = "Your order #$orderId have been updated to $status. Click here to view order details.";
+            $link = "../../pages/cart/order-details.php?order_id=" . $orderId;
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
 
             return $this->create($userId, 'order', $title, $message, $imageUrl);
         } catch (\Throwable $e) {
@@ -184,11 +201,81 @@ class Notification {
         return (int)($row['cnt'] ?? 0);
     }
 
+<<<<<<< HEAD
     // Mark a single notification as read by notification ID
     public function markAsRead($notificationId) {
         $stmt = $this->db->prepare("UPDATE notifications SET is_read = 1 WHERE id = ?");
         $stmt->bind_param("i", $notificationId);
+=======
+
+    // Mark a single notification as read by notification ID (with user validation)
+    public function markAsRead($notificationId, $userId) {
+        $stmt = $this->db->prepare("UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?");
+        $stmt->bind_param("ii", $notificationId, $userId);
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
         $stmt->execute();
+        $affectedRows = $stmt->affected_rows;
         $stmt->close();
+<<<<<<< HEAD
+=======
+        return $affectedRows > 0;
+    }
+
+    // Fetch notification details by ID for modal display
+    public function getNotificationDetails($notificationId, $userId) {
+        $stmt = $this->db->prepare("
+            SELECT id, user_id, type, title, message, image_url, is_read, created_at, order_id 
+            FROM notifications 
+            WHERE id = ? AND user_id = ?
+        ");
+        $stmt->bind_param("ii", $notificationId, $userId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows === 0) {
+            return null;
+        }
+        
+        $notification = $result->fetch_assoc();
+        $stmt->close();
+        
+        // If it's an order notification, fetch order details
+        if ($notification['type'] === 'order' && !empty($notification['order_id'])) {
+            $orderId = $notification['order_id'];
+            
+            // Fetch order details
+            $orderStmt = $this->db->prepare("
+                SELECT o.id, o.customer_name, o.customer_email, o.customer_phone, 
+                       o.delivery_address, o.total_amount, o.status, o.created_at as order_date,
+                       GROUP_CONCAT(CONCAT(oi.quantity, 'x ', p.name) SEPARATOR ', ') as items
+                FROM orders o
+                LEFT JOIN order_items oi ON o.id = oi.order_id
+                LEFT JOIN products p ON oi.product_id = p.id
+                WHERE o.id = ?
+                GROUP BY o.id
+            ");
+            $orderStmt->bind_param("i", $orderId);
+            $orderStmt->execute();
+            $orderResult = $orderStmt->get_result();
+            
+            if ($orderResult->num_rows > 0) {
+                $orderDetails = $orderResult->fetch_assoc();
+                $notification['order_details'] = [
+                    'id' => (int)$orderDetails['id'],
+                    'customer_name' => $orderDetails['customer_name'],
+                    'customer_email' => $orderDetails['customer_email'],
+                    'customer_phone' => $orderDetails['customer_phone'],
+                    'delivery_address' => $orderDetails['delivery_address'],
+                    'total_amount' => $orderDetails['total_amount'],
+                    'status' => $orderDetails['status'],
+                    'order_date' => $orderDetails['order_date'],
+                    'items' => $orderDetails['items']
+                ];
+            }
+            $orderStmt->close();
+        }
+        
+        return $notification;
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
     }
 }

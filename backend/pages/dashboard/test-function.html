@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Function</title>
+</head>
+<body>
+    <h1>Test updateBusinessHours Function</h1>
+    <button onclick="testFunction()">Test Inline Function</button>
+    <button onclick="if(typeof updateBusinessHours !== 'undefined') { alert('Function exists!'); updateBusinessHours(); } else { alert('Function NOT defined'); }">Direct Test</button>
+    <div id="status"></div>
+    
+    <script>
+        // Check if script loaded
+        console.log('Test page loading...');
+        
+        // Auto check on load
+        window.addEventListener('load', function() {
+            console.log('Page loaded');
+            console.log('updateBusinessHours type:', typeof updateBusinessHours);
+            console.log('window.updateBusinessHours type:', typeof window.updateBusinessHours);
+            
+            // Show status
+            document.getElementById('status').innerHTML = 
+                'Script check:<br>' +
+                'updateBusinessHours: ' + (typeof updateBusinessHours) + '<br>' +
+                'window.updateBusinessHours: ' + (typeof window.updateBusinessHours) + '<br>';
+        });
+        
+        function testFunction() {
+            var msg = 'Inline function works!<br>';
+            if (typeof window.updateBusinessHours === 'function') {
+                msg += 'updateBusinessHours is defined!<br>';
+                msg += 'Type: ' + typeof updateBusinessHours;
+            } else {
+                msg += 'updateBusinessHours is NOT defined!<br>';
+                msg += 'Checking script load...';
+            }
+            document.getElementById('status').innerHTML = msg;
+        }
+    </script>
+    <script src="dashboard.js"></script>
+</body>
+</html>
+

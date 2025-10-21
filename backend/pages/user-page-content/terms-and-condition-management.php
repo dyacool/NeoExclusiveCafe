@@ -11,6 +11,10 @@ if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
 // Include the navbar and database
 require_once __DIR__ . "/../admin-includes/navbar/navbar.php";
 require_once __DIR__ . "/../admin-includes/database.php";
+<<<<<<< HEAD
+=======
+require_once __DIR__ . "/../admin-includes/activity-logger.php";
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
 
 // Initialize variables
 $success_message = '';
@@ -97,6 +101,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($stmt->execute()) {
                 if ($stmt->affected_rows > 0) {
                     $success_message = "Terms and conditions updated successfully!";
+<<<<<<< HEAD
+=======
+                    logAdminActivity($conn, 'UPDATE', "Updated terms and conditions content", 'terms_conditions', 1);
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
                     // Refresh the data
                     $terms['title'] = $title;
                     $terms['content'] = $content;
@@ -143,6 +151,7 @@ $conn->close();
     <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 </head>
 <body>
+<<<<<<< HEAD
     <div class="container">
         <?php if ($success_message): ?>
             <div class="alert success">
@@ -199,6 +208,129 @@ $conn->close();
                     </div>
                 </div>
             </form>
+=======
+    <div class="admin-main">
+        <div class="admin-container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-header-content">
+                    <div class="page-title-section">
+                        <h1 class="page-title">Terms and Conditions Management</h1>
+                        <p class="page-subtitle">Manage your website's terms and conditions</p>
+                    </div>
+                    <div class="page-actions">
+                        <button type="button" class="btn btn-secondary" onclick="previewTerms()">
+                            <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                            Preview
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alert Messages -->
+            <?php if ($success_message): ?>
+                <div class="alert alert-success">
+                    <svg class="alert-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span><?php echo htmlspecialchars($success_message); ?></span>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($error_message): ?>
+                <div class="alert alert-error">
+                    <svg class="alert-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span><?php echo htmlspecialchars($error_message); ?></span>
+                </div>
+            <?php endif; ?>
+
+            <!-- Main Content -->
+            <div class="admin-section">
+                <h2>Terms and Conditions Content</h2>
+                <p class="settings-info">
+                    Configure your website's terms and conditions that will be displayed to users. 
+                    Use the rich text editor to format your content with proper styling.
+                    <?php if (isset($terms['last_updated'])): ?>
+                        Last updated: <?php echo date('F j, Y, g:i a', strtotime($terms['last_updated'])); ?>
+                    <?php endif; ?>
+                </p>
+
+                <form method="POST" action="" id="termsForm" class="admin-form">
+                    <div class="form-group">
+                        <label for="title">Title</label>
+                        <input type="text" 
+                               id="title" 
+                               name="title" 
+                               class="form-input"
+                               value="<?php echo htmlspecialchars($terms['title'] ?? ''); ?>" 
+                               placeholder="Enter title for terms and conditions"
+                               required>
+                        <div class="form-help">This will be displayed as the main heading</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="content">Terms and Conditions Content</label>
+                        <div class="editor-wrapper">
+                            <div id="editor-container" class="rich-editor"></div>
+                            <textarea id="content" 
+                                      name="content" 
+                                      style="display: none;"
+                                      required><?php echo htmlspecialchars($terms['content'] ?? ''); ?></textarea>
+                        </div>
+                        <div class="form-help">Use the rich text editor to format your content with headings, lists, and styling</div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Update Terms
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Content Guidelines -->
+            <div class="admin-section">
+                <h2>Content Guidelines</h2>
+                <div class="guidelines-grid">
+                    <div class="guideline-card">
+                        <div class="guideline-icon">
+                            <svg fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <h3>Legal Compliance</h3>
+                        <p>Ensure your terms comply with local laws and regulations. Consider consulting with legal professionals for comprehensive coverage.</p>
+                    </div>
+                    <div class="guideline-card">
+                        <div class="guideline-icon">
+                            <svg fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd"></path>
+                                <path fill-rule="evenodd" d="M4 5a2 2 0 012-2v1a1 1 0 102 0V3a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 8V5a1 1 0 10-2 0v8a1 1 0 102 0z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <h3>Clear Language</h3>
+                        <p>Use clear, understandable language. Avoid overly complex legal jargon that may confuse your users.</p>
+                    </div>
+                    <div class="guideline-card">
+                        <div class="guideline-icon">
+                            <svg fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <h3>Regular Updates</h3>
+                        <p>Review and update your terms regularly to reflect changes in your business practices and legal requirements.</p>
+                    </div>
+                </div>
+            </div>
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
         </div>
     </div>
 

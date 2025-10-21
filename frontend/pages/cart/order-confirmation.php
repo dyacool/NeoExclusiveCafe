@@ -1,4 +1,10 @@
 <?php
+session_set_cookie_params([
+    'lifetime' => 0,
+    'httponly' => true,
+    'samesite' => 'Strict',
+    'domain' => 'neocafe.cafe'
+]);
 session_start();
 require_once $_SERVER['DOCUMENT_ROOT'] . "/NeoExclusiveCafe/php/includes/database.php";
 require_once $_SERVER['DOCUMENT_ROOT'] . "/NeoExclusiveCafe/php/includes/mailer.php";

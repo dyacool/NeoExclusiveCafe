@@ -155,6 +155,16 @@
   color: var(--green-600);
 }
 
+.setting-icon.delivery {
+  background-color: var(--blue-100);
+  color: var(--blue-600);
+}
+
+.setting-icon.cb-knowledge {
+  background-color: var(--purple-100);
+  color: var(--purple-500);
+}
+
 .setting-icon.terms {
   background-color: var(--blue-100);
   color: var(--blue-600);

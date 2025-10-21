@@ -8,30 +8,9 @@ ob_start();
 
 // Include necessary files
 require_once "../admin-includes/database.php";
+require_once "../../login/admin/admin-auth.php";
 
-// Start session and check admin authentication
-session_start();
-
-// Debug: Log session information
-error_log("Session data: " . print_r($_SESSION, true));
-error_log("Session ID: " . session_id());
-error_log("Session name: " . session_name());
-error_log("Session status: " . session_status());
-
-if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
-    header('Content-Type: application/json');
-    echo json_encode([
-        'success' => false, 
-        'error' => 'Unauthorized access',
-        'session_info' => [
-            'session_id' => session_id(),
-            'is_admin_set' => isset($_SESSION["is_admin"]),
-            'is_admin_value' => $_SESSION["is_admin"] ?? 'not set',
-            'admin_id' => $_SESSION["admin_id"] ?? 'not set'
-        ]
-    ]);
-    exit();
-}
+// Admin authentication is handled by admin-auth.php include
 
 // Set content type to JSON
 header('Content-Type: application/json');

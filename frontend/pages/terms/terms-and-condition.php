@@ -3,7 +3,11 @@
 session_start();
 
 // Include database connection
+<<<<<<< HEAD
 require_once "../../user-includes/database.php";
+=======
+require_once "../../../backend/pages/admin-includes/database.php";
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
 
 // Fetch terms and conditions
 $sql = "SELECT * FROM terms_conditions WHERE id = 1";
@@ -50,13 +54,17 @@ $conn->close();
     <title><?php echo htmlspecialchars($terms['title']); ?> - Neo Exclusive Cafe</title>
     <link rel="stylesheet" href="terms-and-condition.css">
     <link rel="icon" type="image/x-icon" href="../../../assets/images/favicon.ico">
+<<<<<<< HEAD
     
     <!-- Include user navigation -->
     <?php include "../../user-includes/user-header.php"; ?>
+=======
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
 </head>
 <body>
     <!-- Navigation -->
     <?php include "../../user-includes/navbar/customer-navigation.php"; ?>
+<<<<<<< HEAD
 
     <div class="terms-container">
         <div class="container">
@@ -67,6 +75,12 @@ $conn->close();
                 <span class="current">Terms and Conditions</span>
             </nav>
 
+=======
+    <?php include __DIR__ . "/../../user-includes/bread-crumb/bread-crumb.php"; ?>
+
+    <div class="terms-container">
+        <div class="container">
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
             <!-- Header -->
             <header class="terms-header">
                 <h1><?php echo htmlspecialchars($terms['title']); ?></h1>
@@ -82,6 +96,7 @@ $conn->close();
                 <div class="content-wrapper">
                     <?php echo $terms['content']; ?>
                 </div>
+<<<<<<< HEAD
 
                 <!-- Action Buttons -->
                 <div class="terms-actions">
@@ -115,6 +130,8 @@ $conn->close();
                         <li><strong>Address:</strong> 123 Coffee Street, Café District, CD 12345</li>
                     </ul>
                 </div>
+=======
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
             </main>
         </div>
     </div>

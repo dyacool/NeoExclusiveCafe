@@ -1,11 +1,6 @@
 <?php
 session_start();
-require_once __DIR__ . '/php/auth/vendor/autoload.php';
-require_once '../../user-includes/database.php';
-
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\SMTP;
-use PHPMailer\PHPMailer\Exception;
+require_once '../../../backend/pages/admin-includes/database.php';
 
 // Check if order ID is provided
 if (!isset($_GET['order_id'])) {
@@ -191,7 +186,7 @@ while ($item = $items_result->fetch_assoc()) {
 
         <div class="text-center print-button">
             <button class="btn btn-success" onclick="window.print()">Print Receipt</button>
-            <a href="pages/users/user-dashboard.php" class="btn btn-secondary">Back to Home</a>
+            <a href="../products/product-dashboard.php" class="btn btn-secondary">Back to Home</a>
         </div>
     </div>
 

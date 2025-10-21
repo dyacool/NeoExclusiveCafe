@@ -5,6 +5,7 @@ $page_title = "Manage Carousel Images";
 require_once __DIR__ . "/../admin-includes/config.php";
 require_once __DIR__ . "/../admin-includes/database.php";
 require_once __DIR__ . "/../admin-includes/navbar/navbar.php";
+require_once __DIR__ . "/../admin-includes/activity-logger.php";
 
 // Function to get the next available order number
 function getNextAvailableOrder($conn) {
@@ -106,6 +107,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 if (mysqli_stmt_execute($insert_stmt)) {
                     $success_message = "Image added successfully!";
+                    $new_image_id = mysqli_insert_id($conn);
+                    logAdminActivity($conn, 'CREATE', "Added new carousel image: $title", 'carousel_images', $new_image_id);
                 } else {
                     $error_message = "Error adding image: " . mysqli_error($conn);
                 }
@@ -180,6 +183,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             if (isset($update_stmt) && mysqli_stmt_execute($update_stmt)) {
                 $success_message = "Image updated successfully!";
+                logAdminActivity($conn, 'UPDATE', "Updated carousel image: $title", 'carousel_images', $image_id);
             } else {
                 $error_message = "Error updating image: " . mysqli_error($conn);
             }
@@ -191,6 +195,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $image_id = (int)$_POST['image_id'];
         $new_status = (int)$_POST['new_status'];
         
+        // Get image title for logging
+        $get_title_query = "SELECT title FROM carousel_images WHERE id = ?";
+        $get_title_stmt = mysqli_prepare($conn, $get_title_query);
+        mysqli_stmt_bind_param($get_title_stmt, "i", $image_id);
+        mysqli_stmt_execute($get_title_stmt);
+        $title_result = mysqli_stmt_get_result($get_title_stmt);
+        $title_data = mysqli_fetch_assoc($title_result);
+        
         $update_query = "UPDATE carousel_images SET is_active = ?, updated_by = ? WHERE id = ?";
         $update_stmt = mysqli_prepare($conn, $update_query);
         mysqli_stmt_bind_param($update_stmt, "isi", $new_status, $_SESSION['admin_id'], $image_id);
@@ -198,6 +210,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (mysqli_stmt_execute($update_stmt)) {
             $status_text = $new_status ? "activated" : "deactivated";
             $success_message = "Image $status_text successfully!";
+            logAdminActivity($conn, 'UPDATE', "Carousel image $status_text: {$title_data['title']}", 'carousel_images', $image_id);
         } else {
             $error_message = "Error updating image status: " . mysqli_error($conn);
         }
@@ -207,8 +220,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['delete_image'])) {
         $image_id = (int)$_POST['image_id'];
         
-        // Get the image URL to delete the file
-        $get_image_query = "SELECT image_url FROM carousel_images WHERE id = ?";
+        // Get the image URL and title for logging
+        $get_image_query = "SELECT image_url, title FROM carousel_images WHERE id = ?";
         $get_image_stmt = mysqli_prepare($conn, $get_image_query);
         mysqli_stmt_bind_param($get_image_stmt, "i", $image_id);
         mysqli_stmt_execute($get_image_stmt);
@@ -228,6 +241,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if (mysqli_stmt_execute($delete_stmt)) {
             $success_message = "Image deleted successfully!";
+            logAdminActivity($conn, 'DELETE', "Deleted carousel image: {$image_data['title']}", 'carousel_images', $image_id);
         } else {
             $error_message = "Error deleting image: " . mysqli_error($conn);
         }

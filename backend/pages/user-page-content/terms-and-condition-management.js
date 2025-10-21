@@ -2,11 +2,17 @@
 document.addEventListener("DOMContentLoaded", function () {
   initializeEditor();
   setupFormHandling();
+<<<<<<< HEAD
   setupAutoSave();
 });
 
 let quill;
 let autoSaveInterval;
+=======
+});
+
+let quill;
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
 let isContentChanged = false;
 
 // Initialize Quill.js Editor
@@ -59,8 +65,38 @@ function setupFormHandling() {
 
   // Handle form submission
   form.addEventListener("submit", function (e) {
+<<<<<<< HEAD
     e.preventDefault();
     saveTerms();
+=======
+    const title = document.getElementById("title").value.trim();
+
+    if (!title) {
+      e.preventDefault();
+      showNotification("Please enter a title", "error");
+      document.getElementById("title").focus();
+      return;
+    }
+
+    if (!quill) {
+      e.preventDefault();
+      showNotification("Editor not initialized", "error");
+      return;
+    }
+
+    const content = quill.root.innerHTML;
+    if (!content.trim() || content === "<p><br></p>") {
+      e.preventDefault();
+      showNotification("Please enter content", "error");
+      quill.focus();
+      return;
+    }
+
+    // Update hidden textarea before submission
+    document.getElementById("content").value = content;
+
+    // Allow form to submit normally
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
   });
 
   // Prevent accidental navigation away with unsaved changes
@@ -74,6 +110,7 @@ function setupFormHandling() {
   });
 }
 
+<<<<<<< HEAD
 // Setup auto-save functionality
 function setupAutoSave() {
   // Auto-save every 2 minutes
@@ -225,6 +262,8 @@ function loadDraft() {
   }
 }
 
+=======
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
 // Update save status indicator
 function updateSaveStatus() {
   const saveBtn = document.querySelector(".btn-save");
@@ -335,6 +374,7 @@ function showNotification(message, type = "success") {
     }
   }, 5000);
 }
+<<<<<<< HEAD
 
 // Clear localStorage on successful save
 window.addEventListener("beforeunload", function () {
@@ -350,3 +390,5 @@ setTimeout(() => {
 
 // Global function for save draft button
 window.saveDraft = saveDraft;
+=======
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1

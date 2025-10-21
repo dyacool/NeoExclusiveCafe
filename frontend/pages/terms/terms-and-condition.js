@@ -1,6 +1,7 @@
 // Terms and Conditions Frontend JavaScript
 document.addEventListener("DOMContentLoaded", function () {
   initializeInteractions();
+<<<<<<< HEAD
   setupScrollToTop();
   setupSmoothScrolling();
 });
@@ -77,6 +78,10 @@ function updateReadingProgress() {
   progressBar.style.width = percentage + "%";
 }
 
+=======
+});
+
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
 // Add section navigation
 function addSectionNavigation() {
   const headings = document.querySelectorAll(

@@ -1,8 +1,7 @@
 -- Disable foreign key checks
 SET FOREIGN_KEY_CHECKS = 0;
 
--- First, remove the existing admin
-DELETE FROM user_roles WHERE user_id IN (SELECT id FROM users WHERE email = 'annadechavez@hotmail.com');
+-- First, remove the existing admin (user_roles references removed)
 DELETE FROM users WHERE email = 'annadechavez@hotmail.com';
 
 -- Reset auto-increment
@@ -39,9 +38,7 @@ INSERT INTO admin_roles (name, description)
 SELECT 'admin', 'Full administrative access'
 WHERE NOT EXISTS (SELECT 1 FROM admin_roles WHERE name = 'admin');
 
--- Assign admin role
-INSERT INTO user_roles (user_id, role_id)
-SELECT @admin_id, id FROM admin_roles WHERE name = 'admin';
+-- Admin role assignment removed - using is_admin flag only
 
 -- Re-enable foreign key checks
 SET FOREIGN_KEY_CHECKS = 1; 

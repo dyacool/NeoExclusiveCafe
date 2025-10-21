@@ -5,7 +5,8 @@ if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
     exit();
 }
 
-require_once $_SERVER['DOCUMENT_ROOT'] . "/NeoExclusiveCafe/php/includes/database.php";
+require_once '../admin-includes/database.php';
+require_once '../admin-includes/activity-logger.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['order_id']) && isset($_POST['status'])) {
     $order_id = intval($_POST['order_id']);
@@ -17,47 +18,60 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['order_id']) && isset($
     mysqli_stmt_bind_param($stmt, "si", $status, $order_id);
     
 if (mysqli_stmt_execute($stmt)) {
-    // Create notification for user about order status change
-    require_once $_SERVER['DOCUMENT_ROOT'] . "/NeoExclusiveCafe/php/includes/class-notif.php";
+    // Log the activity
+    logAdminActivity($conn, 'UPDATE', "Changed order #$order_id status to '$status'", 'orders', $order_id);
+    
+    // Revert to original in-app notification + email to customer
+    require_once '../../../frontend/pages/notifications/class-notif.php';
+    require_once __DIR__ . '/../admin-includes/mailer.php';
+
     $notification = new Notification($conn);
-
-    // Adjusted column name from user_id to customer_id based on error
-    $userIdStmt = mysqli_prepare($conn, "SELECT customer_id FROM orders WHERE order_id = ?");
-    mysqli_stmt_bind_param($userIdStmt, "i", $order_id);
-    mysqli_stmt_execute($userIdStmt);
-    mysqli_stmt_bind_result($userIdStmt, $user_id);
-    mysqli_stmt_fetch($userIdStmt);
-    mysqli_stmt_close($userIdStmt);
-
-    $statusMessages = [
-        "Confirmed" => "Your order #$order_id has been confirmed.",
-        "Ready for Delivery" => "Your order #$order_id is ready for delivery.",
-        "Ready for Pick-up" => "Your order #$order_id is ready for pick-up.",
-        "Delivered" => "Your order #$order_id has been delivered.",
-        "Picked-up" => "Your order #$order_id has been picked up."
-    ];
-
-    if (array_key_exists($status, $statusMessages)) {
-        // Check if user exists before creating notification
-        $userCheckStmt = mysqli_prepare($conn, "SELECT id FROM users WHERE id = ?");
-        mysqli_stmt_bind_param($userCheckStmt, "i", $user_id);
-        mysqli_stmt_execute($userCheckStmt);
-        mysqli_stmt_store_result($userCheckStmt);
-        if (mysqli_stmt_num_rows($userCheckStmt) > 0) {
-            $notification->create($user_id, "order_status", $statusMessages[$status]);
-        }
-        mysqli_stmt_close($userCheckStmt);
-    }
-
-    // Use the createOrderNotification function for detailed notifications
+    // Create in-app notification based on order and new status
     $notification->createOrderNotification($order_id, $status);
 
-    // Success - redirect back to the order details
-    header("Location: view-orders.php?order_id=$order_id&status_updated=1");
+    // Send email to customer about the status change
+    try {
+        $emailStmt = mysqli_prepare($conn, "SELECT customer_email FROM orders WHERE order_id = ? LIMIT 1");
+        mysqli_stmt_bind_param($emailStmt, "i", $order_id);
+        mysqli_stmt_execute($emailStmt);
+        mysqli_stmt_bind_result($emailStmt, $customer_email);
+        mysqli_stmt_fetch($emailStmt);
+        mysqli_stmt_close($emailStmt);
+
+        if (!empty($customer_email) && filter_var($customer_email, FILTER_VALIDATE_EMAIL)) {
+            $subject = "Order #{$order_id} Status Update: {$status}";
+            $base = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+            $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+            $fullLink = $base . $host . "/NeoCafe/frontend/pages/cart/order-details.php?order_id=" . $order_id;
+            $body = "<!DOCTYPE html><html><body style='font-family: Arial, sans-serif; color:#333'>"
+                  . "<h2>Order #{$order_id} Status Update</h2>"
+                  . "<p>Your order has been <strong>{$status}</strong>.</p>"
+                  . "<p><a href='" . $fullLink . "' style='background:#667eea;color:#fff;padding:10px 16px;border-radius:4px;text-decoration:none;'>View Order Details</a></p>"
+                  . "<p style='font-size:12px;color:#777'>If the button doesn't work, copy and paste this URL:<br>" . $fullLink . "</p>"
+                  . "<p>Thank you,<br>Neo Exclusive Cafe</p>"
+                  . "</body></html>";
+            sendEmail($customer_email, $subject, $body, true);
+        }
+    } catch (Exception $e) {
+        error_log('Order status email send failed: ' . $e->getMessage());
+    }
+
+    // Success - redirect back to the appropriate page
+    $redirect_to = isset($_POST['redirect_to']) ? $_POST['redirect_to'] : 'view-orders.php';
+    if ($redirect_to === 'order-list.php') {
+        header("Location: order-list.php?status_updated=1");
+    } else {
+        header("Location: view-orders.php?order_id=$order_id&status_updated=1");
+    }
     exit();
 } else {
     // Error - redirect with error message
-    header("Location: view-orders.php?order_id=$order_id&error=1");
+    $redirect_to = isset($_POST['redirect_to']) ? $_POST['redirect_to'] : 'view-orders.php';
+    if ($redirect_to === 'order-list.php') {
+        header("Location: order-list.php?error=1");
+    } else {
+        header("Location: view-orders.php?order_id=$order_id&error=1");
+    }
     exit();
 }
 } else {

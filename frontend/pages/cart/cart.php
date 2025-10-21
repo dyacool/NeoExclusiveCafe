@@ -1,8 +1,14 @@
 <?php
+session_set_cookie_params([
+    'lifetime' => 0,
+    'httponly' => true,
+    'samesite' => 'Strict',
+    'domain' => 'neocafe.cafe'
+]);
 session_start();
 
 // Include database connection
-require_once '../../user-includes/database.php';
+require_once '../../../backend/pages/admin-includes/database.php';
 
 // Check if user is logged in
 if (!isset($_SESSION["user_id"])) {
@@ -97,7 +103,7 @@ function getDayAbbreviations($availableDays) {
         .section-header {
             background: linear-gradient(135deg, #256035, #1a4a2a);
             color: white;
-            padding: 15px 20px;
+            padding: 20px 15px 15px 25px;
             border-radius: 8px 8px 0 0;
             margin-bottom: 0;
             display: flex;
@@ -111,6 +117,7 @@ function getDayAbbreviations($availableDays) {
         }
         
         .section-select-all {
+            order: 1;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -133,15 +140,20 @@ function getDayAbbreviations($availableDays) {
             display: flex;
             align-items: center;
             gap: 20px;
+            padding-right: 15px;
+            padding-left: 250px;
         }
         
         .days-filter {
             display: flex;
             align-items: center;
             gap: 8px;
+            white-space: nowrap;
         }
         
         .days-filter label {
+            padding-left: 150px;
+            margin-left: auto;
             color: white;
             font-weight: 500;
             font-size: 14px;
@@ -275,24 +287,39 @@ function getDayAbbreviations($availableDays) {
         </div>
 
         <?php
+        // Clean up any Available Today products that might be in the regular cart
+        $cleanup_stmt = $conn->prepare("
+            DELETE c FROM cart c 
+            JOIN products p ON c.product_id = p.id 
+            WHERE c.user_id = ? AND p.status_id = 3
+        ");
+        if ($cleanup_stmt) {
+            $cleanup_stmt->bind_param("i", $user_id);
+            $cleanup_stmt->execute();
+            $cleanup_stmt->close();
+        }
+        
         $stmt = $conn->prepare("
             SELECT c.id AS cart_id, c.quantity, c.price,
                    p.id AS product_id, p.name AS product_name, p.quantity as product_stock,
-                   pi.image_url, ps.name as status_name,
-                   GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                   ps.name as status_name,
+                   GROUP_CONCAT(DISTINCT pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days,
+                   (
+                      SELECT image_url FROM product_images pi2
+                      WHERE pi2.product_id = p.id AND pi2.is_primary = 1
+                      LIMIT 1
+                   ) AS image_url
             FROM cart c
             JOIN products p ON c.product_id = p.id
-            LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
             LEFT JOIN product_statuses ps ON p.status_id = ps.id
             LEFT JOIN product_day pd ON p.id = pd.product_id
-            WHERE c.user_id = ?
-            GROUP BY c.id, c.quantity, c.price, p.id, p.name, p.quantity, pi.image_url, ps.name
+            WHERE c.user_id = ? AND p.status_id IN (1, 2)
+            GROUP BY c.id, c.quantity, c.price, p.id, p.name, p.quantity, ps.name
             ORDER BY ps.name = 'Pickup' DESC, p.name ASC
         ");
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
         $result = $stmt->get_result();
-
 
         
         if ($result->num_rows > 0): 
@@ -312,172 +339,180 @@ function getDayAbbreviations($availableDays) {
             }
         ?>
         <form method="POST" action="checkout.php" id="cartForm">
-            <!-- Pickup Products Section -->
-            <div class="cart-section">
-                <div class="section-header">
-                    <h3>Pickup</h3>
-                    <div class="section-controls">
-                        <div class="days-filter">
-                            <label for="pickupDaysFilter">Filter by Day:</label>
-                            <select id="pickupDaysFilter" onchange="filterByDay('pickup')">
-                                <option value="">All Days</option>
-                                <option value="Sunday">Sunday</option>
-                                <option value="Monday">Monday</option>
-                                <option value="Tuesday">Tuesday</option>
-                                <option value="Wednesday">Wednesday</option>
-                                <option value="Thursday">Thursday</option>
-                                <option value="Friday">Friday</option>
-                                <option value="Saturday">Saturday</option>
-                            </select>
+            <input type="hidden" name="valid_cart_ids" value="<?= implode(',', array_merge(array_column($pickup_items, 'cart_id'), array_column($delivery_items, 'cart_id'))) ?>">
+            <div class="cart-layout">
+                <div class="cart-container">
+                    <div class="cart-content">
+                        <!-- Pickup Products Section -->
+                        <div class="cart-section">
+                            <div class="section-header">
+                                <h3>Pickup</h3>
+                            <div class="section-controls">
+                                <div class="days-filter">
+                                    <label for="pickupDaysFilter">Filter by Day:</label>
+                                    <select id="pickupDaysFilter" onchange="filterByDay('pickup')">
+                                        <option value="">All Days</option>
+                                        <option value="Sunday">Sunday</option>
+                                        <option value="Monday">Monday</option>
+                                        <option value="Tuesday">Tuesday</option>
+                                        <option value="Wednesday">Wednesday</option>
+                                        <option value="Thursday">Thursday</option>
+                                        <option value="Friday">Friday</option>
+                                        <option value="Saturday">Saturday</option>
+                                    </select>
+                                </div>
+                                <div class="section-select-all">
+                                    <input type="checkbox" id="selectAllPickup" class="section-checkbox" data-section="pickup">
+                                    <label for="selectAllPickup">Select All Pickup</label>
+                                </div>
+                            </div>
+
                         </div>
-                        <div class="section-select-all">
-                            <input type="checkbox" id="selectAllPickup" class="section-checkbox" data-section="pickup">
-                            <label for="selectAllPickup">Select All Pickup</label>
+                        
+                        <?php if (!empty($pickup_items)): ?>
+                        <table class="cart-table pickup-table">
+                            <thead>
+                                <tr>
+                                    <th>Select</th>
+                                    <th></th>
+                                    <th>Product Name</th>
+                                    <th>Days</th>
+                                    <th>Quantity</th>
+                                    <th>Price</th>
+                                    <th>Total</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php
+                                foreach ($pickup_items as $row):
+                                    $imageUrl = $row['image_url'] ? "/assets/" . $row['image_url'] : "/assets/images/no-image.jpg";
+                                    $item_total = $row['price'] * $row['quantity'];
+                                ?>
+                                <tr data-cart-id="<?= $row['cart_id'] ?>" data-product-id="<?= $row['product_id'] ?>" data-stock="<?= $row['product_stock'] ?>" data-price="<?= $row['price'] ?>" data-quantity="<?= $row['quantity'] ?>" data-status="pickup" data-days="<?= htmlspecialchars($row['available_days'] ?? '') ?>">
+                                    <td>
+                                        <input type="checkbox" name="selected_cart_ids[]" value="<?= $row['cart_id'] ?>" class="item-checkbox pickup-checkbox" data-total="<?= $item_total ?>" data-status="pickup">
+                                    </td>
+                                    <td><img src="<?= $imageUrl ?>" alt="<?= htmlspecialchars($row['product_name']) ?>" style="width: 60px; height: 60px; object-fit: cover;"></td>
+                                    <td><?= htmlspecialchars($row['product_name']) ?></td>
+                                    <td class="days-column">
+                                        <span class="day-abbreviations"><?= getDayAbbreviations($row['available_days'] ?? '') ?></span>
+                                    </td>
+                                    <td>
+                                        <div class="quantity-controls">
+                                            <button class="quantity-btn" type="button" onclick="updateQuantity(<?= $row['cart_id'] ?>, <?= $row['quantity'] - 1 ?>)">-</button>
+                                            <span class="quantity"><?= $row['quantity'] ?></span>
+                                            <button class="quantity-btn" type="button" onclick="updateQuantity(<?= $row['cart_id'] ?>, <?= $row['quantity'] + 1 ?>)">+</button>
+                                        </div>
+                                    </td>
+                                    <td>₱<?= number_format($row['price'], 2) ?></td>
+                                    <td class="item-total">₱<?= number_format($item_total, 2) ?></td>
+                                    <td>
+                                        <button class="remove-btn" type="button" onclick="showConfirmationModal(<?= $row['cart_id'] ?>)">
+                                            <svg viewBox="0 0 448 512" class="svgIcon"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"></path></svg>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                        <?php else: ?>
+                        <div class="no-items-message">
+                            No pickup products in your cart
                         </div>
+                        <?php endif; ?>
                     </div>
 
-                </div>
-                
-                <?php if (!empty($pickup_items)): ?>
-                <table class="cart-table pickup-table">
-                    <thead>
-                        <tr>
-                            <th>Select</th>
-                            <th></th>
-                            <th>Product Name</th>
-                            <th>Days</th>
-                            <th>Quantity</th>
-                            <th>Price</th>
-                            <th>Total</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                        foreach ($pickup_items as $row):
-                            $imageUrl = $row['image_url'] ? "/assets/" . $row['image_url'] : "/assets/images/no-image.jpg";
-                            $item_total = $row['price'] * $row['quantity'];
-                        ?>
-                        <tr data-cart-id="<?= $row['cart_id'] ?>" data-product-id="<?= $row['product_id'] ?>" data-stock="<?= $row['product_stock'] ?>" data-price="<?= $row['price'] ?>" data-quantity="<?= $row['quantity'] ?>" data-status="pickup" data-days="<?= htmlspecialchars($row['available_days'] ?? '') ?>">
-                            <td>
-                                <input type="checkbox" name="selected_cart_ids[]" value="<?= $row['cart_id'] ?>" class="item-checkbox pickup-checkbox" data-total="<?= $item_total ?>" data-status="pickup">
-                            </td>
-                            <td><img src="<?= $imageUrl ?>" alt="<?= htmlspecialchars($row['product_name']) ?>" style="width: 60px; height: 60px; object-fit: cover;"></td>
-                            <td><?= htmlspecialchars($row['product_name']) ?></td>
-                            <td class="days-column">
-                                <span class="day-abbreviations"><?= getDayAbbreviations($row['available_days'] ?? '') ?></span>
-                            </td>
-                            <td>
-                                <div class="quantity-controls">
-                                    <button class="quantity-btn" type="button" onclick="updateQuantity(<?= $row['cart_id'] ?>, <?= $row['quantity'] - 1 ?>)">-</button>
-                                    <span class="quantity"><?= $row['quantity'] ?></span>
-                                    <button class="quantity-btn" type="button" onclick="updateQuantity(<?= $row['cart_id'] ?>, <?= $row['quantity'] + 1 ?>)">+</button>
+                    <!-- Delivery Products Section -->
+                    <div class="cart-section">
+                        <div class="section-header">
+                            <h3>Delivery</h3>
+                            <div class="section-controls">
+                                <div class="days-filter">
+                                    <label for="daysFilter">Filter by Day:</label>
+                                    <select id="daysFilter" onchange="filterByDay('delivery')">
+                                        <option value="">All Days</option>
+                                        <option value="Sunday">Sunday</option>
+                                        <option value="Monday">Monday</option>
+                                        <option value="Tuesday">Tuesday</option>
+                                        <option value="Wednesday">Wednesday</option>
+                                        <option value="Thursday">Thursday</option>
+                                        <option value="Friday">Friday</option>
+                                        <option value="Saturday">Saturday</option>
+                                    </select>
                                 </div>
-                            </td>
-                            <td>₱<?= number_format($row['price'], 2) ?></td>
-                            <td class="item-total">₱<?= number_format($item_total, 2) ?></td>
-                            <td>
-                                <button class="remove-btn" type="button" onclick="showConfirmationModal(<?= $row['cart_id'] ?>)">
-                                    <svg viewBox="0 0 448 512" class="svgIcon"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"></path></svg>
-                                </button>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-                <?php else: ?>
-                <div class="no-items-message">
-                    No pickup products in your cart
-                </div>
-                <?php endif; ?>
-            </div>
+                                <div class="section-select-all">
+                                    <input type="checkbox" id="selectAllDelivery" class="section-checkbox" data-section="delivery">
+                                    <label for="selectAllDelivery">Select All Delivery</label>
+                                </div>
+                            </div>
 
-            <!-- Delivery Products Section -->
-            <div class="cart-section">
-                <div class="section-header">
-                    <h3>Delivery</h3>
-                    <div class="section-controls">
-                        <div class="days-filter">
-                            <label for="daysFilter">Filter by Day:</label>
-                            <select id="daysFilter" onchange="filterByDay('delivery')">
-                                <option value="">All Days</option>
-                                <option value="Sunday">Sunday</option>
-                                <option value="Monday">Monday</option>
-                                <option value="Tuesday">Tuesday</option>
-                                <option value="Wednesday">Wednesday</option>
-                                <option value="Thursday">Thursday</option>
-                                <option value="Friday">Friday</option>
-                                <option value="Saturday">Saturday</option>
-                            </select>
                         </div>
-                        <div class="section-select-all">
-                            <input type="checkbox" id="selectAllDelivery" class="section-checkbox" data-section="delivery">
-                            <label for="selectAllDelivery">Select All Delivery</label>
+                        
+                        <?php if (!empty($delivery_items)): ?>
+                        <table class="cart-table delivery-table">
+                            <thead>
+                                <tr>
+                                    <th>Select</th>
+                                    <th></th>
+                                    <th>Product Name</th>
+                                    <th>Days</th>
+                                    <th>Quantity</th>
+                                    <th>Price</th>
+                                    <th>Total</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php
+                                foreach ($delivery_items as $row):
+                                    $imageUrl = $row['image_url'] ? "/assets/" . $row['image_url'] : "/assets/images/no-image.jpg";
+                                    $item_total = $row['price'] * $row['quantity'];
+                                ?>
+                                <tr data-cart-id="<?= $row['cart_id'] ?>" data-product-id="<?= $row['product_id'] ?>" data-stock="<?= $row['product_stock'] ?>" data-price="<?= $row['price'] ?>" data-quantity="<?= $row['quantity'] ?>" data-status="delivery" data-days="<?= htmlspecialchars($row['available_days'] ?? '') ?>">
+                                    <td>
+                                        <input type="checkbox" name="selected_cart_ids[]" value="<?= $row['cart_id'] ?>" class="item-checkbox delivery-checkbox" data-total="<?= $item_total ?>" data-status="delivery">
+                                    </td>
+                                    <td><img src="<?= $imageUrl ?>" alt="<?= htmlspecialchars($row['product_name']) ?>" style="width: 60px; height: 60px; object-fit: cover;"></td>
+                                    <td><?= htmlspecialchars($row['product_name']) ?></td>
+                                    <td class="days-column">
+                                        <span class="day-abbreviations"><?= getDayAbbreviations($row['available_days'] ?? '') ?></span>
+                                    </td>
+                                    <td>
+                                        <div class="quantity-controls">
+                                            <button class="quantity-btn" type="button" onclick="updateQuantity(<?= $row['cart_id'] ?>, <?= $row['quantity'] - 1 ?>)">-</button>
+                                            <span class="quantity"><?= $row['quantity'] ?></span>
+                                            <button class="quantity-btn" type="button" onclick="updateQuantity(<?= $row['cart_id'] ?>, <?= $row['quantity'] + 1 ?>)">+</button>
+                                        </div>
+                                    </td>
+                                    <td>₱<?= number_format($row['price'], 2) ?></td>
+                                    <td class="item-total">₱<?= number_format($item_total, 2) ?></td>
+                                    <td>
+                                        <button class="remove-btn" type="button" onclick="showConfirmationModal(<?= $row['cart_id'] ?>)">
+                                            <svg viewBox="0 0 448 512" class="svgIcon"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"></path></svg>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                        <?php else: ?>
+                        <div class="no-items-message">
+                            No delivery products in your cart
                         </div>
+                        <?php endif; ?>
                     </div>
-
                 </div>
-                
-                <?php if (!empty($delivery_items)): ?>
-                <table class="cart-table delivery-table">
-                    <thead>
-                        <tr>
-                            <th>Select</th>
-                            <th></th>
-                            <th>Product Name</th>
-                            <th>Days</th>
-                            <th>Quantity</th>
-                            <th>Price</th>
-                            <th>Total</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                        foreach ($delivery_items as $row):
-                            $imageUrl = $row['image_url'] ? "/assets/" . $row['image_url'] : "/assets/images/no-image.jpg";
-                            $item_total = $row['price'] * $row['quantity'];
-                        ?>
-                        <tr data-cart-id="<?= $row['cart_id'] ?>" data-product-id="<?= $row['product_id'] ?>" data-stock="<?= $row['product_stock'] ?>" data-price="<?= $row['price'] ?>" data-quantity="<?= $row['quantity'] ?>" data-status="delivery" data-days="<?= htmlspecialchars($row['available_days'] ?? '') ?>">
-                            <td>
-                                <input type="checkbox" name="selected_cart_ids[]" value="<?= $row['cart_id'] ?>" class="item-checkbox delivery-checkbox" data-total="<?= $item_total ?>" data-status="delivery">
-                            </td>
-                            <td><img src="<?= $imageUrl ?>" alt="<?= htmlspecialchars($row['product_name']) ?>" style="width: 60px; height: 60px; object-fit: cover;"></td>
-                            <td><?= htmlspecialchars($row['product_name']) ?></td>
-                            <td class="days-column">
-                                <span class="day-abbreviations"><?= getDayAbbreviations($row['available_days'] ?? '') ?></span>
-                            </td>
-                            <td>
-                                <div class="quantity-controls">
-                                    <button class="quantity-btn" type="button" onclick="updateQuantity(<?= $row['cart_id'] ?>, <?= $row['quantity'] - 1 ?>)">-</button>
-                                    <span class="quantity"><?= $row['quantity'] ?></span>
-                                    <button class="quantity-btn" type="button" onclick="updateQuantity(<?= $row['cart_id'] ?>, <?= $row['quantity'] + 1 ?>)">+</button>
-                                </div>
-                            </td>
-                            <td>₱<?= number_format($row['price'], 2) ?></td>
-                            <td class="item-total">₱<?= number_format($item_total, 2) ?></td>
-                            <td>
-                                <button class="remove-btn" type="button" onclick="showConfirmationModal(<?= $row['cart_id'] ?>)">
-                                    <svg viewBox="0 0 448 512" class="svgIcon"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"></path></svg>
-                                </button>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-                <?php else: ?>
-                <div class="no-items-message">
-                    No delivery products in your cart
-                </div>
-                <?php endif; ?>
-            </div>
 
-            <div class="cart-summary">
-                <div class="cart-total"><h3>Subtotal: ₱<span id="displaySubtotal">0.00</span></h3></div>
-                <label><input type="checkbox" id="termsCheckbox" required /> I have read and agreed with the Terms and Conditions</label>
-                <button type="submit" name="checkout" class="checkout-btn" onclick="return validateCart()">Proceed to Checkout</button>
-                <input type="hidden" name="subtotal" id="subtotalInput" value="0">
-                <input type="hidden" name="cart_items" id="cartItemsInput" value="">
+                <div class="cart-sidebar">
+                    <div class="cart-summary">
+                        <div class="cart-total"><h3>Subtotal: ₱<span id="displaySubtotal">0.00</span></h3></div>
+                        <label><input type="checkbox" id="termsCheckbox" required /> I have read and agreed with the Terms and Conditions</label>
+                        <button type="submit" name="checkout" class="checkout-btn" onclick="return validateCart()">Proceed to Checkout</button>
+                        <input type="hidden" name="subtotal" id="subtotalInput" value="0">
+                        <input type="hidden" name="cart_items" id="cartItemsInput" value="">
+                    </div>
+                </div>
             </div>
         </form>
         <?php else: ?>
@@ -690,24 +725,64 @@ function updateSubtotal() {
 }
 
 function validateCart() {
+    // Send debug info to server logs
+    fetch('/NeoCafe/log_debug.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'validateCart() called' })
+    });
+    
     // Check if terms are accepted
     if (!document.getElementById('termsCheckbox').checked) {
+        fetch('/NeoCafe/log_debug.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: 'CART VALIDATION: Terms not accepted' })
+        });
         showConfirmation('Please accept the Terms and Conditions', true);
         return false;
     }
     
+    fetch('/NeoCafe/log_debug.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'CART VALIDATION: Terms accepted' })
+    });
+    
     // Check if any item is selected
     const selectedItems = document.querySelectorAll('.item-checkbox:checked');
+    fetch('/NeoCafe/log_debug.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'CART VALIDATION: Selected items count: ' + selectedItems.length })
+    });
+    
     if (selectedItems.length === 0) {
+        fetch('/NeoCafe/log_debug.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: 'CART VALIDATION: No items selected' })
+        });
         showConfirmation('Please select at least one item to checkout', true);
         return false;
     }
 
     // Check for mixed selection
     if (checkMixedSelection()) {
+        fetch('/NeoCafe/log_debug.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: 'CART VALIDATION: Mixed selection detected' })
+        });
         showConfirmation('You cannot mix Pickup and Delivery products in the same order. Please select items from only one category.', true);
         return false;
     }
+    
+    fetch('/NeoCafe/log_debug.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'CART VALIDATION: No mixed selection - continuing validation' })
+    });
 
     // Check stock availability for selected items only
     let hasInsufficientStock = false;
@@ -778,7 +853,12 @@ function validateCart() {
         showConfirmation('⚠️ Select All Limitation: You cannot checkout when all delivery items are selected due to potential day conflicts. Please select specific compatible items.', true);
         return false;
     }
-
+    
+    fetch('/NeoCafe/log_debug.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'CART VALIDATION: All validations passed - form will submit' })
+    });
     return true;
 }
 
@@ -801,7 +881,7 @@ function updateQuantity(cartId, newQuantity) {
     .then(res => res.json())
     .then(data => {
         if (data.success) location.reload();
-        else showConfirmation("Error: " + data.error, true);
+        else showConfirmation("Error: " + (data.error || "Failed to update quantity"), true);
     })
     .catch(err => {
         console.error("Error:", err);

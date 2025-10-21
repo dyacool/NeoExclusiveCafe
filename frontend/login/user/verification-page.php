@@ -64,7 +64,7 @@ if (isset($_POST['resend-verification'])) {
                 $mail->setFrom("noreplyneoexclusive@gmail.com", "NeoExclusiveCafe");
                 $mail->addAddress($email);
                 $mail->Subject = "Email Verification";
-                $verificationLink = "http://localhost/frontend/login/user/verify-email.php?token=" . $token;
+                $verificationLink = "http://neocafe.cafe:8080/frontend/login/user/verify-email.php?token=" . $token;
                 $mail->Body = <<<END
                 <p>Hello {$user['firstname']},</p>
                 <p>We've received a request to resend your verification email. Please click the link below to verify your email address:</p>
@@ -79,8 +79,7 @@ if (isset($_POST['resend-verification'])) {
                 }
 
                 mysqli_commit($conn);
-                $successMessage = "A new verification email has been sent to your email address. Please check your inbox and spam folder. The link will expire at " . date('h:i A', strtotime($expiry));
-                
+                $successMessage = "A new verification email has been sent to your email address. Please check your inbox and spam folder. The link will expire at " . date('h:i A', strtotime($expiry)) . ". \nRedirecting in 5 seconds...";
             } else {
                 throw new Exception("No unverified account found with this email address.");
             }
@@ -121,6 +120,11 @@ if (isset($_SESSION['unverified_email'])) {
         <?php if (!empty($successMessage)): ?>
             <div class="alert success">
                 <?php echo htmlspecialchars($successMessage); ?>
+                <script>
+                    setTimeout(() => {
+                        window.location.href = '/frontend/login/user/login-signup.php';
+                    }, 5000);
+                </script>
             </div>
         <?php endif; ?>
 

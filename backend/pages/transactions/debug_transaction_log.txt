@@ -1,0 +1,1425 @@
+Action: datatable
+POST data: Array
+(
+    [draw] => 3
+    [columns] => Array
+        (
+            [0] => Array
+                (
+                    [data] => order_id
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [1] => Array
+                (
+                    [data] => order_date
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [2] => Array
+                (
+                    [data] => customer_name
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [3] => Array
+                (
+                    [data] => product_name
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [4] => Array
+                (
+                    [data] => quantity
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [5] => Array
+                (
+                    [data] => unit_price
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [6] => Array
+                (
+                    [data] => line_total
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [7] => Array
+                (
+                    [data] => delivery_method
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [8] => Array
+                (
+                    [data] => status
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [9] => Array
+                (
+                    [data] => payment_method
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [10] => Array
+                (
+                    [data] => customer_contact
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+        )
+
+    [order] => Array
+        (
+            [0] => Array
+                (
+                    [column] => 1
+                    [dir] => desc
+                    [name] => 
+                )
+
+        )
+
+    [start] => 0
+    [length] => 25
+    [search] => Array
+        (
+            [value] => 
+            [regex] => false
+        )
+
+    [status] => all
+    [payment] => all
+    [channel] => 
+    [start_date] => 2025-10-01
+    [end_date] => 2025-10-18
+)
+
+Test query result: 4 total orders
+Date filter: 2025-10-01 to 2025-10-18
+Count query: SELECT COUNT(*) as total FROM order_items oi
+                  INNER JOIN orders o ON oi.order_id = o.order_id
+                  WHERE o.status IN ('Delivered', 'Picked-up', 'Completed') AND DATE(o.order_date) BETWEEN ? AND ? AND o.delivery_method = ?
+Total records: 0
+Action: datatable
+POST data: Array
+(
+    [draw] => 1
+    [columns] => Array
+        (
+            [0] => Array
+                (
+                    [data] => order_id
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [1] => Array
+                (
+                    [data] => order_date
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [2] => Array
+                (
+                    [data] => customer_name
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [3] => Array
+                (
+                    [data] => product_name
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [4] => Array
+                (
+                    [data] => quantity
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [5] => Array
+                (
+                    [data] => unit_price
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [6] => Array
+                (
+                    [data] => line_total
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [7] => Array
+                (
+                    [data] => delivery_method
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [8] => Array
+                (
+                    [data] => status
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [9] => Array
+                (
+                    [data] => payment_method
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [10] => Array
+                (
+                    [data] => customer_contact
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+        )
+
+    [order] => Array
+        (
+            [0] => Array
+                (
+                    [column] => 1
+                    [dir] => desc
+                    [name] => 
+                )
+
+        )
+
+    [start] => 0
+    [length] => 25
+    [search] => Array
+        (
+            [value] => 
+            [regex] => false
+        )
+
+    [status] => all
+    [payment] => all
+    [channel] => 
+    [start_date] => 2025-09-18
+    [end_date] => 2025-10-18
+)
+
+Test query result: 4 total orders
+Date filter: 2025-09-18 to 2025-10-18
+Count query: SELECT COUNT(*) as total FROM order_items oi
+                  INNER JOIN orders o ON oi.order_id = o.order_id
+                  WHERE o.status IN ('Delivered', 'Picked-up', 'Completed') AND DATE(o.order_date) BETWEEN ? AND ? AND o.delivery_method = ?
+Total records: 0
+Action: datatable
+POST data: Array
+(
+    [draw] => 1
+    [columns] => Array
+        (
+            [0] => Array
+                (
+                    [data] => order_id
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [1] => Array
+                (
+                    [data] => order_date
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [2] => Array
+                (
+                    [data] => customer_name
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [3] => Array
+                (
+                    [data] => product_name
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [4] => Array
+                (
+                    [data] => quantity
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [5] => Array
+                (
+                    [data] => unit_price
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [6] => Array
+                (
+                    [data] => line_total
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [7] => Array
+                (
+                    [data] => delivery_method
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [8] => Array
+                (
+                    [data] => status
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [9] => Array
+                (
+                    [data] => payment_method
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [10] => Array
+                (
+                    [data] => customer_contact
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+        )
+
+    [order] => Array
+        (
+            [0] => Array
+                (
+                    [column] => 1
+                    [dir] => desc
+                    [name] => 
+                )
+
+        )
+
+    [start] => 0
+    [length] => 25
+    [search] => Array
+        (
+            [value] => 
+            [regex] => false
+        )
+
+    [status] => all
+    [payment] => all
+    [channel] => 
+)
+
+Test query result: 4 total orders
+Date range in database: 2025-09-20 to 2025-10-14
+No date filter applied - showing all transactions
+Count query: SELECT COUNT(*) as total FROM order_items oi
+                  INNER JOIN orders o ON oi.order_id = o.order_id
+                  WHERE o.status IN ('Delivered', 'Picked-up', 'Completed') AND o.delivery_method = ?
+Total records: 0
+Action: datatable
+POST data: Array
+(
+    [draw] => 2
+    [columns] => Array
+        (
+            [0] => Array
+                (
+                    [data] => order_id
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [1] => Array
+                (
+                    [data] => order_date
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [2] => Array
+                (
+                    [data] => customer_name
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [3] => Array
+                (
+                    [data] => product_name
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [4] => Array
+                (
+                    [data] => quantity
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [5] => Array
+                (
+                    [data] => unit_price
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [6] => Array
+                (
+                    [data] => line_total
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [7] => Array
+                (
+                    [data] => delivery_method
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [8] => Array
+                (
+                    [data] => status
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [9] => Array
+                (
+                    [data] => payment_method
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [10] => Array
+                (
+                    [data] => customer_contact
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+        )
+
+    [order] => Array
+        (
+            [0] => Array
+                (
+                    [column] => 1
+                    [dir] => desc
+                    [name] => 
+                )
+
+        )
+
+    [start] => 0
+    [length] => 25
+    [search] => Array
+        (
+            [value] => 
+            [regex] => false
+        )
+
+    [status] => all
+    [payment] => all
+    [channel] => 
+    [start_date] => 2025-10-01
+    [end_date] => 2025-10-18
+)
+
+Test query result: 4 total orders
+Date range in database: 2025-09-20 to 2025-10-14
+Date filter: 2025-10-01 to 2025-10-18
+Count query: SELECT COUNT(*) as total FROM order_items oi
+                  INNER JOIN orders o ON oi.order_id = o.order_id
+                  WHERE o.status IN ('Delivered', 'Picked-up', 'Completed') AND DATE(o.order_date) BETWEEN ? AND ? AND o.delivery_method = ?
+Total records: 0
+Total records without date filter: 4
+=== API CALL START ===
+Action: datatable
+POST data: Array
+(
+    [draw] => 1
+    [columns] => Array
+        (
+            [0] => Array
+                (
+                    [data] => order_id
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [1] => Array
+                (
+                    [data] => order_date
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [2] => Array
+                (
+                    [data] => customer_name
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [3] => Array
+                (
+                    [data] => product_name
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [4] => Array
+                (
+                    [data] => quantity
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [5] => Array
+                (
+                    [data] => unit_price
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [6] => Array
+                (
+                    [data] => line_total
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [7] => Array
+                (
+                    [data] => delivery_method
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [8] => Array
+                (
+                    [data] => status
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [9] => Array
+                (
+                    [data] => payment_method
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [10] => Array
+                (
+                    [data] => customer_contact
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+        )
+
+    [order] => Array
+        (
+            [0] => Array
+                (
+                    [column] => 1
+                    [dir] => desc
+                    [name] => 
+                )
+
+        )
+
+    [start] => 0
+    [length] => 25
+    [search] => Array
+        (
+            [value] => 
+            [regex] => false
+        )
+
+    [status] => all
+    [payment] => all
+    [channel] => 
+)
+
+GET data: Array
+(
+)
+
+Test query result: 4 total orders
+Date range in database: 2025-09-20 to 2025-10-14
+No date filter applied - showing all transactions
+Count query: SELECT COUNT(*) as total FROM order_items oi
+                  INNER JOIN orders o ON oi.order_id = o.order_id
+                  WHERE o.status IN ('Delivered', 'Picked-up', 'Completed') AND o.delivery_method = ?
+Total records: 0
+=== API CALL START ===
+Action: datatable
+POST data: Array
+(
+    [draw] => 1
+    [columns] => Array
+        (
+            [0] => Array
+                (
+                    [data] => order_id
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [1] => Array
+                (
+                    [data] => order_date
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [2] => Array
+                (
+                    [data] => customer_name
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [3] => Array
+                (
+                    [data] => product_name
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [4] => Array
+                (
+                    [data] => quantity
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [5] => Array
+                (
+                    [data] => unit_price
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [6] => Array
+                (
+                    [data] => line_total
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [7] => Array
+                (
+                    [data] => delivery_method
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [8] => Array
+                (
+                    [data] => status
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [9] => Array
+                (
+                    [data] => payment_method
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [10] => Array
+                (
+                    [data] => customer_contact
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+        )
+
+    [order] => Array
+        (
+            [0] => Array
+                (
+                    [column] => 1
+                    [dir] => desc
+                    [name] => 
+                )
+
+        )
+
+    [start] => 0
+    [length] => 25
+    [search] => Array
+        (
+            [value] => 
+            [regex] => false
+        )
+
+    [status] => all
+    [payment] => all
+    [channel] => 
+)
+
+GET data: Array
+(
+)
+
+Test query result: 4 total orders
+Date range in database: 2025-09-20 to 2025-10-14
+No date filter applied - showing all transactions
+Count query: SELECT COUNT(*) as total FROM (SELECT 
+                    o.order_id,
+                    o.order_date,
+                    o.customer_name,
+                    oi.product_name,
+                    oi.quantity,
+                    oi.price as unit_price,
+                    (oi.price * oi.quantity) as line_total,
+                    o.delivery_method,
+                    o.status,
+                    o.payment_method,
+                    o.customer_contact
+                  FROM order_items oi
+                  INNER JOIN orders o ON oi.order_id = o.order_id
+                  WHERE o.status IN ('Delivered', 'Picked-up', 'Completed') AND o.delivery_method = ?) as count_query
+Total records: 0
+Data query: SELECT 
+                    o.order_id,
+                    o.order_date,
+                    o.customer_name,
+                    oi.product_name,
+                    oi.quantity,
+                    oi.price as unit_price,
+                    (oi.price * oi.quantity) as line_total,
+                    o.delivery_method,
+                    o.status,
+                    o.payment_method,
+                    o.customer_contact
+                  FROM order_items oi
+                  INNER JOIN orders o ON oi.order_id = o.order_id
+                  WHERE o.status IN ('Delivered', 'Picked-up', 'Completed') AND o.delivery_method = ? ORDER BY o.order_date DESC LIMIT ? OFFSET ?
+=== API CALL START ===
+Action: datatable
+POST data: Array
+(
+    [draw] => 1
+    [columns] => Array
+        (
+            [0] => Array
+                (
+                    [data] => order_id
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [1] => Array
+                (
+                    [data] => order_date
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [2] => Array
+                (
+                    [data] => customer_name
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [3] => Array
+                (
+                    [data] => product_name
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [4] => Array
+                (
+                    [data] => quantity
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [5] => Array
+                (
+                    [data] => unit_price
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [6] => Array
+                (
+                    [data] => line_total
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [7] => Array
+                (
+                    [data] => delivery_method
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [8] => Array
+                (
+                    [data] => status
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [9] => Array
+                (
+                    [data] => payment_method
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+            [10] => Array
+                (
+                    [data] => customer_contact
+                    [name] => 
+                    [searchable] => true
+                    [orderable] => true
+                    [search] => Array
+                        (
+                            [value] => 
+                            [regex] => false
+                        )
+
+                )
+
+        )
+
+    [order] => Array
+        (
+            [0] => Array
+                (
+                    [column] => 1
+                    [dir] => desc
+                    [name] => 
+                )
+
+        )
+
+    [start] => 0
+    [length] => 25
+    [search] => Array
+        (
+            [value] => 
+            [regex] => false
+        )
+
+    [status] => all
+    [payment] => all
+    [channel] => 
+)
+
+GET data: Array
+(
+)
+
+Test query result: 4 total orders
+Date range in database: 2025-09-20 to 2025-10-14
+No date filter applied - showing all transaction items
+Count query: SELECT COUNT(*) as total FROM (SELECT 
+                    o.order_id,
+                    o.order_date,
+                    o.customer_name,
+                    oi.product_name,
+                    oi.quantity,
+                    oi.price as unit_price,
+                    (oi.price * oi.quantity) as line_total,
+                    o.delivery_method,
+                    o.status,
+                    o.payment_method,
+                    o.customer_contact
+                  FROM orders o
+                  LEFT JOIN order_items oi ON o.order_id = oi.order_id
+                  WHERE o.status IN ('Delivered', 'Picked-up', 'Completed') AND o.delivery_method = ?) as count_query
+Total records: 0
+Data query: SELECT 
+                    o.order_id,
+                    o.order_date,
+                    o.customer_name,
+                    oi.product_name,
+                    oi.quantity,
+                    oi.price as unit_price,
+                    (oi.price * oi.quantity) as line_total,
+                    o.delivery_method,
+                    o.status,
+                    o.payment_method,
+                    o.customer_contact
+                  FROM orders o
+                  LEFT JOIN order_items oi ON o.order_id = oi.order_id
+                  WHERE o.status IN ('Delivered', 'Picked-up', 'Completed') AND o.delivery_method = ? ORDER BY o.order_date DESC LIMIT ? OFFSET ?

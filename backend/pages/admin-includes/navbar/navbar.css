@@ -28,6 +28,15 @@
   --gray-700: #374151;
   --gray-800: #1f2937;
   --gray-900: #111827;
+
+  /* Sidebar width variable - keeps sidebar and main content in sync */
+  --sidebar-width: 250px;
+}
+
+.layout-container {
+  position: relative;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
 /* Mobile Header */
@@ -35,7 +44,7 @@
   display: none;
   flex-direction: column;
   background: white;
-  border-bottom: 1px solid var(--green-200);
+  border-bottom: 1px solid var(--gray-300);
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -46,25 +55,29 @@
   align-items: center;
   justify-content: space-between;
   padding: 1rem;
+  position: relative;
 }
 
 .mobile-header-bottom {
-  padding: 0.75rem 1rem;
-  border-top: 1px solid var(--green-200);
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 2rem;
+  border-top: 1px solid var(--gray-300);
 }
 
 .mobile-menu-toggle {
-  background: none;
+  background: var(--green-100);
   border: none;
   padding: 0.5rem;
   border-radius: 0.5rem;
-  color: var(--green-700);
+  color: var(--green-600);
   cursor: pointer;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .mobile-menu-toggle:hover {
-  background: var(--green-100);
+  background: var(--green-200);
   transform: scale(1.05);
 }
 
@@ -74,20 +87,23 @@
 
 .mobile-logo {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .mobile-logo-text {
-  font-size: 1.125rem;
+  font-size: 0.8rem;
   font-weight: 700;
-  color: var(--green-800);
+  color: var(--gray-800);
 }
 
 #mobile-page-title {
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--green-800);
+  color: var(--gray-600);
   margin: 0;
 }
 
@@ -126,7 +142,7 @@
   left: 0;
   top: 0;
   height: 100vh;
-  width: 250px;
+  width: var(--sidebar-width);
   background: var(--green-50);
   border-right: 1px solid var(--green-200);
   display: flex;
@@ -140,7 +156,7 @@
 }
 
 /* Show floating close button only when sidebar is open on mobile */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .sidebar:not(.mobile-hidden) .floating-close-btn {
     display: flex;
   }
@@ -160,13 +176,13 @@
 }
 
 .logo-circle img {
-  width: 400px;
+  width: 220px;
   height: auto;
   filter: brightness(0);
 }
 
 .admin-text {
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 600;
   color: black;
   letter-spacing: 0.025em;
@@ -178,6 +194,11 @@
   flex: 1;
   overflow-y: auto;
   padding: 1rem 0;
+}
+
+/* Mobile footer content - hidden by default on desktop */
+.mobile-footer-content {
+  display: none;
 }
 
 .sidebar-content::-webkit-scrollbar {
@@ -215,6 +236,7 @@
   color: var(--green-700);
   text-decoration: none;
   border-radius: 0.5rem;
+  font-size: 1rem;
   transition: all 0.2s ease;
   font-weight: 500;
   cursor: pointer;
@@ -232,6 +254,28 @@
 
 .nav-text {
   flex: 1;
+}
+
+/* Navigation count badge */
+.nav-count-badge {
+  background: var(--green-600);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.125rem 0.375rem;
+  border-radius: 1rem;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.nav-link:hover .nav-count-badge {
+  background: var(--green-700);
 }
 
 /* Dropdown */
@@ -264,13 +308,56 @@
   overflow: hidden;
   opacity: 0;
   transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
+  /* Prevent layout shift during state restoration */
+  will-change: max-height, opacity, padding;
 }
 
 .dropdown-menu.active {
   margin: 0.5rem 0 0 0;
   max-height: 200px;
   opacity: 1;
-  padding: 0.5rem;
+  padding: 0.4rem;
+}
+
+/* Enhanced state restoration */
+.sidebar {
+  transition: transform 0.3s ease;
+  will-change: transform;
+}
+
+.products-toggle {
+  transition: all 0.2s ease;
+  will-change: background-color, color;
+}
+
+.products-toggle.has-active-child {
+  background-color: var(--green-50);
+  color: var(--green-700);
+}
+
+/* Reduce flicker during state restoration */
+.navbar-loading .dropdown-menu {
+  transition: none !important;
+}
+
+.navbar-loading .products-toggle {
+  transition: none !important;
+}
+
+.navbar-loading .sidebar {
+  transition: none !important;
+}
+
+/* Enhanced dropdown stability */
+.dropdown-menu {
+  /* Ensure dropdown doesn't cause layout shifts */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.products-toggle {
+  /* Improve rendering performance */
+  transform: translateZ(0);
 }
 
 .dropdown-link {
@@ -280,7 +367,7 @@
   padding: 0.5rem 0.75rem;
   color: var(--green-700);
   border-radius: 0.375rem;
-  font-size: 0.875rem;
+  font-size: 1rem;
   cursor: pointer;
   user-select: none;
   transition: background-color 0.2s ease, color 0.2s ease;
@@ -297,7 +384,7 @@
 
 /* Sidebar Footer */
 .sidebar-footer {
-  padding: 1rem;
+  padding: 0.875rem 1rem;
   border-top: 1px solid var(--green-200);
   background: white;
 }
@@ -315,6 +402,7 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
+  font-size: 1rem;
   color: var(--green-700);
   text-decoration: none;
   border-radius: 0.5rem;
@@ -347,10 +435,10 @@
 
 /* Main Content */
 .Main {
-  margin-left: 250px;
+  margin-left: var(--sidebar-width);
   min-height: 100vh;
   background: var(--gray-50);
-  transition: margin-left 0.3s ease;
+  will-change: margin-left;
 }
 
 /* Header - FIXED: Better button positioning */
@@ -405,15 +493,26 @@
 
 /* Action Buttons */
 .action-button {
+  width: fit-content !important;
   background: var(--green-600);
   color: white;
   border: none;
-  padding: 0.75rem 1.5rem;
+  padding: 0.75rem 1.5rem 0.75rem 1.25rem;
   border-radius: 0.5rem;
   font-weight: 500;
   cursor: pointer;
+  font-size: 0.875rem !important;
   transition: all 0.2s ease;
   box-shadow: 0 2px 4px rgba(22, 163, 74, 0.2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.action-button svg {
+  flex-shrink: 0;
+  vertical-align: middle;
 }
 
 .action-button:hover {
@@ -426,10 +525,8 @@
   transform: translateY(0);
 }
 
-/* Content Wrapper - FIXED: Remove conflicting padding */
 .content-wrapper {
   padding: 1rem 2rem;
-  /* REMOVED: Any margin/padding that might conflict with product-list layout */
 }
 
 /* Active states */
@@ -460,7 +557,296 @@
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
+
+/* 1440px Breakpoint - Laptop/Desktop */
+@media (max-width: 1440px) {
+  :root {
+    --sidebar-width: 220px;
+  }
+
+  .sidebar {
+    width: var(--sidebar-width);
+  }
+
+  .Main {
+    margin-left: var(--sidebar-width);
+  }
+
+  /* Header adjustments */
+  .header {
+    padding: 1.25rem 1.5rem;
+  }
+
+  #page-title {
+    font-size: 1.625rem;
+  }
+
+  /* Sidebar header adjustments */
+  .sidebar-header {
+    padding: 1.25rem;
+  }
+
+  .logo-circle img {
+    width: 180px;
+  }
+
+  .admin-text {
+    font-size: 0.9rem;
+  }
+
+  /* Sidebar content scaling - smooth, no bounce */
+  .sidebar-content {
+    padding: 0.75rem 0;
+    transition: none; /* Prevent bounce during resize */
+  }
+
+  /* Navigation menu scaling */
+  .nav-menu {
+    padding: 0 0.875rem;
+  }
+
+  .nav-item {
+    margin-bottom: 0.1875rem;
+  }
+
+  /* Navigation adjustments */
+  .nav-link {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    gap: 0.5rem;
+    transition: background-color 0.2s ease, color 0.2s ease; /* Only animate interactions */
+  }
+
+  .nav-icon {
+    font-size: 0.9375rem;
+    flex-shrink: 0;
+  }
+
+  /* Dropdown scaling */
+  .dropdown-menu {
+    transition: max-height 0.3s ease, opacity 0.3s ease; /* Preserve dropdown animation */
+  }
+
+  .dropdown-menu.active {
+    padding: 0.3rem;
+    margin: 0.375rem 0 0 0;
+    max-height: 170px;
+  }
+
+  .dropdown-link {
+    padding: 0.4375rem 0.5625rem;
+    font-size: 0.8125rem;
+    gap: 0.4375rem;
+    transition: background-color 0.2s ease, color 0.2s ease; /* Only animate interactions */
+  }
+
+  .dropdown-icon {
+    font-size: 0.875rem;
+  }
+
+  /* Footer link scaling - override duplicate */
+  .footer-link {
+    padding: 0.4375rem 0.625rem !important;
+    font-size: 0.8125rem !important;
+    gap: 0.5rem !important;
+    transition: background-color 0.2s ease, color 0.2s ease; /* Only animate interactions */
+  }
+
+  .footer-icon {
+    font-size: 0.9375rem;
+  }
+
+  /* Sidebar footer adjustments to prevent overflow */
+  .sidebar-footer {
+    padding: 0.625rem 0.75rem;
+  }
+
+  .footer-item {
+    margin-bottom: 0.125rem;
+  }
+
+  /* Content adjustments */
+  .content-wrapper {
+    padding: 1rem 1.5rem;
+  }
+
+  .action-button {
+    padding: 0.5rem 1rem 0.5rem 0.875rem;
+    font-size: 0.75rem;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease,
+      transform 0.1s ease; /* Only animate safe properties */
+  }
+  /* Header actions */
+  .header-actions {
+    gap: 0.75rem;
+  }
+
+  .admin-home-btn {
+    padding: 0.4375rem 0.75rem;
+    font-size: 0.8125rem;
+    transition: background-color 0.2s ease-in-out; /* Only animate background */
+  }
+
+  .admin-home-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* 1178px Breakpoint - Medium Desktop/Laptop */
+@media (max-width: 1178px) {
+  :root {
+    --sidebar-width: 200px !important;
+  }
+
+  .sidebar {
+    width: var(--sidebar-width);
+  }
+
+  .Main {
+    margin-left: var(--sidebar-width);
+  }
+
+  /* Header adjustments */
+  .header {
+    padding: 0.875rem 1rem;
+  }
+
+  #page-title {
+    font-size: 1.375rem;
+  }
+
+  /* Sidebar header adjustments */
+  .sidebar-header {
+    padding: 0.875rem;
+  }
+
+  .logo-circle img {
+    width: 140px;
+  }
+
+  .admin-text {
+    font-size: 0.8rem;
+  }
+
+  /* Sidebar content scaling - smooth, no bounce */
+  .sidebar-content {
+    padding: 0.5rem 0;
+    transition: none; /* Prevent bounce during resize */
+  }
+
+  /* Navigation menu scaling */
+  .nav-menu {
+    padding: 0 0.625rem !important;
+  }
+
+  .nav-item {
+    margin-bottom: 0.125rem;
+  }
+
+  /* Navigation adjustments */
+  .nav-link {
+    padding: 0.375rem 0.5rem;
+    font-size: 0.75rem;
+    gap: 0.5rem;
+    transition: background-color 0.2s ease, color 0.2s ease; /* Only animate interactions */
+  }
+
+  .nav-icon {
+    font-size: 0.8125rem;
+    flex-shrink: 0;
+  }
+
+  /* Navigation count badge scaling */
+  .nav-count-badge {
+    font-size: 0.625rem;
+    padding: 0.0625rem 0.25rem;
+    min-width: 1rem;
+    height: 1rem;
+  }
+
+  /* Dropdown scaling */
+  .dropdown-menu {
+    transition: max-height 0.3s ease, opacity 0.3s ease; /* Preserve dropdown animation */
+  }
+
+  .dropdown-menu.active {
+    padding: 0.1875rem;
+    margin: 0.25rem 0 0 0;
+    max-height: 130px;
+  }
+
+  .dropdown-link {
+    padding: 0.3125rem 0.4375rem;
+    font-size: 0.6875rem;
+    gap: 0.3125rem;
+    transition: background-color 0.2s ease, color 0.2s ease; /* Only animate interactions */
+  }
+
+  .dropdown-icon {
+    font-size: 0.75rem;
+  }
+
+  /* Footer link scaling */
+  .footer-link {
+    padding: 0.3125rem 0.4375rem !important;
+    font-size: 0.6875rem !important;
+    gap: 0.375rem !important;
+    transition: background-color 0.2s ease, color 0.2s ease; /* Only animate interactions */
+  }
+
+  .footer-icon {
+    font-size: 0.8125rem;
+  }
+
+  /* Sidebar footer adjustments */
+  .sidebar-footer {
+    padding: 0.4375rem 0.5rem;
+  }
+
+  .footer-item {
+    margin-bottom: 0.0625rem;
+  }
+
+  /* Content adjustments */
+  .content-wrapper {
+    padding: 0.75rem 1rem;
+  }
+
+  .action-button {
+    padding: 0.4375rem 1rem 0.4375rem 0.875rem;
+    font-size: 0.75rem !important;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease,
+      transform 0.1s ease; /* Only animate safe properties */
+  }
+
+  .action-button svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Header actions */
+  .header-actions {
+    gap: 0.5rem;
+  }
+
+  .admin-home-btn {
+    padding: 0.3125rem 0.5rem;
+    font-size: 0.6875rem;
+    transition: background-color 0.2s ease-in-out; /* Only animate background */
+  }
+
+  .admin-home-btn svg {
+    width: 1px;
+    height: 10px;
+  }
+}
+
+/* Mobile/Tablet Portrait - Updated for better tablet support */
+@media (max-width: 1024px) {
+  .Main {
+    margin-left: 0px !important;
+  }
   .mobile-header {
     display: flex;
   }
@@ -473,6 +859,7 @@
   .sidebar {
     position: fixed;
     z-index: 1001;
+    width: 260px; /* Reduced from 280px for more compact design */
   }
 
   .Main {
@@ -484,26 +871,295 @@
     display: none;
   }
 
-  .content-wrapper {
-    padding: 1rem;
+  /* Mobile header adjustments */
+  .mobile-header-top {
+    padding: 0.75rem;
   }
 
-  .action-button {
-    padding: 0.5rem 1rem;
+  .mobile-header-bottom {
+    padding: 0.5rem 1.25rem;
+  }
+
+  #mobile-page-title {
+    font-size: 1.0625rem;
+    align-content: center;
+  }
+
+  /* Mobile logo scaling */
+  .mobile-logo img {
+    width: 150px; /* Increased from 50px for better visibility */
+    height: auto;
+  }
+
+  .mobile-logo-text {
+    font-size: 0.625rem;
+  }
+
+  /* Mobile sidebar content scaling */
+  .sidebar-content {
+    padding: 0.75rem 0;
+  }
+
+  .nav-menu {
+    padding: 0 0.75rem;
+  }
+
+  .nav-item {
+    margin-bottom: 0.1875rem;
+  }
+
+  .nav-link {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+    gap: 0.5rem;
+  }
+
+  .nav-icon {
+    font-size: 0.9375rem;
+  }
+
+  /* Mobile dropdown scaling */
+  .dropdown-menu.active {
+    padding: 0.3rem;
+    margin: 0.375rem 0 0 0;
+    max-height: 160px;
+  }
+
+  .dropdown-link {
+    padding: 0.4375rem 0.5625rem;
+    font-size: 0.75rem;
+    gap: 0.4375rem;
+  }
+
+  .dropdown-icon {
+    font-size: 0.8125rem;
+  }
+
+  /* Mobile footer scaling */
+  .sidebar-footer {
+    padding: 0.5rem 0.625rem;
+  }
+
+  .footer-item {
+    margin-bottom: 0.125rem;
+  }
+
+  .footer-link {
+    padding: 0.375rem 0.5rem;
+    font-size: 0.75rem;
+    gap: 0.4375rem;
+  }
+
+  .footer-icon {
     font-size: 0.875rem;
   }
 
-  #page-title {
-    font-size: 1.5rem;
+  /* Content area scaling */
+  .content-wrapper {
+    padding: 0.75rem;
+  }
+
+  .action-button {
+    padding: 0.4375rem 0.875rem 0.4375rem 0.75rem;
+    font-size: 0.625rem !important;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease; /* Only animate safe properties */
+  }
+
+  .action-button SVG {
+    height: 0.875rem !important;
+  }
+
+  /* Mobile footer styling - matches mobile nav-menu exactly */
+  .sidebar-footer {
+    display: none;
+  }
+
+  .mobile-footer-content {
+    display: block;
+  }
+
+  .mobile-footer-menu {
+    list-style: none;
+    padding: 0 0.75rem;
+  }
+
+  .mobile-footer-item {
+    margin-bottom: 0.1875rem;
+  }
+
+  .mobile-footer-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    color: var(--green-700);
+    text-decoration: none;
+    border-radius: 0.5rem;
+    font-size: 0.8125rem;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .mobile-footer-link:hover {
+    background: var(--green-100);
+    color: var(--green-800);
+  }
+
+  .mobile-footer-link i {
+    flex-shrink: 0;
+    color: var(--green-600);
+    font-size: 0.9375rem;
   }
 }
 
-@media (min-width: 769px) {
+@media (min-width: 1025px) {
   .sidebar.mobile-hidden {
     transform: translateX(0);
   }
 
   .floating-close-btn {
     display: none !important;
+  }
+}
+
+/* Mobile responsive modal */
+@media (max-width: 480px) {
+  .mobile-header-bottom {
+    padding: 0.75rem 1.5rem;
+  }
+  .action-button {
+    padding: 0.3rem 0.7rem;
+    font-size: 0.75rem;
+  }
+
+  #mobile-page-title {
+    font-size: 1.05rem;
+    padding: 0.4rem 0;
+  }
+
+  .logout-modal-content {
+    width: 95%;
+  }
+
+  .logout-modal-footer {
+    flex-direction: column;
+  }
+
+  .logout-btn-cancel,
+  .logout-btn-confirm {
+    width: 100%;
+  }
+
+  /* Mobile responsive count badge */
+  .nav-count-badge {
+    font-size: 0.625rem;
+    padding: 0.125rem 0.25rem;
+    min-width: 1rem;
+    height: 1rem;
+  }
+}
+
+/* Logout Confirmation Modal */
+.logout-modal {
+  display: none;
+  position: fixed;
+  z-index: 10000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.logout-modal-content {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-width: 400px;
+  width: 90%;
+  max-height: 90vh;
+  animation: slideIn 0.3s ease;
+}
+
+.logout-modal-header {
+  padding: 24px 24px 16px 24px;
+  border-bottom: 1px solid var(--green-200);
+}
+
+.logout-modal-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--gray-800);
+}
+
+.logout-modal-body {
+  padding: 16px 24px;
+}
+
+.logout-modal-body p {
+  margin: 0;
+  color: var(--gray-600);
+  line-height: 1.6;
+}
+
+.logout-modal-footer {
+  padding: 16px 24px 24px 24px;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.logout-btn-cancel,
+.logout-btn-confirm {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.logout-btn-cancel {
+  background: var(--gray-100);
+  color: var(--gray-700);
+}
+
+.logout-btn-cancel:hover {
+  background: var(--gray-200);
+}
+
+.logout-btn-confirm {
+  background: #dc2626;
+  color: white;
+}
+
+.logout-btn-confirm:hover {
+  background: #b91c1c;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }

@@ -11,6 +11,10 @@ if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
 // Include the navbar and database
 require_once __DIR__ . "/../admin-includes/navbar/navbar.php";
 require_once __DIR__ . "/../admin-includes/database.php";
+<<<<<<< HEAD
+=======
+require_once __DIR__ . "/../admin-includes/activity-logger.php";
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
 
 // Initialize variables
 $success_message = '';
@@ -114,6 +118,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($stmt->execute()) {
                 if ($stmt->affected_rows > 0) {
                     $success_message = "Privacy policy updated successfully!";
+<<<<<<< HEAD
+=======
+                    logAdminActivity($conn, 'UPDATE', "Updated privacy policy content", 'privacy_policy', 1);
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
                     // Refresh the data
                     $privacy['title'] = $title;
                     $privacy['content'] = $content;
@@ -159,6 +167,7 @@ $conn->close();
     <link rel="icon" type="image/x-icon" href="../../../assets/images/favicon.ico">
 </head>
 <body>
+<<<<<<< HEAD
     <div class="dashboard-container">
         <div class="content-wrapper">
             <!-- Header -->
@@ -184,10 +193,41 @@ $conn->close();
                         <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
                     </svg>
                     <?php echo htmlspecialchars($success_message); ?>
+=======
+    <div class="admin-main">
+        <div class="admin-container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-header-content">
+                    <div class="page-title-section">
+                        <h1 class="page-title">Privacy Policy Management</h1>
+                        <p class="page-subtitle">Manage your website's privacy policy content</p>
+                    </div>
+                    <div class="page-actions">
+                        <button type="button" class="btn btn-secondary" onclick="previewPrivacyPolicy()">
+                            <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                            Preview
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alert Messages -->
+            <?php if (!empty($success_message)): ?>
+                <div class="alert alert-success">
+                    <svg class="alert-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span><?php echo htmlspecialchars($success_message); ?></span>
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
                 </div>
             <?php endif; ?>
 
             <?php if (!empty($error_message)): ?>
+<<<<<<< HEAD
                 <div class="alert error">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
@@ -233,11 +273,61 @@ $conn->close();
                         <button type="submit" class="btn-save">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+=======
+                <div class="alert alert-error">
+                    <svg class="alert-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span><?php echo htmlspecialchars($error_message); ?></span>
+                </div>
+            <?php endif; ?>
+
+            <!-- Main Content -->
+            <div class="admin-section">
+                <h2>Privacy Policy Content</h2>
+                <p class="settings-info">
+                    Configure your website's privacy policy that will be displayed to users. 
+                    Use the rich text editor to format your content with proper styling.
+                    <?php if (isset($privacy['last_updated'])): ?>
+                        Last updated: <?php echo date('F j, Y, g:i a', strtotime($privacy['last_updated'])); ?>
+                    <?php endif; ?>
+                </p>
+                <form id="privacyForm" method="POST" action="" class="admin-form">
+                    <div class="form-group">
+                        <label for="title">Title</label>
+                        <input type="text" 
+                               id="title" 
+                               name="title" 
+                               class="form-input"
+                               value="<?php echo htmlspecialchars($privacy['title']); ?>" 
+                               placeholder="Enter privacy policy title"
+                               required>
+                        <div class="form-help">This will be displayed as the main heading</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="content">Privacy Policy Content</label>
+                        <div class="editor-wrapper">
+                            <div id="editor-container" class="rich-editor"></div>
+                            <textarea id="content" 
+                                      name="content" 
+                                      style="display: none;"
+                                      required><?php echo htmlspecialchars($privacy['content']); ?></textarea>
+                        </div>
+                        <div class="form-help">Use the rich text editor to format your privacy policy content with headings, lists, and styling</div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
                             </svg>
                             Update Privacy Policy
                         </button>
                     </div>
                 </form>
+<<<<<<< HEAD
 
                 <!-- Last Updated Info -->
                 <?php if (isset($privacy['last_updated'])): ?>
@@ -273,6 +363,67 @@ $conn->close();
                     </div>
                     <div class="help-item">
                         <strong>Contact Information:</strong>
+=======
+            </div>
+
+            <!-- Privacy Policy Guidelines -->
+            <div class="admin-section">
+                <h2>Privacy Policy Guidelines</h2>
+                <div class="guidelines-grid">
+                    <div class="guideline-card">
+                        <div class="guideline-icon">
+                            <svg fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V8zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <h3>Information Collection</h3>
+                        <p>Clearly describe what personal information you collect from users and how it's collected.</p>
+                    </div>
+                    <div class="guideline-card">
+                        <div class="guideline-icon">
+                            <svg fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4 2a2 2 0 00-2 2v11a3 3 0 106 0V4a2 2 0 00-2-2H4zm1 14a1 1 0 100-2 1 1 0 000 2zm5-1.757l4.9-4.9a2 2 0 000-2.828L13.485 5.1a2 2 0 00-2.828 0L10 5.757v8.486zM16 18H9.071l6-6H16a2 2 0 012 2v2a2 2 0 01-2 2z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <h3>Data Usage</h3>
+                        <p>Explain how you use the collected information and the legal basis for processing.</p>
+                    </div>
+                    <div class="guideline-card">
+                        <div class="guideline-icon">
+                            <svg fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <h3>User Rights</h3>
+                        <p>Detail user rights regarding their personal data (access, correction, deletion, etc.).</p>
+                    </div>
+                    <div class="guideline-card">
+                        <div class="guideline-icon">
+                            <svg fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <h3>Security Measures</h3>
+                        <p>Describe the security measures you implement to protect personal information.</p>
+                    </div>
+                    <div class="guideline-card">
+                        <div class="guideline-icon">
+                            <svg fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-2 0c0 .993-.241 1.929-.668 2.754l-1.524-1.525a3.997 3.997 0 00.078-2.183l1.562-1.562C15.802 8.249 16 9.1 16 10zm-5.165 3.913l1.58 1.58A5.98 5.98 0 0110 16a5.976 5.976 0 01-2.516-.552l1.562-1.562a4.006 4.006 0 001.789.027zm-4.677-2.796a4.002 4.002 0 01-.041-2.08l-1.106-1.106A6.002 6.002 0 004 10c0 .639.1 1.255.288 1.857l1.870-1.87zm3.415-2.676a4.002 4.002 0 011.17.24l1.106-1.106A6.002 6.002 0 0010 4a5.99 5.99 0 00-2.936.768l1.507 1.507a3.997 3.997 0 011.002-.134zm2.776-1.284l1.581-1.581A5.987 5.987 0 0010 4v2a3.97 3.97 0 012.35.653zM6.228 6.228L4.647 4.647A5.987 5.987 0 004 10h2c0-.87.228-1.681.628-2.386l-.4-.386z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <h3>Data Sharing</h3>
+                        <p>Specify if and how you share personal information with third parties.</p>
+                    </div>
+                    <div class="guideline-card">
+                        <div class="guideline-icon">
+                            <svg fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"></path>
+                                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"></path>
+                            </svg>
+                        </div>
+                        <h3>Contact Information</h3>
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
                         <p>Provide clear contact information for privacy-related inquiries.</p>
                     </div>
                 </div>

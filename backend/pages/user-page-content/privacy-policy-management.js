@@ -2,11 +2,17 @@
 document.addEventListener("DOMContentLoaded", function () {
   initializeEditor();
   setupFormHandling();
+<<<<<<< HEAD
   setupAutoSave();
 });
 
 let quill;
 let autoSaveInterval;
+=======
+});
+
+let quill;
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
 let isContentChanged = false;
 
 // Initialize Quill.js Editor
@@ -39,7 +45,10 @@ function initializeEditor() {
   // Listen for content changes
   quill.on("text-change", function () {
     isContentChanged = true;
+<<<<<<< HEAD
     updateSaveStatus();
+=======
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
     // Update hidden textarea
     textarea.value = quill.root.innerHTML;
   });
@@ -54,13 +63,47 @@ function setupFormHandling() {
   // Track title changes
   titleInput.addEventListener("input", function () {
     isContentChanged = true;
+<<<<<<< HEAD
     updateSaveStatus();
+=======
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
   });
 
   // Handle form submission
   form.addEventListener("submit", function (e) {
+<<<<<<< HEAD
     e.preventDefault();
     savePrivacyPolicy();
+=======
+    const title = document.getElementById("title").value.trim();
+
+    if (!title) {
+      e.preventDefault();
+      showNotification("Please enter a title", "error");
+      document.getElementById("title").focus();
+      return;
+    }
+
+    if (!quill) {
+      e.preventDefault();
+      showNotification("Editor not initialized", "error");
+      return;
+    }
+
+    const content = quill.root.innerHTML;
+    if (!content.trim() || content === "<p><br></p>") {
+      e.preventDefault();
+      showNotification("Please enter content", "error");
+      quill.focus();
+      return;
+    }
+
+    // Update hidden textarea before submission
+    document.getElementById("content").value = quill.root.innerHTML;
+
+    // Allow normal form submission
+    isContentChanged = false;
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
   });
 
   // Prevent accidental navigation away with unsaved changes
@@ -74,6 +117,7 @@ function setupFormHandling() {
   });
 }
 
+<<<<<<< HEAD
 // Setup auto-save functionality
 function setupAutoSave() {
   // Auto-save every 2 minutes
@@ -250,6 +294,8 @@ function updateLastUpdated() {
   }
 }
 
+=======
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1
 // Set button loading state
 function setButtonLoading(button, loading) {
   if (loading) {
@@ -329,6 +375,7 @@ function showNotification(message, type = "success") {
     }
   }, 5000);
 }
+<<<<<<< HEAD
 
 // Clear localStorage on successful save
 window.addEventListener("beforeunload", function () {
@@ -344,3 +391,5 @@ setTimeout(() => {
 
 // Global function for save draft button
 window.saveDraft = saveDraft;
+=======
+>>>>>>> 0f7cc562e1bba1325f82baf13331c7a7469acfd1

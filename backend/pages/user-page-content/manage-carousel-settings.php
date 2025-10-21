@@ -5,6 +5,7 @@ $page_title = "Carousel Settings";
 require_once __DIR__ . "/../admin-includes/config.php";
 require_once __DIR__ . "/../admin-includes/database.php";
 require_once __DIR__ . "/../admin-includes/navbar/navbar.php";
+require_once __DIR__ . "/../admin-includes/activity-logger.php";
 
 // Start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
@@ -79,6 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_settings'])) {
     
     if (mysqli_stmt_execute($update_stmt)) {
         $success_message = "Carousel settings updated successfully!";
+        logAdminActivity($conn, 'UPDATE', "Updated carousel settings", 'carousel_settings', 1);
     } else {
         $error_message = "Error updating settings: " . mysqli_error($conn);
     }
@@ -120,7 +122,6 @@ if (!$settings) {
         
         <!-- Carousel Settings Form -->
         <section class="admin-section">
-            <h2>Edit Carousel Text & Button</h2>
             <p class="settings-info">These settings apply to all carousel slides.</p>
             
             <form action="" method="POST" class="admin-form">

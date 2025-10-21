@@ -3,9 +3,205 @@
  * Handles cart functionality specifically for Available Today products (status_id = 3)
  */
 
+// Checkout functions
+window.closeCheckoutConfirmModal = function() {
+    console.log('Modal closed');
+    document.getElementById('checkoutConfirmModal').style.display = 'none';
+};
+
+window.confirmCheckout = function() {
+    console.log('Checkout confirmed, redirecting...');
+    document.getElementById('checkoutConfirmModal').style.display = 'none';
+    window.location.href = '../cart/availtoday-checkout.php';
+};
+
+// Attach event listener directly to button on load
+document.addEventListener('DOMContentLoaded', function() {
+    const proceedBtn = document.getElementById('proceedCheckoutBtn');
+    if (proceedBtn) {
+        proceedBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Button clicked via event listener!');
+            console.log('Attempting redirect to checkout...');
+            
+            // Close modal
+            const modal = document.getElementById('checkoutConfirmModal');
+            if (modal) modal.style.display = 'none';
+            
+            // Build absolute URL
+            const currentPath = window.location.pathname;
+            console.log('Current path:', currentPath);
+            
+            // Get the base path (remove product-dashboard.php)
+            const basePath = currentPath.substring(0, currentPath.lastIndexOf('/'));
+            const checkoutPath = basePath.replace('/products', '/cart') + '/availtoday-checkout.php';
+            
+            console.log('Calculated checkout path:', checkoutPath);
+            console.log('Full URL will be:', window.location.origin + checkoutPath);
+            
+            // Force navigation
+            window.location.assign(checkoutPath);
+        }, true);
+        console.log('Event listener attached to proceed button');
+    }
+});
+
 // Available Today Cart State
 let availableTodayCart = [];
 let availableTodayCartTotal = 0;
+
+/**
+ * Check business hours and clear cart if closed
+ */
+function checkBusinessHoursAndClearCart() {
+    fetch('get-business-hours.php')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.businessHours) {
+                const now = new Date();
+                const currentTime = now.getHours() * 60 + now.getMinutes(); // Convert to minutes
+                
+                // Parse business hours
+                const [openingHour, openingMinute] = data.businessHours.opening_time.split(':').map(Number);
+                const [closingHour, closingMinute] = data.businessHours.closing_time.split(':').map(Number);
+                
+                const openingTime = openingHour * 60 + openingMinute;
+                const closingTime = closingHour * 60 + closingMinute;
+                
+                // Check if current time is after closing time
+                if (currentTime > closingTime) {
+                    console.log('Business hours closed, clearing Available Today cart');
+                    clearAvailableTodayCart();
+                    showNotification('Business hours closed. Cart has been cleared.', 'info');
+                    
+                    // Disable add to cart buttons
+                    disableAddToCartButtons();
+                    
+                    // Truncate the cart_availtoday table
+                    truncateCartAvailToday();
+                } else if (currentTime < openingTime) {
+                    // Business not yet open
+                    disableAddToCartButtons();
+                } else {
+                    // Business is open
+                    enableAddToCartButtons();
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error checking business hours:', error);
+        });
+}
+
+/**
+ * Truncate the cart_availtoday table when business hours are closed
+ */
+function truncateCartAvailToday() {
+    fetch('truncate-cart-availtoday.php')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('Cart truncated successfully:', data.message);
+                if (data.action === 'truncated') {
+                    showNotification('Cart has been cleared for the day.', 'info');
+                }
+            } else {
+                console.error('Failed to truncate cart:', data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error truncating cart:', error);
+        });
+}
+
+/**
+ * Check if business hours are currently open
+ * @returns {Promise<boolean>} True if open, false if closed
+ */
+function isBusinessOpen() {
+    return fetch('get-business-hours.php')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.businessHours) {
+                const now = new Date();
+                const currentTime = now.getHours() * 60 + now.getMinutes();
+                
+                const [openingHour, openingMinute] = data.businessHours.opening_time.split(':').map(Number);
+                const [closingHour, closingMinute] = data.businessHours.closing_time.split(':').map(Number);
+                
+                const openingTime = openingHour * 60 + openingMinute;
+                const closingTime = closingHour * 60 + closingMinute;
+                
+                return currentTime >= openingTime && currentTime <= closingTime;
+            }
+            return false;
+        })
+        .catch(error => {
+            console.error('Error checking business hours:', error);
+            return false;
+        });
+}
+
+/**
+ * Disable all add to cart buttons
+ */
+function disableAddToCartButtons() {
+    const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
+    addToCartButtons.forEach(button => {
+        button.disabled = true;
+        button.textContent = 'Closed';
+        button.classList.add('closed');
+    });
+}
+
+/**
+ * Enable all add to cart buttons
+ */
+function enableAddToCartButtons() {
+    const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
+    addToCartButtons.forEach(button => {
+        button.disabled = false;
+        button.textContent = 'Add to Cart';
+        button.classList.remove('closed');
+    });
+}
+
+/**
+ * Clear the Available Today cart
+ */
+function clearAvailableTodayCart() {
+    // Clear local cart
+    availableTodayCart = [];
+    availableTodayCartTotal = 0;
+    
+    // Clear localStorage
+    localStorage.removeItem('availableTodayCart');
+    localStorage.removeItem('availableTodayCartTotal');
+    
+    // Update display
+    updateAvailableTodayCartDisplay();
+    
+    // Clear server cart
+    fetch('availtoday-cart-api.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'action=clear'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Server cart cleared successfully');
+        } else {
+            console.error('Failed to clear server cart:', data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error clearing server cart:', error);
+    });
+}
 
 /**
  * Initialize Available Today Cart
@@ -19,6 +215,12 @@ function initAvailableTodayCart() {
     if (checkoutBtn) {
         checkoutBtn.addEventListener('click', handleAvailableTodayCheckout);
     }
+    
+    // Check business hours and clear cart if closed
+    checkBusinessHoursAndClearCart();
+    
+    // Set up periodic checking of business hours
+    setInterval(checkBusinessHoursAndClearCart, 60000); // Check every minute
 }
 
 /**
@@ -38,14 +240,15 @@ function addToAvailableTodayCart(productId, quantity, button) {
         return;
     }
     
-    // Verify this is an Available Today product
-    const statusAttribute = productCard.getAttribute('data-status');
-    const statusElement = productCard.querySelector('.status-badge');
-    const isAvailableToday = (statusAttribute === 'Available Today') || 
-                             (statusElement && statusElement.classList.contains('status-available-today'));
+    // Verify this is an Available Today product (from product-dashboard.php)
+    // Products on the Available Today page have availtoday-badge, not a specific status
+    const hasAvailTodayBadge = productCard.querySelector('.availtoday-badge');
+    const isOnAvailTodayPage = window.location.pathname.includes('product-dashboard');
     
-    if (!isAvailableToday) {
+    // Only allow adding to cart if on the Available Today page OR product has availtoday badge
+    if (!isOnAvailTodayPage && !hasAvailTodayBadge) {
         console.log('Product is not Available Today, skipping cart addition');
+        showNotification('Only Available Today products can be added to this cart', 'error');
         return;
     }
     
@@ -55,7 +258,7 @@ function addToAvailableTodayCart(productId, quantity, button) {
     formData.append('product_id', productId);
     formData.append('quantity', quantity);
     
-    fetch('../../../backend/pages/cart/availtoday-cart-api.php', {
+    fetch('availtoday-cart-api.php', {
         method: 'POST',
         body: formData
     })
@@ -93,7 +296,7 @@ function addToAvailableTodayCart(productId, quantity, button) {
  * @param {number} quantity - Quantity to add
  * @param {HTMLElement} productCard - Product card element
  */
-function updateLocalCart(productId, quantity, productCard) {
+window.updateLocalCart = function(productId, quantity, productCard) {
     // Extract product information
     const productName = productCard.querySelector('h3').textContent;
     const priceText = productCard.querySelector('.price').textContent;
@@ -114,12 +317,12 @@ function updateLocalCart(productId, quantity, productCard) {
         });
         console.log(`Added new product to local cart: ${productName}`);
     }
-}
+};
 
 /**
  * Update the Available Today cart display
  */
-function updateAvailableTodayCartDisplay() {
+window.updateAvailableTodayCartDisplay = function() {
     const cartCount = document.getElementById('availableTodayCartCount');
     const cartItems = document.getElementById('availableTodayCartItems');
     const cartTotal = document.getElementById('availableTodayCartTotal');
@@ -162,7 +365,7 @@ function updateAvailableTodayCartDisplay() {
         });
         checkoutBtn.disabled = false;
     }
-}
+};
 
 /**
  * Update quantity of a specific product in Available Today cart
@@ -180,7 +383,7 @@ function updateAvailableTodayCartQuantity(productId, change) {
         formData.append('product_id', productId);
         formData.append('quantity', newQuantity);
         
-        fetch('../../../backend/pages/cart/availtoday-cart-api.php', {
+        fetch('availtoday-cart-api.php', {
             method: 'POST',
             body: formData
         })
@@ -244,21 +447,22 @@ function clearAvailableTodayCart() {
  * Handle checkout for Available Today cart
  */
 function handleAvailableTodayCheckout() {
+    console.log('Starting checkout...');
+    
     if (availableTodayCart.length === 0) {
-        showNotification('Your Available Today cart is empty', 'error');
+        alert('Your cart is empty');
         return;
     }
     
-    console.log('Processing Available Today checkout:', availableTodayCart);
-    
-    // Here you can implement the checkout logic
-    // For now, we'll show a confirmation
-    const confirmCheckout = confirm(`Checkout ${availableTodayCart.length} Available Today items for ₱${availableTodayCartTotal.toFixed(2)}?`);
-    
-    if (confirmCheckout) {
-        // Redirect to checkout page or process the order
-        // You can modify this to match your checkout flow
-        window.location.href = '../../pages/cart/cart.php';
+    // Show modal
+    const modal = document.getElementById('checkoutConfirmModal');
+    if (modal) {
+        document.getElementById('confirmItemCount').textContent = availableTodayCart.length;
+        document.getElementById('confirmTotal').textContent = availableTodayCartTotal.toFixed(2);
+        modal.style.display = 'block';
+        console.log('Modal shown');
+    } else {
+        console.error('ERROR: Modal not found!');
     }
 }
 
@@ -300,20 +504,26 @@ function loadAvailableTodayCartFromStorage() {
 /**
  * Sync cart with server data
  */
-function syncWithServer() {
-    fetch('../../../backend/pages/cart/availtoday-cart-api.php?action=get')
+window.syncWithServer = function() {
+    fetch('availtoday-cart-api.php?action=get', {
+        credentials: 'include'
+    })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
                 // Update local cart with server data
                 availableTodayCart = data.cart_items.map(item => ({
                     id: item.product_id,
-                    name: item.product_name,
-                    price: item.price,
-                    quantity: item.quantity
+                    name: item.name || '',
+                    price: parseFloat(item.price) || 0,
+                    quantity: parseInt(item.quantity) || 0,
+                    image_url: item.image_url || ''
                 }));
                 
-                availableTodayCartTotal = data.total;
+                // Calculate total
+                availableTodayCartTotal = availableTodayCart.reduce((sum, item) => {
+                    return sum + (item.price * item.quantity);
+                }, 0);
                 
                 console.log('Synced with server cart:', availableTodayCart);
                 updateAvailableTodayCartDisplay();
@@ -325,7 +535,7 @@ function syncWithServer() {
         .catch(error => {
             console.error('Sync error:', error);
         });
-}
+};
 
 /**
  * Get Available Today cart summary
@@ -345,6 +555,7 @@ function getAvailableTodayCartSummary() {
  * @returns {string} Escaped text
  */
 function escapeHtml(text) {
+    if (!text) return '';
     const map = {
         '&': '&amp;',
         '<': '&lt;',
@@ -352,7 +563,7 @@ function escapeHtml(text) {
         '"': '&quot;',
         "'": '&#039;'
     };
-    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+    return String(text).replace(/[&<>"']/g, function(m) { return map[m]; });
 }
 
 /**
@@ -370,14 +581,12 @@ function showNotification(message, type = 'info') {
     }
 }
 
-// Initialize when DOM is loaded
+// Initialize
 document.addEventListener('DOMContentLoaded', function() {
     initAvailableTodayCart();
-    
-    // Try to sync with server first, fallback to localStorage
+    checkBusinessHoursAndClearCart();
     syncWithServer();
     
-    // Load from localStorage as backup
     setTimeout(() => {
         if (availableTodayCart.length === 0) {
             loadAvailableTodayCartFromStorage();

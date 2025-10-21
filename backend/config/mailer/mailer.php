@@ -11,7 +11,7 @@ $mail = new PHPMailer(true);
 try {
     $mail->isSMTP();
     $mail->SMTPAuth = true;
-    $mail->SMTPDebug = SMTP::DEBUG_SERVER;
+    $mail->SMTPDebug = 0; // Disable debug output for now
     $mail->Debugoutput = 'error_log';
     $mail->CharSet = 'UTF-8';
 
@@ -39,10 +39,7 @@ try {
     
     $mail->isHTML(true);
 
-    // Test connection before returning
-    if (!$mail->smtpConnect()) {
-        error_log('Failed to connect to SMTP server: ' . $mail->ErrorInfo);
-    }
+    // Don't test connection during initialization - let it connect when sending
 
     return $mail;
 } catch (Exception $e) {
