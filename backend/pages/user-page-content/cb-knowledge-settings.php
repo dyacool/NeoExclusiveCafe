@@ -27,8 +27,6 @@ $error_message = '';
     
     <!-- CSS files -->
     <link rel="stylesheet" href="../admin-includes/navbar/navbar.css">
-    <link rel="stylesheet" href="../admin-includes/navbar/reset.css">
-    <link rel="stylesheet" href="../admin-includes/navbar/admin-navigation.css">
     
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -37,19 +35,19 @@ $error_message = '';
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     
     <style>
+
+
         body {
             margin: 0;
             padding: 0;
-            font-family: "Spectral", serif;
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
         }
 
         .main-container {
-            margin-left: 80px;
             transition: margin-left 0.3s ease-in-out;
             min-height: 100vh;
-            padding: 30px;
+            padding: 1rem 0;
         }
 
         .sidebar:not(.collapsed) ~ .main-container {
