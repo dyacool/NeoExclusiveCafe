@@ -13,6 +13,7 @@ include __DIR__ . "/../admin-includes/navbar/navbar.php";
 
 // Database connection
 require_once __DIR__ . "/../admin-includes/database.php";
+require_once __DIR__ . "/../admin-includes/activity-logger.php";
 
 // Check connection
 if ($conn->connect_error) {
@@ -76,6 +77,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
     if ($conn->query($update_sql) === TRUE) {
         $success_message = "Footer settings updated successfully!";
+        
+        // Log the activity
+        logAdminActivity($conn, 'UPDATE', "Updated footer settings", 'footer_settings', 1);
         
         // Update local settings variable to reflect changes
         $settings['address'] = $address;

@@ -67,6 +67,22 @@
   transition: background-color 0.3s ease;
 }
 
+/* Same-day order badge */
+.availtoday-badge {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  display: inline-block;
+  padding: 4px 10px;
+  color: rgb(104, 123, 83);
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  background-color: rgba(255, 255, 255, 0.9);
+  z-index: 1;
+}
+
 /* Blog Grid Styles - Matching your existing blog pages */
 .blog-grid {
   display: grid;

@@ -6,6 +6,7 @@ if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
 }
 
 require_once '../admin-includes/database.php';
+require_once '../admin-includes/activity-logger.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['order_id']) && isset($_POST['status'])) {
     $order_id = intval($_POST['order_id']);
@@ -17,6 +18,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['order_id']) && isset($
     mysqli_stmt_bind_param($stmt, "si", $status, $order_id);
     
 if (mysqli_stmt_execute($stmt)) {
+    // Log the activity
+    logAdminActivity($conn, 'UPDATE', "Changed order #$order_id status to '$status'", 'orders', $order_id);
+    
     // Revert to original in-app notification + email to customer
     require_once '../../../frontend/pages/notifications/class-notif.php';
     require_once __DIR__ . '/../admin-includes/mailer.php';

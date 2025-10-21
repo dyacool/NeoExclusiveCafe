@@ -22,7 +22,7 @@ $additional_js = [
 // Font for headings
 $head_extra = '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">';
 
-require_once "../../user-includes/user-header.php";
+require_once __DIR__ . "/../../user-includes/user-header.php";
 require_once "../../user-includes/navbar/customer-navigation.php";
 
 // Pagination settings

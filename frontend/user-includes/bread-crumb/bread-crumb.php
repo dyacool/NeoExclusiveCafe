@@ -60,6 +60,7 @@ $route_mappings = [
     'shopping-cart-sameday' => ['Same-Day Cart', '/frontend/pages/cart/shopping-cart-sameday.php'],
     'checkout' => ['Checkout', '/frontend/pages/cart/checkout.php'],
     'order-confirmation' => ['Order Confirmation', ''],
+    'order-details' => ['Order Details', ''],
     
     // Terms and Privacy routes
     'terms-and-condition' => ['Terms & Conditions', '/frontend/pages/terms/terms-and-condition.php'],
@@ -115,6 +116,7 @@ $hierarchy = [
     'shopping-cart-sameday' => ['user-dashboard'],
     'checkout' => ['user-dashboard', 'cart'],
     'order-confirmation' => ['user-dashboard', 'cart'],
+    'order-details' => ['user-dashboard', 'profile'],
     
     // Legal pages hierarchy
     'terms-and-condition' => ['user-dashboard'],

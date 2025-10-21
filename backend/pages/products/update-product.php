@@ -17,6 +17,7 @@ if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
 
 // Include database connection
 require_once __DIR__ . "/../admin-includes/database.php";
+require_once __DIR__ . "/../admin-includes/activity-logger.php";
 
 // Set JSON response header
 header('Content-Type: application/json');
@@ -224,6 +225,9 @@ try {
         }
         $regular_today_stmt->close();
     }
+        
+        // Log the activity
+        logAdminActivity($conn, 'UPDATE', "Updated product: $name (ID: $id)", 'products', $id);
         
         echo json_encode(['success' => true]);
     } else {

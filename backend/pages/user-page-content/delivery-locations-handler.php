@@ -9,7 +9,9 @@ if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
 }
 
 // Include database configuration
-require_once 'database-config.php';
+// Database connection
+require_once __DIR__ . '/../admin-includes/database.php';
+require_once __DIR__ . '/../admin-includes/activity-logger.php';
 
 // Get database connection
 $conn = getDBConnection();
@@ -103,6 +105,8 @@ function addLocation($conn) {
     $stmt->bind_param("sssd", $municipality, $city, $postal_code, $delivery_fee);
     
     if ($stmt->execute()) {
+        $new_location_id = $conn->insert_id;
+        logAdminActivity($conn, 'CREATE', "Added delivery location: $municipality, $city ($postal_code)", 'delivery_locations', $new_location_id);
         echo json_encode(['success' => true, 'message' => 'Location added successfully']);
     } else {
         echo json_encode(['success' => false, 'message' => 'Failed to add location: ' . $stmt->error]);
@@ -155,6 +159,7 @@ function updateLocation($conn) {
     
     if ($stmt->execute()) {
         if ($stmt->affected_rows > 0) {
+            logAdminActivity($conn, 'UPDATE', "Updated delivery location: $municipality, $city ($postal_code)", 'delivery_locations', $delivery_id);
             echo json_encode(['success' => true, 'message' => 'Location updated successfully']);
         } else {
             echo json_encode(['success' => false, 'message' => 'No changes made or location not found']);
@@ -174,12 +179,24 @@ function deleteLocation($conn) {
         return;
     }
     
+    // Get location details for logging
+    $get_location_query = "SELECT municipality, city, postal_code FROM delivery_locations WHERE delivery_id = ?";
+    $get_location_stmt = $conn->prepare($get_location_query);
+    $get_location_stmt->bind_param("i", $delivery_id);
+    $get_location_stmt->execute();
+    $location_result = $get_location_stmt->get_result();
+    $location_data = $location_result->fetch_assoc();
+    $get_location_stmt->close();
+    
     // Delete location
     $stmt = $conn->prepare("DELETE FROM delivery_locations WHERE delivery_id = ?");
     $stmt->bind_param("i", $delivery_id);
     
     if ($stmt->execute()) {
         if ($stmt->affected_rows > 0) {
+            if ($location_data) {
+                logAdminActivity($conn, 'DELETE', "Deleted delivery location: {$location_data['municipality']}, {$location_data['city']} ({$location_data['postal_code']})", 'delivery_locations', $delivery_id);
+            }
             echo json_encode(['success' => true, 'message' => 'Location deleted successfully']);
         } else {
             echo json_encode(['success' => false, 'message' => 'Location not found']);

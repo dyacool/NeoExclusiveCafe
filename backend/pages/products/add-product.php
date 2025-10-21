@@ -9,6 +9,7 @@ if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
 require_once __DIR__ . "/../admin-includes/config.php";
 
 include __DIR__ . "/../admin-includes/database.php";
+require_once __DIR__ . "/../admin-includes/activity-logger.php";
 
 // Function to generate SKU **only when inserting a new product**
 function generateSKU($conn) {
@@ -202,6 +203,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // Set success message in session
         $_SESSION['success_message'] = "Product has been added successfully!";
+        
+        // Log the activity
+        logAdminActivity($conn, 'CREATE', "Added new product: $name (SKU: $sku)", 'products', $product_id);
         
         // Redirect to prevent form resubmission
         header("Location: /backend/pages/products/product-list.php");
