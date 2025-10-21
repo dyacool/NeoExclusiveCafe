@@ -174,6 +174,10 @@ document.addEventListener("DOMContentLoaded", () => {
       "privacy-policy-settings.php": "User Privacy Policy Management",
       "footer-settings.php": "Footer Settings Management",
       "calendar.php": "Calendar Management",
+      "refund-request-lists.php": "Refund Requests",
+      "bulk-order-lists.php": "Bulk Orders",
+      "bulk-order.php": "Bulk Order Details",
+      "view-orders.php": "Order Details",
     };
 
     const pageTitle = pageTitles[currentPage] || "Neo Cafe Admin";

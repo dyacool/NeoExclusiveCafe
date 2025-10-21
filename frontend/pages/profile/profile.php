@@ -92,10 +92,26 @@ if (isset($user['profile_image']) && !empty(trim($user['profile_image']))) {
 
 $user_email = $user['email'];
 
-// Fetch user orders by customer_email
-$sql = "SELECT order_id, status, order_date, total_items, total_amount, delivery_method FROM orders WHERE customer_email = ? ORDER BY order_date DESC";
-$stmt = mysqli_prepare($conn, $sql);
-mysqli_stmt_bind_param($stmt, "s", $user_email);
+// Check if order_refunds table exists
+$refunds_table_check = "SHOW TABLES LIKE 'order_refunds'";
+$refunds_table_result = $conn->query($refunds_table_check);
+$refunds_table_exists = $refunds_table_result && $refunds_table_result->num_rows > 0;
+
+// Fetch user orders by customer_email with refund information
+if ($refunds_table_exists) {
+    $sql = "SELECT o.order_id, o.status, o.order_date, o.total_items, o.total_amount, o.delivery_method,
+                   r.refund_id, r.refund_status, r.refund_amount, r.created_at as refund_created_at
+            FROM orders o
+            LEFT JOIN order_refunds r ON o.order_id = r.order_id AND r.user_id = ?
+            WHERE o.customer_email = ? 
+            ORDER BY o.order_date DESC";
+    $stmt = mysqli_prepare($conn, $sql);
+    mysqli_stmt_bind_param($stmt, "is", $user_id, $user_email);
+} else {
+    $sql = "SELECT order_id, status, order_date, total_items, total_amount, delivery_method FROM orders WHERE customer_email = ? ORDER BY order_date DESC";
+    $stmt = mysqli_prepare($conn, $sql);
+    mysqli_stmt_bind_param($stmt, "s", $user_email);
+}
 mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
 
@@ -177,6 +193,85 @@ if ($bulk_orders_stmt === false) {
     <title>Profile - NeoExclusiveCafe</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="profile.css">
+    <style>
+        .refund-status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .refund-status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .refund-status-approved {
+            background: #d1e7dd;
+            color: #0f5132;
+        }
+        .refund-status-rejected {
+            background: #f8d7da;
+            color: #842029;
+        }
+        .refund-status-completed {
+            background: #d1e7dd;
+            color: #0a3622;
+        }
+        .refund-modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            justify-content: center;
+            align-items: center;
+        }
+        .refund-modal.show {
+            display: flex !important;
+        }
+        .refund-modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 700px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        .refund-modal-header {
+            background: linear-gradient(135deg, #0f5132, #2d5a27);
+            color: white;
+            padding: 20px 24px;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .refund-modal-header h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+        .refund-modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .refund-modal-body {
+            padding: 24px;
+        }
+    </style>
     <?php include "../../user-includes/navbar/customer-navigation.php"; ?>
 
 </head>
@@ -275,26 +370,55 @@ if ($bulk_orders_stmt === false) {
                         <th>Total Items</th>
                         <th>Total Amount</th>
                         <th>Status</th>
+                        <th>Refund Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (mysqli_num_rows($result) > 0): ?>
                         <?php while ($order = mysqli_fetch_assoc($result)): ?>
+                        <?php
+                            $status_lower = strtolower($order['status']);
+                            $is_delivered = ($status_lower === 'delivered' || $status_lower === 'picked-up' || $status_lower === 'picked up');
+                            $has_refund = isset($order['refund_id']) && !empty($order['refund_id']);
+                        ?>
                         <tr>
                             <td><?php echo htmlspecialchars(date("M j, Y", strtotime($order['order_date']))); ?></td>
                             <td>#<?php echo htmlspecialchars($order['order_id']); ?></td>
                             <td><?php echo htmlspecialchars($order['total_items']); ?> items</td>
                             <td>₱<?php echo htmlspecialchars(number_format($order['total_amount'], 2)); ?></td>
-                            <td><span class="status-<?php echo htmlspecialchars(strtolower($order['status'])); ?>"><?php echo htmlspecialchars(ucfirst($order['status'])); ?></span></td>
+                            <td><span class="status-<?php echo htmlspecialchars($status_lower); ?>"><?php echo htmlspecialchars(ucfirst($order['status'])); ?></span></td>
                             <td>
-                                <button class="btn-view" onclick="openOrderModal(<?php echo $order['order_id']; ?>)">View Details</button>
+                                <?php if ($has_refund): ?>
+                                    <div style="display: flex; flex-direction: column; gap: 4px; align-items: center;">
+                                        <span class="refund-status-badge refund-status-<?php echo htmlspecialchars($order['refund_status']); ?>">
+                                            <?php echo htmlspecialchars(ucfirst($order['refund_status'])); ?>
+                                        </span>
+                                        <small style="color: #666; font-size: 11px;">
+                                            <?php echo date("M j, Y", strtotime($order['refund_created_at'])); ?>
+                                        </small>
+                                    </div>
+                                <?php elseif ($is_delivered): ?>
+                                    <span style="color: #666; font-size: 13px;">Available</span>
+                                <?php else: ?>
+                                    <span style="color: #999; font-size: 13px;">N/A</span>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <a href="../cart/order-details.php?order_id=<?php echo $order['order_id']; ?>" class="btn-view" style="display: inline-block; text-decoration: none; text-align: center;">View Order</a>
+                                <?php if ($is_delivered): ?>
+                                    <?php if ($has_refund): ?>
+                                        <button onclick="viewRefundDetails(<?php echo $order['order_id']; ?>)" class="btn-proof" style="border: none; cursor: pointer;">View Refund</button>
+                                    <?php else: ?>
+                                        <button onclick="openRefundRequestModal(<?php echo $order['order_id']; ?>)" class="btn-proof" style="border: none; cursor: pointer;">Request Refund</button>
+                                    <?php endif; ?>
+                                <?php endif; ?>
                             </td>
                         </tr>
                         <?php endwhile; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="6">No orders found for your account.</td>
+                            <td colspan="7">No orders found for your account.</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
@@ -312,6 +436,7 @@ if ($bulk_orders_stmt === false) {
                         <th>Total Items</th>
                         <th>Total Amount</th>
                         <th>Order Status</th>
+                        <th>Refund Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -325,6 +450,9 @@ if ($bulk_orders_stmt === false) {
                             <td>₱<?php echo htmlspecialchars(number_format($bulk_order['total_amount'], 2)); ?></td>
                             <td><span class="status-<?php echo htmlspecialchars(strtolower($bulk_order['status'])); ?>"><?php echo htmlspecialchars(ucfirst(str_replace('_', ' ', $bulk_order['status']))); ?></span></td>
                             <td>
+                                <span style="color: #999; font-size: 13px;">N/A</span>
+                            </td>
+                            <td>
                                 <a href="../bulk/bulk-order-details.php?id=<?php echo $bulk_order['display_order_id']; ?>" class="btn-view">View Details</a>
                                 <?php if ($bulk_order['status'] == 'approved' && empty($bulk_order['proof_of_payment'])): ?>
                                     <a href="../bulk/bulk-order-details.php?id=<?php echo $bulk_order['display_order_id']; ?>#proof-upload" class="btn-proof">Attach Proof</a>
@@ -334,7 +462,7 @@ if ($bulk_orders_stmt === false) {
                         <?php endwhile; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="6">No bulk orders found for your account.</td>
+                            <td colspan="7">No bulk orders found for your account.</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
@@ -592,6 +720,17 @@ if ($bulk_orders_stmt === false) {
             }
         }
     });
+
+    // Refund request and view functions
+    function openRefundRequestModal(orderId) {
+        // Redirect to order-details.php which has the refund request form
+        window.location.href = `../cart/order-details.php?order_id=${orderId}`;
+    }
+
+    function viewRefundDetails(orderId) {
+        // Redirect to order-details.php which will show the refund details modal
+        window.location.href = `../cart/order-details.php?order_id=${orderId}#view-refund`;
+    }
 </script>
 
     <div id="footer-container">

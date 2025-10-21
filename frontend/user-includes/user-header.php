@@ -419,3 +419,195 @@ $is_admin_logged_in = isset($_SESSION['admin_id']) && isset($_SESSION['admin_rol
 <body>
     <?php include_once __DIR__ . "/navbar/customer-navigation.php"; ?>
     <!-- Page content will be inserted here -->
+    
+    <!-- Chat Button -->
+    <button class="chat-button" onclick="toggleChat()" title="Chat with us" aria-label="Open chat support">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            <line x1="9" y1="10" x2="15" y2="10"></line>
+            <line x1="9" y1="14" x2="13" y2="14"></line>
+        </svg>
+    </button>
+
+    <!-- Chat Window -->
+    <div class="chat-window" id="chatWindow">
+        <div class="chat-header">
+            <h3>Neo Cafe Support</h3>
+            <button class="close-chat" onclick="toggleChat()">×</button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <!-- Messages will be added here -->
+        </div>
+        <div class="chat-input-container">
+            <input type="text" class="chat-input" id="chatInput" placeholder="Type your message..." onkeypress="handleKeyPress(event)">
+            <button class="send-button" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // Function to convert URLs to clickable links
+        function linkifyText(text) {
+            // Comprehensive regex for URLs
+            const urlRegex = /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/gi;
+            
+            // Replace URLs with clickable links
+            return text.replace(urlRegex, function(url) {
+                const href = url.startsWith('http') ? url : 'https://' + url;
+                return `<a href="${href}" target="_blank" rel="noopener noreferrer" style="color: #0078ff; text-decoration: underline; font-weight: bold; cursor: pointer; word-break: break-all;">${url}</a>`;
+            });
+        }
+
+        function toggleChat() {
+            const chatWindow = document.getElementById('chatWindow');
+            const isActive = chatWindow.classList.contains('active');
+            
+            if (isActive) {
+                chatWindow.classList.remove('active');
+                setTimeout(() => {
+                    chatWindow.style.display = 'none';
+                }, 400); // Match transition duration
+            } else {
+                chatWindow.style.display = 'block';
+                setTimeout(() => {
+                    chatWindow.classList.add('active');
+                }, 10);
+                
+                // Add welcome message when chat is opened for the first time
+                const chatMessages = document.getElementById('chatMessages');
+                if (chatMessages.children.length === 0) {
+                    // Add welcome badge
+                    const welcomeDiv = document.createElement('div');
+                    welcomeDiv.className = 'chat-welcome';
+                    welcomeDiv.textContent = '🌿 Welcome to NeoExclusive Support';
+                    chatMessages.appendChild(welcomeDiv);
+                    
+                    // Add bot welcome message
+                    setTimeout(() => {
+                        addBotMessage('Hello! Welcome to NeoExclusive Cafe. How can I help you today?');
+                    }, 300);
+                }
+            }
+        }
+
+        function addBotMessage(message) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot-message';
+            
+            // Convert URLs to clickable links
+            const linkifiedMessage = linkifyText(message);
+            
+            messageDiv.innerHTML = `
+                ${linkifiedMessage}
+                <div class="message-time">${getCurrentTime()}</div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addUserMessage(message) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message user-message';
+            messageDiv.innerHTML = `
+                ${message}
+                <div class="message-time">${getCurrentTime()}</div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function getCurrentTime() {
+            const now = new Date();
+            return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                addUserMessage(message);
+                input.value = '';
+                
+                // Show typing indicator
+                const chatMessages = document.getElementById('chatMessages');
+                const typingIndicator = document.createElement('div');
+                typingIndicator.className = 'message bot-message typing-indicator';
+                typingIndicator.id = 'typing-indicator';
+                typingIndicator.innerHTML = '<span></span><span></span><span></span>';
+                chatMessages.appendChild(typingIndicator);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+                // Send message to chatbot
+                const formData = new FormData();
+                formData.append('message', message);
+                
+                fetch('../../backend/pages/admin-includes/chatbot.php', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const contentType = response.headers.get('content-type');
+                    if (!contentType || !contentType.includes('application/json')) {
+                        throw new Error('Server did not return JSON');
+                    }
+                    return response.text().then(text => {
+                        try {
+                            // Remove any HTML comments or whitespace before parsing
+                            const cleanText = text.replace(/<!--[\s\S]*?-->/g, '').trim();
+                            if (!cleanText) {
+                                throw new Error('Empty response from server');
+                            }
+                            return JSON.parse(cleanText);
+                        } catch (e) {
+                            console.error('Response text:', text);
+                            throw new Error('Invalid JSON response from server: ' + e.message);
+                        }
+                    });
+                })
+                .then(data => {
+                    // Remove typing indicator
+                    const indicator = document.getElementById('typing-indicator');
+                    if (indicator) {
+                        indicator.remove();
+                    }
+                    
+                    if (data.error) {
+                        addBotMessage('Error: ' + data.error);
+                    } else if (data.response) {
+                        addBotMessage(data.response);
+                    } else {
+                        throw new Error('Invalid response format from server');
+                    }
+                })
+                .catch(error => {
+                    // Remove typing indicator
+                    const indicator = document.getElementById('typing-indicator');
+                    if (indicator) {
+                        indicator.remove();
+                    }
+                    
+                    console.error('Error:', error);
+                    addBotMessage('Sorry, I encountered an error. Please try again.');
+                });
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+    </script>
+    <!-- Responsive Fixes -->
+    <script src="/frontend/assets/js/responsive-fixes.js"></script>
+</body>
+</html>
