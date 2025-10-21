@@ -419,8 +419,6 @@ $is_admin_logged_in = isset($_SESSION['admin_id']) && isset($_SESSION['admin_rol
 <body>
     <?php include_once __DIR__ . "/navbar/customer-navigation.php"; ?>
     <!-- Page content will be inserted here -->
-<<<<<<< Updated upstream
-=======
     
     <!-- Chat Button -->
     <button class="chat-button" onclick="toggleChat()" title="Chat with us">
@@ -458,9 +456,9 @@ $is_admin_logged_in = isset($_SESSION['admin_id']) && isset($_SESSION['admin_rol
 
         function toggleChat() {
             const chatWindow = document.getElementById('chatWindow');
-            chatWindow.style.display = chatWindow.style.display === 'none' ? 'block' : 'none';
+            chatWindow.classList.toggle('active');
             
-            if (chatWindow.style.display === 'block') {
+            if (chatWindow.classList.contains('active')) {
                 // Add welcome message when chat is opened
                 const chatMessages = document.getElementById('chatMessages');
                 if (chatMessages.children.length === 0) {
@@ -590,4 +588,3 @@ $is_admin_logged_in = isset($_SESSION['admin_id']) && isset($_SESSION['admin_rol
     <script src="/frontend/assets/js/responsive-fixes.js"></script>
 </body>
 </html>
->>>>>>> Stashed changes
