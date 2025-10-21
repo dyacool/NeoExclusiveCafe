@@ -19,6 +19,7 @@ RUN apk add --no-cache \
     && docker-php-ext-install \
         pdo \
         pdo_mysql \
+        mysqli \
         zip \
         gd \
         dom \

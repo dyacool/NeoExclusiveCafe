@@ -8,4 +8,3 @@ define('BASE_URL', $protocol . $host);
 function get_full_url($path) {
     return BASE_URL . '/NeoExclusiveCafe' . $path;
 }
-?> 
