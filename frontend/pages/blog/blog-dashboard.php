@@ -8,6 +8,7 @@ $page_title = "Blog";
 $additional_css = [
     "../blog/blog-dashboard.css"
 ];
+require_once __DIR__ . "/../../user-includes/user-header.php";
 
 require_once "../../../backend/pages/admin-includes/database.php";
 require_once "../../user-includes/navbar/customer-navigation.php";

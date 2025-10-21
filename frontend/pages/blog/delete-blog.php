@@ -3,6 +3,7 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+require_once __DIR__ . "/../../user-includes/user-header.php";
 require_once "../../../backend/pages/admin-includes/database.php";
 
 // Set the content type to JSON

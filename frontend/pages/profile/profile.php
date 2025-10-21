@@ -177,10 +177,11 @@ if ($bulk_orders_stmt === false) {
     <title>Profile - NeoExclusiveCafe</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="profile.css">
+    <?php include "../../user-includes/navbar/customer-navigation.php"; ?>
 
 </head>
+
 <body>
-<?php include "../../user-includes/navbar/customer-navigation.php"; ?>
 <?php include "../../user-includes/bread-crumb/bread-crumb.php"; ?>
 
 
@@ -592,5 +593,9 @@ if ($bulk_orders_stmt === false) {
         }
     });
 </script>
+
+    <div id="footer-container">
+        <?php require_once "../../user-includes/user-footer.php"; ?>
+    </div>
 </body>
 </html>
