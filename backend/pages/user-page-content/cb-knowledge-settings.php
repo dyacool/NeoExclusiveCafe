@@ -1,16 +1,20 @@
 <?php
-// Start session for authentication
+// Start session for potential authentication
 session_start();
 
-// Check if user is logged in as admin
+// Check if user is logged in as admin (implement your authentication logic)
 if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
     header("Location: /backend/login/admin/admin-login.php");
     exit();
 }
 
-// Include necessary files
+// Include the navbar and database
 require_once __DIR__ . "/../admin-includes/navbar/navbar.php";
 require_once __DIR__ . "/../admin-includes/database.php";
+
+// Initialize variables
+$success_message = '';
+$error_message = '';
 ?>
 
 <!DOCTYPE html>
@@ -18,7 +22,7 @@ require_once __DIR__ . "/../admin-includes/database.php";
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot Knowledge Settings - NeoCafe Admin</title>
+    <title>Chatbot Knowledge Base - NeoCafe Admin</title>
     <link rel="icon" type="image/x-icon" href="../../../assets/images/favicon.ico">
     
     <!-- CSS files -->
@@ -585,8 +589,7 @@ You can include URLs - they will automatically become clickable links in the cha
                         $('#knowledge-content').val(res.content || '');
                         updatePreview();
                         
-                        // Note: If your database doesn't have updated_at, this won't work
-                        // You can remove this line if needed
+                        // Update last updated time if available
                         if (res.updated_at) {
                             $('#last-updated').text(formatDate(res.updated_at));
                         }
