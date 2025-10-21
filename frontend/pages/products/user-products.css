@@ -9,7 +9,8 @@
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 1000;
   overflow-y: auto;
-  padding: 0;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 /* Modal centering wrapper - always centers content */
@@ -17,7 +18,6 @@
   display: flex !important;
   justify-content: center;
   align-items: center;
-  padding: 20px;
 }
 
 .modal-content {
@@ -26,11 +26,12 @@
   border-radius: 12px;
   width: 90%;
   max-width: 900px;
-  max-height: 85vh;
+  max-height: 90vh;
   overflow-y: auto;
   position: relative;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-  margin: auto;
+  margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .close {
@@ -181,11 +182,23 @@
   
   .main-image {
     height: 250px;
+    width: 100%;
+    aspect-ratio: 1/1;
+    object-fit: contain;
+  }
+  
+  .main-image img {
+    object-fit: contain;
+  }
+  
+  .thumbnail-container {
+    justify-content: center;
   }
   
   .thumbnail-container img {
     width: 60px;
     height: 60px;
+    min-width: 60px;
   }
 }
 
@@ -197,6 +210,7 @@
   .thumbnail-container img {
     width: 50px;
     height: 50px;
+    min-width: 50px;
   }
   
   .product-details {
@@ -206,6 +220,21 @@
   .description {
     padding: 10px;
     font-size: 14px;
+  }
+  
+  .modal-content {
+    padding: 0.8rem;
+    width: 98%;
+  }
+  
+  .modal-title {
+    font-size: 1.25rem;
+    margin: 5px 0;
+  }
+  
+  .modal-price {
+    font-size: 1.1rem;
+    margin: 5px 0;
   }
 }
 
@@ -217,18 +246,33 @@
   .thumbnail-container img {
     width: 45px;
     height: 45px;
+    min-width: 45px;
   }
   
   .modal-content {
-    padding: 0.75rem;
+    padding: 0.7rem;
+    width: 98%;
   }
   
   .modal-title {
-    font-size: 20px;
+    font-size: 1.1rem;
+    margin: 5px 0;
   }
   
   .modal-price {
-    font-size: 18px;
+    font-size: 1rem;
+    margin: 5px 0;
+  }
+  
+  .description {
+    padding: 8px;
+    font-size: 0.85rem;
+  }
+  
+  .prdct-qty {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
   }
   }
 
@@ -557,35 +601,6 @@ h3 {
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   color: #666;
-}
-
-/* Modal Styles */
-.modal {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
-  display: none; /* Will be changed to flex when modal opens */
-  justify-content: center;
-  align-items: center;
-}
-
-.modal-content {
-  background-color: white;
-  padding: 30px;
-  border-radius: 12px;
-  width: 90%;
-  max-width: 900px;
-  overflow-y: auto;
-  position: relative;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-  margin: 0 auto;
-  top: 20%;
-  transform: translateY(-50%);
 }
 
 .close {
