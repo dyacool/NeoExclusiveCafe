@@ -1,9 +1,165 @@
+// Global function to open order details modal (defined outside DOMContentLoaded)
+window.openOrderDetailsModal = function(orderId) {
+    console.log('Opening order details modal for order:', orderId);
+    
+    // Create modal if it doesn't exist
+    let orderModal = document.getElementById('orderDetailsModal');
+    if (!orderModal) {
+        // Create modal structure
+        const modalHTML = `
+            <div class="modal-overlay" id="orderDetailsModal" style="display: none;">
+                <div class="modal-container modal-large">
+                    <div class="modal-header">
+                        <h3 class="modal-title">Order Details</h3>
+                        <button class="modal-close" onclick="closeOrderDetailsModal()">&times;</button>
+                    </div>
+                    <div class="modal-body" id="orderDetailsContent">
+                        <div class="loading-spinner">Loading order details...</div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        orderModal = document.getElementById('orderDetailsModal');
+        
+        // Add click outside to close
+        orderModal.addEventListener('click', function(e) {
+            if (e.target === orderModal) {
+                closeOrderDetailsModal();
+            }
+        });
+    }
+
+    // Show modal
+    orderModal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+
+    // Fetch order details
+    const orderDetailsContent = document.getElementById('orderDetailsContent');
+    orderDetailsContent.innerHTML = '<div class="loading-spinner">Loading order details...</div>';
+
+    fetch(`/frontend/pages/cart/get-order-details.php?order_id=${orderId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayOrderDetails(data.order, data.items);
+            } else {
+                orderDetailsContent.innerHTML = `<div class="error-message">Failed to load order details: ${data.message || 'Unknown error'}</div>`;
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching order details:', error);
+            orderDetailsContent.innerHTML = '<div class="error-message">Failed to load order details. Please try again.</div>';
+        });
+};
+
+window.closeOrderDetailsModal = function() {
+    const orderModal = document.getElementById('orderDetailsModal');
+    if (orderModal) {
+        orderModal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+};
+
+function displayOrderDetails(order, items) {
+    let itemsHTML = '';
+    let subtotal = 0;
+
+    if (items && items.length > 0) {
+        items.forEach(item => {
+            const price = parseFloat(item.price || 0);
+            const quantity = parseInt(item.quantity || 0);
+            const total = price * quantity;
+            subtotal += total;
+
+            itemsHTML += `
+                <tr>
+                    <td>${item.product_name || 'Unknown'}</td>
+                    <td>${quantity}</td>
+                    <td>₱${price.toFixed(2)}</td>
+                    <td>₱${total.toFixed(2)}</td>
+                </tr>
+            `;
+        });
+    } else {
+        itemsHTML = '<tr><td colspan="4">No items found</td></tr>';
+    }
+
+    const orderDate = new Date(order.order_date || order.created_at);
+    const formattedDate = orderDate.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+
+    const orderDetailsContent = document.getElementById('orderDetailsContent');
+    orderDetailsContent.innerHTML = `
+        <div class="order-details-container">
+            <h2>Order #${order.order_id}</h2>
+            
+            <div class="order-info-grid">
+                <div class="info-item">
+                    <strong>Status:</strong>
+                    <span class="status-badge status-${order.status?.toLowerCase().replace(/\s+/g, '-')}">${order.status}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Order Date:</strong>
+                    <span>${formattedDate}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Customer:</strong>
+                    <span>${order.customer_name || 'N/A'}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Email:</strong>
+                    <span>${order.customer_email || 'N/A'}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Phone:</strong>
+                    <span>${order.customer_phone || 'N/A'}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Delivery Method:</strong>
+                    <span>${order.delivery_method || 'N/A'}</span>
+                </div>
+                <div class="info-item full-width">
+                    <strong>Delivery Address:</strong>
+                    <span>${order.delivery_address || 'N/A'}</span>
+                </div>
+            </div>
+
+            <h3>Order Items</h3>
+            <table class="order-items-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Unit Price</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${itemsHTML}
+                </tbody>
+                <tfoot>
+                    <tr class="total-row">
+                        <td colspan="3"><strong>Total Amount:</strong></td>
+                        <td><strong>₱${(order.total_amount || subtotal).toFixed(2)}</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    `;
+}
+
 document.addEventListener("DOMContentLoaded", function() {
     // Global notification functions for use across the site
     
     // Fetch notifications for dropdown (latest 5)
     function fetchDropdownNotifications() {
-        return fetch('.../../pages/notifications/fetch-notif.php?dropdown=true')
+        return fetch('/frontend/pages/notifications/fetch-notif.php?dropdown=true')
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
@@ -21,7 +177,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Fetch notification details by ID
     function fetchNotificationDetails(notificationId) {
-        return fetch(`.../../pages/notifications/fetch-notif.php?id=${notificationId}`)
+        return fetch(`/frontend/pages/notifications/fetch-notif.php?id=${notificationId}`)
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
@@ -34,7 +190,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Mark notification as read
     function markNotificationAsRead(notificationId) {
-        return fetch('.../../pages/notifications/mark-notif.php', {
+        return fetch('/frontend/pages/notifications/mark-notif.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -82,7 +238,18 @@ document.addEventListener("DOMContentLoaded", function() {
 
         // Update modal content with proper error handling
         titleElement.textContent = notification.title || notification.message || 'Notification';
-        messageElement.textContent = notification.message || 'No message available';
+        
+        // Build message with link if available
+        let messageHtml = notification.message || 'No message available';
+         if (notification.link && notification.order_id) {
+            // For order notifications, show a button that opens modal
+            messageHtml += `<br><br><button onclick="openOrderDetailsModal(${notification.order_id}); return false;" class="notif-link btn btn-primary btn-sm" style="color: white; text-decoration: none; padding: 8px 16px; border-radius: 4px; display: inline-block; margin-top: 10px; cursor: pointer; border: none;">View Order Details</button>`;
+        } else if (notification.link) {
+            // For non-order links, show regular anchor
+            messageHtml += `<br><br><a href="${notification.link}" class="notif-link btn btn-primary btn-sm" style="color: white; text-decoration: none; padding: 8px 16px; border-radius: 4px; display: inline-block; margin-top: 10px;">View Details</a>`;
+        }
+        messageElement.innerHTML = messageHtml;
+        
         timestampElement.textContent = 'Received: ' + new Date(notification.created_at).toLocaleString();
 
         // Handle image with better error handling
@@ -120,11 +287,10 @@ document.addEventListener("DOMContentLoaded", function() {
             // Handle order notifications
             if (notification.order_details && Object.keys(notification.order_details).length > 0) {
                 const order = notification.order_details;
-                const orderLink = notification.link ? `<a href="${notification.link}" class="btn btn-primary btn-sm">View Order Details</a>` : '';
                 orderDetails.innerHTML = `
                     <div class="row">
                         <div class="col-md-6">
-                            <p><strong>Order ID:</strong> #${order.id || 'N/A'} ${orderLink}</p>
+                            <p><strong>Order ID:</strong> #${order.id || 'N/A'}</p>
                             <p><strong>Customer:</strong> ${order.customer_name || 'N/A'}</p>
                             <p><strong>Email:</strong> ${order.customer_email || 'N/A'}</p>
                             <p><strong>Phone:</strong> ${order.customer_phone || 'N/A'}</p>
@@ -324,29 +490,12 @@ document.addEventListener("DOMContentLoaded", function() {
                                 short: 'short'
                             });
 
-                            // Create link wrapper if notification has a link
                             const contentDiv = document.createElement('div');
                             contentDiv.className = 'notification-content';
-                            
-                            if (notif.link) {
-                                const linkWrapper = document.createElement('a');
-                                linkWrapper.href = notif.link;
-                                linkWrapper.className = 'notification-link';
-                                linkWrapper.onclick = (e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    markNotificationAsRead(notif.id).then(() => {
-                                        window.location.href = notif.link;
-                                    });
-                                };
-                                linkWrapper.appendChild(title);
-                                contentDiv.appendChild(linkWrapper);
-                            } else {
-                                contentDiv.appendChild(title);
-                            }
-                            
+                            contentDiv.appendChild(title);
                             contentDiv.appendChild(time);
-                            li.appendChild(contentDiv);
+
+                        li.appendChild(contentDiv);
                             notificationList.appendChild(li);
                             
                         if (!notif.is_read) unreadCount++;
@@ -433,4 +582,3 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 });
-

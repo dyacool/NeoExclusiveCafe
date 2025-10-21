@@ -106,8 +106,8 @@ class Notification {
 
             // Prepare notification details
             $title = "Order Status Update";
-            $message = "Your order #$orderId have been updated to $status. Click here to view order details.";
-            $link = "../../pages/cart/order-details.php?order_id=" . $orderId;
+            $message = "Your order #$orderId have been updated to $status.";
+            $link = "../../pages/cart/order_details.php?order_id=" . $orderId; // Link to order details page
 
             // Insert the notification
             $notifQuery = "INSERT INTO notifications (user_id, type, title, message, image_url, order_id, link, created_at, is_read)
@@ -205,7 +205,7 @@ class Notification {
     // Fetch notification details by ID for modal display
     public function getNotificationDetails($notificationId, $userId) {
         $stmt = $this->db->prepare("
-            SELECT id, user_id, type, title, message, image_url, is_read, created_at, order_id 
+            SELECT id, user_id, type, title, message, image_url, is_read, created_at, order_id, link 
             FROM notifications 
             WHERE id = ? AND user_id = ?
         ");

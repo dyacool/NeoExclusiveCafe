@@ -53,7 +53,7 @@ try {
     if ($isDropdown) {
         // Fetch latest 5 notifications for dropdown
         $stmt = $conn->prepare("
-            SELECT id, user_id, type, title, message, image_url, is_read, created_at, order_id 
+            SELECT id, user_id, type, title, message, image_url, is_read, created_at, order_id, link 
             FROM notifications 
             WHERE user_id = ? 
             ORDER BY created_at DESC 
@@ -75,7 +75,7 @@ try {
         $offset = ($page - 1) * $perPage;
 
         $stmt = $conn->prepare("
-            SELECT id, user_id, type, title, message, image_url, is_read, created_at, order_id
+            SELECT id, user_id, type, title, message, image_url, is_read, created_at, order_id, link
             FROM notifications
             WHERE user_id = ?
             ORDER BY created_at DESC
@@ -108,7 +108,8 @@ try {
             'image_url' => $img,
             'is_read' => (int)$n['is_read'],
             'created_at' => $n['created_at'],
-            'order_id' => $n['order_id'] ?? null
+            'order_id' => $n['order_id'] ?? null,
+            'link' => $n['link'] ?? null
         ];
     }
 
