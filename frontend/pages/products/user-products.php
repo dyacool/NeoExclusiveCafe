@@ -676,7 +676,7 @@ if ($conn->connect_error) {
                 };
             }
 
-            modal.style.display = 'block';
+            modal.classList.add('show');
         } catch (error) {
             console.error('Error in openProductModal:', error);
             showConfirmation('An error occurred while opening the product details', true);
@@ -685,7 +685,9 @@ if ($conn->connect_error) {
 
     function closeProductModal() {
         productModalOpen = false;
-        document.getElementById('productModal').style.display = 'none';
+        const modal = document.getElementById('productModal');
+        modal.classList.remove('show');
+        modal.style.display = 'none';
     }
 
     // Close modal when clicking outside
