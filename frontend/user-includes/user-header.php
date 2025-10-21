@@ -544,7 +544,7 @@ $is_admin_logged_in = isset($_SESSION['admin_id']) && isset($_SESSION['admin_rol
                 const formData = new FormData();
                 formData.append('message', message);
                 
-                fetch('../../backend/pages/admin-includes/chatbot.php', {
+                fetch('/backend/pages/admin-includes/chatbot.php', {
                     method: 'POST',
                     body: formData,
                     headers: {
