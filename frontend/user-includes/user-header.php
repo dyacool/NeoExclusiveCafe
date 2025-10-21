@@ -419,3 +419,175 @@ $is_admin_logged_in = isset($_SESSION['admin_id']) && isset($_SESSION['admin_rol
 <body>
     <?php include_once __DIR__ . "/navbar/customer-navigation.php"; ?>
     <!-- Page content will be inserted here -->
+<<<<<<< Updated upstream
+=======
+    
+    <!-- Chat Button -->
+    <button class="chat-button" onclick="toggleChat()" title="Chat with us">
+        <img src="/assets/images/chatbot.svg" alt="Chat Icon">
+    </button>
+
+    <!-- Chat Window -->
+    <div class="chat-window" id="chatWindow">
+        <div class="chat-header">
+            <h3>NeoExclusive Support</h3>
+            <button class="close-chat" onclick="toggleChat()">×</button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <!-- Messages will be added here -->
+        </div>
+        <div class="chat-input-container">
+            <input type="text" class="chat-input" id="chatInput" placeholder="Type your message..." onkeypress="handleKeyPress(event)">
+            <button class="send-button" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // Function to convert URLs to clickable links
+        function linkifyText(text) {
+            // Comprehensive regex for URLs
+            const urlRegex = /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/gi;
+            
+            // Replace URLs with clickable links
+            return text.replace(urlRegex, function(url) {
+                const href = url.startsWith('http') ? url : 'https://' + url;
+                return `<a href="${href}" target="_blank" rel="noopener noreferrer" style="color: #0078ff; text-decoration: underline; font-weight: bold; cursor: pointer; word-break: break-all;">${url}</a>`;
+            });
+        }
+
+        function toggleChat() {
+            const chatWindow = document.getElementById('chatWindow');
+            chatWindow.style.display = chatWindow.style.display === 'none' ? 'block' : 'none';
+            
+            if (chatWindow.style.display === 'block') {
+                // Add welcome message when chat is opened
+                const chatMessages = document.getElementById('chatMessages');
+                if (chatMessages.children.length === 0) {
+                    addBotMessage('Hello! Welcome to NeoExclusive Cafe. How can I help you today?');
+                }
+            }
+        }
+
+        function addBotMessage(message) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot-message';
+            
+            // Convert URLs to clickable links
+            const linkifiedMessage = linkifyText(message);
+            
+            messageDiv.innerHTML = `
+                ${linkifiedMessage}
+                <div class="message-time">${getCurrentTime()}</div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addUserMessage(message) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message user-message';
+            messageDiv.innerHTML = `
+                ${message}
+                <div class="message-time">${getCurrentTime()}</div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function getCurrentTime() {
+            const now = new Date();
+            return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                addUserMessage(message);
+                input.value = '';
+                
+                // Show typing indicator
+                const chatMessages = document.getElementById('chatMessages');
+                const typingIndicator = document.createElement('div');
+                typingIndicator.className = 'message bot-message typing-indicator';
+                typingIndicator.id = 'typing-indicator';
+                typingIndicator.innerHTML = '<span></span><span></span><span></span>';
+                chatMessages.appendChild(typingIndicator);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+                // Send message to chatbot
+                const formData = new FormData();
+                formData.append('message', message);
+                
+                fetch('/backend/pages/admin-includes/chatbot.php', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const contentType = response.headers.get('content-type');
+                    if (!contentType || !contentType.includes('application/json')) {
+                        throw new Error('Server did not return JSON');
+                    }
+                    return response.text().then(text => {
+                        try {
+                            // Remove any HTML comments or whitespace before parsing
+                            const cleanText = text.replace(/<!--[\s\S]*?-->/g, '').trim();
+                            if (!cleanText) {
+                                throw new Error('Empty response from server');
+                            }
+                            return JSON.parse(cleanText);
+                        } catch (e) {
+                            console.error('Response text:', text);
+                            throw new Error('Invalid JSON response from server: ' + e.message);
+                        }
+                    });
+                })
+                .then(data => {
+                    // Remove typing indicator
+                    const indicator = document.getElementById('typing-indicator');
+                    if (indicator) {
+                        indicator.remove();
+                    }
+                    
+                    if (data.error) {
+                        addBotMessage('Error: ' + data.error);
+                    } else if (data.response) {
+                        addBotMessage(data.response);
+                    } else {
+                        throw new Error('Invalid response format from server');
+                    }
+                })
+                .catch(error => {
+                    // Remove typing indicator
+                    const indicator = document.getElementById('typing-indicator');
+                    if (indicator) {
+                        indicator.remove();
+                    }
+                    
+                    console.error('Error:', error);
+                    addBotMessage('Sorry, I encountered an error. Please try again.');
+                });
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+    </script>
+    <!-- Responsive Fixes -->
+    <script src="/frontend/assets/js/responsive-fixes.js"></script>
+</body>
+</html>
+>>>>>>> Stashed changes
