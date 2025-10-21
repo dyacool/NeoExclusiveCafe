@@ -421,18 +421,27 @@ $is_admin_logged_in = isset($_SESSION['admin_id']) && isset($_SESSION['admin_rol
     <!-- Page content will be inserted here -->
     
     <!-- Chat Button -->
+<<<<<<< HEAD
     <button class="chat-button" onclick="toggleChat()" title="Chat with us" aria-label="Open chat support">
         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
             <line x1="9" y1="10" x2="15" y2="10"></line>
             <line x1="9" y1="14" x2="13" y2="14"></line>
         </svg>
+=======
+    <button class="chat-button" onclick="toggleChat()" title="Chat with us">
+        <img src="/assets/images/chatbot.svg" alt="Chat Icon">
+>>>>>>> 0d9ad82ad6224015e977015a7706b6397bdb4e15
     </button>
 
     <!-- Chat Window -->
     <div class="chat-window" id="chatWindow">
         <div class="chat-header">
+<<<<<<< HEAD
             <h3>Neo Cafe Support</h3>
+=======
+            <h3>NeoExclusive Support</h3>
+>>>>>>> 0d9ad82ad6224015e977015a7706b6397bdb4e15
             <button class="close-chat" onclick="toggleChat()">×</button>
         </div>
         <div class="chat-messages" id="chatMessages">
@@ -460,6 +469,7 @@ $is_admin_logged_in = isset($_SESSION['admin_id']) && isset($_SESSION['admin_rol
 
         function toggleChat() {
             const chatWindow = document.getElementById('chatWindow');
+<<<<<<< HEAD
             const isActive = chatWindow.classList.contains('active');
             
             if (isActive) {
@@ -486,6 +496,15 @@ $is_admin_logged_in = isset($_SESSION['admin_id']) && isset($_SESSION['admin_rol
                     setTimeout(() => {
                         addBotMessage('Hello! Welcome to NeoExclusive Cafe. How can I help you today?');
                     }, 300);
+=======
+            chatWindow.classList.toggle('active');
+            
+            if (chatWindow.classList.contains('active')) {
+                // Add welcome message when chat is opened
+                const chatMessages = document.getElementById('chatMessages');
+                if (chatMessages.children.length === 0) {
+                    addBotMessage('Hello! Welcome to NeoExclusive Cafe. How can I help you today?');
+>>>>>>> 0d9ad82ad6224015e977015a7706b6397bdb4e15
                 }
             }
         }
@@ -544,7 +563,11 @@ $is_admin_logged_in = isset($_SESSION['admin_id']) && isset($_SESSION['admin_rol
                 const formData = new FormData();
                 formData.append('message', message);
                 
+<<<<<<< HEAD
                 fetch('../../backend/pages/admin-includes/chatbot.php', {
+=======
+                fetch('/backend/pages/admin-includes/chatbot.php', {
+>>>>>>> 0d9ad82ad6224015e977015a7706b6397bdb4e15
                     method: 'POST',
                     body: formData,
                     headers: {
