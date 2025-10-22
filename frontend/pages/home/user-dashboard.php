@@ -242,7 +242,7 @@ $total_images = mysqli_num_rows($images_result);
                             <span class="icon arrow"></span>
                             </span>
                             <span class="button-text"> 
-                                <a href="/frontend/pages/products/product-dashboard.php?filter=Featured">
+                                <a href="/frontend/pages/products/products-categories.php">
                                 View More
                                 </a>
                             </span>
