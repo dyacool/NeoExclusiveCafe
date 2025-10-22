@@ -8,5 +8,7 @@
             "email": "ainepascua4@gmail.com"
         }
     ],
-    "require": {}
+    "require": {
+        "phpmailer/phpmailer": "^7.0"
+    }
 }
