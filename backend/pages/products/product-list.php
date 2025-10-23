@@ -8,6 +8,10 @@
     // Include config file for base URL
     require_once __DIR__ . "/../admin-includes/config.php";
     include __DIR__ . "/../admin-includes/database.php";
+    require_once __DIR__ . "/../admin-includes/settings-helper.php";
+    
+    // Get global available days from settings
+    $globalAvailableDays = getSetting('global_available_days', []);
 
     // Function to format available days in compact format
     function formatAvailableDays($availableDays) {
@@ -80,6 +84,7 @@
     <script src="/backend/pages/products/product-list.js" defer></script>
     <script src="components/date-calendar.js" defer></script>
     <script src="/backend/pages/products/modal-calendar-handler.js" defer></script>
+    <script src="/backend/pages/products/sdo-quantity-manager.js" defer></script>
     <title>Product Management</title>
 </head>
 <body>
@@ -122,6 +127,10 @@
                         <span class="filter-count" id="count-delivery">0</span>
                         Delivery
                     </button>
+                    <button class="filter-btn" onclick="filterProducts('Delivery or Pick Up', this)" data-filter="delivery-pickup">
+                        <span class="filter-count" id="count-delivery-pickup">0</span>
+                        Delivery or Pick Up
+                    </button>
                     <button class="filter-btn" onclick="filterProducts('Same Day Order', this)" data-filter="available-today">
                         <span class="filter-count" id="count-available-today">0</span>
                         Same Day
@@ -140,9 +149,49 @@
                         <option value="all-unavailable">All Unavailable</option>
                         <option value="unavailable-delivery">Unavailable Delivery</option>
                         <option value="unavailable-pickup">Unavailable Pick Up</option>
+                        <option value="unavailable-delivery-pickup">Unavailable Delivery or Pick Up</option>
                         <option value="unavailable-today">Unavailable for Same Day Order</option>
                     </select>
                 </div>
+            </div>
+            
+            <!-- Global Available Days Selector -->
+            <div class="filter-group" style="margin-top: 20px;">
+                <label class="filter-label">Set Available Days (for Pick Up, Delivery, and Delivery or Pick Up):</label>
+                <div class="checkbox-group days-group" style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 10px;">
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="global_available_days[]" id="global_sunday" value="Sunday" <?php echo in_array('Sunday', $globalAvailableDays) ? 'checked' : ''; ?> onchange="updateGlobalAvailableDays()">
+                        <label for="global_sunday" style="display: inline; cursor: pointer;">Sunday</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="global_available_days[]" id="global_monday" value="Monday" <?php echo in_array('Monday', $globalAvailableDays) ? 'checked' : ''; ?> onchange="updateGlobalAvailableDays()">
+                        <label for="global_monday" style="display: inline; cursor: pointer;">Monday</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="global_available_days[]" id="global_tuesday" value="Tuesday" <?php echo in_array('Tuesday', $globalAvailableDays) ? 'checked' : ''; ?> onchange="updateGlobalAvailableDays()">
+                        <label for="global_tuesday" style="display: inline; cursor: pointer;">Tuesday</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="global_available_days[]" id="global_wednesday" value="Wednesday" <?php echo in_array('Wednesday', $globalAvailableDays) ? 'checked' : ''; ?> onchange="updateGlobalAvailableDays()">
+                        <label for="global_wednesday" style="display: inline; cursor: pointer;">Wednesday</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="global_available_days[]" id="global_thursday" value="Thursday" <?php echo in_array('Thursday', $globalAvailableDays) ? 'checked' : ''; ?> onchange="updateGlobalAvailableDays()">
+                        <label for="global_thursday" style="display: inline; cursor: pointer;">Thursday</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="global_available_days[]" id="global_friday" value="Friday" <?php echo in_array('Friday', $globalAvailableDays) ? 'checked' : ''; ?> onchange="updateGlobalAvailableDays()">
+                        <label for="global_friday" style="display: inline; cursor: pointer;">Friday</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="global_available_days[]" id="global_saturday" value="Saturday" <?php echo in_array('Saturday', $globalAvailableDays) ? 'checked' : ''; ?> onchange="updateGlobalAvailableDays()">
+                        <label for="global_saturday" style="display: inline; cursor: pointer;">Saturday</label>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-primary" style="margin-top: 15px;" onclick="applyGlobalAvailableDays()">Apply to All Eligible Products</button>
+                <p style="margin-top: 10px; font-size: 13px; color: #666;">
+                    <strong>Current Selection:</strong> <?php echo !empty($globalAvailableDays) ? implode(', ', $globalAvailableDays) : 'None selected'; ?>
+                </p>
             </div>
         </div>
 
@@ -194,6 +243,7 @@
                             $sql = "SELECT 
                                         p.id, p.sku, p.name, p.description, p.price, p.status_id, ps.name AS status_name, 
                                         p.unavailable_status_id, ups.name AS unavailable_status_name,
+                                        p.category_id, c.name AS category_name,
                                         pi.image_url, p.is_featured, p.show_when_unavailable, p.hide_when_unavailable,
                                         p.quantity, p.availtoday_status_id, ats.name AS availtoday_status_name,
                                         GROUP_CONCAT(DISTINCT pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days,
@@ -203,6 +253,7 @@
                                     LEFT JOIN product_statuses ps ON p.status_id = ps.id
                                     LEFT JOIN unavail_products_status ups ON p.unavailable_status_id = ups.id
                                     LEFT JOIN availtoday_status ats ON p.availtoday_status_id = ats.id
+                                    LEFT JOIN categories c ON p.category_id = c.id
                                     LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
                                     LEFT JOIN product_day pd ON p.id = pd.product_id
                                     LEFT JOIN todays_products_dates tpd ON p.id = tpd.product_id
@@ -216,6 +267,7 @@
                             $all_products_sql = "SELECT 
                                                     p.id, p.sku, p.name, p.description, p.price, p.status_id, ps.name AS status_name, 
                                                     p.unavailable_status_id, ups.name AS unavailable_status_name,
+                                                    p.category_id, c.name AS category_name,
                                                     pi.image_url, p.is_featured, p.show_when_unavailable, p.hide_when_unavailable,
                                                     p.quantity, p.availtoday_status_id, ats.name AS availtoday_status_name,
                                                     GROUP_CONCAT(DISTINCT pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days,
@@ -225,6 +277,7 @@
                                                 LEFT JOIN product_statuses ps ON p.status_id = ps.id
                                                 LEFT JOIN unavail_products_status ups ON p.unavailable_status_id = ups.id
                                                 LEFT JOIN availtoday_status ats ON p.availtoday_status_id = ats.id
+                                                LEFT JOIN categories c ON p.category_id = c.id
                                                 LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
                                                 LEFT JOIN product_day pd ON p.id = pd.product_id
                                                 LEFT JOIN todays_products_dates tpd ON p.id = tpd.product_id
@@ -265,7 +318,7 @@
                                         $imagePath = '/assets/' . $row['image_url'];
                                     }
 
-                                    $displayStatus = ($row['status_id'] == 3) ? 'Same Day Order' : ($row['status_name'] ?? 'Unknown');
+                                    $displayStatus = ($row['status_id'] == 4) ? 'Same Day Order' : ($row['status_name'] ?? 'Unknown');
                                     echo "<tr data-status='" . $displayStatus . "' data-name='" . strtolower($row['name']) . "' data-sku='" . strtolower($row['sku']) . "'>
                                             <td>
                                                 <div class='product-image-container'>
@@ -282,6 +335,9 @@
                                                 </div>
                                             </td>
                                             <td>
+                                                <span class='category-text'>" . (!empty($row['category_name']) ? htmlspecialchars($row['category_name']) : '<span style="color: #9ca3af;">No Category</span>') . "</span>
+                                            </td>
+                                            <td>
                                                 <span class='price-text'>₱" . number_format($row['price'], 2) . "</span>
                                             </td>
                                             <td>
@@ -290,11 +346,11 @@
                                                     
                                                     // Show badge for availtoday_status
                                                     if (!empty($row['availtoday_status_name'])) {
-                                                        if ($row['status_id'] == 3) {
+                                                        if ($row['status_id'] == 4) {
                                                             // Same Day Order - show "For [status]" (blue)
                                                             echo "<span class='availtoday-badge'>For " . htmlspecialchars($row['availtoday_status_name']) . "</span>";
-                                                        } else if ($row['status_id'] == 1 || $row['status_id'] == 2) {
-                                                            // Pick Up or Delivery - show "Also for SDO: [status]" (green)
+                                                        } else if ($row['status_id'] == 1 || $row['status_id'] == 2 || $row['status_id'] == 3) {
+                                                            // Pick Up, Delivery, or Delivery or Pick Up - show "Also for SDO: [status]" (green)
                                                             echo "<span class='availtoday-badge-also'>Also for SDO: " . htmlspecialchars($row['availtoday_status_name']) . "</span>";
                                                         }
                                                     }
@@ -314,7 +370,7 @@
                                                  <span class='available-days-text'>" . formatAvailableDays($row['available_days']) . "</span>
                                              </td>
                                              <td>
-                                                 <span class='selected-dates-text'>" . formatSelectedDates($row['status_id'] == 3 ? $row['todays_product_dates'] : $row['regular_today_dates']) . "</span>
+                                                 <span class='selected-dates-text'>" . formatSelectedDates($row['status_id'] == 4 ? $row['todays_product_dates'] : $row['regular_today_dates']) . "</span>
                                              </td>
                                             <td>
                                                 <div class='action-buttons'>
@@ -335,7 +391,8 @@
                                                         '" . ($row['availtoday_status_id'] ?? 'null') . "',
                                                         '" . addslashes($row['availtoday_status_name'] ?? '') . "',
                                                         '" . addslashes($row['todays_product_dates'] ?? '') . "',
-                                                        '" . addslashes($row['regular_today_dates'] ?? '') . "'
+                                                        '" . addslashes($row['regular_today_dates'] ?? '') . "',
+                                                        '" . ($row['category_id'] ?? 'null') . "'
                                                     )\" title='Edit Product'>
                                                         <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>
                                                             <path d='M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7'></path>
@@ -455,6 +512,22 @@
                         <input type="text" id="editProductName" required>
                     </div>
 
+                    <div class="form-group">
+                        <label for="editProductCategory">Category</label>
+                        <select id="editProductCategory">
+                            <option value="">No Category</option>
+                            <?php
+                            // Fetch active categories
+                            $cat_sql = "SELECT id, name FROM categories WHERE is_active = 1 ORDER BY display_order ASC, name ASC";
+                            $cat_result = mysqli_query($conn, $cat_sql);
+                            if ($cat_result) {
+                                while ($cat_row = mysqli_fetch_assoc($cat_result)) {
+                                    echo "<option value='" . $cat_row['id'] . "'>" . htmlspecialchars($cat_row['name']) . "</option>";
+                                }
+                            }
+                            ?>
+                        </select>
+                    </div>
 
                     <div class="form-row">
                         <div class="form-group">
@@ -541,11 +614,12 @@
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="editProductStatus">Product Status</label>
+                            <label for="editProductStatus">Shipping Method</label>
                             <select id="editProductStatus">
                                 <option value="1">Pick Up</option>
                                 <option value="2">Delivery</option>
-                                <option value="3">Same Day Order</option>
+                                <option value="3">Delivery or Pick Up</option>
+                                <option value="4">Same Day Order</option>
                             </select>
                             
                             <!-- isAvailableToday radio button - only shown when Pick Up or Delivery is selected -->
@@ -559,7 +633,7 @@
                             </div>
                         </div>
                         <div class="form-group" id="editAvailtodayOptions" style="display: none;">
-                            <label for="editAvailtodayStatus">Same Day Order Options:</label>
+                            <label for="editAvailtodayStatus">Same Day Order Shipping Method:</label>
                             <select id="editAvailtodayStatus">
                                 <option value="1">Pick Up</option>
                                 <option value="2">Delivery</option>
@@ -601,52 +675,37 @@
                         </select>
                     </div>
 
-                    <!-- Available Days for regular products (Pick Up/Delivery) -->
-                    <div class="form-group" id="regularAvailableDaysContainer">
-                        <label>Available Days for <span id="dynamicStatusName">Product</span>:</label>
-                        <div class="checkbox-group days-group">
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="edit_available_days[]" id="edit_sunday" value="Sunday">
-                                <label for="edit_sunday" style="display: inline;">Sunday</label>
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="edit_available_days[]" id="edit_monday" value="Monday">
-                                <label for="edit_monday" style="display: inline;">Monday</label>
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="edit_available_days[]" id="edit_tuesday" value="Tuesday">
-                                <label for="edit_tuesday" style="display: inline;">Tuesday</label>
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="edit_available_days[]" id="edit_wednesday" value="Wednesday">
-                                <label for="edit_wednesday" style="display: inline;">Wednesday</label>
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="edit_available_days[]" id="edit_thursday" value="Thursday">
-                                <label for="edit_thursday" style="display: inline;">Thursday</label>
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="edit_available_days[]" id="edit_friday" value="Friday">
-                                <label for="edit_friday" style="display: inline;">Friday</label>
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="edit_available_days[]" id="edit_saturday" value="Saturday">
-                                <label for="edit_saturday" style="display: inline;">Saturday</label>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Calendar for Today's Products -->
                     <div class="form-group" id="todaysProductCalendarContainer" style="display: none;">
                         <label>Select dates for same day order:</label>
-                        <div id="todaysProductCalendar"></div>
+                        <div style="display: flex; gap: 20px; align-items: flex-start;">
+                            <div style="flex: 0 0 auto;">
+                                <div id="todaysProductCalendar"></div>
+                            </div>
+                            <div style="flex: 1; min-width: 250px;">
+                                <!-- Quantity per day manager -->
+                                <div id="sdoQuantityContainerToday">
+                                    <p style="color: #6b7280; font-size: 13px;">Select dates to set quantities</p>
+                                </div>
+                            </div>
+                        </div>
                         <input type="hidden" id="todaysProductDates" name="todays_product_dates">
                     </div>
 
                     <!-- Calendar for regular products that are also available today -->
                     <div class="form-group" id="availableTodayCalendarContainer" style="display: none;">
                         <label>Select dates for same day order:</label>
-                        <div id="availableTodayCalendar"></div>
+                        <div style="display: flex; gap: 20px; align-items: flex-start;">
+                            <div style="flex: 0 0 auto;">
+                                <div id="availableTodayCalendar"></div>
+                            </div>
+                            <div style="flex: 1; min-width: 250px;">
+                                <!-- Quantity per day manager for regular products with SDO -->
+                                <div id="sdoQuantityContainerRegular">
+                                    <p style="color: #6b7280; font-size: 13px;">Select dates to set quantities</p>
+                                </div>
+                            </div>
+                        </div>
                         <input type="hidden" id="availableTodayDates" name="available_today_dates">
                     </div>
 

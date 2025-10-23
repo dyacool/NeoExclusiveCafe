@@ -79239,3 +79239,1271 @@ Product ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProdu
                   (o.delivery_date BETWEEN ? AND ?)
               ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
 [20-Oct-2025 12:22:25 Asia/Manila] With parameters: start=2025-08-31, end=2025-09-29, showCompleted=false
+[22-Oct-2025 12:17:26 Asia/Manila] Processing dates: start=2025-09-30, end=2025-10-30
+[22-Oct-2025 12:17:26 Asia/Manila] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) IN (LOWER('pending'), LOWER('picked-up'), LOWER('delivered')) ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[22-Oct-2025 12:17:26 Asia/Manila] With parameters: start=2025-09-30, end=2025-10-30, showCompleted=true
+[22-Oct-2025 12:17:30 Asia/Manila] Processing dates: start=2025-09-30, end=2025-10-30
+[22-Oct-2025 12:17:30 Asia/Manila] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) LIKE LOWER('pending') ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[22-Oct-2025 12:17:30 Asia/Manila] With parameters: start=2025-09-30, end=2025-10-30, showCompleted=false
+[22-Oct-2025 12:17:32 Asia/Manila] Processing dates: start=2025-09-30, end=2025-10-30
+[22-Oct-2025 12:17:32 Asia/Manila] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) IN (LOWER('pending'), LOWER('picked-up'), LOWER('delivered')) ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[22-Oct-2025 12:17:32 Asia/Manila] With parameters: start=2025-09-30, end=2025-10-30, showCompleted=true
+[22-Oct-2025 12:17:37 Asia/Manila] Processing dates: start=2025-09-30, end=2025-10-30
+[22-Oct-2025 12:17:37 Asia/Manila] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) IN (LOWER('pending'), LOWER('picked-up'), LOWER('delivered')) ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[22-Oct-2025 12:17:37 Asia/Manila] With parameters: start=2025-09-30, end=2025-10-30, showCompleted=true
+[22-Oct-2025 12:17:41 Asia/Manila] Processing dates: start=2025-09-30, end=2025-10-30
+[22-Oct-2025 12:17:41 Asia/Manila] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) IN (LOWER('pending'), LOWER('picked-up'), LOWER('delivered')) ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[22-Oct-2025 12:17:41 Asia/Manila] With parameters: start=2025-09-30, end=2025-10-30, showCompleted=true
+[22-Oct-2025 12:17:43 Asia/Manila] Processing dates: start=2025-09-30, end=2025-10-30
+[22-Oct-2025 12:17:43 Asia/Manila] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) IN (LOWER('pending'), LOWER('picked-up'), LOWER('delivered')) ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[22-Oct-2025 12:17:43 Asia/Manila] With parameters: start=2025-09-30, end=2025-10-30, showCompleted=true
+[22-Oct-2025 12:24:36 Asia/Manila] Business hours: 06:00:00 - 19:30:00
+[22-Oct-2025 12:24:36 Asia/Manila] Time analysis: current=12:24:36 (744 min), opening=06:00:00 (360 min), closing=19:30:00 (1170 min), is_closed=No
+[22-Oct-2025 12:24:36 Asia/Manila] Cart truncation result: No action needed
+[22-Oct-2025 12:24:37 Asia/Manila] PHP Warning:  Undefined variable $today in C:\xampp\htdocs\NeoCafe\frontend\pages\products\product-dashboard.php on line 371
+Product ID: 15 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-22 12:25:14] Availtoday Status ID received: 2
+[2025-10-22 12:25:14] Availtoday Status ID after filter: 2
+[2025-10-22 12:25:14] Status ID: 2
+[2025-10-22 12:25:14] Is Available Today: 1
+[2025-10-22 12:25:14] Todays Product Dates: []
+[2025-10-22 12:25:14] Available Today Dates: ["2025-10-22"]
+[22-Oct-2025 12:25:24 Asia/Manila] Business hours: 06:00:00 - 19:30:00
+[22-Oct-2025 12:25:24 Asia/Manila] Time analysis: current=12:25:24 (745 min), opening=06:00:00 (360 min), closing=19:30:00 (1170 min), is_closed=No
+[22-Oct-2025 12:25:24 Asia/Manila] Cart truncation result: No action needed
+Product ID: 15 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: Delivery[22-Oct-2025 12:28:03 Asia/Manila] Business hours: 06:00:00 - 19:30:00
+[22-Oct-2025 12:28:03 Asia/Manila] Time analysis: current=12:28:03 (748 min), opening=06:00:00 (360 min), closing=19:30:00 (1170 min), is_closed=No
+[22-Oct-2025 12:28:03 Asia/Manila] Cart truncation result: No action needed
+Product ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[22-Oct-2025 12:34:34 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[22-Oct-2025 12:34:34 Asia/Manila] Total featured products found: 9
+[22-Oct-2025 12:34:38 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[22-Oct-2025 12:43:38 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[22-Oct-2025 12:43:38 Asia/Manila] Total featured products found: 9
+[22-Oct-2025 12:43:42 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[22-Oct-2025 12:45:07 Asia/Manila] Processing dates: start=2025-09-30, end=2025-10-30
+[22-Oct-2025 12:45:07 Asia/Manila] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) IN (LOWER('pending'), LOWER('picked-up'), LOWER('delivered')) ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[22-Oct-2025 12:45:07 Asia/Manila] With parameters: start=2025-09-30, end=2025-10-30, showCompleted=true
+[22-Oct-2025 12:45:18 Asia/Manila] Processing dates: start=2025-09-30, end=2025-10-30
+[22-Oct-2025 12:45:18 Asia/Manila] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) IN (LOWER('pending'), LOWER('picked-up'), LOWER('delivered')) ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[22-Oct-2025 12:45:18 Asia/Manila] With parameters: start=2025-09-30, end=2025-10-30, showCompleted=true
+Product ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[22-Oct-2025 13:17:16 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[22-Oct-2025 13:17:16 Asia/Manila] Total featured products found: 9
+[22-Oct-2025 13:17:19 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[22-Oct-2025 13:25:37 Asia/Manila] Database connection successful
+[22-Oct-2025 13:25:37 Asia/Manila] User has 1 items in cart table
+[22-Oct-2025 13:25:38 Asia/Manila] Cart table structure:
+[22-Oct-2025 13:25:38 Asia/Manila]   id - int(11) - NO - PRI -  - auto_increment
+[22-Oct-2025 13:25:38 Asia/Manila]   user_id - int(11) - NO -  -  - 
+[22-Oct-2025 13:25:38 Asia/Manila]   product_id - int(11) - NO -  -  - 
+[22-Oct-2025 13:25:38 Asia/Manila]   quantity - int(11) - NO -  - 1 - 
+[22-Oct-2025 13:25:38 Asia/Manila]   price - decimal(10,2) - NO -  -  - 
+[22-Oct-2025 13:25:38 Asia/Manila]   created_at - timestamp - NO -  - current_timestamp() - 
+[22-Oct-2025 13:25:38 Asia/Manila]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[22-Oct-2025 13:25:38 Asia/Manila] Cart item 108 does not exist in cart table
+[22-Oct-2025 13:25:38 Asia/Manila] Final user data: Array
+(
+    [firstname] => Anna
+    [lastname] => Poja
+    [email] => andhee02@yahoo.com
+)
+
+[22-Oct-2025 13:25:38 Asia/Manila] REQUEST_METHOD: POST
+[22-Oct-2025 13:25:38 Asia/Manila] POST data: Array
+(
+    [valid_cart_ids] => 28
+    [cart_type] => preorder
+    [selected_cart_ids] => Array
+        (
+            [0] => 28
+        )
+
+    [checkout] => 
+    [subtotal] => 250
+    [cart_items] => 28
+)
+
+[22-Oct-2025 13:25:38 Asia/Manila] SESSION data at cart items check: Array
+(
+    [user_id] => 10
+    [user_username] => Anna
+    [is_verified] => 1
+    [user_firstname] => Anna
+    [user_lastname] => Poja
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Anna
+            [lastname] => Poja
+            [email] => andhee02@yahoo.com
+        )
+
+)
+
+[22-Oct-2025 13:25:38 Asia/Manila] Got cart IDs from POST: 28
+[22-Oct-2025 13:25:38 Asia/Manila] Validated cart IDs: 28
+[22-Oct-2025 13:25:38 Asia/Manila] Final selected_cart_ids: Array
+(
+    [0] => 28
+)
+
+[22-Oct-2025 13:25:38 Asia/Manila] Final subtotal: 250
+[22-Oct-2025 13:25:38 Asia/Manila] Selected cart IDs: Array
+(
+    [0] => 28
+)
+
+[22-Oct-2025 13:25:38 Asia/Manila] Subtotal: 250
+[22-Oct-2025 13:25:38 Asia/Manila] Cart item 28 is valid for user 10
+[22-Oct-2025 13:25:38 Asia/Manila] Validated cart IDs: 28
+[22-Oct-2025 13:25:39 Asia/Manila] Cart contains only delivery items - setting shipping method to delivery
+[22-Oct-2025 13:25:39 Asia/Manila] Cart analysis: 1 items, pickup: , delivery: 1, method: delivery
+[22-Oct-2025 13:25:39 Asia/Manila] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Olive Sourdough Batard
+            [price] => 250.00
+            [quantity] => 1
+            [cart_id] => 28
+            [product_id] => 7
+            [status_id] => 2
+            [available_days] => Monday,Wednesday,Friday
+        )
+
+)
+
+[22-Oct-2025 13:25:39 Asia/Manila] Cart total: 250
+[22-Oct-2025 13:25:39 Asia/Manila] User data at display point: Array
+(
+    [firstname] => Anna
+    [lastname] => Poja
+    [profile_image] => 
+)
+
+[22-Oct-2025 13:25:39 Asia/Manila] Session data at display point: Array
+(
+    [user_id] => 10
+    [user_username] => Anna
+    [is_verified] => 1
+    [user_firstname] => Anna
+    [user_lastname] => Poja
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Anna
+            [lastname] => Poja
+            [email] => andhee02@yahoo.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 28
+        )
+
+    [subtotal] => 250
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Olive Sourdough Batard
+                    [price] => 250.00
+                    [quantity] => 1
+                    [cart_id] => 28
+                    [product_id] => 7
+                    [status_id] => 2
+                    [available_days] => Monday,Wednesday,Friday
+                )
+
+        )
+
+    [cart_total] => 250
+    [shipping_method] => delivery
+    [has_pickup_items] => 
+    [has_delivery_items] => 1
+)
+
+[22-Oct-2025 13:25:39 Asia/Manila] PHP Warning:  include(../../user-includes/footer.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\checkout.php on line 2400
+[22-Oct-2025 13:25:39 Asia/Manila] PHP Warning:  include(): Failed opening '../../user-includes/footer.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\checkout.php on line 2400
+[22-Oct-2025 13:35:40 Asia/Manila] Business hours: 06:00:00 - 19:30:00
+[22-Oct-2025 13:35:40 Asia/Manila] Time analysis: current=13:35:39 (815 min), opening=06:00:00 (360 min), closing=19:30:00 (1170 min), is_closed=No
+[22-Oct-2025 13:35:40 Asia/Manila] Cart truncation result: No action needed
+[2025-10-22 13:36:32] Availtoday Status ID received: NOT SET
+[2025-10-22 13:36:32] Availtoday Status ID after filter: NULL
+[2025-10-22 13:36:32] Status ID: 1
+[2025-10-22 13:36:32] Is Available Today: 1
+[2025-10-22 13:36:32] Todays Product Dates: []
+[2025-10-22 13:36:32] Available Today Dates: ["2025-10-22"]
+Product ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[22-Oct-2025 13:36:48 Asia/Manila] Business hours: 06:00:00 - 19:30:00
+[22-Oct-2025 13:36:48 Asia/Manila] Time analysis: current=13:36:48 (816 min), opening=06:00:00 (360 min), closing=19:30:00 (1170 min), is_closed=No
+[22-Oct-2025 13:36:48 Asia/Manila] Cart truncation result: No action needed
+[22-Oct-2025 13:37:04 Asia/Manila] Business hours: 06:00:00 - 19:30:00
+[22-Oct-2025 13:37:04 Asia/Manila] Time analysis: current=13:37:04 (817 min), opening=06:00:00 (360 min), closing=19:30:00 (1170 min), is_closed=No
+[22-Oct-2025 13:37:04 Asia/Manila] Cart truncation result: No action needed
+[2025-10-22 13:37:16] Availtoday Status ID received: 3
+[2025-10-22 13:37:16] Availtoday Status ID after filter: 3
+[2025-10-22 13:37:16] Status ID: 3
+[2025-10-22 13:37:16] Is Available Today: 
+[2025-10-22 13:37:16] Todays Product Dates: ["2025-10-22"]
+[2025-10-22 13:37:16] Available Today Dates: []
+Product ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-22 13:37:37] Availtoday Status ID received: 1
+[2025-10-22 13:37:37] Availtoday Status ID after filter: 1
+[2025-10-22 13:37:37] Status ID: 1
+[2025-10-22 13:37:37] Is Available Today: 1
+[2025-10-22 13:37:37] Todays Product Dates: []
+[2025-10-22 13:37:37] Available Today Dates: ["2025-10-22"]
+[22-Oct-2025 13:37:45 Asia/Manila] Business hours: 06:00:00 - 19:30:00
+[22-Oct-2025 13:37:45 Asia/Manila] Time analysis: current=13:37:45 (817 min), opening=06:00:00 (360 min), closing=19:30:00 (1170 min), is_closed=No
+[22-Oct-2025 13:37:45 Asia/Manila] Cart truncation result: No action needed
+Product ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-22 13:39:29] Availtoday Status ID received: 3
+[2025-10-22 13:39:29] Availtoday Status ID after filter: 3
+[2025-10-22 13:39:29] Status ID: 2
+[2025-10-22 13:39:29] Is Available Today: 1
+[2025-10-22 13:39:29] Todays Product Dates: []
+[2025-10-22 13:39:29] Available Today Dates: ["2025-10-22"]
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-22 13:39:49] Availtoday Status ID received: 3
+[2025-10-22 13:39:49] Availtoday Status ID after filter: 3
+[2025-10-22 13:39:49] Status ID: 1
+[2025-10-22 13:39:49] Is Available Today: 1
+[2025-10-22 13:39:49] Todays Product Dates: []
+[2025-10-22 13:39:49] Available Today Dates: ["2025-10-22"]
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[22-Oct-2025 13:46:00 Asia/Manila] Processing dates: start=2025-09-30, end=2025-10-30
+[22-Oct-2025 13:46:00 Asia/Manila] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) IN (LOWER('pending'), LOWER('picked-up'), LOWER('delivered')) ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[22-Oct-2025 13:46:00 Asia/Manila] With parameters: start=2025-09-30, end=2025-10-30, showCompleted=true
+[22-Oct-2025 13:46:14 Asia/Manila] Processing dates: start=2025-09-30, end=2025-10-30
+[22-Oct-2025 13:46:14 Asia/Manila] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) IN (LOWER('pending'), LOWER('picked-up'), LOWER('delivered')) ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[22-Oct-2025 13:46:14 Asia/Manila] With parameters: start=2025-09-30, end=2025-10-30, showCompleted=true
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-22 13:47:15] Availtoday Status ID received: 3
+[2025-10-22 13:47:15] Availtoday Status ID after filter: 3
+[2025-10-22 13:47:15] Status ID: 2
+[2025-10-22 13:47:15] Is Available Today: 1
+[2025-10-22 13:47:15] Todays Product Dates: []
+[2025-10-22 13:47:15] Available Today Dates: ["2025-10-22"]
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[22-Oct-2025 13:54:17 Asia/Manila] Processing dates: start=2025-09-30, end=2025-10-30
+[22-Oct-2025 13:54:17 Asia/Manila] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) IN (LOWER('pending'), LOWER('picked-up'), LOWER('delivered')) ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[22-Oct-2025 13:54:17 Asia/Manila] With parameters: start=2025-09-30, end=2025-10-30, showCompleted=true
+[22-Oct-2025 13:54:28 Asia/Manila] Processing dates: start=2025-09-30, end=2025-10-30
+[22-Oct-2025 13:54:28 Asia/Manila] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) IN (LOWER('pending'), LOWER('picked-up'), LOWER('delivered')) ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[22-Oct-2025 13:54:28 Asia/Manila] With parameters: start=2025-09-30, end=2025-10-30, showCompleted=true
+[22-Oct-2025 13:54:38 Asia/Manila] Processing dates: start=2025-09-30, end=2025-10-30
+[22-Oct-2025 13:54:38 Asia/Manila] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) IN (LOWER('pending'), LOWER('picked-up'), LOWER('delivered')) ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[22-Oct-2025 13:54:38 Asia/Manila] With parameters: start=2025-09-30, end=2025-10-30, showCompleted=true
+[22-Oct-2025 13:54:54 Asia/Manila] Processing dates: start=2025-09-30, end=2025-10-30
+[22-Oct-2025 13:54:54 Asia/Manila] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) IN (LOWER('pending'), LOWER('picked-up'), LOWER('delivered')) ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[22-Oct-2025 13:54:54 Asia/Manila] With parameters: start=2025-09-30, end=2025-10-30, showCompleted=true
+[22-Oct-2025 14:00:36 Asia/Manila] Business hours: 06:00:00 - 19:30:00
+[22-Oct-2025 14:00:36 Asia/Manila] Time analysis: current=14:00:36 (840 min), opening=06:00:00 (360 min), closing=19:30:00 (1170 min), is_closed=No
+[22-Oct-2025 14:00:36 Asia/Manila] Cart truncation result: No action needed
+[22-Oct-2025 14:01:22 Asia/Manila] Business hours: 06:00:00 - 14:00:00
+[22-Oct-2025 14:01:22 Asia/Manila] Business closed - after closing time (current: 841, closing: 840)
+[22-Oct-2025 14:01:22 Asia/Manila] Time analysis: current=14:01:22 (841 min), opening=06:00:00 (360 min), closing=14:00:00 (840 min), is_closed=Yes
+[22-Oct-2025 14:01:22 Asia/Manila] Cart currently has 2 items
+[22-Oct-2025 14:01:22 Asia/Manila] SUCCESS: Cart truncated successfully - 2 items removed
+[22-Oct-2025 14:01:22 Asia/Manila] Cart truncation result: No action needed
+[22-Oct-2025 14:09:38 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[22-Oct-2025 14:09:38 Asia/Manila] Total featured products found: 9
+[22-Oct-2025 14:09:42 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[22-Oct-2025 14:45:23 Asia/Manila] Database connection successful
+[22-Oct-2025 14:45:24 Asia/Manila] User has 4 items in cart table
+[22-Oct-2025 14:45:24 Asia/Manila] Cart table structure:
+[22-Oct-2025 14:45:24 Asia/Manila]   id - int(11) - NO - PRI -  - auto_increment
+[22-Oct-2025 14:45:24 Asia/Manila]   user_id - int(11) - NO -  -  - 
+[22-Oct-2025 14:45:24 Asia/Manila]   product_id - int(11) - NO -  -  - 
+[22-Oct-2025 14:45:24 Asia/Manila]   quantity - int(11) - NO -  - 1 - 
+[22-Oct-2025 14:45:24 Asia/Manila]   price - decimal(10,2) - NO -  -  - 
+[22-Oct-2025 14:45:24 Asia/Manila]   created_at - timestamp - NO -  - current_timestamp() - 
+[22-Oct-2025 14:45:24 Asia/Manila]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[22-Oct-2025 14:45:24 Asia/Manila] Cart item 108 does not exist in cart table
+[22-Oct-2025 14:45:24 Asia/Manila] Final user data: Array
+(
+    [firstname] => Anna
+    [lastname] => Poja
+    [email] => andhee02@yahoo.com
+)
+
+[22-Oct-2025 14:45:24 Asia/Manila] REQUEST_METHOD: POST
+[22-Oct-2025 14:45:24 Asia/Manila] POST data: Array
+(
+    [valid_cart_ids] => 31,29,28,30
+    [cart_type] => preorder
+    [selected_cart_ids] => Array
+        (
+            [0] => 29
+        )
+
+    [checkout] => 
+    [subtotal] => 230
+    [cart_items] => 29
+)
+
+[22-Oct-2025 14:45:24 Asia/Manila] SESSION data at cart items check: Array
+(
+    [user_id] => 10
+    [user_username] => Anna
+    [is_verified] => 1
+    [user_firstname] => Anna
+    [user_lastname] => Poja
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Anna
+            [lastname] => Poja
+            [email] => andhee02@yahoo.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 28
+        )
+
+    [subtotal] => 250
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Olive Sourdough Batard
+                    [price] => 250.00
+                    [quantity] => 1
+                    [cart_id] => 28
+                    [product_id] => 7
+                    [status_id] => 2
+                    [available_days] => Monday,Wednesday,Friday
+                )
+
+        )
+
+    [cart_total] => 250
+    [shipping_method] => delivery
+    [has_pickup_items] => 
+    [has_delivery_items] => 1
+    [availtoday_cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Cassava Cake
+                    [price] => 200.00
+                    [quantity] => 5
+                    [cart_id] => 2
+                    [product_id] => 14
+                    [status_id] => 2
+                    [availtoday_status_id] => 3
+                    [availtoday_status_name] => Delivery or Pick-Up
+                    [available_days] => Sunday,Monday,Tuesday
+                    [shipping_method] => delivery
+                )
+
+            [1] => Array
+                (
+                    [name] => Cassava Cake
+                    [price] => 230.00
+                    [quantity] => 3
+                    [cart_id] => 3
+                    [product_id] => 12
+                    [status_id] => 1
+                    [availtoday_status_id] => 3
+                    [availtoday_status_name] => Delivery or Pick-Up
+                    [available_days] => Monday,Thursday
+                    [shipping_method] => pickup
+                )
+
+        )
+
+    [availtoday_cart_total] => 1690
+    [availtoday_shipping_method] => pickup
+    [has_mixed_availtoday_status] => 
+)
+
+[22-Oct-2025 14:45:24 Asia/Manila] Got cart IDs from POST: 29
+[22-Oct-2025 14:45:24 Asia/Manila] Validated cart IDs: 29
+[22-Oct-2025 14:45:24 Asia/Manila] Final selected_cart_ids: Array
+(
+    [0] => 29
+)
+
+[22-Oct-2025 14:45:24 Asia/Manila] Final subtotal: 230
+[22-Oct-2025 14:45:24 Asia/Manila] Selected cart IDs: Array
+(
+    [0] => 29
+)
+
+[22-Oct-2025 14:45:24 Asia/Manila] Subtotal: 230
+[22-Oct-2025 14:45:24 Asia/Manila] Cart item 29 is valid for user 10
+[22-Oct-2025 14:45:24 Asia/Manila] Validated cart IDs: 29
+[22-Oct-2025 14:45:25 Asia/Manila] Cart contains only delivery items - setting shipping method to delivery
+[22-Oct-2025 14:45:25 Asia/Manila] Cart analysis: 1 items, pickup: , delivery: 1, method: delivery
+[22-Oct-2025 14:45:25 Asia/Manila] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Oat Porridge Sourdough Batard
+            [price] => 230.00
+            [quantity] => 1
+            [cart_id] => 29
+            [product_id] => 8
+            [status_id] => 2
+            [available_days] => Sunday,Wednesday,Friday
+        )
+
+)
+
+[22-Oct-2025 14:45:25 Asia/Manila] Cart total: 230
+[22-Oct-2025 14:45:25 Asia/Manila] User data at display point: Array
+(
+    [firstname] => Anna
+    [lastname] => Poja
+    [profile_image] => 
+)
+
+[22-Oct-2025 14:45:25 Asia/Manila] Session data at display point: Array
+(
+    [user_id] => 10
+    [user_username] => Anna
+    [is_verified] => 1
+    [user_firstname] => Anna
+    [user_lastname] => Poja
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Anna
+            [lastname] => Poja
+            [email] => andhee02@yahoo.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 29
+        )
+
+    [subtotal] => 230
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Oat Porridge Sourdough Batard
+                    [price] => 230.00
+                    [quantity] => 1
+                    [cart_id] => 29
+                    [product_id] => 8
+                    [status_id] => 2
+                    [available_days] => Sunday,Wednesday,Friday
+                )
+
+        )
+
+    [cart_total] => 230
+    [shipping_method] => delivery
+    [has_pickup_items] => 
+    [has_delivery_items] => 1
+    [availtoday_cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Cassava Cake
+                    [price] => 200.00
+                    [quantity] => 5
+                    [cart_id] => 2
+                    [product_id] => 14
+                    [status_id] => 2
+                    [availtoday_status_id] => 3
+                    [availtoday_status_name] => Delivery or Pick-Up
+                    [available_days] => Sunday,Monday,Tuesday
+                    [shipping_method] => delivery
+                )
+
+            [1] => Array
+                (
+                    [name] => Cassava Cake
+                    [price] => 230.00
+                    [quantity] => 3
+                    [cart_id] => 3
+                    [product_id] => 12
+                    [status_id] => 1
+                    [availtoday_status_id] => 3
+                    [availtoday_status_name] => Delivery or Pick-Up
+                    [available_days] => Monday,Thursday
+                    [shipping_method] => pickup
+                )
+
+        )
+
+    [availtoday_cart_total] => 1690
+    [availtoday_shipping_method] => pickup
+    [has_mixed_availtoday_status] => 
+)
+
+[22-Oct-2025 14:45:25 Asia/Manila] PHP Warning:  include(../../user-includes/footer.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\checkout.php on line 2400
+[22-Oct-2025 14:45:25 Asia/Manila] PHP Warning:  include(): Failed opening '../../user-includes/footer.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\checkout.php on line 2400
+[22-Oct-2025 15:10:59 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[22-Oct-2025 15:10:59 Asia/Manila] Total featured products found: 9
+[22-Oct-2025 15:11:02 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[22-Oct-2025 15:11:55 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[22-Oct-2025 15:11:55 Asia/Manila] Total featured products found: 9
+[22-Oct-2025 15:11:58 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[22-Oct-2025 15:13:35 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[22-Oct-2025 15:13:35 Asia/Manila] Total featured products found: 9
+[22-Oct-2025 15:13:39 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[22-Oct-2025 15:33:45 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[22-Oct-2025 15:33:45 Asia/Manila] Total featured products found: 9
+[22-Oct-2025 15:33:50 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[22-Oct-2025 15:50:45 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[22-Oct-2025 15:50:45 Asia/Manila] Total featured products found: 9
+[22-Oct-2025 15:50:48 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[22-Oct-2025 15:51:10 Asia/Manila] Business hours: 06:00:00 - 14:00:00
+[22-Oct-2025 15:51:10 Asia/Manila] Business closed - after closing time (current: 951, closing: 840)
+[22-Oct-2025 15:51:10 Asia/Manila] Time analysis: current=15:51:10 (951 min), opening=06:00:00 (360 min), closing=14:00:00 (840 min), is_closed=Yes
+[22-Oct-2025 15:51:11 Asia/Manila] Cart currently has 0 items
+[22-Oct-2025 15:51:11 Asia/Manila] Cart is already empty - no action needed
+[22-Oct-2025 15:51:11 Asia/Manila] Cart truncation result: No action needed
+[22-Oct-2025 15:52:06 Asia/Manila] Business hours: 06:00:00 - 19:30:00
+[22-Oct-2025 15:52:06 Asia/Manila] Time analysis: current=15:52:06 (952 min), opening=06:00:00 (360 min), closing=19:30:00 (1170 min), is_closed=No
+[22-Oct-2025 15:52:06 Asia/Manila] Cart truncation result: No action needed
+[22-Oct-2025 15:55:33 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[22-Oct-2025 15:55:33 Asia/Manila] Total featured products found: 9
+[22-Oct-2025 15:55:37 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[22-Oct-2025 15:59:53 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[22-Oct-2025 15:59:53 Asia/Manila] Total featured products found: 9
+[22-Oct-2025 15:59:57 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[22-Oct-2025 22:17:50 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[22-Oct-2025 22:17:50 Asia/Manila] Total featured products found: 9
+[22-Oct-2025 22:17:53 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[23-Oct-2025 09:47:34 Asia/Manila] Auto-cleanup (product-dashboard): Removed 1 old dates from todays_products_dates, 2 from regular_products_today_dates
+[23-Oct-2025 09:47:34 Asia/Manila] Business hours: 06:00:00 - 19:30:00
+[23-Oct-2025 09:47:34 Asia/Manila] Time analysis: current=09:47:34 (587 min), opening=06:00:00 (360 min), closing=19:30:00 (1170 min), is_closed=No
+[23-Oct-2025 09:47:34 Asia/Manila] Cart truncation result: No action needed
+[23-Oct-2025 09:47:35 Asia/Manila] PHP Warning:  Undefined variable $today in C:\xampp\htdocs\NeoCafe\frontend\pages\products\product-dashboard.php on line 371
+[23-Oct-2025 09:47:52 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[23-Oct-2025 09:47:52 Asia/Manila] Total featured products found: 9
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[23-Oct-2025 09:47:56 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-23 10:45:35] Availtoday Status ID received: 2
+[2025-10-23 10:45:35] Availtoday Status ID after filter: 2
+[2025-10-23 10:45:35] Status ID: 1
+[2025-10-23 10:45:35] Is Available Today: 1
+[2025-10-23 10:45:35] Todays Product Dates: []
+[2025-10-23 10:45:35] Available Today Dates: []
+Product ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-23 11:00:46] Availtoday Status ID received: NOT SET
+[2025-10-23 11:00:46] Availtoday Status ID after filter: NULL
+[2025-10-23 11:00:46] Status ID: 4
+[2025-10-23 11:00:46] Is Available Today: 
+[2025-10-23 11:00:46] Todays Product Dates: ["2025-10-23"]
+[2025-10-23 11:00:46] Available Today Dates: []
+Product ID: 14 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-23 11:14:46] Availtoday Status ID received: NOT SET
+[2025-10-23 11:14:46] Availtoday Status ID after filter: NULL
+[2025-10-23 11:14:46] Status ID: 3
+[2025-10-23 11:14:46] Is Available Today: 
+[2025-10-23 11:14:46] Todays Product Dates: []
+[2025-10-23 11:14:46] Available Today Dates: []
+Product ID: 14 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-23 11:19:25] Availtoday Status ID received: NOT SET
+[2025-10-23 11:19:25] Availtoday Status ID after filter: NULL
+[2025-10-23 11:19:25] Status ID: 3
+[2025-10-23 11:19:25] Is Available Today: 
+[2025-10-23 11:19:25] Todays Product Dates: []
+[2025-10-23 11:19:25] Available Today Dates: []
+Product ID: 14 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-23 11:23:10] Availtoday Status ID received: NOT SET
+[2025-10-23 11:23:10] Availtoday Status ID after filter: NULL
+[2025-10-23 11:23:10] Status ID: 3
+[2025-10-23 11:23:10] Is Available Today: 
+[2025-10-23 11:23:10] Todays Product Dates: []
+[2025-10-23 11:23:10] Available Today Dates: []
+Product ID: 14 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[23-Oct-2025 12:10:26 Asia/Manila] Processing dates: start=2025-09-30, end=2025-10-30
+[23-Oct-2025 12:10:26 Asia/Manila] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) IN (LOWER('pending'), LOWER('picked-up'), LOWER('delivered')) ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[23-Oct-2025 12:10:26 Asia/Manila] With parameters: start=2025-09-30, end=2025-10-30, showCompleted=true
+[23-Oct-2025 12:10:38 Asia/Manila] Processing dates: start=2025-09-30, end=2025-10-30
+[23-Oct-2025 12:10:38 Asia/Manila] Executing query: SELECT 
+                o.order_id,
+                o.order_date,
+                o.delivery_method AS order_type,
+                o.customer_name,
+                o.status,
+                o.pickup_date,
+                o.delivery_date,
+                o.pickup_time,
+                o.delivery_time,
+                o.total_amount,
+                c.contact as customer_contact,
+                c.address as customer_address
+              FROM orders o
+              LEFT JOIN customers c ON o.customer_id = c.customer_id
+              WHERE (
+                  (o.pickup_date BETWEEN ? AND ?) OR
+                  (o.delivery_date BETWEEN ? AND ?)
+              ) AND LOWER(o.status) IN (LOWER('pending'), LOWER('picked-up'), LOWER('delivered')) ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC
+[23-Oct-2025 12:10:38 Asia/Manila] With parameters: start=2025-09-30, end=2025-10-30, showCompleted=true
+Product ID: 14 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-23 12:13:03] Availtoday Status ID received: 3
+[2025-10-23 12:13:03] Availtoday Status ID after filter: 3
+[2025-10-23 12:13:03] Status ID: 3
+[2025-10-23 12:13:03] Is Available Today: 1
+[2025-10-23 12:13:03] Todays Product Dates: []
+[2025-10-23 12:13:03] Available Today Dates: ["2025-10-23","2025-10-24"]
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-23 12:35:40] Availtoday Status ID received: 3
+[2025-10-23 12:35:40] Availtoday Status ID after filter: 3
+[2025-10-23 12:35:40] Status ID: 3
+[2025-10-23 12:35:40] Is Available Today: 1
+[2025-10-23 12:35:40] Todays Product Dates: []
+[2025-10-23 12:35:40] Available Today Dates: ["2025-10-23","2025-10-24"]
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-23 12:41:10] Availtoday Status ID received: 3
+[2025-10-23 12:41:10] Availtoday Status ID after filter: 3
+[2025-10-23 12:41:10] Status ID: 3
+[2025-10-23 12:41:10] Is Available Today: 1
+[2025-10-23 12:41:10] Todays Product Dates: []
+[2025-10-23 12:41:10] Available Today Dates: ["2025-10-23","2025-10-24"]
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-23 12:43:54] Availtoday Status ID received: 3
+[2025-10-23 12:43:54] Availtoday Status ID after filter: 3
+[2025-10-23 12:43:54] Status ID: 3
+[2025-10-23 12:43:54] Is Available Today: 1
+[2025-10-23 12:43:54] Todays Product Dates: []
+[2025-10-23 12:43:54] Available Today Dates: ["2025-10-23","2025-10-24"]
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-23 13:20:51] Availtoday Status ID received: 3
+[2025-10-23 13:20:51] Availtoday Status ID after filter: 3
+[2025-10-23 13:20:51] Status ID: 3
+[2025-10-23 13:20:51] Is Available Today: 1
+[2025-10-23 13:20:51] Todays Product Dates: []
+[2025-10-23 13:20:51] Available Today Dates: []
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-23 13:32:44] Availtoday Status ID received: 3
+[2025-10-23 13:32:44] Availtoday Status ID after filter: 3
+[2025-10-23 13:32:44] Status ID: 3
+[2025-10-23 13:32:44] Is Available Today: 1
+[2025-10-23 13:32:44] Todays Product Dates: []
+[2025-10-23 13:32:44] Available Today Dates: ["2025-10-23","2025-10-24"]
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-23 14:55:36] Availtoday Status ID received: 3
+[2025-10-23 14:55:36] Availtoday Status ID after filter: 3
+[2025-10-23 14:55:36] Status ID: 3
+[2025-10-23 14:55:36] Is Available Today: 1
+[2025-10-23 14:55:36] Todays Product Dates: []
+[2025-10-23 14:55:36] Available Today Dates: ["2025-10-23","2025-10-24"]
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[23-Oct-2025 16:29:09 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[23-Oct-2025 16:29:09 Asia/Manila] Total featured products found: 12
+[23-Oct-2025 16:29:14 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[23-Oct-2025 16:29:17 Asia/Manila] Business hours: 06:00:00 - 19:30:00
+[23-Oct-2025 16:29:17 Asia/Manila] Time analysis: current=16:29:17 (989 min), opening=06:00:00 (360 min), closing=19:30:00 (1170 min), is_closed=No
+[23-Oct-2025 16:29:17 Asia/Manila] Cart truncation result: No action needed
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-23 16:29:57] Availtoday Status ID received: 3
+[2025-10-23 16:29:57] Availtoday Status ID after filter: 3
+[2025-10-23 16:29:57] Status ID: 3
+[2025-10-23 16:29:57] Is Available Today: 1
+[2025-10-23 16:29:57] Todays Product Dates: []
+[2025-10-23 16:29:57] Available Today Dates: ["2025-10-23","2025-10-24"]
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-23 16:31:06] Availtoday Status ID received: 3
+[2025-10-23 16:31:06] Availtoday Status ID after filter: 3
+[2025-10-23 16:31:06] Status ID: 3
+[2025-10-23 16:31:06] Is Available Today: 1
+[2025-10-23 16:31:06] Todays Product Dates: []
+[2025-10-23 16:31:06] Available Today Dates: ["2025-10-23","2025-10-24"]
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-23 17:01:58] Availtoday Status ID received: 3
+[2025-10-23 17:01:58] Availtoday Status ID after filter: 3
+[2025-10-23 17:01:58] Status ID: 3
+[2025-10-23 17:01:58] Is Available Today: 1
+[2025-10-23 17:01:58] Todays Product Dates: []
+[2025-10-23 17:01:58] Available Today Dates: ["2025-10-23","2025-10-24"]
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-23 17:04:34] Availtoday Status ID received: 3
+[2025-10-23 17:04:34] Availtoday Status ID after filter: 3
+[2025-10-23 17:04:34] Status ID: 3
+[2025-10-23 17:04:34] Is Available Today: 1
+[2025-10-23 17:04:34] Todays Product Dates: []
+[2025-10-23 17:04:34] Available Today Dates: ["2025-10-23","2025-10-24"]
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-23 17:04:58] Availtoday Status ID received: 3
+[2025-10-23 17:04:58] Availtoday Status ID after filter: 3
+[2025-10-23 17:04:58] Status ID: 3
+[2025-10-23 17:04:58] Is Available Today: 1
+[2025-10-23 17:04:58] Todays Product Dates: []
+[2025-10-23 17:04:58] Available Today Dates: ["2025-10-23","2025-10-24"]
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-23 17:11:36] Availtoday Status ID received: 3
+[2025-10-23 17:11:36] Availtoday Status ID after filter: 3
+[2025-10-23 17:11:36] Status ID: 3
+[2025-10-23 17:11:36] Is Available Today: 1
+[2025-10-23 17:11:36] Todays Product Dates: []
+[2025-10-23 17:11:36] Available Today Dates: ["2025-10-23","2025-10-24"]
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-23 17:13:33] Availtoday Status ID received: 3
+[2025-10-23 17:13:33] Availtoday Status ID after filter: 3
+[2025-10-23 17:13:33] Status ID: 3
+[2025-10-23 17:13:33] Is Available Today: 1
+[2025-10-23 17:13:33] Todays Product Dates: []
+[2025-10-23 17:13:33] Available Today Dates: ["2025-10-23","2025-10-24","2025-10-25"]
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 1 | availtoday_status_name: Pick-UpProduct ID: 12 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[23-Oct-2025 17:14:29 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[23-Oct-2025 17:14:29 Asia/Manila] Total featured products found: 12
+[23-Oct-2025 17:14:34 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[23-Oct-2025 17:15:02 Asia/Manila] Business hours: 06:00:00 - 19:30:00
+[23-Oct-2025 17:15:02 Asia/Manila] Time analysis: current=17:15:02 (1035 min), opening=06:00:00 (360 min), closing=19:30:00 (1170 min), is_closed=No
+[23-Oct-2025 17:15:02 Asia/Manila] Cart truncation result: No action needed

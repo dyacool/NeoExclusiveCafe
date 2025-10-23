@@ -27,6 +27,39 @@ document.addEventListener("DOMContentLoaded", () => {
   setupImageUploadListeners();
 });
 
+// Update filter counts
+function updateFilterCounts() {
+  if (!allProductsData || allProductsData.length === 0) return;
+  
+  const counts = {
+    all: allProductsData.length,
+    pickup: allProductsData.filter(p => p.status_id == 1).length,
+    delivery: allProductsData.filter(p => p.status_id == 2).length,
+    deliveryPickup: allProductsData.filter(p => p.status_id == 3).length,
+    availableToday: allProductsData.filter(p => p.status_id == 4).length,
+    featured: allProductsData.filter(p => p.is_featured == 1).length,
+    unavailable: allProductsData.filter(p => p.unavailable_status_id !== null).length
+  };
+  
+  // Update count badges
+  const countElements = {
+    'count-all': counts.all,
+    'count-pickup': counts.pickup,
+    'count-delivery': counts.delivery,
+    'count-delivery-pickup': counts.deliveryPickup,
+    'count-available-today': counts.availableToday,
+    'count-featured': counts.featured,
+    'count-unavailable': counts.unavailable
+  };
+  
+  for (const [id, count] of Object.entries(countElements)) {
+    const element = document.getElementById(id);
+    if (element) {
+      element.textContent = count;
+    }
+  }
+}
+
 // Filter functionality
 function filterProducts(status, button) {
   document
@@ -60,7 +93,7 @@ function filterProducts(status, button) {
     );
   } else if (status === "Same Day Order") {
     filteredProducts = allProductsData.filter(
-      (product) => product.status_id == 3
+      (product) => product.status_id == 4
     );
   } else {
     filteredProducts = allProductsData.filter(
@@ -219,9 +252,15 @@ function createProductRow(product) {
     <td>
       <div class='status-container'>
         <span class='status-badge status-${statusClass}'>${
-    product.status_name || "Unknown"
+    product.status_id == 4 ? 'Same Day Order' : (product.status_name || "Unknown")
   }</span>
-        ${product.status_id == 3 && product.availtoday_status_name ? `<span class='availtoday-badge'>for ${product.availtoday_status_name}</span>` : ""}
+        ${
+          product.status_id == 4 && product.availtoday_status_name
+            ? `<span class='availtoday-badge'>For ${product.availtoday_status_name}</span>`
+            : (product.status_id == 1 || product.status_id == 2 || product.status_id == 3) && product.availtoday_status_name
+            ? `<span class='availtoday-badge-also'>Also for SDO: ${product.availtoday_status_name}</span>`
+            : ""
+        }
         <span class='stock-badge ${quantityClass}'>
           <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>
             <path d='M20 7h-9'></path><path d='M14 17H5'></path>
@@ -410,7 +449,8 @@ function openEditModal(
   availtodayStatusId,
   availtodayStatusName,
   todaysProductDates,
-  regularTodayDates
+  regularTodayDates,
+  categoryId
 ) {
   // Store original form data
   originalFormData = {
@@ -429,6 +469,7 @@ function openEditModal(
     unavailableStatusName,
     availtodayStatusId,
     availtodayStatusName,
+    categoryId,
     todaysProductDates,
     regularTodayDates,
   };
@@ -440,6 +481,12 @@ function openEditModal(
   document.getElementById("editProductPrice").value = price;
   document.getElementById("editProductQuantity").value = quantity;
   document.getElementById("editProductStatus").value = status;
+  
+  // Set category
+  const categorySelect = document.getElementById("editProductCategory");
+  if (categorySelect) {
+    categorySelect.value = (categoryId && categoryId !== 'null') ? categoryId : '';
+  }
   
   // Update dynamic status name label
   const dynamicStatusLabel = document.getElementById("dynamicStatusName");
@@ -456,11 +503,14 @@ function openEditModal(
     availtodaySelect.value = (availtodayStatusId && availtodayStatusId !== "null") ? availtodayStatusId : "";
     
     // Show/hide dropdown based on status
-    if (status == 3) {
-      // Same Day Order - always show dropdown
+    if (status == 4) {
+      // Same Day Order (status_id 4) - always show dropdown
+      availtodayOptions.style.display = "block";
+    } else if ((status == 1 || status == 2 || status == 3) && availtodayStatusId && availtodayStatusId !== "null") {
+      // Pick Up, Delivery, or Delivery or Pick Up - show if they have availtoday_status_id set
       availtodayOptions.style.display = "block";
     } else {
-      // Pick Up or Delivery - hide by default (will be shown if "Set to same day order too" is checked)
+      // Hide by default
       availtodayOptions.style.display = "none";
     }
   }
@@ -529,44 +579,27 @@ function openEditModal(
     }
   }
 
-  // Set available days checkboxes
-  const availableDaysArray = availableDays ? availableDays.split(", ") : [];
-  const dayCheckboxes = {
-    edit_sunday: "Sunday",
-    edit_monday: "Monday",
-    edit_tuesday: "Tuesday",
-    edit_wednesday: "Wednesday",
-    edit_thursday: "Thursday",
-    edit_friday: "Friday",
-    edit_saturday: "Saturday",
-  };
-
-  Object.keys(dayCheckboxes).forEach((checkboxId) => {
-    document.getElementById(checkboxId).checked = false;
-  });
-
-  availableDaysArray.forEach((day) => {
-    const checkboxId = Object.keys(dayCheckboxes).find(
-      (key) => dayCheckboxes[key] === day
-    );
-    if (checkboxId) {
-      document.getElementById(checkboxId).checked = true;
+  // Display current available days (read-only)
+  const currentAvailableDaysSpan = document.getElementById("currentAvailableDays");
+  if (currentAvailableDaysSpan) {
+    if (availableDays) {
+      currentAvailableDaysSpan.textContent = availableDays;
+    } else {
+      currentAvailableDaysSpan.textContent = "Not set";
     }
-  });
+  }
 
-  // Show available days for specific statuses
-  const availableDaysContainer = document.querySelector(
-    ".checkbox-group.days-group"
-  );
-  if (availableDaysContainer) {
+  // Show/hide available days container for specific statuses
+  const regularAvailableDaysContainer = document.getElementById("regularAvailableDaysContainer");
+  if (regularAvailableDaysContainer) {
     if (
       statusName === "Delivery" ||
       statusName === "Pick Up" ||
-      statusName === "Available Today"
+      statusName === "Delivery or Pick Up"
     ) {
-      availableDaysContainer.style.display = "block";
+      regularAvailableDaysContainer.style.display = "block";
     } else {
-      availableDaysContainer.style.display = "none";
+      regularAvailableDaysContainer.style.display = "none";
     }
   }
 
@@ -580,7 +613,7 @@ function openEditModal(
   );
 
   if (isAvailableTodayContainer && isAvailableTodayRadio) {
-    if (statusName === "Pick Up" || statusName === "Delivery") {
+    if (statusName === "Pick Up" || statusName === "Delivery" || statusName === "Delivery or Pick Up") {
       isAvailableTodayContainer.style.display = "block";
 
       // Check if availtoday_status_id is not null to activate the radio button
@@ -639,12 +672,12 @@ function openEditModal(
       window.modalCalendarHandler.handleEditStatusChange();
 
       // Set selected dates in calendars
-      if (todaysProductDates && status == 3) {
+      if (todaysProductDates && status == 4) {
         const dates = todaysProductDates.split(",").filter((d) => d.trim());
         window.modalCalendarHandler.setTodaysProductDates(dates);
       }
 
-      if (regularTodayDates && (status == 1 || status == 2)) {
+      if (regularTodayDates && (status == 1 || status == 2 || status == 3)) {
         const dates = regularTodayDates.split(",").filter((d) => d.trim());
         if (dates.length > 0) {
           // Check the isAvailableToday radio button
@@ -658,6 +691,11 @@ function openEditModal(
           window.modalCalendarHandler.setAvailableTodayDates(dates);
         }
       }
+    }
+    
+    // Initialize SDO quantity manager
+    if (typeof initializeSDOQuantities === 'function') {
+      initializeSDOQuantities(id);
     }
   }, 200); // Increased timeout to ensure calendars are fully initialized
 }
@@ -689,25 +727,27 @@ function setupStatusChangeListener() {
         dynamicStatusLabel.textContent = selectedStatus || "Product";
       }
 
-      if (availableDaysContainer) {
+      // Show/hide available days container for specific statuses
+      const regularAvailableDaysContainer = document.getElementById("regularAvailableDaysContainer");
+      if (regularAvailableDaysContainer) {
         if (
           selectedStatus === "Delivery" ||
           selectedStatus === "Pick Up" ||
-          selectedStatus === "Available Today"
+          selectedStatus === "Delivery or Pick Up"
         ) {
-          availableDaysContainer.style.display = "block";
+          regularAvailableDaysContainer.style.display = "block";
         } else {
-          availableDaysContainer.style.display = "none";
+          regularAvailableDaysContainer.style.display = "none";
         }
       }
 
-      // Handle isAvailableToday radio button visibility - only show for Pick Up or Delivery
+      // Handle isAvailableToday radio button visibility - only show for Pick Up, Delivery, or Delivery or Pick Up
       if (isAvailableTodayContainer) {
-        if (selectedStatus === "Pick Up" || selectedStatus === "Delivery") {
+        if (selectedStatus === "Pick Up" || selectedStatus === "Delivery" || selectedStatus === "Delivery or Pick Up") {
           isAvailableTodayContainer.style.display = "block";
         } else {
           isAvailableTodayContainer.style.display = "none";
-          // Reset the radio button and hide related elements when not Pick Up or Delivery
+          // Reset the radio button and hide related elements when not eligible
           const isAvailableTodayRadio =
             document.getElementById("isAvailableToday");
           if (isAvailableTodayRadio) {
@@ -727,14 +767,14 @@ function setupStatusChangeListener() {
 
       // Handle availtoday_status dropdown visibility
       if (availtodayOptions && availtodaySelect) {
-        if (selectedValue == 3) {
-          // Available Today
+        if (selectedValue == 4) {
+          // Same Day Order (status_id 4)
           availtodayOptions.style.display = "block";
           availtodaySelect.setAttribute("required", "required");
         } else {
           availtodayOptions.style.display = "none";
           availtodaySelect.removeAttribute("required");
-          availtodaySelect.value = "";
+          // Don't clear the value - preserve it
         }
       }
 
@@ -750,6 +790,7 @@ function setupStatusChangeListener() {
         if (currentStatus === "1") unavailableTypeId = "1";
         else if (currentStatus === "2") unavailableTypeId = "2";
         else if (currentStatus === "3") unavailableTypeId = "3";
+        else if (currentStatus === "4") unavailableTypeId = "4";
 
         if (unavailableTypeId) {
           unavailableTypeSelect.value = unavailableTypeId;
@@ -760,7 +801,8 @@ function setupStatusChangeListener() {
           let statusText = "";
           if (currentStatus === "1") statusText = "Pick Up";
           else if (currentStatus === "2") statusText = "Delivery";
-          else if (currentStatus === "3") statusText = "Available Today";
+          else if (currentStatus === "3") statusText = "Delivery or Pick Up";
+          else if (currentStatus === "4") statusText = "Same Day Order";
 
           messageElement.textContent = `Will be set to: Unavailable ${statusText}`;
         }
@@ -800,6 +842,7 @@ function setupAvailabilityRadioListeners() {
         if (currentStatus === "1") unavailableTypeId = "1";
         else if (currentStatus === "2") unavailableTypeId = "2";
         else if (currentStatus === "3") unavailableTypeId = "3";
+        else if (currentStatus === "4") unavailableTypeId = "4";
 
         if (unavailableTypeId) {
           unavailableTypeSelect.value = unavailableTypeId;
@@ -811,7 +854,8 @@ function setupAvailabilityRadioListeners() {
           let statusText = "";
           if (currentStatus === "1") statusText = "Pick Up";
           else if (currentStatus === "2") statusText = "Delivery";
-          else if (currentStatus === "3") statusText = "Available Today";
+          else if (currentStatus === "3") statusText = "Delivery or Pick Up";
+          else if (currentStatus === "4") statusText = "Same Day Order";
 
           messageElement.textContent = `Will be set to: Unavailable ${statusText}`;
         }
@@ -1345,8 +1389,8 @@ function handleFormSubmit(event) {
   const selectedStatus = statusSelect.options[statusSelect.selectedIndex].text;
   const selectedValue = statusSelect.value;
 
-  // Validate availtoday_status when Available Today is selected
-  if (selectedValue == 3) {
+  // Validate availtoday_status when Same Day Order is selected
+  if (selectedValue == 4) {
     const availtodaySelect = document.getElementById("editAvailtodayStatus");
     if (
       !availtodaySelect ||
@@ -1354,7 +1398,7 @@ function handleFormSubmit(event) {
       availtodaySelect.value === "null"
     ) {
       showNotification(
-        "Please select an option for 'Available Today'.",
+        "Please select an option for 'Same Day Order'.",
         "error"
       );
       return;
@@ -1412,19 +1456,19 @@ function handleFormSubmit(event) {
     document.getElementById("editUnavailableType").value || null;
   
   // Get availtoday_status_id logic:
-  // - If status is "Same Day Order" (3), always use the dropdown value
-  // - If status is "Pick Up" (1) or "Delivery" (2) AND "Set to same day order too" is checked, use the dropdown value
+  // - If status is "Same Day Order" (4), always use the dropdown value
+  // - If status is "Pick Up" (1), "Delivery" (2), or "Delivery or Pick Up" (3) AND "Set to same day order too" is checked, use the dropdown value
   // - Otherwise, set to null
   const selectedStatusId = document.getElementById("editProductStatus").value;
   // Reuse isAvailableTodayRadio from line 1385
   const isSetToSameDayToo = isAvailableTodayRadio ? isAvailableTodayRadio.checked : false;
   
   let availtodayStatusId = null;
-  if (selectedStatusId == 3) {
+  if (selectedStatusId == 4) {
     // Same Day Order - always use dropdown value
     availtodayStatusId = document.getElementById("editAvailtodayStatus").value || null;
-  } else if ((selectedStatusId == 1 || selectedStatusId == 2) && isSetToSameDayToo) {
-    // Pick Up or Delivery with "Set to same day order too" checked
+  } else if ((selectedStatusId == 1 || selectedStatusId == 2 || selectedStatusId == 3) && isSetToSameDayToo) {
+    // Pick Up, Delivery, or Delivery or Pick Up with "Set to same day order too" checked
     availtodayStatusId = document.getElementById("editAvailtodayStatus").value || null;
   }
   
@@ -1446,6 +1490,16 @@ function handleFormSubmit(event) {
     ? availableTodayDatesInput.value.split(",").filter((d) => d.trim())
     : [];
 
+  // Collect SDO quantities BEFORE creating formData (while modal is still open)
+  const sdoQuantitiesData = {};
+  const sdoInputs = document.querySelectorAll('.sdo-quantity-input[data-date]');
+  sdoInputs.forEach(input => {
+    const date = input.getAttribute('data-date');
+    const quantity = parseInt(input.value) || 0;
+    sdoQuantitiesData[date] = quantity;
+  });
+  console.log("DEBUG: Collected SDO quantities:", sdoQuantitiesData);
+
   const formData = {
     id: document.getElementById("editProductId").value,
     name: document.getElementById("editProductName").value,
@@ -1453,6 +1507,7 @@ function handleFormSubmit(event) {
     price: document.getElementById("editProductPrice").value,
     quantity: document.getElementById("editProductQuantity").value,
     status_id: document.getElementById("editProductStatus").value,
+    category_id: document.getElementById("editProductCategory").value || null,
     is_featured: document.getElementById("editIsFeature").value === "1",
     show_when_unavailable:
       document.getElementById("editVisibilityOption").value === "show",
@@ -1562,9 +1617,23 @@ function handleFormSubmit(event) {
     })
     .then((data) => {
       if (data.success) {
-        showNotification("Product updated successfully!", "success");
-        closeModal();
-        setTimeout(() => location.reload(), 1000);
+        // Save SDO quantities if the function exists and we have quantities to save
+        if (typeof saveSDOQuantitiesWithData === 'function' && Object.keys(sdoQuantitiesData).length > 0) {
+          return saveSDOQuantitiesWithData(formData.id, sdoQuantitiesData).then(() => {
+            showNotification("Product updated successfully!", "success");
+            closeModal();
+            setTimeout(() => location.reload(), 1000);
+          }).catch((error) => {
+            console.error("Error saving SDO quantities:", error);
+            showNotification("Product updated but failed to save quantities", "warning");
+            closeModal();
+            setTimeout(() => location.reload(), 1000);
+          });
+        } else {
+          showNotification("Product updated successfully!", "success");
+          closeModal();
+          setTimeout(() => location.reload(), 1000);
+        }
       } else {
         showNotification("Error: " + data.error, "error");
       }
@@ -1965,3 +2034,59 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 });
+
+
+// Global Available Days functionality
+function updateGlobalAvailableDays() {
+  // This function is called when checkboxes change
+  // We don't need to do anything here, just let the checkboxes update
+}
+
+function applyGlobalAvailableDays() {
+  const checkboxes = document.querySelectorAll('input[name="global_available_days[]"]:checked');
+  const selectedDays = Array.from(checkboxes).map(cb => cb.value);
+  
+  if (selectedDays.length === 0) {
+    alert('Please select at least one day before applying.');
+    return;
+  }
+  
+  if (!confirm(`This will update available days for all Pick Up, Delivery, and Delivery or Pick Up products to: ${selectedDays.join(', ')}.\n\nAre you sure you want to continue?`)) {
+    return;
+  }
+  
+  // Show loading state
+  const button = event.target;
+  const originalText = button.textContent;
+  button.textContent = 'Applying...';
+  button.disabled = true;
+  
+  // Send AJAX request
+  fetch('/backend/pages/products/update-global-available-days.php', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      days: selectedDays
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert(`Success! Updated ${data.updated_count} products.`);
+      // Reload the page to show updated data
+      location.reload();
+    } else {
+      alert('Error: ' + data.message);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('An error occurred while updating available days.');
+  })
+  .finally(() => {
+    button.textContent = originalText;
+    button.disabled = false;
+  });
+}

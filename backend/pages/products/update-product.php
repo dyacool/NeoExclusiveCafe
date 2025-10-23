@@ -40,6 +40,12 @@ try {
     $status_id = filter_var($input['status_id'], FILTER_VALIDATE_INT);
     $quantity = filter_var($input['quantity'], FILTER_VALIDATE_INT);
     
+    // Handle category
+    $category_id = null;
+    if (isset($input['category_id']) && !empty($input['category_id']) && $input['category_id'] !== 'null') {
+        $category_id = filter_var($input['category_id'], FILTER_VALIDATE_INT);
+    }
+    
     // Handle available days - process for both Delivery and Pick Up
     $available_days = [];
     if (isset($input['available_days']) && is_array($input['available_days'])) {
@@ -78,12 +84,13 @@ try {
         throw new Exception('Invalid input data');
     }
 
-    // Update product with unavailable status
+    // Update product with unavailable status and category
     $stmt = $conn->prepare("UPDATE products SET 
         name = ?, 
         description = ?,
         price = ?, 
-        status_id = ?, 
+        status_id = ?,
+        category_id = ?,
         quantity = ?,
         is_featured = ?,
         show_when_unavailable = ?,
@@ -93,11 +100,12 @@ try {
         updated_at = CURRENT_TIMESTAMP
         WHERE id = ?");
     
-    $stmt->bind_param("ssdiiiiiiii", 
+    $stmt->bind_param("ssdiiiiiiiii", 
         $name, 
         $description,
         $price, 
-        $status_id, 
+        $status_id,
+        $category_id,
         $quantity,
         $is_featured,
         $show_when_unavailable,
@@ -132,8 +140,18 @@ try {
             $auto_status_stmt->close();
         }
         
-        // Update available days in product_day table for Delivery and Pick Up only
-        if ($status_id == 1 || $status_id == 2) {
+        // Update available days in product_day table
+        // Logic:
+        // - Status 1, 2, or 3: Available days ALWAYS work
+        // - Status 1, 2, or 3 with "Set to same day order too": Available days work + calendar dates
+        // - Status 4 ONLY (without being 1, 2, or 3 first): NO available days, only calendar dates
+        // 
+        // To detect "Status 4 only": Check if there are entries in regular_products_today_dates
+        // If yes, it means it was 1, 2, or 3 with same day order, so days should work
+        // If no, it's pure status 4, so days shouldn't work
+        
+        if ($status_id == 1 || $status_id == 2 || $status_id == 3) {
+            // Status 1, 2, or 3: Always use available days
             // First, delete existing days for this product
             $delete_stmt = $conn->prepare("DELETE FROM product_day WHERE product_id = ?");
             $delete_stmt->bind_param("i", $id);
@@ -149,15 +167,47 @@ try {
                 }
                 $day_stmt->close();
             }
+        } else if ($status_id == 4) {
+            // Status 4: Check if this product has regular_today_dates (meaning it was 1, 2, or 3 with same day order)
+            $check_regular_stmt = $conn->prepare("SELECT COUNT(*) as count FROM regular_products_today_dates WHERE product_id = ?");
+            $check_regular_stmt->bind_param("i", $id);
+            $check_regular_stmt->execute();
+            $check_result = $check_regular_stmt->get_result();
+            $has_regular_dates = $check_result->fetch_assoc()['count'] > 0;
+            $check_regular_stmt->close();
+            
+            if ($has_regular_dates) {
+                // This product was 1, 2, or 3 with "set to same day order too"
+                // Keep/update available days
+                $delete_stmt = $conn->prepare("DELETE FROM product_day WHERE product_id = ?");
+                $delete_stmt->bind_param("i", $id);
+                $delete_stmt->execute();
+                $delete_stmt->close();
+                
+                if (!empty($available_days)) {
+                    $day_stmt = $conn->prepare("INSERT INTO product_day (product_id, day_of_week) VALUES (?, ?)");
+                    foreach ($available_days as $day) {
+                        $day_stmt->bind_param("is", $id, $day);
+                        $day_stmt->execute();
+                    }
+                    $day_stmt->close();
+                }
+            } else {
+                // Pure status 4 (Same Day Order only): Remove all available days
+                $delete_stmt = $conn->prepare("DELETE FROM product_day WHERE product_id = ?");
+                $delete_stmt->bind_param("i", $id);
+                $delete_stmt->execute();
+                $delete_stmt->close();
+            }
         } else {
-            // If status is not Delivery or Pick Up, remove all available days
+            // Any other status: remove all available days
             $delete_stmt = $conn->prepare("DELETE FROM product_day WHERE product_id = ?");
             $delete_stmt->bind_param("i", $id);
             $delete_stmt->execute();
             $delete_stmt->close();
         }
         
-        // Handle Today's product dates (status_id == 3)
+        // Handle Today's product dates (status_id == 4 for Same Day Order)
         error_log("=== UPDATE PRODUCT DATES DEBUG ===");
         error_log("Product ID: $id, Status ID: $status_id");
         error_log("Raw todays_product_dates INPUT: " . ($input['todays_product_dates'] ?? 'NOT SET'));

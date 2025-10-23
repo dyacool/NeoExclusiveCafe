@@ -26,6 +26,11 @@ function initializeEditModalCalendars() {
                         hiddenInput.value = selectedDates.join(',');
 
                     }
+                    
+                    // Update quantity display when dates change
+                    if (typeof updateQuantityDisplay === 'function') {
+                        updateQuantityDisplay();
+                    }
                 },
                 maxSelections: null // Allow unlimited selections
             });
@@ -47,7 +52,11 @@ function initializeEditModalCalendars() {
                     const hiddenInput = document.getElementById('availableTodayDates');
                     if (hiddenInput) {
                         hiddenInput.value = selectedDates.join(',');
-
+                        
+                        // Update quantity display when dates change
+                        if (typeof updateQuantityDisplay === 'function') {
+                            updateQuantityDisplay();
+                        }
                     }
                 },
                 maxSelections: null // Allow unlimited selections
@@ -118,15 +127,15 @@ function handleEditStatusChange() {
     
     const selectedValue = statusSelect.value;
     
-    if (selectedValue === '1' || selectedValue === '2') { // Pick Up or Delivery
+    if (selectedValue === '1' || selectedValue === '2' || selectedValue === '3') { // Pick Up, Delivery, or Delivery or Pick Up
         // Show regular days and isAvailableToday option
         if (regularDaysContainer) regularDaysContainer.style.display = 'block';
         if (todaysCalendarContainer) todaysCalendarContainer.style.display = 'none';
         if (isAvailableTodayContainer) isAvailableTodayContainer.style.display = 'block';
-        if (availtodayOptionsContainer) availtodayOptionsContainer.style.display = 'none';
+        // Don't hide availtodayOptionsContainer here - let the radio button control it
         
-    } else if (selectedValue === '3') { // Today's Product
-        // For Today's Product: Show calendar and availtoday options
+    } else if (selectedValue === '4') { // Same Day Order (status_id 4)
+        // For Same Day Order: Show calendar and availtoday options
         if (regularDaysContainer) regularDaysContainer.style.display = 'none';
         if (todaysCalendarContainer) todaysCalendarContainer.style.display = 'block';
         if (isAvailableTodayContainer) isAvailableTodayContainer.style.display = 'none';

@@ -138,6 +138,19 @@
                             </div>
                         </a>
                     </div>
+                    <div class="setting-card">
+                        <a href="/backend/pages/user-page-content/manage-categories.php" class="setting-card-link">
+                            <div class="setting-card-content">
+                                <div class="setting-icon categories">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                                    </svg>
+                                </div>
+                                <h3 class="setting-title">Product Categories</h3>
+                                <p class="setting-description">Organize products by creating and managing categories</p>
+                            </div>
+                        </a>
+                    </div>
                 </div>
             </div>
 
