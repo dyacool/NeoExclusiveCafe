@@ -313,6 +313,8 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
 </head>
 <body>
     <?php include __DIR__ . "/../admin-includes/navbar/navbar.php"; ?>
+    <?php include __DIR__ . '/../admin-includes/breadcrumbs/admin-breadcrumb.php'; ?>
+
     
     <div class="bulk-order-detail-container">
         <div class="page-header">

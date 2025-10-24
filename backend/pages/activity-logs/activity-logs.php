@@ -85,18 +85,14 @@ if ($stmt = mysqli_prepare($conn, $query)) {
 ?>
 
 <link rel="stylesheet" href="activity-logs.css">
+    <?php include __DIR__ . '/../admin-includes/breadcrumbs/admin-breadcrumb.php'; ?>
 
 <div class="main-content">
     <div class="page-header">
-        <h1>Activity Logs</h1>
-        <nav class="breadcrumb">
-            <ol>
-                <li><a href="/backend/pages/homepage/admin-homepage.php">Home</a></li>
-                <li class="active">Activity Logs</li>
-            </ol>
-        </nav>
+        <div class="header-content">
+            <p>Monitor your activity history within the system</p>
+        </div>
     </div>
-
     <div class="table-container">
         <div class="table-responsive">
             <table>

@@ -1,22 +1,24 @@
 /* Activity Logs Page Styles */
 .main-content {
-  padding: 2rem;
-  max-width: 1400px;
+  max-width: 1600px;
   margin: 0 auto;
 }
 
-/* Page Header */
 .page-header {
-  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  padding: 0 0 1rem 0;
+  border-bottom: 1px solid var(--gray-200);
 }
 
-.page-header h1 {
-  font-size: 1.75rem;
-  color: #1a1a1a;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
+.header-content p {
+  color: var(--gray-600);
+  font-size: 1rem;
+  padding: 10px;
+  margin: 0;
 }
-
 /* Breadcrumb */
 .breadcrumb {
   display: flex;

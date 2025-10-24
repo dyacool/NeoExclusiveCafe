@@ -76,10 +76,13 @@ if ($table_exists) {
                 o.status as order_status,
                 u.firstname,
                 u.lastname,
-                u.username
+                u.username,
+                rv.voucher_code as refund_coupon_code,
+                r.refund_amount as refund_coupon_amount
             FROM order_refunds r
             LEFT JOIN orders o ON r.order_id = o.order_id
             LEFT JOIN users u ON r.user_id = u.id
+            LEFT JOIN refund_vouchers rv ON r.refund_id = rv.refund_id
             ORDER BY r.created_at DESC";
     
     $result = mysqli_query($conn, $sql);
@@ -105,7 +108,6 @@ if ($table_exists) {
     <style>
         .refund-container {
             font-family: "Inter", sans-serif;
-            padding: 2rem;
         }
         
         .orders-table tbody tr {
@@ -156,7 +158,6 @@ if ($table_exists) {
     <div class="refund-container bulk-order-container">
         <div class="page-header">
             <div class="header-content">
-                <h1>Refund Requests</h1>
                 <p>Manage and track all refund requests submitted by customers</p>
             </div>
         </div>
@@ -234,6 +235,7 @@ if ($table_exists) {
                             <th>Customer Name</th>
                             <th>Total Items</th>
                             <th>Refund Amount</th>
+                            <th>Refund Coupon</th>
                             <th>Status</th>
                         </tr>
                     </thead>
@@ -284,6 +286,20 @@ if ($table_exists) {
                                 </td>
                                 <td onclick="window.location.href='refund-details.php?id=<?php echo $refund['refund_id']; ?>'" style="cursor:pointer;">
                                     <div class="refund-amount">₱<?php echo number_format($refund['refund_amount'], 2); ?></div>
+                                </td>
+                                <td onclick="window.location.href='refund-details.php?id=<?php echo $refund['refund_id']; ?>'" style="cursor:pointer;">
+                                    <?php if (!empty($refund['refund_coupon_code'])): ?>
+                                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                                            <div style="font-weight: 600; color: #059669; font-family: 'Monaco', monospace; font-size: 0.875rem;">
+                                                <?php echo htmlspecialchars($refund['refund_coupon_code']); ?>
+                                            </div>
+                                            <div style="font-size: 0.75rem; color: #6b7280;">
+                                                ₱<?php echo number_format($refund['refund_coupon_amount'], 2); ?>
+                                            </div>
+                                        </div>
+                                    <?php else: ?>
+                                        <span style="color: #9ca3af; font-size: 0.875rem;">—</span>
+                                    <?php endif; ?>
                                 </td>
                                 <td>
                                     <select class="status-select-list status-badge status-<?php echo strtolower($refund['refund_status']); ?>" 

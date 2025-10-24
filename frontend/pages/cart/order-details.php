@@ -180,6 +180,13 @@ $can_request_refund = ($status_lower === 'delivered' || $status_lower === 'picke
             overflow-y: auto;
         }
 
+        #qty_input{
+            display: flex;
+            gap: 12px;
+            align-items: center;
+
+        }
+
         .refund-item-checkbox {
             display: flex;
             align-items: center;
@@ -319,7 +326,7 @@ $can_request_refund = ($status_lower === 'delivered' || $status_lower === 'picke
         .action-buttons {
             display: flex;
             gap: 12px;
-            justify-content: center;
+            justify-content: flex-end;
             margin: 24px 0;
         }
 
@@ -558,17 +565,14 @@ $can_request_refund = ($status_lower === 'delivered' || $status_lower === 'picke
 
         <!-- Action Buttons -->
         <div class="action-buttons">
-            <a href="../profile/profile.php" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> Back to Profile
-            </a>
             
             <?php if ($refund): ?>
             <button onclick="openRefundDetailsModal()" class="btn btn-primary">
-                <i class="fas fa-eye"></i> View Refund Request
+                View Refund Request
             </button>
             <?php elseif ($can_request_refund): ?>
             <button onclick="openRefundModal()" class="btn btn-primary">
-                <i class="fas fa-undo"></i> Request Refund
+                Request Refund
             </button>
             <?php endif; ?>
         </div>
@@ -593,6 +597,8 @@ $can_request_refund = ($status_lower === 'delivered' || $status_lower === 'picke
                             <option value="spoiled">Product Spoiled</option>
                             <option value="wrong_item">Wrong Item Received</option>
                             <option value="damaged">Product Damaged During Delivery</option>
+                            <option value="other">Other</option>
+
                         </select>
                     </div>
 
@@ -604,19 +610,61 @@ $can_request_refund = ($status_lower === 'delivered' || $status_lower === 'picke
                             <div class="refund-item-checkbox">
                                 <input type="checkbox" 
                                        id="item_<?php echo $item['item_id']; ?>" 
-                                       name="refund_items[]" 
-                                       value='<?php echo json_encode(['item_id' => $item['item_id'], 'product_name' => $item['product_name'], 'quantity' => $item['quantity'], 'price' => $item['price']]); ?>'
-                                       onchange="updateRefundSummary()">
+                                       name="refund_items_check[]" 
+                                       value="<?php echo $item['item_id']; ?>"
+                                       data-item-id="<?php echo $item['item_id']; ?>"
+                                       data-product-name="<?php echo htmlspecialchars($item['product_name']); ?>"
+                                       data-max-qty="<?php echo $item['quantity']; ?>"
+                                       data-price="<?php echo $item['price']; ?>"
+                                       onchange="toggleQuantityInput(<?php echo $item['item_id']; ?>); updateRefundSummary();">
                                 <div class="refund-item-info">
                                     <div class="refund-item-name"><?php echo htmlspecialchars($item['product_name']); ?></div>
                                     <div class="refund-item-details">
-                                        Quantity: <?php echo $item['quantity']; ?> × ₱<?php echo number_format($item['price'], 2); ?> = 
+                                        Ordered Quantity: <?php echo $item['quantity']; ?> × ₱<?php echo number_format($item['price'], 2); ?> = 
                                         ₱<?php echo number_format($item['quantity'] * $item['price'], 2); ?>
+                                    </div>
+                                    <div class="refund-qty-input" id="qty_input_<?php echo $item['item_id']; ?>" style="display: none; margin-top: 8px; gap: 10px; align-items: center;">
+                                        <label style="font-size: 13px; color: #666; margin-bottom: 4px; display: block;">Quantity to Refund:</label>
+                                        <input type="number" 
+                                               id="refund_qty_<?php echo $item['item_id']; ?>"
+                                               name="refund_qty[<?php echo $item['item_id']; ?>]"
+                                               min="1" 
+                                               max="<?php echo $item['quantity']; ?>" 
+                                               value="<?php echo $item['quantity']; ?>"
+                                               style="width: 80px; padding: 3px; border: 2px solid #cbd5c0; border-radius: 6px; font-size: 14px;"
+                                               onchange="updateRefundSummary()"
+                                               oninput="validateQuantity(<?php echo $item['item_id']; ?>, <?php echo $item['quantity']; ?>)">
+                                        <span style="font-size: 12px; color: #666; margin-left: 8px;">Max: <?php echo $item['quantity']; ?></span>
                                     </div>
                                 </div>
                             </div>
                             <?php endforeach; ?>
                         </div>
+                    </div>
+
+                    <!-- Proof Image Upload -->
+                    <div class="refund-form-group">
+                        <label>Upload Proof Image *</label>
+                        <div class="refund-file-upload" id="fileUploadArea" onclick="document.getElementById('proof_image').click()">
+                            <p style="margin: 0; color: #666;">Click to upload proof image</p>
+                            <p style="margin: 4px 0 0 0; font-size: 12px; color: #999;">JPG, PNG, GIF (Max 5MB)</p>
+                        </div>
+                        <input type="file" 
+                               id="proof_image" 
+                               name="proof_image" 
+                               accept="image/*" 
+                               required
+                               style="display: none;"
+                               onchange="previewProofImage(event)">
+                    </div>
+
+                    <!-- Additional Notes -->
+                    <div class="refund-form-group">
+                        <label for="refund_note">Additional Details (Optional)</label>
+                        <textarea id="refund_note" 
+                                  name="refund_note" 
+                                  rows="4" 
+                                  placeholder="Please provide any additional details about the issue..."></textarea>
                     </div>
 
                     <!-- Refund Summary -->
@@ -631,35 +679,9 @@ $can_request_refund = ($status_lower === 'delivered' || $status_lower === 'picke
                         </div>
                     </div>
 
-                    <!-- Proof Image Upload -->
-                    <div class="refund-form-group">
-                        <label>Upload Proof Image *</label>
-                        <div class="refund-file-upload" onclick="document.getElementById('proof_image').click()">
-                            <i class="fas fa-cloud-upload-alt" style="font-size: 32px; color: #0f5132; margin-bottom: 8px;"></i>
-                            <p style="margin: 0; color: #666;">Click to upload proof image</p>
-                            <p style="margin: 4px 0 0 0; font-size: 12px; color: #999;">JPG, PNG, GIF (Max 5MB)</p>
-                            <input type="file" 
-                                   id="proof_image" 
-                                   name="proof_image" 
-                                   accept="image/*" 
-                                   required
-                                   onchange="previewProofImage(event)">
-                        </div>
-                        <div id="proofImagePreview" class="refund-file-preview" style="display: none;"></div>
-                    </div>
-
-                    <!-- Additional Notes -->
-                    <div class="refund-form-group">
-                        <label for="refund_note">Additional Details (Optional)</label>
-                        <textarea id="refund_note" 
-                                  name="refund_note" 
-                                  rows="4" 
-                                  placeholder="Please provide any additional details about the issue..."></textarea>
-                    </div>
-
                     <!-- Submit Button -->
                     <button type="submit" class="refund-submit-btn" id="refundSubmitBtn" disabled>
-                        <i class="fas fa-paper-plane"></i> Submit Refund Request
+                        Submit Refund Request
                     </button>
                 </form>
             </div>
@@ -677,19 +699,50 @@ $can_request_refund = ($status_lower === 'delivered' || $status_lower === 'picke
             updateRefundSummary();
         }
 
+        function toggleQuantityInput(itemId) {
+            const checkbox = document.getElementById('item_' + itemId);
+            const qtyInput = document.getElementById('qty_input_' + itemId);
+            
+            if (checkbox.checked) {
+                qtyInput.style.display = 'flex';
+            } else {
+                qtyInput.style.display = 'none';
+            }
+        }
+
+        function validateQuantity(itemId, maxQty) {
+            const qtyInput = document.getElementById('refund_qty_' + itemId);
+            let value = parseInt(qtyInput.value);
+            
+            if (value < 1) {
+                qtyInput.value = 1;
+            } else if (value > maxQty) {
+                qtyInput.value = maxQty;
+            }
+            
+            updateRefundSummary();
+        }
+
         function updateRefundSummary() {
-            const checkboxes = document.querySelectorAll('input[name="refund_items[]"]:checked');
+            const checkboxes = document.querySelectorAll('input[name="refund_items_check[]"]:checked');
             const submitBtn = document.getElementById('refundSubmitBtn');
             const summary = document.getElementById('refundSummary');
             
             if (checkboxes.length > 0) {
                 let totalAmount = 0;
+                let totalItems = 0;
+                
                 checkboxes.forEach(cb => {
-                    const data = JSON.parse(cb.value);
-                    totalAmount += parseFloat(data.price) * parseInt(data.quantity);
+                    const itemId = cb.dataset.itemId;
+                    const price = parseFloat(cb.dataset.price);
+                    const qtyInput = document.getElementById('refund_qty_' + itemId);
+                    const qty = parseInt(qtyInput.value) || 1;
+                    
+                    totalAmount += price * qty;
+                    totalItems++;
                 });
                 
-                document.getElementById('selectedItemsCount').textContent = checkboxes.length;
+                document.getElementById('selectedItemsCount').textContent = totalItems;
                 document.getElementById('totalRefundAmount').textContent = '₱' + totalAmount.toFixed(2);
                 summary.style.display = 'block';
                 
@@ -706,26 +759,63 @@ $can_request_refund = ($status_lower === 'delivered' || $status_lower === 'picke
 
         function previewProofImage(event) {
             const file = event.target.files[0];
-            const preview = document.getElementById('proofImagePreview');
+            const uploadArea = document.getElementById('fileUploadArea');
             const submitBtn = document.getElementById('refundSubmitBtn');
             
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    preview.innerHTML = '<img src="' + e.target.result + '" alt="Proof Preview">';
-                    preview.style.display = 'block';
+                    uploadArea.innerHTML = `
+                        <div style="position: relative;">
+                            <img src="${e.target.result}" alt="Proof Preview" style="max-width: 100%; max-height: 300px; border-radius: 8px;">
+                            <button type="button" 
+                                    id="removeImageBtn"
+                                    style="position: absolute; top: 8px; right: 8px; background: #dc3545; color: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+                                ×
+                            </button>
+                            <p style="margin: 8px 0 0 0; font-size: 13px; color: #666; text-align: center;">
+                                <i class="fas fa-check-circle" style="color: #0f5132;"></i> Image uploaded successfully
+                            </p>
+                        </div>
+                    `;
+                    uploadArea.style.cursor = 'default';
+                    uploadArea.onclick = null;
+                    
+                    // Add event listener to remove button
+                    document.getElementById('removeImageBtn').addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        removeProofImage();
+                    });
                     
                     // Enable submit button if items also selected
-                    const checkboxes = document.querySelectorAll('input[name="refund_items[]"]:checked');
+                    const checkboxes = document.querySelectorAll('input[name="refund_items_check[]"]:checked');
                     if (checkboxes.length > 0) {
                         submitBtn.disabled = false;
                     }
                 };
                 reader.readAsDataURL(file);
-            } else {
-                preview.style.display = 'none';
-                submitBtn.disabled = true;
             }
+        }
+
+        function removeProofImage() {
+            const uploadArea = document.getElementById('fileUploadArea');
+            const proofInput = document.getElementById('proof_image');
+            const submitBtn = document.getElementById('refundSubmitBtn');
+            
+            // Reset file input
+            proofInput.value = '';
+            
+            // Restore original upload area
+            uploadArea.innerHTML = `
+                <i class="fas fa-cloud-upload-alt" style="font-size: 32px; color: #0f5132; margin-bottom: 8px;"></i>
+                <p style="margin: 0; color: #666;">Click to upload proof image</p>
+                <p style="margin: 4px 0 0 0; font-size: 12px; color: #999;">JPG, PNG, GIF (Max 5MB)</p>
+            `;
+            uploadArea.style.cursor = 'pointer';
+            uploadArea.onclick = function() { document.getElementById('proof_image').click(); };
+            
+            // Disable submit button
+            submitBtn.disabled = true;
         }
 
         document.getElementById('refundForm').addEventListener('submit', async function(e) {
@@ -734,14 +824,29 @@ $can_request_refund = ($status_lower === 'delivered' || $status_lower === 'picke
             const formData = new FormData(this);
             const submitBtn = document.getElementById('refundSubmitBtn');
             
-            // Get selected items
+            // Get selected items with their refund quantities
             const selectedItems = [];
-            const checkboxes = document.querySelectorAll('input[name="refund_items[]"]:checked');
+            const checkboxes = document.querySelectorAll('input[name="refund_items_check[]"]:checked');
             checkboxes.forEach(cb => {
-                selectedItems.push(JSON.parse(cb.value));
+                const itemId = cb.dataset.itemId;
+                const qtyInput = document.getElementById('refund_qty_' + itemId);
+                const refundQty = parseInt(qtyInput.value) || 1;
+                
+                selectedItems.push({
+                    item_id: itemId,
+                    product_name: cb.dataset.productName,
+                    quantity: refundQty,
+                    price: parseFloat(cb.dataset.price)
+                });
             });
             
-            formData.delete('refund_items[]');
+            // Remove checkbox values and add JSON data
+            formData.delete('refund_items_check[]');
+            for (let key of formData.keys()) {
+                if (key.startsWith('refund_qty[')) {
+                    formData.delete(key);
+                }
+            }
             formData.append('refund_items', JSON.stringify(selectedItems));
             
             submitBtn.disabled = true;
@@ -784,7 +889,7 @@ $can_request_refund = ($status_lower === 'delivered' || $status_lower === 'picke
     <div id="refundDetailsModal" class="refund-modal">
         <div class="refund-modal-content">
             <div class="refund-modal-header">
-                <h2><i class="fas fa-receipt"></i> Refund Request Details</h2>
+                <h2>Refund Request Details</h2>
                 <button type="button" class="refund-modal-close" onclick="closeRefundDetailsModal()">&times;</button>
             </div>
             <div class="refund-modal-body">
@@ -863,14 +968,14 @@ $can_request_refund = ($status_lower === 'delivered' || $status_lower === 'picke
                                  onmouseout="this.style.transform='scale(1)'">
                         </a>
                         <p style="margin-top: 8px; font-size: 13px; color: #666;">
-                            <i class="fas fa-expand"></i> Click image to view full size
+                            Click image to view full size
                         </p>
                     </div>
                 </div>
                 <?php endif; ?>
 
                 <button type="button" class="refund-submit-btn" onclick="closeRefundDetailsModal()">
-                    <i class="fas fa-times"></i> Close
+                    Close
                 </button>
             </div>
         </div>

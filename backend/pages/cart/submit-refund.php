@@ -27,7 +27,7 @@ if ($order_id <= 0) {
     exit();
 }
 
-if (!in_array($refund_reason, ['spoiled', 'wrong_item', 'damaged'])) {
+if (!in_array($refund_reason, ['spoiled', 'wrong_item', 'damaged', 'other'])) {
     echo json_encode(['success' => false, 'message' => 'Invalid refund reason']);
     exit();
 }

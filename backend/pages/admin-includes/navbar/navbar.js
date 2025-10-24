@@ -178,6 +178,8 @@ document.addEventListener("DOMContentLoaded", () => {
       "bulk-order-lists.php": "Bulk Orders",
       "bulk-order.php": "Bulk Order Details",
       "view-orders.php": "Order Details",
+      "refund-details.php": "Refund Request Detail",
+      "activity-logs.php": "Activity Logs",
     };
 
     const pageTitle = pageTitles[currentPage] || "Neo Cafe Admin";

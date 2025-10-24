@@ -82,12 +82,20 @@ function setupEventListeners() {
   // Review Order button
   const reviewOrderBtn = document.getElementById("reviewOrderBtn");
   if (reviewOrderBtn) {
+    console.log("Review Order button found and event listener attached");
     reviewOrderBtn.addEventListener("click", function (e) {
       e.preventDefault();
+      console.log("Review Order button clicked");
+      console.log("Selected products:", selectedProducts);
       if (validateForm()) {
+        console.log("Form is valid, showing modal");
         showConfirmationModal();
+      } else {
+        console.log("Form validation failed");
       }
     });
+  } else {
+    console.error("Review Order button not found!");
   }
 
   // Confirmation modal event listeners
@@ -182,6 +190,8 @@ function updateOrderSummary() {
 }
 
 function validateForm() {
+  console.log("Validating form...");
+
   // Check customer information
   const name = document.getElementById("name").value.trim();
   const contact = document.getElementById("contact").value.trim();
@@ -193,6 +203,17 @@ function validateForm() {
   const purpose = document.getElementById("purpose").value.trim();
   const dateNeeded = document.getElementById("date_needed").value;
   const timeNeeded = document.getElementById("time_needed").value;
+
+  console.log("Form fields:", {
+    name,
+    contact,
+    email,
+    billingAddress,
+    orderType,
+    purpose,
+    dateNeeded,
+    timeNeeded,
+  });
 
   if (
     !name ||
@@ -249,27 +270,40 @@ function validateForm() {
 }
 
 function showConfirmationModal() {
+  console.log("showConfirmationModal called");
   const modal = document.getElementById("confirmationModal");
 
-  // Populate customer information
-  document.getElementById("confirm-name").textContent =
-    document.getElementById("name").value;
-  document.getElementById("confirm-contact").textContent =
-    document.getElementById("contact").value;
-  document.getElementById("confirm-email").textContent =
-    document.getElementById("email").value;
-  document.getElementById("confirm-billing").textContent =
-    document.getElementById("billing_address").value;
+  if (!modal) {
+    console.error("Modal element not found!");
+    alert("Error: Could not show confirmation modal. Please refresh the page.");
+    return;
+  }
 
-  const deliveryRow = document.getElementById("confirm-delivery-row");
+  console.log("Populating modal with form data...");
+
+  // Populate customer information
+  try {
+    document.getElementById("confirm-name").textContent =
+      document.getElementById("name").value;
+    document.getElementById("confirm-contact").textContent =
+      document.getElementById("contact").value;
+    document.getElementById("confirm-email").textContent =
+      document.getElementById("email").value;
+    document.getElementById("confirm-billing-address").textContent =
+      document.getElementById("billing_address").value;
+  } catch (error) {
+    console.error("Error populating customer info:", error);
+  }
+
+  const deliverySection = document.getElementById("delivery-address-section");
   const orderType = document.getElementById("order_type").value;
 
   if (orderType === "delivery") {
-    deliveryRow.style.display = "flex";
-    document.getElementById("confirm-delivery").textContent =
+    deliverySection.style.display = "block";
+    document.getElementById("confirm-delivery-address").textContent =
       document.getElementById("delivery_address").value;
   } else {
-    deliveryRow.style.display = "none";
+    deliverySection.style.display = "none";
   }
 
   // Populate order details
@@ -277,24 +311,22 @@ function showConfirmationModal() {
     orderType.charAt(0).toUpperCase() + orderType.slice(1);
   document.getElementById("confirm-purpose").textContent =
     document.getElementById("purpose").value;
-  document.getElementById("confirm-date").textContent = formatDate(
+  document.getElementById("confirm-date-needed").textContent = formatDate(
     document.getElementById("date_needed").value
   );
-  document.getElementById("confirm-time").textContent = formatTime(
+  document.getElementById("confirm-time-needed").textContent = formatTime(
     document.getElementById("time_needed").value
   );
 
   const note = document.getElementById("note").value.trim();
-  const noteRow = document.getElementById("confirm-note-row");
   if (note) {
-    noteRow.style.display = "flex";
     document.getElementById("confirm-note").textContent = note;
   } else {
-    noteRow.style.display = "none";
+    document.getElementById("confirm-note").textContent = "None";
   }
 
   // Populate items
-  const itemsBody = document.getElementById("confirmationItems");
+  const itemsBody = document.getElementById("confirm-order-items");
   itemsBody.innerHTML = "";
   let totalItems = 0;
 
@@ -302,33 +334,47 @@ function showConfirmationModal() {
     const row = itemsBody.insertRow();
     row.innerHTML = `
       <td>${product.name}</td>
+      <td>-</td>
       <td>${product.quantity}</td>
+      <td>-</td>
     `;
     totalItems += product.quantity;
   });
 
-  document.getElementById("confirmationTotalItems").textContent = totalItems;
-
+  console.log("Modal populated, showing it now...");
   modal.classList.add("show");
 }
 
 function setupConfirmationModal() {
   const modal = document.getElementById("confirmationModal");
+  if (!modal) {
+    console.error("Confirmation modal not found!");
+    return;
+  }
+
   const closeBtn = modal.querySelector(".close");
   const editBtn = document.getElementById("editOrderBtn");
   const confirmBtn = document.getElementById("confirmSubmitBtn");
 
-  closeBtn.onclick = function () {
-    modal.classList.remove("show");
-  };
+  console.log("Modal elements:", { modal, closeBtn, editBtn, confirmBtn });
 
-  editBtn.onclick = function () {
-    modal.classList.remove("show");
-  };
+  if (closeBtn) {
+    closeBtn.onclick = function () {
+      modal.classList.remove("show");
+    };
+  }
 
-  confirmBtn.onclick = function () {
-    submitFinalForm();
-  };
+  if (editBtn) {
+    editBtn.onclick = function () {
+      modal.classList.remove("show");
+    };
+  }
+
+  if (confirmBtn) {
+    confirmBtn.onclick = function () {
+      submitFinalForm();
+    };
+  }
 
   window.onclick = function (event) {
     if (event.target === modal) {
@@ -383,10 +429,14 @@ function clearForm() {
 
 function updateSubmitButton() {
   const btn = document.getElementById("reviewOrderBtn");
+  if (!btn) return;
+
   const hasProducts =
     selectedProducts.length > 0 &&
     selectedProducts.some((p) => p.quantity >= 10);
   btn.disabled = !hasProducts;
+
+  console.log("Button state updated:", { hasProducts, selectedProducts });
 }
 
 function formatDate(dateString) {
