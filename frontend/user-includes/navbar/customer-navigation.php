@@ -62,6 +62,14 @@ if ($is_user_logged_in) {
 }
 
 $current_page = basename($_SERVER['PHP_SELF']);
+
+// Ensure database connection for categories
+if (!isset($conn)) {
+    $db_path = $_SERVER['DOCUMENT_ROOT'] . '/backend/pages/admin-includes/database.php';
+    if (file_exists($db_path)) {
+        require_once $db_path;
+    }
+}
 ?>
 <link rel="stylesheet" href="/frontend/user-includes/navbar/customer-navigation.css">
 <div class="header-wrapper">
@@ -87,8 +95,13 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     <span class="link-text">Home</span>
                     <span class="link-underline"></span>
                 </a>
+                <a href="/frontend/pages/bulk/bulk-form.php"class="nav-link smooth-nav <?php echo $current_page === 'bulk-forn.php' ? 'active' : ''; ?>" data-target="../../../frontend/pages/about/bulk-form.php">
+                    <span class="link-text">Bulk Order</span>
+                    <span class="link-underline"></span>
+                </a>
+
                 <div class="products-container">
-                    <a href="/frontend/pages/products/products-categories.php" class="nav-link smooth-nav <?php echo $current_page === 'product-dashboard.php' ? 'active' : ''; ?>" data-target="/frontend/pages/products/product-dashboard.php">
+                    <a href="/frontend/pages/products/product-dashboard.php" class="nav-link smooth-nav <?php echo $current_page === 'product-dashboard.php' ? 'active' : ''; ?>" data-target="/frontend/pages/products/product-dashboard.php">
                         <span class="link-text">Products</span>
                         <span class="link-underline"></span>
                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="dropdown-arrow">
@@ -96,18 +109,37 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         </svg>
                     </a>
                     <div class="products-dropdown">
-                        <a href="/frontend/pages/products/product-dashboard.php">Same Day Order</a>
-                        <a href="/frontend/pages/products/weekly-product.php">For Delivery</a>
-                        <a href="/frontend/pages/products/user-products.php">For Pick Up</a>
-                        <a href="/frontend/pages/bulk/bulk-form.php">Bulk Order</a>
+                        <?php
+                        // Fetch categories from database (connection already established at top of file)
+                        if (isset($conn) && $conn instanceof mysqli) {
+                            $category_query = "SELECT id, name, slug FROM categories WHERE is_active = 1 ORDER BY display_order ASC, name ASC";
+                            $category_result = mysqli_query($conn, $category_query);
+                            
+                            if ($category_result && mysqli_num_rows($category_result) > 0) {
+                                while ($category = mysqli_fetch_assoc($category_result)) {
+                                    $category_url = '/frontend/pages/products/product-dashboard.php?category=' . urlencode($category['slug']);
+                                    echo '<a href="' . htmlspecialchars($category_url) . '">' . htmlspecialchars($category['name']) . '</a>';
+                                }
+                            }
+                        }
+                        ?>
                     </div>
                     <!-- Mobile Products Dropdown - Inside nav-left for better visibility -->
                     <div class="mobile-products-dropdown">
-                        <a href="/frontend/pages/products/product-dashboard.php" class="mobile-dropdown-item">Special Offer</a>
-                        <a href="/frontend/pages/products/weekly-product.php" class="mobile-dropdown-item">For Delivery</a>
-                        <a href="/frontend/pages/products/user-products.php" class="mobile-dropdown-item">For Pick Up</a>
-                        <a href="/frontend/pages/bulk/bulk-form.php" class="mobile-dropdown-item">Bulk Order</a>
-
+                        <?php
+                        // Fetch categories for mobile dropdown
+                        if (isset($conn) && $conn instanceof mysqli) {
+                            $mobile_category_query = "SELECT id, name, slug FROM categories WHERE is_active = 1 ORDER BY display_order ASC, name ASC";
+                            $mobile_category_result = mysqli_query($conn, $mobile_category_query);
+                            
+                            if ($mobile_category_result && mysqli_num_rows($mobile_category_result) > 0) {
+                                while ($category = mysqli_fetch_assoc($mobile_category_result)) {
+                                    $category_url = '/frontend/pages/products/product-dashboard.php?category=' . urlencode($category['slug']);
+                                    echo '<a href="' . htmlspecialchars($category_url) . '" class="mobile-dropdown-item">' . htmlspecialchars($category['name']) . '</a>';
+                                }
+                            }
+                        }
+                        ?>
                     </div>
                 </div>
                 <a href="../../../frontend/pages/blog/blog-dashboard.php" class="nav-link smooth-nav <?php echo $current_page === 'blog-page.php' ? 'active' : ''; ?>" data-target="../../../frontend/pages/blog/blog-dashboard.php">

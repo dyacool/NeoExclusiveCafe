@@ -328,8 +328,8 @@ window.updateAvailableTodayCartDisplay = function() {
     const cartTotal = document.getElementById('availableTodayCartTotal');
     const checkoutBtn = document.getElementById('availableTodayCheckoutBtn');
     
+    // Silently return if cart elements don't exist (not on cart page)
     if (!cartCount || !cartItems || !cartTotal || !checkoutBtn) {
-        console.error('Available Today cart elements not found');
         return;
     }
     

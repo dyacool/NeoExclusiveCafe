@@ -21,8 +21,14 @@ require_once __DIR__ . "/../../user-includes/navbar/customer-navigation.php";
 require_once __DIR__ . "/../../user-includes/user-header.php";
 require_once __DIR__ . "/../../user-includes/preview-mode.php";
 require_once __DIR__ . "/../../../backend/pages/admin-includes/database.php";
+require_once __DIR__ . "/../../../backend/pages/products/todays-products-handler.php";
 
-// Function to truncate cart_availtoday when business hours are closed OR items are from previous days
+// Clean up past dates automatically when page loads
+cleanupPastDates();
+
+// DISABLED: Function to truncate cart_availtoday when business hours are closed OR items are from previous days
+// This functionality is commented out for now
+/*
 function truncateCartIfBusinessClosed() {
     global $conn;
     
@@ -141,12 +147,14 @@ function truncateCartIfBusinessClosed() {
         return false;
     }
 }
+*/
 
-// Check and truncate cart if business is closed
-$cart_truncated = truncateCartIfBusinessClosed();
+// DISABLED: Check and truncate cart if business is closed
+// $cart_truncated = truncateCartIfBusinessClosed();
+$cart_truncated = false; // Disabled for now
 
 // Debug: Log the result
-error_log("Cart truncation result: " . ($cart_truncated ? 'SUCCESS' : 'No action needed'));
+// error_log("Cart truncation result: " . ($cart_truncated ? 'SUCCESS' : 'No action needed'));
 
 if ($cart_truncated) {
     // Clear any session cart data
@@ -224,7 +232,42 @@ if ($cart_truncated) {
 
     <div class="main-container fade-in">
         <!-- Title - Always visible across all states -->
-        <h1 class="prdct-title">Same Day Order Products</h1>
+        <h1 class="prdct-title">
+            <?php
+            // Get category from URL
+            $selected_category = isset($_GET['category']) ? $_GET['category'] : null;
+            $category_name = 'All Products';
+            
+            if ($selected_category) {
+                // Get category name
+                $cat_query = "SELECT name FROM categories WHERE slug = ? AND is_active = 1";
+                $cat_stmt = mysqli_prepare($conn, $cat_query);
+                mysqli_stmt_bind_param($cat_stmt, "s", $selected_category);
+                mysqli_stmt_execute($cat_stmt);
+                $cat_result = mysqli_stmt_get_result($cat_stmt);
+                if ($cat_row = mysqli_fetch_assoc($cat_result)) {
+                    $category_name = $cat_row['name'];
+                }
+            }
+            echo htmlspecialchars($category_name);
+            ?>
+        </h1>
+        
+        <!-- Category Tabs -->
+        <div class="category-tabs">
+            <a href="product-dashboard.php" class="category-tab <?php echo !$selected_category ? 'active' : ''; ?>">All Products</a>
+            <?php
+            // Fetch categories for tabs
+            $tab_query = "SELECT name, slug FROM categories WHERE is_active = 1 ORDER BY display_order ASC, name ASC";
+            $tab_result = mysqli_query($conn, $tab_query);
+            if ($tab_result && mysqli_num_rows($tab_result) > 0) {
+                while ($tab_cat = mysqli_fetch_assoc($tab_result)) {
+                    $is_active = ($selected_category === $tab_cat['slug']) ? 'active' : '';
+                    echo '<a href="product-dashboard.php?category=' . urlencode($tab_cat['slug']) . '" class="category-tab ' . $is_active . '">' . htmlspecialchars($tab_cat['name']) . '</a>';
+                }
+            }
+            ?>
+        </div>
         
         <!-- Subtitle - Only shown when business is open -->
         <div class="header-section" id="headerSection" style="display: none;">
@@ -256,35 +299,106 @@ if ($cart_truncated) {
                     // Get today's date
                     $today_date = date('Y-m-d'); // Returns date in YYYY-MM-DD format
                     
-                    // Query for products with availtoday_status that are available on today's date
-                    // This includes both "Today's Products" (status_id = 3) and regular products with today availability
+                    // Get selected category from URL
+                    $selected_category = isset($_GET['category']) ? $_GET['category'] : null;
+                    $category_id = null;
+                    
+                    // If category is selected, get its ID
+                    if ($selected_category) {
+                        $cat_query = "SELECT id FROM categories WHERE slug = ? AND is_active = 1";
+                        $cat_stmt = mysqli_prepare($conn, $cat_query);
+                        mysqli_stmt_bind_param($cat_stmt, "s", $selected_category);
+                        mysqli_stmt_execute($cat_stmt);
+                        $cat_result = mysqli_stmt_get_result($cat_stmt);
+                        if ($cat_row = mysqli_fetch_assoc($cat_result)) {
+                            $category_id = $cat_row['id'];
+                        }
+                    }
+                    
+                    // Query for ALL products (status_id 1, 2, 3, 4) with optional category filter
+                    // Status 4 = Same Day Order (changed from 3)
                     $sql = "SELECT 
-                                p.id, p.name, p.price, p.description, p.status_id, p.is_featured,
+                                p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.category_id,
                                 ps.name AS status_name, pi.image_url, p.quantity, p.show_when_unavailable,
                                 p.availtoday_status_id, ats.name AS availtoday_status_name,
+                                c.name AS category_name,
                                 GROUP_CONCAT(DISTINCT tpd.available_date ORDER BY tpd.available_date SEPARATOR ', ') as todays_product_dates,
                                 GROUP_CONCAT(DISTINCT rptd.available_date ORDER BY rptd.available_date SEPARATOR ', ') as regular_today_dates
                             FROM products p
                             LEFT JOIN product_statuses ps ON p.status_id = ps.id
                             LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
                             LEFT JOIN availtoday_status ats ON p.availtoday_status_id = ats.id
-                            LEFT JOIN todays_products_dates tpd ON p.id = tpd.product_id AND tpd.available_date = ?
-                            LEFT JOIN regular_products_today_dates rptd ON p.id = rptd.product_id AND rptd.available_date = ?
-                            WHERE p.deleted_at IS NULL AND p.id > 0 
-                            AND p.quantity > 0
-                            AND p.availtoday_status_id IS NOT NULL
-                            AND (tpd.available_date = ? OR rptd.available_date = ?)
-                            GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, ps.name, pi.image_url, p.quantity, p.show_when_unavailable, p.availtoday_status_id, ats.name
+                            LEFT JOIN categories c ON p.category_id = c.id
+                            LEFT JOIN todays_products_dates tpd ON p.id = tpd.product_id
+                            LEFT JOIN regular_products_today_dates rptd ON p.id = rptd.product_id
+                            WHERE p.deleted_at IS NULL 
+                            AND p.id > 0 
+                            AND p.status_id IN (1, 2, 3, 4)";
+                    
+                    // Add category filter if selected
+                    if ($category_id) {
+                        $sql .= " AND p.category_id = ?";
+                    }
+                    
+                    $sql .= " GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.category_id, ps.name, pi.image_url, p.quantity, p.show_when_unavailable, p.availtoday_status_id, ats.name, c.name
                             ORDER BY p.is_featured DESC, p.name ASC";
                     
-                    // Prepare and execute the statement with today's date parameter (4 times)
+                    // Prepare and execute the statement
                     $stmt = $conn->prepare($sql);
-                    $stmt->bind_param("ssss", $today_date, $today_date, $today_date, $today_date);
+                    if ($category_id) {
+                        $stmt->bind_param("i", $category_id);
+                    }
                     $stmt->execute();
                     $result = $stmt->get_result();
 
-                    if ($result->num_rows > 0) {
-                        while ($row = $result->fetch_assoc()) {
+                    // Fetch all products into an array for custom sorting
+                    $all_products = [];
+                    while ($row = $result->fetch_assoc()) {
+                        $all_products[] = $row;
+                    }
+                    
+                    // Custom sort: Prioritize products available TODAY (from either table)
+                    usort($all_products, function($a, $b) use ($today_date) {
+                        // Check if product A is available today
+                        $a_available_today = false;
+                        // Check todays_product_dates
+                        if (!empty($a['todays_product_dates'])) {
+                            $a_dates = explode(', ', $a['todays_product_dates']);
+                            $a_available_today = in_array($today_date, $a_dates);
+                        }
+                        // Check regular_today_dates
+                        if (!$a_available_today && !empty($a['regular_today_dates'])) {
+                            $a_dates = explode(', ', $a['regular_today_dates']);
+                            $a_available_today = in_array($today_date, $a_dates);
+                        }
+                        
+                        // Check if product B is available today
+                        $b_available_today = false;
+                        // Check todays_product_dates
+                        if (!empty($b['todays_product_dates'])) {
+                            $b_dates = explode(', ', $b['todays_product_dates']);
+                            $b_available_today = in_array($today_date, $b_dates);
+                        }
+                        // Check regular_today_dates
+                        if (!$b_available_today && !empty($b['regular_today_dates'])) {
+                            $b_dates = explode(', ', $b['regular_today_dates']);
+                            $b_available_today = in_array($today_date, $b_dates);
+                        }
+                        
+                        // Priority 1: Available today (0 = highest priority)
+                        if ($a_available_today && !$b_available_today) return -1;
+                        if (!$a_available_today && $b_available_today) return 1;
+                        
+                        // Priority 2: Featured products
+                        if ($a['is_featured'] && !$b['is_featured']) return -1;
+                        if (!$a['is_featured'] && $b['is_featured']) return 1;
+                        
+                        // Priority 3: Alphabetical by name
+                        return strcmp($a['name'], $b['name']);
+                    });
+
+                    if (count($all_products) > 0) {
+                        foreach ($all_products as $row) {
                             // Get all images for this product
                             $images_sql = "SELECT image_url FROM product_images WHERE product_id = ?";
                             $images_stmt = $conn->prepare($images_sql);
@@ -317,13 +431,48 @@ if ($cart_truncated) {
                             
                             $productDataJson = htmlspecialchars(json_encode($productData), ENT_QUOTES, 'UTF-8');
                             // Get available dates for display
-                            $available_dates = $row['status_id'] == 3 ? $row['todays_product_dates'] : $row['regular_today_dates'];
+                            // Status 4 = Same Day Order (changed from 3)
+                            $available_dates = $row['status_id'] == 4 ? $row['todays_product_dates'] : $row['regular_today_dates'];
+                            
+                            // Check if product is available TODAY
+                            // Can be from either:
+                            // 1. Pure status 4 (Same Day Order only) - uses todays_product_dates
+                            // 2. Status 1/2/3 with same-day option - uses regular_today_dates
+                            $is_available_today = false;
+                            
+                            // Check todays_product_dates (for status 4 products)
+                            if (!empty($row['todays_product_dates'])) {
+                                $todays_dates = explode(', ', $row['todays_product_dates']);
+                                if (in_array($today_date, $todays_dates)) {
+                                    $is_available_today = true;
+                                }
+                            }
+                            
+                            // Check regular_today_dates (for status 1/2/3 products with same-day option)
+                            if (!$is_available_today && !empty($row['regular_today_dates'])) {
+                                $regular_dates = explode(', ', $row['regular_today_dates']);
+                                if (in_array($today_date, $regular_dates)) {
+                                    $is_available_today = true;
+                                }
+                            }
                             
                             echo "<div class='product-card {$featuredClass}' data-status='" . htmlspecialchars($row['status_name']) . "' 
                                   data-available-dates='" . htmlspecialchars($available_dates ?? '') . "'
-                                  data-product='" . $productDataJson . "' onclick='openProductModalFromData(this)'>
-                                    <div class='product-image'>
-                                        <img src='../../../assets/" . htmlspecialchars($row['image_url'] ?: 'images/no-image.jpg') . "' alt='" . htmlspecialchars($row['name']) . "'>
+                                  data-product='" . $productDataJson . "' onclick='openProductModalFromData(this)'>";
+                            
+                            // Add small "Today" badge on the left if available today
+                            if ($is_available_today) {
+                                echo "<div class='today-badge-left'>Today</div>";
+                            }
+                            
+                            echo "    <div class='product-image'>";
+                            
+                            // Add "Available Today!" badge overlay on image if product is available today
+                            if ($is_available_today) {
+                                echo "<div class='available-today-badge'>Available Today!</div>";
+                            }
+                            
+                            echo "    <img src='../../../assets/" . htmlspecialchars($row['image_url'] ?: 'images/no-image.jpg') . "' alt='" . htmlspecialchars($row['name']) . "'>
                                     </div>
                                     <div class='product-info'>
                                         <h3>" . htmlspecialchars($row['name']) . "</h3>
@@ -756,7 +905,8 @@ if ($cart_truncated) {
             productStock.textContent = 'Stock: ' + (product.quantity || 0);
 
             // Handle available dates in modal
-            const availableDates = product.status_id == 3 ? product.todays_product_dates : product.regular_today_dates;
+            // Status 4 = Same Day Order (changed from 3)
+            const availableDates = product.status_id == 4 ? product.todays_product_dates : product.regular_today_dates;
             if (availableDates && availableDates.length > 0) {
                 // Format dates for display (e.g., "8/27, 8/28, 8/29")
                 const formattedDates = availableDates.map(date => {

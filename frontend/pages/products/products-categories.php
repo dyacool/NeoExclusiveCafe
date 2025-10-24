@@ -70,33 +70,31 @@ function formatTime($time) {
     <!-- Product Categories Grid -->
     <div class="categories-container">
         <div class="categories-grid">
-            <a href="product-dashboard.php" class="category-card">
-                <div class="category-content">
-                    <h3 class="category-title">Same Day Order</h3>
-                    <p class="category-description">Order fresh items for today's pickup or delivery</p>
-                </div>
-            </a>
-
-            <a href="weekly-product.php" class="category-card">
-                <div class="category-content">
-                    <h3 class="category-title">For Delivery</h3>
-                    <p class="category-description">Get fresh baked goods delivered straight to you</p>
-                </div>
-            </a>
-
-            <a href="user-products.php" class="category-card">
-                <div class="category-content">
-                    <h3 class="category-title">For Pickup</h3>
-                    <p class="category-description">Pre-order and pick up at your convenience</p>
-                </div>
-            </a>
-
-            <a href="../bulk/bulk-form.php" class="category-card">
-                <div class="category-content">
-                    <h3 class="category-title">Bulk Order Form</h3>
-                    <p class="category-description">Order large quantities for events or businesses</p>
-                </div>
-            </a>
+            <?php
+            // Fetch categories from database
+            $category_query = "SELECT id, name, slug, description FROM categories WHERE is_active = 1 ORDER BY display_order ASC, name ASC";
+            $category_result = mysqli_query($conn, $category_query);
+            
+            if ($category_result && mysqli_num_rows($category_result) > 0) {
+                while ($category = mysqli_fetch_assoc($category_result)) {
+                    $category_url = 'product-dashboard.php?category=' . urlencode($category['slug']);
+                    $category_name = htmlspecialchars($category['name']);
+                    $category_desc = htmlspecialchars($category['description'] ?: 'Browse our ' . strtolower($category['name']) . ' selection');
+                    
+                    echo '<a href="' . $category_url . '" class="category-card">';
+                    echo '<div class="category-content">';
+                    echo '<h3 class="category-title">' . $category_name . '</h3>';
+                    echo '<p class="category-description">' . $category_desc . '</p>';
+                    echo '</div>';
+                    echo '</a>';
+                }
+            } else {
+                // Fallback if no categories found
+                echo '<div class="no-categories">';
+                echo '<p>No categories available at the moment.</p>';
+                echo '</div>';
+            }
+            ?>
         </div>
     </div>
 </div>

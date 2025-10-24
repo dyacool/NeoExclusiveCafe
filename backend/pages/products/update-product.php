@@ -46,10 +46,38 @@ try {
         $category_id = filter_var($input['category_id'], FILTER_VALIDATE_INT);
     }
     
+    // Get current product status to detect transitions
+    $current_status_query = $conn->prepare("SELECT status_id FROM products WHERE id = ?");
+    $current_status_query->bind_param("i", $id);
+    $current_status_query->execute();
+    $current_status_result = $current_status_query->get_result();
+    $current_status_row = $current_status_result->fetch_assoc();
+    $previous_status_id = $current_status_row ? $current_status_row['status_id'] : null;
+    $current_status_query->close();
+    
     // Handle available days - process for both Delivery and Pick Up
     $available_days = [];
     if (isset($input['available_days']) && is_array($input['available_days'])) {
         $available_days = $input['available_days'];
+    }
+    
+    // Auto-assign global available days when transitioning from status 4 to status 1, 2, or 3
+    if ($previous_status_id == 4 && ($status_id == 1 || $status_id == 2 || $status_id == 3)) {
+        // Get global available days from system settings
+        require_once __DIR__ . "/../admin-includes/settings-helper.php";
+        $global_days = getSetting('global_available_days', []);
+        
+        // If no days were provided in the input, use global days
+        if (empty($available_days) && !empty($global_days)) {
+            $available_days = $global_days;
+            error_log("Auto-assigned global available days for product $id: " . implode(', ', $available_days));
+        }
+    }
+    
+    // Auto-set quantity to 0 if status is Same Day Order (status_id 4)
+    // Same Day Order uses date-specific quantities, not product-level quantity
+    if ($status_id == 4) {
+        $quantity = 0;
     }
     
     $is_featured = isset($input['is_featured']) && $input['is_featured'] ? 1 : 0;
@@ -212,8 +240,8 @@ try {
         error_log("Product ID: $id, Status ID: $status_id");
         error_log("Raw todays_product_dates INPUT: " . ($input['todays_product_dates'] ?? 'NOT SET'));
         
-        if ($status_id == 3) {
-            error_log("Processing Today's product dates...");
+        if ($status_id == 4) {
+            error_log("Processing Today's product dates for Same Day Order...");
             
             // Delete existing Today's product dates
             $delete_today_stmt = $conn->prepare("DELETE FROM todays_products_dates WHERE product_id = ?");
@@ -247,7 +275,7 @@ try {
                 error_log("No todays_product_dates to insert");
             }
         } else {
-            // If not Today's product, remove all Today's product dates
+            // If not Same Day Order, remove all Today's product dates
             $delete_today_stmt = $conn->prepare("DELETE FROM todays_products_dates WHERE product_id = ?");
             $delete_today_stmt->bind_param("i", $id);
             $delete_today_stmt->execute();

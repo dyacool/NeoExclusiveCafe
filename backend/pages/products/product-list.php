@@ -9,6 +9,14 @@
     require_once __DIR__ . "/../admin-includes/config.php";
     include __DIR__ . "/../admin-includes/database.php";
     require_once __DIR__ . "/../admin-includes/settings-helper.php";
+    require_once __DIR__ . "/todays-products-handler.php";
+    
+    // Clean up past dates automatically when page loads
+    try {
+        cleanupPastDates();
+    } catch (Exception $e) {
+        error_log("Error cleaning up past dates: " . $e->getMessage());
+    }
     
     // Get global available days from settings
     $globalAvailableDays = getSetting('global_available_days', []);
@@ -342,16 +350,16 @@
                                             </td>
                                             <td>
                                                 <div class='status-container'>
-                                                    <span class='status-badge status-" . $statusClass . "'>" . $displayStatus . "</span>";
+                                                    <span class='status-badge status-" . $statusClass . "'>P.O.: ". $displayStatus . "</span>";
                                                     
                                                     // Show badge for availtoday_status
                                                     if (!empty($row['availtoday_status_name'])) {
                                                         if ($row['status_id'] == 4) {
                                                             // Same Day Order - show "For [status]" (blue)
-                                                            echo "<span class='availtoday-badge'>For " . htmlspecialchars($row['availtoday_status_name']) . "</span>";
+                                                            echo "<span class='availtoday-badge'>S.D.O.: " . htmlspecialchars($row['availtoday_status_name']) . "</span>";
                                                         } else if ($row['status_id'] == 1 || $row['status_id'] == 2 || $row['status_id'] == 3) {
                                                             // Pick Up, Delivery, or Delivery or Pick Up - show "Also for SDO: [status]" (green)
-                                                            echo "<span class='availtoday-badge-also'>Also for SDO: " . htmlspecialchars($row['availtoday_status_name']) . "</span>";
+                                                            echo "<span class='availtoday-badge-also'>S.D.O.: " . htmlspecialchars($row['availtoday_status_name']) . "</span>";
                                                         }
                                                     }
                                                     

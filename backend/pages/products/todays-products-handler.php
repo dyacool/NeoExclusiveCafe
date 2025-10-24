@@ -243,15 +243,30 @@ function cleanupPastDates() {
         $stmt1 = $conn->prepare("DELETE FROM todays_products_dates WHERE available_date < ?");
         $stmt1->bind_param("s", $today);
         $stmt1->execute();
+        $deleted1 = $stmt1->affected_rows;
         $stmt1->close();
         
         // Clean up regular products today past dates
         $stmt2 = $conn->prepare("DELETE FROM regular_products_today_dates WHERE available_date < ?");
         $stmt2->bind_param("s", $today);
         $stmt2->execute();
+        $deleted2 = $stmt2->affected_rows;
         $stmt2->close();
         
+        // Clean up SDO quantity per day past dates
+        $stmt3 = $conn->prepare("DELETE FROM quantity_per_day_sdo WHERE date < ?");
+        $stmt3->bind_param("s", $today);
+        $stmt3->execute();
+        $deleted3 = $stmt3->affected_rows;
+        $stmt3->close();
+        
         $conn->commit();
+        
+        // Log cleanup results
+        if ($deleted1 > 0 || $deleted2 > 0 || $deleted3 > 0) {
+            error_log("Cleanup: Deleted $deleted1 from todays_products_dates, $deleted2 from regular_products_today_dates, $deleted3 from quantity_per_day_sdo");
+        }
+        
         return true;
         
     } catch (Exception $e) {

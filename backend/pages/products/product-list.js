@@ -565,6 +565,7 @@ function openEditModal(
       quantityField.value = "0";
       quantityField.disabled = true;
       quantityField.style.opacity = "0.5";
+      quantityField.style.cursor = "not-allowed";
     }
   } else {
     availableRadio.checked = true;
@@ -574,8 +575,17 @@ function openEditModal(
 
     const quantityField = document.getElementById("editProductQuantity");
     if (quantityField) {
-      quantityField.disabled = false;
-      quantityField.style.opacity = "1";
+      // Check if status is Same Day Order (status_id 4)
+      if (status == 4) {
+        quantityField.value = "0";
+        quantityField.disabled = true;
+        quantityField.style.opacity = "0.5";
+        quantityField.style.cursor = "not-allowed";
+      } else {
+        quantityField.disabled = false;
+        quantityField.style.opacity = "1";
+        quantityField.style.cursor = "text";
+      }
     }
   }
 
@@ -778,6 +788,23 @@ function setupStatusChangeListener() {
         }
       }
 
+      // Handle quantity field for Same Day Order (status_id 4)
+      const quantityField = document.getElementById("editProductQuantity");
+      if (quantityField) {
+        if (selectedValue == 4) {
+          // Same Day Order - disable quantity field and set to 0
+          quantityField.value = "0";
+          quantityField.disabled = true;
+          quantityField.style.opacity = "0.5";
+          quantityField.style.cursor = "not-allowed";
+        } else if (!unavailableRadio || !unavailableRadio.checked) {
+          // Other statuses - enable quantity field (unless unavailable is checked)
+          quantityField.disabled = false;
+          quantityField.style.opacity = "1";
+          quantityField.style.cursor = "text";
+        }
+      }
+
       // Call the modal calendar handler for additional calendar logic
       if (window.modalCalendarHandler) {
         window.modalCalendarHandler.handleEditStatusChange();
@@ -915,12 +942,8 @@ function closeModal() {
   document.getElementById("editModal").style.display = "none";
   document.body.style.overflow = "auto";
 
-  const availableDaysContainer = document.querySelector(
-    ".checkbox-group.days-group"
-  );
-  if (availableDaysContainer) {
-    availableDaysContainer.style.display = "block";
-  }
+  // Don't manipulate the global days container - it should always be visible
+  // The modal has its own days container that's handled separately
 
   resetFormToOriginal();
 }
@@ -1405,26 +1428,27 @@ function handleFormSubmit(event) {
     }
   }
 
+  // Collect available days from GLOBAL checkboxes (not modal checkboxes)
   const availableDays = [];
   if (
     selectedStatus === "Delivery" ||
     selectedStatus === "Pick Up" ||
-    selectedStatus === "Same Day Order"
+    selectedStatus === "Delivery or Pick Up"
   ) {
-    const dayCheckboxes = {
-      edit_sunday: "Sunday",
-      edit_monday: "Monday",
-      edit_tuesday: "Tuesday",
-      edit_wednesday: "Wednesday",
-      edit_thursday: "Thursday",
-      edit_friday: "Friday",
-      edit_saturday: "Saturday",
+    const globalDayCheckboxes = {
+      global_sunday: "Sunday",
+      global_monday: "Monday",
+      global_tuesday: "Tuesday",
+      global_wednesday: "Wednesday",
+      global_thursday: "Thursday",
+      global_friday: "Friday",
+      global_saturday: "Saturday",
     };
 
-    Object.keys(dayCheckboxes).forEach((checkboxId) => {
+    Object.keys(globalDayCheckboxes).forEach((checkboxId) => {
       const checkbox = document.getElementById(checkboxId);
       if (checkbox && checkbox.checked) {
-        availableDays.push(dayCheckboxes[checkboxId]);
+        availableDays.push(globalDayCheckboxes[checkboxId]);
       }
     });
   }
@@ -2089,4 +2113,76 @@ function applyGlobalAvailableDays() {
     button.textContent = originalText;
     button.disabled = false;
   });
+}
+
+
+// Global Available Days Functions
+function updateGlobalAvailableDays() {
+  // This function is called when checkboxes change
+  // We don't need to do anything here - just for future use
+}
+
+function applyGlobalAvailableDays() {
+  // Collect selected days
+  const selectedDays = [];
+  const dayCheckboxes = {
+    global_sunday: "Sunday",
+    global_monday: "Monday",
+    global_tuesday: "Tuesday",
+    global_wednesday: "Wednesday",
+    global_thursday: "Thursday",
+    global_friday: "Friday",
+    global_saturday: "Saturday",
+  };
+
+  Object.keys(dayCheckboxes).forEach((checkboxId) => {
+    const checkbox = document.getElementById(checkboxId);
+    if (checkbox && checkbox.checked) {
+      selectedDays.push(dayCheckboxes[checkboxId]);
+    }
+  });
+
+  if (selectedDays.length === 0) {
+    showNotification("Please select at least one day", "error");
+    return;
+  }
+
+  // Confirm action
+  if (!confirm(`This will apply the selected days (${selectedDays.join(", ")}) to all products with Pick Up, Delivery, or Delivery or Pick Up status. Continue?`)) {
+    return;
+  }
+
+  // Show saving notification
+  showNotification("Applying days to products...", "info");
+
+  // Send request to apply days
+  fetch("apply-global-days.php", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ days: selectedDays }),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        return response.text().then(text => {
+          console.error("Server error response:", text);
+          throw new Error(`Server error: ${response.status}`);
+        });
+      }
+      return response.json();
+    })
+    .then((data) => {
+      if (data.success) {
+        showNotification(
+          `Successfully applied to ${data.updated_count} products!`,
+          "success"
+        );
+        setTimeout(() => location.reload(), 1500);
+      } else {
+        showNotification("Error: " + data.error, "error");
+      }
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+      showNotification("An error occurred while applying days: " + error.message, "error");
+    });
 }
