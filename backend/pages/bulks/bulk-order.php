@@ -212,6 +212,55 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'save_all') {
     exit();
 }
 
+// Handle item price updates
+if ($_POST && isset($_POST['action']) && $_POST['action'] === 'update_item_prices') {
+    $target_id = isset($_POST['order_id']) ? (int)$_POST['order_id'] : $order_id;
+    $items_data = isset($_POST['items']) ? json_decode($_POST['items'], true) : [];
+    
+    $ok = true;
+    $err = '';
+    $total_amount = 0;
+    
+    if (!empty($items_data)) {
+        foreach ($items_data as $item_data) {
+            $item_id = (int)$item_data['id'];
+            $price = floatval($item_data['price']);
+            $quantity = intval($item_data['quantity']);
+            $subtotal = $price * $quantity;
+            $total_amount += $subtotal;
+            
+            $update_item_sql = "UPDATE bulk_order_items SET product_price = ?, subtotal = ? WHERE id = ? AND bulk_order_id = ?";
+            $update_item_stmt = mysqli_prepare($conn, $update_item_sql);
+            mysqli_stmt_bind_param($update_item_stmt, "ddii", $price, $subtotal, $item_id, $target_id);
+            if (!mysqli_stmt_execute($update_item_stmt)) {
+                $ok = false;
+                $err = mysqli_error($conn);
+                break;
+            }
+            mysqli_stmt_close($update_item_stmt);
+        }
+        
+        // Update total amount in bulk_orders table
+        if ($ok) {
+            $update_total_sql = "UPDATE bulk_orders SET total_amount = ?, admin_updated = NOW() WHERE id = ?";
+            $update_total_stmt = mysqli_prepare($conn, $update_total_sql);
+            mysqli_stmt_bind_param($update_total_stmt, "di", $total_amount, $target_id);
+            $ok = mysqli_stmt_execute($update_total_stmt);
+            if (!$ok) { $err = mysqli_error($conn); }
+            mysqli_stmt_close($update_total_stmt);
+            
+            // Log the activity
+            if ($ok) {
+                logAdminActivity($conn, 'UPDATE', "Updated pricing for bulk order #$target_id (Total: ₱" . number_format($total_amount, 2) . ")", 'bulk_orders', $target_id);
+            }
+        }
+    }
+    
+    header('Content-Type: application/json');
+    echo json_encode(['success' => $ok, 'error' => $ok ? null : ($err ?: 'Update failed'), 'total' => $total_amount]);
+    exit();
+}
+
 // Fetch bulk order details
 $order_sql = "SELECT bo.*, u.firstname, u.lastname, u.username, u.email as user_email 
               FROM bulk_orders bo
@@ -412,7 +461,7 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
                         </div>
                         <div class="info-item">
                             <div class="info-label">Total Amount</div>
-                            <div class="info-value total-amount">₱<?php echo number_format($total_amount, 2); ?></div>
+                            <div class="info-value total-amount" id="orderDetailsTotalAmount">₱<?php echo number_format($total_amount, 2); ?></div>
                         </div>
                         <div class="info-item">
                             <div class="info-label">Current Status</div>
@@ -488,23 +537,39 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
 
         <!-- Order Items -->
         <div class="items-table-container">
-            <table class="items-table">
+            <div class="card-header-flex">
+                <h3><i class="fas fa-shopping-cart"></i> Order Items</h3>
+                <button type="button" class="btn btn-primary btn-xs" id="savePricesBtn">
+                    <i class="fas fa-save"></i> Save Prices
+                </button>
+            </div>
+            <table class="items-table" id="itemsTable">
                 <thead>
                     <tr>
                         <th>Product Name</th>
-                        <th>Price</th>
-                        <th>Quantity</th>
-                        <th>Subtotal</th>
+                        <th style="width: 150px;">Unit Price (₱)</th>
+                        <th style="width: 100px;">Quantity</th>
+                        <th style="width: 150px;">Subtotal (₱)</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (count($items) > 0): ?>
                         <?php foreach ($items as $item): ?>
-                        <tr>
+                        <tr data-item-id="<?php echo $item['id']; ?>">
                             <td><?php echo htmlspecialchars($item['product_name']); ?></td>
-                            <td>₱<?php echo number_format($item['product_price'], 2); ?></td>
-                            <td><?php echo number_format($item['quantity']); ?></td>
-                            <td>₱<?php echo number_format($item['subtotal'], 2); ?></td>
+                            <td>
+                                <input type="number" 
+                                       class="editable-input price-input" 
+                                       data-item-id="<?php echo $item['id']; ?>"
+                                       value="<?php echo number_format($item['product_price'], 2, '.', ''); ?>" 
+                                       min="0" 
+                                       step="0.01"
+                                       onchange="calculateSubtotal(<?php echo $item['id']; ?>)">
+                            </td>
+                            <td class="quantity-cell"><?php echo number_format($item['quantity']); ?></td>
+                            <td class="subtotal-cell" data-item-id="<?php echo $item['id']; ?>">
+                                ₱<?php echo number_format($item['subtotal'], 2); ?>
+                            </td>
                         </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
@@ -516,7 +581,7 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
                 <tfoot>
                     <tr>
                         <td colspan="3"><strong>Total Amount:</strong></td>
-                        <td><strong>₱<?php echo number_format($total_amount, 2); ?></strong></td>
+                        <td id="grandTotalCell"><strong>₱<?php echo number_format($total_amount, 2); ?></strong></td>
                     </tr>
                 </tfoot>
             </table>
@@ -710,6 +775,109 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
                 });
             }
         })();
+
+        // Price calculation functions for bulk order items
+        function calculateSubtotal(itemId) {
+            const row = document.querySelector(`tr[data-item-id="${itemId}"]`);
+            if (!row) return;
+            
+            const priceInput = row.querySelector('.price-input');
+            const quantityCell = row.querySelector('.quantity-cell');
+            const subtotalCell = row.querySelector('.subtotal-cell');
+            
+            const price = parseFloat(priceInput.value) || 0;
+            const quantity = parseInt(quantityCell.textContent.replace(/,/g, '')) || 0;
+            const subtotal = price * quantity;
+            
+            subtotalCell.textContent = '₱' + subtotal.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            
+            calculateGrandTotal();
+        }
+        
+        function calculateGrandTotal() {
+            const subtotalCells = document.querySelectorAll('.subtotal-cell');
+            let total = 0;
+            
+            subtotalCells.forEach(cell => {
+                const value = parseFloat(cell.textContent.replace(/₱|,/g, '')) || 0;
+                total += value;
+            });
+            
+            const grandTotalCell = document.getElementById('grandTotalCell');
+            grandTotalCell.innerHTML = '<strong>₱' + total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</strong>';
+        }
+        
+        // Save prices button handler
+        (function() {
+            const savePricesBtn = document.getElementById('savePricesBtn');
+            if (savePricesBtn) {
+                savePricesBtn.addEventListener('click', async () => {
+                    const itemsData = [];
+                    const rows = document.querySelectorAll('#itemsTable tbody tr[data-item-id]');
+                    
+                    rows.forEach(row => {
+                        const itemId = row.getAttribute('data-item-id');
+                        const priceInput = row.querySelector('.price-input');
+                        const quantityCell = row.querySelector('.quantity-cell');
+                        
+                        if (itemId && priceInput && quantityCell) {
+                            itemsData.push({
+                                id: parseInt(itemId),
+                                price: parseFloat(priceInput.value) || 0,
+                                quantity: parseInt(quantityCell.textContent.replace(/,/g, '')) || 0
+                            });
+                        }
+                    });
+                    
+                    if (itemsData.length === 0) {
+                        alert('No items to save.');
+                        return;
+                    }
+                    
+                    const formData = new FormData();
+                    formData.append('action', 'update_item_prices');
+                    formData.append('order_id', '<?php echo (int)$order_id; ?>');
+                    formData.append('items', JSON.stringify(itemsData));
+                    
+                    try {
+                        savePricesBtn.disabled = true;
+                        savePricesBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                        
+                        const res = await fetch('', { method: 'POST', body: formData });
+                        const data = await res.json();
+                        
+                        if (data.success) {
+                            savePricesBtn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+                            setTimeout(() => {
+                                savePricesBtn.innerHTML = '<i class="fas fa-save"></i> Save Prices';
+                                savePricesBtn.disabled = false;
+                            }, 1500);
+                            
+                            // Update the grand total in items table footer
+                            const grandTotalCell = document.getElementById('grandTotalCell');
+                            grandTotalCell.innerHTML = '<strong>₱' + parseFloat(data.total).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</strong>';
+                            
+                            // Update the total amount in Order Details section
+                            const orderDetailsTotalAmount = document.getElementById('orderDetailsTotalAmount');
+                            if (orderDetailsTotalAmount) {
+                                orderDetailsTotalAmount.textContent = '₱' + parseFloat(data.total).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                            }
+                        } else {
+                            alert('Failed to save prices: ' + (data.error || 'Unknown error'));
+                            savePricesBtn.innerHTML = '<i class="fas fa-save"></i> Save Prices';
+                            savePricesBtn.disabled = false;
+                        }
+                    } catch (e) {
+                        alert('Request failed: ' + e.message);
+                        savePricesBtn.innerHTML = '<i class="fas fa-save"></i> Save Prices';
+                        savePricesBtn.disabled = false;
+                    }
+                });
+            }
+        })();
+        
+        // Make calculateSubtotal available globally
+        window.calculateSubtotal = calculateSubtotal;
 
         // Image modal
         function openImageModal(src) {

@@ -27,7 +27,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_bulk_order']))
         $date_needed = mysqli_real_escape_string($conn, $_POST['date_needed']);
         $time_needed = mysqli_real_escape_string($conn, $_POST['time_needed']);
         $note = mysqli_real_escape_string($conn, $_POST['note']);
-        $total_amount = floatval($_POST['total_amount']);
         
         // Get selected products
         $selected_products = json_decode($_POST['selected_products'], true);
@@ -38,7 +37,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_bulk_order']))
             $total_items += intval($product['quantity']);
         }
         
-        // Insert bulk order first (id will auto-increment, unique_order_id will be updated after)
+        // Insert bulk order first (total_amount will be 0 until admin sets prices)
+        $total_amount = 0;
         $insert_order = "INSERT INTO bulk_orders (user_id, name, contact, email, billing_address, order_type, delivery_address, purpose, date_needed, time_needed, note, total_amount, total_items) 
                         VALUES ('$user_id', '$name', '$contact', '$email', '$billing_address', '$order_type', '$delivery_address', '$purpose', '$date_needed', '$time_needed', '$note', '$total_amount', '$total_items')";
         
@@ -50,13 +50,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_bulk_order']))
             $update_unique_id = "UPDATE bulk_orders SET unique_order_id = '$unique_order_id' WHERE id = $bulk_order_id";
             mysqli_query($conn, $update_unique_id);
             
-            // Insert order items
+            // Insert order items (price and subtotal will be 0 until admin sets them)
             foreach ($selected_products as $product) {
                 $product_id = intval($product['id']);
                 $product_name = mysqli_real_escape_string($conn, $product['name']);
-                $product_price = floatval($product['price']);
+                $product_price = 0; // Will be set by admin
                 $quantity = intval($product['quantity']);
-                $subtotal = $product_price * $quantity;
+                $subtotal = 0; // Will be calculated when admin sets price
                 
                 $insert_item = "INSERT INTO bulk_order_items (bulk_order_id, product_id, product_name, product_price, quantity, subtotal) 
                                VALUES ('$bulk_order_id', '$product_id', '$product_name', '$product_price', '$quantity', '$subtotal')";
@@ -73,8 +73,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_bulk_order']))
     }
 }
 
-// Get all products from database with proper product details
-$products_query = "SELECT p.id, p.name, p.price, ps.name as status_name 
+        // Get all products from database with product details and primary image
+$products_query = "SELECT p.id, p.name, ps.name as status_name,
+                   (SELECT pi.image_url 
+                    FROM product_images pi 
+                    WHERE pi.product_id = p.id AND pi.is_primary = 1 
+                    LIMIT 1) as primary_image
                    FROM products p 
                    LEFT JOIN product_statuses ps ON p.status_id = ps.id 
                    WHERE p.deleted_at IS NULL 
@@ -86,9 +90,7 @@ if ($products_result) {
     while ($product = mysqli_fetch_assoc($products_result)) {
         $products[] = $product;
     }
-}
-
-// Calculate minimum date (2 weeks from now)
+}// Calculate minimum date (2 weeks from now)
 $min_date = date('Y-m-d', strtotime('+14 days'));
 ?>
 
@@ -248,37 +250,49 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
                             <?php foreach ($products as $product): ?>
                                 <div class="product-card" id="card_<?php echo $product['id']; ?>">
                                     <div class="product-header">
+                                        <div class="product-image-wrapper">
+                                            <?php if ($product['primary_image']): ?>
+                                                <img src="../../<?php echo htmlspecialchars($product['primary_image']); ?>" 
+                                                     alt="<?php echo htmlspecialchars($product['name']); ?>"
+                                                     class="product-image"
+                                                     onerror="this.onerror=null; this.src='../../assets/images/no-image-placeholder.png';">
+                                            <?php else: ?>
+                                                <div class="no-image-placeholder">
+                                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2">
+                                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                                        <polyline points="21 15 16 10 5 21"></polyline>
+                                                    </svg>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
                                         <div class="product-checkbox-wrapper">
                                             <input type="checkbox" 
                                                    id="product_<?php echo $product['id']; ?>" 
                                                    value="<?php echo $product['id']; ?>"
                                                    data-name="<?php echo htmlspecialchars($product['name']); ?>"
-                                                   data-price="<?php echo $product['price']; ?>"
-                                                   class="product-checkbox product-select">
+                                                   class="product-checkbox product-select"
+                                                   onchange="toggleQuantitySection(<?php echo $product['id']; ?>)">
                                         </div>
                                         <div class="product-info">
                                             <label for="product_<?php echo $product['id']; ?>" class="product-name">
                                                 <?php echo htmlspecialchars($product['name']); ?>
                                             </label>
-                                            <div class="product-price"><?php echo number_format($product['price'], 2); ?></div>
                                         </div>
                                     </div>
-                                    <div class="quantity-section" id="quantity_section_<?php echo $product['id']; ?>">
-                                        <label class="quantity-label">Quantity (Min: 12 pieces)</label>
+                                    <div class="quantity-section" id="quantity_section_<?php echo $product['id']; ?>" style="display: none;">
+                                        <label class="quantity-label">Quantity (Min: 10 pieces)</label>
                                         <div class="quantity-controls">
                                             <div class="quantity-input-group">
-                                                <button type="button" class="quantity-btn" onclick="decreaseQuantity(<?php echo $product['id']; ?>)">−</button>
+                                                <button type="button" class="quantity-btn" onclick="updateQuantity(<?php echo $product['id']; ?>, -1)">−</button>
                                                 <input type="number" 
                                                        id="quantity_<?php echo $product['id']; ?>" 
-                                                       min="12" 
-                                                       value="12" 
+                                                       min="10" 
+                                                       value="10" 
                                                        class="quantity-field"
-                                                       onchange="updateQuantity(<?php echo $product['id']; ?>)"
-                                                       oninput="updateQuantity(<?php echo $product['id']; ?>)">
-                                                <button type="button" class="quantity-btn" onclick="increaseQuantity(<?php echo $product['id']; ?>)">+</button>
-                                            </div>
-                                            <div class="item-subtotal" id="subtotal_<?php echo $product['id']; ?>">
-                                                <?php echo number_format($product['price'] * 12, 2); ?>
+                                                       onchange="updateOrderSummary()"
+                                                       oninput="updateOrderSummary()">
+                                                <button type="button" class="quantity-btn" onclick="updateQuantity(<?php echo $product['id']; ?>, 1)">+</button>
                                             </div>
                                         </div>
                                     </div>
@@ -327,7 +341,6 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
 
             <!-- Hidden Fields -->
             <input type="hidden" id="selectedProducts" name="selected_products" value="">
-            <input type="hidden" id="totalAmount" name="total_amount" value="0">
 
             <!-- Form Actions -->
             <div class="form-actions">
@@ -453,7 +466,6 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
         <input type="hidden" name="time_needed" id="final-time-needed">
         <input type="hidden" name="note" id="final-note">
         <input type="hidden" name="selected_products" id="final-selected-products">
-        <input type="hidden" name="total_amount" id="final-total-amount">
     </form>
 
     <!-- Success Modal -->
@@ -484,7 +496,7 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
     <?php endif; ?>
     </div> <!-- End of wrapper -->
 
-    <script src="bulk-form.js?v=<?php echo time(); ?>"></script>
+    <script src="bulk-form-new.js?v=<?php echo time(); ?>"></script>
     <script>
         // Copy billing address to delivery address
         function copyBillingToDelivery() {

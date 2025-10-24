@@ -305,7 +305,11 @@ if ($result && mysqli_num_rows($result) > 0) {
                                     <?php echo number_format($totals['total_items']); ?>
                                 </td>
                                 <td onclick="window.location.href='bulk-order.php?id=<?php echo $order['id']; ?>'" style="cursor:pointer;">
-                                    ₱<?php echo number_format($totals['total_amount'], 2); ?>
+                                    <?php if ($totals['total_amount'] > 0): ?>
+                                        ₱<?php echo number_format($totals['total_amount'], 2); ?>
+                                    <?php else: ?>
+                                        <span style="color: #9ca3af; font-style: italic;">Pending Quote</span>
+                                    <?php endif; ?>
                                 </td>
                                 <td>
                                     <select class="status-select-list status-badge status-<?php echo strtolower($order['status']); ?>" data-order-id="<?php echo (int)$order['id']; ?>" style="margin-left:8px;">

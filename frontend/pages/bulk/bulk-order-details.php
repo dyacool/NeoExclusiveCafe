@@ -217,10 +217,17 @@ if (isset($_SESSION['flash_error'])) {
                         <label>Total Items:</label>
                         <span><?php echo number_format($order['total_items']); ?></span>
                     </div>
+                    <?php if ($order['status'] !== 'pending' && $order['total_amount'] > 0): ?>
                     <div class="info-item">
                         <label>Total Amount:</label>
                         <span class="total-amount">₱<?php echo number_format($order['total_amount'], 2); ?></span>
                     </div>
+                    <?php else: ?>
+                    <div class="info-item">
+                        <label>Total Amount:</label>
+                        <span class="total-amount">Pending Quotation</span>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
         <!-- Order Items -->
@@ -231,9 +238,13 @@ if (isset($_SESSION['flash_error'])) {
                     <thead>
                         <tr>
                             <th>Product</th>
+                            <?php if ($order['status'] !== 'pending'): ?>
                             <th>Price</th>
+                            <?php endif; ?>
                             <th>Quantity</th>
+                            <?php if ($order['status'] !== 'pending'): ?>
                             <th>Subtotal</th>
+                            <?php endif; ?>
                         </tr>
                     </thead>
                     <tbody>
@@ -241,23 +252,36 @@ if (isset($_SESSION['flash_error'])) {
                             <?php foreach ($items as $item): ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($item['product_name']); ?></td>
+                                <?php if ($order['status'] !== 'pending'): ?>
                                 <td>₱<?php echo number_format($item['product_price'], 2); ?></td>
+                                <?php endif; ?>
                                 <td><?php echo $item['quantity']; ?></td>
+                                <?php if ($order['status'] !== 'pending'): ?>
                                 <td>₱<?php echo number_format($item['subtotal'], 2); ?></td>
+                                <?php endif; ?>
                             </tr>
                             <?php endforeach; ?>
+                            <?php if ($order['status'] === 'pending'): ?>
+                            <tr>
+                                <td colspan="2" style="text-align: center; padding: 1rem; color: #666; font-style: italic;">
+                                    Pricing will be provided after review of your quotation request.
+                                </td>
+                            </tr>
+                            <?php endif; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="4" style="text-align: center; color: #666;">No items found for this order</td>
+                                <td colspan="<?php echo $order['status'] !== 'pending' ? '4' : '2'; ?>" style="text-align: center; color: #666;">No items found for this order</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
+                    <?php if ($order['status'] !== 'pending' && floatval($order['total_amount']) > 0): ?>
                     <tfoot>
                         <tr>
                             <td colspan="3"><strong>Total Amount:</strong></td>
                             <td><strong>₱<?php echo number_format($order['total_amount'], 2); ?></strong></td>
                         </tr>
                     </tfoot>
+                    <?php endif; ?>
                 </table>
             </div>
         </div>
