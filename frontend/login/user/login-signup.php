@@ -316,6 +316,11 @@ if (isset($_POST["signin-submit"])) {
 
                             error_log("Login successful for user: " . $username . ", redirecting to dashboard");
 
+                            // Set flag for navbar animation on next page load
+                            echo "<script>
+                                sessionStorage.setItem('justLoggedIn', 'true');
+                            </script>";
+
                             // If there was a redirect URL stored, use it
                             if (isset($_SESSION["user_redirect_url"])) {
                                 $redirect = $_SESSION["user_redirect_url"];

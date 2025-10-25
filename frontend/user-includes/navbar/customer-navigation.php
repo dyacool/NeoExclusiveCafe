@@ -63,15 +63,77 @@ if ($is_user_logged_in) {
 
 $current_page = basename($_SERVER['PHP_SELF']);
 
-// Ensure database connection for categories
-if (!isset($conn)) {
+// Ensure database connection for categories with comprehensive error handling
+$navbar_conn = null;
+if (isset($conn) && $conn instanceof mysqli) {
+    try {
+        // Check if existing connection is still valid
+        if ($conn->ping() && $conn->thread_id !== null) {
+            $navbar_conn = $conn;
+        }
+    } catch (Exception $e) {
+        // Existing connection is not usable
+        error_log("Navbar existing connection error: " . $e->getMessage());
+    }
+}
+
+// If no valid connection, try to create a new one
+if (!$navbar_conn) {
     $db_path = $_SERVER['DOCUMENT_ROOT'] . '/backend/pages/admin-includes/database.php';
     if (file_exists($db_path)) {
-        require_once $db_path;
+        try {
+            // Temporarily store the old conn value
+            $old_conn = isset($conn) ? $conn : null;
+            
+            // Include database.php to get a fresh connection
+            require_once $db_path;
+            
+            // Check if we got a valid new connection
+            if (isset($conn) && $conn instanceof mysqli && $conn->ping()) {
+                $navbar_conn = $conn;
+            } else {
+                // Restore old conn value if new connection failed
+                $conn = $old_conn;
+            }
+        } catch (Exception $e) {
+            error_log("Navbar new connection error: " . $e->getMessage());
+            // Restore old conn value
+            $conn = $old_conn;
+        }
     }
 }
 ?>
 <link rel="stylesheet" href="/frontend/user-includes/navbar/customer-navigation.css">
+<script>
+// Immediate classification - runs before DOM ready to prevent flash
+(function() {
+    const isUserDashboard = window.location.pathname.includes('user-dashboard.php') || 
+                           window.location.pathname.endsWith('/') || 
+                           window.location.pathname.includes('home');
+    
+    if (isUserDashboard) {
+        document.documentElement.classList.add('homepage-animation');
+        document.body.classList.add('homepage-animation');
+    } else {
+        document.documentElement.classList.add('non-homepage');
+        document.body.classList.add('non-homepage');
+        
+        // Immediately ensure navbar is visible
+        const style = document.createElement('style');
+        style.textContent = `
+            .announcement-bar, .main-nav {
+                opacity: 1 !important;
+                visibility: visible !important;
+                transition: none !important;
+            }
+            .page-entry-animation {
+                display: none !important;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+})();
+</script>
 <div class="header-wrapper">
     <!-- Page Entry Animation Container -->
     <div class="page-entry-animation">
@@ -110,16 +172,21 @@ if (!isset($conn)) {
                     </a>
                     <div class="products-dropdown">
                         <?php
-                        // Fetch categories from database (connection already established at top of file)
-                        if (isset($conn) && $conn instanceof mysqli) {
-                            $category_query = "SELECT id, name, slug FROM categories WHERE is_active = 1 ORDER BY display_order ASC, name ASC";
-                            $category_result = mysqli_query($conn, $category_query);
-                            
-                            if ($category_result && mysqli_num_rows($category_result) > 0) {
-                                while ($category = mysqli_fetch_assoc($category_result)) {
-                                    $category_url = '/frontend/pages/products/product-dashboard.php?category=' . urlencode($category['slug']);
-                                    echo '<a href="' . htmlspecialchars($category_url) . '">' . htmlspecialchars($category['name']) . '</a>';
+                        // Fetch categories from database using the navbar connection
+                        if ($navbar_conn) {
+                            try {
+                                $category_query = "SELECT id, name, slug FROM categories WHERE is_active = 1 ORDER BY display_order ASC, name ASC";
+                                $category_result = mysqli_query($navbar_conn, $category_query);
+                                
+                                if ($category_result && mysqli_num_rows($category_result) > 0) {
+                                    while ($category = mysqli_fetch_assoc($category_result)) {
+                                        $category_url = '/frontend/pages/products/product-dashboard.php?category=' . urlencode($category['slug']);
+                                        echo '<a href="' . htmlspecialchars($category_url) . '">' . htmlspecialchars($category['name']) . '</a>';
+                                    }
                                 }
+                            } catch (Exception $e) {
+                                // Log error and continue without categories
+                                error_log("Navbar categories error: " . $e->getMessage());
                             }
                         }
                         ?>
@@ -127,16 +194,21 @@ if (!isset($conn)) {
                     <!-- Mobile Products Dropdown - Inside nav-left for better visibility -->
                     <div class="mobile-products-dropdown">
                         <?php
-                        // Fetch categories for mobile dropdown
-                        if (isset($conn) && $conn instanceof mysqli) {
-                            $mobile_category_query = "SELECT id, name, slug FROM categories WHERE is_active = 1 ORDER BY display_order ASC, name ASC";
-                            $mobile_category_result = mysqli_query($conn, $mobile_category_query);
-                            
-                            if ($mobile_category_result && mysqli_num_rows($mobile_category_result) > 0) {
-                                while ($category = mysqli_fetch_assoc($mobile_category_result)) {
-                                    $category_url = '/frontend/pages/products/product-dashboard.php?category=' . urlencode($category['slug']);
-                                    echo '<a href="' . htmlspecialchars($category_url) . '" class="mobile-dropdown-item">' . htmlspecialchars($category['name']) . '</a>';
+                        // Fetch categories for mobile dropdown using the navbar connection
+                        if ($navbar_conn) {
+                            try {
+                                $mobile_category_query = "SELECT id, name, slug FROM categories WHERE is_active = 1 ORDER BY display_order ASC, name ASC";
+                                $mobile_category_result = mysqli_query($navbar_conn, $mobile_category_query);
+                                
+                                if ($mobile_category_result && mysqli_num_rows($mobile_category_result) > 0) {
+                                    while ($category = mysqli_fetch_assoc($mobile_category_result)) {
+                                        $category_url = '/frontend/pages/products/product-dashboard.php?category=' . urlencode($category['slug']);
+                                        echo '<a href="' . htmlspecialchars($category_url) . '" class="mobile-dropdown-item">' . htmlspecialchars($category['name']) . '</a>';
+                                    }
                                 }
+                            } catch (Exception $e) {
+                                // Log error and continue without categories
+                                error_log("Navbar mobile categories error: " . $e->getMessage());
                             }
                         }
                         ?>
@@ -247,7 +319,7 @@ if (!isset($conn)) {
                             <?php else: ?>
                                 <a href="/frontend/pages/profile/profile.php">Profile</a>
                                 <a href="/frontend/pages/profile/account-settings.php">Account Settings</a>
-                                <a href="/frontend/pages/blog/blog-list.php">View Post</a>
+                                <a href="/frontend/pages/blog/user-blog-post.php">View Post</a>
                                 <a href="/frontend/login/user/logout.php">Logout</a>
                             <?php endif; ?>
                         </div>
@@ -289,560 +361,172 @@ if (!isset($conn)) {
 
 <div class="wrapper">
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // ===== VARIABLES =====
-            const pageEntryAnimation = document.querySelector('.page-entry-animation');
-            const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
-            const navLeft = document.querySelector('.nav-left');
-            const hamburgerIcon = document.querySelector('.hamburger-icon');
+        // SIMPLE IMMEDIATE IMPLEMENTATION - NO DOMContentLoaded delays
+        
+        // Wait just a moment for HTML to be ready, then attach handlers immediately
+        setTimeout(() => {
+            // SEARCH FUNCTIONALITY
+            const searchToggle = document.querySelector('.search-toggle');
+            const desktopSearchBox = document.querySelector('.desktop-search-box');
+            const mobileSearchBox = document.querySelector('.mobile-search-box');
+            
+            if (searchToggle) {
+                searchToggle.onclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    if (window.innerWidth <= 992) {
+                        // Mobile
+                        if (mobileSearchBox) {
+                            mobileSearchBox.classList.toggle('active');
+                        }
+                    } else {
+                        // Desktop
+                        if (desktopSearchBox) {
+                            desktopSearchBox.classList.toggle('active');
+                        }
+                    }
+                };
+            }
+            
+            // NOTIFICATION FUNCTIONALITY  
             const notifLink = document.querySelector('.notification-link');
             const notifDropdown = document.getElementById('notifDropdown');
-            const markAllReadBtn = document.getElementById('markAllRead');
-            const profileTrigger = document.getElementById('profile-trigger');
-            const dropdownMenu = document.querySelector('.dropdown-menu');
             
-            // ===== SEARCH FUNCTIONALITY =====
-            const searchToggle = document.querySelector('.search-toggle');
-            const mobileSearchBox = document.querySelector('.mobile-search-box');
-            const desktopSearchBox = document.querySelector('.desktop-search-box');
-            const mobileSearchInput = mobileSearchBox.querySelector('.search-input');
-            const desktopSearchInput = desktopSearchBox.querySelector('.search-input');
-            
-            // ===== PRODUCTS DROPDOWN FUNCTIONALITY =====
-            const productsContainer = document.querySelector('.products-container');
-            const productsLink = productsContainer ? productsContainer.querySelector('.nav-link') : null;
-            const mobileProductsDropdown = document.querySelector('.mobile-products-dropdown');
-            const desktopProductsDropdown = productsContainer ? productsContainer.querySelector('.products-dropdown') : null;
-            
-            // Add click event to toggle search visibility
-            searchToggle.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                // Toggle active class on the search toggle button
-                searchToggle.classList.toggle('active');
-                
-                // Different behavior based on screen width
-                if (window.innerWidth <= 992) {
-                    // Mobile behavior - toggle below navigation
-                    mobileSearchBox.classList.toggle('active');
+            if (notifLink && notifDropdown) {
+                notifLink.onclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    // Check if mobile device (1024px breakpoint)
+                    if (window.innerWidth <= 1024) {
+                        // Mobile: redirect to notifications page instead of dropdown
+                        window.location.href = '/frontend/pages/notifications/notifications.php';
+                        return;
+                    }
                     
-                    // Focus on search input when opened
-                    if (mobileSearchBox.classList.contains('active')) {
-                        setTimeout(() => {
-                            mobileSearchInput.focus();
-                        }, 100);
-                    }
-                } else {
-                    // Desktop behavior - popup
-                    desktopSearchBox.classList.toggle('active');
+                    // Desktop: show dropdown
+                    const isActive = notifDropdown.classList.toggle('active');
                     
-                    // Focus on search input when opened
-                    if (desktopSearchBox.classList.contains('active')) {
-                        setTimeout(() => {
-                            desktopSearchInput.focus();
-                        }, 100);
+                    // Fetch notifications when dropdown is opened
+                    if (isActive) {
+                        fetchNotifications();
                     }
-                }
-            });
-            
-            // Close desktop search when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!searchToggle.contains(e.target) && !desktopSearchBox.contains(e.target) && window.innerWidth > 992) {
-                    desktopSearchBox.classList.remove('active');
-                    searchToggle.classList.remove('active');
-                }
-            });
-            
-            // Close search when pressing Escape key
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    if (window.innerWidth <= 992) {
-                        mobileSearchBox.classList.remove('active');
-                    } else {
-                        desktopSearchBox.classList.remove('active');
-                    }
-                    searchToggle.classList.remove('active');
-                }
-            });
-            
-            // Handle window resize
-            window.addEventListener('resize', function() {
-                // Hide both search boxes when resizing across breakpoint
-                if (window.innerWidth <= 992) {
-                    desktopSearchBox.classList.remove('active');
-                } else {
-                    mobileSearchBox.classList.remove('active');
-                }
-                searchToggle.classList.remove('active');
-                
-                // Hide products dropdown when resizing across breakpoint
-                if (window.innerWidth <= 992) {
-                    // On mobile, hide desktop dropdown
-                    if (desktopProductsDropdown) {
-                        desktopProductsDropdown.style.display = 'none';
-                    }
-                } else {
-                    // On desktop, hide mobile dropdown and restore desktop dropdown
-                    if (mobileProductsDropdown) {
-                        mobileProductsDropdown.classList.remove('active');
-                    }
-                    if (desktopProductsDropdown) {
-                        desktopProductsDropdown.style.display = '';
-                    }
-                }
-            });
-            
-            // ===== PRODUCTS DROPDOWN FUNCTIONALITY =====
-            if (productsLink && mobileProductsDropdown) {
-                productsLink.addEventListener('click', function(e) {
-                    if (window.innerWidth <= 992) {
-                        e.preventDefault(); // Prevent navigation on mobile
-                        mobileProductsDropdown.classList.toggle('active');
-                        
-                        // Close search dropdown if open
-                        mobileSearchBox.classList.remove('active');
-                        searchToggle.classList.remove('active');
-                    }
-                    // On desktop, let the hover CSS handle the dropdown
-                });
+                };
             }
             
-            // Close mobile products dropdown when clicking outside
-            document.addEventListener('click', function(e) {
-                if (window.innerWidth <= 992 && mobileProductsDropdown && 
-                    !productsContainer.contains(e.target) && 
-                    !mobileProductsDropdown.contains(e.target)) {
-                    mobileProductsDropdown.classList.remove('active');
-                }
-            });
-            
-            // Close products dropdown when pressing Escape key
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && window.innerWidth <= 992) {
-                    if (mobileProductsDropdown) {
-                        mobileProductsDropdown.classList.remove('active');
-                    }
-                }
-            });
-            
-            // Hide/show appropriate dropdowns based on screen size
-            function handleProductsDropdownVisibility() {
-                if (window.innerWidth <= 992) {
-                    // Mobile: hide desktop dropdown
-                    if (desktopProductsDropdown) {
-                        desktopProductsDropdown.style.display = 'none';
-                    }
-                } else {
-                    // Desktop: hide mobile dropdown and show desktop dropdown
-                    if (mobileProductsDropdown) {
-                        mobileProductsDropdown.classList.remove('active');
-                    }
-                    if (desktopProductsDropdown) {
-                        desktopProductsDropdown.style.display = '';
-                    }
-                }
-            }
-            
-            // Initial setup
-            handleProductsDropdownVisibility();
-            
-            // Handle window resize for products dropdown
-            window.addEventListener('resize', handleProductsDropdownVisibility);
-            
-            // ===== PAGE ENTRY ANIMATION =====
-            // Only show animation on user-dashboard.php page
-            const isUserDashboard = window.location.pathname.includes('user-dashboard.php') || 
-                                   window.location.pathname.endsWith('/') || 
-                                   window.location.pathname.includes('home');
-            
-            if (isUserDashboard) {
-                // Check if this is the first visit to the page in this session
-                if (!sessionStorage.getItem('navigationAnimationPlayed')) {
-                    pageEntryAnimation.classList.add('play-animation');
-                    
-                    // Hide the animation after it completes and show navbar content
-                    setTimeout(() => {
-                        pageEntryAnimation.classList.remove('play-animation');
-                        pageEntryAnimation.classList.add('animation-completed');
-                        
-                        // Show navbar content then trigger animations
-                        showNavbarContent();
-                        setTimeout(() => {
-                            triggerNavbarAnimations();
-                        }, 100); // Small delay to ensure content is visible first
-                    }, 2000); // Match this timing with your CSS animation duration
-                    
-                    // Mark that we've played the animation in this session
-                    sessionStorage.setItem('navigationAnimationPlayed', 'true');
-                } else {
-                    // If we've already played the animation, show content immediately
-                    pageEntryAnimation.classList.add('animation-completed');
-                    showNavbarContent();
-                    // Don't trigger animations on subsequent visits
-                }
-            } else {
-                // On other pages, immediately hide logo animation and show navbar content
-                pageEntryAnimation.classList.add('animation-completed');
-                showNavbarContent();
-                // Don't trigger animations on other pages
-            }
-            
-            // Function to show navbar content
-            function showNavbarContent() {
-                const announcementBar = document.querySelector('.announcement-bar');
-                const mainNav = document.querySelector('.main-nav');
-                
-                if (announcementBar) {
-                    announcementBar.classList.add('show-content');
-                }
-                
-                if (mainNav) {
-                    mainNav.classList.add('show-content');
-                }
-            }
-            
-            // Function to trigger navbar animations
-            function triggerNavbarAnimations() {
-                const announcementText = document.querySelector('.announcement-text');
-                const mainNav = document.querySelector('.main-nav');
-                
-                if (announcementText) {
-                    announcementText.classList.add('animate-in');
-                }
-                
-                if (mainNav) {
-                    mainNav.classList.add('animate-in');
-                }
-            }
-            
-            // ===== NOTIFICATIONS =====
+            // NOTIFICATION FETCHING FUNCTION
             function fetchNotifications() {
-                // Use the global function if available, otherwise define locally
+                const notificationList = document.getElementById("notificationList");
+                const noNotifications = document.getElementById("noNotifications");
+                const notifCount = document.getElementById("notifCount");
+                
+                if (!notificationList || !noNotifications) return;
+                
+                // Use global function if available, otherwise fetch directly
                 if (window.fetchDropdownNotifications) {
                     window.fetchDropdownNotifications()
                         .then(notifications => {
-                            const notificationList = document.getElementById("notificationList");
-                            notificationList.innerHTML = '';
-                            
-                            if (notifications && notifications.length > 0) {
-                                document.getElementById("noNotifications").style.display = "none";
-                                
-                                notifications.forEach(notif => {
-                                    const listItem = document.createElement("li");
-                                    listItem.className = `notification-item ${notif.is_read ? "read" : "unread"}`;
-                                    listItem.dataset.notificationId = notif.id;
-                                    
-                                    // Click handler to open modal
-                                    listItem.addEventListener('click', () => {
-                                        if (window.handleNotificationClick) {
-                                            window.handleNotificationClick(notif.id);
-                                        }
-                                    });
-
-                                    const title = document.createElement("div");
-                                    title.className = "notification-title";
-                                    title.textContent = notif.title;
-
-                                    const message = document.createElement("div");
-                                    message.className = "notification-message";
-                                    message.textContent = notif.message.substring(0, 50) + (notif.message.length > 50 ? '...' : '');
-
-                                    const time = document.createElement("div");
-                                    time.className = "notification-time";
-                                    time.textContent = new Date(notif.created_at).toLocaleString([], {
-                                        short: 'short'
-                                    });
-
-                                    const contentDiv = document.createElement('div');
-                                    contentDiv.className = 'notification-content';
-                                    contentDiv.appendChild(title);
-                                    contentDiv.appendChild(message);
-                                    contentDiv.appendChild(time);
-
-                                    listItem.appendChild(contentDiv);
-                                    notificationList.appendChild(listItem);
-                                });
-
-                                const unreadCount = notifications.filter(n => !n.is_read).length;
-                                if (unreadCount > 0) {
-                                    document.getElementById("notifCount").textContent = unreadCount;
-                                    document.getElementById("notifCount").style.display = "block";
-                                } else {
-                                    document.getElementById("notifCount").style.display = "none";
-                                }
+                            updateNotificationDisplay(notifications);
+                        })
+                        .catch(error => {
+                            console.error('Error fetching notifications:', error);
+                            showNoNotifications();
+                        });
+                } else {
+                    // Direct fetch
+                    fetch('/frontend/pages/notifications/fetch-notif.php?dropdown=true')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === "success") {
+                                updateNotificationDisplay(data.notifications || []);
                             } else {
-                                document.getElementById("noNotifications").style.display = "block";
-                                document.getElementById("notifCount").style.display = "none";
+                                showNoNotifications();
                             }
                         })
                         .catch(error => {
                             console.error('Error fetching notifications:', error);
-                            document.getElementById("noNotifications").innerHTML = '<p>Could not load notifications.</p>';
-                            document.getElementById("notifCount").style.display = "none";
+                            showNoNotifications();
                         });
-                } else {
-                    // Fallback to direct fetch if global function not available
-                fetch('/frontend/pages/notifications/fetch-notif.php?dropdown=true')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    const notificationList = document.getElementById("notificationList");
+                }
+                
+                function updateNotificationDisplay(notifications) {
                     notificationList.innerHTML = '';
-
-                    if (data.status === "success") {
-                        if (data.notifications && data.notifications.length > 0) {
-                            document.getElementById("noNotifications").style.display = "none";
+                    
+                    if (notifications && notifications.length > 0) {
+                        // Hide "no notifications" message
+                        noNotifications.style.display = "none";
+                        
+                        // Show notifications
+                        notifications.forEach(notif => {
+                            const listItem = document.createElement("li");
+                            listItem.className = `notification-item ${notif.is_read ? "read" : "unread"}`;
+                            listItem.dataset.notificationId = notif.id;
                             
-                            data.notifications.forEach(notif => {
-                                const listItem = document.createElement("li");
-                                listItem.className = `notification-item ${notif.is_read ? "read" : "unread"}`;
-                                listItem.dataset.notificationId = notif.id;
-                                
-                                listItem.addEventListener('click', () => {
-                                    handleNotificationClick(notif.id);
-                                });
+                            const title = document.createElement("div");
+                            title.className = "notification-title";
+                            title.textContent = notif.title;
 
-                                const title = document.createElement("div");
-                                title.className = "notification-title";
-                                title.textContent = notif.title;
+                            const message = document.createElement("div");
+                            message.className = "notification-message";
+                            message.textContent = notif.message.substring(0, 50) + (notif.message.length > 50 ? '...' : '');
 
-                                const message = document.createElement("div");
-                                message.className = "notification-message";
-                                message.textContent = notif.message.substring(0, 50) + (notif.message.length > 50 ? '...' : '');
+                            const time = document.createElement("div");
+                            time.className = "notification-time";
+                            time.textContent = new Date(notif.created_at).toLocaleString([], { short: 'short' });
 
-                                const time = document.createElement("div");
-                                time.className = "notification-time";
-                                time.textContent = new Date(notif.created_at).toLocaleString([], {
-                                    short: 'short'
-                                });
+                            const contentDiv = document.createElement('div');
+                            contentDiv.className = 'notification-content';
+                            contentDiv.appendChild(title);
+                            contentDiv.appendChild(message);
+                            contentDiv.appendChild(time);
 
-                                const contentDiv = document.createElement('div');
-                                contentDiv.className = 'notification-content';
-                                contentDiv.appendChild(title);
-                                contentDiv.appendChild(message);
-                                contentDiv.appendChild(time);
+                            listItem.appendChild(contentDiv);
+                            notificationList.appendChild(listItem);
+                        });
 
-                                listItem.appendChild(contentDiv);
-                                notificationList.appendChild(listItem);
-                            });
-
-                            const unreadCount = data.notifications.filter(n => !n.is_read).length;
+                        // Update notification count
+                        const unreadCount = notifications.filter(n => !n.is_read).length;
+                        if (notifCount) {
                             if (unreadCount > 0) {
-                                document.getElementById("notifCount").textContent = unreadCount;
-                                document.getElementById("notifCount").style.display = "block";
+                                notifCount.textContent = unreadCount;
+                                notifCount.style.display = "block";
                             } else {
-                                document.getElementById("notifCount").style.display = "none";
+                                notifCount.style.display = "none";
                             }
-                        } else {
-                            document.getElementById("noNotifications").style.display = "block";
-                            document.getElementById("notifCount").style.display = "none";
                         }
                     } else {
-                        throw new Error(data.message || 'Failed to fetch notifications');
+                        showNoNotifications();
                     }
-                })
-                .catch(error => {
-                    console.error('Error fetching notifications:', error);
-                    document.getElementById("noNotifications").innerHTML = '<p>Could not load notifications.</p>';
-                    document.getElementById("notifCount").style.display = "none";
-                });
+                }
+                
+                function showNoNotifications() {
+                    notificationList.innerHTML = '';
+                    noNotifications.style.display = "block";
+                    if (notifCount) {
+                        notifCount.style.display = "none";
+                    }
                 }
             }
-
-            // Handle notification click - mark as read and show modal
-            function handleNotificationClick(notificationId) {
-                if (window.handleNotificationClick) {
-                    window.handleNotificationClick(notificationId);
-                } else {
-                    // Fallback implementation
-                fetch('/frontend/pages/notifications/mark-notif.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: 'notification_id=' + notificationId
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        fetchNotifications(); 
-                    }
-                })
-                .finally(() => fetchNotificationDetails(notificationId))
-                .catch(error => {
-                    console.error('Error marking notification as read:', error);
-                    fetchNotificationDetails(notificationId);
-                });
+            
+            // CLOSE DROPDOWNS WHEN CLICKING OUTSIDE
+            document.onclick = function(e) {
+                // Close search
+                if (desktopSearchBox && searchToggle && !searchToggle.contains(e.target) && !desktopSearchBox.contains(e.target)) {
+                    desktopSearchBox.classList.remove('active');
                 }
-            }
-
-            // Fetch notification details and show modal
-            function fetchNotificationDetails(notificationId) {
-                if (window.fetchNotificationDetails) {
-                    window.fetchNotificationDetails(notificationId)
-                        .then(notification => {
-                            if (window.showNotificationModal) {
-                                window.showNotificationModal(notification);
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error fetching notification details:', error);
-                        });
-                } else {
-                    // Fallback implementation
-                fetch(`/frontend/pages/notifications/fetch-notif.php?id=${notificationId}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        showNotificationModal(data.notification);
-                    } else {
-                        console.error('Error fetching notification details:', data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching notification details:', error);
-                });
+                if (mobileSearchBox && searchToggle && !searchToggle.contains(e.target) && !mobileSearchBox.contains(e.target)) {
+                    mobileSearchBox.classList.remove('active');
                 }
-            }
-
-            // Show notification modal with details
-            function showNotificationModal(notification) {
-                if (window.showNotificationModal) {
-                    window.showNotificationModal(notification);
-                } else {
-                    // If global function doesn't exist, redirect to notifications page
-                    window.location.href = '/frontend/pages/notifications/notifications.php';
-                }
-            }
-
-            // Toggle dropdown on bell icon click
-            if (notifLink && notifDropdown) {
-                notifLink.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const isActive = notifDropdown.classList.toggle('active');
-                    if (isActive) {
-                        fetchNotifications();
-                    }
-                });
-            }
-
-            // Close dropdown when clicking outside
-            document.addEventListener('click', (e) => {
-                if (notifDropdown && !notifDropdown.contains(e.target) && !notifLink.contains(e.target)) {
+                
+                // Close notifications
+                if (notifDropdown && notifLink && !notifLink.contains(e.target) && !notifDropdown.contains(e.target)) {
                     notifDropdown.classList.remove('active');
                 }
-            });
-
-            // Close dropdown with Escape key
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && notifDropdown && notifDropdown.classList.contains('active')) {
-                    notifDropdown.classList.remove('active');
-                }
-            });
-
-
-            // Mark all as read button
-            if (markAllReadBtn) {
-                markAllReadBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    fetch('/frontend/pages/notifications/mark-notif.php', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
-                        body: 'mark_all=true'
-                    })
-                    .then(response => {
-                        if (!response.ok) throw new Error('Failed to mark notifications as read');
-                        fetchNotifications();
-                    })
-                    .catch(error => {
-                        console.error('Error marking notifications as read:', error);
-                    });
-                });
-            }
-
-            // Initial fetch and polling - only if user is properly logged in
-            if (<?php echo ($is_user_logged_in && isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'user') ? 'true' : 'false'; ?>) {
-                fetchNotifications(); // Initial fetch
-                setInterval(fetchNotifications, 30000); // Poll every 30 seconds
-            }
-
-            // ===== MOBILE MENU =====
-            // Mobile menu toggle with smooth transition
-            if (mobileMenuToggle && navLeft) {
-                mobileMenuToggle.addEventListener('click', function() {
-                    navLeft.classList.toggle('active');
-                    mobileMenuToggle.classList.toggle('active');
-                    
-                    // Change hamburger icon to X when active
-                    if (mobileMenuToggle.classList.contains('active')) {
-                        hamburgerIcon.textContent = '✕';
-                    } else {
-                        hamburgerIcon.textContent = '☰';
-                    }
-                });
-            }
-
-            // Close mobile menu when window is resized to desktop width
-            window.addEventListener('resize', function() {
-                if (window.innerWidth > 768) {
-                    if (navLeft) navLeft.classList.remove('active');
-                    if (mobileMenuToggle) {
-                        mobileMenuToggle.classList.remove('active');
-                        if (hamburgerIcon) hamburgerIcon.textContent = '☰';
-                    }
-                }
-            });
-
-            // ===== PROFILE DROPDOWN =====
-            // Profile dropdown functionality on mobile
-            if (profileTrigger && dropdownMenu) {
-                profileTrigger.addEventListener('click', function(e) {
-                    if (window.innerWidth <= 768) {
-                        e.preventDefault();
-                        dropdownMenu.classList.toggle('show-mobile');
-                    }
-                });
-
-                // Close dropdown when clicking outside on mobile
-                document.addEventListener('click', function(event) {
-                    if (window.innerWidth <= 768 && 
-                        profileTrigger && dropdownMenu &&
-                        !profileTrigger.contains(event.target) && 
-                        !dropdownMenu.contains(event.target)) {
-                        dropdownMenu.classList.remove('show-mobile');
-                    }
-                });
-            }
-
-            // ===== RIPPLE EFFECT =====
-            // Add ripple effect to buttons and links
-            const buttons = document.querySelectorAll('button, .nav-link, .login-link, .cart-link, .notification-link');
-            buttons.forEach(button => {
-                button.addEventListener('click', function(e) {
-                    const x = e.clientX - e.target.getBoundingClientRect().left;
-                    const y = e.clientY - e.target.getBoundingClientRect().top;
-                    
-                    const ripple = document.createElement('span');
-                    ripple.classList.add('ripple-effect');
-                    ripple.style.left = `${x}px`;
-                    ripple.style.top = `${y}px`;
-                    
-                    this.appendChild(ripple);
-                    
-                    setTimeout(() => {
-                        ripple.remove();
-                    }, 600);
-                });
-            });
-        });
+            };
+            
+        }, 100); // Just 100ms delay to ensure HTML is parsed
+        
     </script>
     
     <!-- Include the global notification JavaScript -->

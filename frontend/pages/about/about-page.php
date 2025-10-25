@@ -31,7 +31,8 @@ More than just a cafe, we are a gathering place for the community. Whether you\'
     ];
 }
 
-$conn->close();
+// Don't close the connection here as it may be needed by included components
+// The connection will be closed automatically at the end of script execution
 
 ?>
 <!DOCTYPE html>

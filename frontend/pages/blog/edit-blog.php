@@ -6,8 +6,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 $page_title = "Edit Post";
 $additional_css = [
-    "/frontend/pages/blog/edit-blog.css",
-    "/frontend/pages/blog/back-button.css"
+    "/frontend/pages/blog/create-blog.css"
 ];
 
 // Process all redirects first
@@ -79,6 +78,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!file_exists(dirname($full_path))) {
                 mkdir(dirname($full_path), 0777, true);
             }
+
+            // Move uploaded file
+            if (move_uploaded_file($_FILES['image']['tmp_name'], $full_path)) {
+                $image_path = $upload_path;
+            } else {
+                $error = "Failed to upload image.";
+            }
         }
     }
 
@@ -101,150 +107,185 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
+<?php include __DIR__ . "/../../user-includes/bread-crumb/bread-crumb.php"; ?>
+
 <div class="wrapper">
-<div class="blog-container">
-    <div class="blog-header">
-        <button class="back-btn" onclick="location='user-blog-post.php'">
-            <div class="arrow-wrapper">
-                <div class="arrow"></div>
-            </div>
-            Back
-        </button>
+    <div class="create-blog-header">
         <div class="title-container">
             <h2 class="cont-title">Edit Blog Post</h2>
         </div>
     </div>
 
-    <div class="edit-form-container">
-        <?php if (isset($error)): ?>
-            <div class="error-message">
-                <?php echo htmlspecialchars($error); ?>
+    <?php if (isset($error)): ?>
+        <div class="error-message" style="background: #f8d7da; color: #721c24; padding: 12px; border: 1px solid #f5c6cb; border-radius: 5px; margin-bottom: 20px; text-align: center;">
+            <?php echo htmlspecialchars($error); ?>
+        </div>
+    <?php endif; ?>
+
+    <form class="post-cont" method="POST" enctype="multipart/form-data">
+        <div class="post-container">
+            <div class="dtitle">
+                <label class="lbl-title">Title</label>
+                <input type="text" id="title" name="title" value="<?php echo htmlspecialchars($post['title']); ?>" required>
             </div>
-        <?php endif; ?>
 
-        <form method="POST" enctype="multipart/form-data" class="blog-form">
-            <div class="post-container">
-                <div class="form-group">
-                    <label for="title">Title</label>
-                    <input class="blog-title" type="text" id="title" name="title" value="<?php echo htmlspecialchars($post['title']); ?>" required>
-                </div>
-
-                <div class="dimage">
-                    <label class="lbl-title">Image</label>
-                    <div class="imagecont">
-                        <label class="media" for="image">
-                            <?php if ($post['image_path']): ?>
-                                <div class="upload-text">Click to upload new image</div>
-                                <?php 
-                                // Handle different path formats in the database
-                                $image_path = $post['image_path'];
-                                if (strpos($image_path, 'uploads/blog/') === 0) {
-                                    // Remove the incorrect prefix and use the correct path
-                                    $image_path = '../../assets/uploaded-images-users/' . basename($image_path);
-                                } elseif (strpos($image_path, 'assets/uploaded-images-users/') === 0) {
-                                    // Path already has the correct prefix, just add the relative path
-                                    $image_path = '../../' . $image_path;
-                                } elseif (strpos($image_path, 'blog_') === 0 || strpos($image_path, '6823') === 0) {
-                                    // These are user blog images without path prefix
-                                    $image_path = '../../assets/uploaded-images-users/' . $image_path;
-                                } else {
-                                    // Default case - assume it's a user image
-                                    $image_path = '../../assets/uploaded-images-users/' . $image_path;
-                                }
-                                
-                                // Check if the file actually exists
-                                $file_path = $_SERVER['DOCUMENT_ROOT'] . '/NeoCafe/' . str_replace('../../', '', $image_path);
-                                if (file_exists($file_path)) {
-                                ?>
-                                    <img class="image-preview preview-active" src="<?= htmlspecialchars($image_path) ?>" alt="<?php echo htmlspecialchars($post['title']); ?>" onerror="this.style.display='none';">
-                                <?php 
-                                } else {
-                                    // File doesn't exist, show placeholder
-                                    echo '<div class="upload-text">Click to upload new image</div>';
-                                    echo '<img class="image-preview" src="/placeholder.svg">';
-                                }
-                                ?>
-                            <?php else: ?>
-                                <div class="upload-text">Click to upload new image</div>
-                                <img class="image-preview" src="/placeholder.svg">
-                            <?php endif; ?>
-                            <button type="button" class="remove-image <?php echo $post['image_path'] ? 'remove-active' : ''; ?>">×</button>
-                        </label>
-                        <input multiple type="file" class="images" id="image" name="image" accept="image/*">
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="content">Description</label>
-                    <textarea class="description" id="content" name="content" rows="10" required><?php echo htmlspecialchars($post['content']); ?></textarea>
+            <div class="dimage">
+                <label class="lbl-title">Image (Optional)</label>
+                <div class="imagecont">
+                    <label class="media" for="image">
+                        <?php if ($post['image_path']): ?>
+                            <?php 
+                            // Simplified image path handling like in user-blog.php
+                            $image_path = $post['image_path'];
+                            
+                            // If path doesn't start with 'assets/', add the prefix
+                            if (strpos($image_path, 'assets/') !== 0) {
+                                $image_path = 'assets/uploaded-images-users/' . basename($image_path);
+                            }
+                            
+                            // Create the relative path from the current location
+                            $display_path = '../../' . $image_path;
+                            ?>
+                            <div class="upload-text" style="display: none;">Click to upload new image</div>
+                            <img class="image-preview preview-active" src="<?= htmlspecialchars($display_path) ?>" alt="<?php echo htmlspecialchars($post['title']); ?>" onerror="this.style.display='none'; this.parentNode.querySelector('.upload-text').style.display='block';">
+                            <button type="button" class="remove-image remove-active">×</button>
+                        <?php else: ?>
+                            <div class="upload-text">Click to upload image</div>
+                        <?php endif; ?>
+                    </label>
+                    <input type="file" class="images" id="image" name="image" accept="image/*">
                 </div>
             </div>
 
-            <div class="form-actions">
-                <a href="<?php echo isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'user-blog-post.php') !== false ? 'user-blog-post.php' : 'user-blog.php'; ?>" class="cancel-btn">Cancel</a>
-                <button type="submit" class="submit-btn">Update Post</button>
+            <div class="ddescription">
+                <label class="lbl-title">Description</label>
+                <textarea class="description" id="content" name="content" maxlength="500" required><?php echo htmlspecialchars($post['content']); ?></textarea>
             </div>
-        </form>
+        </div>
+
+        <div class="buttons">
+            <input type="button" id="discard" name="discard" value="Discard">
+            <button class="submit" type="submit">Update Post</button>
+        </div>
+    </form>
+    
+    <!-- Confirm discard modal -->
+    <div class="popup" id="popup">
+        <div class="overlay"></div>
+        <div class="popup-content">
+            <h2>Discard changes</h2>
+            <p>Are you sure you want to discard your changes?</p>
+            <div class="controls">
+                <input type="button" class="cancel-btn" id="cancel-btn" value="Cancel">
+                <input type="button" class="confirm-btn" id="confirm-btn" onclick="location='<?php echo isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'user-blog-post.php') !== false ? 'user-blog-post.php' : 'user-blog.php'; ?>'" value="Confirm">
+            </div>
+        </div>
     </div>
-</div>
 </div>
 <br>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Elements
-    const fileInput = document.getElementById('image');
-    const mediaLabel = document.querySelector('label.media');
-    const imagePreview = document.querySelector('.image-preview');
-    const removeButton = document.querySelector('.remove-image');
-    const uploadText = document.querySelector('.upload-text');
-    
-    // Handle file selection
-    fileInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
+    document.addEventListener('DOMContentLoaded', function() {
+        // Elements
+        const fileInput = document.getElementById('image');
+        const mediaLabel = document.querySelector('label.media');
         
-        if (file) {
-            const reader = new FileReader();
+        // Get existing preview elements or create them
+        let imagePreview = document.querySelector('.image-preview');
+        let removeButton = document.querySelector('.remove-image');
+        
+        // Create image preview element if it doesn't exist
+        if (!imagePreview) {
+            imagePreview = document.createElement('img');
+            imagePreview.className = 'image-preview';
+            mediaLabel.appendChild(imagePreview);
+        }
+        
+        // Create remove image button if it doesn't exist
+        if (!removeButton) {
+            removeButton = document.createElement('button');
+            removeButton.className = 'remove-image';
+            removeButton.innerHTML = '×';
+            removeButton.type = 'button';
+            removeButton.setAttribute('aria-label', 'Remove image');
+            mediaLabel.appendChild(removeButton);
+        }
+        
+        // Handle file selection
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
             
-            reader.onload = function(e) {
-                // Show image preview
-                imagePreview.src = e.target.result;
-                imagePreview.classList.add('preview-active');
+            if (file) {
+                const reader = new FileReader();
                 
-                // Show remove button
-                removeButton.classList.add('remove-active');
+                reader.onload = function(e) {
+                    // Show image preview
+                    imagePreview.src = e.target.result;
+                    imagePreview.classList.add('preview-active');
+                    
+                    // Show remove button
+                    removeButton.classList.add('remove-active');
+                    
+                    // Hide the upload text
+                    const uploadText = mediaLabel.querySelector('.upload-text');
+                    if (uploadText) {
+                        uploadText.style.display = 'none';
+                    }
+                };
                 
-                // Hide the upload text
-                if (uploadText) {
-                    uploadText.style.display = 'none';
-                }
-            };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        // Handle remove image button
+        removeButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             
-            reader.readAsDataURL(file);
+            // Clear the file input
+            fileInput.value = '';
+            
+            // Hide image preview
+            imagePreview.classList.remove('preview-active');
+            
+            // Hide remove button
+            removeButton.classList.remove('remove-active');
+            
+            // Show the upload text
+            const uploadText = mediaLabel.querySelector('.upload-text');
+            if (uploadText) {
+                uploadText.style.display = 'block';
+            }
+        });
+
+        // Modal functionality
+        const discardBtn = document.querySelector("#discard");
+        const popup = document.querySelector("#popup");
+        const overlay = document.querySelector(".popup .overlay");
+        const cancelBtn = document.querySelector(".cancel-btn");
+        
+        // Open modal
+        if (discardBtn) {
+            discardBtn.addEventListener("click", function() {
+                popup.classList.add("active");
+            });
+        }
+        
+        // Close modal when clicking cancel
+        if (cancelBtn) {
+            cancelBtn.addEventListener("click", function() {
+                popup.classList.remove("active");
+            });
+        }
+        
+        // Close modal when clicking overlay
+        if (overlay) {
+            overlay.addEventListener("click", function() {
+                popup.classList.remove("active");
+            });
         }
     });
-    
-    // Handle remove image button
-    removeButton.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        // Clear the file input
-        fileInput.value = '';
-        
-        // Hide image preview
-        imagePreview.classList.remove('preview-active');
-        imagePreview.src = '';
-        
-        // Hide remove button
-        removeButton.classList.remove('remove-active');
-        
-        // Show the upload text
-        if (uploadText) {
-            uploadText.style.display = 'block';
-        }
-    });
-});
 </script>
+
 <?php require_once "../../user-includes/footer.php"; ?>
 <?php ob_end_flush(); ?>

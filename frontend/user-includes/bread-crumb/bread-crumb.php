@@ -39,6 +39,7 @@ $route_mappings = [
     'blog-list' => ['Neo Cafe\' Corner', '/frontend/pages/blog/blog-list.php'],
     'user-blog' => ['Customer Testimonials', '/frontend/pages/blog/user-blog.php'],
     'create-blog' => ['Create Post', '/frontend/pages/blog/create-blog.php'],
+    'edit-blog' => ['Edit Post', '/frontend/pages/blog/edit-blog.php'],
     'view-blog-admin' => ['View Post', ''],
     'view-blog' => ['View Post', ''],
     'blog-post' => ['Blog Post', ''],
@@ -53,6 +54,7 @@ $route_mappings = [
     'account-settings' => ['Account Settings', '/frontend/pages/profile/account-settings.php'],
     'my-orders' => ['My Orders', '/frontend/pages/profile/my-orders.php'],
     'saved-posts' => ['Saved Posts', '/frontend/pages/profile/saved-posts.php'],
+    'user-blog-post' => ['My Testimonials', '/frontend/pages/blog/user-blog-post.php'],
     
     // Cart routes
     'cart' => ['Shopping Cart', '/frontend/pages/cart/cart.php'],
@@ -93,8 +95,9 @@ $hierarchy = [
     // Blog hierarchy
     'blog-dashboard' => ['user-dashboard'],
     'blog-list' => ['user-dashboard', 'blog-dashboard'],
-    'user-blog' => ['user-dashboard', 'blog-dashboard'],
-    'create-blog' => ['user-blog'],
+    'user-blog' => ['user-dashboard'],
+    'create-blog' => ['user-dashboard', 'user-blog'],
+    'edit-blog' => ['user-dashboard', 'user-blog-post'],
     'view-blog-admin' => ['user-dashboard',  'blog-list'],
     'view-blog' => ['user-dashboard', 'user-blog'],
     'blog-post' => ['user-dashboard', 'blog-dashboard'],
@@ -109,6 +112,7 @@ $hierarchy = [
     'account-settings' => ['user-dashboard', 'profile'],
     'my-orders' => ['user-dashboard', 'profile'],
     'saved-posts' => ['user-dashboard', 'profile'],
+    'user-blog-post' => ['user-dashboard', 'profile'],
     
     // Cart hierarchy
     'cart' => ['user-dashboard'],
@@ -174,27 +178,40 @@ function generateBreadcrumb($current_page, $route_mappings, $hierarchy, $context
         $breadcrumb[] = ['Home', '/frontend/pages/home/user-dashboard.php', false];
     }
     
-    // Add contextual parents based on URL structure
-    if (in_array('products', $context) && $current_page !== 'products-categories') {
-        $breadcrumb[] = ['Products', '/frontend/pages/products/products-categories.php', false];
-    }
-    
-    // Add parent pages based on hierarchy
-    if (isset($hierarchy[$current_page])) {
-        foreach ($hierarchy[$current_page] as $parent) {
-            if ($parent !== 'user-dashboard' && isset($route_mappings[$parent])) {
-                // Avoid duplicates
-                $parent_title = $route_mappings[$parent][0];
-                $already_added = false;
-                foreach ($breadcrumb as $item) {
-                    if ($item[0] === $parent_title) {
-                        $already_added = true;
-                        break;
+    // Special handling for blog pages based on referrer
+    if ($current_page === 'create-blog' || $current_page === 'edit-blog') {
+        $referrer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
+        
+        if (strpos($referrer, 'user-blog-post.php') !== false) {
+            // Came from My Posts page
+            $breadcrumb[] = ['My Posts', '/frontend/pages/blog/user-blog-post.php', false];
+        } else {
+            // Default or came from Customer Testimonials
+            $breadcrumb[] = ['Customer Testimonials', '/frontend/pages/blog/user-blog.php', false];
+        }
+    } else {
+        // Add contextual parents based on URL structure
+        if (in_array('products', $context) && $current_page !== 'products-categories') {
+            $breadcrumb[] = ['Products', '/frontend/pages/products/products-categories.php', false];
+        }
+        
+        // Add parent pages based on hierarchy
+        if (isset($hierarchy[$current_page])) {
+            foreach ($hierarchy[$current_page] as $parent) {
+                if ($parent !== 'user-dashboard' && isset($route_mappings[$parent])) {
+                    // Avoid duplicates
+                    $parent_title = $route_mappings[$parent][0];
+                    $already_added = false;
+                    foreach ($breadcrumb as $item) {
+                        if ($item[0] === $parent_title) {
+                            $already_added = true;
+                            break;
+                        }
                     }
-                }
-                
-                if (!$already_added) {
-                    $breadcrumb[] = [$route_mappings[$parent][0], $route_mappings[$parent][1], false];
+                    
+                    if (!$already_added) {
+                        $breadcrumb[] = [$route_mappings[$parent][0], $route_mappings[$parent][1], false];
+                    }
                 }
             }
         }

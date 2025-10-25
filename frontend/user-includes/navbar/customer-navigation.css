@@ -1,5 +1,13 @@
 @import url("https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,200;1,300;1,400;1,500;1,600;1,700;1,800&display=swap");
 
+/* CRITICAL: Ensure navbar is always visible */
+.header-wrapper,
+.announcement-bar,
+.main-nav {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
 /* Color Variables */
 :root {
   --primary-dark: #0a5c36;
@@ -106,10 +114,16 @@ body {
   font-size: 12px;
   letter-spacing: 0.5px;
   font-weight: 500;
-  /* Initially hidden until logo reveal completes */
+  /* Default visible state */
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+/* Hide only for homepage animation */
+html.homepage-animation .announcement-bar {
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.5s ease, visibility 0.5s ease;
 }
 
 /* Show announcement bar after logo reveal */
@@ -145,9 +159,16 @@ body {
   position: relative;
   padding: 0;
   color: var(--white);
+  /* Default visible state */
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+/* Hide only for homepage animation */
+html.homepage-animation .main-nav {
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.5s ease, visibility 0.5s ease;
 }
 
 .main-nav.show-content {
@@ -269,6 +290,7 @@ body {
   position: relative;
   display: flex;
   align-items: center;
+  z-index: 1;
 }
 
 .search-toggle {
@@ -318,7 +340,7 @@ body {
   border-radius: 8px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
   padding: 10px;
-  z-index: 100;
+  z-index: 1200;
   opacity: 0;
   visibility: hidden;
   transform: translateY(10px);
@@ -566,7 +588,7 @@ body {
   box-shadow: 0 10px 30px rgba(15, 81, 50, 0.15), 0 5px 15px rgba(0, 0, 0, 0.08) !important;
   border: 1px solid #cbd5c0 !important;
   padding: 0 !important;
-  z-index: 1000 !important;
+  z-index: 1500 !important;
   opacity: 0 !important;
   visibility: hidden !important;
   transform: translateY(15px) scale(0.95) !important;
@@ -1259,16 +1281,12 @@ body {
     display: none;
   }
 
-  /* Disable hover for notification dropdown */
-  .notification-container:hover .notification-dropdown {
-    opacity: 0;
-    visibility: hidden;
-  }
-
+  /* Ensure notification dropdown works on mobile */
   .notification-dropdown.active {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: translateY(0) scale(1) !important;
+    z-index: 1500 !important;
   }
 
   /* Disable hover for profile dropdown */
@@ -1291,7 +1309,7 @@ body {
     right: 0;
     width: 100%;
     border-radius: 0;
-    z-index: 99;
+    z-index: 1600;
   }
 
   /* Profile dropdown should also appear below main-nav */
@@ -1478,5 +1496,70 @@ body {
   .products-dropdown {
     width: 160px;
     left: -70px;
+  }
+}
+
+/* Immediate navbar visibility for non-homepage pages */
+/* Override animation delays and ensure immediate visibility */
+html.non-homepage .announcement-bar,
+html.non-homepage .main-nav,
+body:not(.homepage-animation) .announcement-bar,
+body:not(.homepage-animation) .main-nav {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transition: none !important;
+}
+
+html.non-homepage .announcement-text,
+body:not(.homepage-animation) .announcement-text {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+  animation: none !important;
+}
+
+html.non-homepage .page-entry-animation,
+body:not(.homepage-animation) .page-entry-animation {
+  display: none !important;
+}
+
+/* Fallback for all pages - ensure navbar is always visible */
+.announcement-bar,
+.main-nav {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Only hide if specifically on homepage with animation class */
+html.homepage-animation .announcement-bar,
+html.homepage-animation .main-nav {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* Force search and notification dropdowns to be visible when active */
+.desktop-search-box.active,
+.notification-dropdown.active {
+  opacity: 1 !important;
+  visibility: visible !important;
+  z-index: 2000 !important;
+  pointer-events: auto !important;
+}
+
+/* Ensure proper positioning for desktop */
+@media (min-width: 993px) {
+  .notification-dropdown {
+    position: absolute !important;
+    top: 50px !important;
+    right: -15px !important;
+    left: auto !important;
+    width: 280px !important;
+    border-radius: 12px !important;
+  }
+
+  .desktop-search-box {
+    position: absolute !important;
+    top: 50px !important;
+    right: -10px !important;
+    width: 300px !important;
   }
 }

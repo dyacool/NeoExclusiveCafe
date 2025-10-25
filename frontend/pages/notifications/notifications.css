@@ -418,6 +418,7 @@
 
   .header-content .page-title {
     font-size: 1.5rem;
+    text-align: center;
   }
 
   .header-actions {
@@ -1086,6 +1087,32 @@ body {
   box-shadow: 0 2px 4px rgba(46, 107, 71, 0.2);
 }
 
+/* Mark as read button */
+.mark-read-btn {
+  background-color: rgba(15, 81, 50, 0.1);
+  color: #0f5132;
+  border: 1px solid rgba(15, 81, 50, 0.1);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(15, 81, 50, 0.15);
+}
+
+.mark-read-btn:hover {
+  background-color: rgba(15, 81, 50, 0.2);
+  border-color: rgba(15, 81, 50, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(15, 81, 50, 0.25);
+}
+
+.mark-read-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(15, 81, 50, 0.15);
+}
+
 /* Mark all as read button */
 .mark-all-container {
   display: flex;
@@ -1694,5 +1721,83 @@ body {
 
   .order-details-container h3 {
     font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .notifications-page-container {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-content {
+    width: 100%;
+    text-align: center;
+  }
+
+  .header-content .page-title {
+    text-align: center;
+    width: 100%;
+  }
+
+  .notification-actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 0.75rem;
+    width: 100%;
+  }
+
+  .notification-actions .btn-sm {
+    flex: 1;
+    min-width: 0;
+    justify-content: center;
+    white-space: nowrap;
+  }
+
+  .notification-actions .view-details-btn,
+  .notification-actions .mark-read-btn {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+/* Small mobile screens - reduce Mark All button padding */
+@media (max-width: 375px) {
+  #markAllRead {
+    padding: 0.75rem 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .btn {
+    font-size: 0.85rem;
+  }
+}
+
+/* Extra small screens - hide icon and center title */
+@media (max-width: 320px) {
+  #markAllRead svg {
+    display: none;
+  }
+
+  .header-content {
+    width: 100%;
+    text-align: center;
+  }
+
+  .header-content .page-title {
+    text-align: center;
+    width: 100%;
+  }
+
+  #markAllRead {
+    padding: 0.65rem 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  #refreshNotifications {
+    padding: 0.65rem 0.5rem;
+    font-size: 0.8rem;
   }
 }
