@@ -28,6 +28,7 @@
 }
 
 .blog-header h1 {
+  margin-bottom: 0 !important;
   font-size: 2em;
   font-weight: 700;
   color: #444;
@@ -41,15 +42,16 @@
   width: 150px;
   text-align: center;
   gap: 0.5rem;
-  padding: 5px 15px;
-  background: #256035;
+  padding: 0.5rem 1rem;
+  background: #0f5132;
   text-decoration: none;
   border-radius: 10px;
   transition: background-color 0.2s ease;
 }
 
 .create-post-btn:hover {
-  background: #3d764ceb;
+  color: white;
+  background: #0a5c36;
   transform: translateY(-2px);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
@@ -84,6 +86,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  position: relative;
 }
 
 .username {
@@ -95,63 +98,110 @@
 .actions {
   display: flex;
   gap: 0.8rem;
+  align-items: center;
+  position: relative;
 }
 
 .action-btn {
   cursor: pointer;
   text-decoration: none;
-  padding: 0px 5px;
-  border-radius: 50%;
-  transition: background-color 0.3s ease;
-  background-color: white;
-  border: #828282 1px solid;
+  padding: 6px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  color: #6c757d;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
 }
 
 .action-btn:hover {
-  background-color: #eee;
-  border: #676767 1px solid;
-  transform: translateY(-0.5px);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  background-color: #e9ecef;
+  border-color: #adb5bd;
+  color: #495057;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .action-box {
-  width: 90px;
+  width: 120px;
   display: none;
   position: absolute;
-  justify-content: space-between;
-  z-index: 7;
+  right: 0;
+  top: 35px;
+  z-index: 100;
   background: white;
-  border: 1px solid #eee;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  padding: 8px;
-  border-radius: 5px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  overflow: hidden;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.edit-btn,
+.delete-btn {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 12px 16px;
+  text-decoration: none;
   border: none;
+  background: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.edit-btn:last-child,
+.delete-btn:last-child {
+  border-bottom: none;
 }
 
 .edit-btn {
-  color: #676767;
-  text-decoration: none;
-  font-size: 18px;
-  margin-bottom: 5px;
-  border: none;
-  background-color: white;
-  padding-left: 6px;
+  color: #495057;
 }
 
-.edit-btn a:hover {
-  transform: translateY(-2px);
+.edit-btn:hover {
+  background: #f8f9fa;
+  color: #0f5132;
+  transform: none;
+}
+
+.edit-btn svg {
+  margin-right: 8px;
+  flex-shrink: 0;
 }
 
 .delete-btn {
-  color: #9a3131;
-  text-decoration: none;
-  font-size: 18px;
-  border: none;
-  background-color: white;
+  color: #dc3545;
 }
 
 .delete-btn:hover {
-  transform: translateY(-1px);
+  background: #f8d7da;
+  color: #721c24;
+  transform: none;
+}
+
+.delete-btn svg {
+  margin-right: 8px;
+  flex-shrink: 0;
 }
 
 .post-date {

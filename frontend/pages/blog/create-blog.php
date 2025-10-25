@@ -15,6 +15,36 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+// Check if user has completed orders (delivered or picked up)
+$user_id = $_SESSION['user_id'];
+$order_check_query = "SELECT COUNT(*) as completed_orders FROM orders 
+                      WHERE user_id = ? AND (status = 'delivered' OR status = 'picked-up')";
+$order_stmt = mysqli_prepare($conn, $order_check_query);
+
+if ($order_stmt) {
+    mysqli_stmt_bind_param($order_stmt, "i", $user_id);
+    mysqli_stmt_execute($order_stmt);
+    $order_result = mysqli_stmt_get_result($order_stmt);
+    if ($order_result) {
+        $order_row = mysqli_fetch_assoc($order_result);
+        $has_completed_orders = $order_row['completed_orders'] > 0;
+    } else {
+        $has_completed_orders = false;
+    }
+    mysqli_stmt_close($order_stmt);
+} else {
+    // If orders table doesn't exist or query fails, allow testimonials for now
+    // You can change this to false if you want to restrict when table doesn't exist
+    $has_completed_orders = true;
+}
+
+// If user doesn't have completed orders, redirect with message
+if (!$has_completed_orders) {
+    $_SESSION['error_message'] = "You need to have at least one completed order (delivered or picked up) before submitting a testimonial.";
+    header("Location: user-blog.php");
+    exit();
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = trim($_POST['title']);
     $content = trim($_POST['content']);
@@ -67,17 +97,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Create Blog Post - NeoExclusiveCafe</title>
+  <title>Submit Testimonial - NeoExclusiveCafe</title>
   <link rel="icon" type="image/x-icon" href="/frontend/favicon.ico">
 </head>
 <body>
         <?php include __DIR__ . "/../../user-includes/bread-crumb/bread-crumb.php"; ?>
 
-<div class="wrapper">
+<div class="content-wrapper">
 
     <div class="create-blog-header">
         <div class="title-container">
-            <h2 class="cont-title">Create a Post</h2>
+            <h2 class="cont-title">Submit a Testimonial</h2>
         </div>
 
     </div>
@@ -101,7 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <div class="ddescription">
                 <label class="lbl-title">Description</label>
-                <textarea class="description" id="content" name="content" required></textarea>
+                <textarea class="description" id="content" name="content" maxlength="500" required></textarea>
             </div>
         </div>
 
