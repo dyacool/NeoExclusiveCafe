@@ -406,15 +406,32 @@ $debug_info = [
             
             <div class="summary-items">
                 <?php foreach ($cart_items as $item): ?>
-                    <div class="item">
+                    <div class="item" data-status-id="<?= $item['status_id'] ?>" data-availtoday-status-id="<?= $item['availtoday_status_id'] ?? 'null' ?>">
                         <div class="item-info">
-                            <h3><?= htmlspecialchars($item['name']) ?></h3>
+                            <h3>
+                                <?= htmlspecialchars($item['name']) ?>
+                                <?php if ($item['status_id'] == 3 || ($item['availtoday_status_id'] === null && $item['status_id'] == 3)): ?>
+                                    <span class="shipping-indicator" style="display: inline-block; margin-left: 8px; padding: 2px 8px; background: #f0f0f0; border-radius: 3px; font-size: 11px; color: #666; font-weight: normal;"></span>
+                                <?php endif; ?>
+                            </h3>
                             <p class="quantity">Quantity: <?= $item['quantity'] ?></p>
                             <p class="item-method">
                                 <?php if ($item['availtoday_status_id']): ?>
-                                    <strong><?php echo htmlspecialchars($item['availtoday_status_name']); ?></strong>
+                                    <?php if ($item['availtoday_status_id'] == 1): ?>
+                                        <strong style="color: #4CAF50;">Pick Up Only!</strong>
+                                    <?php elseif ($item['availtoday_status_id'] == 2): ?>
+                                        <strong style="color: #2196F3;">Delivery Only!</strong>
+                                    <?php else: ?>
+                                        <strong><?php echo htmlspecialchars($item['availtoday_status_name']); ?></strong>
+                                    <?php endif; ?>
                                 <?php else: ?>
-                                    <strong><?php echo $item['status_id'] == 1 ? 'Pick Up' : 'Delivery'; ?></strong>
+                                    <?php if ($item['status_id'] == 1): ?>
+                                        <strong style="color: #4CAF50;">Pick Up Only!</strong>
+                                    <?php elseif ($item['status_id'] == 2): ?>
+                                        <strong style="color: #2196F3;">Delivery Only!</strong>
+                                    <?php else: ?>
+                                        <strong><?php echo $item['status_id'] == 1 ? 'Pick Up' : ($item['status_id'] == 2 ? 'Delivery' : 'Flexible'); ?></strong>
+                                    <?php endif; ?>
                                     <span class="auto-assigned">(Auto-assigned)</span>
                                 <?php endif; ?>
                             </p>
@@ -582,6 +599,52 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize visibility
     updateVisibility();
+    
+    // Update shipping method inheritance indicators for Status 3 products
+    function updateShippingInheritance() {
+        const cartItems = <?= json_encode($cart_items) ?>;
+        let hasPickupOnly = false;
+        let hasDeliveryOnly = false;
+        
+        // Check what types of products are in cart (considering both status_id and availtoday_status_id)
+        cartItems.forEach(item => {
+            // Check availtoday_status_id first, then fall back to status_id
+            if (item.availtoday_status_id === 1 || (item.availtoday_status_id === null && item.status_id === 1)) {
+                hasPickupOnly = true;
+            }
+            if (item.availtoday_status_id === 2 || (item.availtoday_status_id === null && item.status_id === 2)) {
+                hasDeliveryOnly = true;
+            }
+        });
+        
+        // Determine inherited method
+        let inheritedMethod = null;
+        if (hasPickupOnly && !hasDeliveryOnly) {
+            inheritedMethod = 'pickup';
+        } else if (hasDeliveryOnly && !hasPickupOnly) {
+            inheritedMethod = 'delivery';
+        }
+        
+        // Update Status 3 product indicators (flexible products)
+        document.querySelectorAll('.item[data-status-id="3"]').forEach(item => {
+            const availtodayStatusId = item.getAttribute('data-availtoday-status-id');
+            // Only update if availtoday_status_id is null (meaning it's flexible)
+            if (availtodayStatusId === 'null') {
+                const indicator = item.querySelector('.shipping-indicator');
+                if (indicator && inheritedMethod) {
+                    indicator.textContent = inheritedMethod === 'pickup' ? '→ Will be Pick Up' : '→ Will be Delivery';
+                    indicator.style.display = 'inline-block';
+                } else if (indicator) {
+                    indicator.style.display = 'none';
+                }
+            }
+        });
+        
+        console.log('Available Today - Shipping inheritance updated:', inheritedMethod);
+    }
+    
+    // Initialize shipping inheritance
+    updateShippingInheritance();
 
     if (setLocationBtn) {
         setLocationBtn.addEventListener('click', function() {

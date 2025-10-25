@@ -122,33 +122,47 @@ function handleEditStatusChange() {
     const isAvailableTodayContainer = document.getElementById('isAvailableTodayContainer');
     const availableTodayCalendarContainer = document.getElementById('availableTodayCalendarContainer');
     const availtodayOptionsContainer = document.getElementById('editAvailtodayOptions');
+    const availabilityContainer = document.getElementById('availabilityContainer');
     
     if (!statusSelect) return;
     
     const selectedValue = statusSelect.value;
     
     if (selectedValue === '1' || selectedValue === '2' || selectedValue === '3') { // Pick Up, Delivery, or Delivery or Pick Up
-        // Show regular days and isAvailableToday option
+        // Show regular days, availability, and isAvailableToday option
         if (regularDaysContainer) regularDaysContainer.style.display = 'block';
         if (todaysCalendarContainer) todaysCalendarContainer.style.display = 'none';
         if (isAvailableTodayContainer) isAvailableTodayContainer.style.display = 'block';
+        if (availabilityContainer) availabilityContainer.style.display = 'block'; // Show availability
         // Don't hide availtodayOptionsContainer here - let the radio button control it
         
     } else if (selectedValue === '4') { // Same Day Order (status_id 4)
-        // For Same Day Order: Show calendar and availtoday options
+        // For Same Day Order: Hide availability, show calendar and availtoday options
         if (regularDaysContainer) regularDaysContainer.style.display = 'none';
         if (todaysCalendarContainer) todaysCalendarContainer.style.display = 'block';
         if (isAvailableTodayContainer) isAvailableTodayContainer.style.display = 'none';
         if (availableTodayCalendarContainer) availableTodayCalendarContainer.style.display = 'none';
         if (availtodayOptionsContainer) availtodayOptionsContainer.style.display = 'block'; // Show availtoday options
+        if (availabilityContainer) availabilityContainer.style.display = 'none'; // Hide availability for Same Day Order
         
         // Initialize Today's product calendar if not already done
         if (!todaysProductEditCalendar && document.getElementById('todaysProductCalendar')) {
             todaysProductEditCalendar = new DateCalendar('todaysProductCalendar', {
                 onSelectionChange: function(selectedDates) {
                     document.getElementById('todaysProductDates').value = selectedDates.join(',');
+                    // Update quantity display when dates change
+                    if (typeof updateQuantityDisplay === 'function') {
+                        updateQuantityDisplay();
+                    }
                 }
             });
+        }
+        
+        // Update quantity display for existing dates
+        if (typeof updateQuantityDisplay === 'function') {
+            setTimeout(() => {
+                updateQuantityDisplay();
+            }, 100);
         }
         
     } else {
@@ -158,6 +172,7 @@ function handleEditStatusChange() {
         if (isAvailableTodayContainer) isAvailableTodayContainer.style.display = 'none';
         if (availableTodayCalendarContainer) availableTodayCalendarContainer.style.display = 'none';
         if (availtodayOptionsContainer) availtodayOptionsContainer.style.display = 'none';
+        if (availabilityContainer) availabilityContainer.style.display = 'block'; // Show availability for other statuses
     }
 }
 
@@ -167,22 +182,45 @@ function handleEditStatusChange() {
 function handleIsAvailableTodayChange() {
     const isAvailableTodayRadio = document.getElementById('isAvailableToday');
     const availableTodayCalendarContainer = document.getElementById('availableTodayCalendarContainer');
+    const availtodayOptionsContainer = document.getElementById('editAvailtodayOptions');
     
     if (!isAvailableTodayRadio || !availableTodayCalendarContainer) return;
     
     if (isAvailableTodayRadio.checked) {
         availableTodayCalendarContainer.style.display = 'block';
         
+        // Show availtoday options when "Set to same day order too" is checked
+        if (availtodayOptionsContainer) {
+            availtodayOptionsContainer.style.display = 'block';
+        }
+        
         // Initialize Available Today calendar if not already done
         if (!availableTodayEditCalendar && document.getElementById('availableTodayCalendar')) {
             availableTodayEditCalendar = new DateCalendar('availableTodayCalendar', {
                 onSelectionChange: function(selectedDates) {
                     document.getElementById('availableTodayDates').value = selectedDates.join(',');
+                    // Update quantity display when dates change
+                    if (typeof updateQuantityDisplay === 'function') {
+                        updateQuantityDisplay();
+                    }
                 }
             });
         }
+        
+        // Update quantity display for existing dates
+        if (typeof updateQuantityDisplay === 'function') {
+            setTimeout(() => {
+                updateQuantityDisplay();
+            }, 100);
+        }
     } else {
         availableTodayCalendarContainer.style.display = 'none';
+        
+        // Hide availtoday options when unchecked
+        if (availtodayOptionsContainer) {
+            availtodayOptionsContainer.style.display = 'none';
+        }
+        
         // Clear the hidden input
         const availableTodayDatesInput = document.getElementById('availableTodayDates');
         if (availableTodayDatesInput) {
@@ -191,6 +229,12 @@ function handleIsAvailableTodayChange() {
         // Clear calendar selection
         if (availableTodayEditCalendar) {
             availableTodayEditCalendar.clearAllDates();
+        }
+        
+        // Clear quantity display
+        const sdoQuantityContainer = document.getElementById('sdoQuantityContainerRegular');
+        if (sdoQuantityContainer) {
+            sdoQuantityContainer.innerHTML = '<p style="color: #6b7280; font-size: 13px;">Select dates to set quantities</p>';
         }
     }
 }

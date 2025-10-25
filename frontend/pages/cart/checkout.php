@@ -1719,6 +1719,7 @@ $debug_info = [
             initializeCalendars();
             initializeTimeInputs();
             updateVisibility();
+            updateShippingInheritance();
             
             // Initialize coupon event listeners
             const applyCouponBtn = document.getElementById('apply_coupon_btn');
@@ -1752,6 +1753,40 @@ $debug_info = [
             updateCalendarAvailableDays();
         } catch (error) {
             // Error during initialization
+        }
+
+        // Update shipping method inheritance indicators for Status 3 products
+        function updateShippingInheritance() {
+            const cartItems = <?= json_encode($cart_items) ?>;
+            let hasPickupOnly = false;
+            let hasDeliveryOnly = false;
+            
+            // Check what types of products are in cart
+            cartItems.forEach(item => {
+                if (item.status_id === 1) hasPickupOnly = true;
+                if (item.status_id === 2) hasDeliveryOnly = true;
+            });
+            
+            // Determine inherited method
+            let inheritedMethod = null;
+            if (hasPickupOnly && !hasDeliveryOnly) {
+                inheritedMethod = 'pickup';
+            } else if (hasDeliveryOnly && !hasPickupOnly) {
+                inheritedMethod = 'delivery';
+            }
+            
+            // Update Status 3 product indicators
+            document.querySelectorAll('.item[data-status-id="3"]').forEach(item => {
+                const indicator = item.querySelector('.shipping-indicator');
+                if (indicator && inheritedMethod) {
+                    indicator.textContent = inheritedMethod === 'pickup' ? '→ Will be Pick Up' : '→ Will be Delivery';
+                    indicator.style.display = 'inline-block';
+                } else if (indicator) {
+                    indicator.style.display = 'none';
+                }
+            });
+            
+            console.log('Shipping inheritance updated:', inheritedMethod);
         }
 
         // Form submission handler with PayMongo integration
@@ -2067,10 +2102,20 @@ $debug_info = [
             
             <div class="summary-items">
                 <?php foreach ($cart_items as $item): ?>
-                    <div class="item">
+                    <div class="item" data-status-id="<?= $item['status_id'] ?>">
                         <div class="item-info">
-                            <h3><?= htmlspecialchars($item['name']) ?></h3>
+                            <h3>
+                                <?= htmlspecialchars($item['name']) ?>
+                                <?php if ($item['status_id'] == 3): ?>
+                                    <span class="shipping-indicator" style="display: inline-block; margin-left: 8px; padding: 2px 8px; background: #f0f0f0; border-radius: 3px; font-size: 11px; color: #666; font-weight: normal;"></span>
+                                <?php endif; ?>
+                            </h3>
                             <p class="quantity">Quantity: <?= $item['quantity'] ?></p>
+                            <?php if ($item['status_id'] == 1): ?>
+                                <p class="product-shipping-method" style="font-size: 12px; color: #4CAF50; font-weight: 600;">Pick Up Only!</p>
+                            <?php elseif ($item['status_id'] == 2): ?>
+                                <p class="product-shipping-method" style="font-size: 12px; color: #2196F3; font-weight: 600;">Delivery Only!</p>
+                            <?php endif; ?>
                         </div>
                         <div class="item-price">₱<?= number_format($item['price'] * $item['quantity'], 2) ?></div>
                     </div>

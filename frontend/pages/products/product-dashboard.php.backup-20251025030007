@@ -416,7 +416,6 @@ if ($cart_truncated) {
                                 'price' => $row['price'],
                                 'description' => $row['description'],
                                 'status' => $row['status_name'],
-                                'status_id' => $row['status_id'],
                                 'images' => $images,
                                 'is_featured' => (bool)$row['is_featured'],
                                 'quantity' => $row['quantity'],
@@ -477,7 +476,7 @@ if ($cart_truncated) {
                                     </div>
                                     <div class='product-info'>
                                         <h3>" . htmlspecialchars($row['name']) . "</h3>
-                                        <p class='price'>" . number_format($row['price'], 2) . "</p>";
+                                        <p class='price'>â‚±" . number_format($row['price'], 2) . "</p>";
                             
                             // First row: availtoday status badge and stock
                             echo "<div class='info-row-1'>";
@@ -774,6 +773,27 @@ if ($cart_truncated) {
         }
     }
 
+    function updateModalQuantity(change) {
+        const input = document.getElementById('modalQuantity');
+        const max = parseInt(input.max);
+        const newValue = parseInt(input.value) + change;
+        if (newValue >= 1 && newValue <= max) {
+            input.value = newValue;
+        }
+    }
+
+    function validateModalQuantity() {
+        const input = document.getElementById('modalQuantity');
+        const value = parseInt(input.value);
+        const max = parseInt(input.max);
+        
+        if (isNaN(value) || value < 1) {
+            input.value = 1;
+        } else if (value > max) {
+            input.value = max;
+        }
+    }
+
     function showConfirmation(message, isError = false) {
         const popup = document.getElementById('confirmationPopup');
         popup.textContent = message;
@@ -832,6 +852,10 @@ if ($cart_truncated) {
                 productAvailableDays.style.display = 'none';
             }
 
+            // Set quantity input max value
+            quantityInput.max = product.quantity || 0;
+            quantityInput.value = 1;
+
             // Set up images
             if (product.images && Array.isArray(product.images) && product.images.length > 0) {
                 mainImage.src = '../../../assets/' + product.images[0];
@@ -857,12 +881,16 @@ if ($cart_truncated) {
             // quantityInput.disabled = false; // Removed
             addToCartBtn.onclick = () => addToCartFromModal();
 
-            modal.classList.add('show');
-        } catch (error) {
-            console.error('Error in openProductModal:', error);
-            showConfirmation('An error occurred while opening the product details', true);
-        }
+
+            }
+        };
+
+        modal.classList.add('show');
+    } catch (error) {
+        console.error('Error in openProductModal:', error);
+        showConfirmation('An error occurred while opening the product details', true);
     }
+}
 
 function closeProductModal() {
     productModalOpen = false;
@@ -932,391 +960,6 @@ function closeProductModal() {
                 debugDiv.innerHTML = 'Error: ' + error.message;
             });
     }
-
-    // Open product modal from data attribute
-    window.openProductModalFromData = function(element) {
-        const productData = JSON.parse(element.getAttribute('data-product'));
-        openProductModal(productData);
-    };
-
-    // Quantity Modal Variables
-    let pendingCartProduct = null;
-
-    // Add to cart function - Opens quantity modal
-    function addToCart(productId, button) {
-        const productCard = button.closest('.product-card');
-        if (!productCard) {
-            console.error('Product card not found');
-            return;
-        }
-        
-        const productData = JSON.parse(productCard.getAttribute('data-product'));
-        const productName = productData.name;
-        const productPrice = '₱' + parseFloat(productData.price).toFixed(2);
-        const productStock = productData.quantity;
-        const statusId = productData.status_id;
-        const availtodayStatusId = productData.availtoday_status_id;
-        
-        // Store product info for later
-        pendingCartProduct = {
-            id: productId,
-            name: productName,
-            price: productPrice,
-            stock: productStock,
-            button: button,
-            statusId: statusId,
-            availtodayStatusId: availtodayStatusId,
-            selectedOrderType: 'preorder' // Default
-        };
-        
-        // Open quantity modal with order type options
-        openQuantityModalWithOrderType(productName, productPrice, productStock, statusId, availtodayStatusId);
-    }
-
-    // Add to cart from modal - Opens quantity modal
-    function addToCartFromModal() {
-        if (!currentProductModalData) {
-            console.error('No product data available');
-            return;
-        }
-        
-        const productName = currentProductModalData.name;
-        const productPrice = '₱' + parseFloat(currentProductModalData.price).toFixed(2);
-        const productStock = currentProductModalData.quantity;
-        const statusId = currentProductModalData.status_id;
-        const availtodayStatusId = currentProductModalData.availtoday_status_id;
-        
-        // Store product info for later
-        pendingCartProduct = {
-            id: currentProductModalData.id,
-            name: productName,
-            price: productPrice,
-            stock: productStock,
-            button: null,
-            statusId: statusId,
-            availtodayStatusId: availtodayStatusId,
-            selectedOrderType: 'preorder' // Default
-        };
-        
-        // Close product modal first
-        closeProductModal();
-        
-        // Open quantity modal with order type options
-        openQuantityModalWithOrderType(productName, productPrice, productStock, statusId, availtodayStatusId);
-    }
-
-    // Check if same-day option should be available
-    async function checkSameDayAvailability(productId) {
-        try {
-            const response = await fetch(`get-sdo-quantity.php?product_id=${productId}`);
-            const data = await response.json();
-            
-            if (data.success) {
-                // Check if there's quantity available today
-                const todayQuantity = data.quantity || 0;
-                const hasDateToday = data.has_date_today || false;
-                
-                // Same-day is available if:
-                // 1. There's a date for today AND
-                // 2. There's quantity available
-                return hasDateToday && todayQuantity > 0;
-            }
-            return false;
-        } catch (error) {
-            console.error('Error checking same-day availability:', error);
-            return false;
-        }
-    }
-
-    // Open quantity modal with order type selection
-    async function openQuantityModalWithOrderType(productName, productPrice, productStock, statusId, availtodayStatusId) {
-        const modal = document.getElementById('quantityModal');
-        document.getElementById('quantityModalProductName').textContent = productName;
-        document.getElementById('quantityModalPrice').textContent = productPrice;
-        
-        const quantityInput = document.getElementById('quantityModalInput');
-        const orderTypeSelector = document.getElementById('orderTypeSelector');
-        const dateDisplay = document.getElementById('quantityModalDate');
-        
-        // Determine which order types to show
-        // Status 1, 2, 3 = Pre-order products
-        // Status 4 = Same Day Order products
-        // If product has both status (1,2,3) AND availtoday_status_id, show both options
-        
-        if ((statusId == 1 || statusId == 2 || statusId == 3) && availtodayStatusId) {
-            // Product has BOTH pre-order and same day order
-            // Check if same-day is actually available today
-            const sameDayAvailable = await checkSameDayAvailability(pendingCartProduct.id);
-            
-            if (sameDayAvailable) {
-                // Show both options
-                orderTypeSelector.style.display = 'block';
-                document.getElementById('quantityModalStock').textContent = `Stock: ${productStock}`;
-                quantityInput.value = 1;
-                quantityInput.max = productStock;
-                selectOrderType('preorder'); // Default to pre-order
-            } else {
-                // Same-day not available - show pre-order only
-                orderTypeSelector.style.display = 'none';
-                dateDisplay.style.display = 'none';
-                pendingCartProduct.selectedOrderType = 'preorder';
-                document.getElementById('quantityModalStock').textContent = `Stock: ${productStock}`;
-                quantityInput.value = 1;
-                quantityInput.max = productStock;
-            }
-        } else if (statusId == 4) {
-            // Same Day Order ONLY - Fetch today's quantity
-            orderTypeSelector.style.display = 'none';
-            dateDisplay.style.display = 'block';
-            dateDisplay.textContent = 'For: Today';
-            pendingCartProduct.selectedOrderType = 'sameday';
-            
-            // Fetch today's quantity before showing modal
-            document.getElementById('quantityModalStock').textContent = 'Loading...';
-            quantityInput.value = 1;
-            quantityInput.max = 1;
-            
-            fetchTodayQuantity(pendingCartProduct.id);
-        } else {
-            // Pre-order ONLY (status 1, 2, or 3 without availtoday_status_id)
-            orderTypeSelector.style.display = 'none';
-            dateDisplay.style.display = 'none';
-            pendingCartProduct.selectedOrderType = 'preorder';
-            document.getElementById('quantityModalStock').textContent = `Stock: ${productStock}`;
-            quantityInput.value = 1;
-            quantityInput.max = productStock;
-        }
-        
-        modal.style.display = 'flex';
-    }
-
-    // Select order type
-    function selectOrderType(type) {
-        const buttons = document.querySelectorAll('.order-type-btn');
-        buttons.forEach(btn => {
-            if (btn.getAttribute('data-type') === type) {
-                btn.classList.add('active');
-            } else {
-                btn.classList.remove('active');
-            }
-        });
-        
-        const dateDisplay = document.getElementById('quantityModalDate');
-        const stockDisplay = document.getElementById('quantityModalStock');
-        
-        if (type === 'sameday') {
-            dateDisplay.style.display = 'block';
-            dateDisplay.textContent = 'For: Today';
-            
-            // Fetch today's specific quantity from database
-            if (pendingCartProduct) {
-                fetchTodayQuantity(pendingCartProduct.id);
-            }
-        } else {
-            dateDisplay.style.display = 'none';
-            
-            // Restore original stock quantity for pre-order
-            if (pendingCartProduct) {
-                stockDisplay.textContent = `Stock: ${pendingCartProduct.stock}`;
-                const quantityInput = document.getElementById('quantityModalInput');
-                quantityInput.max = pendingCartProduct.stock;
-                quantityInput.value = Math.min(parseInt(quantityInput.value) || 1, pendingCartProduct.stock);
-            }
-        }
-        
-        if (pendingCartProduct) {
-            pendingCartProduct.selectedOrderType = type;
-        }
-    }
-
-    // Fetch today's specific quantity for same day orders
-    function fetchTodayQuantity(productId) {
-        const stockDisplay = document.getElementById('quantityModalStock');
-        stockDisplay.textContent = 'Loading...';
-        
-        fetch(`get-sdo-quantity.php?product_id=${productId}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const todayQuantity = data.quantity || 0;
-                    stockDisplay.textContent = `Stock: ${todayQuantity}`;
-                    
-                    const quantityInput = document.getElementById('quantityModalInput');
-                    quantityInput.max = todayQuantity;
-                    quantityInput.value = Math.min(parseInt(quantityInput.value) || 1, todayQuantity);
-                    
-                    if (todayQuantity === 0) {
-                        stockDisplay.textContent = 'Stock: 0 (Not available today)';
-                    }
-                } else {
-                    console.error('Error fetching today quantity:', data.error);
-                    stockDisplay.textContent = 'Stock: 0';
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                stockDisplay.textContent = 'Stock: 0';
-            });
-    }
-
-    // Close quantity modal
-    function closeQuantityModal() {
-        document.getElementById('quantityModal').style.display = 'none';
-        pendingCartProduct = null;
-    }
-
-    // Update quantity value
-    function updateQuantityModalValue(change) {
-        const input = document.getElementById('quantityModalInput');
-        const currentValue = parseInt(input.value) || 1;
-        const newValue = currentValue + change;
-        const maxValue = parseInt(input.max);
-        
-        if (newValue >= 1 && newValue <= maxValue) {
-            input.value = newValue;
-        }
-    }
-
-    // Validate quantity input
-    function validateQuantityModalInput() {
-        const input = document.getElementById('quantityModalInput');
-        const value = parseInt(input.value) || 1;
-        const maxValue = parseInt(input.max);
-        
-        if (value < 1) {
-            input.value = 1;
-        } else if (value > maxValue) {
-            input.value = maxValue;
-        }
-    }
-
-    // Confirm and add to cart
-    function confirmAddToCart() {
-        if (!pendingCartProduct) return;
-        
-        const quantity = parseInt(document.getElementById('quantityModalInput').value) || 1;
-        const confirmBtn = document.querySelector('.quantity-modal-actions .btn-confirm');
-        
-        if (!confirmBtn) return;
-        
-        // Store original button text
-        const originalText = confirmBtn.textContent;
-        
-        // Disable button and show loading state
-        confirmBtn.disabled = true;
-        confirmBtn.style.opacity = '0.7';
-        confirmBtn.style.cursor = 'not-allowed';
-        confirmBtn.innerHTML = '<span class="loading-spinner-small"></span> Adding to cart...';
-        
-        // Determine which cart to add to based on selectedOrderType
-        const orderType = pendingCartProduct.selectedOrderType || 'preorder';
-        
-        // Simulate async operation (add to cart)
-        setTimeout(() => {
-            let addSuccess = false;
-            
-            if (orderType === 'sameday') {
-                // Add to same-day cart (availtoday_cart table)
-                if (typeof addToAvailableTodayCart === 'function') {
-                    addToAvailableTodayCart(pendingCartProduct.id, quantity, pendingCartProduct.button);
-                    addSuccess = true;
-                } else {
-                    console.error('Same-day cart function not available');
-                }
-            } else {
-                // Add to pre-order cart (cart table)
-                // Use fetch to add to regular cart
-                fetch('../cart/add-to-cart.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `product_id=${pendingCartProduct.id}&quantity=${quantity}`
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        addSuccess = true;
-                        
-                        // Show success state
-                        confirmBtn.innerHTML = '<span class="success-icon">✓</span> Product added!';
-                        confirmBtn.style.backgroundColor = '#4CAF50';
-                        
-                        // Show confirmation message
-                        showConfirmation(`Added ${quantity} ${pendingCartProduct.name} to cart`, false);
-                        
-                        // Close modal after short delay
-                        setTimeout(() => {
-                            closeQuantityModal();
-                            
-                            // Reset button state
-                            confirmBtn.disabled = false;
-                            confirmBtn.style.opacity = '1';
-                            confirmBtn.style.cursor = 'pointer';
-                            confirmBtn.textContent = originalText;
-                            confirmBtn.style.backgroundColor = '';
-                        }, 800);
-                    } else {
-                        console.error('Failed to add to cart:', data.message);
-                        showConfirmation(data.message || 'Failed to add to cart', true);
-                        
-                        // Reset button on error
-                        confirmBtn.disabled = false;
-                        confirmBtn.style.opacity = '1';
-                        confirmBtn.style.cursor = 'pointer';
-                        confirmBtn.textContent = originalText;
-                    }
-                })
-                .catch(error => {
-                    console.error('Error adding to cart:', error);
-                    showConfirmation('Error adding to cart', true);
-                    
-                    // Reset button on error
-                    confirmBtn.disabled = false;
-                    confirmBtn.style.opacity = '1';
-                    confirmBtn.style.cursor = 'pointer';
-                    confirmBtn.textContent = originalText;
-                });
-                return; // Exit early for async fetch
-            }
-            
-            // For same-day cart (synchronous)
-            if (addSuccess) {
-                // Show success state
-                confirmBtn.innerHTML = '<span class="success-icon">✓</span> Product added!';
-                confirmBtn.style.backgroundColor = '#4CAF50';
-                
-                // Show confirmation message
-                showConfirmation(`Added ${quantity} ${pendingCartProduct.name} to cart`, false);
-                
-                // Close modal after short delay
-                setTimeout(() => {
-                    closeQuantityModal();
-                    
-                    // Reset button state
-                    confirmBtn.disabled = false;
-                    confirmBtn.style.opacity = '1';
-                    confirmBtn.style.cursor = 'pointer';
-                    confirmBtn.textContent = originalText;
-                    confirmBtn.style.backgroundColor = '';
-                }, 800);
-            } else {
-                // Reset button on error
-                confirmBtn.disabled = false;
-                confirmBtn.style.opacity = '1';
-                confirmBtn.style.cursor = 'pointer';
-                confirmBtn.textContent = originalText;
-            }
-        }, 500); // Small delay to show loading state
-    }
-
-    // Close modal when clicking outside
-    window.addEventListener('click', function(event) {
-        const quantityModal = document.getElementById('quantityModal');
-        if (event.target === quantityModal) {
-            closeQuantityModal();
-        }
-    });
 </script>
 
 <style>
@@ -1327,38 +970,6 @@ function closeProductModal() {
     input[type="number"]::-webkit-inner-spin-button {
         -webkit-appearance: none;
         margin: 0;
-    }
-    
-    /* Loading spinner for add to cart button */
-    .loading-spinner-small {
-        display: inline-block;
-        width: 14px;
-        height: 14px;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-top: 2px solid white;
-        border-radius: 50%;
-        animation: spin 0.8s linear infinite;
-        margin-right: 8px;
-        vertical-align: middle;
-    }
-    
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-    
-    /* Success icon */
-    .success-icon {
-        display: inline-block;
-        margin-right: 6px;
-        font-size: 16px;
-        font-weight: bold;
-    }
-    
-    /* Button disabled state */
-    .btn-confirm:disabled {
-        cursor: not-allowed !important;
-        opacity: 0.7 !important;
     }
     
     /* Cart Truncated Notification Styles */

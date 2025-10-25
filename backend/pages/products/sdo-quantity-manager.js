@@ -82,8 +82,19 @@ function updateQuantityDisplay() {
     
     console.log('Selected dates after split:', selectedDates);
     
+    // Clean up quantities for dates that are no longer selected
+    const currentDates = Object.keys(sdoQuantities);
+    currentDates.forEach(date => {
+        if (!selectedDates.includes(date)) {
+            console.log('Removing quantity for unselected date:', date);
+            delete sdoQuantities[date];
+        }
+    });
+    
     if (selectedDates.length === 0) {
         container.innerHTML = '<p style="color: #6b7280; font-size: 13px;">Select dates to set quantities</p>';
+        // Clear all quantities when no dates selected
+        sdoQuantities = Object.create(null);
         return;
     }
     

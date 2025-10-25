@@ -1,0 +1,2419 @@
+﻿<?php
+session_set_cookie_params([
+    'lifetime' => 0,
+    'httponly' => true,
+    'samesite' => 'Strict',
+    'domain' => 'neocafe.cafe'
+]);
+session_start();
+
+// Debug session status
+error_log("[Session Debug] product-dashboard.php - Session Data: " . print_r($_SESSION, true));
+error_log("[Session Debug] product-dashboard.php - User ID: " . (isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 'Not set'));
+error_log("[Session Debug] product-dashboard.php - User Role: " . (isset($_SESSION['user_role']) ? $_SESSION['user_role'] : 'Not set'));
+
+$page_title = "Products";
+$additional_css = [
+    "/frontend/pages/products/product-dashboard.css"
+];
+
+require_once __DIR__ . "/../../user-includes/navbar/customer-navigation.php";
+require_once __DIR__ . "/../../user-includes/user-header.php";
+require_once __DIR__ . "/../../user-includes/preview-mode.php";
+require_once __DIR__ . "/../../../backend/pages/admin-includes/database.php";
+require_once __DIR__ . "/../../../backend/pages/products/todays-products-handler.php";
+
+// Clean up past dates automatically when page loads
+cleanupPastDates();
+
+// DISABLED: Function to truncate cart_availtoday when business hours are closed OR items are from previous days
+// This functionality is commented out for now
+/*
+function truncateCartIfBusinessClosed() {
+    global $conn;
+    
+    try {
+        $truncated = false;
+        
+        // STEP 1: Remove old date assignments from products (date-based cleanup)
+        // Remove dates from previous days so products are no longer marked for same-day delivery
+        
+        // Remove old dates from Today's products table
+        $old_todays_dates = "DELETE FROM todays_products_dates WHERE available_date < CURDATE()";
+        $result1 = $conn->query($old_todays_dates);
+        $removed_todays = ($result1 && $conn->affected_rows > 0) ? $conn->affected_rows : 0;
+        
+        // Remove old dates from regular products' today dates table
+        $old_regular_dates = "DELETE FROM regular_products_today_dates WHERE available_date < CURDATE()";
+        $result2 = $conn->query($old_regular_dates);
+        $removed_regular = ($result2 && $conn->affected_rows > 0) ? $conn->affected_rows : 0;
+        
+        $total_removed = $removed_todays + $removed_regular;
+        if ($total_removed > 0) {
+            error_log("Auto-cleanup (product-dashboard): Removed $removed_todays old dates from todays_products_dates, $removed_regular from regular_products_today_dates");
+            $truncated = true;
+        }
+        
+        // STEP 1B: Clean up cart items for products that no longer have valid same-day dates
+        $cleanup_cart = "DELETE FROM availtoday_cart WHERE DATE(created_at) < CURDATE()";
+        $cleanup_result = $conn->query($cleanup_cart);
+        if ($cleanup_result && $conn->affected_rows > 0) {
+            error_log("Auto-cleanup (product-dashboard): Removed {$conn->affected_rows} old cart items from previous days");
+            $truncated = true;
+        }
+        
+        // STEP 2: Check if business is closed (time-based truncation)
+        // Get current time
+        $current_time = date('H:i:s');
+        
+        // Get business hours
+        $business_hours_query = "SELECT opening_time, closing_time FROM business_hours ORDER BY id DESC LIMIT 1";
+        $business_hours_result = $conn->query($business_hours_query);
+        
+        if (!$business_hours_result) {
+            error_log("Failed to get business hours: " . $conn->error);
+            return $truncated;
+        }
+        
+        if ($business_hours_result->num_rows === 0) {
+            // No business hours set, show loading state
+            $opening_time = 'Loading...';
+            $closing_time = 'Loading...';
+            error_log("No business hours set, showing loading state");
+        } else {
+            $business_hours = $business_hours_result->fetch_assoc();
+            $opening_time = $business_hours['opening_time'];
+            $closing_time = $business_hours['closing_time'];
+            error_log("Business hours: $opening_time - $closing_time");
+        }
+        
+        // Check if current time is after closing time
+        // Convert times to minutes for proper comparison (handles midnight crossing)
+        $current_minutes = (intval(substr($current_time, 0, 2)) * 60) + intval(substr($current_time, 3, 2));
+        $closing_minutes = (intval(substr($closing_time, 0, 2)) * 60) + intval(substr($closing_time, 3, 2));
+        $opening_minutes = (intval(substr($opening_time, 0, 2)) * 60) + intval(substr($opening_time, 3, 2));
+        
+        // Handle midnight crossing - if current time is much earlier than closing time, we're past midnight
+        $is_closed = false;
+        
+        // Check if we're past midnight (current time is much earlier than closing time)
+        if ($closing_minutes > 1200 && $current_minutes < 600) { // If closing time is after 8 PM and current time is before 10 AM
+            // We're past midnight, so business is closed
+            $is_closed = true;
+            error_log("Business closed - past midnight (current: $current_minutes, closing: $closing_minutes)");
+        } else if ($current_minutes > $closing_minutes) {
+            // Normal case - current time is after closing time
+            $is_closed = true;
+            error_log("Business closed - after closing time (current: $current_minutes, closing: $closing_minutes)");
+        }
+        
+        error_log("Time analysis: current=$current_time ($current_minutes min), opening=$opening_time ($opening_minutes min), closing=$closing_time ($closing_minutes min), is_closed=" . ($is_closed ? 'Yes' : 'No'));
+        
+        if ($is_closed) {
+            // Check if cart has items before truncating
+            $count_query = "SELECT COUNT(*) as cart_count FROM availtoday_cart";
+            $count_result = $conn->query($count_query);
+            
+            if ($count_result) {
+                $count_data = $count_result->fetch_assoc();
+                $cart_count = $count_data['cart_count'];
+                error_log("Cart currently has $cart_count items");
+                
+                if ($cart_count > 0) {
+                    // Business is closed, truncate the availtoday_cart table
+                    $truncate_query = "TRUNCATE TABLE availtoday_cart";
+                    $truncate_result = $conn->query($truncate_query);
+                    
+                    if ($truncate_result) {
+                        error_log("SUCCESS: Cart truncated successfully - $cart_count items removed");
+                        $truncated = true;
+                    } else {
+                        error_log("ERROR: Failed to truncate cart: " . $conn->error);
+                        return $truncated;
+                    }
+                } else {
+                    error_log("Cart is already empty - no action needed");
+                    return $truncated;
+                }
+            } else {
+                error_log("ERROR: Failed to count cart items: " . $conn->error);
+                return false;
+            }
+        }
+        
+        return false; // No action taken
+    } catch (Exception $e) {
+        error_log("Error truncating cart: " . $e->getMessage());
+        return false;
+    }
+}
+*/
+
+// DISABLED: Check and truncate cart if business is closed
+// $cart_truncated = truncateCartIfBusinessClosed();
+$cart_truncated = false; // Disabled for now
+
+// Debug: Log the result
+// error_log("Cart truncation result: " . ($cart_truncated ? 'SUCCESS' : 'No action needed'));
+
+if ($cart_truncated) {
+    // Clear any session cart data
+    if (isset($_SESSION['availableTodayCart'])) {
+        unset($_SESSION['availableTodayCart']);
+    }
+    if (isset($_SESSION['availableTodayCartTotal'])) {
+        unset($_SESSION['availableTodayCartTotal']);
+    }
+    
+    // Set a flag to show notification
+    $_SESSION['cart_truncated_notification'] = true;
+    
+    // Also clear localStorage via JavaScript
+    echo "<script>
+        if (typeof localStorage !== 'undefined') {
+            localStorage.removeItem('availableTodayCart');
+            localStorage.removeItem('availableTodayCartTotal');
+        }
+    </script>";
+}
+?>
+    <?php include __DIR__ . "/../../user-includes/bread-crumb/bread-crumb.php"; ?>
+    <div id="confirmationPopup" class="confirmation-popup"></div>
+
+<div class="wrapper">
+
+    <?php if (isset($_SESSION['cart_truncated_notification']) && $_SESSION['cart_truncated_notification']): ?>
+        <div class="cart-truncated-notification" id="cartTruncatedNotification">
+            <div class="notification-content">
+                <span>ðŸ• Business hours closed. Cart has been cleared for the day.</span>
+                <button onclick="closeCartTruncatedNotification()" class="close-notification-btn">Ã—</button>
+            </div>
+        </div>
+        <?php unset($_SESSION['cart_truncated_notification']); ?>
+    <?php endif; ?>
+
+    <!-- Debug: Manual test button for cart truncation -->
+    <?php if (isset($_SESSION['is_admin']) && $_SESSION['is_admin']): ?>
+        <div style="position: fixed; top: 80px; right: 20px; z-index: 9999; background: #333; color: white; padding: 10px; border-radius: 5px; font-size: 12px;">
+            <button onclick="testCartTruncation()" style="background: #ff6b6b; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">Test Cart Truncation</button>
+            <div id="truncationDebug" style="margin-top: 10px; font-size: 10px;"></div>
+            
+            <!-- Time Analysis Display -->
+            <div style="margin-top: 10px; padding: 5px; background: #444; border-radius: 3px; font-size: 10px;">
+                <strong>Time Analysis:</strong><br>
+                Current: <?php echo date('H:i:s'); ?><br>
+                <?php
+                $business_hours_query = "SELECT opening_time, closing_time FROM business_hours ORDER BY id DESC LIMIT 1";
+                $business_hours_result = $conn->query($business_hours_query);
+                if ($business_hours_result && $business_hours_result->num_rows > 0) {
+                    $business_hours = $business_hours_result->fetch_assoc();
+                    echo "Hours: " . $business_hours['opening_time'] . " - " . $business_hours['closing_time'] . "<br>";
+                    
+                    $current_time = date('H:i:s');
+                    $current_minutes = (intval(substr($current_time, 0, 2)) * 60) + intval(substr($current_time, 3, 2));
+                    $closing_minutes = (intval(substr($business_hours['closing_time'], 0, 2)) * 60) + intval(substr($business_hours['closing_time'], 3, 2));
+                    
+                    $is_closed = false;
+                    if ($closing_minutes > 1200 && $current_minutes < 600) {
+                        $is_closed = true;
+                    } else if ($current_minutes > $closing_minutes) {
+                        $is_closed = true;
+                    }
+                    
+                    echo "Status: " . ($is_closed ? '<span style="color: #ff6b6b;">CLOSED</span>' : '<span style="color: #4CAF50;">OPEN</span>') . "<br>";
+                } else {
+                    echo "Hours: loading... (default)<br>";
+                    echo "Status: <span style='color: #4CAF50;'>OPEN</span> (default)<br>";
+                }
+                ?>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <div class="main-container fade-in">
+        <!-- Title - Always visible across all states -->
+        <h1 class="prdct-title">
+            <?php
+            // Get category from URL
+            $selected_category = isset($_GET['category']) ? $_GET['category'] : null;
+            $category_name = 'All Products';
+            
+            if ($selected_category) {
+                // Get category name
+                $cat_query = "SELECT name FROM categories WHERE slug = ? AND is_active = 1";
+                $cat_stmt = mysqli_prepare($conn, $cat_query);
+                mysqli_stmt_bind_param($cat_stmt, "s", $selected_category);
+                mysqli_stmt_execute($cat_stmt);
+                $cat_result = mysqli_stmt_get_result($cat_stmt);
+                if ($cat_row = mysqli_fetch_assoc($cat_result)) {
+                    $category_name = $cat_row['name'];
+                }
+            }
+            echo htmlspecialchars($category_name);
+            ?>
+        </h1>
+        
+        <!-- Category Tabs -->
+        <div class="category-tabs">
+            <a href="product-dashboard.php" class="category-tab <?php echo !$selected_category ? 'active' : ''; ?>">All Products</a>
+            <?php
+            // Fetch categories for tabs
+            $tab_query = "SELECT name, slug FROM categories WHERE is_active = 1 ORDER BY display_order ASC, name ASC";
+            $tab_result = mysqli_query($conn, $tab_query);
+            if ($tab_result && mysqli_num_rows($tab_result) > 0) {
+                while ($tab_cat = mysqli_fetch_assoc($tab_result)) {
+                    $is_active = ($selected_category === $tab_cat['slug']) ? 'active' : '';
+                    echo '<a href="product-dashboard.php?category=' . urlencode($tab_cat['slug']) . '" class="category-tab ' . $is_active . '">' . htmlspecialchars($tab_cat['name']) . '</a>';
+                }
+            }
+            ?>
+        </div>
+        
+        <!-- Subtitle - Only shown when business is open -->
+        <div class="header-section" id="headerSection" style="display: none;">
+            <h2 class="prdct-subtitle" id="currentDate"></h2>
+        </div>
+        
+        <!-- Loading state message -->
+        <div id="loadingMessage" class="loading-state-message">
+            <div class="loading-spinner-container">
+                <div class="loading-spinner"></div>
+                <p>Loading contents...</p>
+            </div>
+        </div>
+        
+        <!-- Centered message for when business is closed -->
+        <div id="closedMessage" class="business-closed-message" style="display: none;">
+            <div class="closed-icon"></div>
+            <h2>Business Hours Have Ended</h2>
+            <p>Check again tomorrow for exciting pre-made breads!</p>
+            <div class="business-hours-display" id="businessHoursDisplay">
+                <div class="loading-spinner-small"></div>
+                <span>Loading hours...</span>
+            </div>
+        </div>
+        
+        <div class="scroll-container" id="scrollContainer" style="display: none;">
+            <div class="products-grid" id="productScroll">
+                <?php
+                    // Get today's date
+                    $today_date = date('Y-m-d'); // Returns date in YYYY-MM-DD format
+                    
+                    // Get selected category from URL
+                    $selected_category = isset($_GET['category']) ? $_GET['category'] : null;
+                    $category_id = null;
+                    
+                    // If category is selected, get its ID
+                    if ($selected_category) {
+                        $cat_query = "SELECT id FROM categories WHERE slug = ? AND is_active = 1";
+                        $cat_stmt = mysqli_prepare($conn, $cat_query);
+                        mysqli_stmt_bind_param($cat_stmt, "s", $selected_category);
+                        mysqli_stmt_execute($cat_stmt);
+                        $cat_result = mysqli_stmt_get_result($cat_stmt);
+                        if ($cat_row = mysqli_fetch_assoc($cat_result)) {
+                            $category_id = $cat_row['id'];
+                        }
+                    }
+                    
+                    // Query for ALL products (status_id 1, 2, 3, 4) with optional category filter
+                    // Status 4 = Same Day Order (changed from 3)
+                    $sql = "SELECT 
+                                p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.category_id,
+                                ps.name AS status_name, pi.image_url, p.quantity, p.show_when_unavailable,
+                                p.availtoday_status_id, ats.name AS availtoday_status_name,
+                                c.name AS category_name,
+                                GROUP_CONCAT(DISTINCT tpd.available_date ORDER BY tpd.available_date SEPARATOR ', ') as todays_product_dates,
+                                GROUP_CONCAT(DISTINCT rptd.available_date ORDER BY rptd.available_date SEPARATOR ', ') as regular_today_dates
+                            FROM products p
+                            LEFT JOIN product_statuses ps ON p.status_id = ps.id
+                            LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
+                            LEFT JOIN availtoday_status ats ON p.availtoday_status_id = ats.id
+                            LEFT JOIN categories c ON p.category_id = c.id
+                            LEFT JOIN todays_products_dates tpd ON p.id = tpd.product_id
+                            LEFT JOIN regular_products_today_dates rptd ON p.id = rptd.product_id
+                            WHERE p.deleted_at IS NULL 
+                            AND p.id > 0 
+                            AND p.status_id IN (1, 2, 3, 4)";
+                    
+                    // Add category filter if selected
+                    if ($category_id) {
+                        $sql .= " AND p.category_id = ?";
+                    }
+                    
+                    $sql .= " GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.category_id, ps.name, pi.image_url, p.quantity, p.show_when_unavailable, p.availtoday_status_id, ats.name, c.name
+                            ORDER BY p.is_featured DESC, p.name ASC";
+                    
+                    // Prepare and execute the statement
+                    $stmt = $conn->prepare($sql);
+                    if ($category_id) {
+                        $stmt->bind_param("i", $category_id);
+                    }
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+
+                    // Fetch all products into an array for custom sorting
+                    $all_products = [];
+                    while ($row = $result->fetch_assoc()) {
+                        $all_products[] = $row;
+                    }
+                    
+                    // Custom sort: Prioritize products available TODAY (from either table)
+                    usort($all_products, function($a, $b) use ($today_date) {
+                        // Check if product A is available today
+                        $a_available_today = false;
+                        // Check todays_product_dates
+                        if (!empty($a['todays_product_dates'])) {
+                            $a_dates = explode(', ', $a['todays_product_dates']);
+                            $a_available_today = in_array($today_date, $a_dates);
+                        }
+                        // Check regular_today_dates
+                        if (!$a_available_today && !empty($a['regular_today_dates'])) {
+                            $a_dates = explode(', ', $a['regular_today_dates']);
+                            $a_available_today = in_array($today_date, $a_dates);
+                        }
+                        
+                        // Check if product B is available today
+                        $b_available_today = false;
+                        // Check todays_product_dates
+                        if (!empty($b['todays_product_dates'])) {
+                            $b_dates = explode(', ', $b['todays_product_dates']);
+                            $b_available_today = in_array($today_date, $b_dates);
+                        }
+                        // Check regular_today_dates
+                        if (!$b_available_today && !empty($b['regular_today_dates'])) {
+                            $b_dates = explode(', ', $b['regular_today_dates']);
+                            $b_available_today = in_array($today_date, $b_dates);
+                        }
+                        
+                        // Priority 1: Available today (0 = highest priority)
+                        if ($a_available_today && !$b_available_today) return -1;
+                        if (!$a_available_today && $b_available_today) return 1;
+                        
+                        // Priority 2: Featured products
+                        if ($a['is_featured'] && !$b['is_featured']) return -1;
+                        if (!$a['is_featured'] && $b['is_featured']) return 1;
+                        
+                        // Priority 3: Alphabetical by name
+                        return strcmp($a['name'], $b['name']);
+                    });
+
+                    if (count($all_products) > 0) {
+                        foreach ($all_products as $row) {
+                            // Get all images for this product
+                            $images_sql = "SELECT image_url FROM product_images WHERE product_id = ?";
+                            $images_stmt = $conn->prepare($images_sql);
+                            $images_stmt->bind_param("i", $row['id']);
+                            $images_stmt->execute();
+                            $images_result = $images_stmt->get_result();
+                            $images = [];
+                            while ($image = $images_result->fetch_assoc()) {
+                                $images[] = $image['image_url'];
+                            }
+                            
+                            $productData = [
+                                'id' => $row['id'],
+                                'name' => $row['name'],
+                                'price' => $row['price'],
+                                'description' => $row['description'],
+                                'status' => $row['status_name'],
+                                'images' => $images,
+                                'is_featured' => (bool)$row['is_featured'],
+                                'quantity' => $row['quantity'],
+                                'show_when_unavailable' => (bool)$row['show_when_unavailable'],
+                                'availtoday_status_id' => $row['availtoday_status_id'],
+                                'availtoday_status_name' => $row['availtoday_status_name'],
+                                'todays_product_dates' => $row['todays_product_dates'] ? explode(', ', $row['todays_product_dates']) : [],
+                                'regular_today_dates' => $row['regular_today_dates'] ? explode(', ', $row['regular_today_dates']) : []
+                            ];
+                            
+                            $featuredClass = $row['is_featured'] ? 'featured-product' : '';
+                            $statusClass = strtolower(str_replace(' ', '-', $row['status_name']));
+                            
+                            $productDataJson = htmlspecialchars(json_encode($productData), ENT_QUOTES, 'UTF-8');
+                            // Get available dates for display
+                            // Status 4 = Same Day Order (changed from 3)
+                            $available_dates = $row['status_id'] == 4 ? $row['todays_product_dates'] : $row['regular_today_dates'];
+                            
+                            // Check if product is available TODAY
+                            // Can be from either:
+                            // 1. Pure status 4 (Same Day Order only) - uses todays_product_dates
+                            // 2. Status 1/2/3 with same-day option - uses regular_today_dates
+                            $is_available_today = false;
+                            
+                            // Check todays_product_dates (for status 4 products)
+                            if (!empty($row['todays_product_dates'])) {
+                                $todays_dates = explode(', ', $row['todays_product_dates']);
+                                if (in_array($today_date, $todays_dates)) {
+                                    $is_available_today = true;
+                                }
+                            }
+                            
+                            // Check regular_today_dates (for status 1/2/3 products with same-day option)
+                            if (!$is_available_today && !empty($row['regular_today_dates'])) {
+                                $regular_dates = explode(', ', $row['regular_today_dates']);
+                                if (in_array($today_date, $regular_dates)) {
+                                    $is_available_today = true;
+                                }
+                            }
+                            
+                            echo "<div class='product-card {$featuredClass}' data-status='" . htmlspecialchars($row['status_name']) . "' 
+                                  data-available-dates='" . htmlspecialchars($available_dates ?? '') . "'
+                                  data-product='" . $productDataJson . "' onclick='openProductModalFromData(this)'>";
+                            
+                            // Add small "Today" badge on the left if available today
+                            if ($is_available_today) {
+                                echo "<div class='today-badge-left'>Today</div>";
+                            }
+                            
+                            echo "    <div class='product-image'>";
+                            
+                            // Add "Available Today!" badge overlay on image if product is available today
+                            if ($is_available_today) {
+                                echo "<div class='available-today-badge'>Available Today!</div>";
+                            }
+                            
+                            echo "    <img src='../../../assets/" . htmlspecialchars($row['image_url'] ?: 'images/no-image.jpg') . "' alt='" . htmlspecialchars($row['name']) . "'>
+                                    </div>
+                                    <div class='product-info'>
+                                        <h3>" . htmlspecialchars($row['name']) . "</h3>
+                                        <p class='price'>â‚±" . number_format($row['price'], 2) . "</p>";
+                            
+                            // First row: availtoday status badge and stock
+                            echo "<div class='info-row-1'>";
+                            if (!empty($row['availtoday_status_name'])) {
+                                echo "<span class='availtoday-badge'>" . htmlspecialchars($row['availtoday_status_name']) . "</span>";
+                            }
+                            echo "<p class='stock'>Stock: " . $row['quantity'] . "</p>
+                                  </div>";
+                            
+                            // Second row: status badge and available dates
+                            echo "<div class='info-row-2'>
+                                    <span class='status-badge status-{$statusClass}'>" . htmlspecialchars($row['status_name']) . "</span>";
+                            
+                            // Display available dates if product has them
+                            if (!empty($available_dates)) {
+                                // Format dates for display (e.g., "8/27, 8/28, 8/29")
+                                $dates_array = explode(', ', $available_dates);
+                                $formatted_dates = [];
+                                foreach ($dates_array as $date) {
+                                    $dateObj = DateTime::createFromFormat('Y-m-d', trim($date));
+                                    if ($dateObj) {
+                                        $formatted_dates[] = $dateObj->format('n/j'); // Format as M/D (e.g., 8/27)
+                                    }
+                                }
+                                echo "<p class='available-dates'>Available Dates: " . htmlspecialchars(implode(', ', $formatted_dates)) . "</p>";
+                            }
+                            
+                            echo "</div>
+                                  
+                                    <button class='add-to-cart' onclick='event.stopPropagation(); addToCart(" . $row['id'] . ", this)'>Add to Cart</button>
+                                </div>
+                            </div>";
+                        }
+                    } else {
+                        echo "<div class='no-products'>No products available for " . $today . " at the moment.</div>";
+                    }
+                    $stmt->close();
+                    $conn->close();
+                ?>
+            </div> 
+        </div> 
+    </div>
+</div>
+
+<!-- Quantity Modal (appears before adding to cart) -->
+<div id="quantityModal" class="modal" style="display: none;">
+    <div class="modal-content quantity-modal-content fade-in-pop">
+        <span class="close" onclick="closeQuantityModal()">&times;</span>
+        <div class="quantity-modal-body">
+            <h2 id="quantityModalProductName">Product Name</h2>
+            <p class="quantity-modal-price" id="quantityModalPrice">â‚±0.00</p>
+            
+            <!-- Order Type Selector (shown only if product has both pre-order and same day order) -->
+            <div id="orderTypeSelector" class="order-type-selector" style="display: none;">
+                <label>Order Type:</label>
+                <div class="order-type-buttons">
+                    <button type="button" class="order-type-btn active" data-type="preorder" onclick="selectOrderType('preorder')">
+                        Pre-Order
+                    </button>
+                    <button type="button" class="order-type-btn" data-type="sameday" onclick="selectOrderType('sameday')">
+                        Same Day Order
+                    </button>
+                </div>
+            </div>
+            
+            <p class="quantity-modal-stock" id="quantityModalStock">Stock: 0</p>
+            <p class="quantity-modal-date" id="quantityModalDate" style="display: none; font-size: 13px; color: #666; margin-top: 5px;">For: Today</p>
+            
+            <div class="quantity-modal-controls">
+                <label>Quantity:</label>
+                <div class="quantity-controls">
+                    <button type="button" onclick="updateQuantityModalValue(-1)">-</button>
+                    <input type="number" id="quantityModalInput" value="1" min="1" onchange="validateQuantityModalInput()">
+                    <button type="button" onclick="updateQuantityModalValue(1)">+</button>
+                </div>
+            </div>
+            
+            <div class="quantity-modal-actions">
+                <button class="btn-cancel" onclick="closeQuantityModal()">Cancel</button>
+                <button class="btn-confirm" onclick="confirmAddToCart()">Add to Cart</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Product Modal -->
+<div id="productModal" class="modal" style="display: none;">
+    <div class="modal-content fade-in-pop">
+        <span class="close" onclick="closeProductModal()">&times;</span>
+        <div class="modal-body">
+            <div class="product-images">
+                <div class="main-image">
+                    <img id="modalMainImage" src="../../../assets/images/no-image.jpg" alt="Product Image">
+                </div>
+                <div class="thumbnail-container" id="thumbnailContainer">
+                    <!-- Thumbnails will be added here dynamically -->
+                </div>
+            </div>
+            <div class="product-details">
+                <h2 class="modal-title" id="modalProductName"></h2>
+                <p class="modal-price" id="modalProductPrice"></p>
+                <div class="prdct-qty">
+                    <span class="status-badge" id="modalProductStatus"></span>
+                    <p class="stock" id="modalProductStock"></p>
+                    <p class="available-days" id="modalProductAvailableDays" style="display: none;"></p>
+                </div>
+                <h3>Description:</h3>
+                <div class="description" id="modalProductDescription"></div>
+                <button class="add-to-cart" id="modalAddToCart" onclick="addToCartFromModal()">Add to Cart</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Available Today Cart JavaScript -->
+<script src="availtoday-cart.js"></script>
+
+<script>
+    // Remove console.log
+    let productModalOpen = false;
+    let totalProducts = 0;
+    const itemsPerRow = 4;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const scrollContainer = document.getElementById('productScroll');
+        const products = scrollContainer.querySelectorAll('.product-card');
+        
+        totalProducts = products.length;
+        
+        // Show scroll mode if more than 4 products
+        if (totalProducts > itemsPerRow) {
+            setupScroll();
+        } else {
+            // For 4 or less products, display them normally in a grid
+            scrollContainer.classList.add('normal-grid');
+        }
+        
+            // Initialize business hours functionality
+        initBusinessHours();
+    });
+
+    function setupScroll() {
+        const scrollContainer = document.getElementById('productScroll');
+        scrollContainer.classList.add('scroll-mode');
+        
+        // No additional scroll listeners needed - native scrolling handles everything
+    }
+
+    // Smooth scroll to specific position
+    function scrollToPosition(scrollContainer, targetPosition) {
+        scrollContainer.scrollTo({
+            left: targetPosition,
+            behavior: 'smooth'
+        });
+    }
+
+    // Available Today cart functions are now handled by availtoday-cart.js
+
+    // Business Hours Management
+    let businessHours = {
+        openingTime: null,
+        closingTime: null
+    };
+
+    function initBusinessHours() {
+        loadBusinessHours();
+        // Check every minute
+        setInterval(checkBusinessHoursAndUpdateDisplay, 60000);
+    }
+
+    function loadBusinessHours() {
+        fetch('get-business-hours.php')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.businessHours) {
+                    businessHours.openingTime = data.businessHours.opening_time;
+                    businessHours.closingTime = data.businessHours.closing_time;
+                    updateTimerDisplay();
+                    // Check immediately after data loads
+                    checkBusinessHoursAndUpdateDisplay();
+                    // Hide loading message once data is loaded
+                    hideLoadingMessage();
+                }
+            })
+            .catch(error => {
+                console.error('Error loading business hours:', error);
+                hideLoadingMessage();
+            });
+    }
+    
+    function hideLoadingMessage() {
+        const loadingMessage = document.getElementById('loadingMessage');
+        if (loadingMessage) {
+            loadingMessage.style.display = 'none';
+        }
+    }
+
+    function checkBusinessHoursAndUpdateDisplay() {
+        const currentTime = new Date().toTimeString().slice(0, 5);
+        const isOpen = isWithinBusinessHours(currentTime);
+        updateProductVisibility(isOpen);
+        updateTimerDisplay();
+    }
+
+    function isWithinBusinessHours(currentTime) {
+        if (!businessHours.openingTime || !businessHours.closingTime) return false;
+        
+        const currentMinutes = parseInt(currentTime.split(':')[0]) * 60 + parseInt(currentTime.split(':')[1]);
+        const openingMinutes = parseInt(businessHours.openingTime.split(':')[0]) * 60 + parseInt(businessHours.openingTime.split(':')[1]);
+        const closingMinutes = parseInt(businessHours.closingTime.split(':')[0]) * 60 + parseInt(businessHours.closingTime.split(':')[1]);
+        
+        return currentMinutes >= openingMinutes && currentMinutes < closingMinutes;
+    }
+
+    function updateProductVisibility(isOpen) {
+        const productsGrid = document.getElementById('productScroll');
+        const scrollContainer = document.getElementById('scrollContainer');
+        const headerSection = document.getElementById('headerSection');
+        const closedMessage = document.getElementById('closedMessage');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const businessHoursDisplay = document.getElementById('businessHoursDisplay');
+        
+        // Hide loading message once we know the state
+        if (loadingMessage) {
+            loadingMessage.style.display = 'none';
+        }
+        
+        if (!isOpen) {
+            // Business is closed - show closed message
+            productsGrid.style.display = 'none';
+            scrollContainer.style.display = 'none';
+            headerSection.style.display = 'none';
+            closedMessage.style.display = 'flex';
+            
+            // Update business hours display with formatted time
+            if (businessHours.openingTime && businessHours.closingTime) {
+                businessHoursDisplay.innerHTML = `<span>Business Hours: ${formatTimeForDisplay(businessHours.openingTime)} - ${formatTimeForDisplay(businessHours.closingTime)}</span>`;
+            }
+        } else {
+            // Business is open - show products
+            productsGrid.style.display = 'grid';
+            scrollContainer.style.display = 'block';
+            headerSection.style.display = 'block';
+            closedMessage.style.display = 'none';
+            
+            // Update subtitle with current date
+            const subtitle = document.getElementById('currentDate');
+            if (subtitle) {
+                subtitle.textContent = new Date().toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+            }
+        }
+    }
+
+    function updateTimerDisplay() {
+        // Update business hours display in closed message if visible
+        const businessHoursDisplay = document.getElementById('businessHoursDisplay');
+        if (businessHoursDisplay && businessHours.openingTime && businessHours.closingTime) {
+            businessHoursDisplay.innerHTML = `<span>Business Hours: ${formatTimeForDisplay(businessHours.openingTime)} - ${formatTimeForDisplay(businessHours.closingTime)}</span>`;
+        }
+    }
+
+    function formatTimeForDisplay(timeString) {
+        // Convert 24-hour format to 12-hour format
+        const [hours, minutes] = timeString.split(':');
+        const hour = parseInt(hours);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+        return `${displayHour}:${minutes} ${ampm}`;
+    }
+
+    function updateQuantity(button, change) {
+        const container = button.parentElement;
+        const input = container.querySelector('input');
+        const newValue = parseInt(input.value) + change;
+        if (newValue >= parseInt(input.min) && newValue <= parseInt(input.max)) {
+            input.value = newValue;
+        }
+    }
+
+    function validateQuantity(input) {
+        const value = parseInt(input.value);
+        const max = parseInt(input.max);
+        const min = parseInt(input.min);
+        
+        if (isNaN(value) || value < min) {
+            input.value = min;
+        } else if (value > max) {
+            input.value = max;
+        }
+    }
+
+    function updateModalQuantity(change) {
+        const input = document.getElementById('modalQuantity');
+        const max = parseInt(input.max);
+        const newValue = parseInt(input.value) + change;
+        if (newValue >= 1 && newValue <= max) {
+            input.value = newValue;
+        }
+    }
+
+    function validateModalQuantity() {
+        const input = document.getElementById('modalQuantity');
+        const value = parseInt(input.value);
+        const max = parseInt(input.max);
+        
+        if (isNaN(value) || value < 1) {
+            input.value = 1;
+        } else if (value > max) {
+            input.value = max;
+        }
+    }
+
+    function showConfirmation(message, isError = false) {
+        const popup = document.getElementById('confirmationPopup');
+        popup.textContent = message;
+        popup.className = 'confirmation-popup' + (isError ? ' error' : ' success');
+        popup.classList.add('show');
+        
+        setTimeout(() => {
+            popup.classList.remove('show');
+            popup.classList.add('hide');
+            setTimeout(() => {
+                popup.classList.remove('hide');
+            }, 300);
+        }, 3000);
+    }
+
+    function openProductModal(product) {
+        try {
+            if (!product || typeof product !== 'object') {
+                console.error('Invalid product data:', product);
+                return;
+            }
+
+            currentProductModalData = product; // Store for later use
+            const modal = document.getElementById('productModal');
+            const mainImage = document.getElementById('modalMainImage');
+            const thumbnails = document.getElementById('thumbnailContainer');
+            const productName = document.getElementById('modalProductName');
+            const productPrice = document.getElementById('modalProductPrice');
+            const productStatus = document.getElementById('modalProductStatus');
+            const productDescription = document.getElementById('modalProductDescription');
+            const productStock = document.getElementById('modalProductStock');
+            const productAvailableDays = document.getElementById('modalProductAvailableDays');
+            // const quantityInput = document.getElementById('modalQuantity'); // Removed - using quantity modal
+            const addToCartBtn = document.getElementById('modalAddToCart');
+
+            // Set main content
+            productName.textContent = product.name || 'Unknown Product';
+            productPrice.textContent = 'â‚±' + (parseFloat(product.price) || 0).toFixed(2);
+            productStatus.textContent = product.status || 'Available Today';
+            productStatus.className = 'status-badge status-' + (product.status || '').toLowerCase().replace(' ', '-');
+            productDescription.textContent = product.description || 'No description available';
+            productStock.textContent = 'Stock: ' + (product.quantity || 0);
+
+            // Handle available dates in modal
+            // Status 4 = Same Day Order (changed from 3)
+            const availableDates = product.status_id == 4 ? product.todays_product_dates : product.regular_today_dates;
+            if (availableDates && availableDates.length > 0) {
+                // Format dates for display (e.g., "8/27, 8/28, 8/29")
+                const formattedDates = availableDates.map(date => {
+                    const dateObj = new Date(date + 'T00:00:00'); // Add time to avoid timezone issues
+                    return (dateObj.getMonth() + 1) + '/' + dateObj.getDate(); // Format as M/D
+                });
+                productAvailableDays.textContent = 'Available: ' + formattedDates.join(', ');
+                productAvailableDays.style.display = 'block';
+            } else {
+                productAvailableDays.style.display = 'none';
+            }
+
+            // Set quantity input max value
+            quantityInput.max = product.quantity || 0;
+            quantityInput.value = 1;
+
+            // Set up images
+            if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+                mainImage.src = '../../../assets/' + product.images[0];
+                thumbnails.innerHTML = '';
+                product.images.forEach((image, index) => {
+                    if (image) {
+                        const thumb = document.createElement('img');
+                        thumb.src = '../../../assets/' + image;
+                        thumb.alt = `${product.name || 'Product'} view ${index + 1}`;
+                        thumb.onclick = () => mainImage.src = thumb.src;
+                        thumbnails.appendChild(thumb);
+                    }
+                });
+            } else {
+                mainImage.src = '../../../assets/images/no-image.jpg';
+                thumbnails.innerHTML = '';
+            }
+
+            // Set up Add to Cart button
+            addToCartBtn.disabled = false;
+            addToCartBtn.textContent = 'Add to Cart';
+            addToCartBtn.classList.remove('unavailable');
+            // quantityInput.disabled = false; // Removed
+            addToCartBtn.onclick = () => addToCartFromModal();
+
+
+            }
+        };
+
+        modal.classList.add('show');
+    } catch (error) {
+        console.error('Error in openProductModal:', error);
+        showConfirmation('An error occurred while opening the product details', true);
+    }
+}
+
+function closeProductModal() {
+    productModalOpen = false;
+    const modal = document.getElementById('productModal');
+    modal.classList.remove('show');
+}    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('productModal');
+        if (event.target == modal) {
+            closeProductModal();
+        }
+    }
+
+    // Add touch/swipe support for mobile
+    // Enhanced touch/swipe support for smooth scrolling
+    let isScrolling = false;
+    let startX = 0;
+    let scrollLeft = 0;
+
+    document.addEventListener('touchstart', function(e) {
+        const scrollContainer = document.getElementById('productScroll');
+        if (!e.target.closest('#productScroll')) return;
+        
+        isScrolling = true;
+        startX = e.touches[0].clientX;
+        scrollLeft = scrollContainer.scrollLeft;
+    }, { passive: true });
+
+    document.addEventListener('touchmove', function(e) {
+        if (!isScrolling) return;
+        
+        const scrollContainer = document.getElementById('productScroll');
+        if (!e.target.closest('#productScroll')) return;
+        
+        const x = e.touches[0].clientX;
+        const walk = (startX - x) * 2; // Scroll speed multiplier
+        scrollContainer.scrollLeft = scrollLeft + walk;
+    }, { passive: true });
+
+    document.addEventListener('touchend', function(e) {
+        isScrolling = false;
+    }, { passive: true });
+    
+    // Function to close cart truncated notification
+    function closeCartTruncatedNotification() {
+        const notification = document.getElementById('cartTruncatedNotification');
+        if (notification) {
+            notification.style.display = 'none';
+        }
+    }
+    
+    // Function to test cart truncation manually
+    function testCartTruncation() {
+        const debugDiv = document.getElementById('truncationDebug');
+        debugDiv.innerHTML = 'Testing cart truncation...';
+        
+        fetch('test-truncation.php')
+            .then(response => response.text())
+            .then(data => {
+                debugDiv.innerHTML = data.replace(/\n/g, '<br>');
+                // Refresh the page to see if cart was truncated
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
+            })
+            .catch(error => {
+                debugDiv.innerHTML = 'Error: ' + error.message;
+            });
+    }
+</script>
+
+<style>
+    input[type="number"] {
+        -moz-appearance: textfield;
+    }
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    
+    /* Cart Truncated Notification Styles */
+    .cart-truncated-notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        z-index: 10000;
+        max-width: 350px;
+        animation: slideInRight 0.5s ease-out;
+    }
+    
+    .notification-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+    }
+    
+    .notification-content span {
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 1.4;
+    }
+    
+    .close-notification-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 18px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.3s ease;
+    }
+    
+    .close-notification-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+    
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .cart-truncated-notification {
+            top: 10px;
+            right: 10px;
+            left: 10px;
+            max-width: none;
+        }
+    }
+</style>
+            
+        </div>
+        <div id="footer-container">
+    <?php require_once "../../user-includes/user-footer.php"; ?>
+</div>
+
+
+
+    </div>
+</div>
+
+<script>
+// Quantity Modal Functions
+let pendingCartProduct = null;
+let currentProductModalData = null;
+function addToCart(productId, button) {
+    const productCard = button.closest('.product-card');
+    if (!productCard) {
+        console.error('Product card not found');
+        return;
+    }
+    
+    const productData = JSON.parse(productCard.getAttribute('data-product'));
+    const productName = productCard.querySelector('h3').textContent;
+    const productPrice = productCard.querySelector('.price').textContent;
+    const productStock = productCard.querySelector('.stock').textContent.replace('Stock: ', '');
+    
+    pendingCartProduct = {
+        id: productId,
+        name: productName,
+        price: productPrice,
+        stock: parseInt(productStock),
+        button: button,
+        statusId: productData.status_id || null,
+        availtodayStatusId: productData.availtoday_status_id || null,
+        hasBothTypes: false,
+        selectedOrderType: 'preorder'
+    };
+    
+    // Check if product has both pre-order and same day order
+    if ((productData.status_id == 1 || productData.status_id == 2 || productData.status_id == 3) && productData.availtoday_status_id) {
+        pendingCartProduct.hasBothTypes = true;
+    }
+    
+    openQuantityModalWithOrderType(productName, productPrice, productStock, 1, pendingCartProduct);
+}
+
+function addToCartFromModal() {
+    // Get product data from the currently open product modal
+    if (!currentProductModalData) {
+        console.error('No product data available');
+        return;
+    }
+    
+    const productName = document.getElementById('modalProductName').textContent;
+    const productPrice = document.getElementById('modalProductPrice').textContent;
+    const productStock = document.getElementById('modalProductStock').textContent.replace('Stock: ', '');
+    
+    pendingCartProduct = {
+        id: currentProductModalData.id,
+        name: productName,
+        price: productPrice,
+        stock: parseInt(productStock),
+        button: null,
+        statusId: currentProductModalData.status_id || null,
+        availtodayStatusId: currentProductModalData.availtoday_status_id || null,
+        hasBothTypes: false,
+        selectedOrderType: 'preorder'
+    };
+    
+    // Check if product has both types
+    if ((currentProductModalData.status_id == 1 || currentProductModalData.status_id == 2 || currentProductModalData.status_id == 3) && currentProductModalData.availtoday_status_id) {
+        pendingCartProduct.hasBothTypes = true;
+    }
+    
+    // Close product modal
+    closeProductModal();
+    
+    // Open quantity modal
+    openQuantityModalWithOrderType(productName, productPrice, productStock, 1, pendingCartProduct);
+}
+}
+
+function openQuantityModal(productName, productPrice, productStock, initialQuantity = 1) {
+    const modal = document.getElementById('quantityModal');
+    document.getElementById('quantityModalProductName').textContent = productName;
+    document.getElementById('quantityModalPrice').textContent = productPrice;
+    document.getElementById('quantityModalStock').textContent = `Stock: ${productStock}`;
+    
+    const quantityInput = document.getElementById('quantityModalInput');
+    quantityInput.value = initialQuantity;
+    quantityInput.max = productStock;
+    
+    modal.style.display = 'flex';
+}
+
+function closeQuantityModal() {
+    document.getElementById('quantityModal').style.display = 'none';
+    pendingCartProduct = null;
+}
+
+function updateQuantityModalValue(change) {
+    const input = document.getElementById('quantityModalInput');
+    const currentValue = parseInt(input.value) || 1;
+    const newValue = currentValue + change;
+    const maxValue = parseInt(input.max);
+    
+    if (newValue >= 1 && newValue <= maxValue) {
+        input.value = newValue;
+    }
+}
+
+function validateQuantityModalInput() {
+    const input = document.getElementById('quantityModalInput');
+    const value = parseInt(input.value) || 1;
+    const maxValue = parseInt(input.max);
+    
+    if (value < 1) {
+        input.value = 1;
+    } else if (value > maxValue) {
+        input.value = maxValue;
+    }
+}
+
+function confirmAddToCart() {
+    if (!pendingCartProduct) return;
+    
+    const quantity = parseInt(document.getElementById('quantityModalInput').value) || 1;
+    
+    // Close modal
+    closeQuantityModal();
+    
+    // Call the actual add to cart function
+    addToAvailableTodayCart(pendingCartProduct.id, quantity, pendingCartProduct.button);
+    
+    // Show notification
+    showNotification(`Added ${quantity} ${pendingCartProduct.name} to cart`, 'success');
+}
+
+// Close modal when clicking outside
+document.addEventListener('click', function(event) {
+    const quantityModal = document.getElementById('quantityModal');
+    if (event.target === quantityModal) {
+        closeQuantityModal();
+    }
+});
+</script>
+</script>
+
+
+<script>
+// Quantity Modal with Order Type Selection - COMPLETE WORKING VERSION
+let pendingCartProduct = null;
+let currentProductModalData = null;
+
+function addToCart(productId, button) {
+    const productCard = button.closest('.product-card');
+    if (!productCard) {
+        console.error('Product card not found');
+        return;
+    }
+    
+    const productData = JSON.parse(productCard.getAttribute('data-product'));
+    const productName = productCard.querySelector('h3').textContent;
+    const productPrice = productCard.querySelector('.price').textContent;
+    const productStock = productCard.querySelector('.stock').textContent.replace('Stock: ', '');
+    
+    pendingCartProduct = {
+        id: productId,
+        name: productName,
+        price: productPrice,
+        stock: parseInt(productStock),
+        button: button,
+        statusId: productData.status_id || null,
+        availtodayStatusId: productData.availtoday_status_id || null,
+        hasBothTypes: false,
+        selectedOrderType: 'preorder'
+    };
+    
+    if ((productData.status_id == 1 || productData.status_id == 2 || productData.status_id == 3) && productData.availtoday_status_id) {
+        pendingCartProduct.hasBothTypes = true;
+    }
+    
+    openQuantityModalWithOrderType(productName, productPrice, productStock, 1, pendingCartProduct);
+}
+
+function addToCartFromModal() {
+    if (!currentProductModalData) {
+        console.error('No product data available');
+        return;
+    }
+    
+    const productName = document.getElementById('modalProductName').textContent;
+    const productPrice = document.getElementById('modalProductPrice').textContent;
+    const productStock = document.getElementById('modalProductStock').textContent.replace('Stock: ', '');
+    
+    pendingCartProduct = {
+        id: currentProductModalData.id,
+        name: productName,
+        price: productPrice,
+        stock: parseInt(productStock),
+        button: null,
+        statusId: currentProductModalData.status_id || null,
+        availtodayStatusId: currentProductModalData.availtoday_status_id || null,
+        hasBothTypes: false,
+        selectedOrderType: 'preorder'
+    };
+    
+    if ((currentProductModalData.status_id == 1 || currentProductModalData.status_id == 2 || currentProductModalData.status_id == 3) && currentProductModalData.availtoday_status_id) {
+        pendingCartProduct.hasBothTypes = true;
+    }
+    
+    closeProductModal();
+    openQuantityModalWithOrderType(productName, productPrice, productStock, 1, pendingCartProduct);
+}
+
+function openQuantityModalWithOrderType(productName, productPrice, productStock, initialQuantity, productInfo) {
+    const modal = document.getElementById('quantityModal');
+    document.getElementById('quantityModalProductName').textContent = productName;
+    document.getElementById('quantityModalPrice').textContent = productPrice;
+    
+    const orderTypeSelector = document.getElementById('orderTypeSelector');
+    const dateDisplay = document.getElementById('quantityModalDate');
+    
+    if (productInfo && productInfo.hasBothTypes) {
+        orderTypeSelector.style.display = 'block';
+        selectOrderType('preorder');
+    } else if (productInfo && productInfo.statusId == 4) {
+        orderTypeSelector.style.display = 'none';
+        dateDisplay.style.display = 'block';
+        productInfo.selectedOrderType = 'sameday';
+        fetchSDOQuantity(productInfo.id);
+    } else {
+        orderTypeSelector.style.display = 'none';
+        dateDisplay.style.display = 'none';
+        productInfo.selectedOrderType = 'preorder';
+        document.getElementById('quantityModalStock').textContent = `Stock: ${productStock}`;
+        const quantityInput = document.getElementById('quantityModalInput');
+        quantityInput.value = initialQuantity;
+        quantityInput.max = productStock;
+    }
+    
+    modal.style.display = 'flex';
+}
+
+function selectOrderType(type) {
+    const buttons = document.querySelectorAll('.order-type-btn');
+    buttons.forEach(btn => {
+        if (btn.getAttribute('data-type') === type) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    
+    const dateDisplay = document.getElementById('quantityModalDate');
+    
+    if (type === 'sameday') {
+        dateDisplay.style.display = 'block';
+        if (pendingCartProduct) {
+            fetchSDOQuantity(pendingCartProduct.id);
+        }
+    } else {
+        dateDisplay.style.display = 'none';
+        if (pendingCartProduct) {
+            document.getElementById('quantityModalStock').textContent = `Stock: ${pendingCartProduct.stock}`;
+            const quantityInput = document.getElementById('quantityModalInput');
+            quantityInput.max = pendingCartProduct.stock;
+            quantityInput.value = Math.min(parseInt(quantityInput.value) || 1, pendingCartProduct.stock);
+        }
+    }
+    
+    if (pendingCartProduct) {
+        pendingCartProduct.selectedOrderType = type;
+    }
+}
+
+function fetchSDOQuantity(productId) {
+    document.getElementById('quantityModalStock').textContent = 'Loading...';
+    
+    fetch(`get-sdo-quantity.php?product_id=${productId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const sdoQuantity = data.quantity || 0;
+                document.getElementById('quantityModalStock').textContent = `Stock: ${sdoQuantity}`;
+                
+                const quantityInput = document.getElementById('quantityModalInput');
+                quantityInput.max = sdoQuantity;
+                quantityInput.value = Math.min(parseInt(quantityInput.value) || 1, sdoQuantity);
+                
+                if (sdoQuantity === 0) {
+                    document.getElementById('quantityModalStock').textContent = 'Stock: 0 (Not available today)';
+                }
+            } else {
+                console.error('Error fetching SDO quantity:', data.error);
+                document.getElementById('quantityModalStock').textContent = 'Stock: 0';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('quantityModalStock').textContent = 'Stock: 0';
+        });
+}
+
+function closeQuantityModal() {
+    document.getElementById('quantityModal').style.display = 'none';
+    pendingCartProduct = null;
+}
+
+function updateQuantityModalValue(change) {
+    const input = document.getElementById('quantityModalInput');
+    const currentValue = parseInt(input.value) || 1;
+    const newValue = currentValue + change;
+    const maxValue = parseInt(input.max);
+    
+    if (newValue >= 1 && newValue <= maxValue) {
+        input.value = newValue;
+    }
+}
+
+function validateQuantityModalInput() {
+    const input = document.getElementById('quantityModalInput');
+    const value = parseInt(input.value) || 1;
+    const maxValue = parseInt(input.max);
+    
+    if (value < 1) {
+        input.value = 1;
+    } else if (value > maxValue) {
+        input.value = maxValue;
+    }
+}
+
+function confirmAddToCart() {
+    if (!pendingCartProduct) return;
+    
+    const quantity = parseInt(document.getElementById('quantityModalInput').value) || 1;
+    closeQuantityModal();
+    
+    addToAvailableTodayCart(pendingCartProduct.id, quantity, pendingCartProduct.button);
+    showNotification(`Added ${quantity} ${pendingCartProduct.name} to cart (${pendingCartProduct.selectedOrderType === 'sameday' ? 'Same Day Order' : 'Pre-Order'})`, 'success');
+}
+
+// Update product modal to store data
+window.openProductModalFromData = function(element) {
+    const productData = JSON.parse(element.getAttribute('data-product'));
+    currentProductModalData = productData;
+    
+    const modal = document.getElementById('productModal');
+    document.getElementById('modalProductName').textContent = productData.name;
+    document.getElementById('modalProductPrice').textContent = '₱' + parseFloat(productData.price).toFixed(2);
+    document.getElementById('modalProductStock').textContent = 'Stock: ' + productData.quantity;
+    document.getElementById('modalProductDescription').textContent = productData.description || 'No description available';
+    
+    const statusBadge = document.getElementById('modalProductStatus');
+    statusBadge.textContent = productData.status;
+    statusBadge.className = 'status-badge status-' + productData.status.toLowerCase().replace(' ', '-');
+    
+    if (productData.images && productData.images.length > 0) {
+        document.getElementById('modalMainImage').src = '../../../assets/' + productData.images[0];
+        
+        const thumbnailContainer = document.getElementById('thumbnailContainer');
+        thumbnailContainer.innerHTML = '';
+        if (productData.images.length > 1) {
+            productData.images.forEach((img, index) => {
+                const thumb = document.createElement('img');
+                thumb.src = '../../../assets/' + img;
+                thumb.onclick = function() {
+                    document.getElementById('modalMainImage').src = this.src;
+                };
+                thumbnailContainer.appendChild(thumb);
+            });
+        }
+    }
+    
+    modal.style.display = 'flex';
+};
+
+window.closeProductModal = function() {
+    document.getElementById('productModal').style.display = 'none';
+    currentProductModalData = null;
+};
+
+document.addEventListener('click', function(event) {
+    const quantityModal = document.getElementById('quantityModal');
+    const productModal = document.getElementById('productModal');
+    
+    if (event.target === quantityModal) {
+        closeQuantityModal();
+    }
+    
+    if (event.target === productModal) {
+        closeProductModal();
+    }
+});
+</script>
+
+<script>
+// ===== QUANTITY MODAL - COMPLETE WORKING VERSION =====
+let pendingCartProduct = null;
+let currentProductModalData = null;
+
+function addToCart(productId, button) {
+    const productCard = button.closest('.product-card');
+    if (!productCard) {
+        console.error('Product card not found');
+        return;
+    }
+    
+    const productData = JSON.parse(productCard.getAttribute('data-product'));
+    const productName = productCard.querySelector('h3').textContent;
+    const productPrice = productCard.querySelector('.price').textContent;
+    const productStock = productCard.querySelector('.stock').textContent.replace('Stock: ', '');
+    
+    pendingCartProduct = {
+        id: productId,
+        name: productName,
+        price: productPrice,
+        stock: parseInt(productStock),
+        button: button,
+        statusId: productData.status_id || null,
+        availtodayStatusId: productData.availtoday_status_id || null,
+        hasBothTypes: false,
+        selectedOrderType: 'preorder'
+    };
+    
+    if ((productData.status_id == 1 || productData.status_id == 2 || productData.status_id == 3) && productData.availtoday_status_id) {
+        pendingCartProduct.hasBothTypes = true;
+    }
+    
+    openQuantityModalWithOrderType(productName, productPrice, productStock, 1, pendingCartProduct);
+}
+
+function addToCartFromModal() {
+    if (!currentProductModalData) {
+        console.error('No product data available');
+        return;
+    }
+    
+    const productName = document.getElementById('modalProductName').textContent;
+    const productPrice = document.getElementById('modalProductPrice').textContent;
+    const productStock = document.getElementById('modalProductStock').textContent.replace('Stock: ', '');
+    
+    pendingCartProduct = {
+        id: currentProductModalData.id,
+        name: productName,
+        price: productPrice,
+        stock: parseInt(productStock),
+        button: null,
+        statusId: currentProductModalData.status_id || null,
+        availtodayStatusId: currentProductModalData.availtoday_status_id || null,
+        hasBothTypes: false,
+        selectedOrderType: 'preorder'
+    };
+    
+    if ((currentProductModalData.status_id == 1 || currentProductModalData.status_id == 2 || currentProductModalData.status_id == 3) && currentProductModalData.availtoday_status_id) {
+        pendingCartProduct.hasBothTypes = true;
+    }
+    
+    closeProductModal();
+    openQuantityModalWithOrderType(productName, productPrice, productStock, 1, pendingCartProduct);
+}
+
+function openQuantityModalWithOrderType(productName, productPrice, productStock, initialQuantity, productInfo) {
+    const modal = document.getElementById('quantityModal');
+    document.getElementById('quantityModalProductName').textContent = productName;
+    document.getElementById('quantityModalPrice').textContent = productPrice;
+    
+    const orderTypeSelector = document.getElementById('orderTypeSelector');
+    const dateDisplay = document.getElementById('quantityModalDate');
+    
+    if (productInfo && productInfo.hasBothTypes) {
+        orderTypeSelector.style.display = 'block';
+        selectOrderType('preorder');
+    } else if (productInfo && productInfo.statusId == 4) {
+        orderTypeSelector.style.display = 'none';
+        dateDisplay.style.display = 'block';
+        productInfo.selectedOrderType = 'sameday';
+        fetchSDOQuantity(productInfo.id);
+    } else {
+        orderTypeSelector.style.display = 'none';
+        dateDisplay.style.display = 'none';
+        productInfo.selectedOrderType = 'preorder';
+        document.getElementById('quantityModalStock').textContent = `Stock: ${productStock}`;
+        const quantityInput = document.getElementById('quantityModalInput');
+        quantityInput.value = initialQuantity;
+        quantityInput.max = productStock;
+    }
+    
+    modal.style.display = 'flex';
+}
+
+function selectOrderType(type) {
+    const buttons = document.querySelectorAll('.order-type-btn');
+    buttons.forEach(btn => {
+        if (btn.getAttribute('data-type') === type) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    
+    const dateDisplay = document.getElementById('quantityModalDate');
+    
+    if (type === 'sameday') {
+        dateDisplay.style.display = 'block';
+        if (pendingCartProduct) {
+            fetchSDOQuantity(pendingCartProduct.id);
+        }
+    } else {
+        dateDisplay.style.display = 'none';
+        if (pendingCartProduct) {
+            document.getElementById('quantityModalStock').textContent = `Stock: ${pendingCartProduct.stock}`;
+            const quantityInput = document.getElementById('quantityModalInput');
+            quantityInput.max = pendingCartProduct.stock;
+            quantityInput.value = Math.min(parseInt(quantityInput.value) || 1, pendingCartProduct.stock);
+        }
+    }
+    
+    if (pendingCartProduct) {
+        pendingCartProduct.selectedOrderType = type;
+    }
+}
+
+function fetchSDOQuantity(productId) {
+    document.getElementById('quantityModalStock').textContent = 'Loading...';
+    
+    fetch(`get-sdo-quantity.php?product_id=${productId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const sdoQuantity = data.quantity || 0;
+                document.getElementById('quantityModalStock').textContent = `Stock: ${sdoQuantity}`;
+                
+                const quantityInput = document.getElementById('quantityModalInput');
+                quantityInput.max = sdoQuantity;
+                quantityInput.value = Math.min(parseInt(quantityInput.value) || 1, sdoQuantity);
+                
+                if (sdoQuantity === 0) {
+                    document.getElementById('quantityModalStock').textContent = 'Stock: 0 (Not available today)';
+                }
+            } else {
+                console.error('Error fetching SDO quantity:', data.error);
+                document.getElementById('quantityModalStock').textContent = 'Stock: 0';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('quantityModalStock').textContent = 'Stock: 0';
+        });
+}
+
+function closeQuantityModal() {
+    document.getElementById('quantityModal').style.display = 'none';
+    pendingCartProduct = null;
+}
+
+function updateQuantityModalValue(change) {
+    const input = document.getElementById('quantityModalInput');
+    const currentValue = parseInt(input.value) || 1;
+    const newValue = currentValue + change;
+    const maxValue = parseInt(input.max);
+    
+    if (newValue >= 1 && newValue <= maxValue) {
+        input.value = newValue;
+    }
+}
+
+function validateQuantityModalInput() {
+    const input = document.getElementById('quantityModalInput');
+    const value = parseInt(input.value) || 1;
+    const maxValue = parseInt(input.max);
+    
+    if (value < 1) {
+        input.value = 1;
+    } else if (value > maxValue) {
+        input.value = maxValue;
+    }
+}
+
+function confirmAddToCart() {
+    if (!pendingCartProduct) return;
+    
+    const quantity = parseInt(document.getElementById('quantityModalInput').value) || 1;
+    closeQuantityModal();
+    
+    addToAvailableTodayCart(pendingCartProduct.id, quantity, pendingCartProduct.button);
+    showNotification(`Added ${quantity} ${pendingCartProduct.name} to cart (${pendingCartProduct.selectedOrderType === 'sameday' ? 'Same Day Order' : 'Pre-Order'})`, 'success');
+}
+
+window.openProductModalFromData = function(element) {
+    const productData = JSON.parse(element.getAttribute('data-product'));
+    currentProductModalData = productData;
+    
+    const modal = document.getElementById('productModal');
+    document.getElementById('modalProductName').textContent = productData.name;
+    document.getElementById('modalProductPrice').textContent = '₱' + parseFloat(productData.price).toFixed(2);
+    document.getElementById('modalProductStock').textContent = 'Stock: ' + productData.quantity;
+    document.getElementById('modalProductDescription').textContent = productData.description || 'No description available';
+    
+    const statusBadge = document.getElementById('modalProductStatus');
+    statusBadge.textContent = productData.status;
+    statusBadge.className = 'status-badge status-' + productData.status.toLowerCase().replace(' ', '-');
+    
+    if (productData.images && productData.images.length > 0) {
+        document.getElementById('modalMainImage').src = '../../../assets/' + productData.images[0];
+        
+        const thumbnailContainer = document.getElementById('thumbnailContainer');
+        thumbnailContainer.innerHTML = '';
+        if (productData.images.length > 1) {
+            productData.images.forEach((img) => {
+                const thumb = document.createElement('img');
+                thumb.src = '../../../assets/' + img;
+                thumb.onclick = function() {
+                    document.getElementById('modalMainImage').src = this.src;
+                };
+                thumbnailContainer.appendChild(thumb);
+            });
+        }
+    }
+    
+    modal.style.display = 'flex';
+};
+
+window.closeProductModal = function() {
+    document.getElementById('productModal').style.display = 'none';
+    currentProductModalData = null;
+};
+
+document.addEventListener('click', function(event) {
+    const quantityModal = document.getElementById('quantityModal');
+    const productModal = document.getElementById('productModal');
+    
+    if (event.target === quantityModal) {
+        closeQuantityModal();
+    }
+    
+    if (event.target === productModal) {
+        closeProductModal();
+    }
+});
+</script>
+<script>
+// ===== QUANTITY MODAL - COMPLETE WORKING VERSION =====
+let pendingCartProduct = null;
+let currentProductModalData = null;
+
+function addToCart(productId, button) {
+    const productCard = button.closest('.product-card');
+    if (!productCard) {
+        console.error('Product card not found');
+        return;
+    }
+    
+    const productData = JSON.parse(productCard.getAttribute('data-product'));
+    const productName = productCard.querySelector('h3').textContent;
+    const productPrice = productCard.querySelector('.price').textContent;
+    const productStock = productCard.querySelector('.stock').textContent.replace('Stock: ', '');
+    
+    pendingCartProduct = {
+        id: productId,
+        name: productName,
+        price: productPrice,
+        stock: parseInt(productStock),
+        button: button,
+        statusId: productData.status_id || null,
+        availtodayStatusId: productData.availtoday_status_id || null,
+        hasBothTypes: false,
+        selectedOrderType: 'preorder'
+    };
+    
+    if ((productData.status_id == 1 || productData.status_id == 2 || productData.status_id == 3) && productData.availtoday_status_id) {
+        pendingCartProduct.hasBothTypes = true;
+    }
+    
+    openQuantityModalWithOrderType(productName, productPrice, productStock, 1, pendingCartProduct);
+}
+
+function addToCartFromModal() {
+    if (!currentProductModalData) {
+        console.error('No product data available');
+        return;
+    }
+    
+    const productName = document.getElementById('modalProductName').textContent;
+    const productPrice = document.getElementById('modalProductPrice').textContent;
+    const productStock = document.getElementById('modalProductStock').textContent.replace('Stock: ', '');
+    
+    pendingCartProduct = {
+        id: currentProductModalData.id,
+        name: productName,
+        price: productPrice,
+        stock: parseInt(productStock),
+        button: null,
+        statusId: currentProductModalData.status_id || null,
+        availtodayStatusId: currentProductModalData.availtoday_status_id || null,
+        hasBothTypes: false,
+        selectedOrderType: 'preorder'
+    };
+    
+    if ((currentProductModalData.status_id == 1 || currentProductModalData.status_id == 2 || currentProductModalData.status_id == 3) && currentProductModalData.availtoday_status_id) {
+        pendingCartProduct.hasBothTypes = true;
+    }
+    
+    closeProductModal();
+    openQuantityModalWithOrderType(productName, productPrice, productStock, 1, pendingCartProduct);
+}
+
+function openQuantityModalWithOrderType(productName, productPrice, productStock, initialQuantity, productInfo) {
+    const modal = document.getElementById('quantityModal');
+    document.getElementById('quantityModalProductName').textContent = productName;
+    document.getElementById('quantityModalPrice').textContent = productPrice;
+    
+    const orderTypeSelector = document.getElementById('orderTypeSelector');
+    const dateDisplay = document.getElementById('quantityModalDate');
+    
+    if (productInfo && productInfo.hasBothTypes) {
+        orderTypeSelector.style.display = 'block';
+        selectOrderType('preorder');
+    } else if (productInfo && productInfo.statusId == 4) {
+        orderTypeSelector.style.display = 'none';
+        dateDisplay.style.display = 'block';
+        productInfo.selectedOrderType = 'sameday';
+        fetchSDOQuantity(productInfo.id);
+    } else {
+        orderTypeSelector.style.display = 'none';
+        dateDisplay.style.display = 'none';
+        productInfo.selectedOrderType = 'preorder';
+        document.getElementById('quantityModalStock').textContent = `Stock: ${productStock}`;
+        const quantityInput = document.getElementById('quantityModalInput');
+        quantityInput.value = initialQuantity;
+        quantityInput.max = productStock;
+    }
+    
+    modal.style.display = 'flex';
+}
+
+function selectOrderType(type) {
+    const buttons = document.querySelectorAll('.order-type-btn');
+    buttons.forEach(btn => {
+        if (btn.getAttribute('data-type') === type) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    
+    const dateDisplay = document.getElementById('quantityModalDate');
+    
+    if (type === 'sameday') {
+        dateDisplay.style.display = 'block';
+        if (pendingCartProduct) {
+            fetchSDOQuantity(pendingCartProduct.id);
+        }
+    } else {
+        dateDisplay.style.display = 'none';
+        if (pendingCartProduct) {
+            document.getElementById('quantityModalStock').textContent = `Stock: ${pendingCartProduct.stock}`;
+            const quantityInput = document.getElementById('quantityModalInput');
+            quantityInput.max = pendingCartProduct.stock;
+            quantityInput.value = Math.min(parseInt(quantityInput.value) || 1, pendingCartProduct.stock);
+        }
+    }
+    
+    if (pendingCartProduct) {
+        pendingCartProduct.selectedOrderType = type;
+    }
+}
+
+function fetchSDOQuantity(productId) {
+    document.getElementById('quantityModalStock').textContent = 'Loading...';
+    
+    fetch(`get-sdo-quantity.php?product_id=${productId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const sdoQuantity = data.quantity || 0;
+                document.getElementById('quantityModalStock').textContent = `Stock: ${sdoQuantity}`;
+                
+                const quantityInput = document.getElementById('quantityModalInput');
+                quantityInput.max = sdoQuantity;
+                quantityInput.value = Math.min(parseInt(quantityInput.value) || 1, sdoQuantity);
+                
+                if (sdoQuantity === 0) {
+                    document.getElementById('quantityModalStock').textContent = 'Stock: 0 (Not available today)';
+                }
+            } else {
+                console.error('Error fetching SDO quantity:', data.error);
+                document.getElementById('quantityModalStock').textContent = 'Stock: 0';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('quantityModalStock').textContent = 'Stock: 0';
+        });
+}
+
+function closeQuantityModal() {
+    document.getElementById('quantityModal').style.display = 'none';
+    pendingCartProduct = null;
+}
+
+function updateQuantityModalValue(change) {
+    const input = document.getElementById('quantityModalInput');
+    const currentValue = parseInt(input.value) || 1;
+    const newValue = currentValue + change;
+    const maxValue = parseInt(input.max);
+    
+    if (newValue >= 1 && newValue <= maxValue) {
+        input.value = newValue;
+    }
+}
+
+function validateQuantityModalInput() {
+    const input = document.getElementById('quantityModalInput');
+    const value = parseInt(input.value) || 1;
+    const maxValue = parseInt(input.max);
+    
+    if (value < 1) {
+        input.value = 1;
+    } else if (value > maxValue) {
+        input.value = maxValue;
+    }
+}
+
+function confirmAddToCart() {
+    if (!pendingCartProduct) return;
+    
+    const quantity = parseInt(document.getElementById('quantityModalInput').value) || 1;
+    closeQuantityModal();
+    
+    addToAvailableTodayCart(pendingCartProduct.id, quantity, pendingCartProduct.button);
+    showNotification(`Added ${quantity} ${pendingCartProduct.name} to cart (${pendingCartProduct.selectedOrderType === 'sameday' ? 'Same Day Order' : 'Pre-Order'})`, 'success');
+}
+
+window.openProductModalFromData = function(element) {
+    const productData = JSON.parse(element.getAttribute('data-product'));
+    currentProductModalData = productData;
+    
+    const modal = document.getElementById('productModal');
+    document.getElementById('modalProductName').textContent = productData.name;
+    document.getElementById('modalProductPrice').textContent = '₱' + parseFloat(productData.price).toFixed(2);
+    document.getElementById('modalProductStock').textContent = 'Stock: ' + productData.quantity;
+    document.getElementById('modalProductDescription').textContent = productData.description || 'No description available';
+    
+    const statusBadge = document.getElementById('modalProductStatus');
+    statusBadge.textContent = productData.status;
+    statusBadge.className = 'status-badge status-' + productData.status.toLowerCase().replace(' ', '-');
+    
+    if (productData.images && productData.images.length > 0) {
+        document.getElementById('modalMainImage').src = '../../../assets/' + productData.images[0];
+        
+        const thumbnailContainer = document.getElementById('thumbnailContainer');
+        thumbnailContainer.innerHTML = '';
+        if (productData.images.length > 1) {
+            productData.images.forEach((img) => {
+                const thumb = document.createElement('img');
+                thumb.src = '../../../assets/' + img;
+                thumb.onclick = function() {
+                    document.getElementById('modalMainImage').src = this.src;
+                };
+                thumbnailContainer.appendChild(thumb);
+            });
+        }
+    }
+    
+    modal.style.display = 'flex';
+};
+
+window.closeProductModal = function() {
+    document.getElementById('productModal').style.display = 'none';
+    currentProductModalData = null;
+};
+
+document.addEventListener('click', function(event) {
+    const quantityModal = document.getElementById('quantityModal');
+    const productModal = document.getElementById('productModal');
+    
+    if (event.target === quantityModal) {
+        closeQuantityModal();
+    }
+    
+    if (event.target === productModal) {
+        closeProductModal();
+    }
+});
+</script>
+<script>
+// ===== QUANTITY MODAL - COMPLETE WORKING VERSION =====
+let pendingCartProduct = null;
+let currentProductModalData = null;
+
+function addToCart(productId, button) {
+    const productCard = button.closest('.product-card');
+    if (!productCard) {
+        console.error('Product card not found');
+        return;
+    }
+    
+    const productData = JSON.parse(productCard.getAttribute('data-product'));
+    const productName = productCard.querySelector('h3').textContent;
+    const productPrice = productCard.querySelector('.price').textContent;
+    const productStock = productCard.querySelector('.stock').textContent.replace('Stock: ', '');
+    
+    pendingCartProduct = {
+        id: productId,
+        name: productName,
+        price: productPrice,
+        stock: parseInt(productStock),
+        button: button,
+        statusId: productData.status_id || null,
+        availtodayStatusId: productData.availtoday_status_id || null,
+        hasBothTypes: false,
+        selectedOrderType: 'preorder'
+    };
+    
+    if ((productData.status_id == 1 || productData.status_id == 2 || productData.status_id == 3) && productData.availtoday_status_id) {
+        pendingCartProduct.hasBothTypes = true;
+    }
+    
+    openQuantityModalWithOrderType(productName, productPrice, productStock, 1, pendingCartProduct);
+}
+
+function addToCartFromModal() {
+    if (!currentProductModalData) {
+        console.error('No product data available');
+        return;
+    }
+    
+    const productName = document.getElementById('modalProductName').textContent;
+    const productPrice = document.getElementById('modalProductPrice').textContent;
+    const productStock = document.getElementById('modalProductStock').textContent.replace('Stock: ', '');
+    
+    pendingCartProduct = {
+        id: currentProductModalData.id,
+        name: productName,
+        price: productPrice,
+        stock: parseInt(productStock),
+        button: null,
+        statusId: currentProductModalData.status_id || null,
+        availtodayStatusId: currentProductModalData.availtoday_status_id || null,
+        hasBothTypes: false,
+        selectedOrderType: 'preorder'
+    };
+    
+    if ((currentProductModalData.status_id == 1 || currentProductModalData.status_id == 2 || currentProductModalData.status_id == 3) && currentProductModalData.availtoday_status_id) {
+        pendingCartProduct.hasBothTypes = true;
+    }
+    
+    closeProductModal();
+    openQuantityModalWithOrderType(productName, productPrice, productStock, 1, pendingCartProduct);
+}
+
+function openQuantityModalWithOrderType(productName, productPrice, productStock, initialQuantity, productInfo) {
+    const modal = document.getElementById('quantityModal');
+    document.getElementById('quantityModalProductName').textContent = productName;
+    document.getElementById('quantityModalPrice').textContent = productPrice;
+    
+    const orderTypeSelector = document.getElementById('orderTypeSelector');
+    const dateDisplay = document.getElementById('quantityModalDate');
+    
+    if (productInfo && productInfo.hasBothTypes) {
+        orderTypeSelector.style.display = 'block';
+        selectOrderType('preorder');
+    } else if (productInfo && productInfo.statusId == 4) {
+        orderTypeSelector.style.display = 'none';
+        dateDisplay.style.display = 'block';
+        productInfo.selectedOrderType = 'sameday';
+        fetchSDOQuantity(productInfo.id);
+    } else {
+        orderTypeSelector.style.display = 'none';
+        dateDisplay.style.display = 'none';
+        productInfo.selectedOrderType = 'preorder';
+        document.getElementById('quantityModalStock').textContent = `Stock: ${productStock}`;
+        const quantityInput = document.getElementById('quantityModalInput');
+        quantityInput.value = initialQuantity;
+        quantityInput.max = productStock;
+    }
+    
+    modal.style.display = 'flex';
+}
+
+function selectOrderType(type) {
+    const buttons = document.querySelectorAll('.order-type-btn');
+    buttons.forEach(btn => {
+        if (btn.getAttribute('data-type') === type) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    
+    const dateDisplay = document.getElementById('quantityModalDate');
+    
+    if (type === 'sameday') {
+        dateDisplay.style.display = 'block';
+        if (pendingCartProduct) {
+            fetchSDOQuantity(pendingCartProduct.id);
+        }
+    } else {
+        dateDisplay.style.display = 'none';
+        if (pendingCartProduct) {
+            document.getElementById('quantityModalStock').textContent = `Stock: ${pendingCartProduct.stock}`;
+            const quantityInput = document.getElementById('quantityModalInput');
+            quantityInput.max = pendingCartProduct.stock;
+            quantityInput.value = Math.min(parseInt(quantityInput.value) || 1, pendingCartProduct.stock);
+        }
+    }
+    
+    if (pendingCartProduct) {
+        pendingCartProduct.selectedOrderType = type;
+    }
+}
+
+function fetchSDOQuantity(productId) {
+    document.getElementById('quantityModalStock').textContent = 'Loading...';
+    
+    fetch(`get-sdo-quantity.php?product_id=${productId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const sdoQuantity = data.quantity || 0;
+                document.getElementById('quantityModalStock').textContent = `Stock: ${sdoQuantity}`;
+                
+                const quantityInput = document.getElementById('quantityModalInput');
+                quantityInput.max = sdoQuantity;
+                quantityInput.value = Math.min(parseInt(quantityInput.value) || 1, sdoQuantity);
+                
+                if (sdoQuantity === 0) {
+                    document.getElementById('quantityModalStock').textContent = 'Stock: 0 (Not available today)';
+                }
+            } else {
+                console.error('Error fetching SDO quantity:', data.error);
+                document.getElementById('quantityModalStock').textContent = 'Stock: 0';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('quantityModalStock').textContent = 'Stock: 0';
+        });
+}
+
+function closeQuantityModal() {
+    document.getElementById('quantityModal').style.display = 'none';
+    pendingCartProduct = null;
+}
+
+function updateQuantityModalValue(change) {
+    const input = document.getElementById('quantityModalInput');
+    const currentValue = parseInt(input.value) || 1;
+    const newValue = currentValue + change;
+    const maxValue = parseInt(input.max);
+    
+    if (newValue >= 1 && newValue <= maxValue) {
+        input.value = newValue;
+    }
+}
+
+function validateQuantityModalInput() {
+    const input = document.getElementById('quantityModalInput');
+    const value = parseInt(input.value) || 1;
+    const maxValue = parseInt(input.max);
+    
+    if (value < 1) {
+        input.value = 1;
+    } else if (value > maxValue) {
+        input.value = maxValue;
+    }
+}
+
+function confirmAddToCart() {
+    if (!pendingCartProduct) return;
+    
+    const quantity = parseInt(document.getElementById('quantityModalInput').value) || 1;
+    closeQuantityModal();
+    
+    addToAvailableTodayCart(pendingCartProduct.id, quantity, pendingCartProduct.button);
+    showNotification(`Added ${quantity} ${pendingCartProduct.name} to cart (${pendingCartProduct.selectedOrderType === 'sameday' ? 'Same Day Order' : 'Pre-Order'})`, 'success');
+}
+
+window.openProductModalFromData = function(element) {
+    const productData = JSON.parse(element.getAttribute('data-product'));
+    currentProductModalData = productData;
+    
+    const modal = document.getElementById('productModal');
+    document.getElementById('modalProductName').textContent = productData.name;
+    document.getElementById('modalProductPrice').textContent = '₱' + parseFloat(productData.price).toFixed(2);
+    document.getElementById('modalProductStock').textContent = 'Stock: ' + productData.quantity;
+    document.getElementById('modalProductDescription').textContent = productData.description || 'No description available';
+    
+    const statusBadge = document.getElementById('modalProductStatus');
+    statusBadge.textContent = productData.status;
+    statusBadge.className = 'status-badge status-' + productData.status.toLowerCase().replace(' ', '-');
+    
+    if (productData.images && productData.images.length > 0) {
+        document.getElementById('modalMainImage').src = '../../../assets/' + productData.images[0];
+        
+        const thumbnailContainer = document.getElementById('thumbnailContainer');
+        thumbnailContainer.innerHTML = '';
+        if (productData.images.length > 1) {
+            productData.images.forEach((img) => {
+                const thumb = document.createElement('img');
+                thumb.src = '../../../assets/' + img;
+                thumb.onclick = function() {
+                    document.getElementById('modalMainImage').src = this.src;
+                };
+                thumbnailContainer.appendChild(thumb);
+            });
+        }
+    }
+    
+    modal.style.display = 'flex';
+};
+
+window.closeProductModal = function() {
+    document.getElementById('productModal').style.display = 'none';
+    currentProductModalData = null;
+};
+
+document.addEventListener('click', function(event) {
+    const quantityModal = document.getElementById('quantityModal');
+    const productModal = document.getElementById('productModal');
+    
+    if (event.target === quantityModal) {
+        closeQuantityModal();
+    }
+    
+    if (event.target === productModal) {
+        closeProductModal();
+    }
+});
+</script>
+<script>
+// ===== QUANTITY MODAL - COMPLETE WORKING VERSION =====
+let pendingCartProduct = null;
+let currentProductModalData = null;
+
+function addToCart(productId, button) {
+    const productCard = button.closest('.product-card');
+    if (!productCard) {
+        console.error('Product card not found');
+        return;
+    }
+    
+    const productData = JSON.parse(productCard.getAttribute('data-product'));
+    const productName = productCard.querySelector('h3').textContent;
+    const productPrice = productCard.querySelector('.price').textContent;
+    const productStock = productCard.querySelector('.stock').textContent.replace('Stock: ', '');
+    
+    pendingCartProduct = {
+        id: productId,
+        name: productName,
+        price: productPrice,
+        stock: parseInt(productStock),
+        button: button,
+        statusId: productData.status_id || null,
+        availtodayStatusId: productData.availtoday_status_id || null,
+        hasBothTypes: false,
+        selectedOrderType: 'preorder'
+    };
+    
+    if ((productData.status_id == 1 || productData.status_id == 2 || productData.status_id == 3) && productData.availtoday_status_id) {
+        pendingCartProduct.hasBothTypes = true;
+    }
+    
+    openQuantityModalWithOrderType(productName, productPrice, productStock, 1, pendingCartProduct);
+}
+
+function addToCartFromModal() {
+    if (!currentProductModalData) {
+        console.error('No product data available');
+        return;
+    }
+    
+    const productName = document.getElementById('modalProductName').textContent;
+    const productPrice = document.getElementById('modalProductPrice').textContent;
+    const productStock = document.getElementById('modalProductStock').textContent.replace('Stock: ', '');
+    
+    pendingCartProduct = {
+        id: currentProductModalData.id,
+        name: productName,
+        price: productPrice,
+        stock: parseInt(productStock),
+        button: null,
+        statusId: currentProductModalData.status_id || null,
+        availtodayStatusId: currentProductModalData.availtoday_status_id || null,
+        hasBothTypes: false,
+        selectedOrderType: 'preorder'
+    };
+    
+    if ((currentProductModalData.status_id == 1 || currentProductModalData.status_id == 2 || currentProductModalData.status_id == 3) && currentProductModalData.availtoday_status_id) {
+        pendingCartProduct.hasBothTypes = true;
+    }
+    
+    closeProductModal();
+    openQuantityModalWithOrderType(productName, productPrice, productStock, 1, pendingCartProduct);
+}
+
+function openQuantityModalWithOrderType(productName, productPrice, productStock, initialQuantity, productInfo) {
+    const modal = document.getElementById('quantityModal');
+    document.getElementById('quantityModalProductName').textContent = productName;
+    document.getElementById('quantityModalPrice').textContent = productPrice;
+    
+    const orderTypeSelector = document.getElementById('orderTypeSelector');
+    const dateDisplay = document.getElementById('quantityModalDate');
+    
+    if (productInfo && productInfo.hasBothTypes) {
+        orderTypeSelector.style.display = 'block';
+        selectOrderType('preorder');
+    } else if (productInfo && productInfo.statusId == 4) {
+        orderTypeSelector.style.display = 'none';
+        dateDisplay.style.display = 'block';
+        productInfo.selectedOrderType = 'sameday';
+        fetchSDOQuantity(productInfo.id);
+    } else {
+        orderTypeSelector.style.display = 'none';
+        dateDisplay.style.display = 'none';
+        productInfo.selectedOrderType = 'preorder';
+        document.getElementById('quantityModalStock').textContent = `Stock: ${productStock}`;
+        const quantityInput = document.getElementById('quantityModalInput');
+        quantityInput.value = initialQuantity;
+        quantityInput.max = productStock;
+    }
+    
+    modal.style.display = 'flex';
+}
+
+function selectOrderType(type) {
+    const buttons = document.querySelectorAll('.order-type-btn');
+    buttons.forEach(btn => {
+        if (btn.getAttribute('data-type') === type) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    
+    const dateDisplay = document.getElementById('quantityModalDate');
+    
+    if (type === 'sameday') {
+        dateDisplay.style.display = 'block';
+        if (pendingCartProduct) {
+            fetchSDOQuantity(pendingCartProduct.id);
+        }
+    } else {
+        dateDisplay.style.display = 'none';
+        if (pendingCartProduct) {
+            document.getElementById('quantityModalStock').textContent = `Stock: ${pendingCartProduct.stock}`;
+            const quantityInput = document.getElementById('quantityModalInput');
+            quantityInput.max = pendingCartProduct.stock;
+            quantityInput.value = Math.min(parseInt(quantityInput.value) || 1, pendingCartProduct.stock);
+        }
+    }
+    
+    if (pendingCartProduct) {
+        pendingCartProduct.selectedOrderType = type;
+    }
+}
+
+function fetchSDOQuantity(productId) {
+    document.getElementById('quantityModalStock').textContent = 'Loading...';
+    
+    fetch(`get-sdo-quantity.php?product_id=${productId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const sdoQuantity = data.quantity || 0;
+                document.getElementById('quantityModalStock').textContent = `Stock: ${sdoQuantity}`;
+                
+                const quantityInput = document.getElementById('quantityModalInput');
+                quantityInput.max = sdoQuantity;
+                quantityInput.value = Math.min(parseInt(quantityInput.value) || 1, sdoQuantity);
+                
+                if (sdoQuantity === 0) {
+                    document.getElementById('quantityModalStock').textContent = 'Stock: 0 (Not available today)';
+                }
+            } else {
+                console.error('Error fetching SDO quantity:', data.error);
+                document.getElementById('quantityModalStock').textContent = 'Stock: 0';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('quantityModalStock').textContent = 'Stock: 0';
+        });
+}
+
+function closeQuantityModal() {
+    document.getElementById('quantityModal').style.display = 'none';
+    pendingCartProduct = null;
+}
+
+function updateQuantityModalValue(change) {
+    const input = document.getElementById('quantityModalInput');
+    const currentValue = parseInt(input.value) || 1;
+    const newValue = currentValue + change;
+    const maxValue = parseInt(input.max);
+    
+    if (newValue >= 1 && newValue <= maxValue) {
+        input.value = newValue;
+    }
+}
+
+function validateQuantityModalInput() {
+    const input = document.getElementById('quantityModalInput');
+    const value = parseInt(input.value) || 1;
+    const maxValue = parseInt(input.max);
+    
+    if (value < 1) {
+        input.value = 1;
+    } else if (value > maxValue) {
+        input.value = maxValue;
+    }
+}
+
+function confirmAddToCart() {
+    if (!pendingCartProduct) return;
+    
+    const quantity = parseInt(document.getElementById('quantityModalInput').value) || 1;
+    closeQuantityModal();
+    
+    addToAvailableTodayCart(pendingCartProduct.id, quantity, pendingCartProduct.button);
+    showNotification(`Added ${quantity} ${pendingCartProduct.name} to cart (${pendingCartProduct.selectedOrderType === 'sameday' ? 'Same Day Order' : 'Pre-Order'})`, 'success');
+}
+
+window.openProductModalFromData = function(element) {
+    const productData = JSON.parse(element.getAttribute('data-product'));
+    currentProductModalData = productData;
+    
+    const modal = document.getElementById('productModal');
+    document.getElementById('modalProductName').textContent = productData.name;
+    document.getElementById('modalProductPrice').textContent = '₱' + parseFloat(productData.price).toFixed(2);
+    document.getElementById('modalProductStock').textContent = 'Stock: ' + productData.quantity;
+    document.getElementById('modalProductDescription').textContent = productData.description || 'No description available';
+    
+    const statusBadge = document.getElementById('modalProductStatus');
+    statusBadge.textContent = productData.status;
+    statusBadge.className = 'status-badge status-' + productData.status.toLowerCase().replace(' ', '-');
+    
+    if (productData.images && productData.images.length > 0) {
+        document.getElementById('modalMainImage').src = '../../../assets/' + productData.images[0];
+        
+        const thumbnailContainer = document.getElementById('thumbnailContainer');
+        thumbnailContainer.innerHTML = '';
+        if (productData.images.length > 1) {
+            productData.images.forEach((img) => {
+                const thumb = document.createElement('img');
+                thumb.src = '../../../assets/' + img;
+                thumb.onclick = function() {
+                    document.getElementById('modalMainImage').src = this.src;
+                };
+                thumbnailContainer.appendChild(thumb);
+            });
+        }
+    }
+    
+    modal.style.display = 'flex';
+};
+
+window.closeProductModal = function() {
+    document.getElementById('productModal').style.display = 'none';
+    currentProductModalData = null;
+};
+
+document.addEventListener('click', function(event) {
+    const quantityModal = document.getElementById('quantityModal');
+    const productModal = document.getElementById('productModal');
+    
+    if (event.target === quantityModal) {
+        closeQuantityModal();
+    }
+    
+    if (event.target === productModal) {
+        closeProductModal();
+    }
+});
+</script>

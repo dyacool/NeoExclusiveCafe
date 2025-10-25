@@ -648,7 +648,7 @@
                                 <option value="3">Delivery and Pick Up</option>
                             </select>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" id="availabilityContainer">
                             <label>Availability:</label>
                             <div class="radio-group">
                                 <div class="radio-item">

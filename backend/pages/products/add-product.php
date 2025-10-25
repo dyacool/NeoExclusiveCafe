@@ -43,22 +43,30 @@ $sku = generateSKU($conn); // Generate SKU when the page loads
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
+    require_once __DIR__ . "/../admin-includes/settings-helper.php";
+    
     $sku = generateSKU($conn);
     $name = $_POST['name'];
     $description = $_POST['description'];
     $price = $_POST['price'];
     $status_id = $_POST['status_id'];
     $quantity = $_POST['quantity'];
+    
+    // Auto-set quantity to 0 if status is Same Day Order (status_id 4)
+    if ($status_id == 4) {
+        $quantity = 0;
+    }
+    
     $is_featured = isset($_POST['is_featured']) ? 1 : 0;
     // Map visibility radio selection to the two DB flags
     $visibility_option = $_POST['visibility_option'] ?? 'hide';
     $show_when_unavailable = ($visibility_option === 'show') ? 1 : 0;
     $hide_when_unavailable = ($visibility_option === 'hide') ? 1 : 0;
 
-    // Handle available days - process for both Delivery and Pick Up
+    // Handle available days - get from global settings for status 1, 2, 3
     $available_days = [];
-    if (isset($_POST['available_days']) && is_array($_POST['available_days'])) {
-        $available_days = $_POST['available_days'];
+    if ($status_id == 1 || $status_id == 2 || $status_id == 3) {
+        $available_days = getSetting('global_available_days', []);
     }
     
     // Handle Today's product dates
@@ -68,21 +76,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $todays_product_dates = array_filter($todays_product_dates); // Remove empty values
     }
 
-    // Handle availtoday_status_id for Available Today products and regular products set as available today
+    // Handle availtoday_status_id for Same Day Order products and regular products set as available today
     $availtoday_status_id = null;
     $isAvailableToday = isset($_POST['isAvailableToday']) && $_POST['isAvailableToday'] === 'true';
     
-    if ($status_id == 3 && isset($_POST['availtoday_status_id']) && !empty($_POST['availtoday_status_id'])) {
+    if ($status_id == 4 && isset($_POST['availtoday_status_id']) && !empty($_POST['availtoday_status_id'])) {
         // Same Day Order product
         $availtoday_status_id = $_POST['availtoday_status_id'];
-    } elseif (($status_id == 1 || $status_id == 2) && $isAvailableToday && isset($_POST['availtoday_status_id']) && !empty($_POST['availtoday_status_id'])) {
-        // Regular product (Pick Up/Delivery) also set as available today
+    } elseif (($status_id == 1 || $status_id == 2 || $status_id == 3) && $isAvailableToday && isset($_POST['availtoday_status_id']) && !empty($_POST['availtoday_status_id'])) {
+        // Regular product (Pick Up/Delivery/Delivery or Pick Up) also set as available today
         $availtoday_status_id = $_POST['availtoday_status_id'];
     }
     
     // Handle available today dates for regular products
     $available_today_dates = [];
-    if (($status_id == 1 || $status_id == 2) && $isAvailableToday && isset($_POST['available_today_dates']) && !empty($_POST['available_today_dates'])) {
+    if (($status_id == 1 || $status_id == 2 || $status_id == 3) && $isAvailableToday && isset($_POST['available_today_dates']) && !empty($_POST['available_today_dates'])) {
         $available_today_dates = explode(',', $_POST['available_today_dates']);
         $available_today_dates = array_filter($available_today_dates);
     }
@@ -157,8 +165,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         }
 
-        // Insert available days into product_day table for Delivery and Pick Up
-        if (($status_id == 1 || $status_id == 2) && !empty($available_days)) {
+        // Insert available days into product_day table for Pick Up, Delivery, and Delivery or Pick Up
+        if (($status_id == 1 || $status_id == 2 || $status_id == 3) && !empty($available_days)) {
             $day_stmt = $conn->prepare("INSERT INTO product_day (product_id, day_of_week) VALUES (?, ?)");
             foreach ($available_days as $day) {
                 $day_stmt->bind_param("is", $product_id, $day);
@@ -167,8 +175,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $day_stmt->close();
         }
         
-        // Insert Today's product dates into todays_products_dates table
-        if ($status_id == 3 && !empty($todays_product_dates)) {
+        // Insert Today's product dates into todays_products_dates table (for Same Day Order - status_id 4)
+        if ($status_id == 4 && !empty($todays_product_dates)) {
             $date_stmt = $conn->prepare("INSERT INTO todays_products_dates (product_id, available_date, availtoday_status_id) VALUES (?, ?, ?)");
             
             foreach ($todays_product_dates as $date) {
@@ -185,7 +193,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         // Insert available today dates for regular products into regular_products_today_dates table
-        if (($status_id == 1 || $status_id == 2) && !empty($available_today_dates)) {
+        if (($status_id == 1 || $status_id == 2 || $status_id == 3) && !empty($available_today_dates)) {
             $regular_date_stmt = $conn->prepare("INSERT INTO regular_products_today_dates (product_id, available_date, availtoday_status_id) VALUES (?, ?, ?)");
             
             foreach ($available_today_dates as $date) {
@@ -344,7 +352,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                      <select class="statusGrp" name="status_id" id="statusSelect">
                          <option value="1">Pick Up</option>
                          <option value="2">Delivery</option>
-                         <option value="3">Same Day Order</option>
+                         <option value="3">Delivery or Pick Up</option>
+                         <option value="4">Same Day Order</option>
                      </select>
                      
 
@@ -369,42 +378,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                          </select>
                      </div>
 
-                    <!-- Available Days for regular products (Pick Up/Delivery) -->
-                    <div id="regularAvailableDaysContainer">
-                        <label>Available Days:</label>
-                        <div class="checkbox-group days-group">
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="available_days[]" id="sunday" value="Sunday">
-                                <label class="cb-itm" for="sunday" style="display: inline;">Sunday</label>
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="available_days[]" id="monday" value="Monday">
-                                <label class="cb-itm" for="monday" style="display: inline;">Monday</label>
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="available_days[]" id="tuesday" value="Tuesday">
-                                <label class="cb-itm" for="tuesday" style="display: inline;">Tuesday</label>
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="available_days[]" id="wednesday" value="Wednesday">
-                                <label class="cb-itm" for="wednesday" style="display: inline;">Wednesday</label>
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="available_days[]" id="thursday" value="Thursday">
-                                <label class="cb-itm" for="thursday" style="display: inline;">Thursday</label>
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="available_days[]" id="friday" value="Friday">
-                                <label class="cb-itm" for="friday" style="display: inline;">Friday</label>
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="available_days[]" id="saturday" value="Saturday">
-                                <label class="cb-itm" for="saturday" style="display: inline;">Saturday</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Calendar for Today's Products -->
+                    <!-- Calendar for Same Day Order Products -->
                     <div id="todaysProductCalendarContainer" style="display: none;">
                         <label>Select dates for same day order:</label>
                         <div id="todaysProductCalendar"></div>
@@ -470,23 +444,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Global variables to track uploaded files
         let additionalImagesArray = [];
 
-        // Function to toggle available days/calendar visibility based on status
+        // Function to toggle calendar visibility and quantity field based on status
         function toggleAvailableDaysVisibility() {
             const statusSelect = document.querySelector('select[name="status_id"]');
-            const regularDaysContainer = document.getElementById('regularAvailableDaysContainer');
             const todaysCalendarContainer = document.getElementById('todaysProductCalendarContainer');
             const availtodayOptions = document.getElementById('availtodayOptions');
             const availtodaySelect = document.querySelector('select[name="availtoday_status_id"]');
             const isAvailableTodayContainer = document.getElementById('isAvailableTodayContainer');
             const availableTodayCalendarContainer = document.getElementById('availableTodayCalendarContainer');
+            const quantityField = document.querySelector('input[name="quantity"]');
             
             if (statusSelect) {
                 const selectedValue = statusSelect.value;
                 
-                if (selectedValue === '1' || selectedValue === '2') { // Pick Up or Delivery
-                    if (regularDaysContainer) regularDaysContainer.style.display = 'block';
+                if (selectedValue === '1' || selectedValue === '2' || selectedValue === '3') { // Pick Up, Delivery, or Delivery or Pick Up
                     if (todaysCalendarContainer) todaysCalendarContainer.style.display = 'none';
                     if (isAvailableTodayContainer) isAvailableTodayContainer.style.display = 'block';
+                    
+                    // Enable quantity field
+                    if (quantityField) {
+                        quantityField.disabled = false;
+                        quantityField.style.opacity = '1';
+                        quantityField.style.cursor = 'text';
+                    }
                     
                     // Show availtoday options and calendar only if checkbox is checked
                     const isAvailableTodayCheckbox = document.getElementById('isAvailableToday');
@@ -508,15 +488,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             availtodaySelect.removeAttribute('required');
                         }
                     }
-                } else if (selectedValue === '3') { // Today's Product
-                    // For Today's Product: Show calendar and availtoday options
-                    if (regularDaysContainer) regularDaysContainer.style.display = 'none';
+                } else if (selectedValue === '4') { // Same Day Order
+                    // For Same Day Order: Show calendar and availtoday options, disable quantity
                     if (todaysCalendarContainer) todaysCalendarContainer.style.display = 'block';
                     if (availtodayOptions) availtodayOptions.style.display = 'block';
                     if (isAvailableTodayContainer) isAvailableTodayContainer.style.display = 'none';
                     if (availableTodayCalendarContainer) availableTodayCalendarContainer.style.display = 'none';
                     if (availtodaySelect) {
                         availtodaySelect.setAttribute('required', 'required');
+                    }
+                    
+                    // Disable and set quantity to 0 for Same Day Order
+                    if (quantityField) {
+                        quantityField.value = '0';
+                        quantityField.disabled = true;
+                        quantityField.style.opacity = '0.5';
+                        quantityField.style.cursor = 'not-allowed';
                     }
                     
                     // Initialize calendar for Today's products
@@ -561,13 +548,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         console.error('Error creating calendar:', error);
                     }
                 } else {
-                    if (regularDaysContainer) regularDaysContainer.style.display = 'none';
                     if (todaysCalendarContainer) todaysCalendarContainer.style.display = 'none';
                     if (availtodayOptions) availtodayOptions.style.display = 'none';
                     if (isAvailableTodayContainer) isAvailableTodayContainer.style.display = 'none';
                     if (availableTodayCalendarContainer) availableTodayCalendarContainer.style.display = 'none';
                     if (availtodaySelect) {
                         availtodaySelect.removeAttribute('required');
+                    }
+                    
+                    // Enable quantity field for other statuses
+                    if (quantityField) {
+                        quantityField.disabled = false;
+                        quantityField.style.opacity = '1';
+                        quantityField.style.cursor = 'text';
                     }
                 }
             }
@@ -751,8 +744,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             const isAvailableTodayCheckbox = document.getElementById('isAvailableToday');
             const availableTodayDates = document.getElementById('availableTodayDates');
 
-            // For Same Day Order products, ensure both date and availtoday status are selected
-            if (statusSelect.value === '3') {
+            // For Same Day Order products (status_id 4), ensure both date and availtoday status are selected
+            if (statusSelect.value === '4') {
                 if (!availtodaySelect || !availtodaySelect.value) {
                     alert('Please select a "Same Day Order Options".');
                     return false;
@@ -763,8 +756,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 }
             }
 
-            // For regular products (Pick Up/Delivery) set as available today
-            if ((statusSelect.value === '1' || statusSelect.value === '2') && isAvailableTodayCheckbox && isAvailableTodayCheckbox.checked) {
+            // For regular products (Pick Up/Delivery/Delivery or Pick Up) set as available today
+            if ((statusSelect.value === '1' || statusSelect.value === '2' || statusSelect.value === '3') && isAvailableTodayCheckbox && isAvailableTodayCheckbox.checked) {
                 if (!availtodaySelect || !availtodaySelect.value) {
                     alert('Please select a "Same Day Order Options".');
                     return false;

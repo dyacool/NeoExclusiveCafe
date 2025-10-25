@@ -1830,3 +1830,132 @@ h3 {
         left: 6px;
     }
 }
+
+
+/* Quantity Modal Styles */
+.quantity-modal-content {
+    max-width: 400px;
+    padding: 30px;
+}
+
+.quantity-modal-body {
+    text-align: center;
+}
+
+.quantity-modal-body h2 {
+    margin: 0 0 10px 0;
+    font-size: 24px;
+    color: #333;
+}
+
+.quantity-modal-price {
+    font-size: 20px;
+    color: #4CAF50;
+    font-weight: bold;
+    margin: 5px 0;
+}
+
+.quantity-modal-stock {
+    font-size: 14px;
+    color: #666;
+    margin: 5px 0 20px 0;
+}
+
+.quantity-modal-controls {
+    margin: 20px 0;
+}
+
+.quantity-modal-controls label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #333;
+}
+
+.quantity-modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 25px;
+}
+
+.quantity-modal-actions button {
+    flex: 1;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-cancel {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+.btn-cancel:hover {
+    background-color: #e0e0e0;
+}
+
+.btn-confirm {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.btn-confirm:hover {
+    background-color: #45a049;
+}
+
+
+/* Order Type Selector */
+.order-type-selector {
+    margin: 15px 0;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.order-type-selector label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+
+.order-type-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.order-type-btn {
+    flex: 1;
+    padding: 10px 15px;
+    border: 2px solid #ddd;
+    background-color: white;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #666;
+}
+
+.order-type-btn:hover {
+    border-color: #4CAF50;
+    color: #4CAF50;
+}
+
+.order-type-btn.active {
+    background-color: #4CAF50;
+    border-color: #4CAF50;
+    color: white;
+}
+
+.quantity-modal-date {
+    font-size: 13px;
+    color: #666;
+    margin: 5px 0;
+    font-style: italic;
+}
