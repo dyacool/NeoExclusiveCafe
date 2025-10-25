@@ -92,25 +92,50 @@ if (isset($user['profile_image']) && !empty(trim($user['profile_image']))) {
 
 $user_email = $user['email'];
 
+// Pagination settings
+$orders_per_page = 3;
+$bulk_orders_per_page = 4;
+$orders_page = isset($_GET['orders_page']) ? max(1, intval($_GET['orders_page'])) : 1;
+$bulk_orders_page = isset($_GET['bulk_orders_page']) ? max(1, intval($_GET['bulk_orders_page'])) : 1;
+$orders_offset = ($orders_page - 1) * $orders_per_page;
+$bulk_orders_offset = ($bulk_orders_page - 1) * $bulk_orders_per_page;
+
 // Check if order_refunds table exists
 $refunds_table_check = "SHOW TABLES LIKE 'order_refunds'";
 $refunds_table_result = $conn->query($refunds_table_check);
 $refunds_table_exists = $refunds_table_result && $refunds_table_result->num_rows > 0;
 
-// Fetch user orders by customer_email with refund information
+// Get total count of orders first
+if ($refunds_table_exists) {
+    $count_sql = "SELECT COUNT(*) as total FROM orders o WHERE o.customer_email = ?";
+    $count_stmt = mysqli_prepare($conn, $count_sql);
+    mysqli_stmt_bind_param($count_stmt, "s", $user_email);
+} else {
+    $count_sql = "SELECT COUNT(*) as total FROM orders WHERE customer_email = ?";
+    $count_stmt = mysqli_prepare($conn, $count_sql);
+    mysqli_stmt_bind_param($count_stmt, "s", $user_email);
+}
+mysqli_stmt_execute($count_stmt);
+$count_result = mysqli_stmt_get_result($count_stmt);
+$total_orders = mysqli_fetch_assoc($count_result)['total'];
+$total_orders_pages = ceil($total_orders / $orders_per_page);
+mysqli_stmt_close($count_stmt);
+
+// Fetch user orders by customer_email with refund information (with pagination)
 if ($refunds_table_exists) {
     $sql = "SELECT o.order_id, o.status, o.order_date, o.total_items, o.total_amount, o.delivery_method,
                    r.refund_id, r.refund_status, r.refund_amount, r.created_at as refund_created_at
             FROM orders o
             LEFT JOIN order_refunds r ON o.order_id = r.order_id AND r.user_id = ?
             WHERE o.customer_email = ? 
-            ORDER BY o.order_date DESC";
+            ORDER BY o.order_date DESC
+            LIMIT ? OFFSET ?";
     $stmt = mysqli_prepare($conn, $sql);
-    mysqli_stmt_bind_param($stmt, "is", $user_id, $user_email);
+    mysqli_stmt_bind_param($stmt, "isii", $user_id, $user_email, $orders_per_page, $orders_offset);
 } else {
-    $sql = "SELECT order_id, status, order_date, total_items, total_amount, delivery_method FROM orders WHERE customer_email = ? ORDER BY order_date DESC";
+    $sql = "SELECT order_id, status, order_date, total_items, total_amount, delivery_method FROM orders WHERE customer_email = ? ORDER BY order_date DESC LIMIT ? OFFSET ?";
     $stmt = mysqli_prepare($conn, $sql);
-    mysqli_stmt_bind_param($stmt, "s", $user_email);
+    mysqli_stmt_bind_param($stmt, "sii", $user_email, $orders_per_page, $orders_offset);
 }
 mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
@@ -150,13 +175,31 @@ if (mysqli_num_rows($result) > 0) {
     mysqli_data_seek($result, 0);
 }
 
-// Fetch user bulk orders
+// Get total count of bulk orders first
+$bulk_count_sql = "SELECT COUNT(*) as total FROM bulk_orders WHERE user_id = ?";
+$bulk_count_stmt = mysqli_prepare($conn, $bulk_count_sql);
+
+if ($bulk_count_stmt === false) {
+    // Handle case where bulk_orders table doesn't exist yet
+    $total_bulk_orders = 0;
+    $total_bulk_orders_pages = 0;
+} else {
+    mysqli_stmt_bind_param($bulk_count_stmt, "i", $user_id);
+    mysqli_stmt_execute($bulk_count_stmt);
+    $bulk_count_result = mysqli_stmt_get_result($bulk_count_stmt);
+    $total_bulk_orders = mysqli_fetch_assoc($bulk_count_result)['total'];
+    $total_bulk_orders_pages = ceil($total_bulk_orders / $bulk_orders_per_page);
+    mysqli_stmt_close($bulk_count_stmt);
+}
+
+// Fetch user bulk orders (with pagination)
 $bulk_orders_sql = "SELECT id, 
                            unique_order_id as display_order_id,
                            name, contact, email, billing_address, order_type, delivery_address, purpose, date_needed, time_needed, created_at, status, total_items, total_amount, proof_of_payment, admin_updated, note, admin_notes 
                     FROM bulk_orders 
                     WHERE user_id = ? 
-                    ORDER BY created_at DESC";
+                    ORDER BY created_at DESC
+                    LIMIT ? OFFSET ?";
 $bulk_orders_stmt = mysqli_prepare($conn, $bulk_orders_sql);
 
 // Check if bulk_orders table exists and statement prepared successfully
@@ -168,7 +211,7 @@ if ($bulk_orders_stmt === false) {
     // Create empty result for later use
     $bulk_orders_result = mysqli_query($conn, "SELECT 1 WHERE 0"); // Empty result set
 } else {
-    mysqli_stmt_bind_param($bulk_orders_stmt, "i", $user_id);
+    mysqli_stmt_bind_param($bulk_orders_stmt, "iii", $user_id, $bulk_orders_per_page, $bulk_orders_offset);
     mysqli_stmt_execute($bulk_orders_stmt);
     $bulk_orders_result = mysqli_stmt_get_result($bulk_orders_stmt);
 
@@ -360,9 +403,9 @@ if ($bulk_orders_stmt === false) {
             </div>
         </div>
 
-        <div class="neo-profile-orders">
+        <div class="neo-profile-orders" id="orders-section">
             <h2>My Orders</h2>
-            <table class="orders-table">
+            <table class="orders-table regular-orders-table" id="orders-table">
                 <thead>
                     <tr>
                         <th>Order Date</th>
@@ -387,30 +430,30 @@ if ($bulk_orders_stmt === false) {
                             <td>#<?php echo htmlspecialchars($order['order_id']); ?></td>
                             <td><?php echo htmlspecialchars($order['total_items']); ?> items</td>
                             <td>₱<?php echo htmlspecialchars(number_format($order['total_amount'], 2)); ?></td>
-                            <td><span class="status-<?php echo htmlspecialchars($status_lower); ?>"><?php echo htmlspecialchars(ucfirst($order['status'])); ?></span></td>
+                            <td><span class="status-badge status-<?php echo htmlspecialchars($status_lower); ?>"><?php echo htmlspecialchars(ucfirst($order['status'])); ?></span></td>
                             <td>
                                 <?php if ($has_refund): ?>
-                                    <div style="display: flex; flex-direction: column; gap: 4px; align-items: center;">
+                                    <div class="refund-status-container">
                                         <span class="refund-status-badge refund-status-<?php echo htmlspecialchars($order['refund_status']); ?>">
                                             <?php echo htmlspecialchars(ucfirst($order['refund_status'])); ?>
                                         </span>
-                                        <small style="color: #666; font-size: 11px;">
+                                        <small class="refund-date">
                                             <?php echo date("M j, Y", strtotime($order['refund_created_at'])); ?>
                                         </small>
                                     </div>
                                 <?php elseif ($is_delivered): ?>
-                                    <span style="color: #666; font-size: 13px;">Available</span>
+                                    <span class="refund-available">Available</span>
                                 <?php else: ?>
-                                    <span style="color: #999; font-size: 13px;">N/A</span>
+                                    <span class="refund-na">N/A</span>
                                 <?php endif; ?>
                             </td>
-                            <td>
-                                <a href="../cart/order-details.php?order_id=<?php echo $order['order_id']; ?>" class="btn-view" style="display: inline-block; text-decoration: none; text-align: center;">View Order</a>
+                            <td class="actions-column">
+                                <a href="../cart/order-details.php?order_id=<?php echo $order['order_id']; ?>" class="btn-view">View Order</a>
                                 <?php if ($is_delivered): ?>
                                     <?php if ($has_refund): ?>
-                                        <button onclick="viewRefundDetails(<?php echo $order['order_id']; ?>)" class="btn-proof" style="border: none; cursor: pointer;">View Refund</button>
+                                        <button onclick="viewRefundDetails(<?php echo $order['order_id']; ?>)" class="btn-refund">View Refund</button>
                                     <?php else: ?>
-                                        <button onclick="openRefundRequestModal(<?php echo $order['order_id']; ?>)" class="btn-proof" style="border: none; cursor: pointer;">Request Refund</button>
+                                        <button onclick="openRefundRequestModal(<?php echo $order['order_id']; ?>)" class="btn-refund">Request Refund</button>
                                     <?php endif; ?>
                                 <?php endif; ?>
                             </td>
@@ -423,12 +466,38 @@ if ($bulk_orders_stmt === false) {
                     <?php endif; ?>
                 </tbody>
             </table>
+            
+            <!-- Orders Pagination -->
+            <?php if ($total_orders_pages > 1): ?>
+            <div class="pagination-container" id="orders-pagination">
+                <div class="pagination">
+                    <?php if ($orders_page > 1): ?>
+                        <button type="button" data-page="<?php echo ($orders_page - 1); ?>" data-type="orders" class="pagination-btn pagination-link">&laquo; Previous</button>
+                    <?php endif; ?>
+                    
+                    <?php for ($i = 1; $i <= $total_orders_pages; $i++): ?>
+                        <?php if ($i == $orders_page): ?>
+                            <span class="pagination-btn active"><?php echo $i; ?></span>
+                        <?php else: ?>
+                            <button type="button" data-page="<?php echo $i; ?>" data-type="orders" class="pagination-btn pagination-link"><?php echo $i; ?></button>
+                        <?php endif; ?>
+                    <?php endfor; ?>
+                    
+                    <?php if ($orders_page < $total_orders_pages): ?>
+                        <button type="button" data-page="<?php echo ($orders_page + 1); ?>" data-type="orders" class="pagination-btn pagination-link">Next &raquo;</button>
+                    <?php endif; ?>
+                </div>
+                <div class="pagination-info">
+                    Showing <?php echo min($orders_offset + $orders_per_page, $total_orders); ?> of <?php echo $total_orders; ?> orders
+                </div>
+            </div>
+            <?php endif; ?>
         </div>
 
         <!-- Bulk Order History Section -->
-        <div class="neo-profile-orders">
+        <div class="neo-profile-orders" id="bulk-orders-section">
             <h2>Bulk Order History</h2>
-            <table class="orders-table">
+            <table class="orders-table bulk-orders-table" id="bulk-orders-table">
                 <thead>
                     <tr>
                         <th>Order ID</th>
@@ -436,7 +505,6 @@ if ($bulk_orders_stmt === false) {
                         <th>Total Items</th>
                         <th>Total Amount</th>
                         <th>Order Status</th>
-                        <th>Refund Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -448,25 +516,48 @@ if ($bulk_orders_stmt === false) {
                             <td><?php echo htmlspecialchars(date("M j, Y", strtotime($bulk_order['created_at']))); ?></td>
                             <td><?php echo htmlspecialchars($bulk_order['total_items']); ?> items</td>
                             <td>₱<?php echo htmlspecialchars(number_format($bulk_order['total_amount'], 2)); ?></td>
-                            <td><span class="status-<?php echo htmlspecialchars(strtolower($bulk_order['status'])); ?>"><?php echo htmlspecialchars(ucfirst(str_replace('_', ' ', $bulk_order['status']))); ?></span></td>
-                            <td>
-                                <span style="color: #999; font-size: 13px;">N/A</span>
-                            </td>
-                            <td>
+                            <td><span class="status-badge status-<?php echo htmlspecialchars(strtolower($bulk_order['status'])); ?>"><?php echo htmlspecialchars(ucfirst(str_replace('_', ' ', $bulk_order['status']))); ?></span></td>
+                            <td class="actions-column">
                                 <a href="../bulk/bulk-order-details.php?id=<?php echo $bulk_order['display_order_id']; ?>" class="btn-view">View Details</a>
                                 <?php if ($bulk_order['status'] == 'approved' && empty($bulk_order['proof_of_payment'])): ?>
-                                    <a href="../bulk/bulk-order-details.php?id=<?php echo $bulk_order['display_order_id']; ?>#proof-upload" class="btn-proof">Attach Proof</a>
+                                    <a href="../bulk/bulk-order-details.php?id=<?php echo $bulk_order['display_order_id']; ?>#proof-upload" class="btn-upload">Attach Proof</a>
                                 <?php endif; ?>
                             </td>
                         </tr>
                         <?php endwhile; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="7">No bulk orders found for your account.</td>
+                            <td colspan="6">No bulk orders found for your account.</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
             </table>
+            
+            <!-- Bulk Orders Pagination -->
+            <?php if ($total_bulk_orders_pages > 1): ?>
+            <div class="pagination-container" id="bulk-orders-pagination">
+                <div class="pagination">
+                    <?php if ($bulk_orders_page > 1): ?>
+                        <button type="button" data-page="<?php echo ($bulk_orders_page - 1); ?>" data-type="bulk_orders" class="pagination-btn pagination-link">&laquo; Previous</button>
+                    <?php endif; ?>
+                    
+                    <?php for ($i = 1; $i <= $total_bulk_orders_pages; $i++): ?>
+                        <?php if ($i == $bulk_orders_page): ?>
+                            <span class="pagination-btn active"><?php echo $i; ?></span>
+                        <?php else: ?>
+                            <button type="button" data-page="<?php echo $i; ?>" data-type="bulk_orders" class="pagination-btn pagination-link"><?php echo $i; ?></button>
+                        <?php endif; ?>
+                    <?php endfor; ?>
+                    
+                    <?php if ($bulk_orders_page < $total_bulk_orders_pages): ?>
+                        <button type="button" data-page="<?php echo ($bulk_orders_page + 1); ?>" data-type="bulk_orders" class="pagination-btn pagination-link">Next &raquo;</button>
+                    <?php endif; ?>
+                </div>
+                <div class="pagination-info">
+                    Showing <?php echo min($bulk_orders_offset + $bulk_orders_per_page, $total_bulk_orders); ?> of <?php echo $total_bulk_orders; ?> bulk orders
+                </div>
+            </div>
+            <?php endif; ?>
         </div>
         <!-- Order Details Modal -->
 <div id="orderDetailsModal" class="neo-modal">
@@ -731,6 +822,111 @@ if ($bulk_orders_stmt === false) {
         // Redirect to order-details.php which will show the refund details modal
         window.location.href = `../cart/order-details.php?order_id=${orderId}#view-refund`;
     }
+
+    // AJAX Pagination Functions
+    function loadOrdersPage(page) {
+        console.log('Loading orders page:', page); // Debug log
+        
+        // Show loading indicator
+        const ordersTable = document.getElementById('orders-table');
+        const ordersPagination = document.getElementById('orders-pagination');
+        
+        if (!ordersTable) {
+            console.error('Orders table not found');
+            return false;
+        }
+        
+        ordersTable.innerHTML = '<tbody><tr><td colspan="7" style="text-align: center; padding: 20px;">Loading...</td></tr></tbody>';
+        
+        // Make AJAX request
+        fetch(`ajax-pagination.php?type=orders&page=${page}`)
+            .then(response => {
+                console.log('Response status:', response.status); // Debug log
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Data received:', data); // Debug log
+                ordersTable.innerHTML = data.table_html;
+                if (data.pagination_html && ordersPagination) {
+                    ordersPagination.innerHTML = data.pagination_html;
+                    ordersPagination.style.display = 'flex';
+                } else if (ordersPagination) {
+                    ordersPagination.style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading orders:', error);
+                ordersTable.innerHTML = '<tbody><tr><td colspan="7" style="text-align: center; padding: 20px; color: red;">Error loading orders. Please try again.</td></tr></tbody>';
+            });
+        
+        return false; // Prevent default action
+    }
+
+    function loadBulkOrdersPage(page) {
+        console.log('Loading bulk orders page:', page); // Debug log
+        
+        // Show loading indicator
+        const bulkOrdersTable = document.getElementById('bulk-orders-table');
+        const bulkOrdersPagination = document.getElementById('bulk-orders-pagination');
+        
+        if (!bulkOrdersTable) {
+            console.error('Bulk orders table not found');
+            return false;
+        }
+        
+        bulkOrdersTable.innerHTML = '<tbody><tr><td colspan="6" style="text-align: center; padding: 20px;">Loading...</td></tr></tbody>';
+        
+        // Make AJAX request
+        fetch(`ajax-pagination.php?type=bulk_orders&page=${page}`)
+            .then(response => {
+                console.log('Bulk orders response status:', response.status); // Debug log
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Bulk orders data received:', data); // Debug log
+                bulkOrdersTable.innerHTML = data.table_html;
+                if (data.pagination_html && bulkOrdersPagination) {
+                    bulkOrdersPagination.innerHTML = data.pagination_html;
+                    bulkOrdersPagination.style.display = 'flex';
+                } else if (bulkOrdersPagination) {
+                    bulkOrdersPagination.style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading bulk orders:', error);
+                bulkOrdersTable.innerHTML = '<tbody><tr><td colspan="6" style="text-align: center; padding: 20px; color: red;">Error loading bulk orders. Please try again.</td></tr></tbody>';
+            });
+        
+        return false; // Prevent default action
+    }
+
+    // Event delegation for pagination buttons
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle pagination button clicks
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('pagination-link')) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const page = parseInt(e.target.dataset.page);
+                const type = e.target.dataset.type;
+                
+                console.log('Pagination button clicked:', {page, type}); // Debug log
+                
+                if (type === 'orders') {
+                    loadOrdersPage(page);
+                } else if (type === 'bulk_orders') {
+                    loadBulkOrdersPage(page);
+                }
+            }
+        });
+    });
 </script>
 
     <div id="footer-container">

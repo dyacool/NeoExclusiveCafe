@@ -889,7 +889,7 @@ $can_request_refund = ($status_lower === 'delivered' || $status_lower === 'picke
     <div id="refundDetailsModal" class="refund-modal">
         <div class="refund-modal-content">
             <div class="refund-modal-header">
-                <h2>Refund Request Details</h2>
+                <h2><i class="fas fa-receipt"></i> Refund Request Details</h2>
                 <button type="button" class="refund-modal-close" onclick="closeRefundDetailsModal()">&times;</button>
             </div>
             <div class="refund-modal-body">
@@ -968,14 +968,14 @@ $can_request_refund = ($status_lower === 'delivered' || $status_lower === 'picke
                                  onmouseout="this.style.transform='scale(1)'">
                         </a>
                         <p style="margin-top: 8px; font-size: 13px; color: #666;">
-                            Click image to view full size
+                            <i class="fas fa-expand"></i> Click image to view full size
                         </p>
                     </div>
                 </div>
                 <?php endif; ?>
 
                 <button type="button" class="refund-submit-btn" onclick="closeRefundDetailsModal()">
-                    Close
+                    <i class="fas fa-times"></i> Close
                 </button>
             </div>
         </div>

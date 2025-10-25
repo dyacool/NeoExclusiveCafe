@@ -275,6 +275,7 @@ body {
   text-align: left;
   border-bottom: 2px solid var(--border);
   font-size: 0.9rem;
+  white-space: nowrap;
 }
 
 .orders-table tbody tr {
@@ -294,6 +295,151 @@ body {
   padding: 16px;
   vertical-align: middle;
   color: var(--text);
+}
+
+/* Status Colors */
+.status-completed,
+.status-delivered {
+  background: linear-gradient(135deg, #d1e7dd 0%, #c3e6cb 100%);
+  color: #0f5132;
+  border-color: #a3cfbb;
+}
+
+.status-processing {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+  color: #856404;
+  border-color: #ffd93d;
+}
+
+.status-pending {
+  background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+  color: #842029;
+  border-color: #f1aeb5;
+}
+
+.status-cancelled {
+  background: linear-gradient(135deg, #e2e3e5 0%, #d6d8db 100%);
+  color: #383d41;
+  border-color: #ced4da;
+}
+
+.status-approved {
+  background: linear-gradient(135deg, #d1e7dd 0%, #a3cfbb 100%);
+  color: #155724;
+  border-color: #c3e6cb;
+}
+
+/* Unified Status Badge Styling for all badges */
+.status-badge,
+.refund-status-badge {
+  display: inline-block;
+  padding: 6px 12px !important;
+  border-radius: 20px !important;
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  border: 2px solid transparent !important;
+}
+
+/* Refund Status Badge Specific Colors */
+.refund-status-badge.refund-status-pending {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%) !important;
+  color: #856404 !important;
+  border-color: #ffd93d !important;
+}
+
+.refund-status-badge.refund-status-approved {
+  background: linear-gradient(135deg, #d1e7dd 0%, #c3e6cb 100%) !important;
+  color: #0f5132 !important;
+  border-color: #a3cfbb !important;
+}
+
+.refund-status-badge.refund-status-rejected {
+  background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%) !important;
+  color: #842029 !important;
+  border-color: #f1aeb5 !important;
+}
+
+.refund-status-badge.refund-status-completed {
+  background: linear-gradient(135deg, #d1e7dd 0%, #c3e6cb 100%) !important;
+  color: #0a3622 !important;
+  border-color: #a3cfbb !important;
+}
+
+/* Refund Status Styling */
+.refund-status-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+
+.refund-date {
+  color: #666;
+  font-size: 11px;
+}
+
+.refund-available {
+  color: #28a745;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.refund-na {
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+/* Actions Column Styling */
+.actions-column {
+  text-align: left !important;
+  white-space: nowrap;
+}
+
+/* Improved Button Styling */
+.btn-view,
+.btn-refund,
+.btn-upload {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all var(--transition-speed) ease;
+  border: 2px solid;
+  margin: 2px;
+  cursor: pointer;
+}
+
+.btn-view {
+  background: linear-gradient(135deg, #0f5132 0%, #155724 100%);
+  color: var(--white);
+  border-color: #0f5132;
+}
+
+.btn-view:hover {
+  background: linear-gradient(135deg, #0a3622 0%, #0f5132 100%);
+  border-color: #0a3622;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(15, 81, 50, 0.3);
+}
+
+.btn-upload,
+.btn-refund {
+  background-color: #247d44;
+  color: var(--white);
+  border-color: #59ac77;
+}
+.btn-upload:hover,
+.btn-refund:hover {
+  background: #87c29d;
+  border-color: #59ac77;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(89, 172, 119, 0.3);
 }
 
 /* Status Badges - Clean Original Style */
@@ -377,7 +523,8 @@ body {
   border: 1px solid rgba(40, 167, 69, 0.2);
 }
 
-/* Action Buttons - Clean Style */
+/* Legacy Action Buttons - REPLACED WITH NEW STYLING ABOVE */
+/*
 .btn-view,
 .btn-proof {
   display: inline-flex;
@@ -398,7 +545,10 @@ body {
   color: var(--white);
   border-color: var(--primary);
 }
+*/
 
+/* Legacy button hover styles - REPLACED WITH NEW STYLING ABOVE */
+/*
 .btn-view:hover {
   background: var(--primary-dark);
   border-color: var(--primary-dark);
@@ -418,6 +568,7 @@ body {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
 }
+*/
 
 /* Modal Styles */
 .neo-modal {
@@ -940,8 +1091,21 @@ body {
   width: 100%;
 }
 
+/* Ensure table headers are ALWAYS visible */
 .orders-table thead {
-  display: none; /* Hide the table header */
+  display: table-header-group !important;
+  visibility: visible !important;
+}
+
+.orders-table thead th {
+  display: table-cell !important;
+  background: var(--background) !important;
+  color: var(--primary) !important;
+  font-weight: 600 !important;
+  padding: 12px 8px !important;
+  text-align: left !important;
+  border-bottom: 2px solid var(--border) !important;
+  font-size: 0.9rem !important;
 }
 
 /* Style each order as a card */
@@ -949,7 +1113,6 @@ body {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   grid-template-rows: auto auto;
-  gap: 1rem;
   margin-bottom: 1.25rem;
   background-color: #f8faf9;
   border-radius: 12px;
@@ -1034,12 +1197,18 @@ body {
   content: "Total Amount";
 }
 
+.orders-table td:nth-child(6)::before {
+  content: "Refund ";
+}
+
+.bulk-orders-table td:nth-child(6)::before {
+  content: none !important;
+}
+
 /* Actions - Row 2, Column 3 */
 .orders-table td:nth-child(6) {
   grid-column: 3;
   grid-row: 2;
-  display: flex;
-  align-items: flex-end;
   height: 100%;
 }
 
@@ -1574,4 +1743,199 @@ body {
   padding: 0.3rem 0.75rem;
   border-radius: 4px;
   font-weight: 500;
+}
+
+/* FINAL OVERRIDE: Hide table headers completely */
+.orders-table thead,
+.regular-orders-table thead,
+.bulk-orders-table thead {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+.orders-table thead th,
+.regular-orders-table thead th,
+.bulk-orders-table thead th {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* Override any responsive rules to hide headers */
+@media (max-width: 768px) {
+  .orders-table thead,
+  .regular-orders-table thead,
+  .bulk-orders-table thead {
+    display: none !important;
+  }
+
+  .orders-table thead th,
+  .regular-orders-table thead th,
+  .bulk-orders-table thead th {
+    display: none !important;
+    font-size: 0.8rem;
+    padding: 8px 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .orders-table thead,
+  .regular-orders-table thead,
+  .bulk-orders-table thead {
+    display: none !important;
+  }
+
+  .orders-table thead th,
+  .regular-orders-table thead th,
+  .bulk-orders-table thead th {
+    display: none !important;
+    font-size: 0.75rem;
+    padding: 6px 2px;
+  }
+}
+
+/* Pagination Styling */
+.pagination-container {
+  margin-top: 20px;
+  padding: 20px 0;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.pagination {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--secondary);
+  background: var(--white);
+  transition: all var(--transition-speed) ease;
+  min-width: 40px;
+  height: 40px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* Ensure buttons look the same as links */
+button.pagination-btn {
+  border: 2px solid var(--border);
+  background: var(--white);
+  color: var(--secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  font-family: inherit;
+}
+
+.pagination-btn:hover {
+  background: var(--primary-light);
+  color: var(--white);
+  border-color: var(--primary-light);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(15, 81, 50, 0.2);
+}
+
+.pagination-btn.active {
+  background: var(--primary);
+  color: var(--white);
+  border-color: var(--primary);
+  font-weight: 600;
+}
+
+.pagination-btn.active:hover {
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+}
+
+.pagination-info {
+  color: var(--secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  background: var(--background);
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+/* Responsive Pagination */
+@media (max-width: 768px) {
+  .pagination-container {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+
+  .pagination {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .pagination-btn {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    min-width: 35px;
+    height: 35px;
+  }
+
+  .pagination-info {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pagination {
+    gap: 4px;
+  }
+
+  .pagination-btn {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    min-width: 30px;
+    height: 30px;
+  }
+}
+
+/* Loading States */
+.loading-row {
+  text-align: center !important;
+  padding: 20px !important;
+  font-style: italic;
+  color: var(--secondary);
+}
+
+.error-row {
+  text-align: center !important;
+  padding: 20px !important;
+  color: var(--error);
+  font-weight: 500;
+}
+
+/* Smooth transitions for table updates */
+.orders-table,
+.regular-orders-table,
+.bulk-orders-table {
+  transition: opacity 0.3s ease;
+}
+
+.orders-table.loading,
+.regular-orders-table.loading,
+.bulk-orders-table.loading {
+  opacity: 0.6;
+  pointer-events: none;
 }
