@@ -51,7 +51,11 @@ $table_check = "SHOW TABLES LIKE 'order_refunds'";
 $table_result = $conn->query($table_check);
 
 if ($table_result && $table_result->num_rows > 0) {
-    $refund_query = "SELECT * FROM order_refunds WHERE order_id = ? AND user_id = ? LIMIT 1";
+    $refund_query = "SELECT r.*, rv.voucher_code as refund_coupon_code, rv.amount as refund_coupon_amount, rv.expiry_date as refund_coupon_expiry 
+                     FROM order_refunds r 
+                     LEFT JOIN refund_vouchers rv ON r.refund_id = rv.refund_id 
+                     WHERE r.order_id = ? AND r.user_id = ? 
+                     LIMIT 1";
     $refund_stmt = $conn->prepare($refund_query);
     if ($refund_stmt) {
         $refund_stmt->bind_param('ii', $order_id, $user_id);
@@ -414,6 +418,32 @@ $can_request_refund = ($status_lower === 'delivered' || $status_lower === 'picke
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
+        .voucher-info-container {
+            background: #f8f9fa;
+            border: 2px solid #0f5132;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+
+        .voucher-code-display {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0f5132;
+            font-family: 'Monaco', monospace;
+            text-align: center;
+            margin-bottom: 12px;
+            padding: 8px;
+            background: white;
+            border-radius: 6px;
+            border: 1px dashed #0f5132;
+        }
+
+        .voucher-amount-display {
+            text-align: center;
+            font-size: 16px;
+        }
+
         @media (max-width: 768px) {
             .action-buttons {
                 flex-direction: column;
@@ -774,7 +804,7 @@ $can_request_refund = ($status_lower === 'delivered' || $status_lower === 'picke
                                 ×
                             </button>
                             <p style="margin: 8px 0 0 0; font-size: 13px; color: #666; text-align: center;">
-                                <i class="fas fa-check-circle" style="color: #0f5132;"></i> Image uploaded successfully
+                                Image uploaded successfully
                             </p>
                         </div>
                     `;
@@ -807,7 +837,6 @@ $can_request_refund = ($status_lower === 'delivered' || $status_lower === 'picke
             
             // Restore original upload area
             uploadArea.innerHTML = `
-                <i class="fas fa-cloud-upload-alt" style="font-size: 32px; color: #0f5132; margin-bottom: 8px;"></i>
                 <p style="margin: 0; color: #666;">Click to upload proof image</p>
                 <p style="margin: 4px 0 0 0; font-size: 12px; color: #999;">JPG, PNG, GIF (Max 5MB)</p>
             `;
@@ -850,7 +879,7 @@ $can_request_refund = ($status_lower === 'delivered' || $status_lower === 'picke
             formData.append('refund_items', JSON.stringify(selectedItems));
             
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+            submitBtn.innerHTML = 'Submitting...';
             
             try {
                 const response = await fetch('../../../backend/pages/cart/submit-refund.php', {
@@ -866,13 +895,13 @@ $can_request_refund = ($status_lower === 'delivered' || $status_lower === 'picke
                 } else {
                     alert('Error: ' + result.message);
                     submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Refund Request';
+                    submitBtn.innerHTML = 'Submit Refund Request';
                 }
             } catch (error) {
                 console.error('Error:', error);
                 alert('An error occurred while submitting the refund request. Please try again.');
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Refund Request';
+                submitBtn.innerHTML = 'Submit Refund Request';
             }
         });
 
@@ -889,7 +918,7 @@ $can_request_refund = ($status_lower === 'delivered' || $status_lower === 'picke
     <div id="refundDetailsModal" class="refund-modal">
         <div class="refund-modal-content">
             <div class="refund-modal-header">
-                <h2><i class="fas fa-receipt"></i> Refund Request Details</h2>
+                <h2>Refund Request Details</h2>
                 <button type="button" class="refund-modal-close" onclick="closeRefundDetailsModal()">&times;</button>
             </div>
             <div class="refund-modal-body">
@@ -932,6 +961,27 @@ $can_request_refund = ($status_lower === 'delivered' || $status_lower === 'picke
                 </div>
                 <?php endif; ?>
 
+                <?php if (!empty($refund['refund_coupon_code'])): ?>
+                <div class="refund-form-group">
+                    <label>Refund Voucher Information:</label>
+                    <div class="voucher-info-container">
+                        <div class="voucher-code-display">
+                            <?php echo htmlspecialchars($refund['refund_coupon_code']); ?>
+                        </div>
+                        <div class="voucher-amount-display">
+                            <strong>Amount:</strong> ₱<?php echo number_format($refund['refund_coupon_amount'], 2); ?>
+                        </div>
+                        <?php if (!empty($refund['refund_coupon_expiry'])): ?>
+                        <div class="voucher-amount-display" style="margin-top: 8px; font-size: 14px; color: #666;">
+                            <strong>Expires:</strong> <?php echo date('F j, Y', strtotime($refund['refund_coupon_expiry'])); ?>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <?php endif; ?>
+
+                
+
                 <div class="refund-form-group">
                     <label>Items Requested for Refund:</label>
                     <div class="refund-items-list" style="max-height: 200px;">
@@ -968,14 +1018,14 @@ $can_request_refund = ($status_lower === 'delivered' || $status_lower === 'picke
                                  onmouseout="this.style.transform='scale(1)'">
                         </a>
                         <p style="margin-top: 8px; font-size: 13px; color: #666;">
-                            <i class="fas fa-expand"></i> Click image to view full size
+                            Click image to view full size
                         </p>
                     </div>
                 </div>
                 <?php endif; ?>
 
                 <button type="button" class="refund-submit-btn" onclick="closeRefundDetailsModal()">
-                    <i class="fas fa-times"></i> Close
+                     Close
                 </button>
             </div>
         </div>

@@ -5,24 +5,25 @@ if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
     exit();
 }
 
-// Include database configuration
-require_once __DIR__ . "/../../../config/database-config.php";
-
-// Get database connection
-$conn = getDatabaseConnection();
+// Include database configuration - same as view-blog-admin.php  
+require_once __DIR__ . "/../admin-includes/database.php";
 
 if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["id"])) {
     $id = intval($_GET["id"]);
     
-    // Try to get post data using either column name
-    $sql = "SELECT * FROM blog_posts WHERE adblog_id = ? OR id = ?";
+    // Use the same query pattern as view-blog-admin.php
+    $sql = "SELECT * FROM blog_posts WHERE adblog_id = ?";
     $stmt = mysqli_prepare($conn, $sql);
-    mysqli_stmt_bind_param($stmt, "ii", $id, $id);
+    mysqli_stmt_bind_param($stmt, "i", $id);
     mysqli_stmt_execute($stmt);
     $result = mysqli_stmt_get_result($stmt);
     
     if ($row = mysqli_fetch_assoc($result)) {
         header('Content-Type: application/json');
+        
+        // Log the data being returned for debugging
+        error_log("Post data for ID $id: " . json_encode($row));
+        
         echo json_encode($row);
     } else {
         http_response_code(404);
