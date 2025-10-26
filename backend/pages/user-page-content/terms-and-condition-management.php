@@ -145,6 +145,8 @@ $conn->close();
     <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 </head>
 <body>
+    <?php include __DIR__ . "/../admin-includes/breadcrumbs/admin-breadcrumb.php"; ?>
+
     <div class="admin-main">
         <div class="admin-container">
             <!-- Page Header -->

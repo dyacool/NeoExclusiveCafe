@@ -200,28 +200,7 @@ if (isset($_POST["reset_password"])) {
 </head>
 <body>
     <div class="admin-profile-container">
-        <!-- Breadcrumb Navigation -->
-        <div class="breadcrumb-container">
-            <nav class="breadcrumb-nav" aria-label="Breadcrumb navigation">
-                <ol class="breadcrumb-list">
-                    <li class="breadcrumb-item">
-                        <a href="admin-profile.php" class="breadcrumb-link">
-                            <span class="breadcrumb-text">Profile</span>
-                        </a>
-                        <span class="breadcrumb-separator" aria-hidden="true">
-                            <svg class="separator-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="m9 18 6-6-6-6"/>
-                            </svg>
-                        </span>
-                    </li>
-                    <li class="breadcrumb-item current">
-                        <span class="breadcrumb-current" aria-current="page">
-                            <span class="breadcrumb-text">Reset Password</span>
-                        </span>
-                    </li>
-                </ol>
-            </nav>
-        </div>
+            <?php include __DIR__ . "/../admin-includes/breadcrumbs/admin-breadcrumb.php"; ?>
 
         <div class="main-container">
             <?php if (!empty($successMessage)): ?>

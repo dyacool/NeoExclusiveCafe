@@ -278,7 +278,7 @@ if ($cart_truncated) {
         <div id="loadingMessage" class="loading-state-message">
             <div class="loading-spinner-container">
                 <div class="loading-spinner"></div>
-                <p>Loading contents...</p>
+                <p>Loading Products...</p>
             </div>
         </div>
         
@@ -544,18 +544,14 @@ if ($cart_truncated) {
                                 // Unavailable badge (highest priority, exclusive)
                                 echo "<div class='unavailable-badge-left'>" . htmlspecialchars($unavailable_reason) . "</div>";
                             } else {
-                                // Show both badges if applicable
-                                if ($is_available_today && $row['is_featured']) {
-                                    // Both badges: Today on top, Featured below
-                                    echo "<div class='today-badge-left'>Today</div>";
-                                    echo "<div class='featured-badge-left' style='top: 38px;'>Featured</div>";
-                                } elseif ($is_available_today) {
-                                    // Only Today badge
-                                    echo "<div class='today-badge-left'>Today</div>";
-                                } elseif ($row['is_featured']) {
-                                    // Only Featured badge
-                                    echo "<div class='featured-badge-left'>Featured</div>";
+                                // Show today badge if available today
+                                if ($is_available_today) {
+                                    echo "<div class='today-badge-left'>Same Day Order</div>";
+                                } else {
+                                    // Show pre-order badge if not available today and not unavailable
+                                    echo "<div class='preorder-badge-left'>Pre-Order</div>";
                                 }
+                                // Note: Featured badge is handled by CSS class 'featured-product' and image overlay
                             }
                             
                             echo "    <div class='product-image'>";
@@ -567,26 +563,12 @@ if ($cart_truncated) {
                                         <span class='unavailable-text'>UNAVAILABLE</span>
                                         <span class='unavailable-reason'>" . htmlspecialchars($unavailable_reason) . "</span>
                                       </div>";
-                            } else {
-                                // Show both overlays if applicable
-                                if ($is_available_today && $row['is_featured']) {
-                                    // Both overlays: Available Today on top-right, Featured on bottom-right
-                                    echo "<div class='available-today-badge'>Available Today!</div>";
-                                    echo "<div class='featured-badge-overlay' style='top: auto; bottom: 10px;'>⭐ Featured</div>";
-                                } elseif ($is_available_today) {
-                                    // Only Available Today overlay
-                                    echo "<div class='available-today-badge'>Available Today!</div>";
-                                } elseif ($row['is_featured']) {
-                                    // Only Featured overlay
-                                    echo "<div class='featured-badge-overlay'>⭐ Featured</div>";
-                                }
-                            }
-                            
+                            } 
                             echo "    <img src='../../../assets/" . htmlspecialchars($row['image_url'] ?: 'images/no-image.jpg') . "' alt='" . htmlspecialchars($row['name']) . "'>
                                     </div>
                                     <div class='product-info'>
-                                        <h3>" . htmlspecialchars($row['name']) . "</h3>
-                                        <p class='price'>" . number_format($row['price'], 2) . "</p>";
+                                        <h3 class='productname'>" . htmlspecialchars($row['name']) . "</h3>
+                                        <p class='price'>₱" . number_format($row['price'], 2) . "</p>";
                             
                             // First row: availtoday status badge and stock
                             echo "<div class='info-row-1'>";
@@ -643,7 +625,7 @@ if ($cart_truncated) {
         <span class="close" onclick="closeQuantityModal()">&times;</span>
         <div class="quantity-modal-body">
             <h2 id="quantityModalProductName">Product Name</h2>
-            <p class="quantity-modal-price" id="quantityModalPrice">â‚±0.00</p>
+            <p class="quantity-modal-price" id="quantityModalPrice"></p>
             
             <!-- Order Type Selector (shown only if product has both pre-order and same day order) -->
             <div id="orderTypeSelector" class="order-type-selector" style="display: none;">
@@ -940,7 +922,7 @@ if ($cart_truncated) {
 
             // Set main content
             productName.textContent = product.name || 'Unknown Product';
-            productPrice.textContent = 'â‚±' + (parseFloat(product.price) || 0).toFixed(2);
+            productPrice.textContent = '₱' + (parseFloat(product.price) || 0).toFixed(2);
             productStatus.textContent = product.status || 'Available Today';
             productStatus.className = 'status-badge status-' + (product.status || '').toLowerCase().replace(' ', '-');
             productDescription.textContent = product.description || 'No description available';

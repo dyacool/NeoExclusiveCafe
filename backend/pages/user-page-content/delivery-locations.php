@@ -25,6 +25,7 @@
 </head>
 <body>
 <?php include __DIR__ . "/../admin-includes/navbar/navbar.php"; ?>
+<?php include __DIR__ . "/../admin-includes/breadcrumbs/admin-breadcrumb.php"; ?>
 
 <div class="delivery-locations-container">
     <div class="main-container">

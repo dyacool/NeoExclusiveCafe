@@ -85,7 +85,7 @@ if ($stmt = mysqli_prepare($conn, $query)) {
 ?>
 
 <link rel="stylesheet" href="activity-logs.css">
-    <?php include __DIR__ . '/../admin-includes/breadcrumbs/admin-breadcrumb.php'; ?>
+    <?php include __DIR__ . "/../admin-includes/breadcrumbs/admin-breadcrumb.php"; ?>
 
 <div class="main-content">
     <div class="page-header">

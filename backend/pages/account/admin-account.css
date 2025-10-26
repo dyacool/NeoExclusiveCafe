@@ -29,7 +29,7 @@
   --blue-100: #dbeafe;
 }
 .content-wrapper {
-  padding: 1rem 0 !important;
+  padding: 1rem 2rem;
 }
 /* Scoped styles to avoid conflicts */
 .admin-profile-container {

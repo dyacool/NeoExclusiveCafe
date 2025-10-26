@@ -43,6 +43,8 @@
 </head>
 <body>
 <?php include __DIR__ . "/../admin-includes/navbar/navbar.php"; ?>
+<?php include __DIR__ . "/../admin-includes/breadcrumbs/admin-breadcrumb.php"; ?>
+
 
 <div class="archive-container">
     <div class="main-container">

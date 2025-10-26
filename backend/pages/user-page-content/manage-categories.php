@@ -21,16 +21,10 @@ $result = mysqli_query($conn, $sql);
 </head>
 <body>
     <?php include __DIR__ . "/../admin-includes/navbar/navbar.php"; ?>
-    
-    <div class="breadcrumb">
-        <a href="/backend/pages/user-page-content/user-content-settings.php">User Content Settings</a>
-        <span class="separator">></span>
-        <span class="current">Manage Categories</span>
-    </div>
-    
+    <?php include __DIR__ . "/../admin-includes/breadcrumbs/admin-breadcrumb.php"; ?>
+
     <div class="main-container">
         <div class="page-header">
-            <h1>Product Categories</h1>
             <p class="page-subtitle">Organize your products by creating and managing categories</p>
         </div>
 

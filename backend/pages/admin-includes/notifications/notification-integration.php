@@ -6,7 +6,7 @@
  * Include this file in your order processing scripts to automatically generate notifications.
  */
 
-require_once __DIR__ . '/notification.php';
+    require_once __DIR__ . '/../admin-includes/notifications/notification.php';
 
 class NotificationIntegration {
     private $handler;

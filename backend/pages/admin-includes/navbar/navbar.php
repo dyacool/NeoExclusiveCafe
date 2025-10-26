@@ -22,6 +22,7 @@ require_once __DIR__ . '/order-count-helper.php';
 // Get order counts only if connection is valid
 $order_counts = ['total' => 0, 'active' => 0, 'pending' => 0];
 $bulk_counts = ['total' => 0, 'active' => 0];
+$refund_counts = ['total' => 0, 'active' => 0];
 
 if (isset($conn) && $conn instanceof mysqli) {
     try {
@@ -29,6 +30,7 @@ if (isset($conn) && $conn instanceof mysqli) {
         if ($conn->thread_id !== null) {
             $order_counts = getOrderCounts($conn);
             $bulk_counts = getBulkOrderCounts($conn);
+            $refund_counts = getRefundCounts($conn);
         }
     } catch (Exception $e) {
         // Connection is closed or invalid, use default values
@@ -191,6 +193,9 @@ if (isset($conn) && $conn instanceof mysqli) {
                                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
                             </svg>
                             <span class="nav-text">Refund Requests</span>
+                            <?php if ($refund_counts['active'] > 0): ?>
+                            <span class="nav-count-badge"><?php echo $refund_counts['active']; ?></span>
+                            <?php endif; ?>
                         </a>
                     </li>
 

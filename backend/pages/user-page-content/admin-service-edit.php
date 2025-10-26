@@ -253,6 +253,8 @@ if (!$cards_result) {
 }
 ?>
 <link rel="stylesheet" href="admin-service-edit.css">
+<?php include __DIR__ . "/../admin-includes/breadcrumbs/admin-breadcrumb.php"; ?>
+
 <div class="admin-container">    
     <?php if (isset($success_message)): ?>
         <div class="alert alert-success"><?php echo $success_message; ?></div>

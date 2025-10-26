@@ -43,7 +43,6 @@
 body {
   background-color: var(--gray-50);
   color: var(--gray-900);
-  line-height: 1.6;
 }
 
 .main-container {
@@ -353,14 +352,20 @@ body {
 /* Filter Controls */
 .controls-section {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
+  align-items: flex-start;
   margin-bottom: 1.5rem;
-  gap: 2rem;
+  gap: 1.5rem;
+  flex-wrap: wrap;
 }
 
 .filter-group {
   flex: 1;
+  min-width: 300px;
+}
+
+.export-group {
+  flex-shrink: 0;
+  align-self: flex-end;
 }
 
 .filter-label {
@@ -392,6 +397,7 @@ body {
   cursor: pointer;
   transition: all 0.2s ease;
   min-width: 80px;
+  flex: 1;
 }
 
 .filter-btn:hover {
@@ -411,10 +417,11 @@ body {
   background-color: white;
   border-radius: 0.75rem;
   padding: 1.25rem;
-  margin-top: 1rem;
+  margin: 1rem 0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   gap: 1rem;
   align-items: end;
+  flex-wrap: wrap;
 }
 
 .custom-filter.active {
@@ -425,6 +432,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  min-width: 150px;
+  flex: 1;
 }
 
 .date-input-group input {
@@ -433,6 +442,7 @@ body {
   border-radius: 0.5rem;
   font-size: 0.875rem;
   transition: all 0.2s ease;
+  width: 100%;
 }
 
 .date-input-group input:focus {
@@ -566,16 +576,18 @@ body {
 
 .table-wrapper {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .transaction-table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 600px; /* Ensure minimum width to maintain readability */
 }
 
 .transaction-table th {
   background-color: var(--gray-50);
-  padding: 1rem 1rem;
+  padding: 1rem 0.75rem;
   text-align: left;
   font-weight: 600;
   color: var(--gray-700);
@@ -584,6 +596,7 @@ body {
   cursor: pointer;
   user-select: none;
   position: relative;
+  white-space: nowrap;
 }
 
 .transaction-table th:hover {
@@ -611,13 +624,26 @@ body {
 }
 
 .transaction-table td {
-  padding: 1rem 1rem;
+  padding: 1rem 0.75rem;
   border-bottom: 1px solid var(--gray-100);
   vertical-align: middle;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
 }
 
 .transaction-table tr:hover {
   background-color: var(--gray-50);
+}
+
+.transaction-table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.transaction-table tbody tr:hover {
+  background-color: var(--green-50);
+  cursor: pointer;
 }
 
 .transaction-table tr:last-child td {
@@ -1054,6 +1080,43 @@ body {
 }
 
 /* Responsive Design */
+@media (max-width: 1440px) {
+  .controls-section {
+    align-items: flex-start;
+  }
+
+  .filter-group {
+    min-width: 250px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .controls-section {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .filter-group {
+    min-width: auto;
+  }
+
+  .export-group {
+    align-self: stretch;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .filter-buttons {
+    justify-content: space-between;
+  }
+
+  .filter-btn {
+    flex: 1;
+    min-width: 70px;
+  }
+}
+
 @media (max-width: 768px) {
   .main-container {
     padding: 1rem;
@@ -1076,6 +1139,13 @@ body {
 
   .filter-buttons {
     justify-content: center;
+    gap: 0.25rem;
+  }
+
+  .filter-btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+    min-width: 60px;
   }
 
   .custom-filter {
@@ -1089,20 +1159,158 @@ body {
 
   .transaction-table {
     font-size: 0.875rem;
+    min-width: 500px;
   }
 
   .transaction-table th,
   .transaction-table td {
     padding: 0.75rem 0.5rem;
   }
+
+  .transaction-table td {
+    max-width: 150px;
+  }
 }
 
 @media (max-width: 640px) {
   .transaction-table {
     font-size: 0.75rem;
+    min-width: 450px;
+  }
+
+  .transaction-table th,
+  .transaction-table td {
+    padding: 0.5rem 0.25rem;
+  }
+
+  .transaction-table td {
+    max-width: 120px;
   }
 
   .summary-card .amount {
     font-size: 1.5rem;
+  }
+
+  .filter-buttons {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .filter-btn {
+    width: 100%;
+    min-width: auto;
+  }
+}
+
+@media (max-width: 425px) {
+  .transaction-table {
+    font-size: 0.7rem;
+    min-width: 400px;
+  }
+
+  .transaction-table th,
+  .transaction-table td {
+    padding: 0.4rem 0.2rem;
+  }
+
+  .transaction-table td {
+    max-width: 100px;
+  }
+
+  .main-container {
+    padding: 0.5rem;
+  }
+
+  .transactions-container-table {
+    margin: 0 -0.5rem;
+    border-radius: 0.5rem;
+  }
+
+  .summary-cards {
+    gap: 1rem;
+  }
+
+  .summary-card {
+    padding: 1rem;
+  }
+
+  .summary-card .amount {
+    font-size: 1.25rem;
+  }
+}
+
+/* Pagination Styles */
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 0;
+  margin-top: 2rem;
+  border-top: 1px solid var(--gray-200);
+}
+
+.pagination-info {
+  color: var(--gray-600);
+  font-size: 0.875rem;
+}
+
+.pagination {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.pagination-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid var(--gray-300);
+  border-radius: 0.5rem;
+  background: white;
+  color: var(--gray-700);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.export-group {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.pagination-btn:hover {
+  background: var(--gray-50);
+  border-color: var(--gray-400);
+  color: var(--gray-900);
+}
+
+.pagination-btn.active {
+  background: var(--green-600);
+  border-color: var(--green-600);
+  color: white;
+}
+
+.pagination-btn.active:hover {
+  background: var(--green-700);
+  border-color: var(--green-700);
+}
+
+.pagination-btn i {
+  font-size: 0.75rem;
+}
+
+@media (max-width: 768px) {
+  .pagination-container {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .pagination {
+    flex-wrap: wrap;
+    justify-content: center;
   }
 }

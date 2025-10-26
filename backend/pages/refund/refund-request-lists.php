@@ -55,7 +55,26 @@ $table_check = "SHOW TABLES LIKE 'order_refunds'";
 $table_result = $conn->query($table_check);
 $table_exists = $table_result && $table_result->num_rows > 0;
 
-// Fetch all refund requests with order and customer information
+// Pagination setup
+$records_per_page = 15;
+$page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
+$page = max(1, $page); // Ensure page is at least 1
+$offset = ($page - 1) * $records_per_page;
+
+// Get total count for pagination
+$total_records = 0;
+if ($table_exists) {
+    $count_sql = "SELECT COUNT(*) as total FROM order_refunds";
+    $count_result = mysqli_query($conn, $count_sql);
+    if ($count_result) {
+        $count_row = mysqli_fetch_assoc($count_result);
+        $total_records = $count_row['total'];
+    }
+}
+
+$total_pages = ceil($total_records / $records_per_page);
+
+// Fetch refund requests with pagination
 if ($table_exists) {
     $sql = "SELECT 
                 r.refund_id,
@@ -83,7 +102,8 @@ if ($table_exists) {
             LEFT JOIN orders o ON r.order_id = o.order_id
             LEFT JOIN users u ON r.user_id = u.id
             LEFT JOIN refund_vouchers rv ON r.refund_id = rv.refund_id
-            ORDER BY r.created_at DESC";
+            ORDER BY r.created_at DESC
+            LIMIT $records_per_page OFFSET $offset";
     
     $result = mysqli_query($conn, $sql);
     
@@ -150,6 +170,77 @@ if ($table_exists) {
             background-color: var(--gray-100);
             color: var(--gray-700);
         }
+
+        /* Pagination Styles */
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 0;
+            margin-top: 2rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .pagination-info {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .pagination {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .pagination-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.5rem;
+            height: 2.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            background: white;
+            color: #374151;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+
+        .pagination-btn:hover {
+            background: #f9fafb;
+            border-color: #9ca3af;
+            color: #111827;
+        }
+
+        .pagination-btn.active {
+            background: var(--green-600);
+            border-color: var(--green-600);
+            color: white;
+        }
+
+        .pagination-btn.active:hover {
+            background: var(--green-700);
+            border-color: var(--green-700);
+        }
+
+        .pagination-btn i {
+            font-size: 0.75rem;
+        }
+
+        @media (max-width: 768px) {
+            .pagination-container {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .pagination {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
     </style>
 </head>
 <body>
@@ -175,29 +266,33 @@ if ($table_exists) {
         <?php endif; ?>
 
         <?php
-        // Calculate statistics
+        // Calculate statistics from all records (not just current page)
         $total_refunds = 0;
         $pending_refunds = 0;
         $approved_refunds = 0;
         $completed_refunds = 0;
         
-        if ($result && mysqli_num_rows($result) > 0) {
-            mysqli_data_seek($result, 0);
-            while ($row = mysqli_fetch_assoc($result)) {
-                $total_refunds++;
-                switch ($row['refund_status']) {
-                    case 'pending':
-                        $pending_refunds++;
-                        break;
-                    case 'approved':
-                        $approved_refunds++;
-                        break;
-                    case 'completed':
-                        $completed_refunds++;
-                        break;
+        if ($table_exists) {
+            // Get statistics for all records, not just current page
+            $stats_sql = "SELECT refund_status, COUNT(*) as count FROM order_refunds GROUP BY refund_status";
+            $stats_result = mysqli_query($conn, $stats_sql);
+            
+            if ($stats_result) {
+                while ($stat_row = mysqli_fetch_assoc($stats_result)) {
+                    switch ($stat_row['refund_status']) {
+                        case 'pending':
+                            $pending_refunds = $stat_row['count'];
+                            break;
+                        case 'approved':
+                            $approved_refunds = $stat_row['count'];
+                            break;
+                        case 'completed':
+                            $completed_refunds = $stat_row['count'];
+                            break;
+                    }
+                    $total_refunds += $stat_row['count'];
                 }
             }
-            mysqli_data_seek($result, 0);
         }
         ?>
 
@@ -301,26 +396,9 @@ if ($table_exists) {
                                         <span style="color: #9ca3af; font-size: 0.875rem;">—</span>
                                     <?php endif; ?>
                                 </td>
-                                <td>
-                                    <select class="status-select-list status-badge status-<?php echo strtolower($refund['refund_status']); ?>" 
-                                            data-refund-id="<?php echo (int)$refund['refund_id']; ?>" 
-                                            onclick="event.stopPropagation();">
-                                        <?php 
-                                        $statuses = [
-                                            'pending' => 'Pending',
-                                            'approved' => 'Approved',
-                                            'rejected' => 'Rejected',
-                                            'completed' => 'Completed',
-                                        ];
-                                        foreach ($statuses as $val => $label): 
-                                        ?>
-                                            <option value="<?php echo $val; ?>" <?php echo ($refund['refund_status'] === $val) ? 'selected' : ''; ?>>
-                                                <?php echo $label; ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                    <span class="saved-indicator" style="display:none; color:#16a34a; margin-left:6px;">
-                                        <i class="fas fa-check"></i> Saved
+                                <td >
+                                    <span class="status-badge status-<?php echo strtolower($refund['refund_status']); ?>">
+                                        <?php echo ucfirst($refund['refund_status']); ?>
                                     </span>
                                 </td>
                             </tr>
@@ -335,45 +413,50 @@ if ($table_exists) {
                 </div>
             <?php endif; ?>
         </div>
+
+        <!-- Pagination -->
+        <?php if ($total_pages > 1): ?>
+            <div class="pagination-container">
+                <div class="pagination-info">
+                    <span>Showing <?php echo ($offset + 1); ?>-<?php echo min($offset + $records_per_page, $total_records); ?> of <?php echo $total_records; ?> refund requests</span>
+                </div>
+                
+                <div class="pagination">
+                    <?php if ($page > 1): ?>
+                        <a href="?page=1" class="pagination-btn">
+                            <i class="fas fa-angle-double-left"></i>
+                        </a>
+                        <a href="?page=<?php echo ($page - 1); ?>" class="pagination-btn">
+                            <i class="fas fa-angle-left"></i>
+                        </a>
+                    <?php endif; ?>
+
+                    <?php
+                    $start_page = max(1, $page - 2);
+                    $end_page = min($total_pages, $page + 2);
+                    
+                    for ($i = $start_page; $i <= $end_page; $i++):
+                    ?>
+                        <a href="?page=<?php echo $i; ?>" 
+                           class="pagination-btn <?php echo ($i == $page) ? 'active' : ''; ?>">
+                            <?php echo $i; ?>
+                        </a>
+                    <?php endfor; ?>
+
+                    <?php if ($page < $total_pages): ?>
+                        <a href="?page=<?php echo ($page + 1); ?>" class="pagination-btn">
+                            <i class="fas fa-angle-right"></i>
+                        </a>
+                        <a href="?page=<?php echo $total_pages; ?>" class="pagination-btn">
+                            <i class="fas fa-angle-double-right"></i>
+                        </a>
+                    <?php endif; ?>
+                </div>
+            </div>
+        <?php endif; ?>
     </div>
 
     <script>
-        // Auto-save status changes from list
-        (function(){
-            function onChange(e){
-                const select = e.target;
-                if (!select.classList.contains('status-select-list')) return;
-                
-                const refundId = select.getAttribute('data-refund-id');
-                const row = select.closest('tr');
-                const saved = row ? row.querySelector('.saved-indicator') : null;
-                
-                const form = new FormData();
-                form.append('action', 'update_status');
-                form.append('is_ajax', '1');
-                form.append('refund_id', refundId);
-                form.append('new_status', select.value);
-                
-                fetch('', { method: 'POST', body: form })
-                    .then(r => r.json())
-                    .then(data => {
-                        if (data && data.success) {
-                            if (saved) { 
-                                saved.style.display = 'inline-flex'; 
-                                setTimeout(() => saved.style.display='none', 1500); 
-                            }
-                            // Update select styling class to reflect status
-                            select.className = 'status-select-list status-badge status-' + select.value;
-                            row.setAttribute('data-status', select.value);
-                        } else {
-                            alert('Failed to update status: ' + (data && data.error ? data.error : 'Unknown error'));
-                        }
-                    })
-                    .catch(() => alert('Request failed. Please try again.'));
-            }
-            document.addEventListener('change', onChange);
-        })();
-        
         function filterRefunds(status, buttonElement) {
             // Remove active class from all filter buttons
             document.querySelectorAll('.filter-btn').forEach(btn => {

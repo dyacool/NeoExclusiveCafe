@@ -121,7 +121,7 @@ try {
         
         while ($row = mysqli_fetch_assoc($result)) {
             $status_labels[] = $row['status'];
-            $status_data[] = intval($row['count']);
+            $status_data[] = floatval($row['total_amount']);
             $color_index++;
         }
         

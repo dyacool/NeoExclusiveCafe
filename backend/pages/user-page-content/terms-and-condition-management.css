@@ -42,7 +42,6 @@
 .admin-main {
   width: 100%;
   margin: 0;
-  padding-top: 1rem;
   background-color: var(--gray-50);
 }
 
@@ -56,36 +55,18 @@
 
 /* Page Header */
 .page-header {
-  background-color: white;
-  border-radius: 12px;
-  padding: 2rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid var(--gray-200);
-}
-
-.page-header-content {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 1rem;
-}
-
-.page-title-section {
-  flex: 1;
-}
-
-.page-title {
-  font-size: 1.875rem;
-  font-weight: 700;
-  color: var(--gray-900);
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0 0 1rem 0;
+  border-bottom: 1px solid var(--gray-200);
 }
 
 .page-subtitle {
   color: var(--gray-600);
   font-size: 1rem;
-  margin: 0;
+  padding: 10px 0;
 }
 
 .page-actions {

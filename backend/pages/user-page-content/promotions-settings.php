@@ -28,6 +28,8 @@ createPromotionsTable($conn);
 </head>
 <body>
 <?php include __DIR__ . "/../admin-includes/navbar/navbar.php"; ?>
+<?php include __DIR__ . "/../admin-includes/breadcrumbs/admin-breadcrumb.php"; ?>
+
 
 <div class="promotions-container">
     <div class="main-container">

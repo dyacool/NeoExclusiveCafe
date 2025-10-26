@@ -125,8 +125,61 @@ function getBulkOrderCounts($conn) {
     }
     $total_count = mysqli_fetch_assoc($total_result)['total'];
     
-    // Get active bulk orders count (excluding completed statuses)
-    $active_query = "SELECT COUNT(*) as active FROM bulk_orders WHERE status NOT IN ('Completed', 'Delivered')";
+    // Get active bulk orders count (excluding completed, cancelled, and rejected statuses)
+    $active_query = "SELECT COUNT(*) as active FROM bulk_orders WHERE status NOT IN ('Completed', 'Delivered', 'Cancelled', 'Rejected')";
+    $active_result = mysqli_query($conn, $active_query);
+    if (!$active_result) {
+        return ['total' => $total_count, 'active' => 0];
+    }
+    $active_count = mysqli_fetch_assoc($active_result)['active'];
+    
+    return [
+        'total' => $total_count,
+        'active' => $active_count
+    ];
+}
+
+// Helper function to get refund request counts
+function getRefundCounts($conn) {
+    // Check if connection is valid and not closed
+    if (!$conn || !($conn instanceof mysqli)) {
+        return ['total' => 0, 'active' => 0];
+    }
+    
+    // Check if the connection is closed by testing thread_id
+    try {
+        if ($conn->thread_id === null) {
+            return ['total' => 0, 'active' => 0];
+        }
+    } catch (Exception $e) {
+        return ['total' => 0, 'active' => 0];
+    }
+    
+    // Additional safety check with mysqli_ping in try-catch
+    try {
+        if (!mysqli_ping($conn)) {
+            return ['total' => 0, 'active' => 0];
+        }
+    } catch (Exception $e) {
+        return ['total' => 0, 'active' => 0];
+    }
+    
+    // Check if refund_requests table exists
+    $table_check = mysqli_query($conn, "SHOW TABLES LIKE 'refund_requests'");
+    if (!$table_check || mysqli_num_rows($table_check) == 0) {
+        return ['total' => 0, 'active' => 0];
+    }
+    
+    // Get total refund requests count
+    $total_query = "SELECT COUNT(*) as total FROM refund_requests";
+    $total_result = mysqli_query($conn, $total_query);
+    if (!$total_result) {
+        return ['total' => 0, 'active' => 0];
+    }
+    $total_count = mysqli_fetch_assoc($total_result)['total'];
+    
+    // Get active refund requests count (only pending and approved statuses)
+    $active_query = "SELECT COUNT(*) as active FROM refund_requests WHERE status IN ('Pending', 'Approved')";
     $active_result = mysqli_query($conn, $active_query);
     if (!$active_result) {
         return ['total' => $total_count, 'active' => 0];

@@ -110,6 +110,8 @@ if (!$settings) {
     <link rel="stylesheet" href="manage-carousel.css">
 </head>
 <body>
+<?php include __DIR__ . "/../admin-includes/breadcrumbs/admin-breadcrumb.php"; ?>
+
 <main class="admin-main">
     <div class="admin-container">        
         <?php if (isset($success_message)): ?>

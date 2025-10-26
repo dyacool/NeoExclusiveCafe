@@ -415,6 +415,9 @@ $error_message = '';
     </style>
 </head>
 <body>
+
+<?php include __DIR__ . "/../admin-includes/breadcrumbs/admin-breadcrumb.php"; ?>
+
     <div class="main-container">
         <div class="kb-wrapper fade-in">
             <!-- Header -->
@@ -440,17 +443,16 @@ $error_message = '';
                                 name="content" 
                                 class="kb-textarea" 
                                 placeholder="Enter comprehensive information about your cafe here...
+                                Examples:
+                                • Menu items and their descriptions
+                                • Opening hours and location
+                                • Contact information
+                                • Special offers and promotions
+                                • Delivery and pickup policies
+                                • Payment methods
+                                • FAQs and common inquiries
 
-Examples:
-• Menu items and their descriptions
-• Opening hours and location
-• Contact information
-• Special offers and promotions
-• Delivery and pickup policies
-• Payment methods
-• FAQs and common inquiries
-
-You can include URLs - they will automatically become clickable links in the chatbot."
+                                You can include URLs - they will automatically become clickable links in the chatbot."
                                 required></textarea>
                             <div class="kb-helper-text">
                                 <i class="fas fa-info-circle"></i>

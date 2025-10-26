@@ -187,21 +187,7 @@ foreach ($preorder_items as $item) {
             margin-bottom: 30px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        
-        .section-header {
-            background: linear-gradient(135deg, #256035, #1a4a2a);
-            color: white;
-            padding: 20px;
-            border-radius: 8px 8px 0 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .section-header.sameday {
-            background: linear-gradient(135deg, #e67e22, #d35400);
-        }
-        
+    
         .section-header h3 {
             margin: 0;
             font-size: 1.3em;
@@ -255,7 +241,7 @@ foreach ($preorder_items as $item) {
         .quantity-controls {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 5px;
         }
         
         .quantity-btn {
@@ -266,23 +252,70 @@ foreach ($preorder_items as $item) {
             border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .quantity-btn:hover {
             background: #f0f0f0;
         }
         
+        .quantity-btn:disabled {
+            background: #f5f5f5;
+            color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .quantity-input {
+            width: 60px;
+            height: 30px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 14px;
+            background: white;
+        }
+        
+        .quantity-display {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 30px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            background: white;
+            text-align: center;
+        }
+        
+        .quantity-input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        
         .remove-btn {
-            background: #f44336;
+            background: #c33b36ff;
             color: white;
             border: none;
-            padding: 8px 12px;
-            border-radius: 4px;
+            padding: 2px 4px;
+            border-radius: 999px;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 30px;
+            height: 30px;
         }
         
         .remove-btn:hover {
-            background: #d32f2f;
+            background-color: #972622;
+        }
+        
+        .remove-btn svg {
+            width: 14px;
+            height: 14px;
         }
         
         .no-items {
@@ -309,28 +342,7 @@ foreach ($preorder_items as $item) {
             border-top: 2px solid #ddd;
             margin-top: 10px;
         }
-        
-        .checkout-btn {
-            width: 100%;
-            padding: 15px;
-            background: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 15px;
-        }
-        
-        .checkout-btn:hover {
-            background: #45a049;
-        }
-        
-        .checkout-btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
+
     </style>
 </head>
 <body>
@@ -354,8 +366,10 @@ foreach ($preorder_items as $item) {
         <?php endif; ?>
         
         <p class="cart-info">
-            Please note: NeoCafe operates on a preorder basis to ensure the freshness of our baked goods.<br>
-            Orders must be placed at least 24 hours in advance.
+            Please note: Neo Café offers both same-day and pre-order options to serve you better. <br>
+            Pre-order products must be placed at least 42 hours in advance to ensure freshness and quality.<br>
+            Same-day order products can be placed within business hours. 
+
         </p>
         
         <div style="display: grid; grid-template-columns: 1fr 350px; gap: 20px;">
@@ -405,15 +419,22 @@ foreach ($preorder_items as $item) {
                                 <td><?= htmlspecialchars($item['product_name']) ?></td>
                                 <td>
                                     <div class="quantity-controls">
-                                        <button class="quantity-btn" onclick="updateQuantity(<?= $item['cart_id'] ?>, <?= $item['quantity'] - 1 ?>, 'preorder')">-</button>
-                                        <span><?= $item['quantity'] ?></span>
-                                        <button class="quantity-btn" onclick="updateQuantity(<?= $item['cart_id'] ?>, <?= $item['quantity'] + 1 ?>, 'preorder')">+</button>
+                                        <button class="quantity-btn" onclick="updateQuantityInstant(<?= $item['cart_id'] ?>, <?= $item['quantity'] - 1 ?>, 'preorder', <?= $item['product_stock'] ?>, this)">-</button>
+                                        <span class="quantity-display"><?= $item['quantity'] ?></span>
+                                        <button class="quantity-btn" onclick="updateQuantityInstant(<?= $item['cart_id'] ?>, <?= $item['quantity'] + 1 ?>, 'preorder', <?= $item['product_stock'] ?>, this)">+</button>
                                     </div>
                                 </td>
                                 <td>₱<?= number_format($item['price'], 2) ?></td>
                                 <td>₱<?= number_format($item_total, 2) ?></td>
                                 <td>
-                                    <button class="remove-btn" onclick="removeItem(<?= $item['cart_id'] ?>, 'preorder')">Remove</button>
+                                    <button class="remove-btn" onclick="removeItem(<?= $item['cart_id'] ?>, 'preorder')">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="M10 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="M14 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </button>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
@@ -427,7 +448,7 @@ foreach ($preorder_items as $item) {
                 <!-- SAME DAY ORDER SECTION -->
                 <div class="cart-section">
                     <div class="section-header sameday">
-                        <h3>Same Day Order Items (For Today: <?= date('M d, Y') ?>)</h3>
+                        <h3>Same Day Order Items ( <?= date('M d, Y') ?>)</h3>
                     </div>
                     
                     <?php if (!empty($sameday_items)): ?>
@@ -469,15 +490,22 @@ foreach ($preorder_items as $item) {
                                 <td><?= htmlspecialchars($item['product_name']) ?></td>
                                 <td>
                                     <div class="quantity-controls">
-                                        <button class="quantity-btn" onclick="updateQuantity(<?= $item['cart_id'] ?>, <?= $item['quantity'] - 1 ?>, 'sameday')">-</button>
-                                        <span><?= $item['quantity'] ?></span>
-                                        <button class="quantity-btn" onclick="updateQuantity(<?= $item['cart_id'] ?>, <?= $item['quantity'] + 1 ?>, 'sameday')">+</button>
+                                        <button class="quantity-btn" onclick="updateQuantityInstant(<?= $item['cart_id'] ?>, <?= $item['quantity'] - 1 ?>, 'sameday', <?= $item['product_stock'] ?>, this)">-</button>
+                                        <span class="quantity-display"><?= $item['quantity'] ?></span>
+                                        <button class="quantity-btn" onclick="updateQuantityInstant(<?= $item['cart_id'] ?>, <?= $item['quantity'] + 1 ?>, 'sameday', <?= $item['product_stock'] ?>, this)">+</button>
                                     </div>
                                 </td>
                                 <td>₱<?= number_format($item['price'], 2) ?></td>
                                 <td>₱<?= number_format($item_total, 2) ?></td>
                                 <td>
-                                    <button class="remove-btn" onclick="removeItem(<?= $item['cart_id'] ?>, 'sameday')">Remove</button>
+                                    <button class="remove-btn" onclick="removeItem(<?= $item['cart_id'] ?>, 'sameday')">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="M10 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="M14 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </button>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
@@ -663,6 +691,74 @@ function updateQuantity(cartId, newQuantity, type) {
         } else {
             alert(data.message || 'Failed to update quantity');
         }
+    });
+}
+
+// New instant update function without page refresh
+function updateQuantityInstant(cartId, newQuantity, type, maxStock, element) {
+    // Validate quantity
+    if (newQuantity < 1) {
+        if (confirm('Remove this item from cart?')) {
+            removeItem(cartId, type);
+        }
+        return;
+    }
+    
+    if (newQuantity > maxStock) {
+        alert(`Maximum available quantity is ${maxStock}`);
+        return;
+    }
+    
+    // Disable buttons during update
+    const row = element.closest('tr');
+    const buttons = row.querySelectorAll('.quantity-btn');
+    const quantityDisplay = row.querySelector('.quantity-display');
+    
+    buttons.forEach(btn => btn.disabled = true);
+    
+    const url = type === 'preorder' ? 'update-cart.php' : 'update-cart-quantity-sameday.php';
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: `cart_id=${cartId}&quantity=${newQuantity}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update the quantity display and total without page refresh
+            quantityDisplay.textContent = newQuantity;
+            
+            // Update the total price for this row
+            const priceCell = row.cells[4]; // Price column
+            const totalCell = row.cells[5]; // Total column
+            const priceText = priceCell.textContent.replace('₱', '').replace(',', '');
+            const price = parseFloat(priceText);
+            const newTotal = price * newQuantity;
+            totalCell.textContent = '₱' + newTotal.toFixed(2);
+            
+            // Update checkbox data-total if checked
+            const checkbox = row.querySelector('.item-checkbox');
+            if (checkbox) {
+                checkbox.setAttribute('data-total', newTotal);
+                if (checkbox.checked) {
+                    updateTotals(); // Update cart totals
+                }
+            }
+            
+            // Re-enable buttons
+            buttons.forEach(btn => btn.disabled = false);
+        } else {
+            alert(data.message || 'Failed to update quantity');
+            // Re-enable buttons
+            buttons.forEach(btn => btn.disabled = false);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to update quantity');
+        // Re-enable buttons
+        buttons.forEach(btn => btn.disabled = false);
     });
 }
 

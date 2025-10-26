@@ -1,230 +1,179 @@
 <?php
 /**
  * Admin Breadcrumb Navigation System
- * Automatically generates breadcrumbs based on current page location
+ * Simple and effective breadcrumb generation based on user system
  * 
  * Usage: Include this file in any admin page after the navigation
  * <?php include '../admin-includes/breadcrumbs/admin-breadcrumb.php'; ?>
- * 
- * Or specify custom breadcrumbs:
- * <?php 
- * $custom_breadcrumbs = [
- *     ['title' => 'Products', 'url' => '../products/view-products.php'],
- *     ['title' => 'Edit Product', 'url' => '']
- * ];
- * include '../admin-includes/breadcrumbs/admin-breadcrumb.php'; 
- * ?>
  */
 
-// Get the current file path
-$current_file = basename($_SERVER['PHP_SELF']);
+// Get current page information
+$current_file = basename($_SERVER['PHP_SELF'], '.php');
 $current_dir = basename(dirname($_SERVER['PHP_SELF']));
 
-$breadcrumb_map = [
+// Define simple route mappings for breadcrumbs
+$route_mappings = [
     // Dashboard
-    'dashboard' => [
-        'dashboard.php' => ['Dashboard']
-    ],
+    'dashboard' => ['Dashboard', ''],
     
     // Content Management
-    'homepage' => [
-        'dashboard-images.php' => ['Content Management', 'Dashboard Images'],
-        'dashboard-content.php' => ['Content Management', 'Dashboard Content'],
-        'homepage-content.php' => ['Content Management', 'Dashboard Content']
-    ],
-    
-    'services' => [
-        'services.php' => ['Content Management', 'Services'],
-        'manage-services.php' => ['Content Management', 'Services']
-    ],
-    
-    'promotions' => [
-        'promotions.php' => ['Content Management', 'Promotions'],
-        'manage-promotions.php' => ['Content Management', 'Promotions']
-    ],
-    
-    'chatbot' => [
-        'chatbot-knowledge.php' => ['Content Management', 'Chatbot Knowledge'],
-        'manage-chatbot.php' => ['Content Management', 'Chatbot Knowledge']
-    ],
-    
-    'delivery' => [
-        'delivery-locations.php' => ['Content Management', 'Delivery Locations'],
-        'manage-locations.php' => ['Content Management', 'Delivery Locations']
-    ],
-    
-    'categories' => [
-        'product-categories.php' => ['Content Management', 'Product Categories'],
-        'manage-categories.php' => ['Content Management', 'Product Categories']
-    ],
-    
-    'about' => [
-        'about-page.php' => ['Content Management', 'About Page'],
-        'edit-about.php' => ['Content Management', 'About Page']
-    ],
-    
-    'terms' => [
-        'terms-conditions.php' => ['Content Management', 'Terms & Conditions'],
-        'edit-terms.php' => ['Content Management', 'Terms & Conditions']
-    ],
-    
-    'privacy' => [
-        'privacy-policy.php' => ['Content Management', 'Privacy Policy'],
-        'edit-privacy.php' => ['Content Management', 'Privacy Policy']
-    ],
-    
-    'footer' => [
-        'footer.php' => ['Content Management', 'Footer'],
-        'edit-footer.php' => ['Content Management', 'Footer'],
-        'manage-footer.php' => ['Content Management', 'Footer']
-    ],
-    
+    'manage-carousel-images' => ['Dashboard Images', ''],
+    'manage-carousel-settings' => ['Dashboard Content', ''],
+    'admin-service-edit' => ['Services', ''],
+    'promotions-settings' => ['Promotions', ''],
+    'manage-promotions' => ['Manage Promotions', ''],
+    'cb-knowledge-settings' => ['Chatbot Knowledge', ''],
+    'manage-chatbot' => ['Manage Chatbot', ''],
+    'delivery-locations' => ['Delivery Locations', ''],
+    'manage-locations' => ['Manage Locations', ''],
+    'product-categories' => ['Product Categories', ''],
+    'manage-categories' => ['Manage Product Categories', ''],
+    'about-settings' => ['About Page', ''],
+    'terms-and-condition-management' => ['Terms & Conditions', ''],
+    'privacy-policy-management' => ['Privacy Policy', ''],
+    'footer-settings' => ['Footer', ''],
+
     // Blog
-    'blog' => [
-        'admin-blog-createpost.php' => ['Blog', 'Create Post'],
-        'admin-blog-editpost.php' => ['Blog', 'Blog Details'],
-        'admin-blog-lists.php' => ['Blog', 'Blog Details']
-    ],
+    'admin-blog-createpost' => ['Create Post', ''],
+    'blog-details' => ['Blog Details', ''],
     
     // Refund Request
-    'refund' => [
-        'refund-request-lists.php' => ['Refund Request', 'Refund Details'],
-        'refund-details.php' => ['Refund Request', 'Refund Details']
-    ],
+    'refund-request-lists' => ['Refund Requests', ''],
+    'refund-details' => ['Refund Details', ''],
     
-    // Bulk Order List
-    'bulks' => [
-        'bulk-order-lists.php' => ['Bulk Order List', 'Bulk Order Details'],
-        'bulk-order.php' => ['Bulk Order List', 'Bulk Order Details']
-    ],
+    // Bulk Orders
+    'bulk-order-lists' => ['Bulk Orders', ''],
+    'bulk-order' => ['Bulk Order Details', ''],
     
-    // Order List
-    'orders' => [
-        'view-orders.php' => ['Order List', 'Order Details'],
-        'order-details.php' => ['Order List', 'Order Details']
-    ],
+    // Orders
+    'view-orders' => ['Orders', ''],
+    'order-details' => ['Order Details', ''],
     
-    // Product List
-    'products' => [
-        'view-products.php' => ['Product List', 'Add Product'],
-        'add-product.php' => ['Product List', 'Add Product'],
-        'edit-product.php' => ['Product List', 'Add Product']
-    ],
+    // Products
+    'view-products' => ['Products', ''],
+    'add-product' => ['Add Product', ''],
+    'edit-product' => ['Edit Product', ''],
+    
+    // Transactions
+    'transactions' => ['Transactions', ''],
     
     // Profile
-    'profile' => [
-        'admin-profile.php' => ['Profile'],
-        'edit-profile.php' => ['Profile', 'Edit Profile'],
-        'reset-password.php' => ['Profile', 'Reset Password'],
-        'admin-account.php' => ['Profile', 'Admin Account']
-    ],
-    
-    'activity-logs' => [
-        'activity-logs.php' => ['Profile', 'Activity Logs']
-    ],
-    
-    'archives' => [
-        'archive.php' => ['Profile', 'Archive']
-    ]
+    'admin-profile' => ['Profile', ''],
+    'reset-password' => ['Reset Password', ''],
+    'admin-account' => ['Admin Account', ''],
+    'activity-logs' => ['Activity Logs', ''],
+    'archive' => ['Archive', ''],
 ];
 
-// Build breadcrumb trail
-$breadcrumb_trail = [];
-
-// Check if custom breadcrumbs are provided
-if (isset($custom_breadcrumbs) && is_array($custom_breadcrumbs)) {
-    $breadcrumb_trail = $custom_breadcrumbs;
-} else {
-    // Auto-generate breadcrumbs based on current location
+// Define parent relationships
+$hierarchy = [
+    // Content Management children
+    'manage-carousel-images' => ['Content Management'],
+    'manage-carousel-settings' => ['Content Management'],
+    'admin-service-edit' => ['Content Management'],
+    'promotions-settings' => ['Content Management'],
+    'manage-promotions' => ['Content Management'],
+    'cb-knowledge-settings' => ['Content Management'],
+    'manage-chatbot' => ['Content Management'],
+    'delivery-locations' => ['Content Management'],
+    'manage-locations' => ['Content Management'],
+    'product-categories' => ['Content Management'],
+    'manage-categories' => ['Content Management'],
+    'about-settings' => ['Content Management'],
+    'terms-and-condition-management' => ['Content Management'],
+    'privacy-policy-management' => ['Content Management'],
+    'footer-settings' => ['Content Management'],
     
-    // Add breadcrumbs from map
-    if (isset($breadcrumb_map[$current_dir][$current_file])) {
-        $crumbs = $breadcrumb_map[$current_dir][$current_file];
-        
-        foreach ($crumbs as $index => $crumb) {
-            // Last item should have no URL (current page)
-            if ($index === count($crumbs) - 1) {
-                $breadcrumb_trail[] = [
-                    'title' => $crumb,
-                    'url' => ''
-                ];
-            } else {
-                // First item in section - link to main page
-                $main_page = '';
-                switch ($current_dir) {
-                    case 'homepage':
-                    case 'services':
-                    case 'promotions':
-                    case 'chatbot':
-                    case 'delivery':
-                    case 'categories':
-                    case 'about':
-                    case 'terms':
-                    case 'privacy':
-                    case 'footer':
-                        $main_page = '../homepage/dashboard-content.php';
-                        break;
-                    case 'blog':
-                        $main_page = '../blog/admin-blog-createpost.php';
-                        break;
-                    case 'refund':
-                        $main_page = '../refund/refund-request-lists.php';
-                        break;
-                    case 'bulks':
-                        $main_page = '../bulks/bulk-order-lists.php';
-                        break;
-                    case 'orders':
-                        $main_page = '../orders/view-orders.php';
-                        break;
-                    case 'products':
-                        $main_page = '../products/view-products.php';
-                        break;
-                    case 'profile':
-                    case 'activity-logs':
-                    case 'archives':
-                        $main_page = '../account/admin-profile.php';
-                        break;
-                }
-                
-                $breadcrumb_trail[] = [
-                    'title' => $crumb,
-                    'url' => $main_page
-                ];
-            }
+    // Blog children
+    'admin-blog-createpost' => ['Blog'],
+    'blog-details' => ['Blog'],
+    
+    // Order Management children
+    'view-orders' => ['Order Management'],
+    'order-details' => ['Order Management'],
+    'bulk-order-lists' => ['Order Management'],
+    'bulk-order' => ['Order Management'],
+
+    'refund-request-lists' => ['Refund Requests'],
+    'refund-details' => ['Refund Requests'],
+
+    // Product Management children
+    'view-products' => ['Product Management'],
+    'add-product' => ['Product Management'],
+    
+    // Profile children
+    'reset-password' => ['Profile'],
+    'admin-account' => ['Profile'],
+    'activity-logs' => ['Profile'],
+    'archive' => ['Profile'],
+];
+
+/**
+ * Generate breadcrumb trail
+ */
+function generateAdminBreadcrumb($current_file, $route_mappings, $hierarchy) {
+    $breadcrumb = [];
+    
+    // Define URLs for parent categories
+    $parent_urls = [
+        'Content Management' => '../user-page-content/user-content-settings.php',
+        'Blog' => '../blog/admin-blog.php',
+        'Order Management' => '../orders/order-list.php',
+        'Product Management' => '../products/view-products.php',
+        'Refund Requests' => '../refund/refund-request-lists.php',
+        'Profile' => '../account/admin-profile.php'
+    ];
+    
+    // Add parent if exists
+    if (isset($hierarchy[$current_file])) {
+        foreach ($hierarchy[$current_file] as $parent) {
+            $parent_url = isset($parent_urls[$parent]) ? $parent_urls[$parent] : '';
+            $breadcrumb[] = ['title' => $parent, 'url' => $parent_url, 'current' => false];
         }
+    }
+    
+    // Add current page
+    if (isset($route_mappings[$current_file])) {
+        $breadcrumb[] = [
+            'title' => $route_mappings[$current_file][0], 
+            'url' => '', 
+            'current' => true
+        ];
     } else {
         // Fallback for unmapped pages
-        $page_title = str_replace(['-', '_', '.php'], [' ', ' ', ''], $current_file);
-        $page_title = ucwords($page_title);
-        
-        $breadcrumb_trail[] = [
-            'title' => $page_title,
-            'url' => ''
-        ];
+        $page_title = ucfirst(str_replace(['-', '_'], ' ', $current_file));
+        $breadcrumb[] = ['title' => $page_title, 'url' => '', 'current' => true];
     }
+    
+    return $breadcrumb;
 }
 
-// If we only have one item (current page), don't show breadcrumb
-if (count($breadcrumb_trail) <= 1 && $current_file === 'dashboard.php') {
-    return;
-}
+// Generate breadcrumb for current page
+$breadcrumb_items = generateAdminBreadcrumb($current_file, $route_mappings, $hierarchy);
+
+// Only show breadcrumb if there are multiple items or not on dashboard
+if (count($breadcrumb_items) > 1 || $current_file !== 'dashboard'):
 ?>
 
 <link rel="stylesheet" href="../admin-includes/breadcrumbs/admin-breadcrumb.css">
 <div class="admin-breadcrumb-container">
     <nav class="admin-breadcrumb-nav" aria-label="Breadcrumb navigation">
         <ol class="admin-breadcrumb-list">
-            <?php foreach ($breadcrumb_trail as $index => $crumb): ?>
-                <?php $is_last = ($index === count($breadcrumb_trail) - 1); ?>
+            <?php foreach ($breadcrumb_items as $index => $item): ?>
+                <?php $is_last = ($index === count($breadcrumb_items) - 1); ?>
                 
-                <li class="admin-breadcrumb-item <?php echo $is_last ? 'current' : ''; ?>">
-                    <?php if (!$is_last && !empty($crumb['url'])): ?>
-                        <a href="<?php echo htmlspecialchars($crumb['url']); ?>" class="admin-breadcrumb-link">
-                            <span class="admin-breadcrumb-text"><?php echo htmlspecialchars($crumb['title']); ?></span>
+                <li class="admin-breadcrumb-item <?php echo $item['current'] ? 'current' : ''; ?>">
+                    <?php if (!$item['current'] && !empty($item['url'])): ?>
+                        <a href="<?php echo htmlspecialchars($item['url']); ?>" class="admin-breadcrumb-link">
+                            <span class="admin-breadcrumb-text"><?php echo htmlspecialchars($item['title']); ?></span>
                         </a>
+                    <?php elseif (!$item['current']): ?>
+                        <span class="admin-breadcrumb-link">
+                            <span class="admin-breadcrumb-text"><?php echo htmlspecialchars($item['title']); ?></span>
+                        </span>
                     <?php else: ?>
                         <span class="admin-breadcrumb-current" aria-current="page">
-                            <span class="admin-breadcrumb-text"><?php echo htmlspecialchars($crumb['title']); ?></span>
+                            <span class="admin-breadcrumb-text"><?php echo htmlspecialchars($item['title']); ?></span>
                         </span>
                     <?php endif; ?>
                     
@@ -240,3 +189,5 @@ if (count($breadcrumb_trail) <= 1 && $current_file === 'dashboard.php') {
         </ol>
     </nav>
 </div>
+
+<?php endif; ?>

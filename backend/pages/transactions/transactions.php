@@ -58,7 +58,7 @@
     
     $stmt = mysqli_prepare($conn, $sql);
     
-    if (!$stmt) {
+    if (!$stmt) { 
         die("Prepare failed: " . mysqli_error($conn));
     }
     
@@ -121,19 +121,6 @@
                 <div class="header-content">
                     <p class="page-subtitle">View sales reports and transaction history</p>
                 </div>
-                
-                <div class="header-actions">
-                    <div class="action-group">
-                        <button onclick="printReport()" class="btn btn-secondary">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="6,9 6,2 18,2 18,9"></polyline>
-                                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-                                <rect x="6" y="14" width="12" height="8"></rect>
-                            </svg>
-                            Print Report
-                        </button>
-                    </div>
-                </div>
             </div>
 
             <!-- Summary Section with Sortable Cards -->
@@ -149,9 +136,6 @@
                         </div>
                         <h3 onclick="sortSummary('revenue')" class="<?php echo $summary_sort === 'revenue' ? 'sorted ' . $summary_direction : ''; ?>">
                             Net Income
-                            <svg class="sort-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="6,9 12,15 18,9"></polyline>
-                            </svg>
                         </h3>
                         <p class="amount" id="total-revenue">₱<?php echo number_format($total_revenue, 2); ?></p>
                         <p class="period"><?php echo date('M d, Y', strtotime($start_date)); ?> - <?php echo date('M d, Y', strtotime($end_date)); ?></p>
@@ -174,9 +158,6 @@
                         </div>
                         <h3 onclick="sortSummary('orders')" class="<?php echo $summary_sort === 'orders' ? 'sorted ' . $summary_direction : ''; ?>">
                             Total Orders
-                            <svg class="sort-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="6,9 12,15 18,9"></polyline>
-                            </svg>
                         </h3>
                         <p class="amount" id="total-orders"><?php echo $total_orders; ?></p>
                         <p class="period"><?php echo date('M d, Y', strtotime($start_date)); ?> - <?php echo date('M d, Y', strtotime($end_date)); ?></p>
@@ -197,9 +178,6 @@
                         </div>
                         <h3 onclick="sortSummary('average')" class="<?php echo $summary_sort === 'average' ? 'sorted ' . $summary_direction : ''; ?>">
                             Average Order Value
-                            <svg class="sort-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="6,9 12,15 18,9"></polyline>
-                            </svg>
                         </h3>
                         <p class="amount" id="average-order-value">₱<?php echo $total_orders > 0 ? number_format($total_revenue / $total_orders, 2) : '0.00'; ?></p>
                         <p class="period"><?php echo date('M d, Y', strtotime($start_date)); ?> - <?php echo date('M d, Y', strtotime($end_date)); ?></p>
@@ -235,8 +213,8 @@
                 <div class="charts-grid">
                     <div class="chart-card wide">
                         <div class="chart-header">
-                            <span class="chart-title">Order Status Distribution</span>
-                            <span class="chart-subtitle">Breakdown of order statuses</span>
+                            <span class="chart-title">Revenue by Transaction Type</span>
+                            <span class="chart-subtitle">Total revenue from delivered and picked-up orders</span>
                         </div>
                         <canvas id="orderStatusChart"></canvas>
                     </div>
@@ -278,7 +256,7 @@
                         </button>
                     </div>
                 </div>
-                <div class="filter-group">
+                <div class="filter-group export-group">
                     <button class="export-btn" onclick="exportTransactions()">
                         <i class="fa-solid fa-download"></i> Export Transactions
                     </button>
@@ -312,13 +290,12 @@
                                 <th onclick="sortTable('payment_method')" class="<?php echo $sort_field === 'payment_method' ? 'sorted ' . $sort_direction : ''; ?>">Payment Method</th>
                                 <th onclick="sortTable('status')" class="<?php echo $sort_field === 'status' ? 'sorted ' . $sort_direction : ''; ?>">Status</th>
                                 <th onclick="sortTable('total_amount')" class="<?php echo $sort_field === 'total_amount' ? 'sorted ' . $sort_direction : ''; ?>">Amount</th>
-                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="transactions-tbody">
                             <?php if (count($transactions) > 0): ?>
                                 <?php foreach ($transactions as $transaction): ?>
-                                    <tr>
+                                    <tr onclick="viewTransaction(<?php echo $transaction['order_id']; ?>)" style="cursor: pointer;">
                                         <td><?php echo htmlspecialchars($transaction['order_id']); ?></td>
                                         <td><?php echo date('M d, Y', strtotime($transaction['order_date'])); ?></td>
                                         <td><?php echo htmlspecialchars($transaction['customer_name']); ?></td>
@@ -337,14 +314,11 @@
                                             </span>
                                         </td>
                                         <td>₱<?php echo number_format($transaction['total_amount'], 2); ?></td>
-                                        <td>
-                                            <button onclick="viewTransaction(<?php echo $transaction['order_id']; ?>)" class="view-btn">View</button>
-                                        </td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="7" class="no-transactions">
+                                    <td colspan="6" class="no-transactions">
                                         <div style="text-align: center; padding: 3rem;">
                                             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom: 1rem; opacity: 0.5;">
                                                 <circle cx="11" cy="11" r="8"></circle>
@@ -413,7 +387,7 @@
             if (transactions.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="7" class="no-transactions">
+                        <td colspan="6" class="no-transactions">
                             <div style="text-align: center; padding: 3rem;">
                                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom: 1rem; opacity: 0.5;">
                                     <circle cx="11" cy="11" r="8"></circle>
@@ -432,7 +406,7 @@
             transactions.forEach(transaction => {
                 const statusClass = transaction.status.toLowerCase().replace(/[ -]/g, '_');
                 html += `
-                    <tr>
+                    <tr onclick="viewTransaction(${transaction.order_id})" style="cursor: pointer;">
                         <td>${escapeHtml(transaction.order_id)}</td>
                         <td>${formatDate(transaction.order_date)}</td>
                         <td>${escapeHtml(transaction.customer_name)}</td>
@@ -443,9 +417,6 @@
                             </span>
                         </td>
                         <td>₱${parseFloat(transaction.total_amount).toFixed(2)}</td>
-                        <td>
-                            <button onclick="viewTransaction(${transaction.order_id})" class="view-btn">View</button>
-                        </td>
                     </tr>
                 `;
             });
@@ -621,23 +592,7 @@
             const originalTable = document.getElementById('transactionTable').cloneNode(true);
             const printTable = document.getElementById('printTable');
             
-            // Remove actions column from print table
-            const actionColumnIndex = 6; // 7th column (0-indexed)
-            
-            // Remove header
-            const headerRow = originalTable.querySelector('thead tr');
-            if (headerRow) {
-                headerRow.deleteCell(actionColumnIndex);
-            }
-            
-            // Remove action cells from body
-            const bodyRows = originalTable.querySelectorAll('tbody tr');
-            bodyRows.forEach(row => {
-                if (row.cells.length > actionColumnIndex) {
-                    row.deleteCell(actionColumnIndex);
-                }
-            });
-            
+            // Since we removed the Actions column, no need to remove it from print table
             printTable.innerHTML = originalTable.innerHTML;
             window.print();
         }
@@ -921,7 +876,7 @@
                 data: {
                     labels: chartData.labels,
                     datasets: [{
-                        label: 'Number of Orders',
+                        label: 'Revenue (₱)',
                         data: chartData.data,
                         backgroundColor: chartData.colors,
                         borderColor: chartData.colors,

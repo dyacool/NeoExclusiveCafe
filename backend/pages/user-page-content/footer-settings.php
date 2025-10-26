@@ -106,6 +106,8 @@ $conn->close();
     <link rel="stylesheet" href="footer-settings.css">
 </head>
 <body>
+    <?php include __DIR__ . "/../admin-includes/breadcrumbs/admin-breadcrumb.php"; ?>
+
     <div class="admin-main">
         <div class="admin-container">
             <!-- Page Header -->

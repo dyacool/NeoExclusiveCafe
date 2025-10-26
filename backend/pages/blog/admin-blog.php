@@ -19,6 +19,7 @@
     require_once __DIR__ . "/../admin-includes/database.php";
     include __DIR__ . "/../admin-includes/navbar/navbar.php";
 
+
     // Include database configuration
     require_once __DIR__ . "/../../../config/database-config.php";
 
