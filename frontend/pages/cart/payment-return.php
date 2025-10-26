@@ -196,46 +196,92 @@ try {
                 $item_stmt->bind_param("issdi", $order_id_created, $pname, $image_path, $price, $qty);
                 if (!$item_stmt->execute()) { throw new Exception('Insert order_item failed: ' . $item_stmt->error); }
 
-                // Inventory update
+                // Inventory update - check if same-day order or pre-order
                 if (!empty($it['product_id'])) {
                     $pid = intval($it['product_id']);
-                    error_log("Updating inventory for product ID: $pid, quantity: $qty");
+                    $is_sameday_order = ($type === 'availtoday');
                     
-                    // Check stock first
-                    $stock_stmt = $conn->prepare("SELECT quantity, status_id, name FROM products WHERE id = ?");
-                    $stock_stmt->bind_param("i", $pid);
-                    $stock_stmt->execute();
-                    $stock_res = $stock_stmt->get_result();
-                    if ($row = $stock_res->fetch_assoc()) {
-                        $current_stock = intval($row['quantity']);
-                        $product_name = $row['name'];
-                        error_log("Product '$product_name' current stock: $current_stock");
+                    error_log("Updating inventory for product ID: $pid, quantity: $qty, Order type: $type, Is same-day: " . ($is_sameday_order ? 'YES' : 'NO'));
+                    
+                    if ($is_sameday_order) {
+                        // SAME-DAY ORDER: Update quantity_per_day_sdo table
+                        $today_date = date('Y-m-d');
                         
-                        if ($current_stock >= $qty) {
-                            $upd = $conn->prepare("UPDATE products SET quantity = quantity - ? WHERE id = ?");
-                            $upd->bind_param("ii", $qty, $pid);
-                            $upd->execute();
-                            $upd->close();
+                        // Get product name for logging
+                        $name_stmt = $conn->prepare("SELECT name FROM products WHERE id = ?");
+                        $name_stmt->bind_param("i", $pid);
+                        $name_stmt->execute();
+                        $name_res = $name_stmt->get_result();
+                        $product_name = 'Unknown';
+                        if ($name_row = $name_res->fetch_assoc()) {
+                            $product_name = $name_row['name'];
+                        }
+                        $name_stmt->close();
+                        
+                        // Check same-day stock
+                        $sdo_stock_stmt = $conn->prepare("SELECT quantity FROM quantity_per_day_sdo WHERE product_id = ? AND date = ?");
+                        $sdo_stock_stmt->bind_param("is", $pid, $today_date);
+                        $sdo_stock_stmt->execute();
+                        $sdo_stock_res = $sdo_stock_stmt->get_result();
+                        
+                        if ($sdo_row = $sdo_stock_res->fetch_assoc()) {
+                            $current_sdo_stock = intval($sdo_row['quantity']);
+                            error_log("Product '$product_name' same-day stock for $today_date: $current_sdo_stock");
                             
-                            $new_stock = $current_stock - $qty;
-                            error_log("Product '$product_name' stock updated: $current_stock -> $new_stock");
-
-                            // If stock hits 0, mark unavailable similar to existing logic
-                            if ($new_stock <= 0) {
-                                $new_status_id = ($row['status_id'] == 1) ? 4 : 5; // pickup->4, delivery->5, default 5
-                                $updS = $conn->prepare("UPDATE products SET status_id = ? WHERE id = ?");
-                                $updS->bind_param("ii", $new_status_id, $pid);
-                                $updS->execute();
-                                $updS->close();
-                                error_log("Product '$product_name' marked as unavailable (status_id: $new_status_id)");
+                            if ($current_sdo_stock >= $qty) {
+                                $upd_sdo = $conn->prepare("UPDATE quantity_per_day_sdo SET quantity = quantity - ? WHERE product_id = ? AND date = ?");
+                                $upd_sdo->bind_param("iis", $qty, $pid, $today_date);
+                                $upd_sdo->execute();
+                                $affected = $upd_sdo->affected_rows;
+                                $upd_sdo->close();
+                                
+                                $new_sdo_stock = $current_sdo_stock - $qty;
+                                error_log("SUCCESS: Product '$product_name' same-day stock updated for $today_date: $current_sdo_stock -> $new_sdo_stock (Affected rows: $affected)");
+                            } else {
+                                error_log("WARNING: Insufficient same-day stock for product '$product_name' on $today_date. Requested: $qty, Available: $current_sdo_stock");
                             }
                         } else {
-                            error_log("WARNING: Insufficient stock for product '$product_name'. Requested: $qty, Available: $current_stock");
+                            error_log("WARNING: No same-day stock entry found for product ID $pid on date $today_date");
                         }
+                        $sdo_stock_stmt->close();
+                        
                     } else {
-                        error_log("WARNING: Product ID $pid not found in database");
+                        // PRE-ORDER: Update products.quantity table
+                        $stock_stmt = $conn->prepare("SELECT quantity, status_id, name FROM products WHERE id = ?");
+                        $stock_stmt->bind_param("i", $pid);
+                        $stock_stmt->execute();
+                        $stock_res = $stock_stmt->get_result();
+                        if ($row = $stock_res->fetch_assoc()) {
+                            $current_stock = intval($row['quantity']);
+                            $product_name = $row['name'];
+                            error_log("Product '$product_name' current stock: $current_stock");
+                            
+                            if ($current_stock >= $qty) {
+                                $upd = $conn->prepare("UPDATE products SET quantity = quantity - ? WHERE id = ?");
+                                $upd->bind_param("ii", $qty, $pid);
+                                $upd->execute();
+                                $upd->close();
+                                
+                                $new_stock = $current_stock - $qty;
+                                error_log("Product '$product_name' stock updated: $current_stock -> $new_stock");
+
+                                // If stock hits 0, mark unavailable
+                                if ($new_stock <= 0) {
+                                    $new_status_id = ($row['status_id'] == 1) ? 4 : 5;
+                                    $updS = $conn->prepare("UPDATE products SET status_id = ? WHERE id = ?");
+                                    $updS->bind_param("ii", $new_status_id, $pid);
+                                    $updS->execute();
+                                    $updS->close();
+                                    error_log("Product '$product_name' marked as unavailable (status_id: $new_status_id)");
+                                }
+                            } else {
+                                error_log("WARNING: Insufficient stock for product '$product_name'. Requested: $qty, Available: $current_stock");
+                            }
+                        } else {
+                            error_log("WARNING: Product ID $pid not found in database");
+                        }
+                        $stock_stmt->close();
                     }
-                    $stock_stmt->close();
                 } else {
                     error_log("WARNING: Cart item missing product_id: " . json_encode($it));
                 }

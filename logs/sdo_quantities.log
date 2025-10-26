@@ -184,3 +184,27 @@
 [2025-10-26 00:05:09] Inserting: product_id=11, date=2025-10-26, quantity=20
 [2025-10-26 00:05:09] Inserting: product_id=11, date=2025-10-27, quantity=20
 [2025-10-26 00:05:10] Successfully saved 2 quantities for product 11
+[2025-10-26 11:24:09] Raw input: {"product_id":"11","quantities":{"2025-10-26":20,"2025-10-27":20}}
+[2025-10-26 11:24:09] Processing product_id: 11
+[2025-10-26 11:24:09] Quantities type: array
+[2025-10-26 11:24:09] Quantities is_array: yes
+[2025-10-26 11:24:09] Quantities empty: no
+[2025-10-26 11:24:09] Quantities count: 2
+[2025-10-26 11:24:09] Quantities content: {"2025-10-26":20,"2025-10-27":20}
+[2025-10-26 11:24:10] Deleted 2 existing quantities for product 11
+[2025-10-26 11:24:10] Inserting: product_id=11, date=2025-10-26, quantity=20
+[2025-10-26 11:24:10] Inserting: product_id=11, date=2025-10-27, quantity=20
+[2025-10-26 11:24:11] Successfully saved 2 quantities for product 11
+[2025-10-26 11:25:30] Raw input: {"product_id":"11","quantities":{"2025-10-26":20,"2025-10-27":20,"2025-10-28":0,"2025-10-29":0}}
+[2025-10-26 11:25:30] Processing product_id: 11
+[2025-10-26 11:25:30] Quantities type: array
+[2025-10-26 11:25:30] Quantities is_array: yes
+[2025-10-26 11:25:30] Quantities empty: no
+[2025-10-26 11:25:30] Quantities count: 4
+[2025-10-26 11:25:30] Quantities content: {"2025-10-26":20,"2025-10-27":20,"2025-10-28":0,"2025-10-29":0}
+[2025-10-26 11:25:30] Deleted 2 existing quantities for product 11
+[2025-10-26 11:25:30] Inserting: product_id=11, date=2025-10-26, quantity=20
+[2025-10-26 11:25:31] Inserting: product_id=11, date=2025-10-27, quantity=20
+[2025-10-26 11:25:31] Inserting: product_id=11, date=2025-10-28, quantity=0
+[2025-10-26 11:25:31] Inserting: product_id=11, date=2025-10-29, quantity=0
+[2025-10-26 11:25:31] Successfully saved 4 quantities for product 11

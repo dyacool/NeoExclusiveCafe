@@ -18,6 +18,87 @@ require_once '../../user-includes/navbar/customer-navigation.php';
 $user_id = $_SESSION['user_id'];
 $today = date('Y-m-d');
 
+// Auto-truncate same-day cart if business is closed OR items are from previous days
+function checkAndTruncateSameDayCart($conn) {
+    $truncated = false;
+    
+    // STEP 1: Remove old date assignments from products (date-based cleanup)
+    // Remove dates from previous days so products are no longer marked for same-day delivery
+    
+    // Remove old dates from Today's products table
+    $old_todays_dates = "DELETE FROM todays_products_dates WHERE available_date < CURDATE()";
+    $result1 = $conn->query($old_todays_dates);
+    $removed_todays = ($result1 && $conn->affected_rows > 0) ? $conn->affected_rows : 0;
+    
+    // Remove old dates from regular products' today dates table
+    $old_regular_dates = "DELETE FROM regular_products_today_dates WHERE available_date < CURDATE()";
+    $result2 = $conn->query($old_regular_dates);
+    $removed_regular = ($result2 && $conn->affected_rows > 0) ? $conn->affected_rows : 0;
+    
+    $total_removed = $removed_todays + $removed_regular;
+    if ($total_removed > 0) {
+        error_log("Auto-cleanup (cart.php): Removed $removed_todays old dates from todays_products_dates, $removed_regular from regular_products_today_dates");
+        $truncated = true;
+    }
+    
+    // STEP 1B: Clean up cart items for products that no longer have valid same-day dates
+    $cleanup_cart = "DELETE FROM availtoday_cart WHERE DATE(created_at) < CURDATE()";
+    $cleanup_result = $conn->query($cleanup_cart);
+    if ($cleanup_result && $conn->affected_rows > 0) {
+        error_log("Auto-cleanup (cart.php): Removed {$conn->affected_rows} old cart items from previous days");
+        $truncated = true;
+    }
+    
+    // STEP 2: Check if business is closed (time-based truncation)
+    $hours_query = "SELECT opening_time, closing_time FROM business_hours ORDER BY id DESC LIMIT 1";
+    $hours_result = $conn->query($hours_query);
+    
+    if ($hours_result && $hours_result->num_rows > 0) {
+        $hours = $hours_result->fetch_assoc();
+        $opening_time = $hours['opening_time'];
+        $closing_time = $hours['closing_time'];
+        $current_time = date('H:i:s');
+        
+        // Convert to minutes for comparison
+        $current_minutes = (intval(substr($current_time, 0, 2)) * 60) + intval(substr($current_time, 3, 2));
+        $opening_minutes = (intval(substr($opening_time, 0, 2)) * 60) + intval(substr($opening_time, 3, 2));
+        $closing_minutes = (intval(substr($closing_time, 0, 2)) * 60) + intval(substr($closing_time, 3, 2));
+        
+        // Check if business is closed
+        // Business is OPEN only if current time is between opening and closing
+        $is_closed = false;
+        
+        // Handle midnight crossing (e.g., closing time is after midnight)
+        if ($closing_minutes < $opening_minutes) {
+            // Business hours cross midnight (e.g., 8 PM to 2 AM)
+            $is_closed = !($current_minutes >= $opening_minutes || $current_minutes < $closing_minutes);
+        } else {
+            // Normal business hours (e.g., 8 AM to 6 PM)
+            $is_closed = !($current_minutes >= $opening_minutes && $current_minutes < $closing_minutes);
+        }
+        
+        // Truncate remaining cart items if closed
+        if ($is_closed) {
+            $count_query = "SELECT COUNT(*) as count FROM availtoday_cart";
+            $count_result = $conn->query($count_query);
+            if ($count_result) {
+                $count_data = $count_result->fetch_assoc();
+                if ($count_data['count'] > 0) {
+                    // Truncate the cart
+                    $conn->query("TRUNCATE TABLE availtoday_cart");
+                    error_log("Auto-truncate (cart.php): Cart cleared (business closed - hours: $opening_time to $closing_time, current time: $current_time)");
+                    $truncated = true;
+                }
+            }
+        }
+    }
+    
+    return $truncated;
+}
+
+// Run the auto-truncate check
+$cart_was_truncated = checkAndTruncateSameDayCart($conn);
+
 // Get Pre-Order items (from cart table)
 $preorder_query = "
     SELECT c.id AS cart_id, c.quantity, c.price, c.product_id,
@@ -259,6 +340,19 @@ foreach ($preorder_items as $item) {
 <div class="wrapper fade-in">
     <div class="main-container">
         <h2>Shopping Cart</h2>
+        
+        <?php if (isset($_SESSION['error_message'])): ?>
+        <div style="background: #f44336; color: white; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+            <?= htmlspecialchars($_SESSION['error_message']) ?>
+        </div>
+        <?php unset($_SESSION['error_message']); endif; ?>
+        
+        <?php if ($cart_was_truncated): ?>
+        <div style="background: #ff9800; color: white; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+            ⚠️ Your same-day cart has been cleared because items were from a previous day or the business is currently closed.
+        </div>
+        <?php endif; ?>
+        
         <p class="cart-info">
             Please note: NeoCafe operates on a preorder basis to ensure the freshness of our baked goods.<br>
             Orders must be placed at least 24 hours in advance.
@@ -424,6 +518,9 @@ foreach ($preorder_items as $item) {
                     <p style="font-size: 12px; color: #666; margin-top: 10px; text-align: center;">
                         Select items and accept terms to checkout
                     </p>
+                    <p style="font-size: 11px; color: #ff9800; margin-top: 5px; text-align: center; font-weight: 500;">
+                        ⓘ Pre-Order and Same Day items must be checked out separately
+                    </p>
                 </div>
             </div>
         </div>
@@ -436,9 +533,15 @@ let selectedItems = [];
 let currentShippingMethod = <?= $current_shipping_method ?? 'null' ?>;
 let inheritedShippingMethod = null; // For status_id 3 products
 
-// Update totals when checkboxes change
-document.querySelectorAll('.item-checkbox').forEach(checkbox => {
-    checkbox.addEventListener('change', updateTotals);
+// Wait for DOM to be ready before attaching event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // Update totals when checkboxes change
+    const checkboxes = document.querySelectorAll('.item-checkbox');
+    if (checkboxes && checkboxes.length > 0) {
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', updateTotals);
+        });
+    }
 });
 
 function updateTotals() {
@@ -452,20 +555,40 @@ function updateTotals() {
         const statusId = parseInt(checkbox.dataset.statusId);
         const itemTotal = parseFloat(checkbox.dataset.total);
         
+        // Determine order type based on which section the checkbox is in
+        // NOT based on status_id, because a product can be in either table
+        const orderType = checkbox.classList.contains('sameday-checkbox') ? 'sameday' : 'preorder';
+        
         selectedItems.push({
             cartId: checkbox.value,
             statusId: statusId,
-            total: itemTotal
+            total: itemTotal,
+            type: orderType
         });
         
         total += itemTotal;
         
-        if (statusId === 1) hasPickupOnly = true;
-        if (statusId === 2) hasDeliveryOnly = true;
-        if (statusId === 3) hasFlexible = true;
+        // Only check shipping method for pre-order items
+        if (orderType === 'preorder') {
+            if (statusId === 1) hasPickupOnly = true;
+            if (statusId === 2) hasDeliveryOnly = true;
+            if (statusId === 3) hasFlexible = true;
+        }
     });
     
-    // Check for mixed shipping methods (1 and 2 cannot be together)
+    // Check for mixed order types (pre-order vs same-day)
+    const hasPreorder = selectedItems.some(item => item.type === 'preorder');
+    const hasSameday = selectedItems.some(item => item.type === 'sameday');
+    
+    if (hasPreorder && hasSameday) {
+        alert('You cannot mix Pre-Order and Same Day Order items in the same checkout! Please select only one type.');
+        // Uncheck the last selected item
+        event.target.checked = false;
+        updateTotals();
+        return;
+    }
+    
+    // Check for mixed shipping methods (1 and 2 cannot be together) - only for pre-orders
     if (hasPickupOnly && hasDeliveryOnly) {
         alert('You cannot mix Pick Up Only and Delivery Only products in the same order!');
         // Uncheck the last selected item
@@ -497,6 +620,9 @@ function updateFlexibleProductsDisplay(method) {
     document.querySelectorAll('tr[data-status-id="3"]').forEach(row => {
         const checkbox = row.querySelector('.item-checkbox');
         const productName = row.querySelector('td:nth-child(3)');
+        
+        // Null check for productName
+        if (!productName) return;
         
         // Remove existing indicator
         const existingIndicator = productName.querySelector('.shipping-indicator');
@@ -571,8 +697,10 @@ function updateCheckoutButton() {
 document.getElementById('termsCheckbox').addEventListener('change', updateCheckoutButton);
 
 function proceedToCheckout() {
+    console.log('proceedToCheckout called, selectedItems:', selectedItems);
+    
     if (selectedItems.length === 0) {
-        alert('Please select items to checkout');
+        alert('Please select items to checkout by checking the boxes next to the items you want to purchase.');
         return;
     }
     
@@ -586,22 +714,66 @@ function proceedToCheckout() {
     const samedayIds = [];
     
     selectedItems.forEach(item => {
-        const checkbox = document.querySelector(`.item-checkbox[value="${item.cartId}"]`);
-        if (checkbox.classList.contains('preorder-checkbox')) {
-            preorderIds.push(item.cartId);
-        } else {
+        if (item.type === 'sameday') {
             samedayIds.push(item.cartId);
+        } else if (item.type === 'preorder') {
+            preorderIds.push(item.cartId);
         }
     });
     
-    // Redirect to appropriate checkout
+    console.log('Pre-order IDs:', preorderIds);
+    console.log('Same-day IDs:', samedayIds);
+    
+    // Check if user selected both types
+    if (preorderIds.length > 0 && samedayIds.length > 0) {
+        alert('Please checkout Pre-Order and Same Day Order items separately. Select only one type at a time.');
+        return;
+    }
+    
+    // Create a form to POST the data instead of using GET
+    // This is more reliable than URL parameters
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.style.display = 'none';
+    
+    // Redirect to appropriate checkout based on item type
     if (samedayIds.length > 0) {
         // Same day checkout
-        window.location.href = 'availtoday-checkout.php?cart_ids=' + samedayIds.join(',');
-    } else {
+        form.action = 'availtoday-checkout.php';
+        samedayIds.forEach(id => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'selected_cart_ids[]';
+            input.value = id;
+            form.appendChild(input);
+        });
+        console.log('Submitting to same-day checkout with IDs:', samedayIds);
+    } else if (preorderIds.length > 0) {
         // Pre-order checkout
-        window.location.href = 'checkout.php?cart_ids=' + preorderIds.join(',');
+        form.action = 'checkout.php';
+        preorderIds.forEach(id => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'selected_cart_ids[]';
+            input.value = id;
+            form.appendChild(input);
+        });
+        console.log('Submitting to pre-order checkout with IDs:', preorderIds);
+    } else {
+        alert('No items selected for checkout. Please check the boxes next to items you want to purchase.');
+        return;
     }
+    
+    // Add subtotal
+    const subtotalInput = document.createElement('input');
+    subtotalInput.type = 'hidden';
+    subtotalInput.name = 'subtotal';
+    subtotalInput.value = document.getElementById('totalAmount').textContent.replace('₱', '').replace(',', '');
+    form.appendChild(subtotalInput);
+    
+    // Submit the form
+    document.body.appendChild(form);
+    form.submit();
 }
 </script>
 

@@ -100,4 +100,3 @@ if (!$nav_result) {
 }
 
 mysqli_close($conn);
-?>

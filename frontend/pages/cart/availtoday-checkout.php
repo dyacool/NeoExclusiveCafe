@@ -88,19 +88,28 @@ if (isset($_SESSION['user_id'])) {
     error_log("No user_id in session");
 }
 
-// Get selected cart IDs from POST
+// Get selected cart IDs from GET or POST
 $selected_cart_ids = [];
-if (isset($_POST['cart_items']) && !empty($_POST['cart_items'])) {
+
+// First check GET parameters (from cart.php)
+if (isset($_GET['cart_ids']) && !empty($_GET['cart_ids'])) {
+    $selected_cart_ids = array_filter(array_map('intval', explode(',', $_GET['cart_ids'])));
+    error_log("Got cart IDs from GET: " . print_r($selected_cart_ids, true));
+}
+// Then check POST parameters (from shopping-cart-sameday.php)
+elseif (isset($_POST['cart_items']) && !empty($_POST['cart_items'])) {
     $selected_cart_ids = array_filter(array_map('intval', explode(',', $_POST['cart_items'])));
+    error_log("Got cart IDs from POST cart_items: " . print_r($selected_cart_ids, true));
 } elseif (isset($_POST['selected_cart_ids']) && is_array($_POST['selected_cart_ids'])) {
     $selected_cart_ids = array_filter(array_map('intval', $_POST['selected_cart_ids']));
+    error_log("Got cart IDs from POST selected_cart_ids: " . print_r($selected_cart_ids, true));
 }
 
 // If no items selected, redirect back to cart
 if (empty($selected_cart_ids)) {
     error_log("No items selected for checkout - redirecting to cart");
     $_SESSION['error_message'] = "Please select items to checkout.";
-    header("Location: shopping-cart-sameday.php");
+    header("Location: cart.php");
     exit();
 }
 
@@ -144,6 +153,34 @@ try {
             $cart_result = $cart_stmt->get_result();
             
             while ($item = $cart_result->fetch_assoc()) {
+                // Validate same-day stock availability before processing
+                // Check quantity_per_day_sdo table for today's date
+                $today_date = date('Y-m-d');
+                $stock_check_sql = "SELECT quantity FROM quantity_per_day_sdo WHERE product_id = ? AND date = ?";
+                $stock_check_stmt = $conn->prepare($stock_check_sql);
+                $stock_check_stmt->bind_param("is", $item['product_id'], $today_date);
+                $stock_check_stmt->execute();
+                $stock_result = $stock_check_stmt->get_result();
+                
+                if ($stock_row = $stock_result->fetch_assoc()) {
+                    $available_stock = $stock_row['quantity'];
+                    
+                    // Check if cart quantity exceeds available stock for today
+                    if ($item['quantity'] > $available_stock) {
+                        $_SESSION['error_message'] = "Insufficient stock for " . $item['name'] . " today. Available: " . $available_stock . ", Requested: " . $item['quantity'];
+                        error_log("Same-day stock validation failed for product " . $item['product_id'] . " on $today_date: Available=" . $available_stock . ", Requested=" . $item['quantity']);
+                        header("Location: cart.php");
+                        exit();
+                    }
+                } else {
+                    // No stock entry for today - product not available for same-day order
+                    $_SESSION['error_message'] = $item['name'] . " is not available for same-day order today.";
+                    error_log("No same-day stock entry found for product " . $item['product_id'] . " on $today_date");
+                    header("Location: cart.php");
+                    exit();
+                }
+                $stock_check_stmt->close();
+                
                 $cart_total += $item['price'] * $item['quantity'];
                 
                 // Determine shipping method based on availtoday_status_id
@@ -259,7 +296,7 @@ $debug_info = [
 <?php include '../../user-includes/navbar/customer-navigation.php'; ?>
 
 <div class="checkout-container">
-    <form id="availtoday-checkout-form">
+    <form id="availtoday-checkout-form" action="process-availtoday-checkout.php" method="POST">
         
         <!-- User Information Section -->
         <div class="section-card user-information">

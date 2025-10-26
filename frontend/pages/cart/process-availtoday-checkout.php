@@ -1,7 +1,15 @@
 <?php
-// Enable error reporting
+// Enable error reporting and set custom log file
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+ini_set('log_errors', 1);
+ini_set('error_log', 'C:\xampp\htdocs\NeoCafe\logs\php_errors.log');
+
+// Create logs directory if it doesn't exist
+$log_dir = 'C:\xampp\htdocs\NeoCafe\logs';
+if (!file_exists($log_dir)) {
+    mkdir($log_dir, 0777, true);
+}
 
 session_set_cookie_params([
     'lifetime' => 0,
@@ -10,6 +18,11 @@ session_set_cookie_params([
     'domain' => 'neocafe.cafe'
 ]);
 session_start();
+
+// Log that the file is being executed
+error_log("========================================");
+error_log("process-availtoday-checkout.php STARTED at " . date('Y-m-d H:i:s'));
+error_log("========================================");
 
 // Require login
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'user') {
@@ -78,41 +91,62 @@ try {
     // Start transaction
     $conn->begin_transaction();
     
-    // Create order record
+    // Create order record - matching actual orders table structure
+    $customer_full_name = $first_name . ' ' . $last_name;
+    $delivery_method_enum = ($shipping_method === 'delivery') ? 'Delivery' : 'Pick-up';
+    $combined_notes = $special_instructions;
+    $today_date = date('Y-m-d');
+    $pickup_time = '10:00:00'; // Default pickup time for same-day orders
+    
+    // Combine address fields
+    $full_address = trim($address);
+    if (!empty($city)) {
+        $full_address .= ', ' . $city;
+    }
+    if (!empty($postal_code)) {
+        $full_address .= ' ' . $postal_code;
+    }
+    
     $order_sql = "INSERT INTO orders (
-        user_id, 
-        first_name, 
-        last_name, 
-        email, 
-        phone, 
-        address, 
-        city, 
-        postal_code, 
-        special_instructions, 
-        shipping_method, 
-        total_amount, 
-        order_status,
-        order_type,
-        created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'availtoday', NOW())";
+        customer_name,
+        customer_contact,
+        customer_email,
+        customer_address,
+        payment_method,
+        total_items,
+        total_amount,
+        status,
+        delivery_method,
+        pickup_date,
+        pickup_time,
+        notes,
+        customer_id
+    ) VALUES (?, ?, ?, ?, 'Cash on Delivery', ?, ?, 'Pending', ?, ?, ?, ?, NULL)";
     
     $order_stmt = $conn->prepare($order_sql);
     if (!$order_stmt) {
         throw new Exception("Failed to prepare order statement: " . $conn->error);
     }
     
-    $order_stmt->bind_param("isssssssssd", 
-        $_SESSION['user_id'],
-        $first_name,
-        $last_name,
-        $email,
+    // Calculate total items
+    $total_items = 0;
+    foreach ($cart_items as $item) {
+        $total_items += $item['quantity'];
+    }
+    
+    error_log("Preparing to insert order: Name=$customer_full_name, Email=$email, Phone=$phone, Total=$cart_total, Items=$total_items");
+    
+    $order_stmt->bind_param("sssidsss", 
+        $customer_full_name,
         $phone,
-        $address,
-        $city,
-        $postal_code,
-        $special_instructions,
-        $shipping_method,
-        $cart_total
+        $email,
+        $full_address,
+        $total_items,
+        $cart_total,
+        $delivery_method_enum,
+        $today_date,
+        $pickup_time,
+        $combined_notes
     );
     
     if (!$order_stmt->execute()) {
@@ -122,16 +156,14 @@ try {
     $order_id = $conn->insert_id;
     error_log("Created order ID: " . $order_id);
     
-    // Insert order items
+    // Insert order items - matching actual order_items table structure
     $item_sql = "INSERT INTO order_items (
         order_id, 
-        product_id, 
-        quantity, 
+        product_name,
+        image_path,
         price, 
-        total_price,
-        availtoday_status_id,
-        shipping_method
-    ) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        quantity
+    ) VALUES (?, ?, NULL, ?, ?)";
     
     $item_stmt = $conn->prepare($item_sql);
     if (!$item_stmt) {
@@ -139,91 +171,85 @@ try {
     }
     
     foreach ($cart_items as $item) {
-        $item_total = $item['price'] * $item['quantity'];
-        $item_shipping_method = $item['shipping_method'];
-        $availtoday_status_id = $item['availtoday_status_id'] ?: null;
-        
-        $item_stmt->bind_param("iiiddis",
+        $item_stmt->bind_param("isdi",
             $order_id,
-            $item['product_id'],
-            $item['quantity'],
+            $item['name'],
             $item['price'],
-            $item_total,
-            $availtoday_status_id,
-            $item_shipping_method
+            $item['quantity']
         );
         
         if (!$item_stmt->execute()) {
             throw new Exception("Failed to insert order item: " . $item_stmt->error);
         }
         
-        error_log("Added order item - Product ID: " . $item['product_id'] . ", Quantity: " . $item['quantity']);
+        error_log("Added order item - Product: " . $item['name'] . ", Quantity: " . $item['quantity']);
         
-        // Update product inventory - subtract ordered quantity
+        // Update same-day order inventory - subtract from quantity_per_day_sdo table
         $product_id = $item['product_id'];
         $ordered_quantity = $item['quantity'];
+        $today_date = date('Y-m-d');
         
-        // First, check current stock
-        $stock_check_sql = "SELECT quantity, status_id, name FROM products WHERE id = ?";
+        error_log("=== SAME-DAY INVENTORY UPDATE START ===");
+        error_log("Product ID: $product_id, Ordered Quantity: $ordered_quantity, Date: $today_date");
+        
+        // Get product name for logging
+        $product_name_sql = "SELECT name FROM products WHERE id = ?";
+        $product_name_stmt = $conn->prepare($product_name_sql);
+        $product_name_stmt->bind_param("i", $product_id);
+        $product_name_stmt->execute();
+        $product_name_result = $product_name_stmt->get_result();
+        $product_name = 'Unknown';
+        if ($product_name_row = $product_name_result->fetch_assoc()) {
+            $product_name = $product_name_row['name'];
+        }
+        $product_name_stmt->close();
+        error_log("Product Name: $product_name");
+        
+        // Check current stock in quantity_per_day_sdo for today
+        $stock_check_sql = "SELECT quantity FROM quantity_per_day_sdo WHERE product_id = ? AND date = ?";
         $stock_check_stmt = $conn->prepare($stock_check_sql);
-        $stock_check_stmt->bind_param("i", $product_id);
+        $stock_check_stmt->bind_param("is", $product_id, $today_date);
         $stock_check_stmt->execute();
         $stock_result = $stock_check_stmt->get_result();
         
+        error_log("Stock check query executed. Rows found: " . $stock_result->num_rows);
+        
         if ($stock_row = $stock_result->fetch_assoc()) {
             $current_stock = $stock_row['quantity'];
-            $current_status_id = $stock_row['status_id'];
-            $product_name = $stock_row['name'];
+            error_log("Current stock in quantity_per_day_sdo: $current_stock");
             
             // Check if there's sufficient stock
             if ($current_stock >= $ordered_quantity) {
-                // Update product stock
-                $update_stock_sql = "UPDATE products SET quantity = quantity - ? WHERE id = ?";
+                // Update same-day stock for today
+                $update_stock_sql = "UPDATE quantity_per_day_sdo SET quantity = quantity - ? WHERE product_id = ? AND date = ?";
                 $update_stock_stmt = $conn->prepare($update_stock_sql);
-                $update_stock_stmt->bind_param("ii", $ordered_quantity, $product_id);
+                $update_stock_stmt->bind_param("iis", $ordered_quantity, $product_id, $today_date);
+                
+                error_log("Executing UPDATE query: quantity = quantity - $ordered_quantity WHERE product_id = $product_id AND date = $today_date");
                 
                 if ($update_stock_stmt->execute()) {
-                    error_log("Successfully updated inventory for product ID $product_id: reduced by $ordered_quantity");
+                    $affected_rows = $update_stock_stmt->affected_rows;
+                    error_log("UPDATE executed successfully. Affected rows: $affected_rows");
+                    error_log("Successfully updated same-day inventory for product ID $product_id on $today_date: reduced by $ordered_quantity");
                     
-                    // Check if product quantity reached 0 and update status to unavailable
+                    // Check if same-day quantity reached 0
                     $new_stock = $current_stock - $ordered_quantity;
+                    error_log("New stock after deduction: $new_stock");
                     if ($new_stock <= 0) {
-                        $new_status_id = 0;
-                        
-                        // Determine the appropriate unavailable status based on current status
-                        if ($current_status_id == 1) {
-                            // Currently Pick Up - set to Unavailable Pick Up (ID 4)
-                            $new_status_id = 4;
-                        } else if ($current_status_id == 2) {
-                            // Currently Delivery - set to Unavailable Delivery (ID 5)
-                            $new_status_id = 5;
-                        } else {
-                            // For any other status, default to Unavailable Delivery (ID 5)
-                            $new_status_id = 5;
-                        }
-                        
-                        $update_status_sql = "UPDATE products SET status_id = ? WHERE id = ?";
-                        $update_status_stmt = $conn->prepare($update_status_sql);
-                        $update_status_stmt->bind_param("ii", $new_status_id, $product_id);
-                        
-                        if ($update_status_stmt->execute()) {
-                            error_log("Product '$product_name' (ID: $product_id) marked as unavailable due to zero stock");
-                        } else {
-                            error_log("Failed to update product status for product ID $product_id: " . $update_status_stmt->error);
-                        }
-                        $update_status_stmt->close();
+                        error_log("Product '$product_name' (ID: $product_id) same-day stock depleted for $today_date");
                     }
                 } else {
-                    error_log("Failed to update inventory for product ID $product_id: " . $update_stock_stmt->error);
+                    error_log("FAILED to update same-day inventory for product ID $product_id: " . $update_stock_stmt->error);
                 }
                 $update_stock_stmt->close();
             } else {
-                error_log("Insufficient stock for product '$product_name' (ID: $product_id). Available: $current_stock, Requested: $ordered_quantity");
+                error_log("INSUFFICIENT STOCK for product '$product_name' (ID: $product_id). Available: $current_stock, Requested: $ordered_quantity");
             }
         } else {
-            error_log("Product not found for inventory update: product ID $product_id");
+            error_log("NO STOCK ENTRY FOUND in quantity_per_day_sdo for product ID $product_id on date $today_date");
         }
         $stock_check_stmt->close();
+        error_log("=== SAME-DAY INVENTORY UPDATE END ===");
     }
     
     // Clear the availtoday cart for this user
@@ -242,6 +268,10 @@ try {
     
     // Commit transaction
     $conn->commit();
+    error_log("========================================");
+    error_log("TRANSACTION COMMITTED SUCCESSFULLY");
+    error_log("Order ID: $order_id created successfully");
+    error_log("========================================");
     
     // Store order info in session for confirmation page
     $_SESSION['order_confirmation'] = [
@@ -276,9 +306,15 @@ try {
     // Rollback transaction
     $conn->rollback();
     
-    error_log("Error processing availtoday checkout: " . $e->getMessage());
+    error_log("========================================");
+    error_log("ERROR PROCESSING AVAILTODAY CHECKOUT");
+    error_log("Error Message: " . $e->getMessage());
+    error_log("Error File: " . $e->getFile());
+    error_log("Error Line: " . $e->getLine());
+    error_log("Stack Trace: " . $e->getTraceAsString());
+    error_log("========================================");
     
-    $_SESSION['checkout_errors'] = ['An error occurred while processing your order. Please try again.'];
+    $_SESSION['checkout_errors'] = ['An error occurred while processing your order: ' . $e->getMessage()];
     $_SESSION['checkout_form_data'] = $_POST;
     
     header("Location: availtoday-checkout.php");

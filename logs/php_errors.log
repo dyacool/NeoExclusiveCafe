@@ -80946,4 +80946,1249 @@ Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or P
 [2025-10-26 00:05:03] Is Available Today: 
 [2025-10-26 00:05:03] Todays Product Dates: ["2025-10-26","2025-10-27"]
 [2025-10-26 00:05:03] Available Today Dates: []
-Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[26-Oct-2025 08:39:21 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[26-Oct-2025 08:39:21 Asia/Manila] Total featured products found: 13
+[26-Oct-2025 08:39:27 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[26-Oct-2025 10:35:39 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[26-Oct-2025 10:35:39 Asia/Manila] Total featured products found: 13
+[26-Oct-2025 10:35:44 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[26-Oct-2025 10:53:04 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[26-Oct-2025 10:53:04 Asia/Manila] Total featured products found: 13
+[26-Oct-2025 10:53:09 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-26 11:24:03] Availtoday Status ID received: 3
+[2025-10-26 11:24:03] Availtoday Status ID after filter: 3
+[2025-10-26 11:24:03] Status ID: 3
+[2025-10-26 11:24:03] Is Available Today: 1
+[2025-10-26 11:24:03] Todays Product Dates: ["2025-10-26","2025-10-27"]
+[2025-10-26 11:24:03] Available Today Dates: ["2025-10-26","2025-10-27"]
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-26 11:25:25] Availtoday Status ID received: 3
+[2025-10-26 11:25:25] Availtoday Status ID after filter: 3
+[2025-10-26 11:25:25] Status ID: 3
+[2025-10-26 11:25:25] Is Available Today: 1
+[2025-10-26 11:25:25] Todays Product Dates: []
+[2025-10-26 11:25:25] Available Today Dates: ["2025-10-26","2025-10-27","2025-10-28","2025-10-29"]
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 10 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[26-Oct-2025 12:38:22 Asia/Manila] Database connection successful
+[26-Oct-2025 12:38:22 Asia/Manila] User has 3 items in cart table
+[26-Oct-2025 12:38:23 Asia/Manila] Cart table structure:
+[26-Oct-2025 12:38:23 Asia/Manila]   id - int(11) - NO - PRI -  - auto_increment
+[26-Oct-2025 12:38:23 Asia/Manila]   user_id - int(11) - NO -  -  - 
+[26-Oct-2025 12:38:23 Asia/Manila]   product_id - int(11) - NO -  -  - 
+[26-Oct-2025 12:38:23 Asia/Manila]   quantity - int(11) - NO -  - 1 - 
+[26-Oct-2025 12:38:23 Asia/Manila]   price - decimal(10,2) - NO -  -  - 
+[26-Oct-2025 12:38:23 Asia/Manila]   created_at - timestamp - NO -  - current_timestamp() - 
+[26-Oct-2025 12:38:23 Asia/Manila]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[26-Oct-2025 12:38:23 Asia/Manila] Cart item 108 does not exist in cart table
+[26-Oct-2025 12:38:23 Asia/Manila] Final user data: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [email] => alrainepascua2@gmail.com
+)
+
+[26-Oct-2025 12:38:23 Asia/Manila] REQUEST_METHOD: GET
+[26-Oct-2025 12:38:23 Asia/Manila] POST data: Array
+(
+)
+
+[26-Oct-2025 12:38:23 Asia/Manila] SESSION data at cart items check: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [availtoday_cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal with Cheese – 8 Pieces
+                    [price] => 100.00
+                    [quantity] => 10
+                    [cart_id] => 7
+                    [product_id] => 11
+                    [status_id] => 3
+                    [availtoday_status_id] => 3
+                    [availtoday_status_name] => Delivery or Pick-Up
+                    [available_days] => Wednesday,Thursday,Friday
+                    [shipping_method] => pickup
+                )
+
+        )
+
+    [availtoday_cart_total] => 1000
+    [availtoday_shipping_method] => pickup
+    [has_mixed_availtoday_status] => 
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+)
+
+[26-Oct-2025 12:38:23 Asia/Manila] Final selected_cart_ids: Array
+(
+)
+
+[26-Oct-2025 12:38:23 Asia/Manila] Final subtotal: 0
+[26-Oct-2025 12:38:23 Asia/Manila] Selected cart IDs: Array
+(
+)
+
+[26-Oct-2025 12:38:23 Asia/Manila] Subtotal: 0
+[26-Oct-2025 12:38:23 Asia/Manila] No selected_cart_ids to process
+[26-Oct-2025 12:38:23 Asia/Manila] No valid cart items found after filtering for status_id 1,2 - redirecting to cart
+[26-Oct-2025 12:38:38 Asia/Manila] Database connection successful
+[26-Oct-2025 12:38:38 Asia/Manila] User has 3 items in cart table
+[26-Oct-2025 12:38:38 Asia/Manila] Cart table structure:
+[26-Oct-2025 12:38:38 Asia/Manila]   id - int(11) - NO - PRI -  - auto_increment
+[26-Oct-2025 12:38:38 Asia/Manila]   user_id - int(11) - NO -  -  - 
+[26-Oct-2025 12:38:38 Asia/Manila]   product_id - int(11) - NO -  -  - 
+[26-Oct-2025 12:38:38 Asia/Manila]   quantity - int(11) - NO -  - 1 - 
+[26-Oct-2025 12:38:38 Asia/Manila]   price - decimal(10,2) - NO -  -  - 
+[26-Oct-2025 12:38:38 Asia/Manila]   created_at - timestamp - NO -  - current_timestamp() - 
+[26-Oct-2025 12:38:38 Asia/Manila]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[26-Oct-2025 12:38:38 Asia/Manila] Cart item 108 does not exist in cart table
+[26-Oct-2025 12:38:38 Asia/Manila] Final user data: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [email] => alrainepascua2@gmail.com
+)
+
+[26-Oct-2025 12:38:38 Asia/Manila] REQUEST_METHOD: GET
+[26-Oct-2025 12:38:38 Asia/Manila] POST data: Array
+(
+)
+
+[26-Oct-2025 12:38:38 Asia/Manila] SESSION data at cart items check: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [availtoday_cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal with Cheese – 8 Pieces
+                    [price] => 100.00
+                    [quantity] => 10
+                    [cart_id] => 7
+                    [product_id] => 11
+                    [status_id] => 3
+                    [availtoday_status_id] => 3
+                    [availtoday_status_name] => Delivery or Pick-Up
+                    [available_days] => Wednesday,Thursday,Friday
+                    [shipping_method] => pickup
+                )
+
+        )
+
+    [availtoday_cart_total] => 1000
+    [availtoday_shipping_method] => pickup
+    [has_mixed_availtoday_status] => 
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+        )
+
+    [subtotal] => 0
+    [cart_items] => Array
+        (
+        )
+
+    [cart_total] => 0
+    [error_message] => No valid cart items found. Please check your cart and try again.
+)
+
+[26-Oct-2025 12:38:38 Asia/Manila] Got cart IDs from SESSION: 
+[26-Oct-2025 12:38:38 Asia/Manila] Final selected_cart_ids: Array
+(
+)
+
+[26-Oct-2025 12:38:38 Asia/Manila] Final subtotal: 0
+[26-Oct-2025 12:38:38 Asia/Manila] Selected cart IDs: Array
+(
+)
+
+[26-Oct-2025 12:38:38 Asia/Manila] Subtotal: 0
+[26-Oct-2025 12:38:38 Asia/Manila] No selected_cart_ids to process
+[26-Oct-2025 12:38:38 Asia/Manila] No valid cart items found after filtering for status_id 1,2 - redirecting to cart
+[26-Oct-2025 12:45:16 Asia/Manila] Database connection successful
+[26-Oct-2025 12:45:16 Asia/Manila] User has 3 items in cart table
+[26-Oct-2025 12:45:16 Asia/Manila] Cart table structure:
+[26-Oct-2025 12:45:16 Asia/Manila]   id - int(11) - NO - PRI -  - auto_increment
+[26-Oct-2025 12:45:16 Asia/Manila]   user_id - int(11) - NO -  -  - 
+[26-Oct-2025 12:45:16 Asia/Manila]   product_id - int(11) - NO -  -  - 
+[26-Oct-2025 12:45:16 Asia/Manila]   quantity - int(11) - NO -  - 1 - 
+[26-Oct-2025 12:45:16 Asia/Manila]   price - decimal(10,2) - NO -  -  - 
+[26-Oct-2025 12:45:16 Asia/Manila]   created_at - timestamp - NO -  - current_timestamp() - 
+[26-Oct-2025 12:45:16 Asia/Manila]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[26-Oct-2025 12:45:17 Asia/Manila] Cart item 108 does not exist in cart table
+[26-Oct-2025 12:45:17 Asia/Manila] Final user data: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [email] => alrainepascua2@gmail.com
+)
+
+[26-Oct-2025 12:45:17 Asia/Manila] REQUEST_METHOD: GET
+[26-Oct-2025 12:45:17 Asia/Manila] POST data: Array
+(
+)
+
+[26-Oct-2025 12:45:17 Asia/Manila] SESSION data at cart items check: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [availtoday_cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal with Cheese – 8 Pieces
+                    [price] => 100.00
+                    [quantity] => 10
+                    [cart_id] => 7
+                    [product_id] => 11
+                    [status_id] => 3
+                    [availtoday_status_id] => 3
+                    [availtoday_status_name] => Delivery or Pick-Up
+                    [available_days] => Wednesday,Thursday,Friday
+                    [shipping_method] => pickup
+                )
+
+        )
+
+    [availtoday_cart_total] => 1000
+    [availtoday_shipping_method] => pickup
+    [has_mixed_availtoday_status] => 
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+        )
+
+    [subtotal] => 0
+    [cart_items] => Array
+        (
+        )
+
+    [cart_total] => 0
+    [error_message] => No valid cart items found. Please check your cart and try again.
+)
+
+[26-Oct-2025 12:45:17 Asia/Manila] Got cart IDs from SESSION: 
+[26-Oct-2025 12:45:17 Asia/Manila] Final selected_cart_ids: Array
+(
+)
+
+[26-Oct-2025 12:45:17 Asia/Manila] Final subtotal: 0
+[26-Oct-2025 12:45:17 Asia/Manila] Selected cart IDs: Array
+(
+)
+
+[26-Oct-2025 12:45:17 Asia/Manila] Subtotal: 0
+[26-Oct-2025 12:45:17 Asia/Manila] No selected_cart_ids to process
+[26-Oct-2025 12:45:17 Asia/Manila] No valid cart items found after filtering for status_id 1,2 - redirecting to cart
+[26-Oct-2025 12:46:37 Asia/Manila] Database connection successful
+[26-Oct-2025 12:46:37 Asia/Manila] User has 3 items in cart table
+[26-Oct-2025 12:46:37 Asia/Manila] Cart table structure:
+[26-Oct-2025 12:46:37 Asia/Manila]   id - int(11) - NO - PRI -  - auto_increment
+[26-Oct-2025 12:46:37 Asia/Manila]   user_id - int(11) - NO -  -  - 
+[26-Oct-2025 12:46:37 Asia/Manila]   product_id - int(11) - NO -  -  - 
+[26-Oct-2025 12:46:37 Asia/Manila]   quantity - int(11) - NO -  - 1 - 
+[26-Oct-2025 12:46:37 Asia/Manila]   price - decimal(10,2) - NO -  -  - 
+[26-Oct-2025 12:46:37 Asia/Manila]   created_at - timestamp - NO -  - current_timestamp() - 
+[26-Oct-2025 12:46:37 Asia/Manila]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[26-Oct-2025 12:46:38 Asia/Manila] Cart item 108 does not exist in cart table
+[26-Oct-2025 12:46:38 Asia/Manila] Final user data: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [email] => alrainepascua2@gmail.com
+)
+
+[26-Oct-2025 12:46:38 Asia/Manila] REQUEST_METHOD: GET
+[26-Oct-2025 12:46:38 Asia/Manila] POST data: Array
+(
+)
+
+[26-Oct-2025 12:46:38 Asia/Manila] SESSION data at cart items check: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [availtoday_cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal with Cheese – 8 Pieces
+                    [price] => 100.00
+                    [quantity] => 10
+                    [cart_id] => 7
+                    [product_id] => 11
+                    [status_id] => 3
+                    [availtoday_status_id] => 3
+                    [availtoday_status_name] => Delivery or Pick-Up
+                    [available_days] => Wednesday,Thursday,Friday
+                    [shipping_method] => pickup
+                )
+
+        )
+
+    [availtoday_cart_total] => 1000
+    [availtoday_shipping_method] => pickup
+    [has_mixed_availtoday_status] => 
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+        )
+
+    [subtotal] => 0
+    [cart_items] => Array
+        (
+        )
+
+    [cart_total] => 0
+    [error_message] => No valid cart items found. Please check your cart and try again.
+)
+
+[26-Oct-2025 12:46:38 Asia/Manila] Got cart IDs from SESSION: 
+[26-Oct-2025 12:46:38 Asia/Manila] Final selected_cart_ids: Array
+(
+)
+
+[26-Oct-2025 12:46:38 Asia/Manila] Final subtotal: 0
+[26-Oct-2025 12:46:38 Asia/Manila] Selected cart IDs: Array
+(
+)
+
+[26-Oct-2025 12:46:38 Asia/Manila] Subtotal: 0
+[26-Oct-2025 12:46:38 Asia/Manila] No selected_cart_ids to process
+[26-Oct-2025 12:46:38 Asia/Manila] No valid cart items found after filtering for status_id 1,2 - redirecting to cart
+[26-Oct-2025 12:47:16 Asia/Manila] Database connection successful
+[26-Oct-2025 12:47:17 Asia/Manila] User has 3 items in cart table
+[26-Oct-2025 12:47:17 Asia/Manila] Cart table structure:
+[26-Oct-2025 12:47:17 Asia/Manila]   id - int(11) - NO - PRI -  - auto_increment
+[26-Oct-2025 12:47:17 Asia/Manila]   user_id - int(11) - NO -  -  - 
+[26-Oct-2025 12:47:17 Asia/Manila]   product_id - int(11) - NO -  -  - 
+[26-Oct-2025 12:47:17 Asia/Manila]   quantity - int(11) - NO -  - 1 - 
+[26-Oct-2025 12:47:17 Asia/Manila]   price - decimal(10,2) - NO -  -  - 
+[26-Oct-2025 12:47:17 Asia/Manila]   created_at - timestamp - NO -  - current_timestamp() - 
+[26-Oct-2025 12:47:17 Asia/Manila]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[26-Oct-2025 12:47:17 Asia/Manila] Cart item 108 does not exist in cart table
+[26-Oct-2025 12:47:17 Asia/Manila] Final user data: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [email] => alrainepascua2@gmail.com
+)
+
+[26-Oct-2025 12:47:17 Asia/Manila] REQUEST_METHOD: GET
+[26-Oct-2025 12:47:17 Asia/Manila] POST data: Array
+(
+)
+
+[26-Oct-2025 12:47:17 Asia/Manila] SESSION data at cart items check: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [availtoday_cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal with Cheese – 8 Pieces
+                    [price] => 100.00
+                    [quantity] => 10
+                    [cart_id] => 7
+                    [product_id] => 11
+                    [status_id] => 3
+                    [availtoday_status_id] => 3
+                    [availtoday_status_name] => Delivery or Pick-Up
+                    [available_days] => Wednesday,Thursday,Friday
+                    [shipping_method] => pickup
+                )
+
+        )
+
+    [availtoday_cart_total] => 1000
+    [availtoday_shipping_method] => pickup
+    [has_mixed_availtoday_status] => 
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+        )
+
+    [subtotal] => 0
+    [cart_items] => Array
+        (
+        )
+
+    [cart_total] => 0
+    [error_message] => No valid cart items found. Please check your cart and try again.
+)
+
+[26-Oct-2025 12:47:17 Asia/Manila] Got cart IDs from SESSION: 
+[26-Oct-2025 12:47:17 Asia/Manila] Final selected_cart_ids: Array
+(
+)
+
+[26-Oct-2025 12:47:17 Asia/Manila] Final subtotal: 0
+[26-Oct-2025 12:47:17 Asia/Manila] Selected cart IDs: Array
+(
+)
+
+[26-Oct-2025 12:47:17 Asia/Manila] Subtotal: 0
+[26-Oct-2025 12:47:17 Asia/Manila] No selected_cart_ids to process
+[26-Oct-2025 12:47:17 Asia/Manila] No valid cart items found after filtering for status_id 1,2 - redirecting to cart
+[26-Oct-2025 12:47:28 Asia/Manila] Database connection successful
+[26-Oct-2025 12:47:29 Asia/Manila] User has 3 items in cart table
+[26-Oct-2025 12:47:29 Asia/Manila] Cart table structure:
+[26-Oct-2025 12:47:29 Asia/Manila]   id - int(11) - NO - PRI -  - auto_increment
+[26-Oct-2025 12:47:29 Asia/Manila]   user_id - int(11) - NO -  -  - 
+[26-Oct-2025 12:47:29 Asia/Manila]   product_id - int(11) - NO -  -  - 
+[26-Oct-2025 12:47:29 Asia/Manila]   quantity - int(11) - NO -  - 1 - 
+[26-Oct-2025 12:47:29 Asia/Manila]   price - decimal(10,2) - NO -  -  - 
+[26-Oct-2025 12:47:29 Asia/Manila]   created_at - timestamp - NO -  - current_timestamp() - 
+[26-Oct-2025 12:47:29 Asia/Manila]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[26-Oct-2025 12:47:29 Asia/Manila] Cart item 108 does not exist in cart table
+[26-Oct-2025 12:47:29 Asia/Manila] Final user data: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [email] => alrainepascua2@gmail.com
+)
+
+[26-Oct-2025 12:47:29 Asia/Manila] REQUEST_METHOD: GET
+[26-Oct-2025 12:47:29 Asia/Manila] POST data: Array
+(
+)
+
+[26-Oct-2025 12:47:29 Asia/Manila] SESSION data at cart items check: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [availtoday_cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal with Cheese – 8 Pieces
+                    [price] => 100.00
+                    [quantity] => 10
+                    [cart_id] => 7
+                    [product_id] => 11
+                    [status_id] => 3
+                    [availtoday_status_id] => 3
+                    [availtoday_status_name] => Delivery or Pick-Up
+                    [available_days] => Wednesday,Thursday,Friday
+                    [shipping_method] => pickup
+                )
+
+        )
+
+    [availtoday_cart_total] => 1000
+    [availtoday_shipping_method] => pickup
+    [has_mixed_availtoday_status] => 
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+        )
+
+    [subtotal] => 0
+    [cart_items] => Array
+        (
+        )
+
+    [cart_total] => 0
+    [error_message] => No valid cart items found. Please check your cart and try again.
+)
+
+[26-Oct-2025 12:47:29 Asia/Manila] Got cart IDs from SESSION: 
+[26-Oct-2025 12:47:29 Asia/Manila] Final selected_cart_ids: Array
+(
+)
+
+[26-Oct-2025 12:47:29 Asia/Manila] Final subtotal: 0
+[26-Oct-2025 12:47:29 Asia/Manila] Selected cart IDs: Array
+(
+)
+
+[26-Oct-2025 12:47:29 Asia/Manila] Subtotal: 0
+[26-Oct-2025 12:47:29 Asia/Manila] No selected_cart_ids to process
+[26-Oct-2025 12:47:29 Asia/Manila] No valid cart items found after filtering for status_id 1,2 - redirecting to cart
+[26-Oct-2025 13:03:09 Asia/Manila] Database connection successful
+[26-Oct-2025 13:03:10 Asia/Manila] User has 3 items in cart table
+[26-Oct-2025 13:03:10 Asia/Manila] Cart table structure:
+[26-Oct-2025 13:03:10 Asia/Manila]   id - int(11) - NO - PRI -  - auto_increment
+[26-Oct-2025 13:03:10 Asia/Manila]   user_id - int(11) - NO -  -  - 
+[26-Oct-2025 13:03:10 Asia/Manila]   product_id - int(11) - NO -  -  - 
+[26-Oct-2025 13:03:10 Asia/Manila]   quantity - int(11) - NO -  - 1 - 
+[26-Oct-2025 13:03:10 Asia/Manila]   price - decimal(10,2) - NO -  -  - 
+[26-Oct-2025 13:03:10 Asia/Manila]   created_at - timestamp - NO -  - current_timestamp() - 
+[26-Oct-2025 13:03:10 Asia/Manila]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[26-Oct-2025 13:03:10 Asia/Manila] Cart item 108 does not exist in cart table
+[26-Oct-2025 13:03:10 Asia/Manila] Final user data: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [email] => alrainepascua2@gmail.com
+)
+
+[26-Oct-2025 13:03:10 Asia/Manila] REQUEST_METHOD: GET
+[26-Oct-2025 13:03:10 Asia/Manila] POST data: Array
+(
+)
+
+[26-Oct-2025 13:03:10 Asia/Manila] SESSION data at cart items check: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [availtoday_cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal with Cheese – 8 Pieces
+                    [price] => 100.00
+                    [quantity] => 10
+                    [cart_id] => 7
+                    [product_id] => 11
+                    [status_id] => 3
+                    [availtoday_status_id] => 3
+                    [availtoday_status_name] => Delivery or Pick-Up
+                    [available_days] => Wednesday,Thursday,Friday
+                    [shipping_method] => pickup
+                )
+
+        )
+
+    [availtoday_cart_total] => 1000
+    [availtoday_shipping_method] => pickup
+    [has_mixed_availtoday_status] => 
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+        )
+
+    [subtotal] => 0
+    [cart_items] => Array
+        (
+        )
+
+    [cart_total] => 0
+)
+
+[26-Oct-2025 13:03:10 Asia/Manila] Got cart IDs from SESSION: 
+[26-Oct-2025 13:03:10 Asia/Manila] Final selected_cart_ids: Array
+(
+)
+
+[26-Oct-2025 13:03:10 Asia/Manila] Final subtotal: 0
+[26-Oct-2025 13:03:10 Asia/Manila] Selected cart IDs: Array
+(
+)
+
+[26-Oct-2025 13:03:10 Asia/Manila] Subtotal: 0
+[26-Oct-2025 13:03:10 Asia/Manila] No selected_cart_ids to process
+[26-Oct-2025 13:03:10 Asia/Manila] No valid cart items found after filtering for status_id 1,2 - redirecting to cart
+[26-Oct-2025 13:14:21 Asia/Manila] Database connection successful
+[26-Oct-2025 13:14:22 Asia/Manila] User has 3 items in cart table
+[26-Oct-2025 13:14:22 Asia/Manila] Cart table structure:
+[26-Oct-2025 13:14:22 Asia/Manila]   id - int(11) - NO - PRI -  - auto_increment
+[26-Oct-2025 13:14:22 Asia/Manila]   user_id - int(11) - NO -  -  - 
+[26-Oct-2025 13:14:22 Asia/Manila]   product_id - int(11) - NO -  -  - 
+[26-Oct-2025 13:14:22 Asia/Manila]   quantity - int(11) - NO -  - 1 - 
+[26-Oct-2025 13:14:22 Asia/Manila]   price - decimal(10,2) - NO -  -  - 
+[26-Oct-2025 13:14:22 Asia/Manila]   created_at - timestamp - NO -  - current_timestamp() - 
+[26-Oct-2025 13:14:22 Asia/Manila]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[26-Oct-2025 13:14:22 Asia/Manila] Cart item 108 does not exist in cart table
+[26-Oct-2025 13:14:22 Asia/Manila] Final user data: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [email] => alrainepascua2@gmail.com
+)
+
+[26-Oct-2025 13:14:22 Asia/Manila] REQUEST_METHOD: POST
+[26-Oct-2025 13:14:22 Asia/Manila] POST data: Array
+(
+    [selected_cart_ids] => Array
+        (
+            [0] => 34
+        )
+
+    [subtotal] => 600.00
+)
+
+[26-Oct-2025 13:14:22 Asia/Manila] SESSION data at cart items check: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [availtoday_cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal with Cheese – 8 Pieces
+                    [price] => 100.00
+                    [quantity] => 10
+                    [cart_id] => 7
+                    [product_id] => 11
+                    [status_id] => 3
+                    [availtoday_status_id] => 3
+                    [availtoday_status_name] => Delivery or Pick-Up
+                    [available_days] => Wednesday,Thursday,Friday
+                    [shipping_method] => pickup
+                )
+
+        )
+
+    [availtoday_cart_total] => 1000
+    [availtoday_shipping_method] => pickup
+    [has_mixed_availtoday_status] => 
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+        )
+
+    [subtotal] => 0
+    [cart_items] => Array
+        (
+        )
+
+    [cart_total] => 0
+)
+
+[26-Oct-2025 13:14:22 Asia/Manila] Got cart IDs from POST: 34
+[26-Oct-2025 13:14:22 Asia/Manila] Final selected_cart_ids: Array
+(
+    [0] => 34
+)
+
+[26-Oct-2025 13:14:22 Asia/Manila] Final subtotal: 600
+[26-Oct-2025 13:14:22 Asia/Manila] Selected cart IDs: Array
+(
+    [0] => 34
+)
+
+[26-Oct-2025 13:14:22 Asia/Manila] Subtotal: 600
+[26-Oct-2025 13:14:22 Asia/Manila] Cart item 34 is valid for user 5
+[26-Oct-2025 13:14:22 Asia/Manila] Validated cart IDs: 34
+[26-Oct-2025 13:14:23 Asia/Manila] Cart contains mixed items - defaulting to pickup, user can choose
+[26-Oct-2025 13:14:23 Asia/Manila] Cart analysis: 1 items, pickup: , delivery: , method: pickup
+[26-Oct-2025 13:14:23 Asia/Manila] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Banana Cake
+            [price] => 200.00
+            [quantity] => 3
+            [cart_id] => 34
+            [product_id] => 13
+            [status_id] => 3
+            [available_days] => Wednesday,Thursday,Friday
+        )
+
+)
+
+[26-Oct-2025 13:14:23 Asia/Manila] Cart total: 600
+[26-Oct-2025 13:14:24 Asia/Manila] User data at display point: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [profile_image] => 
+)
+
+[26-Oct-2025 13:14:24 Asia/Manila] Session data at display point: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [availtoday_cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal with Cheese – 8 Pieces
+                    [price] => 100.00
+                    [quantity] => 10
+                    [cart_id] => 7
+                    [product_id] => 11
+                    [status_id] => 3
+                    [availtoday_status_id] => 3
+                    [availtoday_status_name] => Delivery or Pick-Up
+                    [available_days] => Wednesday,Thursday,Friday
+                    [shipping_method] => pickup
+                )
+
+        )
+
+    [availtoday_cart_total] => 1000
+    [availtoday_shipping_method] => pickup
+    [has_mixed_availtoday_status] => 
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 34
+        )
+
+    [subtotal] => 600
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Banana Cake
+                    [price] => 200.00
+                    [quantity] => 3
+                    [cart_id] => 34
+                    [product_id] => 13
+                    [status_id] => 3
+                    [available_days] => Wednesday,Thursday,Friday
+                )
+
+        )
+
+    [cart_total] => 600
+    [shipping_method] => pickup
+    [has_pickup_items] => 
+    [has_delivery_items] => 
+)
+
+[26-Oct-2025 13:14:24 Asia/Manila] PHP Warning:  include(../../user-includes/footer.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\checkout.php on line 2477
+[26-Oct-2025 13:14:24 Asia/Manila] PHP Warning:  include(): Failed opening '../../user-includes/footer.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\checkout.php on line 2477
+[26-Oct-2025 13:15:18 Asia/Manila] Database connection successful
+[26-Oct-2025 13:15:19 Asia/Manila] User has 3 items in cart table
+[26-Oct-2025 13:15:19 Asia/Manila] Cart table structure:
+[26-Oct-2025 13:15:19 Asia/Manila]   id - int(11) - NO - PRI -  - auto_increment
+[26-Oct-2025 13:15:19 Asia/Manila]   user_id - int(11) - NO -  -  - 
+[26-Oct-2025 13:15:19 Asia/Manila]   product_id - int(11) - NO -  -  - 
+[26-Oct-2025 13:15:19 Asia/Manila]   quantity - int(11) - NO -  - 1 - 
+[26-Oct-2025 13:15:19 Asia/Manila]   price - decimal(10,2) - NO -  -  - 
+[26-Oct-2025 13:15:19 Asia/Manila]   created_at - timestamp - NO -  - current_timestamp() - 
+[26-Oct-2025 13:15:19 Asia/Manila]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[26-Oct-2025 13:15:19 Asia/Manila] Cart item 108 does not exist in cart table
+[26-Oct-2025 13:15:19 Asia/Manila] Final user data: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [email] => alrainepascua2@gmail.com
+)
+
+[26-Oct-2025 13:15:19 Asia/Manila] REQUEST_METHOD: POST
+[26-Oct-2025 13:15:19 Asia/Manila] POST data: Array
+(
+    [selected_cart_ids] => Array
+        (
+            [0] => 34
+        )
+
+    [subtotal] => 600.00
+)
+
+[26-Oct-2025 13:15:19 Asia/Manila] SESSION data at cart items check: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [availtoday_cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal with Cheese – 8 Pieces
+                    [price] => 100.00
+                    [quantity] => 10
+                    [cart_id] => 7
+                    [product_id] => 11
+                    [status_id] => 3
+                    [availtoday_status_id] => 3
+                    [availtoday_status_name] => Delivery or Pick-Up
+                    [available_days] => Wednesday,Thursday,Friday
+                    [shipping_method] => pickup
+                )
+
+        )
+
+    [availtoday_cart_total] => 1000
+    [availtoday_shipping_method] => pickup
+    [has_mixed_availtoday_status] => 
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 34
+        )
+
+    [subtotal] => 600
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Banana Cake
+                    [price] => 200.00
+                    [quantity] => 3
+                    [cart_id] => 34
+                    [product_id] => 13
+                    [status_id] => 3
+                    [available_days] => Wednesday,Thursday,Friday
+                )
+
+        )
+
+    [cart_total] => 600
+    [shipping_method] => pickup
+    [has_pickup_items] => 
+    [has_delivery_items] => 
+)
+
+[26-Oct-2025 13:15:19 Asia/Manila] Got cart IDs from POST: 34
+[26-Oct-2025 13:15:19 Asia/Manila] Final selected_cart_ids: Array
+(
+    [0] => 34
+)
+
+[26-Oct-2025 13:15:19 Asia/Manila] Final subtotal: 600
+[26-Oct-2025 13:15:19 Asia/Manila] Selected cart IDs: Array
+(
+    [0] => 34
+)
+
+[26-Oct-2025 13:15:19 Asia/Manila] Subtotal: 600
+[26-Oct-2025 13:15:19 Asia/Manila] Cart item 34 is valid for user 5
+[26-Oct-2025 13:15:19 Asia/Manila] Validated cart IDs: 34
+[26-Oct-2025 13:15:20 Asia/Manila] Cart contains mixed items - defaulting to pickup, user can choose
+[26-Oct-2025 13:15:20 Asia/Manila] Cart analysis: 1 items, pickup: , delivery: , method: pickup
+[26-Oct-2025 13:15:20 Asia/Manila] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Banana Cake
+            [price] => 200.00
+            [quantity] => 3
+            [cart_id] => 34
+            [product_id] => 13
+            [status_id] => 3
+            [available_days] => Wednesday,Thursday,Friday
+        )
+
+)
+
+[26-Oct-2025 13:15:20 Asia/Manila] Cart total: 600
+[26-Oct-2025 13:15:21 Asia/Manila] User data at display point: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [profile_image] => 
+)
+
+[26-Oct-2025 13:15:21 Asia/Manila] Session data at display point: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [availtoday_cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal with Cheese – 8 Pieces
+                    [price] => 100.00
+                    [quantity] => 10
+                    [cart_id] => 7
+                    [product_id] => 11
+                    [status_id] => 3
+                    [availtoday_status_id] => 3
+                    [availtoday_status_name] => Delivery or Pick-Up
+                    [available_days] => Wednesday,Thursday,Friday
+                    [shipping_method] => pickup
+                )
+
+        )
+
+    [availtoday_cart_total] => 1000
+    [availtoday_shipping_method] => pickup
+    [has_mixed_availtoday_status] => 
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 34
+        )
+
+    [subtotal] => 600
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Banana Cake
+                    [price] => 200.00
+                    [quantity] => 3
+                    [cart_id] => 34
+                    [product_id] => 13
+                    [status_id] => 3
+                    [available_days] => Wednesday,Thursday,Friday
+                )
+
+        )
+
+    [cart_total] => 600
+    [shipping_method] => pickup
+    [has_pickup_items] => 
+    [has_delivery_items] => 
+)
+
+[26-Oct-2025 13:15:21 Asia/Manila] PHP Warning:  include(../../user-includes/footer.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\checkout.php on line 2477
+[26-Oct-2025 13:15:21 Asia/Manila] PHP Warning:  include(): Failed opening '../../user-includes/footer.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\checkout.php on line 2477
+[26-Oct-2025 13:21:57 Asia/Manila] Database connection successful
+[26-Oct-2025 13:21:57 Asia/Manila] User has 3 items in cart table
+[26-Oct-2025 13:21:58 Asia/Manila] Cart table structure:
+[26-Oct-2025 13:21:58 Asia/Manila]   id - int(11) - NO - PRI -  - auto_increment
+[26-Oct-2025 13:21:58 Asia/Manila]   user_id - int(11) - NO -  -  - 
+[26-Oct-2025 13:21:58 Asia/Manila]   product_id - int(11) - NO -  -  - 
+[26-Oct-2025 13:21:58 Asia/Manila]   quantity - int(11) - NO -  - 1 - 
+[26-Oct-2025 13:21:58 Asia/Manila]   price - decimal(10,2) - NO -  -  - 
+[26-Oct-2025 13:21:58 Asia/Manila]   created_at - timestamp - NO -  - current_timestamp() - 
+[26-Oct-2025 13:21:58 Asia/Manila]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[26-Oct-2025 13:21:58 Asia/Manila] Cart item 108 does not exist in cart table
+[26-Oct-2025 13:21:58 Asia/Manila] Final user data: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [email] => alrainepascua2@gmail.com
+)
+
+[26-Oct-2025 13:21:58 Asia/Manila] REQUEST_METHOD: POST
+[26-Oct-2025 13:21:58 Asia/Manila] POST data: Array
+(
+    [selected_cart_ids] => Array
+        (
+            [0] => 34
+        )
+
+    [subtotal] => 600.00
+)
+
+[26-Oct-2025 13:21:58 Asia/Manila] SESSION data at cart items check: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [availtoday_cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal with Cheese – 8 Pieces
+                    [price] => 100.00
+                    [quantity] => 10
+                    [cart_id] => 7
+                    [product_id] => 11
+                    [status_id] => 3
+                    [availtoday_status_id] => 3
+                    [availtoday_status_name] => Delivery or Pick-Up
+                    [available_days] => Wednesday,Thursday,Friday
+                    [shipping_method] => pickup
+                )
+
+        )
+
+    [availtoday_cart_total] => 1000
+    [availtoday_shipping_method] => pickup
+    [has_mixed_availtoday_status] => 
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 34
+        )
+
+    [subtotal] => 600
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Banana Cake
+                    [price] => 200.00
+                    [quantity] => 3
+                    [cart_id] => 34
+                    [product_id] => 13
+                    [status_id] => 3
+                    [available_days] => Wednesday,Thursday,Friday
+                )
+
+        )
+
+    [cart_total] => 600
+    [shipping_method] => pickup
+    [has_pickup_items] => 
+    [has_delivery_items] => 
+)
+
+[26-Oct-2025 13:21:58 Asia/Manila] Got cart IDs from POST: 34
+[26-Oct-2025 13:21:58 Asia/Manila] Final selected_cart_ids: Array
+(
+    [0] => 34
+)
+
+[26-Oct-2025 13:21:58 Asia/Manila] Final subtotal: 600
+[26-Oct-2025 13:21:58 Asia/Manila] Selected cart IDs: Array
+(
+    [0] => 34
+)
+
+[26-Oct-2025 13:21:58 Asia/Manila] Subtotal: 600
+[26-Oct-2025 13:21:58 Asia/Manila] Cart item 34 is valid for user 5
+[26-Oct-2025 13:21:58 Asia/Manila] Validated cart IDs: 34
+[26-Oct-2025 13:21:59 Asia/Manila] Cart has only Flexible items - user can choose shipping method
+[26-Oct-2025 13:21:59 Asia/Manila] Cart analysis: 1 items | Pickup Only: NO | Delivery Only: NO | Flexible: YES | Method: pickup | Can Change: YES
+[26-Oct-2025 13:21:59 Asia/Manila] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Banana Cake
+            [price] => 200.00
+            [quantity] => 3
+            [cart_id] => 34
+            [product_id] => 13
+            [status_id] => 3
+            [available_days] => Wednesday,Thursday,Friday
+        )
+
+)
+
+[26-Oct-2025 13:21:59 Asia/Manila] Cart total: 600
+[26-Oct-2025 13:21:59 Asia/Manila] User data at display point: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [profile_image] => 
+)
+
+[26-Oct-2025 13:21:59 Asia/Manila] Session data at display point: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [availtoday_cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Garlic Pandesal with Cheese – 8 Pieces
+                    [price] => 100.00
+                    [quantity] => 10
+                    [cart_id] => 7
+                    [product_id] => 11
+                    [status_id] => 3
+                    [availtoday_status_id] => 3
+                    [availtoday_status_name] => Delivery or Pick-Up
+                    [available_days] => Wednesday,Thursday,Friday
+                    [shipping_method] => pickup
+                )
+
+        )
+
+    [availtoday_cart_total] => 1000
+    [availtoday_shipping_method] => pickup
+    [has_mixed_availtoday_status] => 
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 34
+        )
+
+    [subtotal] => 600
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Banana Cake
+                    [price] => 200.00
+                    [quantity] => 3
+                    [cart_id] => 34
+                    [product_id] => 13
+                    [status_id] => 3
+                    [available_days] => Wednesday,Thursday,Friday
+                )
+
+        )
+
+    [cart_total] => 600
+    [shipping_method] => pickup
+    [has_pickup_items] => 
+    [has_delivery_items] => 
+    [has_pickup_only] => 
+    [has_delivery_only] => 
+    [has_flexible] => 1
+    [can_change_shipping] => 1
+)
+
+[26-Oct-2025 13:21:59 Asia/Manila] PHP Warning:  include(../../user-includes/footer.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\checkout.php on line 2537
+[26-Oct-2025 13:21:59 Asia/Manila] PHP Warning:  include(): Failed opening '../../user-includes/footer.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\checkout.php on line 2537

@@ -15,7 +15,7 @@ if (!isset($_SESSION["user_id"])) {
 header('Content-Type: application/json');
 
 if (!isset($_POST["product_id"])) {
-    echo json_encode(["success" => false, "error" => "Product ID not provided"]);
+    echo json_encode(["success" => false, "message" => "Product ID not provided"]);
     exit();
 }
 
@@ -24,7 +24,7 @@ $product_id = $_POST["product_id"];
 $quantity = isset($_POST["quantity"]) ? intval($_POST["quantity"]) : 1;
 
 if ($quantity < 1) {
-    echo json_encode(["success" => false, "error" => "Invalid quantity"]);
+    echo json_encode(["success" => false, "message" => "Invalid quantity"]);
     exit();
 }
 
@@ -32,14 +32,16 @@ if ($quantity < 1) {
 require_once "../../../backend/pages/admin-includes/database.php";
 
 // Check if product exists, is available, and has sufficient stock
-$check_sql = "SELECT id, price, quantity FROM products WHERE id = ? AND status_id != 3 AND deleted_at IS NULL";
+// Status 1, 2, 3 = Pre-order products (Pick Up, Delivery, Flexible)
+// Status 4 = Same Day Order (should not be added via this endpoint)
+$check_sql = "SELECT id, price, quantity FROM products WHERE id = ? AND status_id IN (1, 2, 3) AND deleted_at IS NULL";
 $check_stmt = $conn->prepare($check_sql);
 $check_stmt->bind_param("i", $product_id);
 $check_stmt->execute();
 $result = $check_stmt->get_result();
 
 if ($result->num_rows === 0) {
-    echo json_encode(["success" => false, "error" => "Product not available"]);
+    echo json_encode(["success" => false, "message" => "Product not available for pre-order"]);
     exit();
 }
 
@@ -47,7 +49,7 @@ $product = $result->fetch_assoc();
 
 // Check if requested quantity is available
 if ($quantity > $product["quantity"]) {
-    echo json_encode(["success" => false, "error" => "Insufficient stock. Available: " . $product["quantity"]]);
+    echo json_encode(["success" => false, "message" => "Insufficient stock. Available: " . $product["quantity"]]);
     exit();
 }
 
@@ -67,7 +69,7 @@ if ($cart_result->num_rows > 0) {
     if ($new_quantity > $product["quantity"]) {
         echo json_encode([
             "success" => false, 
-            "error" => "Cannot add more items. Cart would exceed available stock. Available: " . 
+            "message" => "Cannot add more items. Cart would exceed available stock. Available: " . 
                       ($product["quantity"] - $cart_item["quantity"])
         ]);
         exit();

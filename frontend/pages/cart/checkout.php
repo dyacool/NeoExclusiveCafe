@@ -46,21 +46,33 @@ $subtotal = 0;
 
 // Cart table fixed - no more debug needed
 
-// Get cart items from POST or SESSION
-if (isset($_POST['selected_cart_ids']) && !empty($_POST['selected_cart_ids'])) {
-    $selected_cart_ids = $_POST['selected_cart_ids'];
-    $subtotal = $_POST['subtotal'] ?? 0;
+// Get cart items from GET, POST, or SESSION
+if (isset($_GET['cart_ids']) && !empty($_GET['cart_ids'])) {
+    // From cart.php via GET
+    $selected_cart_ids = array_filter(array_map('intval', explode(',', $_GET['cart_ids'])));
+    error_log("Got cart IDs from GET: " . print_r($selected_cart_ids, true));
+} elseif (isset($_POST['selected_cart_ids']) && !empty($_POST['selected_cart_ids'])) {
+    // Sanitize array of cart IDs
+    $selected_cart_ids = array_filter(array_map('intval', $_POST['selected_cart_ids']));
+    $subtotal = floatval($_POST['subtotal'] ?? 0);
+    error_log("Got cart IDs from POST selected_cart_ids: " . print_r($selected_cart_ids, true));
 } elseif (isset($_POST['selected_items']) && !empty($_POST['selected_items'])) {
     $selected_cart_ids = $_POST['selected_items'];
     $subtotal = $_POST['subtotal'] ?? 0;
+    error_log("Got cart IDs from POST selected_items: " . print_r($selected_cart_ids, true));
 } elseif (isset($_SESSION['selected_cart_ids'])) {
     $selected_cart_ids = $_SESSION['selected_cart_ids'];
     $subtotal = $_SESSION['subtotal'] ?? 0;
+    error_log("Got cart IDs from SESSION: " . print_r($selected_cart_ids, true));
 }
 
 // If no cart items, redirect immediately (before any output)
 if (empty($selected_cart_ids)) {
     error_log("No cart items found - redirecting to cart");
+    error_log("GET: " . print_r($_GET, true));
+    error_log("POST: " . print_r($_POST, true));
+    error_log("SESSION selected_cart_ids: " . print_r($_SESSION['selected_cart_ids'] ?? 'NOT SET', true));
+    $_SESSION['error_message'] = "No items selected for checkout. Please select items from your cart first.";
     header("Location: cart.php");
     exit();
 }
@@ -282,7 +294,7 @@ if (!empty($selected_cart_ids)) {
                          FROM cart c 
                          JOIN products p ON c.product_id = p.id 
                          LEFT JOIN product_day pd ON p.id = pd.product_id
-                         WHERE c.id = ? AND p.status_id IN (1, 2)
+                         WHERE c.id = ? AND p.status_id IN (1, 2, 3)
                          GROUP BY c.id";
         } else {
         $placeholders = str_repeat('?,', count($selected_cart_ids) - 1) . '?';
@@ -291,7 +303,7 @@ if (!empty($selected_cart_ids)) {
                      FROM cart c 
                      JOIN products p ON c.product_id = p.id 
                          LEFT JOIN product_day pd ON p.id = pd.product_id
-                         WHERE c.id IN ($placeholders) AND p.status_id IN (1, 2)
+                         WHERE c.id IN ($placeholders) AND p.status_id IN (1, 2, 3)
                          GROUP BY c.id";
         }
         
@@ -305,6 +317,26 @@ if (!empty($selected_cart_ids)) {
                 $cart_result = $cart_stmt->get_result();
                 
                 while ($item = $cart_result->fetch_assoc()) {
+                    // Validate stock availability before adding to cart_items
+                    $stock_check_sql = "SELECT quantity FROM products WHERE id = ?";
+                    $stock_check_stmt = $conn->prepare($stock_check_sql);
+                    $stock_check_stmt->bind_param("i", $item['product_id']);
+                    $stock_check_stmt->execute();
+                    $stock_result = $stock_check_stmt->get_result();
+                    
+                    if ($stock_row = $stock_result->fetch_assoc()) {
+                        $available_stock = $stock_row['quantity'];
+                        
+                        // Check if cart quantity exceeds available stock
+                        if ($item['quantity'] > $available_stock) {
+                            $_SESSION['error_message'] = "Insufficient stock for " . $item['name'] . ". Available: " . $available_stock . ", Requested: " . $item['quantity'];
+                            error_log("Stock validation failed for product " . $item['product_id'] . ": Available=" . $available_stock . ", Requested=" . $item['quantity']);
+                            echo '<script>alert("' . $_SESSION['error_message'] . '"); window.location.href = "cart.php";</script>';
+                            exit();
+                        }
+                    }
+                    $stock_check_stmt->close();
+                    
                     $cart_total += $item['price'] * $item['quantity'];
                     $cart_items[] = [
                         'name' => $item['name'],
@@ -342,44 +374,70 @@ if (empty($cart_items)) {
 }
 
 // Determine shipping method based on product status
+// Status ID 1 = Pick Up Only (fixed)
+// Status ID 2 = Delivery Only (fixed)
+// Status ID 3 = Flexible (Delivery or Pick-Up)
 $shipping_method = 'pickup'; // Default
-$has_pickup_items = false;
-$has_delivery_items = false;
+$has_pickup_only = false;      // status_id = 1
+$has_delivery_only = false;    // status_id = 2
+$has_flexible = false;         // status_id = 3
+$can_change_shipping = false;  // Whether user can change shipping method
 
 if (!empty($cart_items)) {
     // Check what types of products are in the cart
     foreach ($cart_items as $item) {
         if ($item['status_id'] == 1) {
-            $has_pickup_items = true;
+            $has_pickup_only = true;
         } elseif ($item['status_id'] == 2) {
-            $has_delivery_items = true;
+            $has_delivery_only = true;
+        } elseif ($item['status_id'] == 3) {
+            $has_flexible = true;
         }
     }
     
-    // Determine shipping method based on product types
-    if ($has_delivery_items && !$has_pickup_items) {
-        // Only delivery items - force delivery
+    // Apply shipping rules
+    if ($has_pickup_only && $has_delivery_only) {
+        // ERROR: Cannot mix Pick Up Only (1) and Delivery Only (2)
+        error_log("ERROR: Cart contains both Pick Up Only and Delivery Only items - this should have been prevented");
+        $_SESSION['error_message'] = "You cannot mix Pick Up Only and Delivery Only products in the same order. Please checkout separately.";
+        echo '<script>alert("You cannot mix Pick Up Only and Delivery Only products!"); window.location.href = "cart.php";</script>';
+        exit();
+    } elseif ($has_pickup_only) {
+        // Has Pick Up Only (with or without Flexible)
+        // Force Pick Up - status_id 1 takes precedence
+        $shipping_method = 'pickup';
+        $can_change_shipping = false;
+        error_log("Cart has Pick Up Only items - forcing pickup (flexible items inherit pickup)");
+    } elseif ($has_delivery_only) {
+        // Has Delivery Only (with or without Flexible)
+        // Force Delivery - status_id 2 takes precedence
         $shipping_method = 'delivery';
-        error_log("Cart contains only delivery items - setting shipping method to delivery");
-    } elseif ($has_pickup_items && !$has_delivery_items) {
-        // Only pickup items - force pickup
-        $shipping_method = 'pickup';
-        error_log("Cart contains only pickup items - setting shipping method to pickup");
+        $can_change_shipping = false;
+        error_log("Cart has Delivery Only items - forcing delivery (flexible items inherit delivery)");
+    } elseif ($has_flexible) {
+        // Only Flexible items (status_id 3)
+        // User can choose shipping method
+        $shipping_method = 'pickup'; // Default to pickup
+        $can_change_shipping = true;
+        error_log("Cart has only Flexible items - user can choose shipping method");
     } else {
-        // Mixed items - let user choose, default to pickup
+        // No items (shouldn't happen, but handle it)
         $shipping_method = 'pickup';
-        error_log("Cart contains mixed items - defaulting to pickup, user can choose");
+        $can_change_shipping = false;
+        error_log("No items with valid status_id - defaulting to pickup");
     }
     
-    error_log("Cart analysis: " . count($cart_items) . " items, pickup: $has_pickup_items, delivery: $has_delivery_items, method: $shipping_method");
+    error_log("Cart analysis: " . count($cart_items) . " items | Pickup Only: " . ($has_pickup_only ? 'YES' : 'NO') . " | Delivery Only: " . ($has_delivery_only ? 'YES' : 'NO') . " | Flexible: " . ($has_flexible ? 'YES' : 'NO') . " | Method: $shipping_method | Can Change: " . ($can_change_shipping ? 'YES' : 'NO'));
 } else {
     error_log("No cart items to determine shipping method - keeping default (pickup)");
 }
 
 // Store shipping method and product type info in session
 $_SESSION['shipping_method'] = $shipping_method;
-$_SESSION['has_pickup_items'] = $has_pickup_items;
-$_SESSION['has_delivery_items'] = $has_delivery_items;
+$_SESSION['has_pickup_only'] = $has_pickup_only;
+$_SESSION['has_delivery_only'] = $has_delivery_only;
+$_SESSION['has_flexible'] = $has_flexible;
+$_SESSION['can_change_shipping'] = $can_change_shipping;
 
 // Debug output
 error_log("Cart items: " . print_r($cart_items, true));
@@ -1685,11 +1743,15 @@ $debug_info = [
         }
 
         if (pickupRadio) {
-            pickupRadio.addEventListener('change', updateVisibility);
+            pickupRadio.addEventListener('change', function() {
+                updateVisibility();
+                updateShippingInheritance(); // Update flexible item indicators
+            });
         }
         if (deliveryRadio) {
             deliveryRadio.addEventListener('change', function() {
                 updateVisibility();
+                updateShippingInheritance(); // Update flexible item indicators
                 
                 // Ensure pickup calendar is properly initialized for delivery
                 if (this.checked && pickupCalendar && pickupCalendarEl) {
@@ -1719,6 +1781,7 @@ $debug_info = [
             initializeCalendars();
             initializeTimeInputs();
             updateVisibility();
+            updateShippingInheritance(); // Initialize flexible item indicators
             updateShippingInheritance();
             
             // Initialize coupon event listeners
@@ -1755,29 +1818,42 @@ $debug_info = [
             // Error during initialization
         }
 
-        // Update shipping method inheritance indicators for Status 3 products
+        // Update shipping method inheritance indicators for Status 3 (flexible) products
         function updateShippingInheritance() {
             const cartItems = <?= json_encode($cart_items) ?>;
-            let hasPickupOnly = false;
-            let hasDeliveryOnly = false;
+            const hasPickupOnly = <?= json_encode($has_pickup_only) ?>;
+            const hasDeliveryOnly = <?= json_encode($has_delivery_only) ?>;
+            const canChangeShipping = <?= json_encode($can_change_shipping) ?>;
             
-            // Check what types of products are in cart
-            cartItems.forEach(item => {
-                if (item.status_id === 1) hasPickupOnly = true;
-                if (item.status_id === 2) hasDeliveryOnly = true;
-            });
-            
-            // Determine inherited method
+            // Determine inherited method for flexible items
             let inheritedMethod = null;
-            if (hasPickupOnly && !hasDeliveryOnly) {
+            if (hasPickupOnly) {
+                // Status 1 takes precedence - flexible items inherit pickup
                 inheritedMethod = 'pickup';
-            } else if (hasDeliveryOnly && !hasPickupOnly) {
+            } else if (hasDeliveryOnly) {
+                // Status 2 takes precedence - flexible items inherit delivery
                 inheritedMethod = 'delivery';
+            } else if (canChangeShipping) {
+                // Only flexible items - check current selection
+                const selectedMethod = document.querySelector('input[name="delivery_method"]:checked')?.value;
+                inheritedMethod = selectedMethod || 'pickup';
             }
             
-            // Update Status 3 product indicators
+            // Update Status 3 product indicators in order summary
             document.querySelectorAll('.item[data-status-id="3"]').forEach(item => {
-                const indicator = item.querySelector('.shipping-indicator');
+                let indicator = item.querySelector('.shipping-indicator');
+                
+                // Create indicator if it doesn't exist
+                if (!indicator && inheritedMethod) {
+                    indicator = document.createElement('span');
+                    indicator.className = 'shipping-indicator';
+                    indicator.style.cssText = 'display: inline-block; margin-left: 8px; padding: 2px 8px; background: #f0f0f0; border-radius: 3px; font-size: 11px; color: #666;';
+                    const nameElement = item.querySelector('.item-name');
+                    if (nameElement) {
+                        nameElement.appendChild(indicator);
+                    }
+                }
+                
                 if (indicator && inheritedMethod) {
                     indicator.textContent = inheritedMethod === 'pickup' ? '→ Will be Pick Up' : '→ Will be Delivery';
                     indicator.style.display = 'inline-block';
@@ -1786,7 +1862,12 @@ $debug_info = [
                 }
             });
             
-            console.log('Shipping inheritance updated:', inheritedMethod);
+            console.log('Shipping inheritance updated:', {
+                hasPickupOnly,
+                hasDeliveryOnly,
+                canChangeShipping,
+                inheritedMethod
+            });
         }
 
         // Form submission handler with PayMongo integration
@@ -2003,18 +2084,27 @@ $debug_info = [
         <div class="section-card shipping-details">
             <h2>Shipping Options</h2>
             
-            <?php if ($has_pickup_items && $has_delivery_items): ?>
+            <?php if ($has_pickup_only && $has_flexible): ?>
                 <div class="shipping-method-notice">
-                    <p><strong>Mixed Cart:</strong> Your cart contains both pickup and delivery items. Please choose your preferred method.</p>
+                    <p><strong>Pick Up Required:</strong> Your cart contains Pick Up Only items. All flexible items will also be picked up.</p>
                 </div>
-            <?php elseif ($has_delivery_items && !$has_pickup_items): ?>
+            <?php elseif ($has_delivery_only && $has_flexible): ?>
                 <div class="shipping-method-notice">
-                    <p><strong>Delivery Required:</strong> All items in your cart are delivery-only products.</p>
+                    <p><strong>Delivery Required:</strong> Your cart contains Delivery Only items. All flexible items will also be delivered.</p>
                     <p><strong>Delivery Areas:</strong> We deliver to Sta. Rosa, Cabuyao, Calamba, Binan (Laguna), Silang, and Tagaytay (Cavite) only.</p>
                 </div>
-            <?php elseif ($has_pickup_items && !$has_delivery_items): ?>
+            <?php elseif ($has_pickup_only): ?>
                 <div class="shipping-method-notice">
-                    <p><strong>Pickup Required:</strong> All items in your cart are pickup-only products.</p>
+                    <p><strong>Pick Up Required:</strong> All items in your cart are Pick Up Only products.</p>
+                </div>
+            <?php elseif ($has_delivery_only): ?>
+                <div class="shipping-method-notice">
+                    <p><strong>Delivery Required:</strong> All items in your cart are Delivery Only products.</p>
+                    <p><strong>Delivery Areas:</strong> We deliver to Sta. Rosa, Cabuyao, Calamba, Binan (Laguna), Silang, and Tagaytay (Cavite) only.</p>
+                </div>
+            <?php elseif ($has_flexible): ?>
+                <div class="shipping-method-notice" style="background: #e3f2fd; border-color: #90caf9;">
+                    <p><strong>Choose Your Method:</strong> All items in your cart are flexible. You can choose either Pick Up or Delivery.</p>
                 </div>
             <?php endif; ?>
             
@@ -2022,14 +2112,14 @@ $debug_info = [
                 <label class="radio-option">
                     <input type="radio" id="pickup" name="delivery_method" value="pickup" 
                            <?= $shipping_method === 'pickup' ? 'checked' : '' ?>
-                           <?= !$has_pickup_items ? 'disabled' : '' ?>>
-                    <span>Pick Up <?= !$has_pickup_items ? '(Not available for selected items)' : '' ?></span>
+                           <?= !$can_change_shipping && $shipping_method !== 'pickup' ? 'disabled' : '' ?>>
+                    <span>Pick Up <?= !$can_change_shipping && $shipping_method !== 'pickup' ? '(Not available)' : '' ?></span>
                 </label>
                 <label class="radio-option">
                     <input type="radio" id="delivery" name="delivery_method" value="delivery"
                            <?= $shipping_method === 'delivery' ? 'checked' : '' ?>
-                           <?= !$has_delivery_items ? 'disabled' : '' ?>>
-                    <span>Delivery <?= !$has_delivery_items ? '(Not available for selected items)' : '' ?></span>
+                           <?= !$can_change_shipping && $shipping_method !== 'delivery' ? 'disabled' : '' ?>>
+                    <span>Delivery <?= !$can_change_shipping && $shipping_method !== 'delivery' ? '(Not available)' : '' ?></span>
                 </label>
             </div>
     
@@ -2104,7 +2194,7 @@ $debug_info = [
                 <?php foreach ($cart_items as $item): ?>
                     <div class="item" data-status-id="<?= $item['status_id'] ?>">
                         <div class="item-info">
-                            <h3>
+                            <h3 class="item-name">
                                 <?= htmlspecialchars($item['name']) ?>
                                 <?php if ($item['status_id'] == 3): ?>
                                     <span class="shipping-indicator" style="display: inline-block; margin-left: 8px; padding: 2px 8px; background: #f0f0f0; border-radius: 3px; font-size: 11px; color: #666; font-weight: normal;"></span>
@@ -2112,9 +2202,11 @@ $debug_info = [
                             </h3>
                             <p class="quantity">Quantity: <?= $item['quantity'] ?></p>
                             <?php if ($item['status_id'] == 1): ?>
-                                <p class="product-shipping-method" style="font-size: 12px; color: #4CAF50; font-weight: 600;">Pick Up Only!</p>
+                                <p class="product-shipping-method" style="font-size: 12px; color: #4CAF50; font-weight: 600;">🚶 Pick Up Only</p>
                             <?php elseif ($item['status_id'] == 2): ?>
-                                <p class="product-shipping-method" style="font-size: 12px; color: #2196F3; font-weight: 600;">Delivery Only!</p>
+                                <p class="product-shipping-method" style="font-size: 12px; color: #2196F3; font-weight: 600;">🚚 Delivery Only</p>
+                            <?php elseif ($item['status_id'] == 3): ?>
+                                <p class="product-shipping-method" style="font-size: 12px; color: #9C27B0; font-weight: 600;">✨ Flexible (Delivery or Pick-Up)</p>
                             <?php endif; ?>
                         </div>
                         <div class="item-price">₱<?= number_format($item['price'] * $item['quantity'], 2) ?></div>
