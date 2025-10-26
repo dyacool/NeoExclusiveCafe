@@ -254,6 +254,7 @@
                                         p.category_id, c.name AS category_name,
                                         pi.image_url, p.is_featured, p.show_when_unavailable, p.hide_when_unavailable,
                                         p.quantity, p.availtoday_status_id, ats.name AS availtoday_status_name,
+                                        qpd.quantity as sameday_stock_today,
                                         GROUP_CONCAT(DISTINCT pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days,
                                         GROUP_CONCAT(DISTINCT tpd.available_date ORDER BY tpd.available_date SEPARATOR ',') as todays_product_dates,
                                         GROUP_CONCAT(DISTINCT rptd.available_date ORDER BY rptd.available_date SEPARATOR ',') as regular_today_dates
@@ -266,6 +267,7 @@
                                     LEFT JOIN product_day pd ON p.id = pd.product_id
                                     LEFT JOIN todays_products_dates tpd ON p.id = tpd.product_id
                                     LEFT JOIN regular_products_today_dates rptd ON p.id = rptd.product_id
+                                    LEFT JOIN quantity_per_day_sdo qpd ON p.id = qpd.product_id AND qpd.date = CURDATE()
                                     WHERE p.deleted_at IS NULL AND p.id > 0
                                     GROUP BY p.id
                                     ORDER BY p.created_at DESC
@@ -278,6 +280,7 @@
                                                     p.category_id, c.name AS category_name,
                                                     pi.image_url, p.is_featured, p.show_when_unavailable, p.hide_when_unavailable,
                                                     p.quantity, p.availtoday_status_id, ats.name AS availtoday_status_name,
+                                                    qpd.quantity as sameday_stock_today,
                                                     GROUP_CONCAT(DISTINCT pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days,
                                                     GROUP_CONCAT(DISTINCT tpd.available_date ORDER BY tpd.available_date SEPARATOR ',') as todays_product_dates,
                                                     GROUP_CONCAT(DISTINCT rptd.available_date ORDER BY rptd.available_date SEPARATOR ',') as regular_today_dates
@@ -290,6 +293,7 @@
                                                 LEFT JOIN product_day pd ON p.id = pd.product_id
                                                 LEFT JOIN todays_products_dates tpd ON p.id = tpd.product_id
                                                 LEFT JOIN regular_products_today_dates rptd ON p.id = rptd.product_id
+                                                LEFT JOIN quantity_per_day_sdo qpd ON p.id = qpd.product_id AND qpd.date = CURDATE()
                                                 WHERE p.deleted_at IS NULL AND p.id > 0
                                                 GROUP BY p.id
                                                 ORDER BY p.created_at DESC";
@@ -315,8 +319,32 @@
                                     $status_id = isset($row["status_id"]) ? $row["status_id"] : 1;
                                     $quantity = isset($row["quantity"]) ? $row["quantity"] : 0;
                                     
+                                    // Determine stock display based on status_id
+                                    $stockDisplay = '';
+                                    $quantityClass = '';
+                                    
+                                    if ($status_id == 4) {
+                                        // Status 4: Same Day Order - check if today is available
+                                        $today_date = date('Y-m-d');
+                                        $todays_dates = !empty($row['todays_product_dates']) ? explode(',', $row['todays_product_dates']) : [];
+                                        $is_available_today = in_array($today_date, $todays_dates);
+                                        
+                                        if ($is_available_today && isset($row['sameday_stock_today'])) {
+                                            // Today is available, show same-day stock
+                                            $sameday_stock = intval($row['sameday_stock_today']);
+                                            $stockDisplay = $sameday_stock . ' in stock';
+                                            $quantityClass = $sameday_stock <= 5 ? 'low-stock' : ($sameday_stock <= 10 ? 'medium-stock' : 'good-stock');
+                                        } else {
+                                            // Today is not available
+                                            $stockDisplay = 'N/A';
+                                            $quantityClass = 'na-stock';
+                                        }
+                                    } else {
+                                        // Status 1, 2, 3: Pre-order - show products.quantity
+                                        $stockDisplay = $quantity . ' in stock';
+                                        $quantityClass = $quantity <= 5 ? 'low-stock' : ($quantity <= 10 ? 'medium-stock' : 'good-stock');
+                                    }
 
-                                    $quantityClass = $quantity <= 5 ? 'low-stock' : ($quantity <= 10 ? 'medium-stock' : 'good-stock');
                                     $statusClass = strtolower(str_replace(' ', '-', $row['status_name'] ?? 'Unknown'));
 
                                     // Construct image path
@@ -327,6 +355,16 @@
                                     }
 
                                     $displayStatus = ($row['status_id'] == 4) ? 'Same Day Order' : ($row['status_name'] ?? 'Unknown');
+                                    
+                                    // Format status badge text based on status_id
+                                    if ($row['status_id'] == 4) {
+                                        // Status 4: Show just the status name
+                                        $statusBadgeText = $displayStatus;
+                                    } else {
+                                        // Status 1, 2, 3: Show "P. Order: [status]"
+                                        $statusBadgeText = "P. Order: " . $displayStatus;
+                                    }
+                                    
                                     echo "<tr data-status='" . $displayStatus . "' data-name='" . strtolower($row['name']) . "' data-sku='" . strtolower($row['sku']) . "'>
                                             <td>
                                                 <div class='product-image-container'>
@@ -350,7 +388,7 @@
                                             </td>
                                             <td>
                                                 <div class='status-container'>
-                                                    <span class='status-badge status-" . $statusClass . "'>P.O.: ". $displayStatus . "</span>";
+                                                    <span class='status-badge status-" . $statusClass . "'>" . $statusBadgeText . "</span>";
                                                     
                                                     // Show badge for availtoday_status
                                                     if (!empty($row['availtoday_status_name'])) {
@@ -370,7 +408,7 @@
                                                             <circle cx='17' cy='17' r='3'></circle>
                                                             <circle cx='7' cy='7' r='3'></circle>
                                                         </svg>
-                                                        " . $quantity . " in stock
+                                                        " . $stockDisplay . "
                                                     </span>
                                                 </div>
                                             </td>

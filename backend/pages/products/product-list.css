@@ -507,6 +507,11 @@
   color: #dc2626;
 }
 
+.stock-badge.na-stock {
+  background-color: #f3f4f6;
+  color: #6b7280;
+}
+
 /* Action Buttons */
 .action-buttons {
   display: flex;

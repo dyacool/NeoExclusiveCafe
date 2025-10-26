@@ -57,11 +57,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $quantity = 0;
     }
     
-    $is_featured = isset($_POST['is_featured']) ? 1 : 0;
-    // Map visibility radio selection to the two DB flags
-    $visibility_option = $_POST['visibility_option'] ?? 'hide';
+    // Handle is_featured - now a select dropdown
+    $is_featured = isset($_POST['is_featured']) ? intval($_POST['is_featured']) : 0;
+    
+    // Map visibility select option to the two DB flags
+    $visibility_option = $_POST['visibility_option'] ?? 'default';
     $show_when_unavailable = ($visibility_option === 'show') ? 1 : 0;
-    $hide_when_unavailable = ($visibility_option === 'hide') ? 1 : 0;
+    $hide_when_unavailable = ($visibility_option === 'hide' || $visibility_option === 'default') ? 1 : 0;
 
     // Handle available days - get from global settings for status 1, 2, 3
     $available_days = [];
@@ -348,7 +350,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </div>
 
                 <div class="grp2">
-                    <label>Status:</label>
+                    <label>Shipping Method:</label>
                      <select class="statusGrp" name="status_id" id="statusSelect">
                          <option value="1">Pick Up</option>
                          <option value="2">Delivery</option>
@@ -357,21 +359,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                      </select>
                      
 
-                     <!-- isAvailableToday checkbox - only shown when Pick Up or Delivery is selected -->
+                     <!-- isAvailableToday radio button - only shown when Pick Up or Delivery is selected -->
                      <div id="isAvailableTodayContainer" style="display: none; margin-top: 10px;">
-                         <div class="checkbox-group">
-                             <div class="checkbox-item">
-                                 <input type="checkbox" id="isAvailableToday" name="isAvailableToday" value="true">
-                                 <label class="cb-itm" for="isAvailableToday" style="display: inline;">Set to same day order too</label>
+                         <div class="radio-group">
+                             <div class="radio-item">
+                                 <input type="radio" id="isAvailableToday" name="isAvailableToday" value="true">
+                                 <label for="isAvailableToday">Set to same day order too</label>
                              </div>
                          </div>
                      </div>
 
-                     <!-- New dropdown for Available Today options -->
-                     <div id="availtodayOptions" style="display: none;">
-                         <label>Same Day Order Options:</label>
+                     <!-- Same Day Order Shipping Method dropdown -->
+                     <div id="availtodayOptions" style="display: none; margin-top: 10px;">
+                         <label>Same Day Order Shipping Method:</label>
                          <select class="availtoday-status" name="availtoday_status_id" id="availtodayStatusSelect">
-                             <option value="">Select option...</option>
                              <option value="1">Pick Up</option>
                              <option value="2">Delivery</option>
                              <option value="3">Delivery and Pick Up</option>
@@ -392,25 +393,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <input type="hidden" id="availableTodayDates" name="available_today_dates">
                     </div>
 
-                    <label>Visibility</label>
-                    <div class="checkbox-group visibility-group">
-                        <div class="checkbox-item">
-                            <input type="radio" name="visibility_option" id="visibility_show" value="show">
-                            <label class="cb-itm" for="visibility_show" style="display: inline;">Show when unavailable</label>
+                    <label>Availability:</label>
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <input type="radio" id="available" name="availability" value="available" checked>
+                            <label for="available">Available</label>
                         </div>
-                        <div class="checkbox-item">
-                            <input type="radio" name="visibility_option" id="visibility_hide" value="hide" checked>
-                            <label class="cb-itm" for="visibility_hide" style="display: inline;">Hide when unavailable</label>
+                        <div class="radio-item">
+                            <input type="radio" id="unavailable" name="availability" value="unavailable">
+                            <label for="unavailable">Unavailable</label>
                         </div>
                     </div>
 
-                    <label>Featured</label>
-                    <div class="checkbox-group featured-group">
-                        <div class="checkbox-item ">
-                            <input type="checkbox" name="is_featured" id="is_featured">
-                            <label class="cb-itm" for="is_featured" style="display: inline;">Feature Product</label>
-                        </div>
-                    </div>
+                    <label>Featured Product:</label>
+                    <select name="is_featured" id="is_featured">
+                        <option value="0">Not Featured</option>
+                        <option value="1">Featured</option>
+                    </select>
+
+                    <label>Visibility When Unavailable:</label>
+                    <select name="visibility_option" id="visibility_option">
+                        <option value="default">Default (Hidden)</option>
+                        <option value="show">Show When Unavailable</option>
+                        <option value="hide" selected>Hide When Unavailable</option>
+                    </select>
 
                     <div class="btn-changes">
                         <button class="discardBtn" type="button" onclick="if(confirm('Are you sure you want to discard changes?')) { window.location.href='product-list.php'; }">Discard</button>

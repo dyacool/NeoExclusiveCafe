@@ -1945,20 +1945,9 @@ function resetFormToOriginal() {
     }
   });
 
-  const availableDaysContainer = document.querySelector(
-    ".checkbox-group.days-group"
-  );
-  if (availableDaysContainer) {
-    if (
-      originalFormData.statusName === "Delivery" ||
-      originalFormData.statusName === "Pick Up" ||
-      originalFormData.statusName === "Available Today"
-    ) {
-      availableDaysContainer.style.display = "block";
-    } else {
-      availableDaysContainer.style.display = "none";
-    }
-  }
+  // Don't manipulate the days-group display on modal close
+  // The visibility should be controlled by the status change event, not on reset
+  // This prevents the global filter days-group from being hidden when modal closes
 
   // Reset isAvailableToday radio button and related elements
   const isAvailableTodayContainer = document.getElementById(

@@ -323,7 +323,8 @@ if ($cart_truncated) {
                                 p.availtoday_status_id, ats.name AS availtoday_status_name,
                                 c.name AS category_name,
                                 GROUP_CONCAT(DISTINCT tpd.available_date ORDER BY tpd.available_date SEPARATOR ', ') as todays_product_dates,
-                                GROUP_CONCAT(DISTINCT rptd.available_date ORDER BY rptd.available_date SEPARATOR ', ') as regular_today_dates
+                                GROUP_CONCAT(DISTINCT rptd.available_date ORDER BY rptd.available_date SEPARATOR ', ') as regular_today_dates,
+                                qpd.quantity as sameday_stock_today
                             FROM products p
                             LEFT JOIN product_statuses ps ON p.status_id = ps.id
                             LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
@@ -331,6 +332,7 @@ if ($cart_truncated) {
                             LEFT JOIN categories c ON p.category_id = c.id
                             LEFT JOIN todays_products_dates tpd ON p.id = tpd.product_id
                             LEFT JOIN regular_products_today_dates rptd ON p.id = rptd.product_id
+                            LEFT JOIN quantity_per_day_sdo qpd ON p.id = qpd.product_id AND qpd.date = CURDATE()
                             WHERE p.deleted_at IS NULL 
                             AND p.id > 0 
                             AND p.status_id IN (1, 2, 3, 4)";
@@ -340,7 +342,7 @@ if ($cart_truncated) {
                         $sql .= " AND p.category_id = ?";
                     }
                     
-                    $sql .= " GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.category_id, ps.name, pi.image_url, p.quantity, p.show_when_unavailable, p.availtoday_status_id, ats.name, c.name
+                    $sql .= " GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.category_id, ps.name, pi.image_url, p.quantity, p.show_when_unavailable, p.availtoday_status_id, ats.name, c.name, qpd.quantity
                             ORDER BY p.is_featured DESC, p.name ASC";
                     
                     // Prepare and execute the statement
@@ -357,16 +359,46 @@ if ($cart_truncated) {
                         $all_products[] = $row;
                     }
                     
-                    // Custom sort: Prioritize products available TODAY (from either table)
+                    // Custom sort: Priority hierarchy - Available Today > Featured > Regular > Unavailable
                     usort($all_products, function($a, $b) use ($today_date) {
+                        // Calculate unavailability for product A
+                        $a_preorder_stock = $a['quantity'] ?? 0;
+                        $a_sameday_stock = $a['sameday_stock_today'] ?? 0;
+                        $a_has_availtoday = !empty($a['availtoday_status_id']);
+                        $a_unavailable = false;
+                        
+                        if ($a['status_id'] == 4) {
+                            $a_unavailable = ($a_sameday_stock == 0 || $a_sameday_stock === null);
+                        } elseif (in_array($a['status_id'], [1, 2, 3])) {
+                            if ($a_has_availtoday) {
+                                $a_unavailable = ($a_preorder_stock == 0 && ($a_sameday_stock == 0 || $a_sameday_stock === null));
+                            } else {
+                                $a_unavailable = ($a_preorder_stock == 0);
+                            }
+                        }
+                        
+                        // Calculate unavailability for product B
+                        $b_preorder_stock = $b['quantity'] ?? 0;
+                        $b_sameday_stock = $b['sameday_stock_today'] ?? 0;
+                        $b_has_availtoday = !empty($b['availtoday_status_id']);
+                        $b_unavailable = false;
+                        
+                        if ($b['status_id'] == 4) {
+                            $b_unavailable = ($b_sameday_stock == 0 || $b_sameday_stock === null);
+                        } elseif (in_array($b['status_id'], [1, 2, 3])) {
+                            if ($b_has_availtoday) {
+                                $b_unavailable = ($b_preorder_stock == 0 && ($b_sameday_stock == 0 || $b_sameday_stock === null));
+                            } else {
+                                $b_unavailable = ($b_preorder_stock == 0);
+                            }
+                        }
+                        
                         // Check if product A is available today
                         $a_available_today = false;
-                        // Check todays_product_dates
                         if (!empty($a['todays_product_dates'])) {
                             $a_dates = explode(', ', $a['todays_product_dates']);
                             $a_available_today = in_array($today_date, $a_dates);
                         }
-                        // Check regular_today_dates
                         if (!$a_available_today && !empty($a['regular_today_dates'])) {
                             $a_dates = explode(', ', $a['regular_today_dates']);
                             $a_available_today = in_array($today_date, $a_dates);
@@ -374,18 +406,20 @@ if ($cart_truncated) {
                         
                         // Check if product B is available today
                         $b_available_today = false;
-                        // Check todays_product_dates
                         if (!empty($b['todays_product_dates'])) {
                             $b_dates = explode(', ', $b['todays_product_dates']);
                             $b_available_today = in_array($today_date, $b_dates);
                         }
-                        // Check regular_today_dates
                         if (!$b_available_today && !empty($b['regular_today_dates'])) {
                             $b_dates = explode(', ', $b['regular_today_dates']);
                             $b_available_today = in_array($today_date, $b_dates);
                         }
                         
-                        // Priority 1: Available today (0 = highest priority)
+                        // Priority 0: Unavailable products go to the end
+                        if ($a_unavailable && !$b_unavailable) return 1;
+                        if (!$a_unavailable && $b_unavailable) return -1;
+                        
+                        // Priority 1: Available today (highest priority for available products)
                         if ($a_available_today && !$b_available_today) return -1;
                         if (!$a_available_today && $b_available_today) return 1;
                         
@@ -420,6 +454,7 @@ if ($cart_truncated) {
                                 'images' => $images,
                                 'is_featured' => (bool)$row['is_featured'],
                                 'quantity' => $row['quantity'],
+                                'sameday_stock_today' => $row['sameday_stock_today'] ?? 0,
                                 'show_when_unavailable' => (bool)$row['show_when_unavailable'],
                                 'availtoday_status_id' => $row['availtoday_status_id'],
                                 'availtoday_status_name' => $row['availtoday_status_name'],
@@ -434,6 +469,44 @@ if ($cart_truncated) {
                             // Get available dates for display
                             // Status 4 = Same Day Order (changed from 3)
                             $available_dates = $row['status_id'] == 4 ? $row['todays_product_dates'] : $row['regular_today_dates'];
+                            
+                            // Check if product is UNAVAILABLE
+                            // Product availability depends on its capabilities:
+                            // 1. Status 4 (Same Day ONLY): Check sameday_stock_today
+                            // 2. Status 1/2/3 WITHOUT availtoday_status_id (Pre-order ONLY): Check products.quantity
+                            // 3. Status 1/2/3 WITH availtoday_status_id (DUAL capability): Check BOTH stocks
+                            //    - Unavailable only if BOTH pre-order AND same-day stocks are 0
+                            $is_unavailable = false;
+                            $unavailable_reason = '';
+                            
+                            $preorder_stock = $row['quantity'] ?? 0;
+                            $sameday_stock = $row['sameday_stock_today'] ?? 0;
+                            $has_availtoday = !empty($row['availtoday_status_id']);
+                            
+                            if ($row['status_id'] == 4) {
+                                // Status 4: Same Day ONLY product
+                                // Check same-day stock from quantity_per_day_sdo table
+                                if ($sameday_stock == 0 || $sameday_stock === null) {
+                                    $is_unavailable = true;
+                                    $unavailable_reason = 'Out of Stock';
+                                }
+                            } elseif (in_array($row['status_id'], [1, 2, 3])) {
+                                if ($has_availtoday) {
+                                    // DUAL capability: Pre-order AND Same-day
+                                    // Unavailable only if BOTH stocks are 0
+                                    if ($preorder_stock == 0 && ($sameday_stock == 0 || $sameday_stock === null)) {
+                                        $is_unavailable = true;
+                                        $unavailable_reason = 'Out of Stock';
+                                    }
+                                } else {
+                                    // Pre-order ONLY
+                                    // Check regular quantity from products table
+                                    if ($preorder_stock == 0) {
+                                        $is_unavailable = true;
+                                        $unavailable_reason = 'Out of Stock';
+                                    }
+                                }
+                            }
                             
                             // Check if product is available TODAY
                             // Can be from either:
@@ -457,20 +530,56 @@ if ($cart_truncated) {
                                 }
                             }
                             
-                            echo "<div class='product-card {$featuredClass}' data-status='" . htmlspecialchars($row['status_name']) . "' 
-                                  data-available-dates='" . htmlspecialchars($available_dates ?? '') . "'
-                                  data-product='" . $productDataJson . "' onclick='openProductModalFromData(this)'>";
+                            // Add unavailable class if product is unavailable
+                            $unavailableClass = $is_unavailable ? 'unavailable-product' : '';
                             
-                            // Add small "Today" badge on the left if available today
-                            if ($is_available_today) {
-                                echo "<div class='today-badge-left'>Today</div>";
+                            echo "<div class='product-card {$featuredClass} {$unavailableClass}' data-status='" . htmlspecialchars($row['status_name']) . "' 
+                                  data-available-dates='" . htmlspecialchars($available_dates ?? '') . "'
+                                  data-product='" . $productDataJson . "' 
+                                  data-unavailable='" . ($is_unavailable ? 'true' : 'false') . "'
+                                  onclick='openProductModalFromData(this)'>";
+                            
+                            // Display badges: Show both if product is Available Today AND Featured
+                            if ($is_unavailable) {
+                                // Unavailable badge (highest priority, exclusive)
+                                echo "<div class='unavailable-badge-left'>" . htmlspecialchars($unavailable_reason) . "</div>";
+                            } else {
+                                // Show both badges if applicable
+                                if ($is_available_today && $row['is_featured']) {
+                                    // Both badges: Today on top, Featured below
+                                    echo "<div class='today-badge-left'>Today</div>";
+                                    echo "<div class='featured-badge-left' style='top: 38px;'>Featured</div>";
+                                } elseif ($is_available_today) {
+                                    // Only Today badge
+                                    echo "<div class='today-badge-left'>Today</div>";
+                                } elseif ($row['is_featured']) {
+                                    // Only Featured badge
+                                    echo "<div class='featured-badge-left'>Featured</div>";
+                                }
                             }
                             
                             echo "    <div class='product-image'>";
                             
-                            // Add "Available Today!" badge overlay on image if product is available today
-                            if ($is_available_today) {
-                                echo "<div class='available-today-badge'>Available Today!</div>";
+                            // Image overlays: Show both if product is Available Today AND Featured
+                            if ($is_unavailable) {
+                                // Unavailable overlay (exclusive)
+                                echo "<div class='unavailable-overlay'>
+                                        <span class='unavailable-text'>UNAVAILABLE</span>
+                                        <span class='unavailable-reason'>" . htmlspecialchars($unavailable_reason) . "</span>
+                                      </div>";
+                            } else {
+                                // Show both overlays if applicable
+                                if ($is_available_today && $row['is_featured']) {
+                                    // Both overlays: Available Today on top-right, Featured on bottom-right
+                                    echo "<div class='available-today-badge'>Available Today!</div>";
+                                    echo "<div class='featured-badge-overlay' style='top: auto; bottom: 10px;'>⭐ Featured</div>";
+                                } elseif ($is_available_today) {
+                                    // Only Available Today overlay
+                                    echo "<div class='available-today-badge'>Available Today!</div>";
+                                } elseif ($row['is_featured']) {
+                                    // Only Featured overlay
+                                    echo "<div class='featured-badge-overlay'>⭐ Featured</div>";
+                                }
                             }
                             
                             echo "    <img src='../../../assets/" . htmlspecialchars($row['image_url'] ?: 'images/no-image.jpg') . "' alt='" . htmlspecialchars($row['name']) . "'>
@@ -505,10 +614,16 @@ if ($cart_truncated) {
                                 echo "<p class='available-dates'>Available Dates: " . htmlspecialchars(implode(', ', $formatted_dates)) . "</p>";
                             }
                             
-                            echo "</div>
-                                  
-                                    <button class='add-to-cart' onclick='event.stopPropagation(); addToCart(" . $row['id'] . ", this)'>Add to Cart</button>
-                                </div>
+                            echo "</div>";
+                            
+                            // Add to Cart button - disabled if unavailable
+                            if ($is_unavailable) {
+                                echo "<button class='add-to-cart unavailable-btn' disabled>Unavailable</button>";
+                            } else {
+                                echo "<button class='add-to-cart' onclick='event.stopPropagation(); addToCart(" . $row['id'] . ", this)'>Add to Cart</button>";
+                            }
+                            
+                            echo "    </div>
                             </div>";
                         }
                     } else {
@@ -596,6 +711,20 @@ if ($cart_truncated) {
 <script src="availtoday-cart.js"></script>
 
 <script>
+    // Check if user is logged in
+    const isLoggedIn = <?= isset($_SESSION['user_id']) ? 'true' : 'false' ?>;
+    const loginUrl = 'http://neocafe.cafe:8080/frontend/login/user/login-signup.php';
+    
+    // Function to check login and redirect if needed
+    function checkLoginAndRedirect() {
+        if (!isLoggedIn) {
+            alert('Please login to add items to cart');
+            window.location.href = loginUrl;
+            return false;
+        }
+        return true;
+    }
+    
     // Remove console.log
     let productModalOpen = false;
     let totalProducts = 0;
@@ -850,12 +979,51 @@ if ($cart_truncated) {
                 thumbnails.innerHTML = '';
             }
 
+            // Check if product is unavailable
+            let isUnavailable = false;
+            let unavailableReason = '';
+            
+            const preorderStock = product.quantity || 0;
+            const samedayStock = product.sameday_stock_today || 0;
+            const hasAvailtoday = product.availtoday_status_id != null && product.availtoday_status_id != '';
+            
+            if (product.status_id == 4) {
+                // Status 4: Same Day ONLY product
+                // Check same-day stock (from quantity_per_day_sdo table)
+                if (samedayStock == 0 || samedayStock === null) {
+                    isUnavailable = true;
+                    unavailableReason = 'Out of Stock';
+                }
+            } else if ([1, 2, 3].includes(product.status_id)) {
+                if (hasAvailtoday) {
+                    // DUAL capability: Pre-order AND Same-day
+                    // Unavailable only if BOTH stocks are 0
+                    if (preorderStock == 0 && (samedayStock == 0 || samedayStock === null)) {
+                        isUnavailable = true;
+                        unavailableReason = 'Out of Stock';
+                    }
+                } else {
+                    // Pre-order ONLY
+                    // Check regular quantity from products table
+                    if (preorderStock == 0) {
+                        isUnavailable = true;
+                        unavailableReason = 'Out of Stock';
+                    }
+                }
+            }
+            
             // Set up Add to Cart button
-            addToCartBtn.disabled = false;
-            addToCartBtn.textContent = 'Add to Cart';
-            addToCartBtn.classList.remove('unavailable');
-            // quantityInput.disabled = false; // Removed
-            addToCartBtn.onclick = () => addToCartFromModal();
+            if (isUnavailable) {
+                addToCartBtn.disabled = true;
+                addToCartBtn.textContent = 'Unavailable - ' + unavailableReason;
+                addToCartBtn.classList.add('unavailable-btn');
+                addToCartBtn.onclick = null;
+            } else {
+                addToCartBtn.disabled = false;
+                addToCartBtn.textContent = 'Add to Cart';
+                addToCartBtn.classList.remove('unavailable-btn');
+                addToCartBtn.onclick = () => addToCartFromModal();
+            }
 
             modal.classList.add('show');
         } catch (error) {
@@ -944,6 +1112,11 @@ function closeProductModal() {
 
     // Add to cart function - Opens quantity modal
     function addToCart(productId, button) {
+        // Check if user is logged in
+        if (!checkLoginAndRedirect()) {
+            return;
+        }
+        
         const productCard = button.closest('.product-card');
         if (!productCard) {
             console.error('Product card not found');
@@ -975,6 +1148,11 @@ function closeProductModal() {
 
     // Add to cart from modal - Opens quantity modal
     function addToCartFromModal() {
+        // Check if user is logged in
+        if (!checkLoginAndRedirect()) {
+            return;
+        }
+        
         if (!currentProductModalData) {
             console.error('No product data available');
             return;
