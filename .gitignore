@@ -8,6 +8,9 @@
 /*.log
 *.log
 
+# Environment variables (contains sensitive credentials)
+.env
+
 # User uploaded assets (large files)
 /assets/bulk_payments/
 /assets/images/

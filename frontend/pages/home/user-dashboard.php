@@ -122,8 +122,8 @@ $settings_query = "SELECT * FROM carousel_settings LIMIT 1";
 $settings_result = mysqli_query($conn, $settings_query);
 $carousel_settings = mysqli_fetch_assoc($settings_result);
 
-// Get carousel images
-$images_query = "SELECT * FROM carousel_images WHERE is_active = 1 ORDER BY display_order ASC";
+// Get carousel images - prioritize Cloudinary URLs
+$images_query = "SELECT id, COALESCE(cloud_url, image_url) as image_url, title, display_order, is_active FROM carousel_images WHERE is_active = 1 ORDER BY display_order ASC";
 $images_result = mysqli_query($conn, $images_query);
 $total_images = mysqli_num_rows($images_result);
 ?>
@@ -153,8 +153,16 @@ $total_images = mysqli_num_rows($images_result);
             </div>
         
             <div class="hero-carousel">
-                <?php while ($image = mysqli_fetch_assoc($images_result)): ?>
-                    <div class="hero-slide" style="background-image: url('/assets/<?php echo htmlspecialchars($image['image_url']); ?>');">
+                <?php while ($image = mysqli_fetch_assoc($images_result)): 
+                    // Handle both Cloudinary URLs and local paths
+                    $image_url = $image['image_url'];
+                    if (strpos($image_url, 'http://') === 0 || strpos($image_url, 'https://') === 0) {
+                        $image_path = $image_url; // Cloudinary URL
+                    } else {
+                        $image_path = '/assets/' . $image_url; // Local path
+                    }
+                ?>
+                    <div class="hero-slide" style="background-image: url('<?php echo htmlspecialchars($image_path); ?>');">
                     </div>
                 <?php endwhile; ?>
             </div>

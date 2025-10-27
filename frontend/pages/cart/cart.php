@@ -104,7 +104,7 @@ $preorder_query = "
     SELECT c.id AS cart_id, c.quantity, c.price, c.product_id,
            p.name AS product_name, p.quantity as product_stock, p.status_id,
            ps.name as status_name,
-           (SELECT image_url FROM product_images WHERE product_id = p.id AND is_primary = 1 LIMIT 1) AS image_url
+           (SELECT COALESCE(cloud_url, image_url) FROM product_images WHERE product_id = p.id AND is_primary = 1 LIMIT 1) AS image_url
     FROM cart c
     JOIN products p ON c.product_id = p.id
     LEFT JOIN product_statuses ps ON p.status_id = ps.id
@@ -123,7 +123,7 @@ $sameday_query = "
     SELECT c.id AS cart_id, c.quantity, c.product_id,
            p.name AS product_name, p.price, p.quantity as product_stock, p.status_id,
            ps.name as status_name,
-           (SELECT image_url FROM product_images WHERE product_id = p.id AND is_primary = 1 LIMIT 1) AS image_url
+           (SELECT COALESCE(cloud_url, image_url) FROM product_images WHERE product_id = p.id AND is_primary = 1 LIMIT 1) AS image_url
     FROM availtoday_cart c
     JOIN products p ON c.product_id = p.id
     LEFT JOIN product_statuses ps ON p.status_id = ps.id
@@ -395,7 +395,16 @@ foreach ($preorder_items as $item) {
                         </thead>
                         <tbody>
                             <?php foreach ($preorder_items as $item): 
-                                $image = $item['image_url'] ? "/assets/" . $item['image_url'] : "/assets/images/no-image.jpg";
+                                // Handle both Cloudinary URLs and local paths
+                                if (!empty($item['image_url'])) {
+                                    if (strpos($item['image_url'], 'http://') === 0 || strpos($item['image_url'], 'https://') === 0) {
+                                        $image = $item['image_url']; // Cloudinary URL
+                                    } else {
+                                        $image = "/assets/" . $item['image_url']; // Local path
+                                    }
+                                } else {
+                                    $image = "/assets/images/no-image.jpg";
+                                }
                                 $item_total = $item['price'] * $item['quantity'];
                             ?>
                             <tr data-cart-id="<?= $item['cart_id'] ?>" data-status-id="<?= $item['status_id'] ?>">
@@ -466,7 +475,16 @@ foreach ($preorder_items as $item) {
                         </thead>
                         <tbody>
                             <?php foreach ($sameday_items as $item): 
-                                $image = $item['image_url'] ? "/assets/" . $item['image_url'] : "/assets/images/no-image.jpg";
+                                // Handle both Cloudinary URLs and local paths
+                                if (!empty($item['image_url'])) {
+                                    if (strpos($item['image_url'], 'http://') === 0 || strpos($item['image_url'], 'https://') === 0) {
+                                        $image = $item['image_url']; // Cloudinary URL
+                                    } else {
+                                        $image = "/assets/" . $item['image_url']; // Local path
+                                    }
+                                } else {
+                                    $image = "/assets/images/no-image.jpg";
+                                }
                                 $item_total = $item['price'] * $item['quantity'];
                             ?>
                             <tr data-cart-id="<?= $item['cart_id'] ?>" data-status-id="<?= $item['status_id'] ?>">

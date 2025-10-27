@@ -1,48 +1,42 @@
+# Enable Rewrite Engine
 RewriteEngine On
 
-# Handle domain-based routing
-RewriteCond %{HTTP_HOST} ^admin\.neocafe\.cafe$ [NC]
+# --- Domain-Based Routing ---
+
+# Admin subdomain
+RewriteCond %{HTTP_HOST} ^admin\.neocafe\.shop$ [NC]
 RewriteRule ^$ /backend/login/admin/admin-login.php [L,R=302]
 
-RewriteCond %{HTTP_HOST} ^neocafe\.cafe$ [NC]
+# Main domain (user site)
+RewriteCond %{HTTP_HOST} ^(www\.)?neocafe\.shop$ [NC]
 RewriteRule ^$ /frontend/pages/home/user-dashboard.php [L,R=302]
 
-# Handle local development domains
+# --- Local Development Domains ---
 RewriteCond %{HTTP_HOST} ^admin\.localhost$ [NC]
 RewriteRule ^$ /backend/login/admin/admin-login.php [L,R=302]
 
 RewriteCond %{HTTP_HOST} ^localhost$ [NC]
 RewriteRule ^$ /frontend/pages/home/user-dashboard.php [L,R=302]
 
-# Handle XAMPP local development
 RewriteCond %{HTTP_HOST} ^admin\.neocafe\.local$ [NC]
 RewriteRule ^$ /backend/login/admin/admin-login.php [L,R=302]
 
 RewriteCond %{HTTP_HOST} ^neocafe\.local$ [NC]
 RewriteRule ^$ /frontend/pages/home/user-dashboard.php [L,R=302]
 
-# Security headers
-Header always set X-Content-Type-Options nosniff
-Header always set X-Frame-Options DENY
-Header always set X-XSS-Protection "1; mode=block"
+# --- Security Headers ---
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options nosniff
+    Header always set X-Frame-Options DENY
+    Header always set X-XSS-Protection "1; mode=block"
+</IfModule>
 
-# Prevent access to sensitive files
-<Files "*.log">
-    Order allow,deny
-    Deny from all
-</Files>
+# --- Block Sensitive Files ---
+<FilesMatch "\.(log|sql|env)$">
+    Require all denied
+</FilesMatch>
 
-<Files "*.sql">
-    Order allow,deny
-    Deny from all
-</Files>
-
-<Files ".env">
-    Order allow,deny
-    Deny from all
-</Files>
-
-# Enable compression
+# --- Enable Compression ---
 <IfModule mod_deflate.c>
     AddOutputFilterByType DEFLATE text/plain
     AddOutputFilterByType DEFLATE text/html
@@ -55,7 +49,7 @@ Header always set X-XSS-Protection "1; mode=block"
     AddOutputFilterByType DEFLATE application/x-javascript
 </IfModule>
 
-# Cache static assets
+# --- Cache Static Assets ---
 <IfModule mod_expires.c>
     ExpiresActive on
     ExpiresByType text/css "access plus 1 year"
@@ -65,4 +59,8 @@ Header always set X-XSS-Protection "1; mode=block"
     ExpiresByType image/jpeg "access plus 1 year"
     ExpiresByType image/gif "access plus 1 year"
     ExpiresByType image/svg+xml "access plus 1 year"
-</IfModule> 
+</IfModule>
+
+# --- Force www for main domain only ---
+RewriteCond %{HTTP_HOST} ^neocafe\.shop$ [NC]
+RewriteRule ^(.*)$ https://www.neocafe.shop/$1 [L,R=301]

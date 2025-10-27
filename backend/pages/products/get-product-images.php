@@ -34,16 +34,16 @@ try {
 
     $product_id = (int)$_GET['product_id'];
 
-    // Get primary image (exclude removed images)
-    $primary_sql = "SELECT id, image_url FROM product_images WHERE product_id = ? AND is_primary = 1 AND (is_removed = 0 OR is_removed IS NULL) LIMIT 1";
+    // Get primary image (exclude removed images) - prioritize Cloudinary URLs
+    $primary_sql = "SELECT id, COALESCE(cloud_url, image_url) as image_url FROM product_images WHERE product_id = ? AND is_primary = 1 AND (is_removed = 0 OR is_removed IS NULL) LIMIT 1";
     $primary_stmt = $conn->prepare($primary_sql);
     $primary_stmt->bind_param("i", $product_id);
     $primary_stmt->execute();
     $primary_result = $primary_stmt->get_result();
     $primary_image = $primary_result->fetch_assoc();
 
-    // Get additional images (exclude removed images)
-    $additional_sql = "SELECT id, image_url FROM product_images WHERE product_id = ? AND is_primary = 0 AND (is_removed = 0 OR is_removed IS NULL) ORDER BY id ASC";
+    // Get additional images (exclude removed images) - prioritize Cloudinary URLs
+    $additional_sql = "SELECT id, COALESCE(cloud_url, image_url) as image_url FROM product_images WHERE product_id = ? AND is_primary = 0 AND (is_removed = 0 OR is_removed IS NULL) ORDER BY id ASC";
     $additional_stmt = $conn->prepare($additional_sql);
     $additional_stmt->bind_param("i", $product_id);
     $additional_stmt->execute();

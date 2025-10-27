@@ -77,28 +77,65 @@ try {
         throw new Exception('Failed to save uploaded file');
     }
 
+    // Upload to Cloudinary
+    require_once __DIR__ . '/../../../backend/includes/cloudinary-helper.php';
+    $image_type = $is_primary ? 'primary' : 'additional';
+    $cloudinaryResult = uploadToCloudinary($filePath, 'neocafe/products', 'product_' . $product_id . '_' . $image_type . '_' . $timestamp);
+    
     // Store in database
     $dbImagePath = "product-images/" . $folderName . "/" . $cleanFileName;
-    $insert_sql = "INSERT INTO product_images (product_id, image_url, is_primary) VALUES (?, ?, ?)";
-    $insert_stmt = $conn->prepare($insert_sql);
-    $insert_stmt->bind_param("isi", $product_id, $dbImagePath, $is_primary);
     
-    if (!$insert_stmt->execute()) {
-        // If database insert fails, delete the uploaded file
-        unlink($filePath);
-        throw new Exception('Failed to save image to database');
+    if ($cloudinaryResult['success']) {
+        // Store both local path and Cloudinary URL
+        $insert_sql = "INSERT INTO product_images (product_id, image_url, cloud_url, cloud_public_id, cloud_provider, is_primary) VALUES (?, ?, ?, ?, 'cloudinary', ?)";
+        $insert_stmt = $conn->prepare($insert_sql);
+        $insert_stmt->bind_param("isssi", $product_id, $dbImagePath, $cloudinaryResult['url'], $cloudinaryResult['public_id'], $is_primary);
+        
+        if (!$insert_stmt->execute()) {
+            // If database insert fails, delete the uploaded file
+            unlink($filePath);
+            throw new Exception('Failed to save image to database');
+        }
+        
+        // Delete local file after successful Cloudinary upload
+        @unlink($filePath);
+        
+        $image_id = $insert_stmt->insert_id;
+        
+        echo json_encode([
+            'success' => true,
+            'image' => [
+                'id' => $image_id,
+                'image_url' => $cloudinaryResult['url'], // Return Cloudinary URL for display
+                'is_primary' => $is_primary
+            ]
+        ]);
+    } else {
+        // Fallback: Store only local path if Cloudinary upload fails
+        $insert_sql = "INSERT INTO product_images (product_id, image_url, is_primary) VALUES (?, ?, ?)";
+        $insert_stmt = $conn->prepare($insert_sql);
+        $insert_stmt->bind_param("isi", $product_id, $dbImagePath, $is_primary);
+        
+        if (!$insert_stmt->execute()) {
+            // If database insert fails, delete the uploaded file
+            unlink($filePath);
+            throw new Exception('Failed to save image to database');
+        }
+        
+        $image_id = $insert_stmt->insert_id;
+        
+        error_log("Cloudinary upload failed: " . $cloudinaryResult['error']);
+        
+        echo json_encode([
+            'success' => true,
+            'image' => [
+                'id' => $image_id,
+                'image_url' => $dbImagePath,
+                'is_primary' => $is_primary
+            ],
+            'warning' => 'Image saved locally but Cloudinary upload failed'
+        ]);
     }
-
-    $image_id = $insert_stmt->insert_id;
-
-    echo json_encode([
-        'success' => true,
-        'image' => [
-            'id' => $image_id,
-            'image_url' => $dbImagePath,
-            'is_primary' => $is_primary
-        ]
-    ]);
 
 } catch (Exception $e) {
     echo json_encode([

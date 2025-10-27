@@ -252,7 +252,8 @@
                                         p.id, p.sku, p.name, p.description, p.price, p.status_id, ps.name AS status_name, 
                                         p.unavailable_status_id, ups.name AS unavailable_status_name,
                                         p.category_id, c.name AS category_name,
-                                        pi.image_url, p.is_featured, p.show_when_unavailable, p.hide_when_unavailable,
+                                        COALESCE(pi.cloud_url, pi.image_url) as image_url,
+                                        p.is_featured, p.show_when_unavailable, p.hide_when_unavailable,
                                         p.quantity, p.availtoday_status_id, ats.name AS availtoday_status_name,
                                         qpd.quantity as sameday_stock_today,
                                         GROUP_CONCAT(DISTINCT pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days,
@@ -278,7 +279,8 @@
                                                     p.id, p.sku, p.name, p.description, p.price, p.status_id, ps.name AS status_name, 
                                                     p.unavailable_status_id, ups.name AS unavailable_status_name,
                                                     p.category_id, c.name AS category_name,
-                                                    pi.image_url, p.is_featured, p.show_when_unavailable, p.hide_when_unavailable,
+                                                    COALESCE(pi.cloud_url, pi.image_url) as image_url,
+                                                    p.is_featured, p.show_when_unavailable, p.hide_when_unavailable,
                                                     p.quantity, p.availtoday_status_id, ats.name AS availtoday_status_name,
                                                     qpd.quantity as sameday_stock_today,
                                                     GROUP_CONCAT(DISTINCT pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days,
@@ -347,11 +349,16 @@
 
                                     $statusClass = strtolower(str_replace(' ', '-', $row['status_name'] ?? 'Unknown'));
 
-                                    // Construct image path
+                                    // Construct image path - handle both Cloudinary URLs and local paths
                                     $imagePath = '';
                                     if (!empty($row['image_url'])) {
-                                        // Use the same path structure as weekly-product.php
-                                        $imagePath = '/assets/' . $row['image_url'];
+                                        if (strpos($row['image_url'], 'http://') === 0 || strpos($row['image_url'], 'https://') === 0) {
+                                            // It's a full URL (Cloudinary)
+                                            $imagePath = $row['image_url'];
+                                        } else {
+                                            // It's a local path
+                                            $imagePath = '/assets/' . $row['image_url'];
+                                        }
                                     }
 
                                     $displayStatus = ($row['status_id'] == 4) ? 'Same Day Order' : ($row['status_name'] ?? 'Unknown');
