@@ -7,3 +7,10 @@
 /public/images/uploads/
 /*.log
 *.log
+
+# User uploaded assets (large files)
+/assets/bulk_payments/
+/assets/images/
+/assets/product-images/
+/assets/refund-proofs/
+/assets/uploaded-images-admin/
