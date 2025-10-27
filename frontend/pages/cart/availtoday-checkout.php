@@ -441,6 +441,24 @@ $debug_info = [
         <div class="section-card order-summary">
             <h2>Order Summary</h2>
             
+            <!-- Coupon Code Section -->
+            <div class="coupon-section">
+                <div class="coupon-input-group">
+                    <input type="text" id="coupon_code" name="coupon_code" 
+                           placeholder="Enter coupon code" 
+                           class="coupon-input">
+                    <button type="button" id="check_coupon_btn" class="btn-check-coupon">Check Coupon</button>
+                </div>
+                <div id="coupon_message" class="coupon-message"></div>
+                <div id="coupon_applied" class="coupon-applied" style="display: none;">
+                    <div class="applied-coupon-info">
+                        <span class="coupon-code-display"></span>
+                        <span class="coupon-discount"></span>
+                        <button type="button" id="remove_coupon_btn" class="btn-remove-coupon">Remove</button>
+                    </div>
+                </div>
+            </div>
+            
             <div class="summary-items">
                 <?php foreach ($cart_items as $item): ?>
                     <div class="item" data-status-id="<?= $item['status_id'] ?>" data-availtoday-status-id="<?= $item['availtoday_status_id'] ?? 'null' ?>">
@@ -485,6 +503,10 @@ $debug_info = [
                 <div class="total-row">
                     <span>Subtotal:</span>
                     <span id="subtotal">₱<?= number_format($cart_total, 2) ?></span>
+                </div>
+                <div class="total-row" id="discount-row" style="display: none;">
+                    <span>Discount:</span>
+                    <span id="discount_amount" style="color: #28a745;">-₱0.00</span>
                 </div>
                 <div class="total-row" id="shipping-row">
                     <span>Shipping Fee:</span>
@@ -603,6 +625,84 @@ $debug_info = [
 <script src="https://js.paymongo.com/v1"></script>
 
 <script>
+// Coupon variables
+let appliedCoupon = null;
+let discountAmount = 0;
+const subtotal = <?= json_encode($cart_total) ?>;
+
+// Coupon helper functions
+function showCouponMessage(message, isSuccess = false) {
+    const messageElement = document.getElementById('coupon_message');
+    if (messageElement) {
+        messageElement.textContent = message;
+        messageElement.className = 'coupon-message ' + (isSuccess ? 'success' : 'error');
+        messageElement.style.display = 'block';
+        
+        // Hide message after 5 seconds
+        setTimeout(() => {
+            messageElement.style.display = 'none';
+        }, 5000);
+    }
+}
+
+function showAppliedCoupon(coupon) {
+    const appliedElement = document.getElementById('coupon_applied');
+    const codeDisplay = appliedElement.querySelector('.coupon-code-display');
+    const discountDisplay = appliedElement.querySelector('.coupon-discount');
+    
+    if (codeDisplay) {
+        codeDisplay.textContent = `Coupon: ${coupon.code}`;
+    }
+    
+    if (discountDisplay) {
+        let discountText = '';
+        if (coupon.type === 'percentage') {
+            discountText = `-${coupon.value}% (₱${discountAmount.toFixed(2)})`;
+        } else if (coupon.type === 'fixed') {
+            discountText = `-₱${discountAmount.toFixed(2)}`;
+        } else if (coupon.type === 'free_shipping') {
+            discountText = 'Free Shipping';
+        }
+        discountDisplay.textContent = discountText;
+    }
+    
+    appliedElement.style.display = 'block';
+}
+
+function hideAppliedCoupon() {
+    const appliedElement = document.getElementById('coupon_applied');
+    if (appliedElement) {
+        appliedElement.style.display = 'none';
+    }
+}
+
+function updateOrderTotal() {
+    const totalElement = document.getElementById('total');
+    const shippingFee = parseFloat(document.getElementById('shipping_fee').textContent.replace('₱', '').replace(',', '')) || 0;
+    
+    const total = subtotal - discountAmount + shippingFee;
+    
+    if (totalElement) {
+        totalElement.textContent = '₱' + total.toFixed(2);
+    }
+}
+
+function calculateDiscount(coupon, subtotalAmount) {
+    let discount = 0;
+    
+    if (coupon.type === 'percentage') {
+        discount = (subtotalAmount * coupon.value) / 100;
+    } else if (coupon.type === 'fixed') {
+        discount = coupon.value;
+    } else if (coupon.type === 'free_shipping') {
+        // Free shipping discount will be applied to shipping fee
+        discount = 0;
+    }
+    
+    // Ensure discount doesn't exceed subtotal
+    return Math.min(discount, subtotalAmount);
+}
+
 // Modal functionality
 document.addEventListener('DOMContentLoaded', function() {
     const modal = document.getElementById('locationModal');
@@ -724,6 +824,123 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             modal.style.display = 'none';
+        });
+    }
+});
+
+// Coupon functions
+async function checkCoupon() {
+    const couponInput = document.getElementById('coupon_code');
+    const checkBtn = document.getElementById('check_coupon_btn');
+    const couponCode = couponInput.value.trim().toUpperCase();
+    
+    console.log('[COUPON] Starting checkCoupon function');
+    console.log('[COUPON] Coupon code:', couponCode);
+    console.log('[COUPON] Subtotal:', subtotal);
+    
+    if (!couponCode) {
+        showCouponMessage('Please enter a coupon code');
+        return;
+    }
+    
+    // Disable button during request
+    checkBtn.disabled = true;
+    checkBtn.textContent = 'Checking...';
+    
+    try {
+        console.log('[COUPON] Sending request to validate-coupon.php');
+        const response = await fetch('../../../backend/pages/user-page-content/validate-coupon.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                coupon_code: couponCode,
+                subtotal: subtotal,
+                cart_items: []
+            })
+        });
+        
+        console.log('[COUPON] Response status:', response.status);
+        const result = await response.json();
+        console.log('[COUPON] Response result:', result);
+        
+        if (result.success) {
+            appliedCoupon = result.coupon;
+            discountAmount = calculateDiscount(appliedCoupon, subtotal);
+            
+            console.log('[COUPON] Applied coupon:', appliedCoupon);
+            console.log('[COUPON] Discount amount:', discountAmount);
+            
+            // Show applied coupon
+            showAppliedCoupon(appliedCoupon);
+            showCouponMessage(result.message, true);
+            
+            // Update totals
+            updateOrderTotal();
+            
+            // Show discount row
+            const discountRow = document.getElementById('discount-row');
+            const discountAmountElement = document.getElementById('discount_amount');
+            if (discountRow && discountAmountElement) {
+                discountRow.style.display = 'flex';
+                discountAmountElement.textContent = `-₱${discountAmount.toFixed(2)}`;
+            }
+            
+            // Clear input
+            couponInput.value = '';
+        } else {
+            console.log('[COUPON] Validation failed:', result.message);
+            showCouponMessage(result.message || 'Invalid coupon code');
+        }
+    } catch (error) {
+        console.error('[COUPON] Error checking coupon:', error);
+        showCouponMessage('Error checking coupon. Please try again.');
+    } finally {
+        checkBtn.disabled = false;
+        checkBtn.textContent = 'Check Coupon';
+    }
+}
+
+function removeCoupon() {
+    appliedCoupon = null;
+    discountAmount = 0;
+    
+    // Hide applied coupon
+    hideAppliedCoupon();
+    
+    // Hide discount row
+    const discountRow = document.getElementById('discount-row');
+    if (discountRow) {
+        discountRow.style.display = 'none';
+    }
+    
+    // Update totals
+    updateOrderTotal();
+    
+    showCouponMessage('Coupon removed successfully', true);
+}
+
+// Initialize coupon event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    const checkCouponBtn = document.getElementById('check_coupon_btn');
+    const removeCouponBtn = document.getElementById('remove_coupon_btn');
+    const couponInput = document.getElementById('coupon_code');
+    
+    if (checkCouponBtn) {
+        checkCouponBtn.addEventListener('click', checkCoupon);
+    }
+    
+    if (removeCouponBtn) {
+        removeCouponBtn.addEventListener('click', removeCoupon);
+    }
+    
+    if (couponInput) {
+        couponInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                checkCoupon();
+            }
         });
     }
 });
@@ -857,6 +1074,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 const notesEl = document.getElementById('order_notes');
                 if (notesEl) {
                     formData.append('notes', notesEl.value);
+                }
+                
+                // Add coupon information if applied
+                if (typeof appliedCoupon !== 'undefined' && appliedCoupon) {
+                    formData.append('applied_coupon', JSON.stringify(appliedCoupon));
+                    if (typeof discountAmount !== 'undefined') {
+                        formData.append('discount_amount', discountAmount);
+                    }
+                    console.log('[AVAILTODAY CHECKOUT] Coupon Applied:', appliedCoupon);
+                    console.log('[AVAILTODAY CHECKOUT] Discount Amount:', discountAmount);
                 }
                 
                 // Convert FormData to regular object for PayMongo integration
@@ -1192,6 +1419,143 @@ function validateForm() {
 // Additional styles for Available Today specific elements
 const additionalStyles = `
 <style>
+/* Coupon Section Styles */
+.coupon-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.coupon-input-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.coupon-input {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+.coupon-input:focus {
+    outline: none;
+    border-color: #256035;
+    box-shadow: 0 0 0 2px rgba(37, 96, 53, 0.1);
+}
+
+.btn-check-coupon {
+    padding: 10px 20px;
+    background: #256035;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    white-space: nowrap;
+}
+
+.btn-check-coupon:hover {
+    background: #1a4a28;
+}
+
+.btn-check-coupon:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+}
+
+.coupon-message {
+    font-size: 14px;
+    margin-top: 8px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    display: none;
+}
+
+.coupon-message.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    display: block;
+}
+
+.coupon-message.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    display: block;
+}
+
+.coupon-applied {
+    background: #e8f5e9;
+    border: 1px solid #c8e6c9;
+    border-radius: 4px;
+    padding: 12px;
+    margin-top: 10px;
+}
+
+.applied-coupon-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.coupon-code-display {
+    font-weight: 600;
+    color: #2e7d32;
+    font-size: 14px;
+}
+
+.coupon-discount {
+    font-weight: 600;
+    color: #2e7d32;
+    font-size: 14px;
+}
+
+.btn-remove-coupon {
+    padding: 6px 12px;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-remove-coupon:hover {
+    background: #c82333;
+}
+
+/* Responsive Design for Coupon Section */
+@media (max-width: 768px) {
+    .coupon-input-group {
+        flex-direction: column;
+    }
+    
+    .btn-check-coupon {
+        width: 100%;
+    }
+    
+    .applied-coupon-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .btn-remove-coupon {
+        align-self: flex-end;
+    }
+}
+
 /* Location Modal Styling */
 .modal {
     display: none;

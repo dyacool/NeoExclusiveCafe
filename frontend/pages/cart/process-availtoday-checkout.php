@@ -55,6 +55,18 @@ $has_mixed_status = intval($_POST['has_mixed_status'] ?? 0);
 // Decode cart items
 $cart_items = json_decode($_POST['cart_items'] ?? '[]', true);
 
+// Process coupon data if provided
+$discount_amount = 0;
+$applied_coupon = null;
+
+if (!empty($_POST['applied_coupon'])) {
+    $applied_coupon = json_decode($_POST['applied_coupon'], true);
+    $discount_amount = floatval($_POST['discount_amount'] ?? 0);
+    
+    error_log("Coupon applied: " . print_r($applied_coupon, true));
+    error_log("Discount amount: " . $discount_amount);
+}
+
 // Validate required fields
 $errors = [];
 if (empty($first_name)) $errors[] = 'First name is required';
@@ -95,8 +107,26 @@ try {
     $customer_full_name = $first_name . ' ' . $last_name;
     $delivery_method_enum = ($shipping_method === 'delivery') ? 'Delivery' : 'Pick-up';
     $combined_notes = $special_instructions;
+    
+    // Include coupon information in notes if applied
+    if ($applied_coupon) {
+        $coupon_info = "\n\nCoupon Applied: " . $applied_coupon['code'] . 
+                       " - Discount: ₱" . number_format($discount_amount, 2);
+        $combined_notes .= $coupon_info;
+    }
+    
     $today_date = date('Y-m-d');
     $pickup_time = '10:00:00'; // Default pickup time for same-day orders
+    
+    // Calculate final total with discount
+    $final_total = $cart_total - $discount_amount;
+    
+    // Validate that total is not negative
+    if ($final_total < 0) {
+        $final_total = 0;
+    }
+    
+    error_log("Cart total: $cart_total, Discount: $discount_amount, Final total: $final_total");
     
     // Combine address fields
     $full_address = trim($address);
@@ -134,7 +164,7 @@ try {
         $total_items += $item['quantity'];
     }
     
-    error_log("Preparing to insert order: Name=$customer_full_name, Email=$email, Phone=$phone, Total=$cart_total, Items=$total_items");
+    error_log("Preparing to insert order: Name=$customer_full_name, Email=$email, Phone=$phone, Total=$final_total, Items=$total_items");
     
     $order_stmt->bind_param("sssidsss", 
         $customer_full_name,
@@ -142,7 +172,7 @@ try {
         $email,
         $full_address,
         $total_items,
-        $cart_total,
+        $final_total,
         $delivery_method_enum,
         $today_date,
         $pickup_time,
@@ -265,6 +295,51 @@ try {
     }
     
     error_log("Cleared availtoday cart for user: " . $_SESSION['user_id']);
+    
+    // Update coupon/voucher usage count if applied
+    if ($applied_coupon && isset($applied_coupon['id'])) {
+        $is_voucher = isset($applied_coupon['is_voucher']) && $applied_coupon['is_voucher'];
+        
+        if ($is_voucher) {
+            // Update refund_vouchers table - mark as used
+            $update_voucher_sql = "UPDATE refund_vouchers SET status = 'used' WHERE id = ?";
+            $update_voucher_stmt = $conn->prepare($update_voucher_sql);
+            
+            if ($update_voucher_stmt) {
+                $voucher_id = intval($applied_coupon['id']);
+                $update_voucher_stmt->bind_param("i", $voucher_id);
+                
+                if (!$update_voucher_stmt->execute()) {
+                    error_log("Warning: Failed to update voucher status: " . $update_voucher_stmt->error);
+                } else {
+                    error_log("Successfully marked voucher as used for voucher ID: " . $voucher_id);
+                }
+                
+                $update_voucher_stmt->close();
+            } else {
+                error_log("Warning: Failed to prepare voucher update statement: " . $conn->error);
+            }
+        } else {
+            // Update promotions table - increment usage count
+            $update_coupon_sql = "UPDATE promotions SET used_count = used_count + 1 WHERE id = ?";
+            $update_coupon_stmt = $conn->prepare($update_coupon_sql);
+            
+            if ($update_coupon_stmt) {
+                $coupon_id = intval($applied_coupon['id']);
+                $update_coupon_stmt->bind_param("i", $coupon_id);
+                
+                if (!$update_coupon_stmt->execute()) {
+                    error_log("Warning: Failed to update coupon usage count: " . $update_coupon_stmt->error);
+                } else {
+                    error_log("Successfully updated coupon usage count for coupon ID: " . $coupon_id);
+                }
+                
+                $update_coupon_stmt->close();
+            } else {
+                error_log("Warning: Failed to prepare coupon update statement: " . $conn->error);
+            }
+        }
+    }
     
     // Commit transaction
     $conn->commit();

@@ -82264,4 +82264,1354 @@ Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or P
     [updated_at] => 2025-05-20 14:21:14
 )
 
-Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 10 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 10 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 10 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 10 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 10 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 10 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 10 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 10 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-26 16:19:05] Availtoday Status ID received: 3
+[2025-10-26 16:19:05] Availtoday Status ID after filter: 3
+[2025-10-26 16:19:05] Status ID: 3
+[2025-10-26 16:19:05] Is Available Today: 1
+[2025-10-26 16:19:05] Todays Product Dates: []
+[2025-10-26 16:19:05] Available Today Dates: ["2025-10-26"]
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 10 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-26 16:19:40] Availtoday Status ID received: 3
+[2025-10-26 16:19:40] Availtoday Status ID after filter: 3
+[2025-10-26 16:19:40] Status ID: 4
+[2025-10-26 16:19:40] Is Available Today: 
+[2025-10-26 16:19:40] Todays Product Dates: ["2025-10-26","2025-10-27","2025-10-28"]
+[2025-10-26 16:19:40] Available Today Dates: []
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 10 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[26-Oct-2025 22:53:41 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[26-Oct-2025 22:53:41 Asia/Manila] Total featured products found: 11
+[26-Oct-2025 22:53:45 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[27-Oct-2025 09:02:40 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[27-Oct-2025 09:02:40 Asia/Manila] Total featured products found: 11
+[27-Oct-2025 09:02:44 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[27-Oct-2025 09:33:48 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[27-Oct-2025 09:33:48 Asia/Manila] Total featured products found: 11
+[27-Oct-2025 09:33:53 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[27-Oct-2025 09:34:14 Asia/Manila] Database connection successful
+[27-Oct-2025 09:34:15 Asia/Manila] User has 2 items in cart table
+[27-Oct-2025 09:34:15 Asia/Manila] Cart table structure:
+[27-Oct-2025 09:34:15 Asia/Manila]   id - int(11) - NO - PRI -  - auto_increment
+[27-Oct-2025 09:34:15 Asia/Manila]   user_id - int(11) - NO -  -  - 
+[27-Oct-2025 09:34:15 Asia/Manila]   product_id - int(11) - NO -  -  - 
+[27-Oct-2025 09:34:15 Asia/Manila]   quantity - int(11) - NO -  - 1 - 
+[27-Oct-2025 09:34:15 Asia/Manila]   price - decimal(10,2) - NO -  -  - 
+[27-Oct-2025 09:34:15 Asia/Manila]   created_at - timestamp - NO -  - current_timestamp() - 
+[27-Oct-2025 09:34:15 Asia/Manila]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[27-Oct-2025 09:34:15 Asia/Manila] Cart item 108 does not exist in cart table
+[27-Oct-2025 09:34:16 Asia/Manila] Final user data: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [email] => alrainepascua2@gmail.com
+)
+
+[27-Oct-2025 09:34:16 Asia/Manila] REQUEST_METHOD: POST
+[27-Oct-2025 09:34:16 Asia/Manila] POST data: Array
+(
+    [selected_cart_ids] => Array
+        (
+            [0] => 32
+        )
+
+    [subtotal] => 690.00
+)
+
+[27-Oct-2025 09:34:16 Asia/Manila] SESSION data at cart items check: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+)
+
+[27-Oct-2025 09:34:16 Asia/Manila] Got cart IDs from POST: 32
+[27-Oct-2025 09:34:16 Asia/Manila] Final selected_cart_ids: Array
+(
+    [0] => 32
+)
+
+[27-Oct-2025 09:34:16 Asia/Manila] Final subtotal: 690
+[27-Oct-2025 09:34:16 Asia/Manila] Selected cart IDs: Array
+(
+    [0] => 32
+)
+
+[27-Oct-2025 09:34:16 Asia/Manila] Subtotal: 690
+[27-Oct-2025 09:34:16 Asia/Manila] Cart item 32 is valid for user 5
+[27-Oct-2025 09:34:16 Asia/Manila] Validated cart IDs: 32
+[27-Oct-2025 09:34:17 Asia/Manila] Cart has Pick Up Only items - forcing pickup (flexible items inherit pickup)
+[27-Oct-2025 09:34:17 Asia/Manila] Cart analysis: 1 items | Pickup Only: YES | Delivery Only: NO | Flexible: NO | Method: pickup | Can Change: NO
+[27-Oct-2025 09:34:17 Asia/Manila] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Cassava Cake
+            [price] => 230.00
+            [quantity] => 3
+            [cart_id] => 32
+            [product_id] => 12
+            [status_id] => 1
+            [available_days] => Sunday,Tuesday,Thursday,Saturday
+        )
+
+)
+
+[27-Oct-2025 09:34:17 Asia/Manila] Cart total: 690
+[27-Oct-2025 09:34:17 Asia/Manila] User data at display point: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [profile_image] => 
+)
+
+[27-Oct-2025 09:34:17 Asia/Manila] Session data at display point: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 32
+        )
+
+    [subtotal] => 690
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Cassava Cake
+                    [price] => 230.00
+                    [quantity] => 3
+                    [cart_id] => 32
+                    [product_id] => 12
+                    [status_id] => 1
+                    [available_days] => Sunday,Tuesday,Thursday,Saturday
+                )
+
+        )
+
+    [cart_total] => 690
+    [shipping_method] => pickup
+    [has_pickup_only] => 1
+    [has_delivery_only] => 
+    [has_flexible] => 
+    [can_change_shipping] => 
+)
+
+[27-Oct-2025 09:34:17 Asia/Manila] PHP Warning:  include(../../user-includes/footer.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\checkout.php on line 2537
+[27-Oct-2025 09:34:17 Asia/Manila] PHP Warning:  include(): Failed opening '../../user-includes/footer.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\checkout.php on line 2537
+[27-Oct-2025 10:05:41 Asia/Manila] Database connection successful
+[27-Oct-2025 10:05:41 Asia/Manila] User has 2 items in cart table
+[27-Oct-2025 10:05:41 Asia/Manila] Cart table structure:
+[27-Oct-2025 10:05:41 Asia/Manila]   id - int(11) - NO - PRI -  - auto_increment
+[27-Oct-2025 10:05:41 Asia/Manila]   user_id - int(11) - NO -  -  - 
+[27-Oct-2025 10:05:41 Asia/Manila]   product_id - int(11) - NO -  -  - 
+[27-Oct-2025 10:05:41 Asia/Manila]   quantity - int(11) - NO -  - 1 - 
+[27-Oct-2025 10:05:41 Asia/Manila]   price - decimal(10,2) - NO -  -  - 
+[27-Oct-2025 10:05:41 Asia/Manila]   created_at - timestamp - NO -  - current_timestamp() - 
+[27-Oct-2025 10:05:41 Asia/Manila]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[27-Oct-2025 10:05:42 Asia/Manila] Cart item 108 does not exist in cart table
+[27-Oct-2025 10:05:42 Asia/Manila] Final user data: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [email] => alrainepascua2@gmail.com
+)
+
+[27-Oct-2025 10:05:42 Asia/Manila] REQUEST_METHOD: POST
+[27-Oct-2025 10:05:42 Asia/Manila] POST data: Array
+(
+    [selected_cart_ids] => Array
+        (
+            [0] => 33
+        )
+
+    [subtotal] => 1980.00
+)
+
+[27-Oct-2025 10:05:42 Asia/Manila] SESSION data at cart items check: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 32
+        )
+
+    [subtotal] => 690
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Cassava Cake
+                    [price] => 230.00
+                    [quantity] => 3
+                    [cart_id] => 32
+                    [product_id] => 12
+                    [status_id] => 1
+                    [available_days] => Sunday,Tuesday,Thursday,Saturday
+                )
+
+        )
+
+    [cart_total] => 690
+    [shipping_method] => pickup
+    [has_pickup_only] => 1
+    [has_delivery_only] => 
+    [has_flexible] => 
+    [can_change_shipping] => 
+)
+
+[27-Oct-2025 10:05:42 Asia/Manila] Got cart IDs from POST: 33
+[27-Oct-2025 10:05:42 Asia/Manila] Final selected_cart_ids: Array
+(
+    [0] => 33
+)
+
+[27-Oct-2025 10:05:42 Asia/Manila] Final subtotal: 1980
+[27-Oct-2025 10:05:42 Asia/Manila] Selected cart IDs: Array
+(
+    [0] => 33
+)
+
+[27-Oct-2025 10:05:42 Asia/Manila] Subtotal: 1980
+[27-Oct-2025 10:05:42 Asia/Manila] Cart item 33 is valid for user 5
+[27-Oct-2025 10:05:42 Asia/Manila] Validated cart IDs: 33
+[27-Oct-2025 10:05:43 Asia/Manila] Cart has Delivery Only items - forcing delivery (flexible items inherit delivery)
+[27-Oct-2025 10:05:43 Asia/Manila] Cart analysis: 1 items | Pickup Only: NO | Delivery Only: YES | Flexible: NO | Method: delivery | Can Change: NO
+[27-Oct-2025 10:05:43 Asia/Manila] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Sesame Sourdough Batard
+            [price] => 220.00
+            [quantity] => 9
+            [cart_id] => 33
+            [product_id] => 6
+            [status_id] => 2
+            [available_days] => Sunday,Tuesday,Thursday,Saturday
+        )
+
+)
+
+[27-Oct-2025 10:05:43 Asia/Manila] Cart total: 1980
+[27-Oct-2025 10:05:43 Asia/Manila] User data at display point: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [profile_image] => 
+)
+
+[27-Oct-2025 10:05:43 Asia/Manila] Session data at display point: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 33
+        )
+
+    [subtotal] => 1980
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 9
+                    [cart_id] => 33
+                    [product_id] => 6
+                    [status_id] => 2
+                    [available_days] => Sunday,Tuesday,Thursday,Saturday
+                )
+
+        )
+
+    [cart_total] => 1980
+    [shipping_method] => delivery
+    [has_pickup_only] => 
+    [has_delivery_only] => 1
+    [has_flexible] => 
+    [can_change_shipping] => 
+)
+
+[27-Oct-2025 10:05:43 Asia/Manila] PHP Warning:  include(../../user-includes/footer.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\checkout.php on line 2537
+[27-Oct-2025 10:05:43 Asia/Manila] PHP Warning:  include(): Failed opening '../../user-includes/footer.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\checkout.php on line 2537
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 10 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[27-Oct-2025 16:50:33 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[27-Oct-2025 16:50:33 Asia/Manila] Total featured products found: 11
+[27-Oct-2025 16:50:38 Asia/Manila] PHP Deprecated:  str_replace(): Passing null to parameter #3 ($subject) of type array|string is deprecated in C:\xampp\htdocs\NeoCafe\frontend\pages\home\user-dashboard.php on line 184
+[27-Oct-2025 16:50:38 Asia/Manila] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\NeoCafe\frontend\pages\home\user-dashboard.php on line 201
+[27-Oct-2025 16:50:38 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[27-Oct-2025 16:53:11 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[27-Oct-2025 16:53:11 Asia/Manila] Total featured products found: 11
+[27-Oct-2025 16:53:16 Asia/Manila] PHP Deprecated:  str_replace(): Passing null to parameter #3 ($subject) of type array|string is deprecated in C:\xampp\htdocs\NeoCafe\frontend\pages\home\user-dashboard.php on line 184
+[27-Oct-2025 16:53:16 Asia/Manila] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\NeoCafe\frontend\pages\home\user-dashboard.php on line 201
+[27-Oct-2025 16:53:16 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[27-Oct-2025 19:12:03 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[27-Oct-2025 19:12:03 Asia/Manila] Total featured products found: 11
+[27-Oct-2025 19:12:08 Asia/Manila] PHP Deprecated:  str_replace(): Passing null to parameter #3 ($subject) of type array|string is deprecated in C:\xampp\htdocs\NeoCafe\frontend\pages\home\user-dashboard.php on line 184
+[27-Oct-2025 19:12:08 Asia/Manila] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\NeoCafe\frontend\pages\home\user-dashboard.php on line 201
+[27-Oct-2025 19:12:08 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[27-Oct-2025 19:15:29 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[27-Oct-2025 19:15:29 Asia/Manila] Total featured products found: 11
+[27-Oct-2025 19:15:35 Asia/Manila] PHP Deprecated:  str_replace(): Passing null to parameter #3 ($subject) of type array|string is deprecated in C:\xampp\htdocs\NeoCafe\frontend\pages\home\user-dashboard.php on line 184
+[27-Oct-2025 19:15:35 Asia/Manila] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\NeoCafe\frontend\pages\home\user-dashboard.php on line 201
+[27-Oct-2025 19:15:35 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[27-Oct-2025 19:46:21 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[27-Oct-2025 19:46:21 Asia/Manila] Total featured products found: 11
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 10 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[27-Oct-2025 19:46:26 Asia/Manila] PHP Deprecated:  str_replace(): Passing null to parameter #3 ($subject) of type array|string is deprecated in C:\xampp\htdocs\NeoCafe\frontend\pages\home\user-dashboard.php on line 184
+[27-Oct-2025 19:46:26 Asia/Manila] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\NeoCafe\frontend\pages\home\user-dashboard.php on line 201
+[27-Oct-2025 19:46:26 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 10 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[27-Oct-2025 20:13:59 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[27-Oct-2025 20:13:59 Asia/Manila] Total featured products found: 11
+[27-Oct-2025 20:14:04 Asia/Manila] PHP Deprecated:  str_replace(): Passing null to parameter #3 ($subject) of type array|string is deprecated in C:\xampp\htdocs\NeoCafe\frontend\pages\home\user-dashboard.php on line 184
+[27-Oct-2025 20:14:04 Asia/Manila] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\NeoCafe\frontend\pages\home\user-dashboard.php on line 201
+[27-Oct-2025 20:14:04 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[27-Oct-2025 22:05:06 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[27-Oct-2025 22:05:06 Asia/Manila] Total featured products found: 11
+[27-Oct-2025 22:05:18 Asia/Manila] PHP Deprecated:  str_replace(): Passing null to parameter #3 ($subject) of type array|string is deprecated in C:\xampp\htdocs\NeoCafe\frontend\pages\home\user-dashboard.php on line 184
+[27-Oct-2025 22:05:18 Asia/Manila] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\NeoCafe\frontend\pages\home\user-dashboard.php on line 201
+[27-Oct-2025 22:05:18 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[27-Oct-2025 22:05:38 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[27-Oct-2025 22:05:38 Asia/Manila] Total featured products found: 11
+[27-Oct-2025 22:05:46 Asia/Manila] PHP Deprecated:  str_replace(): Passing null to parameter #3 ($subject) of type array|string is deprecated in C:\xampp\htdocs\NeoCafe\frontend\pages\home\user-dashboard.php on line 184
+[27-Oct-2025 22:05:46 Asia/Manila] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\NeoCafe\frontend\pages\home\user-dashboard.php on line 201
+[27-Oct-2025 22:05:47 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[27-Oct-2025 22:07:48 Asia/Manila] Database connection successful
+[27-Oct-2025 22:07:50 Asia/Manila] User has 2 items in cart table
+[27-Oct-2025 22:07:50 Asia/Manila] Cart table structure:
+[27-Oct-2025 22:07:50 Asia/Manila]   id - int(11) - NO - PRI -  - auto_increment
+[27-Oct-2025 22:07:50 Asia/Manila]   user_id - int(11) - NO -  -  - 
+[27-Oct-2025 22:07:50 Asia/Manila]   product_id - int(11) - NO -  -  - 
+[27-Oct-2025 22:07:50 Asia/Manila]   quantity - int(11) - NO -  - 1 - 
+[27-Oct-2025 22:07:50 Asia/Manila]   price - decimal(10,2) - NO -  -  - 
+[27-Oct-2025 22:07:50 Asia/Manila]   created_at - timestamp - NO -  - current_timestamp() - 
+[27-Oct-2025 22:07:50 Asia/Manila]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[27-Oct-2025 22:07:50 Asia/Manila] Cart item 108 does not exist in cart table
+[27-Oct-2025 22:07:51 Asia/Manila] Final user data: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [email] => alrainepascua2@gmail.com
+)
+
+[27-Oct-2025 22:07:51 Asia/Manila] REQUEST_METHOD: POST
+[27-Oct-2025 22:07:51 Asia/Manila] POST data: Array
+(
+    [selected_cart_ids] => Array
+        (
+            [0] => 32
+        )
+
+    [subtotal] => 3680.00
+)
+
+[27-Oct-2025 22:07:51 Asia/Manila] SESSION data at cart items check: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+)
+
+[27-Oct-2025 22:07:51 Asia/Manila] Got cart IDs from POST: 32
+[27-Oct-2025 22:07:51 Asia/Manila] Final selected_cart_ids: Array
+(
+    [0] => 32
+)
+
+[27-Oct-2025 22:07:51 Asia/Manila] Final subtotal: 3680
+[27-Oct-2025 22:07:51 Asia/Manila] Selected cart IDs: Array
+(
+    [0] => 32
+)
+
+[27-Oct-2025 22:07:51 Asia/Manila] Subtotal: 3680
+[27-Oct-2025 22:07:52 Asia/Manila] Cart item 32 is valid for user 5
+[27-Oct-2025 22:07:52 Asia/Manila] Validated cart IDs: 32
+[27-Oct-2025 22:07:53 Asia/Manila] Cart has Pick Up Only items - forcing pickup (flexible items inherit pickup)
+[27-Oct-2025 22:07:53 Asia/Manila] Cart analysis: 1 items | Pickup Only: YES | Delivery Only: NO | Flexible: NO | Method: pickup | Can Change: NO
+[27-Oct-2025 22:07:53 Asia/Manila] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Cassava Cake
+            [price] => 230.00
+            [quantity] => 16
+            [cart_id] => 32
+            [product_id] => 12
+            [status_id] => 1
+            [available_days] => Sunday,Tuesday,Thursday,Saturday
+        )
+
+)
+
+[27-Oct-2025 22:07:53 Asia/Manila] Cart total: 3680
+[27-Oct-2025 22:07:55 Asia/Manila] User data at display point: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [profile_image] => 
+)
+
+[27-Oct-2025 22:07:55 Asia/Manila] Session data at display point: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 32
+        )
+
+    [subtotal] => 3680
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Cassava Cake
+                    [price] => 230.00
+                    [quantity] => 16
+                    [cart_id] => 32
+                    [product_id] => 12
+                    [status_id] => 1
+                    [available_days] => Sunday,Tuesday,Thursday,Saturday
+                )
+
+        )
+
+    [cart_total] => 3680
+    [shipping_method] => pickup
+    [has_pickup_only] => 1
+    [has_delivery_only] => 
+    [has_flexible] => 
+    [can_change_shipping] => 
+)
+
+[27-Oct-2025 22:07:55 Asia/Manila] PHP Warning:  include(../../user-includes/footer.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\checkout.php on line 2537
+[27-Oct-2025 22:07:55 Asia/Manila] PHP Warning:  include(): Failed opening '../../user-includes/footer.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\checkout.php on line 2537
+[27-Oct-2025 22:18:14 Asia/Manila] Database connection successful
+[27-Oct-2025 22:18:15 Asia/Manila] User has 2 items in cart table
+[27-Oct-2025 22:18:16 Asia/Manila] Cart table structure:
+[27-Oct-2025 22:18:16 Asia/Manila]   id - int(11) - NO - PRI -  - auto_increment
+[27-Oct-2025 22:18:16 Asia/Manila]   user_id - int(11) - NO -  -  - 
+[27-Oct-2025 22:18:16 Asia/Manila]   product_id - int(11) - NO -  -  - 
+[27-Oct-2025 22:18:16 Asia/Manila]   quantity - int(11) - NO -  - 1 - 
+[27-Oct-2025 22:18:16 Asia/Manila]   price - decimal(10,2) - NO -  -  - 
+[27-Oct-2025 22:18:16 Asia/Manila]   created_at - timestamp - NO -  - current_timestamp() - 
+[27-Oct-2025 22:18:16 Asia/Manila]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[27-Oct-2025 22:18:16 Asia/Manila] Cart item 108 does not exist in cart table
+[27-Oct-2025 22:18:16 Asia/Manila] Final user data: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [email] => alrainepascua2@gmail.com
+)
+
+[27-Oct-2025 22:18:16 Asia/Manila] REQUEST_METHOD: POST
+[27-Oct-2025 22:18:16 Asia/Manila] POST data: Array
+(
+    [selected_cart_ids] => Array
+        (
+            [0] => 32
+        )
+
+    [subtotal] => 3680.00
+)
+
+[27-Oct-2025 22:18:16 Asia/Manila] SESSION data at cart items check: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 32
+        )
+
+    [subtotal] => 3680
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Cassava Cake
+                    [price] => 230.00
+                    [quantity] => 16
+                    [cart_id] => 32
+                    [product_id] => 12
+                    [status_id] => 1
+                    [available_days] => Sunday,Tuesday,Thursday,Saturday
+                )
+
+        )
+
+    [cart_total] => 3680
+    [shipping_method] => pickup
+    [has_pickup_only] => 1
+    [has_delivery_only] => 
+    [has_flexible] => 
+    [can_change_shipping] => 
+)
+
+[27-Oct-2025 22:18:16 Asia/Manila] Got cart IDs from POST: 32
+[27-Oct-2025 22:18:16 Asia/Manila] Final selected_cart_ids: Array
+(
+    [0] => 32
+)
+
+[27-Oct-2025 22:18:16 Asia/Manila] Final subtotal: 3680
+[27-Oct-2025 22:18:16 Asia/Manila] Selected cart IDs: Array
+(
+    [0] => 32
+)
+
+[27-Oct-2025 22:18:16 Asia/Manila] Subtotal: 3680
+[27-Oct-2025 22:18:17 Asia/Manila] Cart item 32 is valid for user 5
+[27-Oct-2025 22:18:17 Asia/Manila] Validated cart IDs: 32
+[27-Oct-2025 22:18:19 Asia/Manila] Cart has Pick Up Only items - forcing pickup (flexible items inherit pickup)
+[27-Oct-2025 22:18:19 Asia/Manila] Cart analysis: 1 items | Pickup Only: YES | Delivery Only: NO | Flexible: NO | Method: pickup | Can Change: NO
+[27-Oct-2025 22:18:19 Asia/Manila] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Cassava Cake
+            [price] => 230.00
+            [quantity] => 16
+            [cart_id] => 32
+            [product_id] => 12
+            [status_id] => 1
+            [available_days] => Sunday,Tuesday,Thursday,Saturday
+        )
+
+)
+
+[27-Oct-2025 22:18:19 Asia/Manila] Cart total: 3680
+[27-Oct-2025 22:18:20 Asia/Manila] User data at display point: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [profile_image] => 
+)
+
+[27-Oct-2025 22:18:20 Asia/Manila] Session data at display point: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 32
+        )
+
+    [subtotal] => 3680
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Cassava Cake
+                    [price] => 230.00
+                    [quantity] => 16
+                    [cart_id] => 32
+                    [product_id] => 12
+                    [status_id] => 1
+                    [available_days] => Sunday,Tuesday,Thursday,Saturday
+                )
+
+        )
+
+    [cart_total] => 3680
+    [shipping_method] => pickup
+    [has_pickup_only] => 1
+    [has_delivery_only] => 
+    [has_flexible] => 
+    [can_change_shipping] => 
+)
+
+[27-Oct-2025 22:18:20 Asia/Manila] PHP Warning:  include(../../user-includes/footer.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\checkout.php on line 2537
+[27-Oct-2025 22:18:20 Asia/Manila] PHP Warning:  include(): Failed opening '../../user-includes/footer.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\checkout.php on line 2537
+[27-Oct-2025 22:24:27 Asia/Manila] Database connection successful
+[27-Oct-2025 22:24:28 Asia/Manila] User has 2 items in cart table
+[27-Oct-2025 22:24:28 Asia/Manila] Cart table structure:
+[27-Oct-2025 22:24:28 Asia/Manila]   id - int(11) - NO - PRI -  - auto_increment
+[27-Oct-2025 22:24:28 Asia/Manila]   user_id - int(11) - NO -  -  - 
+[27-Oct-2025 22:24:28 Asia/Manila]   product_id - int(11) - NO -  -  - 
+[27-Oct-2025 22:24:28 Asia/Manila]   quantity - int(11) - NO -  - 1 - 
+[27-Oct-2025 22:24:28 Asia/Manila]   price - decimal(10,2) - NO -  -  - 
+[27-Oct-2025 22:24:28 Asia/Manila]   created_at - timestamp - NO -  - current_timestamp() - 
+[27-Oct-2025 22:24:28 Asia/Manila]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[27-Oct-2025 22:24:29 Asia/Manila] Cart item 108 does not exist in cart table
+[27-Oct-2025 22:24:29 Asia/Manila] Final user data: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [email] => alrainepascua2@gmail.com
+)
+
+[27-Oct-2025 22:24:29 Asia/Manila] REQUEST_METHOD: POST
+[27-Oct-2025 22:24:29 Asia/Manila] POST data: Array
+(
+    [selected_cart_ids] => Array
+        (
+            [0] => 32
+        )
+
+    [subtotal] => 3680.00
+)
+
+[27-Oct-2025 22:24:29 Asia/Manila] SESSION data at cart items check: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 32
+        )
+
+    [subtotal] => 3680
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Cassava Cake
+                    [price] => 230.00
+                    [quantity] => 16
+                    [cart_id] => 32
+                    [product_id] => 12
+                    [status_id] => 1
+                    [available_days] => Sunday,Tuesday,Thursday,Saturday
+                )
+
+        )
+
+    [cart_total] => 3680
+    [shipping_method] => pickup
+    [has_pickup_only] => 1
+    [has_delivery_only] => 
+    [has_flexible] => 
+    [can_change_shipping] => 
+)
+
+[27-Oct-2025 22:24:29 Asia/Manila] Got cart IDs from POST: 32
+[27-Oct-2025 22:24:29 Asia/Manila] Final selected_cart_ids: Array
+(
+    [0] => 32
+)
+
+[27-Oct-2025 22:24:29 Asia/Manila] Final subtotal: 3680
+[27-Oct-2025 22:24:29 Asia/Manila] Selected cart IDs: Array
+(
+    [0] => 32
+)
+
+[27-Oct-2025 22:24:29 Asia/Manila] Subtotal: 3680
+[27-Oct-2025 22:24:29 Asia/Manila] Cart item 32 is valid for user 5
+[27-Oct-2025 22:24:29 Asia/Manila] Validated cart IDs: 32
+[27-Oct-2025 22:24:30 Asia/Manila] Cart has Pick Up Only items - forcing pickup (flexible items inherit pickup)
+[27-Oct-2025 22:24:30 Asia/Manila] Cart analysis: 1 items | Pickup Only: YES | Delivery Only: NO | Flexible: NO | Method: pickup | Can Change: NO
+[27-Oct-2025 22:24:30 Asia/Manila] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Cassava Cake
+            [price] => 230.00
+            [quantity] => 16
+            [cart_id] => 32
+            [product_id] => 12
+            [status_id] => 1
+            [available_days] => Sunday,Tuesday,Thursday,Saturday
+        )
+
+)
+
+[27-Oct-2025 22:24:30 Asia/Manila] Cart total: 3680
+[27-Oct-2025 22:24:31 Asia/Manila] User data at display point: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [profile_image] => 
+)
+
+[27-Oct-2025 22:24:31 Asia/Manila] Session data at display point: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 32
+        )
+
+    [subtotal] => 3680
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Cassava Cake
+                    [price] => 230.00
+                    [quantity] => 16
+                    [cart_id] => 32
+                    [product_id] => 12
+                    [status_id] => 1
+                    [available_days] => Sunday,Tuesday,Thursday,Saturday
+                )
+
+        )
+
+    [cart_total] => 3680
+    [shipping_method] => pickup
+    [has_pickup_only] => 1
+    [has_delivery_only] => 
+    [has_flexible] => 
+    [can_change_shipping] => 
+)
+
+[27-Oct-2025 22:24:31 Asia/Manila] PHP Warning:  include(../../user-includes/footer.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\checkout.php on line 2537
+[27-Oct-2025 22:24:31 Asia/Manila] PHP Warning:  include(): Failed opening '../../user-includes/footer.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\checkout.php on line 2537
+[27-Oct-2025 22:26:48 Asia/Manila] Database connection successful
+[27-Oct-2025 22:26:49 Asia/Manila] User has 2 items in cart table
+[27-Oct-2025 22:26:49 Asia/Manila] Cart table structure:
+[27-Oct-2025 22:26:49 Asia/Manila]   id - int(11) - NO - PRI -  - auto_increment
+[27-Oct-2025 22:26:49 Asia/Manila]   user_id - int(11) - NO -  -  - 
+[27-Oct-2025 22:26:49 Asia/Manila]   product_id - int(11) - NO -  -  - 
+[27-Oct-2025 22:26:49 Asia/Manila]   quantity - int(11) - NO -  - 1 - 
+[27-Oct-2025 22:26:49 Asia/Manila]   price - decimal(10,2) - NO -  -  - 
+[27-Oct-2025 22:26:49 Asia/Manila]   created_at - timestamp - NO -  - current_timestamp() - 
+[27-Oct-2025 22:26:49 Asia/Manila]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[27-Oct-2025 22:26:50 Asia/Manila] Cart item 108 does not exist in cart table
+[27-Oct-2025 22:26:50 Asia/Manila] Final user data: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [email] => alrainepascua2@gmail.com
+)
+
+[27-Oct-2025 22:26:50 Asia/Manila] REQUEST_METHOD: POST
+[27-Oct-2025 22:26:50 Asia/Manila] POST data: Array
+(
+    [selected_cart_ids] => Array
+        (
+            [0] => 32
+        )
+
+    [subtotal] => 3680.00
+)
+
+[27-Oct-2025 22:26:50 Asia/Manila] SESSION data at cart items check: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 32
+        )
+
+    [subtotal] => 3680
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Cassava Cake
+                    [price] => 230.00
+                    [quantity] => 16
+                    [cart_id] => 32
+                    [product_id] => 12
+                    [status_id] => 1
+                    [available_days] => Sunday,Tuesday,Thursday,Saturday
+                )
+
+        )
+
+    [cart_total] => 3680
+    [shipping_method] => pickup
+    [has_pickup_only] => 1
+    [has_delivery_only] => 
+    [has_flexible] => 
+    [can_change_shipping] => 
+)
+
+[27-Oct-2025 22:26:50 Asia/Manila] Got cart IDs from POST: 32
+[27-Oct-2025 22:26:50 Asia/Manila] Final selected_cart_ids: Array
+(
+    [0] => 32
+)
+
+[27-Oct-2025 22:26:50 Asia/Manila] Final subtotal: 3680
+[27-Oct-2025 22:26:50 Asia/Manila] Selected cart IDs: Array
+(
+    [0] => 32
+)
+
+[27-Oct-2025 22:26:50 Asia/Manila] Subtotal: 3680
+[27-Oct-2025 22:26:50 Asia/Manila] Cart item 32 is valid for user 5
+[27-Oct-2025 22:26:50 Asia/Manila] Validated cart IDs: 32
+[27-Oct-2025 22:26:52 Asia/Manila] Cart has Pick Up Only items - forcing pickup (flexible items inherit pickup)
+[27-Oct-2025 22:26:52 Asia/Manila] Cart analysis: 1 items | Pickup Only: YES | Delivery Only: NO | Flexible: NO | Method: pickup | Can Change: NO
+[27-Oct-2025 22:26:52 Asia/Manila] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Cassava Cake
+            [price] => 230.00
+            [quantity] => 16
+            [cart_id] => 32
+            [product_id] => 12
+            [status_id] => 1
+            [available_days] => Sunday,Tuesday,Thursday,Saturday
+        )
+
+)
+
+[27-Oct-2025 22:26:52 Asia/Manila] Cart total: 3680
+[27-Oct-2025 22:26:53 Asia/Manila] User data at display point: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [profile_image] => 
+)
+
+[27-Oct-2025 22:26:53 Asia/Manila] Session data at display point: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 32
+        )
+
+    [subtotal] => 3680
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Cassava Cake
+                    [price] => 230.00
+                    [quantity] => 16
+                    [cart_id] => 32
+                    [product_id] => 12
+                    [status_id] => 1
+                    [available_days] => Sunday,Tuesday,Thursday,Saturday
+                )
+
+        )
+
+    [cart_total] => 3680
+    [shipping_method] => pickup
+    [has_pickup_only] => 1
+    [has_delivery_only] => 
+    [has_flexible] => 
+    [can_change_shipping] => 
+)
+
+[27-Oct-2025 22:26:53 Asia/Manila] PHP Warning:  include(../../user-includes/footer.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\checkout.php on line 2537
+[27-Oct-2025 22:26:53 Asia/Manila] PHP Warning:  include(): Failed opening '../../user-includes/footer.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\checkout.php on line 2537
+[27-Oct-2025 22:28:19 Asia/Manila] Database connection successful
+[27-Oct-2025 22:28:20 Asia/Manila] User has 2 items in cart table
+[27-Oct-2025 22:28:20 Asia/Manila] Cart table structure:
+[27-Oct-2025 22:28:20 Asia/Manila]   id - int(11) - NO - PRI -  - auto_increment
+[27-Oct-2025 22:28:20 Asia/Manila]   user_id - int(11) - NO -  -  - 
+[27-Oct-2025 22:28:20 Asia/Manila]   product_id - int(11) - NO -  -  - 
+[27-Oct-2025 22:28:20 Asia/Manila]   quantity - int(11) - NO -  - 1 - 
+[27-Oct-2025 22:28:20 Asia/Manila]   price - decimal(10,2) - NO -  -  - 
+[27-Oct-2025 22:28:20 Asia/Manila]   created_at - timestamp - NO -  - current_timestamp() - 
+[27-Oct-2025 22:28:20 Asia/Manila]   updated_at - timestamp - NO -  - current_timestamp() - on update current_timestamp()
+[27-Oct-2025 22:28:20 Asia/Manila] Cart item 108 does not exist in cart table
+[27-Oct-2025 22:28:20 Asia/Manila] Final user data: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [email] => alrainepascua2@gmail.com
+)
+
+[27-Oct-2025 22:28:20 Asia/Manila] REQUEST_METHOD: POST
+[27-Oct-2025 22:28:20 Asia/Manila] POST data: Array
+(
+    [selected_cart_ids] => Array
+        (
+            [0] => 33
+        )
+
+    [subtotal] => 1980.00
+)
+
+[27-Oct-2025 22:28:20 Asia/Manila] SESSION data at cart items check: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 32
+        )
+
+    [subtotal] => 3680
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Cassava Cake
+                    [price] => 230.00
+                    [quantity] => 16
+                    [cart_id] => 32
+                    [product_id] => 12
+                    [status_id] => 1
+                    [available_days] => Sunday,Tuesday,Thursday,Saturday
+                )
+
+        )
+
+    [cart_total] => 3680
+    [shipping_method] => pickup
+    [has_pickup_only] => 1
+    [has_delivery_only] => 
+    [has_flexible] => 
+    [can_change_shipping] => 
+)
+
+[27-Oct-2025 22:28:20 Asia/Manila] Got cart IDs from POST: 33
+[27-Oct-2025 22:28:20 Asia/Manila] Final selected_cart_ids: Array
+(
+    [0] => 33
+)
+
+[27-Oct-2025 22:28:20 Asia/Manila] Final subtotal: 1980
+[27-Oct-2025 22:28:20 Asia/Manila] Selected cart IDs: Array
+(
+    [0] => 33
+)
+
+[27-Oct-2025 22:28:20 Asia/Manila] Subtotal: 1980
+[27-Oct-2025 22:28:21 Asia/Manila] Cart item 33 is valid for user 5
+[27-Oct-2025 22:28:21 Asia/Manila] Validated cart IDs: 33
+[27-Oct-2025 22:28:22 Asia/Manila] Cart has Delivery Only items - forcing delivery (flexible items inherit delivery)
+[27-Oct-2025 22:28:22 Asia/Manila] Cart analysis: 1 items | Pickup Only: NO | Delivery Only: YES | Flexible: NO | Method: delivery | Can Change: NO
+[27-Oct-2025 22:28:22 Asia/Manila] Cart items: Array
+(
+    [0] => Array
+        (
+            [name] => Sesame Sourdough Batard
+            [price] => 220.00
+            [quantity] => 9
+            [cart_id] => 33
+            [product_id] => 6
+            [status_id] => 2
+            [available_days] => Sunday,Tuesday,Thursday,Saturday
+        )
+
+)
+
+[27-Oct-2025 22:28:22 Asia/Manila] Cart total: 1980
+[27-Oct-2025 22:28:23 Asia/Manila] User data at display point: Array
+(
+    [firstname] => Aine
+    [lastname] => Pascua
+    [profile_image] => 
+)
+
+[27-Oct-2025 22:28:23 Asia/Manila] Session data at display point: Array
+(
+    [user_id] => 5
+    [user_username] => Dyayin
+    [is_verified] => 1
+    [user_firstname] => Aine
+    [user_lastname] => Pascua
+    [user_role] => user
+    [user_data] => Array
+        (
+            [firstname] => Aine
+            [lastname] => Pascua
+            [email] => alrainepascua2@gmail.com
+        )
+
+    [selected_cart_ids] => Array
+        (
+            [0] => 33
+        )
+
+    [subtotal] => 1980
+    [cart_items] => Array
+        (
+            [0] => Array
+                (
+                    [name] => Sesame Sourdough Batard
+                    [price] => 220.00
+                    [quantity] => 9
+                    [cart_id] => 33
+                    [product_id] => 6
+                    [status_id] => 2
+                    [available_days] => Sunday,Tuesday,Thursday,Saturday
+                )
+
+        )
+
+    [cart_total] => 1980
+    [shipping_method] => delivery
+    [has_pickup_only] => 
+    [has_delivery_only] => 1
+    [has_flexible] => 
+    [can_change_shipping] => 
+)
+
+[27-Oct-2025 22:28:23 Asia/Manila] PHP Warning:  include(../../user-includes/footer.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\checkout.php on line 2537
+[27-Oct-2025 22:28:23 Asia/Manila] PHP Warning:  include(): Failed opening '../../user-includes/footer.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\checkout.php on line 2537

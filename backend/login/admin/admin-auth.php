@@ -14,7 +14,7 @@ if (strpos($_SERVER["REQUEST_URI"], "admin-login.php") === false) {
 // Check if user is logged in and is admin using separate session keys
 if (!isset($_SESSION["admin_id"]) || !isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true || $_SESSION["admin_role"] !== "admin") {
     // Redirect to admin login page with error message
-    header("Location: /login/admin/admin-login.php?error=unauthorized");
+    header("Location: backend/login/admin/admin-login.php?error=unauthorized");
     exit();
 }
 
