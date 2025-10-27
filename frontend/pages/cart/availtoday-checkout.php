@@ -1096,11 +1096,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 orderData.customer_name = userName;
                 orderData.customer_email = userEmail;
                 
+                // Calculate final amount with discount
+                console.log('[AVAILTODAY CHECKOUT] DEBUG - appliedCoupon:', appliedCoupon);
+                console.log('[AVAILTODAY CHECKOUT] DEBUG - discountAmount variable:', discountAmount);
+                console.log('[AVAILTODAY CHECKOUT] DEBUG - typeof discountAmount:', typeof discountAmount);
+                
+                const finalAmount = cartTotal - (discountAmount || 0);
+                console.log('[AVAILTODAY CHECKOUT] Cart Total:', cartTotal);
+                console.log('[AVAILTODAY CHECKOUT] Discount Amount:', discountAmount);
+                console.log('[AVAILTODAY CHECKOUT] Final Amount:', finalAmount);
+                console.log('[AVAILTODAY CHECKOUT] Final Amount being sent to PayMongo:', parseFloat(finalAmount));
+                
                 // Prepare payment data for PayMongo
                 const paymentData = {
                     payment_method: paymentMethodEl.value,
                     order_type: 'availtoday',  // Different from regular checkout
-                    amount: parseFloat(cartTotal),
+                    amount: parseFloat(finalAmount),
                     order_data: orderData
                 };
                 
