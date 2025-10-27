@@ -28,7 +28,7 @@
   /* Typography */
   --breadcrumb-font: "Inter", "Segoe UI", -apple-system, BlinkMacSystemFont,
     sans-serif;
-  --breadcrumb-font-size: 0.875rem;
+  --breadcrumb-font-size: 1rem;
   --breadcrumb-font-weight: 500;
   --breadcrumb-line-height: 1.5;
 
@@ -186,7 +186,7 @@
 
   :root {
     --breadcrumb-padding: 0.875rem 1.5rem;
-    --breadcrumb-font-size: 0.8125rem;
+    --breadcrumb-font-size: 1rem;
   }
 }
 
@@ -194,7 +194,6 @@
 @media (max-width: 768px) {
   .breadcrumb-container {
     padding: 0 0.5rem;
-    margin-bottom: 1.5rem;
   }
 
   :root {
@@ -210,6 +209,7 @@
     scrollbar-width: thin;
     scrollbar-color: var(--breadcrumb-separator) transparent;
     padding-bottom: 0.5rem;
+    font-size: 0.875rem; /* 14px */
   }
 
   .breadcrumb-list::-webkit-scrollbar {
@@ -239,21 +239,20 @@
   .breadcrumb-current {
     padding: 0.375rem 0.625rem;
     min-height: 2rem;
-    font-size: 0.8125rem;
+    font-size: 0.875rem; /* 14px */
+  }
+
+  .breadcrumb-text {
+    font-size: 0.875rem; /* 14px */
   }
 }
 
 /* Mobile phones */
 @media (max-width: 480px) {
-  .breadcrumb-container {
-    margin-bottom: 0.25rem;
-  }
-
   :root {
     --breadcrumb-padding: 0.625rem 1rem;
     --breadcrumb-radius: 8px;
     --breadcrumb-height: 2.5rem;
-    --breadcrumb-font-size: 0.75rem;
   }
 
   .breadcrumb-nav {
@@ -262,6 +261,7 @@
 
   .breadcrumb-list {
     gap: 0.375rem;
+    font-size: 0.75rem; /* 12px */
   }
 
   .breadcrumb-link,
@@ -269,6 +269,11 @@
     padding: 0.25rem 0.5rem;
     min-height: 1.75rem;
     border-radius: 6px;
+    font-size: 0.75rem; /* 12px */
+  }
+
+  .breadcrumb-text {
+    font-size: 0.75rem; /* 12px */
   }
 
   .separator-icon {
@@ -278,6 +283,88 @@
 
   .breadcrumb-separator {
     margin: 0 0.125rem;
+  }
+}
+
+/* Standard responsive breakpoints - matching navbar design */
+@media (max-width: 425px) {
+  .breadcrumb-container {
+    padding: 0 0.75rem;
+  }
+
+  .breadcrumb-list {
+    font-size: 0.6875rem; /* 11px */
+    gap: 0.25rem;
+  }
+
+  .breadcrumb-link,
+  .breadcrumb-current {
+    padding: 0.1875rem 0.375rem;
+    min-height: 1.5rem;
+    font-size: 0.6875rem; /* 11px */
+  }
+
+  .breadcrumb-text {
+    font-size: 0.6875rem; /* 11px */
+  }
+
+  .separator-icon {
+    width: 10px;
+    height: 10px;
+  }
+}
+
+@media (max-width: 375px) {
+  .breadcrumb-container {
+    padding: 0 0.5rem;
+  }
+
+  .breadcrumb-list {
+    font-size: 0.625rem; /* 10px */
+    gap: 0.1875rem;
+  }
+
+  .breadcrumb-link,
+  .breadcrumb-current {
+    padding: 0.125rem 0.25rem;
+    min-height: 1.25rem;
+    font-size: 0.625rem; /* 10px */
+  }
+
+  .breadcrumb-text {
+    font-size: 0.625rem; /* 10px */
+  }
+
+  .separator-icon {
+    width: 8px;
+    height: 8px;
+  }
+}
+
+@media (max-width: 320px) {
+  .breadcrumb-container {
+    padding: 0 0.25rem;
+  }
+
+  .breadcrumb-list {
+    font-size: 0.75rem; /* 9px */
+    gap: 0.125rem;
+  }
+
+  .breadcrumb-link,
+  .breadcrumb-current {
+    padding: 0.0625rem 0.1875rem;
+    min-height: 1rem;
+    font-size: 0.5625rem; /* 9px */
+  }
+
+  .breadcrumb-text {
+    font-size: 0.5625rem; /* 9px */
+  }
+
+  .separator-icon {
+    width: 6px;
+    height: 6px;
   }
 }
 

@@ -37,11 +37,20 @@ a {
   font-family: "Spectral", serif !important;
 }
 
+html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden;
+}
+
 body {
   background-color: var(--white);
   color: var(--secondary);
   padding: 0;
-  overflow-x: hidden; /* Prevent horizontal scroll */
+  margin: 0;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 /* Header Wrapper */
@@ -158,7 +167,9 @@ html.homepage-animation .announcement-bar {
   background-color: #0f5132;
   position: relative;
   padding: 0;
+  margin: 0;
   color: var(--white);
+  width: 100%;
   /* Default visible state */
   opacity: 1;
   visibility: visible;
@@ -194,6 +205,7 @@ html.homepage-animation .main-nav {
   justify-content: space-between;
   align-items: center;
   max-width: 1400px;
+  width: 100%;
   margin: 0 auto;
   height: 80px;
   padding: 0 15px;
@@ -395,7 +407,7 @@ html.homepage-animation .main-nav {
 /* Mobile Search Box */
 .mobile-search-box {
   width: 100%;
-  background-color: var(--primary-light);
+  background-color: #0f5132;
   padding: 0;
   max-height: 0;
   overflow: hidden;
@@ -434,9 +446,22 @@ html.homepage-animation .main-nav {
 
 /* Mobile search button styling */
 .mobile-search-box .search-btn {
-  background-color: var(--light-accent);
+  background-color: var(--lightest);
   color: var(--primary-dark);
+  border: none;
+  border-radius: 20px;
+  padding: 5px 32px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  white-space: nowrap;
   font-weight: 500;
+}
+
+.mobile-search-box .search-btn:hover {
+  background-color: var(--primary-dark);
+  color: var(--lightest);
+  transform: translateY(-1px);
 }
 
 .mobile-search-box .search-input {
@@ -446,7 +471,7 @@ html.homepage-animation .main-nav {
 /* Mobile Products Dropdown */
 .mobile-products-dropdown {
   width: 100%;
-  background-color: var(--primary-dark);
+  background-color: #0f5132;
   padding: 0;
   max-height: 0;
   overflow: hidden;
@@ -494,7 +519,7 @@ html.homepage-animation .main-nav {
 }
 
 /* Hide mobile products dropdown on desktop */
-@media (min-width: 993px) {
+@media (min-width: 1025px) {
   .mobile-products-dropdown {
     display: none;
   }
@@ -874,8 +899,8 @@ html.homepage-animation .main-nav {
   box-shadow: 0 3px 8px rgba(15, 81, 50, 0.3) !important;
 }
 
-/* Mobile Responsive Design */
-@media (max-width: 992px) {
+/* Mobile Responsive Design - Updated for 1024px */
+@media (max-width: 1024px) {
   .notification-dropdown {
     position: fixed;
     top: 80px !important;
@@ -974,7 +999,7 @@ html.homepage-animation .main-nav {
   }
 }
 
-@media (max-width: 576px) {
+@media (max-width: 425px) {
   .notification-dropdown {
     left: 8px;
     right: 8px;
@@ -1203,46 +1228,51 @@ html.homepage-animation .main-nav {
 }
 
 /* Responsive Styles - IMPROVED */
-@media (max-width: 1200px) {
-  .nav-left {
-    gap: 20px;
-  }
-
-  .nav-left a {
-    font-size: 16px;
-  }
-
-  .profile-name {
-    font-size: 14px;
-  }
-}
-
-/* FIXED RESPONSIVE STYLES FOR ALL BREAKPOINTS */
-@media (max-width: 992px) {
-  /* Reset the nav-content structure */
+/* MOBILE LAYOUT STARTS HERE - 1024px and below */
+@media (max-width: 1024px) {
+  /* Ensure full width and proper mobile structure */
   .nav-content {
+    display: flex;
     flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
     height: auto;
+    min-height: 60px;
     padding: 10px 15px;
+    max-width: 100%;
+    width: 100%;
+    margin: 0;
+    position: relative;
+    box-sizing: border-box;
   }
 
   /* First row: hamburger and right-nav perfectly aligned */
   .mobile-menu-toggle {
     display: flex;
     align-items: center;
+    justify-content: center;
     order: 1;
     margin: 0;
     height: 40px;
+    width: 40px;
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    color: var(--lightest);
+    cursor: pointer;
   }
 
   .nav-right {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     order: 2;
     margin-left: auto;
+    gap: 10px;
+    flex-shrink: 0;
   }
 
-  /* Second row: centered logo */
+  /* Second row: centered logo - takes full width */
   .nav-center {
     position: relative;
     left: 0;
@@ -1251,34 +1281,52 @@ html.homepage-animation .main-nav {
     width: 100%;
     display: flex;
     justify-content: center;
+    margin-top: 5px;
+    flex-basis: 100%;
+    flex-shrink: 0;
   }
 
-  /* Nav left should only appear when hamburger is clicked */
+  /* Hide desktop nav-left items */
   .nav-left {
+    display: none;
+    order: 4;
+  }
+
+  /* Create mobile nav menu that appears when hamburger is clicked */
+  .nav-left.active {
+    display: flex;
     position: absolute;
     top: 100%;
     left: 0;
     width: 100%;
     flex-direction: column;
-    background-color: var(--primary-light);
+    background-color: #0f5132;
     padding: 0;
     gap: 0;
-    max-height: 0;
-    overflow: hidden;
-    opacity: 0;
+    max-height: 500px;
+    opacity: 1;
     z-index: 100;
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease-in-out;
-  }
-
-  .nav-left.active {
-    max-height: 500px; /* Increased to accommodate Products dropdown */
-    opacity: 1;
+    order: 4;
+    border-top: 1px solid var(--primary);
   }
 
   /* Hide desktop search box on mobile */
   .desktop-search-box {
     display: none;
+  }
+
+  /* Hide desktop products dropdown on mobile */
+  .products-dropdown {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+  }
+
+  .products-container:hover .products-dropdown {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
   }
 
   /* Ensure notification dropdown works on mobile */
@@ -1353,7 +1401,7 @@ html.homepage-animation .main-nav {
 }
 
 /* Hide mobile search box and products dropdown on desktop */
-@media (min-width: 993px) {
+@media (min-width: 1025px) {
   .mobile-search-box {
     display: none;
   }
@@ -1364,7 +1412,7 @@ html.homepage-animation .main-nav {
 
 /* Apply the same layout to smaller breakpoints */
 @media (max-width: 768px) {
-  /* Keep the same structure as 992px */
+  /* Keep the same structure as 1024px */
   .nav-content {
     padding: 8px 12px;
   }
@@ -1380,8 +1428,8 @@ html.homepage-animation .main-nav {
   }
 }
 
-@media (max-width: 576px) {
-  /* Keep the same structure as 992px */
+@media (max-width: 425px) {
+  /* Keep the same structure as 1024px */
   .nav-content {
     padding: 6px 10px;
   }
@@ -1402,8 +1450,8 @@ html.homepage-animation .main-nav {
   }
 }
 
-@media (max-width: 360px) {
-  /* Keep the same structure as 992px */
+@media (max-width: 375px) {
+  /* Keep the same structure as 1024px */
   .nav-content {
     padding: 5px 8px;
   }
@@ -1421,6 +1469,28 @@ html.homepage-animation .main-nav {
   .login-link {
     padding: 5px 10px;
     font-size: 11px;
+  }
+}
+
+@media (max-width: 320px) {
+  /* Keep the same structure as 1024px */
+  .nav-content {
+    padding: 4px 6px;
+  }
+
+  .logo {
+    height: 32px;
+  }
+
+  .icon-wrapper,
+  .search-toggle {
+    width: 28px;
+    height: 28px;
+  }
+
+  .login-link {
+    padding: 4px 8px;
+    font-size: 10px;
   }
 }
 
@@ -1492,7 +1562,7 @@ html.homepage-animation .main-nav {
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 425px) {
   .products-dropdown {
     width: 160px;
     left: -70px;
@@ -1546,7 +1616,7 @@ html.homepage-animation .main-nav {
 }
 
 /* Ensure proper positioning for desktop */
-@media (min-width: 993px) {
+@media (min-width: 1025px) {
   .notification-dropdown {
     position: absolute !important;
     top: 50px !important;

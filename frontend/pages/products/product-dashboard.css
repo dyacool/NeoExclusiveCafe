@@ -242,7 +242,7 @@
   display: flex;
 }
 
-h3 {
+.product-name h3 {
   font-size: 1.5rem !important;
   font-weight: 600;
   text-align: left;
@@ -369,6 +369,7 @@ h3 {
 
 /* Add to Cart Button - Exact copy */
 .add-to-cart {
+  font-size: 1rem;
   display: block;
   width: 95%;
   margin: 0 auto;
@@ -487,7 +488,7 @@ h3 {
 
 .main-image {
   width: 100%;
-  height: 400px;
+  height: 350px;
   overflow: hidden;
   border-radius: 8px;
   margin-bottom: 15px;
@@ -535,7 +536,7 @@ h3 {
   margin-top: 15px;
   white-space: normal;
   word-wrap: break-word;
-  max-width: 35ch;
+  max-width: 100%;
 }
 
 .modal-price {
@@ -557,12 +558,17 @@ h3 {
   gap: 8px;
 }
 
+.modal h3 {
+  font-size: 18px;
+}
+
 .description {
+  font-size: 0.875rem;
   margin: 10px 0;
   line-height: 1.6em;
   color: var(--text-gray2);
   word-wrap: break-word;
-  max-width: 55ch;
+  max-width: 100%;
   text-align: justify;
   padding: 15px;
   background: #f8f9fa;
@@ -1006,10 +1012,6 @@ h3 {
     gap: 20px;
   }
 
-  .main-container {
-    padding: 30px 20px;
-  }
-
   .prdct-title {
     font-size: 2.2em;
   }
@@ -1035,10 +1037,6 @@ h3 {
   .products-grid {
     grid-template-columns: repeat(3, 1fr);
     gap: 18px;
-  }
-
-  .main-container {
-    padding: 25px 20px;
   }
 
   .prdct-title {
@@ -1091,7 +1089,26 @@ h3 {
   }
 
   .main-image {
-    height: 300px;
+    height: 280px;
+  }
+
+  .modal-title {
+    font-size: 22px;
+    max-width: 100%;
+  }
+
+  .modal-price {
+    font-size: 19px;
+  }
+
+  .description {
+    max-width: 100%;
+    font-size: 15px;
+    text-align: left;
+  }
+
+  .add-to-cart {
+    width: 100%;
   }
 
   .thumbnail-container {
@@ -1101,7 +1118,7 @@ h3 {
   .close {
     right: 10px;
     top: 10px;
-    font-size: 24px;
+    font-size: 40px;
     width: 35px;
     height: 35px;
   }
@@ -1112,10 +1129,6 @@ h3 {
   .products-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 20px;
-  }
-
-  .main-container {
-    padding: 20px 15px;
   }
 
   .scroll-container {
@@ -1171,15 +1184,22 @@ h3 {
   }
 
   .main-image {
-    height: 260px;
+    height: 240px;
   }
 
   .modal-title {
     font-size: 20px;
+    max-width: 100%;
   }
 
   .modal-price {
     font-size: 18px;
+  }
+
+  .description {
+    max-width: 100%;
+    font-size: 14px;
+    text-align: left;
   }
 
   .close {
@@ -1193,136 +1213,6 @@ h3 {
   }
 }
 
-/* Large Mobile (480px to 639px) - 2 columns compact */
-@media (min-width: 480px) and (max-width: 639px) {
-  .products-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-  }
-
-  .main-container {
-    padding: 15px 12px;
-  }
-
-  .scroll-container {
-    padding: 0 12px;
-  }
-
-  .prdct-title {
-    font-size: 1.7em;
-  }
-
-  .prdct-subtitle {
-    font-size: 0.95em;
-  }
-
-  .header-section {
-    flex-direction: column;
-    gap: 12px;
-    padding: 0;
-  }
-
-  .header-right {
-    width: 100%;
-    flex-wrap: wrap;
-  }
-
-  .sort-container {
-    flex: 1;
-    min-width: 180px;
-  }
-
-  .product-card {
-    border-radius: 10px;
-  }
-
-  .product-image {
-    height: 140px;
-  }
-
-  .product-info {
-    padding: 12px;
-  }
-
-  .product-info h3 {
-    font-size: 14px;
-    min-height: 40px;
-  }
-
-  .price {
-    font-size: 17px;
-  }
-
-  .availtoday-badge {
-    font-size: 11px;
-    padding: 3px 8px;
-  }
-
-  .stock {
-    font-size: 12px;
-  }
-
-  .quantity-controls button {
-    width: 28px;
-    height: 28px;
-  }
-
-  .quantity-controls input {
-    width: 50px;
-    height: 28px;
-    font-size: 13px;
-  }
-
-  .add-to-cart {
-    padding: 10px;
-    font-size: 12px;
-  }
-
-  /* Modal - consistent centering for large mobile */
-  .modal-content {
-    width: 94%;
-    max-width: 580px;
-    padding: 20px 15px;
-    max-height: 82vh;
-  }
-
-  .main-image {
-    height: 220px;
-  }
-
-  .modal-body {
-    gap: 15px;
-    flex-direction: column;
-  }
-
-  .modal-title {
-    font-size: 18px;
-    max-width: 100%;
-  }
-
-  .modal-price {
-    font-size: 17px;
-  }
-
-  .description {
-    max-width: 100%;
-    font-size: 14px;
-  }
-
-  .thumbnail-container img {
-    width: 60px;
-    height: 60px;
-  }
-
-  .close {
-    font-size: 20px;
-    width: 30px;
-    height: 30px;
-    right: 8px;
-    top: 8px;
-  }
-}
-
 /* Standard Mobile (375px to 479px) - 1 column */
 @media (min-width: 375px) and (max-width: 479px) {
   .products-grid {
@@ -1330,20 +1220,26 @@ h3 {
     gap: 16px;
   }
 
-  .main-container {
-    padding: 15px 10px;
-  }
-
   .scroll-container {
-    padding: 0 10px;
+    padding: 0 1.5rem;
   }
 
   .prdct-title {
-    font-size: 1.6em;
+    font-size: 2rem;
   }
 
   .prdct-subtitle {
-    font-size: 0.9em;
+    font-size: 1.25rem;
+  }
+
+  .category-tabs {
+    padding: 0px !important;
+  }
+
+  .category-tab {
+    padding: 5px 15px !important;
+    border-radius: 25px;
+    font-size: 0.75rem !important;
   }
 
   .header-section {
@@ -1369,12 +1265,13 @@ h3 {
   }
 
   .product-info h3 {
-    font-size: 15px;
+    font-size: 1.125rem;
     min-height: auto;
+    margin-bottom: 0;
   }
 
   .price {
-    font-size: 18px;
+    font-size: 1rem;
   }
 
   .quantity-controls {
@@ -1402,7 +1299,7 @@ h3 {
   }
 
   .main-image {
-    height: 200px;
+    height: 180px;
   }
 
   .modal-body {
@@ -1412,14 +1309,24 @@ h3 {
 
   .modal-title {
     font-size: 17px;
+    margin-top: 0;
+    margin-bottom: 0;
+    max-width: 100%;
   }
 
   .modal-price {
     font-size: 16px;
   }
 
+  .modal h3 {
+    font-size: 15px;
+    margin-bottom: 0.5rem;
+  }
   .description {
     font-size: 13px;
+    max-width: 100%;
+    text-align: left;
+    padding: 10px;
   }
 
   .thumbnail-container img {
@@ -1428,7 +1335,7 @@ h3 {
   }
 
   .close {
-    font-size: 18px;
+    font-size: 35px;
     width: 28px;
     height: 28px;
     right: 6px;
@@ -1443,11 +1350,8 @@ h3 {
     gap: 14px;
   }
 
-  .main-container {
-    padding: 12px 8px;
-  }
-
   .scroll-container {
+    max-width: 300px;
     padding: 0 8px;
   }
 
@@ -1482,7 +1386,7 @@ h3 {
   }
 
   .price {
-    font-size: 17px;
+    font-size: 16px;
     margin: 6px 0;
   }
 
@@ -1525,7 +1429,7 @@ h3 {
   }
 
   .main-image {
-    height: 180px;
+    height: 160px;
   }
 
   .modal-body {
@@ -1535,15 +1439,23 @@ h3 {
 
   .modal-title {
     font-size: 16px;
+    max-width: 100%;
+    margin-top: 0;
   }
 
   .modal-price {
     font-size: 15px;
   }
 
+  .modal h3 {
+    font-size: 15px;
+  }
+
   .description {
-    font-size: 12px;
+    font-size: 14px;
     padding: 10px;
+    max-width: 100%;
+    text-align: left;
   }
 
   .thumbnail-container {
@@ -1556,7 +1468,7 @@ h3 {
   }
 
   .close {
-    font-size: 16px;
+    font-size: 26px;
     width: 26px;
     height: 26px;
     right: 5px;
@@ -1569,10 +1481,6 @@ h3 {
   .products-grid {
     grid-template-columns: 1fr;
     gap: 12px;
-  }
-
-  .main-container {
-    padding: 10px 5px;
   }
 
   .prdct-title {
@@ -1605,7 +1513,7 @@ h3 {
   }
 
   .main-image {
-    height: 160px;
+    height: 140px;
   }
 
   .modal-body {
@@ -1615,6 +1523,7 @@ h3 {
 
   .modal-title {
     font-size: 15px;
+    max-width: 100%;
   }
 
   .modal-price {
@@ -1624,6 +1533,8 @@ h3 {
   .description {
     font-size: 11px;
     padding: 8px;
+    max-width: 100%;
+    text-align: left;
   }
 
   .thumbnail-container img {
@@ -1718,19 +1629,20 @@ h3 {
 
 /* Category Tabs */
 .category-tabs {
+  margin-bottom: 1rem;
   display: flex;
   gap: 10px;
-  margin: 20px 0 30px 0;
   padding: 0 20px;
   flex-wrap: wrap;
   justify-content: center;
 }
 
 .category-tab {
-  padding: 10px 20px;
+  padding: 5px 20px;
   background: #f5f5f5;
   border: 2px solid transparent;
   border-radius: 25px;
+  font-size: 1rem; /* 14px */
   text-decoration: none;
   color: #333;
   font-weight: 500;
@@ -1748,18 +1660,6 @@ h3 {
   background: #256035;
   color: white;
   border-color: #256035;
-}
-
-@media (max-width: 768px) {
-  .category-tabs {
-    padding: 0 10px;
-    gap: 8px;
-  }
-
-  .category-tab {
-    padding: 8px 16px;
-    font-size: 14px;
-  }
 }
 
 /* Today Badge on Card (top-left corner) */
