@@ -82,7 +82,6 @@ $additional_css = [
     "checkout.css"
 ];
 
-require_once "../../user-includes/user-header.php";
 
 // Session validation passed - user is logged in
 
@@ -2312,7 +2311,6 @@ $debug_info = [
 </div>
 
 <!-- Add Bootstrap CSS -->
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 <!-- Add jQuery -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
@@ -2534,7 +2532,7 @@ function startCountdownTimer(submitButton, buttonText, initialCountdown = 20) {
 </script>
 
 <?php
-include '../../user-includes/footer.php';
+include '../../user-includes/user-footer.php';
 ?>
 </body>
 </html>
