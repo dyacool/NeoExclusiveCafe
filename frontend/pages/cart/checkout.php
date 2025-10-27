@@ -478,7 +478,8 @@ $debug_info = [
     .calendar-header {
       background: #256035;
       color: white;
-      padding: 15px;
+      padding: 12px;
+      border-radius: 8px 8px 0 0;
       text-align: center;
       position: relative;
     }
@@ -490,8 +491,8 @@ $debug_info = [
       background: rgba(255,255,255,0.2);
       border: none;
       color: white;
-      padding: 8px 12px;
-      border-radius: 4px;
+      padding: 3px 10px;
+      border-radius: 999px;
       cursor: pointer;
       font-size: 16px;
       transition: background 0.3s;
@@ -523,7 +524,7 @@ $debug_info = [
     }
     
     .weekday {
-      padding: 12px 8px;
+      padding: 10px 8px;
       text-align: center;
       font-weight: bold;
       color: #666;
@@ -665,11 +666,7 @@ $debug_info = [
       margin-bottom: 20px;
     }
     
-    .datetime-inputs {
-      width: 100%;
-      max-width: 400px;
-    }
-    
+
     .form-group {
       margin-bottom: 15px;
     }
@@ -682,10 +679,11 @@ $debug_info = [
     }
     
     .form-group input {
+
       width: 100%;
-      padding: 10px;
+      padding: 9px 12px;
       border: 1px solid #ddd;
-      border-radius: 4px;
+      border-radius: 8px;
       font-size: 14px;
     }
     
@@ -705,15 +703,19 @@ $debug_info = [
     
     .address-section {
       margin-bottom: 20px;
+      display: flex;
+      gap: 10px;
+      align-items: stretch;
     }
     
     .address-section input {
-      width: 100%;
+      flex: 2;
       padding: 10px;
       border: 1px solid #ddd;
       border-radius: 4px;
       font-size: 14px;
-      margin-bottom: 10px;
+      margin-bottom: 0;
+      height: auto;
     }
     
     .btn-secondary {
@@ -723,6 +725,11 @@ $debug_info = [
       padding: 10px 20px;
       border-radius: 4px;
       cursor: pointer;
+      flex: 0 0 auto;
+      min-width: 250px;
+      font-size: 14px;
+      font-weight: 500;
+      white-space: nowrap;
       font-size: 14px;
     }
     
@@ -795,6 +802,7 @@ $debug_info = [
       border: 1px solid #c8e6c9;
       border-radius: 6px;
       padding: 12px 16px;
+      text-align: center;
       margin: 15px 0;
       color: #2e7d32;
     }
@@ -967,30 +975,11 @@ $debug_info = [
     .shipping-details {
       margin-bottom: 30px;
     }
-    
-    .delivery-type {
-      margin-bottom: 20px;
-    }
-    
-    .radio-option {
-      display: inline-block;
-      margin-right: 20px;
-      cursor: pointer;
-    }
-    
-    .radio-option input[type="radio"] {
-      margin-right: 8px;
-    }
-    
-    .radio-option span {
-      font-weight: 500;
-      color: #333;
-    }
-    
+
     /* Coupon Section Styles */
     .coupon-section {
-      margin-bottom: 20px;
-      padding: 15px;
+      margin-top: 15px;
+      padding: 10px;
       background: #f8f9fa;
       border-radius: 8px;
       border: 1px solid #e9ecef;
@@ -999,7 +988,6 @@ $debug_info = [
     .coupon-input-group {
       display: flex;
       gap: 10px;
-      margin-bottom: 10px;
     }
     
     .coupon-input {
@@ -1018,7 +1006,7 @@ $debug_info = [
     }
     
     .btn-apply-coupon {
-      padding: 10px 20px;
+      padding: 10px 2rem;
       background: #256035;
       color: white;
       border: none;
@@ -1875,6 +1863,13 @@ $debug_info = [
             checkoutForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 
+                // Check HTML5 validity first
+                if (!checkoutForm.checkValidity()) {
+                    // Trigger native validation display
+                    checkoutForm.reportValidity();
+                    return;
+                }
+                
                 // Prevent double submission
                 if (orderProcessing) {
                     return;
@@ -2022,6 +2017,8 @@ $debug_info = [
 </head>
 <body class="checkout-page">
 <?php include '../../user-includes/navbar/customer-navigation.php'; ?>
+    <?php include __DIR__ . "/../../user-includes/bread-crumb/bread-crumb.php"; ?>
+
 
 <div class="checkout-container">
     <form id="checkout-form">
@@ -2070,10 +2067,12 @@ $debug_info = [
                 <div class="detail-row">
                     <span class="detail-label">Contact:</span>
                     <input type="tel" id="contact_number" name="contact_number" 
-                           placeholder="Enter your contact number" required 
-                           pattern="(\+63|0)9\d{9}"
-                           title="Please enter a valid 11-digit phone number"
-                           maxlength="13"
+                           placeholder="09xxxxxxxxx (11 digits)" 
+                           required 
+                           pattern="09\d{9}"
+                           title="Please enter a valid 11-digit phone number starting with 09"
+                           maxlength="11"
+                           minlength="11"
                            inputmode="numeric">
                 </div>
             </div>
@@ -2085,41 +2084,46 @@ $debug_info = [
             
             <?php if ($has_pickup_only && $has_flexible): ?>
                 <div class="shipping-method-notice">
-                    <p><strong>Pick Up Required:</strong> Your cart contains Pick Up Only items. All flexible items will also be picked up.</p>
+                    <p><strong>Pick Up Required:</strong> The selected items for checkout are Pick Up Only products.</p>
                 </div>
             <?php elseif ($has_delivery_only && $has_flexible): ?>
                 <div class="shipping-method-notice">
-                    <p><strong>Delivery Required:</strong> Your cart contains Delivery Only items. All flexible items will also be delivered.</p>
+                    <p>The selected items for checkout are Delivery Only products.</p>
                     <p><strong>Delivery Areas:</strong> We deliver to Sta. Rosa, Cabuyao, Calamba, Binan (Laguna), Silang, and Tagaytay (Cavite) only.</p>
                 </div>
             <?php elseif ($has_pickup_only): ?>
                 <div class="shipping-method-notice">
-                    <p><strong>Pick Up Required:</strong> All items in your cart are Pick Up Only products.</p>
+                    <p><strong>Pick Up Required:</strong> The selected items for checkout are Pick Up Only products.</p>
                 </div>
             <?php elseif ($has_delivery_only): ?>
                 <div class="shipping-method-notice">
-                    <p><strong>Delivery Required:</strong> All items in your cart are Delivery Only products.</p>
+                    <p>The selected items for checkout are Delivery Only products.</p>
                     <p><strong>Delivery Areas:</strong> We deliver to Sta. Rosa, Cabuyao, Calamba, Binan (Laguna), Silang, and Tagaytay (Cavite) only.</p>
                 </div>
             <?php elseif ($has_flexible): ?>
                 <div class="shipping-method-notice" style="background: #e3f2fd; border-color: #90caf9;">
-                    <p><strong>Choose Your Method:</strong> All items in your cart are flexible. You can choose either Pick Up or Delivery.</p>
+                    <p><strong>Choose Your Shipping Method:</strong> The selected items for checkout have flexible shipping options. You can choose either Pick Up or Delivery.</p>
                 </div>
             <?php endif; ?>
             
-            <div class="delivery-type">
-                <label class="radio-option">
-                    <input type="radio" id="pickup" name="delivery_method" value="pickup" 
-                           <?= $shipping_method === 'pickup' ? 'checked' : '' ?>
-                           <?= !$can_change_shipping && $shipping_method !== 'pickup' ? 'disabled' : '' ?>>
-                    <span>Pick Up <?= !$can_change_shipping && $shipping_method !== 'pickup' ? '(Not available)' : '' ?></span>
-                </label>
-                <label class="radio-option">
-                    <input type="radio" id="delivery" name="delivery_method" value="delivery"
-                           <?= $shipping_method === 'delivery' ? 'checked' : '' ?>
-                           <?= !$can_change_shipping && $shipping_method !== 'delivery' ? 'disabled' : '' ?>>
-                    <span>Delivery <?= !$can_change_shipping && $shipping_method !== 'delivery' ? '(Not available)' : '' ?></span>
-                </label>
+            <div class="delivery-modes">
+                <div>
+                    <label class="section-subtitle">Select Delivery Method:</label>
+                </div>
+                <div class="delivery-type">
+                    <label class="radio-option">
+                        <input type="radio" id="pickup" name="delivery_method" value="pickup" 
+                            <?= $shipping_method === 'pickup' ? 'checked' : '' ?>
+                            <?= !$can_change_shipping && $shipping_method !== 'pickup' ? 'disabled' : '' ?>>
+                        <span>Pick Up <?= !$can_change_shipping && $shipping_method !== 'pickup' ? '(Not available)' : '' ?></span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" id="delivery" name="delivery_method" value="delivery"
+                            <?= $shipping_method === 'delivery' ? 'checked' : '' ?>
+                            <?= !$can_change_shipping && $shipping_method !== 'delivery' ? 'disabled' : '' ?>>
+                        <span>Delivery <?= !$can_change_shipping && $shipping_method !== 'delivery' ? '(Not available)' : '' ?></span>
+                    </label>
+                </div>
             </div>
     
             <!-- Pickup Details -->
@@ -2142,20 +2146,25 @@ $debug_info = [
             <!-- Delivery Details -->
             <div id="delivery-details" class="delivery-content" style="display: none;">
                 <div class="address-section">
-                    <input type="text" id="delivery_address" name="delivery_address" 
-                           placeholder="Enter delivery address" readonly>
-                    <button type="button" id="setLocationBtn" class="btn-secondary">Set Location</button>
+                    <div>
+                        <label for="delivery_address" class="section-subtitle" >Delivery Address:</label>
+                    </div>
+                    <div class="address-input-group">
+                        <input type="text" id="delivery_address" name="delivery_address" 
+                               placeholder="Use set location button to enter delivery address" readonly>
+                        <button type="button" id="setLocationBtn" class="btn-secondary">Set Location</button>
+                    </div>
                 </div>
                 <div class="datetime-inputs">
                     <div class="form-group">
                         <label for="delivery_date">Delivery Date:</label>
-                        <input type="text" id="delivery_date" name="delivery_date" readonly required>
+                        <input type="text" id="delivery_date" name="delivery_date" placeholder="Select Date From the Calendar above" readonly required>
                     </div>
-                    <div class="delivery_time">
+                    <div class="form-group">
                         <label for="delivery_time">Delivery Time:</label>
                         <input type="time" id="delivery_time" name="delivery_time" 
                                min="06:00" max="18:00" step="1800" required>
-                        <small class="time-note">Available time: 6:00 AM - 6:00 PM (30-minute intervals)</small>
+                        <small class="time-note">Available time: 6:00 AM - 6:00 PM</small>
                     </div>
                 </div>
             </div>
@@ -2166,28 +2175,7 @@ $debug_info = [
             <h2>Order Summary</h2>
             
             <!-- Coupon Code Section -->
-            <div class="coupon-section">
-                <div class="coupon-input-group">
-                    <input type="text" id="coupon_code" name="coupon_code" 
-                           placeholder="Enter coupon code" 
-                           class="coupon-input">
-                    <button type="button" id="apply_coupon_btn" class="btn-apply-coupon">Apply</button>
-                </div>
-                <div id="coupon_message" class="coupon-message"></div>
-                <div id="coupon_applied" class="coupon-applied" style="display: none;">
-                    <div class="applied-coupon-info">
-                        <span class="coupon-code-display"></span>
-                        <span class="coupon-discount"></span>
-                        <button type="button" id="remove_coupon_btn" class="btn-remove-coupon">Remove</button>
-                    </div>
-                </div>
-            </div>
-            
-            <?php if ($shipping_method === 'pickup' || $shipping_method === 'delivery'): ?>
-                <div class="shipping-method-notice">
-                    <p><strong>Shipping Method:</strong> <?= ucfirst($shipping_method) ?> (Automatically set based on product availability)</p>
-                </div>
-            <?php endif; ?>
+
             
             <div class="summary-items">
                 <?php foreach ($cart_items as $item): ?>
@@ -2199,7 +2187,7 @@ $debug_info = [
                                     <span class="shipping-indicator" style="display: inline-block; margin-left: 8px; padding: 2px 8px; background: #f0f0f0; border-radius: 3px; font-size: 11px; color: #666; font-weight: normal;"></span>
                                 <?php endif; ?>
                             </h3>
-                            <p class="quantity">Quantity: <?= $item['quantity'] ?></p>
+                            <p class="quantity"><?= $item['quantity'] ?> x <?= $item['price'] ?></p>
                             <?php if ($item['status_id'] == 1): ?>
                                 <p class="product-shipping-method" style="font-size: 12px; color: #4CAF50; font-weight: 600;">🚶 Pick Up Only</p>
                             <?php elseif ($item['status_id'] == 2): ?>
@@ -2212,6 +2200,8 @@ $debug_info = [
                     </div>
                 <?php endforeach; ?>
             </div>
+
+
             <div class="summary-totals">
                 <div class="total-row">
                     <span>Subtotal:</span>
@@ -2228,6 +2218,23 @@ $debug_info = [
                 <div class="total-row total-final">
                     <span>Total:</span>
                     <span id="total">₱<?= number_format($cart_total, 2) ?></span>
+                </div>
+            </div>
+
+            <div class="coupon-section">
+                <div class="coupon-input-group">
+                    <input type="text" id="coupon_code" name="coupon_code" 
+                           placeholder="Enter coupon code" 
+                           class="coupon-input">
+                    <button type="button" id="apply_coupon_btn" class="btn-apply-coupon">Apply</button>
+                </div>
+                <div id="coupon_message" class="coupon-message"></div>
+                <div id="coupon_applied" class="coupon-applied" style="display: none;">
+                    <div class="applied-coupon-info">
+                        <span class="coupon-code-display"></span>
+                        <span class="coupon-discount"></span>
+                        <button type="button" id="remove_coupon_btn" class="btn-remove-coupon">Remove</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2260,19 +2267,16 @@ $debug_info = [
             </div>
         </div>
 
-        <!-- Order Notes -->
         <div class="section-card order-notes">
             <h2>Order Notes</h2>
             <textarea id="order_notes" name="order_notes" 
                       placeholder="Add any special instructions or notes here (optional)"></textarea>
         </div>
 
-        <!-- Place Order Button -->
         <button type="submit" class="btn-primary place-order-btn" style="background-color: #256035;">Place Order</button>
     </form>
 </div>
 
-<!-- Location Modal -->
 <div id="locationModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -2364,19 +2368,49 @@ document.addEventListener('DOMContentLoaded', function() {
 
 const phoneInput = document.getElementById('contact_number');
 
-phoneInput.addEventListener('input', function () {
-    // Always allow only numbers and optional leading +
-    this.value = this.value.replace(/[^\d+]/g, '');
+// Add touched class handling for better validation UX
+function addTouchedClassToInputs() {
+    const inputs = document.querySelectorAll('input, textarea, select');
+    inputs.forEach(input => {
+        // Add touched class on blur (when user leaves the field)
+        input.addEventListener('blur', function() {
+            this.classList.add('touched');
+        });
+        
+        // Add touched class on first input
+        input.addEventListener('input', function() {
+            if (!this.classList.contains('touched')) {
+                this.classList.add('touched');
+            }
+        }, { once: true });
+    });
+}
 
-    // Check prefix and set maxlength accordingly
-    if (this.value.startsWith('+63')) {
-      this.maxLength = 13;  // +63 + 9-digit number
-    } else if (this.value.startsWith('0')) {
-      this.maxLength = 11;  // 0 + 10-digit number
-    } else {
-      this.maxLength = 13; // default to max possible
+// Initialize touched class handling
+addTouchedClassToInputs();
+
+phoneInput.addEventListener('input', function () {
+    // Only allow digits
+    this.value = this.value.replace(/[^\d]/g, '');
+    
+    // Ensure it starts with 09
+    if (this.value.length > 0 && !this.value.startsWith('09')) {
+        // If user types something that doesn't start with 09, prepend 09
+        if (this.value.startsWith('9')) {
+            this.value = '0' + this.value;
+        } else if (!this.value.startsWith('0')) {
+            this.value = '09' + this.value;
+        } else {
+            // If starts with 0 but not 09, replace with 09
+            this.value = '09' + this.value.substring(1);
+        }
     }
-  });
+    
+    // Limit to 11 digits maximum
+    if (this.value.length > 11) {
+        this.value = this.value.substring(0, 11);
+    }
+});
 
 // PayMongo Payment Processing Functions
 async function processPayment(paymentData) {
