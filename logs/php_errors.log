@@ -83615,3 +83615,153 @@ Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or P
 
 [27-Oct-2025 22:28:23 Asia/Manila] PHP Warning:  include(../../user-includes/footer.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\checkout.php on line 2537
 [27-Oct-2025 22:28:23 Asia/Manila] PHP Warning:  include(): Failed opening '../../user-includes/footer.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NeoCafe\frontend\pages\cart\checkout.php on line 2537
+[27-Oct-2025 22:48:44 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[27-Oct-2025 22:48:44 Asia/Manila] Total featured products found: 11
+[27-Oct-2025 22:48:49 Asia/Manila] PHP Deprecated:  str_replace(): Passing null to parameter #3 ($subject) of type array|string is deprecated in C:\xampp\htdocs\NeoCafe\frontend\pages\home\user-dashboard.php on line 184
+[27-Oct-2025 22:48:49 Asia/Manila] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\NeoCafe\frontend\pages\home\user-dashboard.php on line 201
+[27-Oct-2025 22:48:49 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[27-Oct-2025 23:00:46 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[27-Oct-2025 23:00:46 Asia/Manila] Total featured products found: 11
+[27-Oct-2025 23:00:51 Asia/Manila] PHP Deprecated:  str_replace(): Passing null to parameter #3 ($subject) of type array|string is deprecated in C:\xampp\htdocs\NeoCafe\frontend\pages\home\user-dashboard.php on line 184
+[27-Oct-2025 23:00:51 Asia/Manila] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\NeoCafe\frontend\pages\home\user-dashboard.php on line 201
+[27-Oct-2025 23:00:51 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[28-Oct-2025 00:49:29 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[28-Oct-2025 00:49:29 Asia/Manila] Total featured products found: 11
+[28-Oct-2025 00:49:34 Asia/Manila] PHP Deprecated:  str_replace(): Passing null to parameter #3 ($subject) of type array|string is deprecated in C:\xampp\htdocs\NeoCafe\frontend\pages\home\user-dashboard.php on line 184
+[28-Oct-2025 00:49:34 Asia/Manila] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\NeoCafe\frontend\pages\home\user-dashboard.php on line 201
+[28-Oct-2025 00:49:34 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 10 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-28 00:55:45] Availtoday Status ID received: 3
+[2025-10-28 00:55:45] Availtoday Status ID after filter: 3
+[2025-10-28 00:55:45] Status ID: 4
+[2025-10-28 00:55:45] Is Available Today: 
+[2025-10-28 00:55:45] Todays Product Dates: ["2025-10-28"]
+[2025-10-28 00:55:45] Available Today Dates: []
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 10 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 10 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-28 01:00:04] Availtoday Status ID received: 3
+[2025-10-28 01:00:04] Availtoday Status ID after filter: 3
+[2025-10-28 01:00:04] Status ID: 3
+[2025-10-28 01:00:04] Is Available Today: 1
+[2025-10-28 01:00:04] Todays Product Dates: []
+[2025-10-28 01:00:04] Available Today Dates: ["2025-10-28"]
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 10 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-28 01:00:51] Availtoday Status ID received: 3
+[2025-10-28 01:00:51] Availtoday Status ID after filter: 3
+[2025-10-28 01:00:51] Status ID: 3
+[2025-10-28 01:00:51] Is Available Today: 1
+[2025-10-28 01:00:51] Todays Product Dates: []
+[2025-10-28 01:00:51] Available Today Dates: ["2025-10-28"]
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 10 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[2025-10-28 01:01:33] Availtoday Status ID received: 2
+[2025-10-28 01:01:33] Availtoday Status ID after filter: 2
+[2025-10-28 01:01:33] Status ID: 4
+[2025-10-28 01:01:33] Is Available Today: 
+[2025-10-28 01:01:33] Todays Product Dates: ["2025-10-30","2025-11-01"]
+[2025-10-28 01:01:33] Available Today Dates: []
+Product ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 10 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 14 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 13 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 12 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 11 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 10 | availtoday_status_id: 3 | availtoday_status_name: Delivery or Pick-UpProduct ID: 9 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 8 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 7 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 6 | availtoday_status_id: NULL | availtoday_status_name: NULLProduct ID: 5 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 4 | availtoday_status_id: 2 | availtoday_status_name: DeliveryProduct ID: 3 | availtoday_status_id: 2 | availtoday_status_name: Delivery[28-Oct-2025 01:20:33 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[28-Oct-2025 01:20:33 Asia/Manila] Total featured products found: 11
+[28-Oct-2025 01:20:38 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+
+[28-Oct-2025 01:56:48 Asia/Manila] Featured products query: SELECT DISTINCT p.*, 
+                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
+                    ps.name as status_name,
+                    p.quantity as stock,
+                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
+                  FROM neoexclusivecafe_crud.products p 
+                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
+                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
+                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
+                  WHERE p.is_featured = 1 
+                  AND p.deleted_at IS NULL
+                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
+                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
+                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
+                  ORDER BY p.created_at DESC
+[28-Oct-2025 01:56:48 Asia/Manila] Total featured products found: 11
+[28-Oct-2025 01:56:53 Asia/Manila] Service settings found: Array
+(
+    [id] => 1
+    [title] => What We Provide
+    [subtitle] => We provide our best service to our clients. We always care about our customer's satisfaction.
+    [updated_at] => 2025-05-20 14:21:14
+)
+

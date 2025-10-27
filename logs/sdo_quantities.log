@@ -230,3 +230,44 @@
 [2025-10-26 16:19:46] Inserting: product_id=14, date=2025-10-27, quantity=20
 [2025-10-26 16:19:46] Inserting: product_id=14, date=2025-10-28, quantity=20
 [2025-10-26 16:19:46] Successfully saved 3 quantities for product 14
+[2025-10-28 00:55:49] Raw input: {"product_id":"14","quantities":{"2025-10-28":16}}
+[2025-10-28 00:55:49] Processing product_id: 14
+[2025-10-28 00:55:49] Quantities type: array
+[2025-10-28 00:55:49] Quantities is_array: yes
+[2025-10-28 00:55:49] Quantities empty: no
+[2025-10-28 00:55:49] Quantities count: 1
+[2025-10-28 00:55:49] Quantities content: {"2025-10-28":16}
+[2025-10-28 00:55:50] Deleted 1 existing quantities for product 14
+[2025-10-28 00:55:50] Inserting: product_id=14, date=2025-10-28, quantity=16
+[2025-10-28 00:55:50] Successfully saved 1 quantities for product 14
+[2025-10-28 01:00:09] Raw input: {"product_id":"13","quantities":{"2025-10-28":3}}
+[2025-10-28 01:00:09] Processing product_id: 13
+[2025-10-28 01:00:09] Quantities type: array
+[2025-10-28 01:00:09] Quantities is_array: yes
+[2025-10-28 01:00:09] Quantities empty: no
+[2025-10-28 01:00:09] Quantities count: 1
+[2025-10-28 01:00:09] Quantities content: {"2025-10-28":3}
+[2025-10-28 01:00:10] Deleted 0 existing quantities for product 13
+[2025-10-28 01:00:10] Inserting: product_id=13, date=2025-10-28, quantity=3
+[2025-10-28 01:00:10] Successfully saved 1 quantities for product 13
+[2025-10-28 01:00:57] Raw input: {"product_id":"13","quantities":{"2025-10-28":3}}
+[2025-10-28 01:00:57] Processing product_id: 13
+[2025-10-28 01:00:57] Quantities type: array
+[2025-10-28 01:00:57] Quantities is_array: yes
+[2025-10-28 01:00:57] Quantities empty: no
+[2025-10-28 01:00:57] Quantities count: 1
+[2025-10-28 01:00:57] Quantities content: {"2025-10-28":3}
+[2025-10-28 01:00:58] Deleted 1 existing quantities for product 13
+[2025-10-28 01:00:58] Inserting: product_id=13, date=2025-10-28, quantity=3
+[2025-10-28 01:00:58] Successfully saved 1 quantities for product 13
+[2025-10-28 01:01:38] Raw input: {"product_id":"5","quantities":{"2025-10-30":5,"2025-11-01":5}}
+[2025-10-28 01:01:38] Processing product_id: 5
+[2025-10-28 01:01:38] Quantities type: array
+[2025-10-28 01:01:38] Quantities is_array: yes
+[2025-10-28 01:01:38] Quantities empty: no
+[2025-10-28 01:01:38] Quantities count: 2
+[2025-10-28 01:01:38] Quantities content: {"2025-10-30":5,"2025-11-01":5}
+[2025-10-28 01:01:38] Deleted 2 existing quantities for product 5
+[2025-10-28 01:01:38] Inserting: product_id=5, date=2025-10-30, quantity=5
+[2025-10-28 01:01:38] Inserting: product_id=5, date=2025-11-01, quantity=5
+[2025-10-28 01:01:39] Successfully saved 2 quantities for product 5
