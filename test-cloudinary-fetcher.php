@@ -202,6 +202,23 @@ $conn = getDatabaseConnection();
             $imageFetcher = new CloudinaryImageFetcher($conn);
             echo '<span class="status success">✓ SUCCESS</span>';
             echo '<p>Image fetcher initialized successfully!</p>';
+            
+            // Show Cloudinary status
+            $cloudinaryStatus = $imageFetcher->getCloudinaryStatus();
+            echo '<div class="code-block">';
+            echo 'Cloudinary Status:<br>';
+            echo 'Available: ' . ($cloudinaryStatus['available'] ? 'Yes ✓' : 'No (will use local images)') . '<br>';
+            echo 'Cloud Name: ' . htmlspecialchars($cloudinaryStatus['cloud_name']) . '<br>';
+            echo 'API Key Set: ' . ($cloudinaryStatus['api_key_set'] ? 'Yes ✓' : 'No ✗') . '<br>';
+            echo 'API Secret Set: ' . ($cloudinaryStatus['api_secret_set'] ? 'Yes ✓' : 'No ✗');
+            echo '</div>';
+            
+            if (!$cloudinaryStatus['available']) {
+                echo '<div class="success-message">';
+                echo '<strong>ℹ️ Note:</strong> Cloudinary is not available, but the fetcher will work with local images as fallback.';
+                echo '</div>';
+            }
+            
             $passedTests++;
             $testResults['init'] = true;
         } catch (Exception $e) {
