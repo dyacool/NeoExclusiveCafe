@@ -1,0 +1,111 @@
+[2025-10-28 03:28:04] [product] SKIP: product-images/Classic_Sourdough_Bread_1757776354/primary_1757776354.jpg - File does not exist
+[2025-10-28 03:28:04] [product] SKIP: product-images/Classic_Sourdough_Bread_1757776354/additional_1757776354_1.jpg - File does not exist
+[2025-10-28 03:28:04] [product] SKIP: product-images/Classic_Sourdough_Bread_1757776354/additional_1757776354_2.jpg - File does not exist
+[2025-10-28 03:28:04] [product] SKIP: product-images/Three_Cheese_and_Basil_-_3_Slices_1757776431/primary_1757776431.jpg - File does not exist
+[2025-10-28 03:28:04] [product] SKIP: product-images/Three_Cheese_and_Basil_-_3_Slices_1757776431/additional_1757776431_1.jpg - File does not exist
+[2025-10-28 03:28:04] [product] SKIP: product-images/Cheesy_Bacon_Sourdough_-_3_Slices_1757777066/primary_1757777066.jpg - File does not exist
+[2025-10-28 03:28:04] [product] SKIP: product-images/Garlic_and_Mushroom_Sourdough_-_3_Slices_1757777128/primary_1757777128.jpg - File does not exist
+[2025-10-28 03:28:04] [product] SKIP: product-images/Sausage_and_Spinach_Sourdough_-_3_Slices_1757777177/primary_1757777177.jpg - File does not exist
+[2025-10-28 03:28:04] [product] SKIP: product-images/Sesame_Sourdough_Batard_1757777250/primary_1757777250.jpg - File does not exist
+[2025-10-28 03:28:04] [product] SKIP: product-images/Sesame_Sourdough_Batard_1757777250/additional_1757777250_1.jpg - File does not exist
+[2025-10-28 03:28:04] [product] SKIP: product-images/Sesame_Sourdough_Batard_1757777250/additional_1757777250_2.jpg - File does not exist
+[2025-10-28 03:28:04] [product] SKIP: product-images/Olive_Sourdough_Batard_1757777312/primary_1757777312.jpg - File does not exist
+[2025-10-28 03:28:04] [product] SKIP: product-images/Olive_Sourdough_Batard_1757777312/additional_1757777312_1.jpg - File does not exist
+[2025-10-28 03:28:04] [product] SKIP: product-images/Olive_Sourdough_Batard_1757777312/additional_1757777312_2.jpg - File does not exist
+[2025-10-28 03:28:04] [product] SKIP: product-images/Oat_Porridge_Sourdough_Batard_1757777390/primary_1757777390.jpg - File does not exist
+[2025-10-28 03:28:04] [product] SKIP: product-images/Oat_Porridge_Sourdough_Batard_1757777390/additional_1757777390_1.jpg - File does not exist
+[2025-10-28 03:28:04] [product] SKIP: product-images/Sourdough_Baguette_1757777438/primary_1757777438.jpg - File does not exist
+[2025-10-28 03:28:04] [product] SKIP: product-images/Sourdough_Baguette_1757777438/additional_1757777438_1.jpg - File does not exist
+[2025-10-28 03:28:04] [product] SKIP: product-images/Garlic_Pandesal_-_10_Pieces_1757777516/primary_1757777516.jpg - File does not exist
+[2025-10-28 03:28:04] [product] SKIP: product-images/Garlic_Pandesal_with_Cheese_____8_Pieces_1757777596/primary_1757777596.jpg - File does not exist
+[2025-10-28 03:28:04] [product] SKIP: product-images/Cassava_Cake_1757777667/primary_1757777667.jpg - File does not exist
+[2025-10-28 03:28:04] [product] SKIP: product-images/Cassava_Cake_1757777667/additional_1757777667_1.jpg - File does not exist
+[2025-10-28 03:28:04] [product] SKIP: product-images/Banana_Cake_1760166556/primary_1760166556.jpg - File does not exist
+[2025-10-28 03:28:04] [product] SKIP: product-images/Banana_Cake_1760166556/additional_1760166556_1.jpg - File does not exist
+[2025-10-28 03:28:04] [product] SKIP: product-images/Banana_Cake_1760166556/additional_1760166556_2.jpg - File does not exist
+[2025-10-28 03:28:04] [product] SKIP: product-images/Cassava_Cake_1760166617/primary_1760166617.jpg - File does not exist
+[2025-10-28 03:28:04] [product] SKIP: product-images/Cassava_Cake_1760166617/additional_1760166617_1.jpg - File does not exist
+[2025-10-28 03:28:04] [product] SKIP: product-images/Brownie_1760938502/primary_1760938502.jpg - File does not exist
+[2025-10-28 03:28:04] [carousel] SKIP: images/carousel/1746967185_43384736_Unknown.JPG - File does not exist
+[2025-10-28 03:28:04] [carousel] SKIP: images/carousel/1746540642_43384544_Unknown.JPG - File does not exist
+[2025-10-28 03:28:11] [general] SUCCESS: Uploaded 20211114_064721.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761592976/neocafe/assets/general_20211114_064721.jpg
+[2025-10-28 03:28:18] [general] SUCCESS: Uploaded 20211114_064746.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761592987/neocafe/assets/general_20211114_064746.jpg
+[2025-10-28 03:28:26] [general] SUCCESS: Uploaded 20211115_233550 (1).jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761593045/neocafe/assets/general_20211115_233550__1_.jpg
+[2025-10-28 03:29:15] [general] SUCCESS: Uploaded 20211115_233558.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761593099/neocafe/assets/general_20211115_233558.jpg
+[2025-10-28 03:29:17] [general] SUCCESS: Uploaded blog.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761593102/neocafe/assets/general_blog.jpg
+[2025-10-28 03:29:18] [general] SKIP: cafe-default.jpg - Image dimensions exceed 5000x5000 limit
+[2025-10-28 03:30:10] [general] SUCCESS: Uploaded car.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761593108/neocafe/assets/general_car.jpg
+[2025-10-28 03:30:10] [general] SKIP: no-image.jpg - File is not a valid image
+[2025-10-28 03:30:17] [general] SUCCESS: Uploaded products-category.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761593116/neocafe/assets/general_products-category.jpg
+[2025-10-28 03:30:25] [general] SUCCESS: Uploaded weekly-product.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761593423/neocafe/assets/general_weekly-product.jpg
+[2025-10-28 03:30:27] [general] SUCCESS: Uploaded facebook.png -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761593427/neocafe/assets/general_facebook.png
+[2025-10-28 03:30:29] [general] SUCCESS: Uploaded image.png -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761593429/neocafe/assets/general_image.png
+[2025-10-28 03:30:31] [general] SUCCESS: Uploaded instagram.png -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761593431/neocafe/assets/general_instagram.png
+[2025-10-28 03:30:38] [general] SUCCESS: Uploaded login-background.png -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761593437/neocafe/assets/general_login-background.jpg
+[2025-10-28 03:30:40] [general] SUCCESS: Uploaded logo.png -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761593440/neocafe/assets/general_logo.png
+[2025-10-28 03:30:42] [general] SUCCESS: Uploaded mail.png -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761593442/neocafe/assets/general_mail.png
+[2025-10-28 03:30:44] [general] SUCCESS: Uploaded neocafegoldlogo.png -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761593444/neocafe/assets/general_neocafegoldlogo.png
+[2025-10-28 03:30:47] [general] SUCCESS: Uploaded remove.png -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761593447/neocafe/assets/general_remove.png
+[2025-10-28 03:30:49] [general] SUCCESS: Uploaded user-logo.png -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761593449/neocafe/assets/general_user-logo.png
+[2025-10-28 03:30:55] [general] SUCCESS: Uploaded 20210514195047.JPG -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761593453/neocafe/assets/general_20210514195047.jpg
+[2025-10-28 03:30:55] [general] SKIP: 20210526214912 (1).JPG - Image dimensions exceed 5000x5000 limit
+[2025-10-28 03:30:55] [general] SKIP: 20210526214940.JPG - Image dimensions exceed 5000x5000 limit
+[2025-10-28 03:30:55] [general] SKIP: 43384448_Unknown.JPG - Image dimensions exceed 5000x5000 limit
+[2025-10-28 03:30:55] [general] SKIP: 43384560.JPG - Image dimensions exceed 5000x5000 limit
+[2025-10-28 03:30:55] [general] SKIP: 43384656_Unknown.JPG - Image dimensions exceed 5000x5000 limit
+[2025-10-28 03:30:55] [general] SKIP: 43384736_Unknown (1).JPG - Image dimensions exceed 5000x5000 limit
+[2025-10-28 03:30:55] [general] SKIP: 43386640_Unknown.JPG - Image dimensions exceed 5000x5000 limit
+[2025-10-28 03:30:55] [general] SKIP: 43386752_Unknown.JPG - Image dimensions exceed 5000x5000 limit
+[2025-10-28 03:30:55] [general] SKIP: 43387632.JPG - Image dimensions exceed 5000x5000 limit
+[2025-10-28 03:30:55] [general] SKIP: 43651856_Unknown.JPG - Image dimensions exceed 5000x5000 limit
+[2025-10-28 03:31:28] [general] SUCCESS: Uploaded 44184768_Unknown.JPG -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761593486/neocafe/assets/general_44184768_Unknown.jpg
+[2025-10-28 03:31:28] [general] SKIP: 44185072_Unknown.JPG - Image dimensions exceed 5000x5000 limit
+[2025-10-28 03:31:28] [general] SKIP: 44186416_Unknown.JPG - Image dimensions exceed 5000x5000 limit
+[2025-10-28 03:31:28] [general] SKIP: 44187008_Unknown.JPG - Image dimensions exceed 5000x5000 limit
+[2025-10-28 03:31:28] [general] SKIP: 44450720_Unknown (1).JPG - Image dimensions exceed 5000x5000 limit
+[2025-10-28 03:31:46] [general] SUCCESS: Uploaded 44452320_Unknown.JPG -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761593505/neocafe/assets/general_44452320_Unknown.jpg
+[2025-10-28 03:32:36] [general] SUCCESS: Uploaded IMG_1171.JPG -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761593553/neocafe/assets/general_IMG_1171.jpg
+[2025-10-28 03:32:39] [general] SUCCESS: Uploaded IMG_1174.JPG -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761593558/neocafe/assets/general_IMG_1174.jpg
+[2025-10-28 03:32:58] [general] SUCCESS: Uploaded IMG_1311.JPG -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761593577/neocafe/assets/general_IMG_1311.jpg
+[2025-10-28 03:33:04] [general] SUCCESS: Uploaded IMG_4377.JPG -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761593583/neocafe/assets/general_IMG_4377.jpg
+[2025-10-28 03:33:09] [general] SUCCESS: Uploaded IMG_4379.JPG -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761593588/neocafe/assets/general_IMG_4379.jpg
+[2025-10-28 03:33:09] [general] SKIP: app-products.JPG - Image dimensions exceed 5000x5000 limit
+[2025-10-28 03:33:27] [general] SUCCESS: Uploaded blogs-category.JPG -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761593606/neocafe/assets/general_blogs-category.jpg
+[2025-10-28 03:33:28] [general] SKIP: car1.JPG - Image dimensions exceed 5000x5000 limit
+[2025-10-28 03:33:28] [general] SKIP: car2.JPG - Image dimensions exceed 5000x5000 limit
+[2025-10-28 03:33:28] [general] SKIP: customer-reviews.JPG - Image dimensions exceed 5000x5000 limit
+[2025-10-28 03:33:28] [general] SKIP: neo-cafes-corner.JPG - Image dimensions exceed 5000x5000 limit
+[2025-10-28 03:33:31] [payment] SUCCESS: Uploaded bulk_payment_1_1757079768.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761593610/neocafe/bulk_payments/payment_bulk_payment_1_1757079768.jpg
+[2025-10-28 03:33:39] [payment] SUCCESS: Uploaded bulk_payment_1_1757079905.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761593618/neocafe/bulk_payments/payment_bulk_payment_1_1757079905.jpg
+[2025-10-28 03:33:49] [payment] SUCCESS: Uploaded bulk_payment_1_1757080141.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761593627/neocafe/bulk_payments/payment_bulk_payment_1_1757080141.jpg
+[2025-10-28 03:36:15] [payment] SUCCESS: Uploaded bulk_payment_BO000005_1760896252.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761593772/neocafe/bulk_payments/payment_bulk_payment_BO000005_1760896252.jpg
+[2025-10-28 03:38:43] [payment] SUCCESS: Uploaded bulk_payment_downpayment_BO000005_1760896760.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761593920/neocafe/bulk_payments/payment_bulk_payment_downpayment_BO000005_1760896760.jpg
+[2025-10-28 03:41:18] [payment] SUCCESS: Uploaded bulk_payment_downpayment_BO000005_1760896938.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761594075/neocafe/bulk_payments/payment_bulk_payment_downpayment_BO000005_1760896938.jpg
+[2025-10-28 03:43:54] [payment] SUCCESS: Uploaded bulk_payment_downpayment_BO000005_1760897015.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761594230/neocafe/bulk_payments/payment_bulk_payment_downpayment_BO000005_1760897015.jpg
+[2025-10-28 03:44:03] [payment] SUCCESS: Uploaded bulk_payment_downpayment_BO000005_1760897039.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761594240/neocafe/bulk_payments/payment_bulk_payment_downpayment_BO000005_1760897039.jpg
+[2025-10-28 03:46:36] [payment] SUCCESS: Uploaded bulk_payment_downpayment_BO000005_1760897094.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761594394/neocafe/bulk_payments/payment_bulk_payment_downpayment_BO000005_1760897094.jpg
+[2025-10-28 03:46:47] [payment] SUCCESS: Uploaded bulk_payment_downpayment_BO000005_1760897223.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761594403/neocafe/bulk_payments/payment_bulk_payment_downpayment_BO000005_1760897223.jpg
+[2025-10-28 03:46:57] [payment] SUCCESS: Uploaded bulk_payment_downpayment_BO000005_1760897284.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761594414/neocafe/bulk_payments/payment_bulk_payment_downpayment_BO000005_1760897284.jpg
+[2025-10-28 03:47:08] [payment] SUCCESS: Uploaded bulk_payment_downpayment_BO000005_1760897299.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761594424/neocafe/bulk_payments/payment_bulk_payment_downpayment_BO000005_1760897299.jpg
+[2025-10-28 03:49:42] [payment] SUCCESS: Uploaded bulk_payment_downpayment_BO000005_1760897369.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761594579/neocafe/bulk_payments/payment_bulk_payment_downpayment_BO000005_1760897369.jpg
+[2025-10-28 03:52:24] [payment] SUCCESS: Uploaded bulk_payment_downpayment_BO000005_1760897503.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761594742/neocafe/bulk_payments/payment_bulk_payment_downpayment_BO000005_1760897503.jpg
+[2025-10-28 03:55:10] [payment] SUCCESS: Uploaded bulk_payment_downpayment_BO000005_1760897563.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761594907/neocafe/bulk_payments/payment_bulk_payment_downpayment_BO000005_1760897563.jpg
+[2025-10-28 03:58:01] [payment] SUCCESS: Uploaded bulk_payment_downpayment_BO000005_1760897649.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761595078/neocafe/bulk_payments/payment_bulk_payment_downpayment_BO000005_1760897649.jpg
+[2025-10-28 03:58:11] [payment] SUCCESS: Uploaded bulk_payment_downpayment_BO000005_1760897680.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761595088/neocafe/bulk_payments/payment_bulk_payment_downpayment_BO000005_1760897680.jpg
+[2025-10-28 04:00:42] [payment] SUCCESS: Uploaded bulk_payment_downpayment_BO000005_1760897693.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761595240/neocafe/bulk_payments/payment_bulk_payment_downpayment_BO000005_1760897693.jpg
+[2025-10-28 04:00:52] [payment] SUCCESS: Uploaded bulk_payment_downpayment_BO000005_1760897705.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761595249/neocafe/bulk_payments/payment_bulk_payment_downpayment_BO000005_1760897705.jpg
+[2025-10-28 04:01:04] [payment] SUCCESS: Uploaded bulk_payment_downpayment_BO000005_1760897712.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761595259/neocafe/bulk_payments/payment_bulk_payment_downpayment_BO000005_1760897712.jpg
+[2025-10-28 04:03:35] [payment] SUCCESS: Uploaded bulk_payment_downpayment_BO000005_1760897757.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761595412/neocafe/bulk_payments/payment_bulk_payment_downpayment_BO000005_1760897757.jpg
+[2025-10-28 04:06:07] [payment] SUCCESS: Uploaded bulk_payment_downpayment_BO000005_1760898051.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761595564/neocafe/bulk_payments/payment_bulk_payment_downpayment_BO000005_1760898051.jpg
+[2025-10-28 04:08:37] [payment] SUCCESS: Uploaded bulk_payment_downpayment_BO000005_1760898074.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761595715/neocafe/bulk_payments/payment_bulk_payment_downpayment_BO000005_1760898074.jpg
+[2025-10-28 04:11:13] [payment] SUCCESS: Uploaded bulk_payment_downpayment_BO000005_1760898111.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761595870/neocafe/bulk_payments/payment_bulk_payment_downpayment_BO000005_1760898111.jpg
+[2025-10-28 04:11:22] [payment] SUCCESS: Uploaded bulk_payment_full_BO000005_1760896418.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761595880/neocafe/bulk_payments/payment_bulk_payment_full_BO000005_1760896418.jpg
+[2025-10-28 04:11:31] [payment] SUCCESS: Uploaded bulk_payment_full_BO000005_1760896436.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761595889/neocafe/bulk_payments/payment_bulk_payment_full_BO000005_1760896436.jpg
+[2025-10-28 04:11:41] [payment] SUCCESS: Uploaded bulk_payment_full_BO000005_1760896450.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761595898/neocafe/bulk_payments/payment_bulk_payment_full_BO000005_1760896450.jpg
+[2025-10-28 04:11:52] [payment] SUCCESS: Uploaded bulk_payment_full_BO000005_1760896583.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761595908/neocafe/bulk_payments/payment_bulk_payment_full_BO000005_1760896583.jpg
+[2025-10-28 04:14:22] [payment] SUCCESS: Uploaded bulk_payment_remaining_BO000005_1760896594.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761596060/neocafe/bulk_payments/payment_bulk_payment_remaining_BO000005_1760896594.jpg
+[2025-10-28 04:16:52] [payment] SUCCESS: Uploaded bulk_payment_remaining_BO000005_1760896708.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761596209/neocafe/bulk_payments/payment_bulk_payment_remaining_BO000005_1760896708.jpg
+[2025-10-28 04:16:55] [refund] SUCCESS: Uploaded refund_5_7_1761302742.jpg -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761596215/neocafe/refund_proofs/refund_refund_5_7_1761302742.jpg
+[2025-10-28 04:16:59] [refund] SUCCESS: Uploaded refund_10_7_1761045218.png -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761596218/neocafe/refund_proofs/refund_refund_10_7_1761045218.png
+[2025-10-28 04:17:01] [refund] SUCCESS: Uploaded refund_20_5_1761567434.png -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761596221/neocafe/refund_proofs/refund_refund_20_5_1761567434.png
+[2025-10-28 04:17:06] [refund] SUCCESS: Uploaded refund_2_7_1761317057.png -> https://res.cloudinary.com/dvdccumbs/image/upload/v1761596226/neocafe/refund_proofs/refund_refund_2_7_1761317057.jpg

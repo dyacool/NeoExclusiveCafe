@@ -248,8 +248,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Get all carousel images
-$images_query = "SELECT * FROM carousel_images ORDER BY display_order ASC";
+// Get all carousel images - prioritize Cloudinary URLs
+$images_query = "SELECT id, COALESCE(cloud_url, image_url) as image_url, title, display_order, is_active, created_at, updated_at FROM carousel_images ORDER BY display_order ASC";
 $images_result = mysqli_query($conn, $images_query);
 ?>
 <!DOCTYPE html>
@@ -312,7 +312,16 @@ $images_result = mysqli_query($conn, $images_query);
                     <?php while ($image = mysqli_fetch_assoc($images_result)): ?>
                         <div class="slide-card <?php echo $image['is_active'] ? 'active' : 'inactive'; ?>">
                             <div class="slide-image">
-                                <img src="/assets/<?php echo htmlspecialchars($image['image_url']); ?>" alt="<?php echo htmlspecialchars($image['title']); ?>">
+                                <?php
+                                // Handle both Cloudinary URLs and local paths
+                                $image_url = $image['image_url'];
+                                if (strpos($image_url, 'http://') === 0 || strpos($image_url, 'https://') === 0) {
+                                    $image_path = $image_url; // Cloudinary URL
+                                } else {
+                                    $image_path = '/assets/' . $image_url; // Local path
+                                }
+                                ?>
+                                <img src="<?php echo htmlspecialchars($image_path); ?>" alt="<?php echo htmlspecialchars($image['title']); ?>">
                             </div>
                             
                             <div class="slide-details">

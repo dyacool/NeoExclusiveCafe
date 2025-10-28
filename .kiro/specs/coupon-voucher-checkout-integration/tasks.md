@@ -96,6 +96,8 @@
 
 
 
+
+
   - Test valid coupon application shows success message and updates total
   - Test invalid coupon shows appropriate error message
   - Test coupon with minimum purchase requirement validation

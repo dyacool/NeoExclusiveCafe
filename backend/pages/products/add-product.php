@@ -134,17 +134,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $filePath = $productFolder . $cleanFileName;
                 
                 if (move_uploaded_file($_FILES['primary_image']['tmp_name'], $filePath)) {
-                    // Store relative path in database without special characters
-                    $dbImagePath = "product-images/" . $folderName . "/" . $cleanFileName;
-                    $stmt = $conn->prepare("INSERT INTO product_images (product_id, image_url, is_primary) VALUES (?, ?, 1)");
-                    $stmt->bind_param("is", $product_id, $dbImagePath);
-                    $stmt->execute();
+                    // Upload to Cloudinary
+                    require_once __DIR__ . '/../../../backend/includes/cloudinary-helper.php';
+                    $cloudinaryResult = uploadToCloudinary($filePath, 'neocafe/products', 'product_' . $product_id . '_primary');
+                    
+                    if ($cloudinaryResult['success']) {
+                        // Store both local path and Cloudinary URL in database
+                        $dbImagePath = "product-images/" . $folderName . "/" . $cleanFileName;
+                        $stmt = $conn->prepare("INSERT INTO product_images (product_id, image_url, cloud_url, cloud_public_id, cloud_provider, is_primary) VALUES (?, ?, ?, ?, 'cloudinary', 1)");
+                        $stmt->bind_param("isss", $product_id, $dbImagePath, $cloudinaryResult['url'], $cloudinaryResult['public_id']);
+                        $stmt->execute();
+                        
+                        // Delete local file after successful Cloudinary upload
+                        @unlink($filePath);
+                    } else {
+                        // Fallback: Store only local path if Cloudinary upload fails
+                        $dbImagePath = "product-images/" . $folderName . "/" . $cleanFileName;
+                        $stmt = $conn->prepare("INSERT INTO product_images (product_id, image_url, is_primary) VALUES (?, ?, 1)");
+                        $stmt->bind_param("is", $product_id, $dbImagePath);
+                        $stmt->execute();
+                        error_log("Cloudinary upload failed for primary image: " . $cloudinaryResult['error']);
+                    }
                 }
             }
         }
 
         // Handle Additional Images Upload
         if (!empty($_FILES['additional_images']['name'][0])) {
+            require_once __DIR__ . '/../../../backend/includes/cloudinary-helper.php';
+            
             foreach ($_FILES['additional_images']['tmp_name'] as $key => $tmp_name) {
                 $fileName = basename($_FILES['additional_images']['name'][$key]);
                 $fileExt = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
@@ -157,11 +175,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $filePath = $productFolder . $cleanFileName;
                     
                     if (move_uploaded_file($tmp_name, $filePath)) {
-                        // Store relative path in database without special characters
-                        $dbImagePath = "product-images/" . $folderName . "/" . $cleanFileName;
-                        $stmt = $conn->prepare("INSERT INTO product_images (product_id, image_url, is_primary) VALUES (?, ?, 0)");
-                        $stmt->bind_param("is", $product_id, $dbImagePath);
-                        $stmt->execute();
+                        // Upload to Cloudinary
+                        $cloudinaryResult = uploadToCloudinary($filePath, 'neocafe/products', 'product_' . $product_id . '_additional_' . ($key + 1));
+                        
+                        if ($cloudinaryResult['success']) {
+                            // Store both local path and Cloudinary URL in database
+                            $dbImagePath = "product-images/" . $folderName . "/" . $cleanFileName;
+                            $stmt = $conn->prepare("INSERT INTO product_images (product_id, image_url, cloud_url, cloud_public_id, cloud_provider, is_primary) VALUES (?, ?, ?, ?, 'cloudinary', 0)");
+                            $stmt->bind_param("isss", $product_id, $dbImagePath, $cloudinaryResult['url'], $cloudinaryResult['public_id']);
+                            $stmt->execute();
+                            
+                            // Delete local file after successful Cloudinary upload
+                            @unlink($filePath);
+                        } else {
+                            // Fallback: Store only local path if Cloudinary upload fails
+                            $dbImagePath = "product-images/" . $folderName . "/" . $cleanFileName;
+                            $stmt = $conn->prepare("INSERT INTO product_images (product_id, image_url, is_primary) VALUES (?, ?, 0)");
+                            $stmt->bind_param("is", $product_id, $dbImagePath);
+                            $stmt->execute();
+                            error_log("Cloudinary upload failed for additional image: " . $cloudinaryResult['error']);
+                        }
                     }
                 }
             }

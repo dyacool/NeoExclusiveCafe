@@ -319,7 +319,9 @@ if ($cart_truncated) {
                     // Status 4 = Same Day Order (changed from 3)
                     $sql = "SELECT 
                                 p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.category_id,
-                                ps.name AS status_name, pi.image_url, p.quantity, p.show_when_unavailable,
+                                ps.name AS status_name, 
+                                COALESCE(pi.cloud_url, pi.image_url) as image_url,
+                                p.quantity, p.show_when_unavailable,
                                 p.availtoday_status_id, ats.name AS availtoday_status_name,
                                 c.name AS category_name,
                                 GROUP_CONCAT(DISTINCT tpd.available_date ORDER BY tpd.available_date SEPARATOR ', ') as todays_product_dates,
@@ -342,7 +344,7 @@ if ($cart_truncated) {
                         $sql .= " AND p.category_id = ?";
                     }
                     
-                    $sql .= " GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.category_id, ps.name, pi.image_url, p.quantity, p.show_when_unavailable, p.availtoday_status_id, ats.name, c.name, qpd.quantity
+                    $sql .= " GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.category_id, ps.name, pi.cloud_url, pi.image_url, p.quantity, p.show_when_unavailable, p.availtoday_status_id, ats.name, c.name, qpd.quantity
                             ORDER BY p.is_featured DESC, p.name ASC";
                     
                     // Prepare and execute the statement
@@ -433,8 +435,8 @@ if ($cart_truncated) {
 
                     if (count($all_products) > 0) {
                         foreach ($all_products as $row) {
-                            // Get all images for this product
-                            $images_sql = "SELECT image_url FROM product_images WHERE product_id = ?";
+                            // Get all images for this product (prioritize Cloudinary URLs)
+                            $images_sql = "SELECT COALESCE(cloud_url, image_url) as image_url FROM product_images WHERE product_id = ?";
                             $images_stmt = $conn->prepare($images_sql);
                             $images_stmt->bind_param("i", $row['id']);
                             $images_stmt->execute();
@@ -564,7 +566,16 @@ if ($cart_truncated) {
                                         <span class='unavailable-reason'>" . htmlspecialchars($unavailable_reason) . "</span>
                                       </div>";
                             } 
-                            echo "    <img src='../../../assets/" . htmlspecialchars($row['image_url'] ?: 'images/no-image.jpg') . "' alt='" . htmlspecialchars($row['name']) . "'>
+                            // Handle both Cloudinary URLs (full URLs) and local paths
+                            $image_src = $row['image_url'] ?: 'images/no-image.jpg';
+                            if (strpos($image_src, 'http://') === 0 || strpos($image_src, 'https://') === 0) {
+                                // It's a full URL (Cloudinary)
+                                $image_path = $image_src;
+                            } else {
+                                // It's a local path
+                                $image_path = '../../../assets/' . $image_src;
+                            }
+                            echo "    <img src='" . htmlspecialchars($image_path) . "' alt='" . htmlspecialchars($row['name']) . "'>
                                     </div>
                                     <div class='product-info'>
                                         <h3 class='productname'>" . htmlspecialchars($row['name']) . "</h3>
@@ -943,14 +954,22 @@ if ($cart_truncated) {
                 productAvailableDays.style.display = 'none';
             }
 
-            // Set up images
+            // Set up images - handle both Cloudinary URLs and local paths
             if (product.images && Array.isArray(product.images) && product.images.length > 0) {
-                mainImage.src = '../../../assets/' + product.images[0];
+                // Helper function to get proper image path
+                const getImagePath = (img) => {
+                    if (img.startsWith('http://') || img.startsWith('https://')) {
+                        return img; // It's a full URL (Cloudinary)
+                    }
+                    return '../../../assets/' + img; // It's a local path
+                };
+                
+                mainImage.src = getImagePath(product.images[0]);
                 thumbnails.innerHTML = '';
                 product.images.forEach((image, index) => {
                     if (image) {
                         const thumb = document.createElement('img');
-                        thumb.src = '../../../assets/' + image;
+                        thumb.src = getImagePath(image);
                         thumb.alt = `${product.name || 'Product'} view ${index + 1}`;
                         thumb.onclick = () => mainImage.src = thumb.src;
                         thumbnails.appendChild(thumb);

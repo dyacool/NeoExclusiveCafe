@@ -8,5 +8,8 @@
             "email": "ainepascua4@gmail.com"
         }
     ],
-    "require": {}
+    "require": {
+        "php": "^8.0",
+        "cloudinary/cloudinary_php": "*"
+    }
 }

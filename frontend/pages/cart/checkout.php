@@ -1969,11 +1969,17 @@ $debug_info = [
                     orderData.customer_name = userName;
                     orderData.customer_email = userEmail;
                     
+                    // Calculate final amount with discount
+                    const finalAmount = cartTotal - (discountAmount || 0);
+                    console.log('[CHECKOUT] Cart Total:', cartTotal);
+                    console.log('[CHECKOUT] Discount Amount:', discountAmount);
+                    console.log('[CHECKOUT] Final Amount:', finalAmount);
+                    
                     // Prepare payment data for PayMongo
                     const paymentData = {
                         payment_method: paymentMethodEl.value,
                         order_type: 'regular',
-                        amount: parseFloat(cartTotal),
+                        amount: parseFloat(finalAmount),
                         order_data: orderData
                     };
                     
