@@ -242,7 +242,7 @@ try {
         
         $testResults = [];
         $totalTests = 0;
-        $passedTests = 
+        $passedTests = 0;
         
         // Test 1: Initialize Fetcher
         echo '<div class="test-section">';
