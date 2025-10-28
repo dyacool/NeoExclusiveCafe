@@ -143,7 +143,7 @@ if (!$navbar_conn) {
     </div>
 
     <div class="announcement-bar">
-        <div class="announcement-text">All products are only available for pre-orders!</div>
+        <div class="announcement-text">Enjoy freshly baked goods! Available for same-day and pre-order purchases.</div>
     </div>
 
     <nav class="main-nav">

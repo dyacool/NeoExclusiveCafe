@@ -7,6 +7,8 @@ require_once __DIR__ . "/../../user-includes/user-header.php";
 ?>
 
 <link rel="stylesheet" href="/frontend/pages/home/user-dashboard.css">
+<link rel="stylesheet" href="/frontend/pages/home/coupons.css">
+<link rel="stylesheet" href="/frontend/pages/home/product-dashboard.css">
 <link rel="stylesheet" href="/frontend/pages/home/hero-carousel.css">
 <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
@@ -65,45 +67,118 @@ require_once __DIR__ . "/../../user-includes/user-header.php";
 </script>
 
 <?php
-// Get all featured products
-$featured_query = "SELECT DISTINCT p.*, 
-                    COALESCE(pi.image_url, 'assets/images/placeholder.jpg') as image_url, 
-                    ps.name as status_name,
-                    p.quantity as stock,
-                    GROUP_CONCAT(pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days
-                  FROM neoexclusivecafe_crud.products p 
-                  LEFT JOIN neoexclusivecafe_crud.product_images pi ON p.id = pi.product_id 
-                  LEFT JOIN neoexclusivecafe_crud.product_statuses ps ON p.status_id = ps.id
-                  LEFT JOIN neoexclusivecafe_crud.product_day pd ON p.id = pd.product_id
-                  WHERE p.is_featured = 1 
-                  AND p.deleted_at IS NULL
-                  AND (p.hide_when_unavailable = 0 OR p.status_id != 3)
-                  AND (pi.is_primary = 1 OR pi.is_primary IS NULL)
-                  GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.created_at, p.updated_at, p.deleted_at, pi.image_url, ps.name
-                  ORDER BY p.created_at DESC";
+// Get today's date for availability checking
+$today_date = date('Y-m-d');
+
+// Get all featured products with comprehensive status information
+$featured_query = "SELECT 
+                    p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.category_id,
+                    ps.name AS status_name, 
+                    COALESCE(pi.cloud_url, pi.image_url) as image_url,
+                    p.quantity, p.show_when_unavailable,
+                    p.availtoday_status_id, ats.name AS availtoday_status_name,
+                    c.name AS category_name,
+                    GROUP_CONCAT(DISTINCT tpd.available_date ORDER BY tpd.available_date SEPARATOR ', ') as todays_product_dates,
+                    GROUP_CONCAT(DISTINCT rptd.available_date ORDER BY rptd.available_date SEPARATOR ', ') as regular_today_dates,
+                    qpd.quantity as sameday_stock_today
+                FROM products p
+                LEFT JOIN product_statuses ps ON p.status_id = ps.id
+                LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
+                LEFT JOIN availtoday_status ats ON p.availtoday_status_id = ats.id
+                LEFT JOIN categories c ON p.category_id = c.id
+                LEFT JOIN todays_products_dates tpd ON p.id = tpd.product_id
+                LEFT JOIN regular_products_today_dates rptd ON p.id = rptd.product_id
+                LEFT JOIN quantity_per_day_sdo qpd ON p.id = qpd.product_id AND qpd.date = CURDATE()
+                WHERE p.is_featured = 1 
+                AND p.deleted_at IS NULL 
+                AND p.id > 0 
+                AND p.status_id IN (1, 2, 3, 4)
+                GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.category_id, ps.name, pi.cloud_url, pi.image_url, p.quantity, p.show_when_unavailable, p.availtoday_status_id, ats.name, c.name, qpd.quantity
+                ORDER BY p.is_featured DESC, p.name ASC";
 
 $featured_stmt = mysqli_prepare($conn, $featured_query);
 mysqli_stmt_execute($featured_stmt);
-$featured_products = mysqli_stmt_get_result($featured_stmt);
-$total_featured = mysqli_num_rows($featured_products);
+$featured_result = mysqli_stmt_get_result($featured_stmt);
 
-// Debug information
-error_log("Featured products query: " . $featured_query);
-error_log("Total featured products found: " . $total_featured);
-
-// If no featured products found, check the database state
-if ($total_featured == 0) {
-    $check_query = "SELECT COUNT(*) as total FROM neoexclusivecafe_crud.products WHERE is_featured = 1";
-    $check_result = mysqli_query($conn, $check_query);
-    $check_data = mysqli_fetch_assoc($check_result);
-    error_log("Total featured products in database (including deleted): " . $check_data['total']);
+// Fetch all featured products into an array for custom sorting
+$all_featured_products = [];
+while ($row = mysqli_fetch_assoc($featured_result)) {
+    $all_featured_products[] = $row;
 }
+
+// Custom sort: Priority hierarchy - Available > Unavailable
+usort($all_featured_products, function($a, $b) use ($today_date) {
+    // Calculate unavailability for product A
+    $a_preorder_stock = $a['quantity'] ?? 0;
+    $a_sameday_stock = $a['sameday_stock_today'] ?? 0;
+    $a_has_availtoday = !empty($a['availtoday_status_id']);
+    $a_unavailable = false;
+    
+    if ($a['status_id'] == 4) {
+        $a_unavailable = ($a_sameday_stock == 0 || $a_sameday_stock === null);
+    } elseif (in_array($a['status_id'], [1, 2, 3])) {
+        if ($a_has_availtoday) {
+            $a_unavailable = ($a_preorder_stock == 0 && ($a_sameday_stock == 0 || $a_sameday_stock === null));
+        } else {
+            $a_unavailable = ($a_preorder_stock == 0);
+        }
+    }
+    
+    // Calculate unavailability for product B
+    $b_preorder_stock = $b['quantity'] ?? 0;
+    $b_sameday_stock = $b['sameday_stock_today'] ?? 0;
+    $b_has_availtoday = !empty($b['availtoday_status_id']);
+    $b_unavailable = false;
+    
+    if ($b['status_id'] == 4) {
+        $b_unavailable = ($b_sameday_stock == 0 || $b_sameday_stock === null);
+    } elseif (in_array($b['status_id'], [1, 2, 3])) {
+        if ($b_has_availtoday) {
+            $b_unavailable = ($b_preorder_stock == 0 && ($b_sameday_stock == 0 || $b_sameday_stock === null));
+        } else {
+            $b_unavailable = ($b_preorder_stock == 0);
+        }
+    }
+    
+    // Check if product A is available today
+    $a_available_today = false;
+    if (!empty($a['todays_product_dates'])) {
+        $a_dates = explode(', ', $a['todays_product_dates']);
+        $a_available_today = in_array($today_date, $a_dates);
+    }
+    if (!$a_available_today && !empty($a['regular_today_dates'])) {
+        $a_dates = explode(', ', $a['regular_today_dates']);
+        $a_available_today = in_array($today_date, $a_dates);
+    }
+    
+    // Check if product B is available today
+    $b_available_today = false;
+    if (!empty($b['todays_product_dates'])) {
+        $b_dates = explode(', ', $b['todays_product_dates']);
+        $b_available_today = in_array($today_date, $b_dates);
+    }
+    if (!$b_available_today && !empty($b['regular_today_dates'])) {
+        $b_dates = explode(', ', $b['regular_today_dates']);
+        $b_available_today = in_array($today_date, $b_dates);
+    }
+    
+    // Priority 0: Unavailable products go to the end
+    if ($a_unavailable && !$b_unavailable) return 1;
+    if (!$a_unavailable && $b_unavailable) return -1;
+    
+    // Priority 1: Available today (highest priority for available products)
+    if ($a_available_today && !$b_available_today) return -1;
+    if (!$a_available_today && $b_available_today) return 1;
+    
+    // Priority 2: Alphabetical by name
+    return strcmp($a['name'], $b['name']);
+});
 
 // Get all images for each product
 $featured_products_data = [];
-while ($product = mysqli_fetch_assoc($featured_products)) {
+foreach ($all_featured_products as $product) {
     // Get all images for this product
-    $images_sql = "SELECT image_url FROM product_images WHERE product_id = ?";
+    $images_sql = "SELECT COALESCE(cloud_url, image_url) as image_url FROM product_images WHERE product_id = ?";
     $images_stmt = mysqli_prepare($conn, $images_sql);
     mysqli_stmt_bind_param($images_stmt, "i", $product['id']);
     mysqli_stmt_execute($images_stmt);
@@ -115,6 +190,32 @@ while ($product = mysqli_fetch_assoc($featured_products)) {
     
     $product['images'] = $images;
     $featured_products_data[] = $product;
+}
+
+$total_featured = count($featured_products_data);
+
+// Debug information
+error_log("Total featured products found: " . $total_featured);
+
+// Get active promotions/coupons
+$today = date('Y-m-d');
+$promotions_query = "SELECT 
+                        id, title, code, type, value, min_purchase, 
+                        activation_date, expiration_date, status
+                    FROM promotions 
+                    WHERE status = 'active' 
+                    AND activation_date <= ? 
+                    AND expiration_date >= ?
+                    ORDER BY created_at DESC";
+
+$promotions_stmt = mysqli_prepare($conn, $promotions_query);
+mysqli_stmt_bind_param($promotions_stmt, "ss", $today, $today);
+mysqli_stmt_execute($promotions_stmt);
+$promotions_result = mysqli_stmt_get_result($promotions_stmt);
+
+$active_promotions = [];
+while ($promo = mysqli_fetch_assoc($promotions_result)) {
+    $active_promotions[] = $promo;
 }
 
 // Get carousel settings
@@ -177,6 +278,7 @@ $total_images = mysqli_num_rows($images_result);
             <section class="featured-section">
                 <header class="section-header" data-aos="fade-up">
                     <h1 class="titles">Featured Products</h1>
+                    <p class="service-subtitle">Discover our handpicked selection of premium products</p>
                 </header>
                 
                 <?php if (count($featured_products_data) > 0): ?>
@@ -184,60 +286,147 @@ $total_images = mysqli_num_rows($images_result);
                         <?php 
                         // Display only the first 4 products
                         $count = 0;
-                        foreach ($featured_products_data as $product): 
+                        foreach ($featured_products_data as $row): 
                             if ($count >= 4) break;
                             $count++;
                             
-                            $isUnavailable = $product['status_id'] == 3 || $product['stock'] <= 0;
-                            $statusClass = strtolower(str_replace(' ', '-', $product['status_name']));
-                            
                             // Encode product data for modal
                             $productData = [
-                                'id' => $product['id'],
-                                'name' => $product['name'],
-                                'price' => $product['price'],
-                                'description' => $product['description'],
-                                'status' => $product['status_name'],
-                                'images' => $product['images'],
-                                'is_featured' => (bool)$product['is_featured'],
-                                'quantity' => $product['stock'],
-                                'show_when_unavailable' => (bool)($product['hide_when_unavailable'] == 0),
-                                'available_days' => $product['available_days'] ? explode(', ', $product['available_days']) : []
+                                'id' => $row['id'],
+                                'name' => $row['name'],
+                                'price' => $row['price'],
+                                'description' => $row['description'],
+                                'status' => $row['status_name'],
+                                'status_id' => $row['status_id'],
+                                'images' => $row['images'],
+                                'is_featured' => (bool)$row['is_featured'],
+                                'quantity' => $row['quantity'],
+                                'sameday_stock_today' => $row['sameday_stock_today'] ?? 0,
+                                'show_when_unavailable' => (bool)$row['show_when_unavailable'],
+                                'availtoday_status_id' => $row['availtoday_status_id'],
+                                'availtoday_status_name' => $row['availtoday_status_name'],
+                                'todays_product_dates' => $row['todays_product_dates'] ? explode(', ', $row['todays_product_dates']) : [],
+                                'regular_today_dates' => $row['regular_today_dates'] ? explode(', ', $row['regular_today_dates']) : []
                             ];
+                            
+                            $featuredClass = $row['is_featured'] ? 'featured-product' : '';
+                            $statusClass = strtolower(str_replace(' ', '-', $row['status_name']));
+                            
+                            $productDataJson = htmlspecialchars(json_encode($productData), ENT_QUOTES, 'UTF-8');
+                            
+                            // Get available dates for display
+                            $available_dates = $row['status_id'] == 4 ? $row['todays_product_dates'] : $row['regular_today_dates'];
+                            
+                            // Check if product is UNAVAILABLE
+                            $is_unavailable = false;
+                            $unavailable_reason = '';
+                            
+                            $preorder_stock = $row['quantity'] ?? 0;
+                            $sameday_stock = $row['sameday_stock_today'] ?? 0;
+                            $has_availtoday = !empty($row['availtoday_status_id']);
+                            
+                            if ($row['status_id'] == 4) {
+                                // Status 4: Same Day ONLY product
+                                if ($sameday_stock == 0 || $sameday_stock === null) {
+                                    $is_unavailable = true;
+                                    $unavailable_reason = 'Out of Stock';
+                                }
+                            } elseif (in_array($row['status_id'], [1, 2, 3])) {
+                                if ($has_availtoday) {
+                                    // DUAL capability: Pre-order AND Same-day
+                                    if ($preorder_stock == 0 && ($sameday_stock == 0 || $sameday_stock === null)) {
+                                        $is_unavailable = true;
+                                        $unavailable_reason = 'Out of Stock';
+                                    }
+                                } else {
+                                    // Pre-order ONLY
+                                    if ($preorder_stock == 0) {
+                                        $is_unavailable = true;
+                                        $unavailable_reason = 'Out of Stock';
+                                    }
+                                }
+                            }
+                            
+                            // Check if product is available TODAY
+                            $is_available_today = false;
+                            
+                            // Check todays_product_dates (for status 4 products)
+                            if (!empty($row['todays_product_dates'])) {
+                                $todays_dates = explode(', ', $row['todays_product_dates']);
+                                if (in_array($today_date, $todays_dates)) {
+                                    $is_available_today = true;
+                                }
+                            }
+                            
+                            // Check regular_today_dates (for status 1/2/3 products with same-day option)
+                            if (!$is_available_today && !empty($row['regular_today_dates'])) {
+                                $regular_dates = explode(', ', $row['regular_today_dates']);
+                                if (in_array($today_date, $regular_dates)) {
+                                    $is_available_today = true;
+                                }
+                            }
+                            
+                            // Add unavailable class if product is unavailable
+                            $unavailableClass = $is_unavailable ? 'unavailable-product' : '';
                         ?>
-                            <div class="product-card featured-product" 
-                                data-status="<?php echo htmlspecialchars($product['status_name']); ?>"
-                                onclick="openProductModal(<?php echo htmlspecialchars(json_encode($productData), ENT_QUOTES, 'UTF-8'); ?>)">
+                            <div class="product-card <?php echo $featuredClass; ?> <?php echo $unavailableClass; ?>" 
+                                data-status="<?php echo htmlspecialchars($row['status_name']); ?>"
+                                data-available-dates="<?php echo htmlspecialchars($available_dates ?? ''); ?>"
+                                data-product="<?php echo $productDataJson; ?>" 
+                                data-unavailable="<?php echo $is_unavailable ? 'true' : 'false'; ?>"
+                                onclick="openProductModalFromData(this)">
+                                
+                                <?php
+                                // Display badges: Show both if product is Available Today AND Featured
+                                if ($is_unavailable) {
+                                    // Unavailable badge (highest priority, exclusive)
+                                    echo "<div class='unavailable-badge-left'>" . htmlspecialchars($unavailable_reason) . "</div>";
+                                } else {
+                                    // Show today badge if available today
+                                    if ($is_available_today) {
+                                        echo "<div class='today-badge-left'>Same Day Order</div>";
+                                    } else {
+                                        // Show pre-order badge if not available today and not unavailable
+                                        echo "<div class='preorder-badge-left'>Pre-Order</div>";
+                                    }
+                                    // Note: Featured badge is handled by CSS class 'featured-product' and image overlay
+                                }
+                                ?>
+                                
                                 <div class="product-image">
-                                    <img src="/assets/<?php echo htmlspecialchars($product['image_url']); ?>" 
-                                        alt="<?php echo htmlspecialchars($product['name']); ?>"
+                                    <?php
+                                    // Image overlays: Show both if product is Available Today AND Featured
+                                    if ($is_unavailable) {
+                                        // Unavailable overlay (exclusive)
+                                        echo "<div class='unavailable-overlay'>
+                                                <span class='unavailable-text'>UNAVAILABLE</span>
+                                                <span class='unavailable-reason'>" . htmlspecialchars($unavailable_reason) . "</span>
+                                              </div>";
+                                    }
+                                    
+                                    // Handle both Cloudinary URLs (full URLs) and local paths
+                                    $image_src = $row['image_url'] ?: 'images/no-image.jpg';
+                                    if (strpos($image_src, 'http://') === 0 || strpos($image_src, 'https://') === 0) {
+                                        // It's a full URL (Cloudinary)
+                                        $image_path = $image_src;
+                                    } else {
+                                        // It's a local path
+                                        $image_path = '/assets/' . $image_src;
+                                    }
+                                    ?>
+                                    <img src="<?php echo htmlspecialchars($image_path); ?>" 
+                                        alt="<?php echo htmlspecialchars($row['name']); ?>"
                                         loading="lazy">
                                 </div>
+                                
                                 <div class="product-info">
-                                    <h3 class = "prdct-nm"><?php echo htmlspecialchars($product['name']); ?></h3>
-                                    <p class="price">₱<?php echo number_format($product['price'], 2); ?></p>
+                                    <h3 class="productname"><?php echo htmlspecialchars($row['name']); ?></h3>
+                                    <p class="price">₱<?php echo number_format($row['price'], 2); ?></p>
                                     
-                                    <div class="prdct-availability">
-                                        <span class="status-badge status-<?php echo $statusClass; ?>">
-                                            <?php echo $isUnavailable ? "Not Available" : htmlspecialchars($product['status_name']); ?>
-                                        </span>
-                                        <div class="stocks">
-                                            <p class="stock">Stock: <?php echo $product['stock']; ?></p>
-                                        </div>
-                                    </div>
-                                    
-                                    <?php if (!$isUnavailable): ?>
-                                        <div class="quantity-controls">
-                                            <button type="button" onclick="event.stopPropagation(); updateQuantity(this, -1)">-</button>
-                                            <input type="number" value="1" min="1" max="<?php echo $product['stock']; ?>" 
-                                                onclick="event.stopPropagation()" onchange="validateQuantity(this)">
-                                            <button type="button" onclick="event.stopPropagation(); updateQuantity(this, 1)">+</button>
-                                        </div>
-                                        <button class="add-to-cart" onclick="event.stopPropagation(); addToCart(<?php echo $product['id']; ?>, this)">
-                                            Add to Cart
-                                        </button>
+                                    <?php if ($is_unavailable): ?>
+                                        <button class="add-to-cart unavailable-btn" disabled>Unavailable</button>
                                     <?php else: ?>
-                                        <button class="add-to-cart unavailable" disabled>Currently Unavailable</button>
+                                        <button class="add-to-cart" onclick="event.stopPropagation(); addToCart(<?php echo $row['id']; ?>, this)">Add to Cart</button>
                                     <?php endif; ?>
                                 </div>
                             </div>
@@ -297,6 +486,58 @@ $total_images = mysqli_num_rows($images_result);
                 $service_cards_result = null;
             }
             ?>
+
+
+            <section class="promotions-section">
+                 <div class="section-header">
+                    <h1 class="promotion-title">Discount Coupons</h1>
+                    <p class="service-subtitle">Save money with our discount codes at checkout!</p>
+                </div>
+
+                <div class="promotion-grid">
+                    <?php if (count($active_promotions) > 0): ?>
+                        <?php foreach ($active_promotions as $promo): 
+                            // Format discount type display
+                            $discount_type_display = '';
+                            if ($promo['type'] === 'free_shipping') {
+                                $discount_type_display = 'FREE SHIPPING';
+                            } else {
+                                $discount_type_display = 'PRODUCT DISCOUNT';
+                            }
+                            
+                            // Format dates to MM/DD/YY
+                            $start_date = date('m/d/y', strtotime($promo['activation_date']));
+                            $end_date = date('m/d/y', strtotime($promo['expiration_date']));
+                            $date_validity = $start_date . ' - ' . $end_date;
+                            
+                            // Format min spend
+                            $min_spend = number_format($promo['min_purchase'], 0);
+                        ?>
+                            <div class="coupon-ticket" data-aos="fade-up">
+                                <div class="ticket-left">
+                                    <div class="coupon-code"><?php echo htmlspecialchars($promo['code']); ?></div>
+                                    <div class="coupon-title"><?php echo htmlspecialchars($promo['title']); ?></div>
+                                </div>
+                                <div class="ticket-divider">
+                                    <div class="circle-top"></div>
+                                    <div class="dashed-line"></div>
+                                    <div class="circle-bottom"></div>
+                                </div>
+                                <div class="ticket-right">
+                                    <div class="discount-type"><?php echo $discount_type_display; ?></div>
+                                    <div class="coupon-details">
+                                        <div class="min-spend">Min Spend: ₱<?php echo $min_spend; ?></div>
+                                        <div class="validity">Valid: <?php echo $date_validity; ?></div>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <p>No available promotions at the moment.</p>
+                    <?php endif; ?>
+                </div>
+                
+            </section>
 
             <!-- Service Section -->
             <section class="service-section">
@@ -387,6 +628,47 @@ $total_images = mysqli_num_rows($images_result);
     </div>
 </div>
 
+<!-- Quantity Modal (appears before adding to cart) -->
+<div id="quantityModal" class="modal" style="display: none;">
+    <div class="modal-content quantity-modal-content fade-in-pop">
+        <span class="close" onclick="closeQuantityModal()">&times;</span>
+        <div class="quantity-modal-body">
+            <h2 id="quantityModalProductName">Product Name</h2>
+            <p class="quantity-modal-price" id="quantityModalPrice"></p>
+            
+            <!-- Order Type Selector (shown only if product has both pre-order and same day order) -->
+            <div id="orderTypeSelector" class="order-type-selector" style="display: none;">
+                <label>Order Type:</label>
+                <div class="order-type-buttons">
+                    <button type="button" class="order-type-btn active" data-type="preorder" onclick="selectOrderType('preorder')">
+                        Pre-Order
+                    </button>
+                    <button type="button" class="order-type-btn" data-type="sameday" onclick="selectOrderType('sameday')">
+                        Same Day Order
+                    </button>
+                </div>
+            </div>
+            
+            <p class="quantity-modal-stock" id="quantityModalStock">Stock: 0</p>
+            <p class="quantity-modal-date" id="quantityModalDate" style="display: none; font-size: 13px; color: #666; margin-top: 5px;">For: Today</p>
+            
+            <div class="quantity-modal-controls">
+                <label>Quantity:</label>
+                <div class="quantity-controls">
+                    <button type="button" onclick="updateQuantityModalValue(-1)">-</button>
+                    <input type="number" id="quantityModalInput" value="1" min="1" onchange="validateQuantityModalInput()">
+                    <button type="button" onclick="updateQuantityModalValue(1)">+</button>
+                </div>
+            </div>
+            
+            <div class="quantity-modal-actions">
+                <button class="btn-cancel" onclick="closeQuantityModal()">Cancel</button>
+                <button class="btn-confirm" onclick="confirmAddToCart()">Add to Cart</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 // Service cards animation
 document.addEventListener('DOMContentLoaded', function() {
@@ -452,130 +734,203 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-window.addToCart = function(productId, button) {
-    const quantityInput = button.parentElement.querySelector('input');
-    const quantity = quantityInput ? parseInt(quantityInput.value) : 1;
+// Check if user is logged in
+const isLoggedIn = <?= isset($_SESSION['user_id']) ? 'true' : 'false' ?>;
+const loginUrl = '/frontend/login/user/login-signup.php';
 
-    fetch("/frontend/pages/cart/add-to-cart.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: `product_id=${productId}&quantity=${quantity}`
-    })
-    .then(response => {
-        // Check if response is a redirect (status 302) or if content-type is not JSON
-        const contentType = response.headers.get('content-type');
-        if (response.redirected || response.status === 302 || (contentType && !contentType.includes('application/json'))) {
-            // If it's a redirect, follow it
-            window.location.href = response.url;
-            return;
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data && data.success) {
-            alert("Product added to cart successfully!");
-        } else if (data) {
-            alert("Error: " + data.error);
-        }
-    })
-    .catch(error => {
-        console.error("Error:", error);
-        // Don't show error message if it's a redirect (user will be redirected to login)
-        if (!error.message.includes('redirect')) {
-            alert("An error occurred while adding to cart");
-        }
-    });
+// Function to check login and redirect if needed
+function checkLoginAndRedirect() {
+    if (!isLoggedIn) {
+        alert('Please login to add items to cart');
+        window.location.href = loginUrl;
+        return false;
+    }
+    return true;
+}
+
+// Quantity Modal Variables
+let pendingCartProduct = null;
+let currentProductModalData = null;
+
+// Add to cart function - Opens quantity modal
+window.addToCart = function(productId, button) {
+    // Check if user is logged in
+    if (!checkLoginAndRedirect()) {
+        return;
+    }
+    
+    const productCard = button.closest('.product-card');
+    if (!productCard) {
+        console.error('Product card not found');
+        return;
+    }
+    
+    const productData = JSON.parse(productCard.getAttribute('data-product'));
+    const productName = productData.name;
+    const productPrice = '₱' + parseFloat(productData.price).toFixed(2);
+    const productStock = productData.quantity;
+    const statusId = productData.status_id;
+    const availtodayStatusId = productData.availtoday_status_id;
+    
+    // Store product info for later
+    pendingCartProduct = {
+        id: productId,
+        name: productName,
+        price: productPrice,
+        stock: productStock,
+        button: button,
+        statusId: statusId,
+        availtodayStatusId: availtodayStatusId,
+        selectedOrderType: 'preorder' // Default
+    };
+    
+    // Open quantity modal with order type options
+    openQuantityModalWithOrderType(productName, productPrice, productStock, statusId, availtodayStatusId);
 }
 
 window.openProductModal = function(product) {
-    const modal = document.getElementById('productModal');
-    const mainImage = document.getElementById('modalMainImage');
-    const thumbnails = document.getElementById('thumbnailContainer');
-    const productName = document.getElementById('modalProductName');
-    const productPrice = document.getElementById('modalProductPrice');
-    const productStatus = document.getElementById('modalProductStatus');
-    const productDescription = document.getElementById('modalProductDescription');
-    const productStock = document.getElementById('modalProductStock');
-    const quantityInput = document.getElementById('modalQuantity');
-    const addToCartBtn = document.getElementById('modalAddToCart');
+    try {
+        if (!product || typeof product !== 'object') {
+            console.error('Invalid product data:', product);
+            return;
+        }
 
-    // Set main content
-    productName.textContent = product.name;
-    productPrice.textContent = '₱' + parseFloat(product.price).toFixed(2);
-    productStatus.textContent = product.quantity <= 0 || product.status === 'Unavailable' ? 'Not Available' : product.status;
-    productStatus.className = 'status-badge status-' + product.status.toLowerCase().replace(' ', '-');
-    productDescription.textContent = product.description || 'No description available';
-    productStock.textContent = 'Stock: ' + product.quantity;
+        currentProductModalData = product; // Store for later use
+        const modal = document.getElementById('productModal');
+        const mainImage = document.getElementById('modalMainImage');
+        const thumbnails = document.getElementById('thumbnailContainer');
+        const productName = document.getElementById('modalProductName');
+        const productPrice = document.getElementById('modalProductPrice');
+        const productStatus = document.getElementById('modalProductStatus');
+        const productDescription = document.getElementById('modalProductDescription');
+        const productStock = document.getElementById('modalProductStock');
+        const addToCartBtn = document.getElementById('modalAddToCart');
 
-    // Set quantity input max value
-    quantityInput.max = product.quantity;
-    quantityInput.value = 1;
+        // Set main content
+        productName.textContent = product.name || 'Unknown Product';
+        productPrice.textContent = '₱' + (parseFloat(product.price) || 0).toFixed(2);
+        productStatus.textContent = product.status || 'Available';
+        productStatus.className = 'status-badge status-' + (product.status || '').toLowerCase().replace(' ', '-');
+        productDescription.textContent = product.description || 'No description available';
+        productStock.textContent = 'Stock: ' + (product.quantity || 0);
 
-    // Set up images
-    if (product.images && product.images.length > 0) {
-                    mainImage.src = '/assets/' + product.images[0];
-        
-        // Clear existing thumbnails
-        thumbnails.innerHTML = '';
-        
-        // Add all images as thumbnails
-        product.images.forEach((image, index) => {
-            const thumb = document.createElement('img');
-                            thumb.src = '/assets/' + image;
-            thumb.alt = `${product.name} view ${index + 1}`;
-            thumb.onclick = () => mainImage.src = thumb.src;
-            thumbnails.appendChild(thumb);
-        });
-    }
-
-    // Set up Add to Cart button
-    const isUnavailable = product.status === 'Unavailable' || product.quantity <= 0;
-    if (isUnavailable) {
-        addToCartBtn.disabled = true;
-        addToCartBtn.textContent = 'Not Available';
-        addToCartBtn.classList.add('unavailable');
-        quantityInput.disabled = true;
-    } else {
-        addToCartBtn.disabled = false;
-        addToCartBtn.textContent = 'Add to Cart';
-        addToCartBtn.classList.remove('unavailable');
-        quantityInput.disabled = false;
-        addToCartBtn.onclick = () => {
-            const quantity = parseInt(quantityInput.value);
-            fetch("/frontend/pages/cart/add-to-cart.php", {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: `product_id=${product.id}&quantity=${quantity}`
-            })
-            .then(response => {
-                // Check if response is a redirect (status 302) or if content-type is not JSON
-                const contentType = response.headers.get('content-type');
-                if (response.redirected || response.status === 302 || (contentType && !contentType.includes('application/json'))) {
-                    // If it's a redirect, follow it
-                    window.location.href = response.url;
-                    return;
+        // Set up images - handle both Cloudinary URLs and local paths
+        if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+            // Helper function to get proper image path
+            const getImagePath = (img) => {
+                if (img.startsWith('http://') || img.startsWith('https://')) {
+                    return img; // It's a full URL (Cloudinary)
                 }
-                return response.json();
-            })
-            .then(data => {
-                if (data && data.success) {
-                    alert("Product added to cart successfully!");
-                    closeProductModal();
-                } else if (data) {
-                    alert("Error: " + data.error);
-                }
-            })
-            .catch(error => {
-                console.error("Error:", error);
-                // Don't show error message if it's a redirect (user will be redirected to login)
-                if (!error.message.includes('redirect')) {
-                    alert("An error occurred while adding to cart");
+                return '/assets/' + img; // It's a local path
+            };
+            
+            mainImage.src = getImagePath(product.images[0]);
+            thumbnails.innerHTML = '';
+            product.images.forEach((image, index) => {
+                if (image) {
+                    const thumb = document.createElement('img');
+                    thumb.src = getImagePath(image);
+                    thumb.alt = `${product.name || 'Product'} view ${index + 1}`;
+                    thumb.onclick = () => mainImage.src = thumb.src;
+                    thumbnails.appendChild(thumb);
                 }
             });
-        };
-    }
+        } else {
+            mainImage.src = '/assets/images/no-image.jpg';
+            thumbnails.innerHTML = '';
+        }
 
-    modal.style.display = 'flex';
+        // Check if product is unavailable
+        let isUnavailable = false;
+        let unavailableReason = '';
+        
+        const preorderStock = product.quantity || 0;
+        const samedayStock = product.sameday_stock_today || 0;
+        const hasAvailtoday = product.availtoday_status_id != null && product.availtoday_status_id != '';
+        
+        if (product.status_id == 4) {
+            // Status 4: Same Day ONLY product
+            if (samedayStock == 0 || samedayStock === null) {
+                isUnavailable = true;
+                unavailableReason = 'Out of Stock';
+            }
+        } else if ([1, 2, 3].includes(product.status_id)) {
+            if (hasAvailtoday) {
+                // DUAL capability: Pre-order AND Same-day
+                if (preorderStock == 0 && (samedayStock == 0 || samedayStock === null)) {
+                    isUnavailable = true;
+                    unavailableReason = 'Out of Stock';
+                }
+            } else {
+                // Pre-order ONLY
+                if (preorderStock == 0) {
+                    isUnavailable = true;
+                    unavailableReason = 'Out of Stock';
+                }
+            }
+        }
+        
+        // Set up Add to Cart button
+        if (isUnavailable) {
+            addToCartBtn.disabled = true;
+            addToCartBtn.textContent = 'Unavailable - ' + unavailableReason;
+            addToCartBtn.classList.add('unavailable-btn');
+            addToCartBtn.onclick = null;
+        } else {
+            addToCartBtn.disabled = false;
+            addToCartBtn.textContent = 'Add to Cart';
+            addToCartBtn.classList.remove('unavailable-btn');
+            addToCartBtn.onclick = () => addToCartFromModal();
+        }
+
+        modal.style.display = 'flex';
+    } catch (error) {
+        console.error('Error in openProductModal:', error);
+        alert('An error occurred while opening the product details');
+    }
+}
+
+// Open product modal from data attribute
+window.openProductModalFromData = function(element) {
+    const productData = JSON.parse(element.getAttribute('data-product'));
+    openProductModal(productData);
+};
+
+// Add to cart from modal - Opens quantity modal
+function addToCartFromModal() {
+    // Check if user is logged in
+    if (!checkLoginAndRedirect()) {
+        return;
+    }
+    
+    if (!currentProductModalData) {
+        console.error('No product data available');
+        return;
+    }
+    
+    const productName = currentProductModalData.name;
+    const productPrice = '₱' + parseFloat(currentProductModalData.price).toFixed(2);
+    const productStock = currentProductModalData.quantity;
+    const statusId = currentProductModalData.status_id;
+    const availtodayStatusId = currentProductModalData.availtoday_status_id;
+    
+    // Store product info for later
+    pendingCartProduct = {
+        id: currentProductModalData.id,
+        name: productName,
+        price: productPrice,
+        stock: productStock,
+        button: null,
+        statusId: statusId,
+        availtodayStatusId: availtodayStatusId,
+        selectedOrderType: 'preorder' // Default
+    };
+    
+    // Close product modal first
+    closeProductModal();
+    
+    // Open quantity modal with order type options
+    openQuantityModalWithOrderType(productName, productPrice, productStock, statusId, availtodayStatusId);
 }
 
 window.closeProductModal = function() {
@@ -589,6 +944,284 @@ window.onclick = function(event) {
         closeProductModal();
     }
 }
+
+// Check if same-day option should be available
+async function checkSameDayAvailability(productId) {
+    try {
+        const response = await fetch(`/frontend/pages/products/get-sdo-quantity.php?product_id=${productId}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            // Check if there's quantity available today
+            const todayQuantity = data.quantity || 0;
+            const hasDateToday = data.has_date_today || false;
+            
+            // Same-day is available if:
+            // 1. There's a date for today AND
+            // 2. There's quantity available
+            return hasDateToday && todayQuantity > 0;
+        }
+        return false;
+    } catch (error) {
+        console.error('Error checking same-day availability:', error);
+        return false;
+    }
+}
+
+// Open quantity modal with order type selection
+async function openQuantityModalWithOrderType(productName, productPrice, productStock, statusId, availtodayStatusId) {
+    const modal = document.getElementById('quantityModal');
+    document.getElementById('quantityModalProductName').textContent = productName;
+    document.getElementById('quantityModalPrice').textContent = productPrice;
+    
+    const quantityInput = document.getElementById('quantityModalInput');
+    const orderTypeSelector = document.getElementById('orderTypeSelector');
+    const dateDisplay = document.getElementById('quantityModalDate');
+    
+    // Determine which order types to show
+    if ((statusId == 1 || statusId == 2 || statusId == 3) && availtodayStatusId) {
+        // Product has BOTH pre-order and same day order
+        // Check if same-day is actually available today
+        const sameDayAvailable = await checkSameDayAvailability(pendingCartProduct.id);
+        
+        if (sameDayAvailable) {
+            // Show both options
+            orderTypeSelector.style.display = 'block';
+            document.getElementById('quantityModalStock').textContent = `Stock: ${productStock}`;
+            quantityInput.value = 1;
+            quantityInput.max = productStock;
+            selectOrderType('preorder'); // Default to pre-order
+        } else {
+            // Same-day not available - show pre-order only
+            orderTypeSelector.style.display = 'none';
+            dateDisplay.style.display = 'none';
+            pendingCartProduct.selectedOrderType = 'preorder';
+            document.getElementById('quantityModalStock').textContent = `Stock: ${productStock}`;
+            quantityInput.value = 1;
+            quantityInput.max = productStock;
+        }
+    } else if (statusId == 4) {
+        // Same Day Order ONLY - Fetch today's quantity
+        orderTypeSelector.style.display = 'none';
+        dateDisplay.style.display = 'block';
+        dateDisplay.textContent = 'For: Today';
+        pendingCartProduct.selectedOrderType = 'sameday';
+        
+        // Fetch today's quantity before showing modal
+        document.getElementById('quantityModalStock').textContent = 'Loading...';
+        quantityInput.value = 1;
+        quantityInput.max = 1;
+        
+        fetchTodayQuantity(pendingCartProduct.id);
+    } else {
+        // Pre-order ONLY (status 1, 2, or 3 without availtoday_status_id)
+        orderTypeSelector.style.display = 'none';
+        dateDisplay.style.display = 'none';
+        pendingCartProduct.selectedOrderType = 'preorder';
+        document.getElementById('quantityModalStock').textContent = `Stock: ${productStock}`;
+        quantityInput.value = 1;
+        quantityInput.max = productStock;
+    }
+    
+    modal.style.display = 'flex';
+}
+
+// Select order type
+function selectOrderType(type) {
+    const buttons = document.querySelectorAll('.order-type-btn');
+    buttons.forEach(btn => {
+        if (btn.getAttribute('data-type') === type) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    
+    const dateDisplay = document.getElementById('quantityModalDate');
+    const stockDisplay = document.getElementById('quantityModalStock');
+    
+    if (type === 'sameday') {
+        dateDisplay.style.display = 'block';
+        dateDisplay.textContent = 'For: Today';
+        
+        // Fetch today's specific quantity from database
+        if (pendingCartProduct) {
+            fetchTodayQuantity(pendingCartProduct.id);
+        }
+    } else {
+        dateDisplay.style.display = 'none';
+        
+        // Restore original stock quantity for pre-order
+        if (pendingCartProduct) {
+            stockDisplay.textContent = `Stock: ${pendingCartProduct.stock}`;
+            const quantityInput = document.getElementById('quantityModalInput');
+            quantityInput.max = pendingCartProduct.stock;
+            quantityInput.value = Math.min(parseInt(quantityInput.value) || 1, pendingCartProduct.stock);
+        }
+    }
+    
+    if (pendingCartProduct) {
+        pendingCartProduct.selectedOrderType = type;
+    }
+}
+
+// Fetch today's specific quantity for same day orders
+function fetchTodayQuantity(productId) {
+    const stockDisplay = document.getElementById('quantityModalStock');
+    stockDisplay.textContent = 'Loading...';
+    
+    fetch(`/frontend/pages/products/get-sdo-quantity.php?product_id=${productId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const todayQuantity = data.quantity || 0;
+                stockDisplay.textContent = `Stock: ${todayQuantity}`;
+                
+                const quantityInput = document.getElementById('quantityModalInput');
+                quantityInput.max = todayQuantity;
+                quantityInput.value = Math.min(parseInt(quantityInput.value) || 1, todayQuantity);
+                
+                if (todayQuantity === 0) {
+                    stockDisplay.textContent = 'Stock: 0 (Not available today)';
+                }
+            } else {
+                console.error('Error fetching today quantity:', data.error);
+                stockDisplay.textContent = 'Stock: 0';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            stockDisplay.textContent = 'Stock: 0';
+        });
+}
+
+// Close quantity modal
+function closeQuantityModal() {
+    document.getElementById('quantityModal').style.display = 'none';
+    pendingCartProduct = null;
+}
+
+// Update quantity value
+function updateQuantityModalValue(change) {
+    const input = document.getElementById('quantityModalInput');
+    const currentValue = parseInt(input.value) || 1;
+    const newValue = currentValue + change;
+    const maxValue = parseInt(input.max);
+    
+    if (newValue >= 1 && newValue <= maxValue) {
+        input.value = newValue;
+    }
+}
+
+// Validate quantity input
+function validateQuantityModalInput() {
+    const input = document.getElementById('quantityModalInput');
+    const value = parseInt(input.value) || 1;
+    const maxValue = parseInt(input.max);
+    
+    if (value < 1) {
+        input.value = 1;
+    } else if (value > maxValue) {
+        input.value = maxValue;
+    }
+}
+
+// Confirm and add to cart
+function confirmAddToCart() {
+    if (!pendingCartProduct) return;
+    
+    const quantity = parseInt(document.getElementById('quantityModalInput').value) || 1;
+    const confirmBtn = document.querySelector('.quantity-modal-actions .btn-confirm');
+    
+    if (!confirmBtn) return;
+    
+    // Store original button text
+    const originalText = confirmBtn.textContent;
+    
+    // Disable button and show loading state
+    confirmBtn.disabled = true;
+    confirmBtn.style.opacity = '0.7';
+    confirmBtn.style.cursor = 'not-allowed';
+    confirmBtn.innerHTML = '<span class="loading-spinner-small"></span> Adding to cart...';
+    
+    // Determine which cart to add to based on selectedOrderType
+    const orderType = pendingCartProduct.selectedOrderType || 'preorder';
+    
+    // Simulate async operation (add to cart)
+    setTimeout(() => {
+        if (orderType === 'preorder') {
+            // Add to pre-order cart (cart table)
+            fetch('/frontend/pages/cart/add-to-cart.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `product_id=${pendingCartProduct.id}&quantity=${quantity}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.success) {
+                    // Show success state
+                    confirmBtn.innerHTML = '<span class="success-icon">✓</span> Product added!';
+                    confirmBtn.style.backgroundColor = '#4CAF50';
+                    
+                    // Show confirmation message
+                    alert(`Added ${quantity} ${pendingCartProduct.name} to cart`);
+                    
+                    // Close modal after short delay
+                    setTimeout(() => {
+                        closeQuantityModal();
+                        
+                        // Reset button state
+                        confirmBtn.disabled = false;
+                        confirmBtn.style.opacity = '1';
+                        confirmBtn.style.cursor = 'pointer';
+                        confirmBtn.textContent = originalText;
+                        confirmBtn.style.backgroundColor = '';
+                    }, 800);
+                } else {
+                    console.error('Failed to add to cart:', data.message);
+                    alert(data.message || 'Failed to add to cart');
+                    
+                    // Reset button on error
+                    confirmBtn.disabled = false;
+                    confirmBtn.style.opacity = '1';
+                    confirmBtn.style.cursor = 'pointer';
+                    confirmBtn.textContent = originalText;
+                }
+            })
+            .catch(error => {
+                console.error('Error adding to cart:', error);
+                alert('Error adding to cart');
+                
+                // Reset button on error
+                confirmBtn.disabled = false;
+                confirmBtn.style.opacity = '1';
+                confirmBtn.style.cursor = 'pointer';
+                confirmBtn.textContent = originalText;
+            });
+        } else {
+            // For same-day cart - we'll use simple alert for now
+            alert(`Added ${quantity} ${pendingCartProduct.name} to same-day cart`);
+            closeQuantityModal();
+            
+            // Reset button state
+            confirmBtn.disabled = false;
+            confirmBtn.style.opacity = '1';
+            confirmBtn.style.cursor = 'pointer';
+            confirmBtn.textContent = originalText;
+            confirmBtn.style.backgroundColor = '';
+        }
+    }, 500); // Small delay to show loading state
+}
+
+// Close modal when clicking outside quantity modal
+window.addEventListener('click', function(event) {
+    const quantityModal = document.getElementById('quantityModal');
+    if (event.target === quantityModal) {
+        closeQuantityModal();
+    }
+});
 </script>
 
 <?php require_once __DIR__ . "/../../user-includes/user-footer.php"; ?>
