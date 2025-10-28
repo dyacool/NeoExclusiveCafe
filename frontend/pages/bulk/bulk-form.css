@@ -32,6 +32,7 @@
 .wrapper {
   max-width: 1600px;
   margin: 0 auto;
+  padding: 0 1rem;
 }
 
 body {
@@ -1093,10 +1094,6 @@ select {
 
 /* Responsive Design */
 @media (max-width: 1024px) {
-  .container {
-    padding: 24px;
-  }
-
   .products-grid {
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 20px;
@@ -1108,11 +1105,6 @@ select {
 }
 
 @media (max-width: 768px) {
-  .container {
-    margin: 10px;
-    padding: 20px;
-  }
-
   .form-header h1 {
     font-size: 2rem;
   }
@@ -1169,11 +1161,6 @@ select {
 }
 
 @media (max-width: 480px) {
-  .container {
-    margin: 5px;
-    padding: 16px;
-  }
-
   .form-header {
     padding: 20px 10px;
   }
@@ -1233,11 +1220,6 @@ select {
 }
 
 @media (max-width: 360px) {
-  .container {
-    margin: 2px;
-    padding: 12px;
-  }
-
   .product-header {
     padding: 12px;
   }
@@ -1311,10 +1293,6 @@ select {
     font-size: 1rem;
   }
 
-  .container {
-    padding: 24px 20px;
-  }
-
   .form-row {
     grid-template-columns: 1fr;
     gap: 16px;
@@ -1346,10 +1324,6 @@ select {
 
   .form-header p {
     font-size: 0.95rem;
-  }
-
-  .container {
-    padding: 20px 16px;
   }
 
   input[type="text"],

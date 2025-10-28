@@ -107,4 +107,6 @@ $total_pages = ceil($total_posts / $posts_per_page);
     <?php endif; ?>
 </div>
 
+<?php include "../../user-includes/user-footer.php"; ?>
+
 

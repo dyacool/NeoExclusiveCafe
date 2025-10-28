@@ -55,7 +55,7 @@ body {
   text-align: center;
   margin-bottom: 25px;
   padding: 25px 0;
-  background: linear-gradient(135deg, #2d5a27 0%, #1a4018 100%);
+  background: #0f5132;
   color: white;
   border-radius: 10px;
   box-shadow: 0 4px 15px rgba(45, 90, 39, 0.2);
@@ -286,72 +286,32 @@ body {
 /* Responsive Design */
 @media (max-width: 768px) {
   .privacy-header h1 {
-    font-size: 2.2rem;
+    font-size: 1.5rem;
   }
 
   .privacy-header .last-updated {
     font-size: 1rem;
   }
 
-  .privacy-content {
-    padding: 2rem 1.5rem;
+  .privacy-header {
+    padding: 10px 0;
+  }
+
+  .content-wrapper {
+    padding: 20px;
   }
 
   .content-wrapper h2 {
-    font-size: 1.8rem;
+    font-size: 1.25rem;
   }
 
   .content-wrapper h3 {
-    font-size: 1.3rem;
+    font-size: 1.125rem;
   }
 
   .content-wrapper p,
   .content-wrapper li {
     font-size: 1rem;
-  }
-
-  .privacy-actions {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .privacy-actions button,
-  .privacy-actions a {
-    width: 100%;
-    max-width: 300px;
-    justify-content: center;
-  }
-
-  .breadcrumb {
-    padding: 0.8rem 1rem;
-    font-size: 0.9rem;
-  }
-
-  .contact-info {
-    padding: 1.5rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .container {
-    padding: 0 0.5rem;
-  }
-
-  .privacy-header {
-    padding: 2rem 1rem;
-  }
-
-  .privacy-header h1 {
-    font-size: 1.8rem;
-  }
-
-  .privacy-content {
-    padding: 1.5rem 1rem;
-  }
-
-  .content-wrapper ul,
-  .content-wrapper ol {
-    padding-left: 1.5rem;
   }
 }
 

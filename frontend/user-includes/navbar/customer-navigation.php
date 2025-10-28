@@ -143,7 +143,7 @@ if (!$navbar_conn) {
     </div>
 
     <div class="announcement-bar">
-        <div class="announcement-text">Enjoy freshly baked goods! Available for same-day and pre-order purchases.</div>
+        <div class="announcement-text"> Products Available for same-day and pre-order purchases.</div>
     </div>
 
     <nav class="main-nav">
@@ -319,7 +319,7 @@ if (!$navbar_conn) {
                             <?php else: ?>
                                 <a href="/frontend/pages/profile/profile.php">Profile</a>
                                 <a href="/frontend/pages/profile/account-settings.php">Account Settings</a>
-                                <a href="/frontend/pages/blog/blog-list.php">View Post</a>
+                                <a href="/frontend/pages/blog/user-blog-post.php">View Post</a>
                                 <a href="/frontend/login/user/logout.php">Logout</a>
                             <?php endif; ?>
                         </div>

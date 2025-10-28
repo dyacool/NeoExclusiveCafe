@@ -129,10 +129,6 @@ $notifications = $notifications_data; // Use consistent variable name
                                     <h4 class="notification-title"><?= htmlspecialchars($notification['title']) ?></h4>
                                     <span class="notification-time"><?= date('M j, g:i A', strtotime($notification['created_at'])) ?></span>
                                 </div>
-                                <p class="notification-message">
-                                    <?= htmlspecialchars(substr($notification['message'], 0, 120)) ?>
-                                    <?= strlen($notification['message']) > 120 ? '...' : '' ?>
-                                </p>
                                 
                                 <div class="notification-actions">
                                     <button class="btn btn-sm btn-primary view-details-btn" 

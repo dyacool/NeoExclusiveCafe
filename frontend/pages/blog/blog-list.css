@@ -164,70 +164,24 @@
 
 @media (max-width: 768px) {
   .instagram-feed {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
   }
 
   .blog-container h1 {
-    font-size: 2rem;
+    font-size: 1.5rem;
   }
 
+  .post-title {
+    color: #333;
+    font-size: 1rem;
+  }
   .pagination {
     flex-wrap: wrap;
   }
 }
 
-/* BACK BUTTON */
-.cta {
-  border: none;
-  background: none;
-  cursor: pointer;
-  align-self: flex-start;
-  margin: 30px;
-}
-
-.cta span {
-  padding-bottom: 7px;
-  letter-spacing: 1px;
-  font-size: 18px;
-  font-weight: 500;
-  padding-right: 15px;
-  text-transform: uppercase;
-}
-
-.cta svg {
-  transform: translateX(0);
-  transition: all 0.3s ease;
-}
-
-.cta:hover svg {
-  transform: translateX(-8px);
-}
-
-.cta:active svg {
-  transform: scale(0.9);
-}
-
-.hover-underline-animation {
-  position: relative;
-  color: black;
-  padding-bottom: 20px;
-  padding-left: 5px;
-}
-
-.hover-underline-animation:after {
-  content: "";
-  position: absolute;
-  width: 85%;
-  transform: scaleX(0);
-  height: 2px;
-  bottom: 0;
-  left: 0;
-  background-color: var(--primary-color);
-  transform-origin: bottom right;
-  transition: transform 0.3s ease-out;
-}
-
-.cta:hover .hover-underline-animation:after {
-  transform: scaleX(1);
-  transform-origin: bottom left;
+@media (max-width: 425px) {
+  .instagram-feed {
+    grid-template-columns: 1fr;
+  }
 }

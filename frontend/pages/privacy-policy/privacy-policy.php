@@ -56,7 +56,6 @@ if ($result && $result->num_rows > 0) {
     ];
 }
 
-$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -69,8 +68,7 @@ $conn->close();
     <link rel="icon" type="image/x-icon" href="../../../assets/images/favicon.ico">
 </head>
 <body>
-    <!-- Navigation -->
-    <?php include "../../user-includes/navbar/customer-navigation.php"; ?>
+    <?php include __DIR__ . "/../../user-includes/navbar/customer-navigation.php"; ?>
     <?php include __DIR__ . "/../../user-includes/bread-crumb/bread-crumb.php"; ?>
 
 

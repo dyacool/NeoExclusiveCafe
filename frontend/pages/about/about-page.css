@@ -30,6 +30,7 @@ main {
 }
 
 .about-container {
+  padding: 0 1rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -52,40 +53,12 @@ main {
   box-sizing: border-box;
 }
 
-/* Breadcrumb */
-.breadcrumb {
-  margin-bottom: 30px;
-  font-size: 0.9rem;
-  color: #666;
-}
-
-.breadcrumb a {
-  color: black;
-  text-decoration: none;
-  transition: color 0.3s ease;
-}
-
-.breadcrumb a:hover {
-  color: ghostwhite;
-  text-decoration: underline;
-}
-
-.separator {
-  margin: 0 10px;
-  color: #999;
-}
-
-.current {
-  color: #666;
-  font-weight: 500;
-}
-
 /* Header */
 .about-header {
   text-align: center;
   margin-bottom: 25px;
   padding: 25px 0;
-  background: linear-gradient(135deg, #2d5a27 0%, #1a4018 100%);
+  background: #0f5132;
   color: white;
   border-radius: 10px;
   box-shadow: 0 4px 15px rgba(45, 90, 39, 0.2);
@@ -310,9 +283,20 @@ main {
     text-align: center;
   }
 
-  .header {
-    text-align: center;
-    padding-top: 30px;
+  .about-header {
+    padding: 10px 0;
+  }
+
+  .about-text {
+    padding: 20px;
+  }
+
+  .about-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .about-image img {
+    height: 250px;
   }
 }
 
@@ -343,37 +327,5 @@ main {
 
   .about-content {
     flex: 2;
-  }
-}
-
-@media (max-width: 767px) {
-  .header h1 {
-    font-size: 2em;
-  }
-
-  .about-box p {
-    font-size: 1rem;
-  }
-
-  /* Fix for right side space on mobile */
-  html,
-  body {
-    width: 100%;
-    overflow-x: hidden;
-  }
-
-  .container,
-  .about-container,
-  .about-content,
-  .content-wrapper,
-  .about-text {
-    max-width: 100%;
-    padding-left: 15px;
-    padding-right: 15px;
-  }
-
-  .about-image img {
-    width: 100%;
-    height: auto;
   }
 }
