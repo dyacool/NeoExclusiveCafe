@@ -166,35 +166,77 @@ ini_set('display_errors', 1);
     <div class="box">
         <h2>7. Load CloudinaryImageFetcher Class</h2>
         <?php
-        try {
-            if (file_exists(__DIR__ . '/backend/includes/cloudinary-image-fetcher.php')) {
-                require_once __DIR__ . '/backend/includes/cloudinary-image-fetcher.php';
-                
-                if (class_exists('CloudinaryImageFetcher')) {
-                    echo "<span class='success'>✓</span> CloudinaryImageFetcher class loaded successfully!<br>";
-                    
-                    // Try to instantiate
-                    if (isset($conn) && $conn) {
-                        try {
-                            $fetcher = new CloudinaryImageFetcher($conn);
-                            echo "<span class='success'>✓</span> CloudinaryImageFetcher instantiated successfully!<br>";
-                            
-                            $status = $fetcher->getCloudinaryStatus();
-                            echo "<pre>" . print_r($status, true) . "</pre>";
-                        } catch (Exception $e) {
-                            echo "<span class='error'>✗</span> Failed to instantiate: " . $e->getMessage() . "<br>";
-                        }
-                    }
-                } else {
-                    echo "<span class='error'>✗</span> CloudinaryImageFetcher class not found after loading file<br>";
-                }
+        // First, let's see what happens when we try to include it
+        echo "<strong>Attempting to load file...</strong><br>";
+        
+        $fetcherFile = __DIR__ . '/backend/includes/cloudinary-image-fetcher.php';
+        
+        if (!file_exists($fetcherFile)) {
+            echo "<span class='error'>✗</span> File not found: {$fetcherFile}<br>";
+        } else {
+            echo "<span class='success'>✓</span> File exists<br>";
+            
+            // Check file size
+            $fileSize = filesize($fetcherFile);
+            echo "File size: {$fileSize} bytes<br>";
+            
+            if ($fileSize < 100) {
+                echo "<span class='error'>⚠️</span> File seems too small, might be corrupted<br>";
+                echo "<pre>" . htmlspecialchars(file_get_contents($fetcherFile)) . "</pre>";
             } else {
-                echo "<span class='error'>✗</span> CloudinaryImageFetcher file not found<br>";
+                // Try to include with error capture
+                ob_start();
+                try {
+                    include_once $fetcherFile;
+                    $includeOutput = ob_get_clean();
+                    
+                    if (!empty($includeOutput)) {
+                        echo "<span class='error'>⚠️</span> Output during include:<br>";
+                        echo "<pre>" . htmlspecialchars($includeOutput) . "</pre>";
+                    }
+                    
+                    echo "<span class='success'>✓</span> File included without fatal errors<br>";
+                    
+                    // Check if class exists
+                    if (class_exists('CloudinaryImageFetcher')) {
+                        echo "<span class='success'>✓</span> CloudinaryImageFetcher class found!<br>";
+                        
+                        // Try to instantiate
+                        if (isset($conn) && $conn) {
+                            try {
+                                $fetcher = new CloudinaryImageFetcher($conn);
+                                echo "<span class='success'>✓</span> CloudinaryImageFetcher instantiated successfully!<br>";
+                                
+                                $status = $fetcher->getCloudinaryStatus();
+                                echo "<strong>Cloudinary Status:</strong><br>";
+                                echo "<pre>" . print_r($status, true) . "</pre>";
+                            } catch (Exception $e) {
+                                echo "<span class='error'>✗</span> Failed to instantiate: " . $e->getMessage() . "<br>";
+                                echo "<pre>Stack trace:\n" . $e->getTraceAsString() . "</pre>";
+                            }
+                        } else {
+                            echo "<span class='error'>⚠️</span> No database connection available for testing<br>";
+                        }
+                    } else {
+                        echo "<span class='error'>✗</span> CloudinaryImageFetcher class NOT found after include<br>";
+                        echo "<strong>Declared classes in file:</strong><br>";
+                        $declaredClasses = get_declared_classes();
+                        $relevantClasses = array_filter($declaredClasses, function($class) {
+                            return stripos($class, 'cloudinary') !== false || stripos($class, 'fetcher') !== false;
+                        });
+                        echo "<pre>" . print_r($relevantClasses, true) . "</pre>";
+                    }
+                    
+                } catch (Exception $e) {
+                    ob_end_clean();
+                    echo "<span class='error'>✗</span> Exception: " . $e->getMessage() . "<br>";
+                    echo "<pre>File: " . $e->getFile() . "\nLine: " . $e->getLine() . "\n" . $e->getTraceAsString() . "</pre>";
+                } catch (Error $e) {
+                    ob_end_clean();
+                    echo "<span class='error'>✗</span> PHP Error: " . $e->getMessage() . "<br>";
+                    echo "<pre>File: " . $e->getFile() . "\nLine: " . $e->getLine() . "\n" . $e->getTraceAsString() . "</pre>";
+                }
             }
-        } catch (Exception $e) {
-            echo "<span class='error'>✗</span> Error loading class: " . $e->getMessage() . "<br>";
-        } catch (Error $e) {
-            echo "<span class='error'>✗</span> PHP Error: " . $e->getMessage() . " in " . $e->getFile() . " line " . $e->getLine() . "<br>";
         }
         ?>
     </div>
