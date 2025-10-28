@@ -7,11 +7,42 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-require_once __DIR__ . '/config/database-config.php';
-require_once __DIR__ . '/backend/includes/cloudinary-image-fetcher.php';
+// Initialize variables
+$conn = null;
+$initError = null;
 
-// Get database connection
-$conn = getDatabaseConnection();
+try {
+    // Check if files exist
+    $configFile = __DIR__ . '/config/database-config.php';
+    $fetcherFile = __DIR__ . '/backend/includes/cloudinary-image-fetcher.php';
+    
+    if (!file_exists($configFile)) {
+        throw new Exception("Database config file not found at: {$configFile}");
+    }
+    
+    if (!file_exists($fetcherFile)) {
+        throw new Exception("Cloudinary fetcher file not found at: {$fetcherFile}");
+    }
+    
+    require_once $configFile;
+    require_once $fetcherFile;
+    
+    // Check if class exists
+    if (!class_exists('CloudinaryImageFetcher')) {
+        throw new Exception("CloudinaryImageFetcher class not loaded. File may have syntax errors.");
+    }
+    
+    // Get database connection
+    $conn = getDatabaseConnection();
+    
+    if (!$conn) {
+        throw new Exception("Failed to establish database connection");
+    }
+} catch (Exception $e) {
+    $initError = $e->getMessage();
+} catch (Error $e) {
+    $initError = "PHP Error: " . $e->getMessage() . " in " . $e->getFile() . " on line " . $e->getLine();
+}
 
 ?>
 <!DOCTYPE html>
@@ -191,9 +222,27 @@ $conn = getDatabaseConnection();
         <p class="subtitle">Testing image fetching functionality on your live domain</p>
         
         <?php
+        // Check for initialization errors
+        if ($initError) {
+            echo '<div class="test-section">';
+            echo '<h2>❌ Initialization Error</h2>';
+            echo '<span class="status error">✗ FAILED</span>';
+            echo '<div class="error-message">';
+            echo '<strong>Error:</strong> ' . htmlspecialchars($initError) . '<br><br>';
+            echo '<strong>Possible causes:</strong><br>';
+            echo '• Database connection failed<br>';
+            echo '• Cloudinary configuration missing<br>';
+            echo '• Required files not found<br>';
+            echo '• PHP syntax error in included files';
+            echo '</div>';
+            echo '</div>';
+            echo '</div></body></html>';
+            exit;
+        }
+        
         $testResults = [];
         $totalTests = 0;
-        $passedTests = 0;
+        $passedTests = 
         
         // Test 1: Initialize Fetcher
         echo '<div class="test-section">';
