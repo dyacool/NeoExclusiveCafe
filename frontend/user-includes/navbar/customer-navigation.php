@@ -375,7 +375,7 @@ if (!$navbar_conn) {
                     e.preventDefault();
                     e.stopPropagation();
                     
-                    if (window.innerWidth <= 992) {
+                    if (window.innerWidth <= 1024) {
                         // Mobile
                         if (mobileSearchBox) {
                             mobileSearchBox.classList.toggle('active');
@@ -387,6 +387,55 @@ if (!$navbar_conn) {
                         }
                     }
                 };
+            }
+            
+            // MOBILE MENU FUNCTIONALITY (1024px and below)
+            const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+            const navLeft = document.querySelector('.nav-left');
+            
+            if (mobileMenuToggle && navLeft) {
+                mobileMenuToggle.onclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Toggle mobile menu
+                    navLeft.classList.toggle('active');
+                    mobileMenuToggle.classList.toggle('active');
+                    
+                    // Toggle hamburger icon
+                    const hamburgerIcon = mobileMenuToggle.querySelector('.hamburger-icon');
+                    if (hamburgerIcon) {
+                        hamburgerIcon.textContent = navLeft.classList.contains('active') ? '✕' : '☰';
+                    }
+                };
+            }
+            
+            // PRODUCTS DROPDOWN FOR MOBILE (1024px and below)
+            const productsContainer = document.querySelector('.products-container');
+            const productsDropdown = document.querySelector('.mobile-products-dropdown');
+            
+            if (productsContainer && productsDropdown) {
+                const productsLink = productsContainer.querySelector('.nav-link');
+                if (productsLink) {
+                    productsLink.onclick = function(e) {
+                        // Only prevent default on mobile (1024px and below)
+                        if (window.innerWidth <= 1024) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            
+                            // Toggle mobile products dropdown
+                            productsDropdown.classList.toggle('active');
+                            
+                            // Toggle arrow direction
+                            const arrow = productsLink.querySelector('.dropdown-arrow');
+                            if (arrow) {
+                                arrow.style.transform = productsDropdown.classList.contains('active') 
+                                    ? 'rotate(180deg)' 
+                                    : 'rotate(0deg)';
+                            }
+                        }
+                    };
+                }
             }
             
             // NOTIFICATION FUNCTIONALITY  
@@ -511,6 +560,29 @@ if (!$navbar_conn) {
             
             // CLOSE DROPDOWNS WHEN CLICKING OUTSIDE
             document.onclick = function(e) {
+                // Close mobile menu
+                if (navLeft && mobileMenuToggle && 
+                    !navLeft.contains(e.target) && 
+                    !mobileMenuToggle.contains(e.target)) {
+                    navLeft.classList.remove('active');
+                    mobileMenuToggle.classList.remove('active');
+                    
+                    const hamburgerIcon = mobileMenuToggle.querySelector('.hamburger-icon');
+                    if (hamburgerIcon) {
+                        hamburgerIcon.textContent = '☰';
+                    }
+                }
+                
+                // Close mobile products dropdown
+                if (productsDropdown && productsContainer && 
+                    !productsContainer.contains(e.target)) {
+                    productsDropdown.classList.remove('active');
+                    const arrow = productsContainer.querySelector('.dropdown-arrow');
+                    if (arrow) {
+                        arrow.style.transform = 'rotate(0deg)';
+                    }
+                }
+                
                 // Close search
                 if (desktopSearchBox && searchToggle && !searchToggle.contains(e.target) && !desktopSearchBox.contains(e.target)) {
                     desktopSearchBox.classList.remove('active');

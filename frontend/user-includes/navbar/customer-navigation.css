@@ -42,6 +42,7 @@ html {
   padding: 0;
   width: 100%;
   overflow-x: hidden;
+  overflow-y: auto; /* Allow vertical scroll but prevent horizontal */
 }
 
 body {
@@ -51,6 +52,20 @@ body {
   margin: 0;
   width: 100%;
   overflow-x: hidden;
+  overflow-y: hidden; /* Allow vertical scroll but prevent horizontal */
+}
+
+/* Prevent scroll indicators during page load */
+html.loading,
+body.loading {
+  overflow: hidden !important; /* Hide all scrollbars during loading */
+}
+
+/* Class to add during page load to prevent scroll flicker */
+.page-loading {
+  overflow: hidden !important;
+  height: 100vh !important;
+  width: 100vw !important;
 }
 
 /* Header Wrapper */
