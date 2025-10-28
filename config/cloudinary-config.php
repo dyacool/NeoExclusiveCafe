@@ -9,15 +9,25 @@ class CloudinaryConfig {
     private $cloudinary;
     
     private function __construct() {
-        // Load environment variables from .env file
+        // Load environment variables from .env file (for local development)
         $this->loadEnv();
+        
+        // Get credentials from environment (works for both Heroku and local)
+        $cloudName = getenv('CLOUDINARY_CLOUD_NAME') ?: $_ENV['CLOUDINARY_CLOUD_NAME'] ?? null;
+        $apiKey = getenv('CLOUDINARY_API_KEY') ?: $_ENV['CLOUDINARY_API_KEY'] ?? null;
+        $apiSecret = getenv('CLOUDINARY_API_SECRET') ?: $_ENV['CLOUDINARY_API_SECRET'] ?? null;
+        
+        // Fallback to hardcoded values if environment variables not set (temporary for testing)
+        if (empty($cloudName)) $cloudName = 'dvdccumbs';
+        if (empty($apiKey)) $apiKey = '952758222666671';
+        if (empty($apiSecret)) $apiSecret = 'euo6cTupk7L8lxxV4cf6TWzdiBY';
         
         // Initialize Cloudinary
         $this->cloudinary = new Cloudinary([
             'cloud' => [
-                'cloud_name' => getenv('CLOUDINARY_CLOUD_NAME'),
-                'api_key' => getenv('CLOUDINARY_API_KEY'),
-                'api_secret' => getenv('CLOUDINARY_API_SECRET')
+                'cloud_name' => $cloudName,
+                'api_key' => $apiKey,
+                'api_secret' => $apiSecret
             ],
             'url' => [
                 'secure' => true
@@ -25,9 +35,7 @@ class CloudinaryConfig {
         ]);
         
         // Validate credentials
-        if (empty(getenv('CLOUDINARY_CLOUD_NAME')) || 
-            empty(getenv('CLOUDINARY_API_KEY')) || 
-            empty(getenv('CLOUDINARY_API_SECRET'))) {
+        if (empty($cloudName) || empty($apiKey) || empty($apiSecret)) {
             throw new Exception('Cloudinary credentials are not properly configured');
         }
     }
