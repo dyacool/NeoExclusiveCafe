@@ -1,26 +1,30 @@
-﻿<?php
-session_set_cookie_params([
-    'lifetime' => 0,
-    'httponly' => true,
-    'samesite' => 'Strict',
-    'domain' => 'neocafe.cafe'
-]);
-session_start();
+<?php
+// Start session immediately to prevent headers already sent errors
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
-// Debug session status
-error_log("[Session Debug] product-dashboard.php - Session Data: " . print_r($_SESSION, true));
-error_log("[Session Debug] product-dashboard.php - User ID: " . (isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 'Not set'));
-error_log("[Session Debug] product-dashboard.php - User Role: " . (isset($_SESSION['user_role']) ? $_SESSION['user_role'] : 'Not set'));
+// Session management is handled by included files (user-header.php, customer-navigation.php, database.php)
+// No need to start session here as it's already started by the included files
 
 $page_title = "Products";
 $additional_css = [
     "/frontend/pages/products/product-dashboard.css"
 ];
 
-require_once __DIR__ . "/../../user-includes/navbar/customer-navigation.php";
+// Include session management files first (before any HTML output)
+// Order matters: database.php must come before user-header.php to avoid session conflicts
+require_once __DIR__ . "/../../../backend/pages/admin-includes/database.php";
 require_once __DIR__ . "/../../user-includes/user-header.php";
 require_once __DIR__ . "/../../user-includes/preview-mode.php";
-require_once __DIR__ . "/../../../backend/pages/admin-includes/database.php";
+
+// Debug session status (after session is started)
+error_log("[Session Debug] product-dashboard.php - Session Data: " . print_r($_SESSION, true));
+error_log("[Session Debug] product-dashboard.php - User ID: " . (isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 'Not set'));
+error_log("[Session Debug] product-dashboard.php - User Role: " . (isset($_SESSION['user_role']) ? $_SESSION['user_role'] : 'Not set'));
+
+// Include navigation and other components after session is established
+require_once __DIR__ . "/../../user-includes/navbar/customer-navigation.php";
 require_once __DIR__ . "/../../../backend/pages/products/todays-products-handler.php";
 
 // Clean up past dates automatically when page loads
@@ -185,8 +189,8 @@ if ($cart_truncated) {
     <?php if (isset($_SESSION['cart_truncated_notification']) && $_SESSION['cart_truncated_notification']): ?>
         <div class="cart-truncated-notification" id="cartTruncatedNotification">
             <div class="notification-content">
-                <span>ðŸ• Business hours closed. Cart has been cleared for the day.</span>
-                <button onclick="closeCartTruncatedNotification()" class="close-notification-btn">Ã—</button>
+                <span>🕐 Business hours closed. Cart has been cleared for the day.</span>
+                <button onclick="closeCartTruncatedNotification()" class="close-notification-btn">×</button>
             </div>
         </div>
         <?php unset($_SESSION['cart_truncated_notification']); ?>
@@ -281,6 +285,64 @@ if ($cart_truncated) {
                 <p>Loading Products...</p>
             </div>
         </div>
+
+        <style>
+            /* Loading Spinner Styles */
+            .loading-spinner {
+                width: 20px;
+                height: 20px;
+                border: 2px solid #f3f3f3;
+                border-top: 2px solid #007bff;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                display: inline-block;
+                margin-right: 8px;
+            }
+            
+            .loading-spinner-small {
+                width: 16px;
+                height: 16px;
+                border: 2px solid #f3f3f3;
+                border-top: 2px solid #007bff;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                display: inline-block;
+                margin-right: 6px;
+            }
+            
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+            
+            .loading-spinner-container {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                margin-bottom: 10px;
+            }
+            
+            .loading-spinner-container .loading-spinner {
+                width: 40px;
+                height: 40px;
+                border: 4px solid #f3f3f3;
+                border-top: 4px solid #007bff;
+                margin-right: 0;
+            }
+            
+            /* Button Loading States */
+            .add-to-cart.loading {
+                opacity: 0.7;
+                cursor: not-allowed;
+                pointer-events: none;
+            }
+            
+            /* Ensure no duplicate circles from pseudo-elements */
+            .add-to-cart.loading::after,
+            .add-to-cart.loading::before {
+                display: none !important;
+            }
+        </style>
         
         <!-- Centered message for when business is closed -->
         <div id="closedMessage" class="business-closed-message" style="display: none;">
@@ -1118,9 +1180,19 @@ function closeProductModal() {
             return;
         }
         
+        // Show loading state on button
+        const originalText = button.textContent;
+        button.disabled = true;
+        button.classList.add('loading');
+        button.innerHTML = '<span class="loading-spinner-small"></span>Loading...';
+        
         const productCard = button.closest('.product-card');
         if (!productCard) {
             console.error('Product card not found');
+            // Reset button state
+            button.disabled = false;
+            button.classList.remove('loading');
+            button.textContent = originalText;
             return;
         }
         
@@ -1144,7 +1216,12 @@ function closeProductModal() {
         };
         
         // Open quantity modal with order type options
-        openQuantityModalWithOrderType(productName, productPrice, productStock, statusId, availtodayStatusId);
+        openQuantityModalWithOrderType(productName, productPrice, productStock, statusId, availtodayStatusId, () => {
+            // Reset button state when modal opens
+            button.disabled = false;
+            button.classList.remove('loading');
+            button.textContent = originalText;
+        });
     }
 
     // Add to cart from modal - Opens quantity modal
@@ -1152,6 +1229,17 @@ function closeProductModal() {
         // Check if user is logged in
         if (!checkLoginAndRedirect()) {
             return;
+        }
+        
+        // Show loading state on modal button
+        const modalBtn = document.getElementById('modalAddToCart');
+        if (modalBtn) {
+            const originalText = modalBtn.textContent;
+            modalBtn.disabled = true;
+            modalBtn.classList.add('loading');
+            modalBtn.innerHTML = '<span class="loading-spinner-small"></span>Loading...';
+            
+            // Button state will be reset when modal opens via callback
         }
         
         if (!currentProductModalData) {
@@ -1181,7 +1269,14 @@ function closeProductModal() {
         closeProductModal();
         
         // Open quantity modal with order type options
-        openQuantityModalWithOrderType(productName, productPrice, productStock, statusId, availtodayStatusId);
+        openQuantityModalWithOrderType(productName, productPrice, productStock, statusId, availtodayStatusId, () => {
+            // Reset modal button state when quantity modal opens
+            if (modalBtn) {
+                modalBtn.disabled = false;
+                modalBtn.classList.remove('loading');
+                modalBtn.textContent = originalText;
+            }
+        });
     }
 
     // Check if same-day option should be available
@@ -1208,7 +1303,7 @@ function closeProductModal() {
     }
 
     // Open quantity modal with order type selection
-    async function openQuantityModalWithOrderType(productName, productPrice, productStock, statusId, availtodayStatusId) {
+    async function openQuantityModalWithOrderType(productName, productPrice, productStock, statusId, availtodayStatusId, onModalOpen) {
         const modal = document.getElementById('quantityModal');
         document.getElementById('quantityModalProductName').textContent = productName;
         document.getElementById('quantityModalPrice').textContent = productPrice;
@@ -1267,6 +1362,11 @@ function closeProductModal() {
         }
         
         modal.style.display = 'flex';
+        
+        // Call the callback when modal is fully opened
+        if (onModalOpen && typeof onModalOpen === 'function') {
+            setTimeout(onModalOpen, 100); // Small delay to ensure modal is visible
+        }
     }
 
     // Select order type
@@ -1418,7 +1518,7 @@ function closeProductModal() {
                         addSuccess = true;
                         
                         // Show success state
-                        confirmBtn.innerHTML = '<span class="success-icon">✓</span> Product added!';
+                        confirmBtn.innerHTML = '<span class="success-icon">?</span> Product added!';
                         confirmBtn.style.backgroundColor = '#4CAF50';
                         
                         // Show confirmation message
@@ -1462,7 +1562,7 @@ function closeProductModal() {
             // For same-day cart (synchronous)
             if (addSuccess) {
                 // Show success state
-                confirmBtn.innerHTML = '<span class="success-icon">✓</span> Product added!';
+                confirmBtn.innerHTML = '<span class="success-icon">?</span> Product added!';
                 confirmBtn.style.backgroundColor = '#4CAF50';
                 
                 // Show confirmation message

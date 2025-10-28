@@ -27,7 +27,14 @@ if (mysqli_stmt_execute($stmt)) {
 
     $notification = new Notification($conn);
     // Create in-app notification based on order and new status
-    $notification->createOrderNotification($order_id, $status);
+    $notificationResult = $notification->createOrderNotification($order_id, $status);
+    
+    // Log notification creation result
+    if ($notificationResult) {
+        error_log("[NOTIFICATION] Successfully created notification for order #$order_id with status: $status");
+    } else {
+        error_log("[NOTIFICATION] Failed to create notification for order #$order_id with status: $status");
+    }
 
     // Send email to customer about the status change
     try {

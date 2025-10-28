@@ -1,5 +1,7 @@
 <?php
-session_start();
+// Session management is handled by included files
+// No need to start session here as it's already started by the included files
+
 require_once "../../../backend/pages/admin-includes/database.php";
 
 if (!isset($_SESSION['user_id'])) {

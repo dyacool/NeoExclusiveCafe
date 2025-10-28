@@ -138,7 +138,7 @@ if (!$navbar_conn) {
     <!-- Page Entry Animation Container -->
     <div class="page-entry-animation">
         <div class="logo-animation">
-            <img src="/assets/images/user-logo.png" alt="NeoCafe Logo" class="animated-logo">
+            <img src="/frontend/images/user-logo.png" alt="NeoCafe Logo" class="animated-logo">
         </div>
     </div>
 
@@ -226,7 +226,7 @@ if (!$navbar_conn) {
 
             <div class="nav-center">
                 <a href="../../../frontend/pages/home/user-dashboard.php" class="logo-container">
-                    <img src="/assets/images/user-logo.png" alt="NeoCafe Logo" class="logo">
+                    <img src="/frontend/images/user-logo.png" alt="NeoCafe Logo" class="logo">
                 </a>
             </div>
 
@@ -465,12 +465,16 @@ if (!$navbar_conn) {
             }
             
             // NOTIFICATION FETCHING FUNCTION
-            function fetchNotifications() {
+            window.fetchNotifications = function() {
+                console.log('[NOTIFICATIONS] fetchNotifications called');
                 const notificationList = document.getElementById("notificationList");
                 const noNotifications = document.getElementById("noNotifications");
                 const notifCount = document.getElementById("notifCount");
                 
-                if (!notificationList || !noNotifications) return;
+                if (!notificationList || !noNotifications) {
+                    console.log('[NOTIFICATIONS] Notification elements not found');
+                    return;
+                }
                 
                 // Use global function if available, otherwise fetch directly
                 if (window.fetchDropdownNotifications) {
@@ -484,25 +488,33 @@ if (!$navbar_conn) {
                         });
                 } else {
                     // Direct fetch
+                    console.log('[NOTIFICATIONS] Fetching notifications from API...');
                     fetch('/frontend/pages/notifications/fetch-notif.php?dropdown=true')
-                        .then(response => response.json())
+                        .then(response => {
+                            console.log('[NOTIFICATIONS] Response status:', response.status);
+                            return response.json();
+                        })
                         .then(data => {
+                            console.log('[NOTIFICATIONS] Response data:', data);
                             if (data.status === "success") {
                                 updateNotificationDisplay(data.notifications || []);
                             } else {
+                                console.log('[NOTIFICATIONS] API returned error:', data.message);
                                 showNoNotifications();
                             }
                         })
                         .catch(error => {
-                            console.error('Error fetching notifications:', error);
+                            console.error('[NOTIFICATIONS] Error fetching notifications:', error);
                             showNoNotifications();
                         });
                 }
                 
                 function updateNotificationDisplay(notifications) {
+                    console.log('[NOTIFICATIONS] updateNotificationDisplay called with:', notifications);
                     notificationList.innerHTML = '';
                     
                     if (notifications && notifications.length > 0) {
+                        console.log('[NOTIFICATIONS] Displaying', notifications.length, 'notifications');
                         // Hide "no notifications" message
                         noNotifications.style.display = "none";
                         
@@ -550,6 +562,7 @@ if (!$navbar_conn) {
                 }
                 
                 function showNoNotifications() {
+                    console.log('[NOTIFICATIONS] showNoNotifications called');
                     notificationList.innerHTML = '';
                     noNotifications.style.display = "block";
                     if (notifCount) {
@@ -598,6 +611,53 @@ if (!$navbar_conn) {
             };
             
         }, 100); // Just 100ms delay to ensure HTML is parsed
+        
+        // Global notification polling mechanism
+        function startGlobalNotificationPolling() {
+            console.log('[NOTIFICATIONS] Starting global notification polling...');
+            
+            // Wait for notifications.js to load
+            const checkForNotifications = () => {
+                if (typeof window.fetchDropdownNotifications === 'function') {
+                    console.log('[NOTIFICATIONS] fetchDropdownNotifications available, starting polling');
+                    
+                    // Initial fetch
+                    window.fetchDropdownNotifications()
+                        .then(notifications => {
+                            console.log('[NOTIFICATIONS] Initial fetch completed:', notifications);
+                        })
+                        .catch(error => {
+                            console.error('[NOTIFICATIONS] Initial fetch failed:', error);
+                        });
+                    
+                    // Poll every 30 seconds for new notifications
+                    setInterval(() => {
+                        console.log('[NOTIFICATIONS] Polling for notifications...');
+                        window.fetchDropdownNotifications()
+                            .then(notifications => {
+                                console.log('[NOTIFICATIONS] Polling completed:', notifications);
+                            })
+                            .catch(error => {
+                                console.error('[NOTIFICATIONS] Polling failed:', error);
+                            });
+                    }, 30000);
+                    
+                    console.log('[NOTIFICATIONS] Global notification polling started');
+                } else {
+                    console.log('[NOTIFICATIONS] fetchDropdownNotifications not yet available, retrying...');
+                    setTimeout(checkForNotifications, 1000);
+                }
+            };
+            
+            checkForNotifications();
+        }
+        
+        // Start polling when page loads
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', startGlobalNotificationPolling);
+        } else {
+            startGlobalNotificationPolling();
+        }
         
     </script>
     

@@ -1,9 +1,12 @@
 <?php
 $page_title = "Dashboard";
 
+// Include session management files first (before any HTML output)
 require_once __DIR__ . "/../../../backend/pages/admin-includes/database.php";
-require_once __DIR__ . "/../../user-includes/navbar/customer-navigation.php";
 require_once __DIR__ . "/../../user-includes/user-header.php";
+
+// Include navigation after session is established
+require_once __DIR__ . "/../../user-includes/navbar/customer-navigation.php";
 ?>
 
 <link rel="stylesheet" href="/frontend/pages/home/user-dashboard.css">

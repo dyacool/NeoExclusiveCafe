@@ -93,7 +93,7 @@ function createOrderEmailBody($order) {
             <div class="section">
                 <h2>Customer Information</h2>
                 <p><strong>Name:</strong> ' . htmlspecialchars($order['customer_name']) . '</p>
-                <p><strong>Email:</strong> ' . htmlspecialchars($order['user_email']) . '</p>
+                <p><strong>Email:</strong> ' . htmlspecialchars($order['user_email'] ?? 'N/A') . '</p>
                 <p><strong>Contact:</strong> ' . htmlspecialchars($order['customer_contact']) . '</p>
                 <p><strong>Address:</strong> ' . htmlspecialchars($order['customer_address'] ?? 'N/A') . '</p>
             </div>
@@ -109,7 +109,7 @@ function createOrderEmailBody($order) {
     } else {
         $html .= '
                 <p><strong>Pickup Date:</strong> ' . date('F j, Y', strtotime($order['pickup_date'])) . '</p>
-                <p><strong>Pickup Time:</strong> ' . date('g:i A', strtotime($order['pickup_time'])) . '</p>';
+                <p><strong>Pickup Time:</strong> ' . date('g:i A', strtotime($order['pickup_time'] ?? 'now')) . '</p>';
     }
     
     $html .= '
@@ -147,11 +147,11 @@ function createOrderEmailBody($order) {
                     <tfoot>
                         <tr>
                             <td colspan="3" class="total">Subtotal:</td>
-                            <td style="text-align: right;">₱' . number_format($order['cart_total'], 2) . '</td>
+                            <td style="text-align: right;">₱' . number_format($order['cart_total'] ?? 0, 2) . '</td>
                         </tr>
                         <tr>
                             <td colspan="3" class="total">Shipping Fee:</td>
-                            <td style="text-align: right;">₱' . number_format($order['shipping_fee'], 2) . '</td>
+                            <td style="text-align: right;">₱' . number_format($order['shipping_fee'] ?? 0, 2) . '</td>
                         </tr>
                         <tr>
                             <td colspan="3" class="total"><strong>Total Amount:</strong></td>
@@ -368,5 +368,4 @@ function generateOrderToken($orderId) {
     return hash('sha256', $orderId . $secret . date('Ymd'));
 }
 
-$isDevelopment = false; // Change to false in production
-?> 
+$isDevelopment = false; // Change to false in production 

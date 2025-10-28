@@ -63,25 +63,26 @@ class Notification {
 
             if (!$order) {
                 file_put_contents(__DIR__ . '/../../logs/order_errors.log', "[Notif Error] No order found for orderId: $orderId\n", FILE_APPEND);
+                error_log("[NOTIFICATION] No order found for orderId: $orderId");
                 return false;
             }
 
-            // Get user by customer_email from users table
-            $userQuery = "SELECT id FROM users WHERE email = ?";
-            $userStmt = $this->db->prepare($userQuery);
-            $userStmt->bind_param("s", $order['customer_email']);
-            $userStmt->execute();
-            $userResult = $userStmt->get_result();
-            $user = $userResult->fetch_assoc();
-            $userStmt->close();
+            error_log("[NOTIFICATION] Found order: " . print_r($order, true));
 
-            if (!$user) {
+            // Use customer_id directly from the order instead of looking up by email
+            // This avoids issues with duplicate emails
+            $userId = $order['customer_id'];
+            
+            if (!$userId || $userId <= 0) {
                 file_put_contents(__DIR__ . '/../../logs/order_errors.log', 
-                    "[Notif Error] User not found for Order #$orderId (Email: {$order['customer_email']})\n", 
+                    "[Notif Error] Invalid customer_id for Order #$orderId (Customer ID: $userId)\n", 
                     FILE_APPEND
                 );
+                error_log("[NOTIFICATION] Invalid customer_id for Order #$orderId (Customer ID: $userId)");
                 return false;
             }
+
+            error_log("[NOTIFICATION] Using customer_id directly: $userId");
 
             // Get the product image if available
             $imageQuery = "SELECT pi.image_url 
@@ -107,7 +108,7 @@ class Notification {
             // Prepare notification details
             $title = "Order Status Update";
             $message = "Your order #$orderId have been updated to $status.";
-            $link = "../../pages/cart/order_details.php?order_id=" . $orderId; // Link to order details page
+            $link = "../../pages/cart/order-details.php?order_id=" . $orderId; // Link to order details page
 
             // Insert the notification
             $notifQuery = "INSERT INTO notifications (user_id, type, title, message, image_url, order_id, link, created_at, is_read)
@@ -119,12 +120,12 @@ class Notification {
             }
 
             $notifStmt->bind_param("isssis", 
-                $user['id'],      // user_id
-                $title,           // title
-                $message,         // message
-                $imageUrl,        // image_url
-                $orderId,         // order_id
-                $link            // link
+                $userId,            // user_id (using customer_id directly)
+                $title,             // title
+                $message,           // message
+                $imageUrl,          // image_url
+                $orderId,           // order_id
+                $link              // link
             );
 
             if (!$notifStmt->execute()) {
@@ -132,6 +133,10 @@ class Notification {
             }
 
             $notifStmt->close();
+            
+            // Log successful notification creation
+            error_log("[NOTIFICATION] Successfully created notification for user {$user['id']}, order #$orderId, status: $status");
+            
             return true;
 
         } catch (Exception $e) {
@@ -159,6 +164,8 @@ class Notification {
 
     // Fetch all notifications for a user
     public function getAllNotifications($userId) {
+        error_log("[NOTIFICATION CLASS] getAllNotifications called for user ID: $userId");
+        
         $stmt = $this->db->prepare("SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC");
         $stmt->bind_param("i", $userId);
         $stmt->execute();
@@ -168,6 +175,12 @@ class Notification {
             $notifications[] = $row;
         }
         $stmt->close();
+        
+        error_log("[NOTIFICATION CLASS] getAllNotifications found " . count($notifications) . " notifications for user $userId");
+        if (count($notifications) > 0) {
+            error_log("[NOTIFICATION CLASS] First notification: " . print_r($notifications[0], true));
+        }
+        
         return $notifications;
     }
 

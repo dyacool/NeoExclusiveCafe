@@ -48,7 +48,7 @@ $has_completed_orders = false;
 if (isset($_SESSION['user_id'])) {
     $user_id = $_SESSION['user_id'];
     $order_check_query = "SELECT COUNT(*) as completed_orders FROM orders 
-                          WHERE user_id = ? AND (status = 'delivered' OR status = 'picked-up')";
+                          WHERE customer_id = ? AND (status = 'delivered' OR status = 'picked-up')";
     $order_stmt = mysqli_prepare($conn, $order_check_query);
     
     if ($order_stmt) {

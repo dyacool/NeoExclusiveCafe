@@ -942,6 +942,91 @@ $debug_info = [
         border-color: #6c757d !important;
     }
 
+    /* Loading Spinner Styles */
+    .place-order-btn .spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid #f3f3f3;
+        border-top: 2px solid #ffffff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        display: inline-block;
+        margin-right: 8px;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    /* Button Processing State */
+    .btn-processing {
+        opacity: 0.7 !important;
+        cursor: not-allowed !important;
+        pointer-events: none !important;
+    }
+    
+    /* Ensure no duplicate circles */
+    .place-order-btn::after,
+    .place-order-btn::before {
+        display: none !important;
+    }
+
+    /* Full Page Loading Overlay */
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .loading-overlay.show {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .loading-content {
+        background: white;
+        padding: 40px;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        max-width: 400px;
+        width: 90%;
+    }
+
+    .loading-spinner-large {
+        width: 50px;
+        height: 50px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #256035;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+    }
+
+    .loading-text {
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    .loading-subtext {
+        font-size: 14px;
+        color: #666;
+        margin: 0;
+    }
+
     .btn-primary:disabled:hover,
     .place-order-btn:disabled:hover {
         background-color: #6c757d !important;
@@ -1433,7 +1518,77 @@ $debug_info = [
             console.log(`Date ${dateStr} selected for ${type}`);
         }
 
+        function setDefaultDateIfEmpty() {
+            const pickupDateInput = document.getElementById('pickup_date');
+            const deliveryDateInput = document.getElementById('delivery_date');
+            const pickupTimeInput = document.getElementById('pickup_time');
+            const deliveryTimeInput = document.getElementById('delivery_time');
+            
+            // Get the first available date
+            const firstAvailableDate = getFirstAvailableDate();
+            
+            if (pickupDateInput && !pickupDateInput.value) {
+                pickupDateInput.value = firstAvailableDate;
+                console.log('[CHECKOUT] Set default pickup date:', firstAvailableDate);
+            }
+            
+            if (deliveryDateInput && !deliveryDateInput.value) {
+                deliveryDateInput.value = firstAvailableDate;
+                console.log('[CHECKOUT] Set default delivery date:', firstAvailableDate);
+            }
+            
+            // Set default times
+            if (pickupTimeInput && !pickupTimeInput.value) {
+                pickupTimeInput.value = '09:00'; // Default to 9:00 AM
+                console.log('[CHECKOUT] Set default pickup time: 09:00');
+            }
+            
+            if (deliveryTimeInput && !deliveryTimeInput.value) {
+                deliveryTimeInput.value = '09:00'; // Default to 9:00 AM
+                console.log('[CHECKOUT] Set default delivery time: 09:00');
+            }
+        }
 
+        function getFirstAvailableDate() {
+            const availableDays = calculateCombinedAvailableDays();
+            console.log('[CHECKOUT] Available days for products:', availableDays);
+            
+            // If no specific days are available, use today
+            if (availableDays.length === 0) {
+                const today = new Date();
+                const todayStr = today.getFullYear() + '-' + 
+                               String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                               String(today.getDate()).padStart(2, '0');
+                console.log('[CHECKOUT] No specific days available, using today:', todayStr);
+                return todayStr;
+            }
+            
+            // Find the first available date starting from today
+            const today = new Date();
+            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            
+            // Check the next 14 days to find the first available day
+            for (let i = 0; i < 14; i++) {
+                const checkDate = new Date(today);
+                checkDate.setDate(today.getDate() + i);
+                const dayName = dayNames[checkDate.getDay()];
+                
+                if (availableDays.includes(dayName)) {
+                    const dateStr = checkDate.getFullYear() + '-' + 
+                                   String(checkDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                                   String(checkDate.getDate()).padStart(2, '0');
+                    console.log('[CHECKOUT] First available date found:', dateStr, '(' + dayName + ')');
+                    return dateStr;
+                }
+            }
+            
+            // Fallback to today if no available day found in next 14 days
+            const todayStr = today.getFullYear() + '-' + 
+                           String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                           String(today.getDate()).padStart(2, '0');
+            console.log('[CHECKOUT] No available day found in next 14 days, using today:', todayStr);
+            return todayStr;
+        }
 
         function fetchDateLimits(start, end) {
             // Use local timezone instead of UTC to avoid date offset issues
@@ -1771,6 +1926,9 @@ $debug_info = [
             updateShippingInheritance(); // Initialize flexible item indicators
             updateShippingInheritance();
             
+            // Set default date to today if no date is selected
+            setDefaultDateIfEmpty();
+            
             // Initialize coupon event listeners
             const applyCouponBtn = document.getElementById('apply_coupon_btn');
             const removeCouponBtn = document.getElementById('remove_coupon_btn');
@@ -1865,10 +2023,13 @@ $debug_info = [
                 
                 // Check HTML5 validity first
                 if (!checkoutForm.checkValidity()) {
+                    console.log('[CHECKOUT] Form validation failed, showing validation errors');
                     // Trigger native validation display
                     checkoutForm.reportValidity();
                     return;
                 }
+                
+                console.log('[CHECKOUT] Form validation passed, proceeding with submission');
                 
                 // Prevent double submission
                 if (orderProcessing) {
@@ -1877,6 +2038,7 @@ $debug_info = [
                 orderProcessing = true;
                 
                 try {
+                    console.log('[CHECKOUT] Starting payment process...');
                     // Show loading state
                     setLoadingState(true);
                     
@@ -2012,6 +2174,7 @@ $debug_info = [
                     
                 } catch (error) {
                     console.error('Payment error:', error);
+                    console.log('[LOADING STATE] Resetting loading state due to error');
                     alert('An error occurred while processing your payment: ' + error.message);
                     setLoadingState(false);
                     orderProcessing = false;
@@ -2504,16 +2667,20 @@ document.addEventListener('DOMContentLoaded', function() {
 function setLoadingState(isLoading) {
     const submitButton = document.querySelector('button[type="submit"]');
     const buttonText = submitButton.querySelector('.button-text') || submitButton;
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    
+    console.log('[LOADING STATE] Setting loading state:', isLoading, 'for button:', submitButton);
     
     if (isLoading) {
         orderProcessing = true;
         submitButton.disabled = true;
         submitButton.classList.add('btn-processing');
         
-        // Add spinner and text
-        buttonText.innerHTML = '<span class="spinner"></span>Processing Order...';
-        submitButton.style.opacity = '0.7';
-        submitButton.style.cursor = 'not-allowed';
+        // Show overlay loading
+        if (loadingOverlay) {
+            loadingOverlay.classList.add('show');
+            console.log('[LOADING STATE] Overlay loading shown');
+        }
         
         // Store start time in session storage
         sessionStorage.setItem('orderStartTime', Date.now().toString());
@@ -2528,6 +2695,12 @@ function setLoadingState(isLoading) {
             buttonText.innerHTML = 'Place Order';
             submitButton.style.opacity = '1';
             submitButton.style.cursor = 'pointer';
+            
+            // Hide overlay loading
+            if (loadingOverlay) {
+                loadingOverlay.classList.remove('show');
+                console.log('[LOADING STATE] Overlay loading hidden');
+            }
         }
     }
 }
@@ -2554,6 +2727,13 @@ function startCountdownTimer(submitButton, buttonText, initialCountdown = 20) {
             submitButton.style.opacity = '1';
             submitButton.style.cursor = 'pointer';
             
+            // Hide overlay loading
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            if (loadingOverlay) {
+                loadingOverlay.classList.remove('show');
+                console.log('[LOADING STATE] Overlay loading hidden after countdown');
+            }
+            
             // Clear the timer and session storage
             clearInterval(countdownTimer);
             countdownTimer = null;
@@ -2574,5 +2754,15 @@ function startCountdownTimer(submitButton, buttonText, initialCountdown = 20) {
 <?php
 include '../../user-includes/user-footer.php';
 ?>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay">
+    <div class="loading-content">
+        <div class="loading-spinner-large"></div>
+        <div class="loading-text">Processing Your Order</div>
+        <div class="loading-subtext">Please wait while we process your payment...</div>
+    </div>
+</div>
+
 </body>
 </html>

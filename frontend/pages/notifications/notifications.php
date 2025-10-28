@@ -23,9 +23,18 @@ if ($user_id <= 0) {
 // Initialize Notification class
 $notification = new Notification($conn); 
 
+// Debug: Log the user ID being used
+error_log("[NOTIFICATIONS PAGE] User ID: $user_id, Role: " . ($_SESSION["user_role"] ?? "not set"));
+
 // Fetch all notifications
 $notifications_data = $notification->getAllNotifications($user_id);
 $notifications = $notifications_data; // Use consistent variable name
+
+// Debug: Log what was fetched
+error_log("[NOTIFICATIONS PAGE] Fetched " . count($notifications) . " notifications for user $user_id");
+if (count($notifications) > 0) {
+    error_log("[NOTIFICATIONS PAGE] First notification: " . print_r($notifications[0], true));
+}
 ?>
 
 <!DOCTYPE html>
@@ -34,7 +43,9 @@ $notifications = $notifications_data; // Use consistent variable name
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notifications - NeoExclusiveCafe</title>
-    <link rel="stylesheet" href="/frontend/user-includes/user-header.css">
+    <link rel="stylesheet" href="/frontend/assets/css/base.css">
+    <link rel="stylesheet" href="/frontend/user-includes/navbar/customer-navigation.css">
+    <link rel="stylesheet" href="/frontend/user-includes/footer.css">
     <link rel="stylesheet" href="notifications.css" />
 </head>
 <body>

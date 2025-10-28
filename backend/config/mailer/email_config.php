@@ -32,5 +32,4 @@ $email_config = [
     
     // Admin email (where order notifications will be sent)
     'admin_email' => 'ainepascua4@gmail.com'
-];
-?> 
+]; 

@@ -9,7 +9,16 @@ if (!isset($_SESSION["user_id"]) || !isset($_SESSION["user_role"]) || $_SESSION[
     // Always return JSON for AJAX requests, even when not logged in
     header('Content-Type: application/json');
     http_response_code(401); // Unauthorized
-    echo json_encode(["status" => "error", "message" => "User not logged in", "count" => 0]);
+    echo json_encode([
+        "status" => "error", 
+        "message" => "User not logged in", 
+        "count" => 0,
+        "debug" => [
+            "user_id" => $_SESSION["user_id"] ?? "not set",
+            "user_role" => $_SESSION["user_role"] ?? "not set",
+            "session_data" => $_SESSION
+        ]
+    ]);
     exit();
 }
 
@@ -27,6 +36,9 @@ require_once __DIR__ . '/class-notif.php'; // Include the Notification class
 
 try {
     $notification = new Notification($conn);
+    
+    // Debug: Log the user ID being used
+    error_log("[NOTIFICATION FETCH] User ID: $userId, Role: " . ($_SESSION["user_role"] ?? "not set"));
     
     // Check if this is a request for specific notification details
     if (isset($_GET['id'])) {
@@ -68,6 +80,12 @@ try {
             $notifications[] = $row;
         }
         $stmt->close();
+        
+        // Debug: Log found notifications
+        error_log("[NOTIFICATION FETCH] Found " . count($notifications) . " notifications for user $userId");
+        if (count($notifications) > 0) {
+            error_log("[NOTIFICATION FETCH] First notification: " . print_r($notifications[0], true));
+        }
     } else {
         // Pagination for notifications page
         $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
@@ -116,7 +134,12 @@ try {
     $payload = [
         "status" => "success",
         "count" => count($response),
-        "notifications" => $response
+        "notifications" => $response,
+        "debug" => [
+            "user_id" => $userId,
+            "is_dropdown" => $isDropdown,
+            "raw_count" => count($notifications)
+        ]
     ];
     if (!$isDropdown && !isset($_GET['id'])) {
         $payload['page'] = $page;
