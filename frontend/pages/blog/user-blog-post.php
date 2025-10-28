@@ -4,16 +4,17 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../../login/user/login-signup.php");
+    exit();
+}
+
 // Include database connection
 require_once __DIR__ . "/../../../config/database-config.php";
 
 // Get database connection
 $conn = getDatabaseConnection();
 
-if (!isset($_SESSION['user_id'])) {
-    header("Location: ../../login/user/login-signup.php");
-    exit();
-}
 $page_title = "My Posts";
 $additional_css = [
     "/frontend/pages/blog/user-blog.css"
@@ -22,56 +23,91 @@ $additional_js = [
     "/frontend/pages/blog/user-blog.js"
 ];
 
+// Initialize variables
+$user_logged_in = isset($_SESSION['user_id']);
+$show_create_button = false;
+$create_button_message = '';
+
+if ($user_logged_in) {
+    $user_id = $_SESSION['user_id'];
+    
+    // Check completed orders
+    $completed_orders = 0;
+    $order_check_query = "SELECT COUNT(*) as completed_orders FROM orders 
+                          WHERE user_id = ? AND (status = 'delivered' OR status = 'picked-up')";
+    $order_stmt = mysqli_prepare($conn, $order_check_query);
+    
+    if ($order_stmt) {
+        mysqli_stmt_bind_param($order_stmt, "i", $user_id);
+        mysqli_stmt_execute($order_stmt);
+        $order_result = mysqli_stmt_get_result($order_stmt);
+        if ($order_result) {
+            $order_row = mysqli_fetch_assoc($order_result);
+            $completed_orders = $order_row['completed_orders'];
+        }
+        mysqli_stmt_close($order_stmt);
+    }
+    
+    // Check existing blog posts
+    $existing_posts = 0;
+    $post_check_query = "SELECT COUNT(*) as post_count FROM user_blog_post WHERE user_id = ?";
+    $post_stmt = mysqli_prepare($conn, $post_check_query);
+    
+    if ($post_stmt) {
+        mysqli_stmt_bind_param($post_stmt, "i", $user_id);
+        mysqli_stmt_execute($post_stmt);
+        $post_result = mysqli_stmt_get_result($post_stmt);
+        if ($post_result) {
+            $post_row = mysqli_fetch_assoc($post_result);
+            $existing_posts = $post_row['post_count'];
+        }
+        mysqli_stmt_close($post_stmt);
+    }
+    
+    // Logic: Show button only if user has more completed orders than blog posts
+    if ($completed_orders > $existing_posts) {
+        $show_create_button = true;
+    } else if ($completed_orders == 0) {
+        $create_button_message = 'Complete an order first to share your experience';
+    } else if ($existing_posts >= $completed_orders) {
+        $create_button_message = 'You can create 1 testimonial per completed order';
+    }
+}
+
 
 // Pagination settings
 $posts_per_page = 9;
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $posts_per_page;
 
-// Fetch blog posts from current user
-$sql = "SELECT p.*, u.firstname, u.lastname 
-        FROM user_blog_post p 
-        JOIN users u ON p.user_id = u.id 
-        WHERE p.user_id = ? 
-        ORDER BY p.created_at DESC 
-        LIMIT ? OFFSET ?";
-$stmt = mysqli_prepare($conn, $sql);
-mysqli_stmt_bind_param($stmt, "iii", $_SESSION['user_id'], $posts_per_page, $offset);
-mysqli_stmt_execute($stmt);
-$result = mysqli_stmt_get_result($stmt);
+// Only fetch posts if user is logged in
+if ($user_logged_in) {
+    // Fetch blog posts from current user
+    $sql = "SELECT p.*, u.firstname, u.lastname 
+            FROM user_blog_post p 
+            JOIN users u ON p.user_id = u.id 
+            WHERE p.user_id = ? 
+            ORDER BY p.created_at DESC 
+            LIMIT ? OFFSET ?";
+    $stmt = mysqli_prepare($conn, $sql);
+    mysqli_stmt_bind_param($stmt, "iii", $_SESSION['user_id'], $posts_per_page, $offset);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
 
-// Get total number of user's posts for pagination
-$count_query = "SELECT COUNT(*) as total FROM user_blog_post WHERE user_id = ?";
-$count_stmt = mysqli_prepare($conn, $count_query);
-mysqli_stmt_bind_param($count_stmt, "i", $_SESSION['user_id']);
-mysqli_stmt_execute($count_stmt);
-$count_result = mysqli_stmt_get_result($count_stmt);
-$total_row = mysqli_fetch_assoc($count_result);
-$total_posts = $total_row['total'];
-$total_pages = ceil($total_posts / $posts_per_page);
-
-// Check if user has completed orders for testimonial eligibility
-$user_id = $_SESSION['user_id'];
-$has_completed_orders = false; // Default to false
-
-// Try to check for completed orders
-$order_check_query = "SELECT COUNT(*) as completed_orders FROM orders 
-                      WHERE user_id = ? AND (status = 'delivered' OR status = 'picked-up')";
-$order_stmt = mysqli_prepare($conn, $order_check_query);
-
-if ($order_stmt) {
-    mysqli_stmt_bind_param($order_stmt, "i", $user_id);
-    mysqli_stmt_execute($order_stmt);
-    $order_result = mysqli_stmt_get_result($order_stmt);
-    if ($order_result) {
-        $order_row = mysqli_fetch_assoc($order_result);
-        $has_completed_orders = $order_row['completed_orders'] > 0;
-    }
-    mysqli_stmt_close($order_stmt);
+    // Get total number of user's posts for pagination
+    $count_query = "SELECT COUNT(*) as total FROM user_blog_post WHERE user_id = ?";
+    $count_stmt = mysqli_prepare($conn, $count_query);
+    mysqli_stmt_bind_param($count_stmt, "i", $_SESSION['user_id']);
+    mysqli_stmt_execute($count_stmt);
+    $count_result = mysqli_stmt_get_result($count_stmt);
+    $total_row = mysqli_fetch_assoc($count_result);
+    $total_posts = $total_row['total'];
+    $total_pages = ceil($total_posts / $posts_per_page);
 } else {
-    // If orders table doesn't exist or query fails, allow testimonials for now
-    // You can change this to false if you want to restrict when table doesn't exist
-    $has_completed_orders = true;
+    // Create empty result for non-logged-in users
+    $result = null;
+    $total_posts = 0;
+    $total_pages = 0;
 }
 ?>
 
@@ -81,18 +117,24 @@ if ($order_stmt) {
 <div class="blog-container">
     <div class="blog-header">
         <h1>My Testimonials</h1>
-        <?php if ($has_completed_orders): ?>
-            <a href="create-blog.php" class="create-post-btn">
-                <i class="fas fa-plus"></i> Create Post
-            </a>
+        <?php if ($user_logged_in): ?>
+            <?php if ($show_create_button): ?>
+                <a href="create-blog.php" class="create-post-btn">
+                    <i class="fas fa-plus"></i> Create Post
+                </a>
+            <?php else: ?>
+                <div class="create-post-disabled" title="<?php echo htmlspecialchars($create_button_message); ?>">
+                    <i class="fas fa-lock"></i> Create Post
+                </div>
+            <?php endif; ?>
         <?php else: ?>
-            <div class="create-post-disabled" title="Complete an order first to share your experience">
+            <div class="create-post-disabled" title="Please login to create testimonials">
                 <i class="fas fa-lock"></i> Create Post
             </div>
         <?php endif; ?>
     </div>
      
-    <?php if (mysqli_num_rows($result) > 0): ?>
+    <?php if ($user_logged_in && $result && mysqli_num_rows($result) > 0): ?>
         <div class="blog-grid">
             <?php while ($post = mysqli_fetch_assoc($result)): ?>
                 <div class="blog-post">
@@ -154,7 +196,7 @@ if ($order_stmt) {
             <?php endwhile; ?>
         </div>
         
-        <?php if ($total_pages > 1): ?>
+        <?php if ($user_logged_in && $total_pages > 1): ?>
         <div class="pagination">
             <?php if ($page > 1): ?>
                 <a href="?page=<?php echo $page - 1; ?>">Previous</a>
@@ -172,12 +214,18 @@ if ($order_stmt) {
         
     <?php else: ?>
         <div class="no-posts">
-            <h2>You haven't created any testimonials yet!</h2>
-            <p>Share your experience at Neo Exclusive Cafe.</p>
-            <?php if ($has_completed_orders): ?>
-                <a href="create-blog.php" class="create-post-btn">Create Your First Post</a>
+            <?php if ($user_logged_in): ?>
+                <h2>You haven't created any testimonials yet!</h2>
+                <p>Share your experience at Neo Exclusive Cafe.</p>
+                <?php if ($show_create_button): ?>
+                    <a href="create-blog.php" class="create-post-btn">Create Your First Post</a>
+                <?php else: ?>
+                    <p style="color: #666; margin-top: 1rem;"><?php echo htmlspecialchars($create_button_message); ?></p>
+                <?php endif; ?>
             <?php else: ?>
-                <p style="color: #666; margin-top: 1rem;">Complete an order first to share your experience and create a testimonial.</p>
+                <h2>Welcome to Testimonials!</h2>
+                <p>Please <a href="../../login/user/login-signup.php" style="color: #256035; text-decoration: underline;">login</a> to view and create your testimonials.</p>
+                <p style="color: #666; margin-top: 1rem;">Share your experience at Neo Exclusive Cafe after completing your orders.</p>
             <?php endif; ?>
         </div>
     <?php endif; ?>

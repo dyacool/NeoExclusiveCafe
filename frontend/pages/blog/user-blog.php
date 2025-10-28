@@ -4,10 +4,6 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-if (!isset($_SESSION['user_id'])) {
-    header("Location: ../../login/user/login-signup.php");
-    exit();
-}
 
 // Database connection
 require_once __DIR__ . "/../../../config/database-config.php";

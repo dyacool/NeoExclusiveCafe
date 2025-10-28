@@ -2,10 +2,6 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-if (!isset($_SESSION['user_id'])) {
-    header("Location: /frontend/login/user/login-signup.php");
-    exit();
-}
 
 // Database connection
 require_once "../../../backend/pages/admin-includes/database.php";

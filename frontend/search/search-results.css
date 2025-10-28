@@ -40,11 +40,20 @@
 
 /* Product Grid Styles - Matching your existing product pages */
 .products-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 26px;
+}
+@media (max-width: 768px) {
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
 }
 
+@media (max-width: 425px) {
+  .products-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
 .product-availability {
   display: flex;
   justify-content: space-between;
