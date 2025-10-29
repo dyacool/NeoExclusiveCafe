@@ -45,16 +45,6 @@ html {
   overflow-y: auto; /* Allow vertical scroll but prevent horizontal */
 }
 
-body {
-  background-color: var(--white);
-  color: var(--secondary);
-  padding: 0;
-  margin: 0;
-  width: 100%;
-  overflow-x: hidden;
-  overflow-y: hidden; /* Allow vertical scroll but prevent horizontal */
-}
-
 /* Prevent scroll indicators during page load */
 html.loading,
 body.loading {
@@ -70,8 +60,9 @@ body.loading {
 
 /* Header Wrapper */
 .header-wrapper {
-  position: sticky;
+  position: fixed; /* Changed from sticky to fixed */
   top: 0;
+  left: 0; /* Ensure it starts from the left edge */
   width: 100%;
   z-index: 1000;
   box-shadow: 0 2px 10px var(--shadow);
@@ -138,6 +129,8 @@ body.loading {
   font-size: 12px;
   letter-spacing: 0.5px;
   font-weight: 500;
+  position: relative; /* Ensure it stays within the fixed header */
+  width: 100%;
   /* Default visible state */
   opacity: 1;
   visibility: visible;
@@ -180,7 +173,7 @@ html.homepage-animation .announcement-bar {
 
 .main-nav {
   background-color: #0f5132;
-  position: relative;
+  position: relative; /* Keep relative within the fixed header */
   padding: 0;
   margin: 0;
   color: var(--white);
@@ -1246,6 +1239,11 @@ html.homepage-animation .main-nav {
 /* Responsive Styles - IMPROVED */
 /* MOBILE LAYOUT STARTS HERE - 1024px and below */
 @media (max-width: 1024px) {
+  /* Add padding for mobile navbar height */
+  body {
+    padding-top: 140px; /* Increased padding for mobile navbar */
+  }
+
   /* Ensure full width and proper mobile structure */
   .nav-content {
     display: flex;
@@ -1428,6 +1426,10 @@ html.homepage-animation .main-nav {
 
 /* Apply the same layout to smaller breakpoints */
 @media (max-width: 768px) {
+  body {
+    padding-top: 150px; /* Increased padding for tablet navbar */
+  }
+
   /* Keep the same structure as 1024px */
   .nav-content {
     padding: 8px 12px;
@@ -1445,6 +1447,10 @@ html.homepage-animation .main-nav {
 }
 
 @media (max-width: 425px) {
+  body {
+    padding-top: 160px; /* Increased padding for mobile L */
+  }
+
   /* Keep the same structure as 1024px */
   .nav-content {
     padding: 6px 10px;
@@ -1467,6 +1473,10 @@ html.homepage-animation .main-nav {
 }
 
 @media (max-width: 375px) {
+  body {
+    padding-top: 165px; /* Increased padding for mobile M */
+  }
+
   /* Keep the same structure as 1024px */
   .nav-content {
     padding: 5px 8px;
@@ -1489,6 +1499,10 @@ html.homepage-animation .main-nav {
 }
 
 @media (max-width: 320px) {
+  body {
+    padding-top: 170px; /* Maximum padding for smallest screens */
+  }
+
   /* Keep the same structure as 1024px */
   .nav-content {
     padding: 4px 6px;
