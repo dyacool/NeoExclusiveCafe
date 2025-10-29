@@ -147,198 +147,8 @@ foreach ($preorder_items as $item) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shopping Cart</title>
-    <link rel="stylesheet" href="cart.css" />
-    <style>
-        body {
-            background-color: #f8f8f8;
-            color: #333;
-        }
-        
-        .main-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        .main-container h2 {
-            font-size: 2.5em;
-            font-weight: 700;
-            color: #444;
-            text-shadow: 1px 1px 4px #6c6c6c;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        
-        .cart-info {
-            color: #333;
-            text-align: center;
-            padding-bottom: 20px;
-            font-size: 14px;
-        }
-        
-        .cart-section {
-            background: white;
-            border-radius: 8px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-    
-        .section-header h3 {
-            margin: 0;
-            font-size: 1.3em;
-        }
-        
-        .image-badge {
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            padding: 3px 6px;
-            border-radius: 3px;
-            font-size: 9px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-        
-        .badge-pickup {
-            background: #4CAF50;
-            color: white;
-        }
-        
-        .badge-delivery {
-            background: #2196F3;
-            color: white;
-        }
-        
-        .cart-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        .cart-table th {
-            background: #f5f5f5;
-            padding: 12px;
-            text-align: left;
-            font-weight: 600;
-            border-bottom: 2px solid #ddd;
-        }
-        
-        .cart-table td {
-            padding: 15px 12px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .cart-table tr:hover {
-            background: #f9f9f9;
-        }
-        
-        .quantity-controls {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .quantity-btn {
-            width: 30px;
-            height: 30px;
-            border: 1px solid #ddd;
-            background: white;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .quantity-btn:hover {
-            background: #f0f0f0;
-        }
-        
-        .quantity-btn:disabled {
-            background: #f5f5f5;
-            color: #ccc;
-            cursor: not-allowed;
-        }
-        
-        .quantity-input {
-            width: 60px;
-            height: 30px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            text-align: center;
-            font-size: 14px;
-            background: white;
-        }
-        
-        .quantity-display {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 60px;
-            height: 30px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-            background: white;
-            text-align: center;
-        }
-        
-        .quantity-input:focus {
-            outline: none;
-            border-color: #4CAF50;
-        }
-        
-        .remove-btn {
-            background: #c33b36ff;
-            color: white;
-            border: none;
-            padding: 2px 4px;
-            border-radius: 999px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 30px;
-            height: 30px;
-        }
-        
-        .remove-btn:hover {
-            background-color: #972622;
-        }
-        
-        .remove-btn svg {
-            width: 14px;
-            height: 14px;
-        }
-        
-        .no-items {
-            padding: 40px;
-            text-align: center;
-            color: #999;
-        }
-        
-        .checkout-section {
-            position: sticky;
-            top: 20px;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .total-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            font-size: 18px;
-            font-weight: 600;
-            border-top: 2px solid #ddd;
-            margin-top: 10px;
-        }
+    <link rel="stylesheet" href="cart.css">
 
-    </style>
 </head>
 <body>
 
@@ -361,14 +171,15 @@ foreach ($preorder_items as $item) {
         <?php endif; ?>
         
         <p class="cart-info">
-            Please note: Neo Café offers both same-day and pre-order options to serve you better. <br>
+            <span class="cart-info-full">Please note: Neo Café offers both same-day and pre-order options to serve you better. <br></span>
             Pre-order products must be placed at least 42 hours in advance to ensure freshness and quality.<br>
-            Same-day order products can be placed within business hours. 
+            <span class="cart-info-full">Same-day order products can be placed within business hours.</span>
 
         </p>
         
-        <div style="display: grid; grid-template-columns: 1fr 350px; gap: 20px;">
-            <div>
+        <div class="cart-grid">
+            <!-- CART CONTENT -->
+            <div class="cart-content">
                 <!-- PRE-ORDER SECTION -->
                 <div class="cart-section">
                     <div class="section-header">
@@ -528,77 +339,74 @@ foreach ($preorder_items as $item) {
                     <div class="no-items">No same day order items in cart</div>
                     <?php endif; ?>
                 </div>
-            </div>
+            </div> <!-- End cart-content -->
             
             <!-- CHECKOUT SIDEBAR -->
             <div>
                 <div class="checkout-section">
-                    <h3>Order Summary</h3>
-                    <div style="padding: 10px 0;">
-                        <div style="display: flex; justify-content: space-between; padding: 5px 0;">
-                            <span>Selected Items:</span>
-                            <span id="selectedCount">0</span>
+                    <h3 class="summary-title">Order Summary</h3>
+                    
+                    <!-- Desktop Layout -->
+                    <div class="desktop-summary-layout">
+                        <div class="summary-details">
+                            <div class="selected-items-row">
+                                <span>Selected Items:</span>
+                                <span id="selectedCount">0</span>
+                            </div>
+                            <div class="total-row">
+                                <span>Subtotal:</span>
+                                <span id="totalAmount">₱0.00</span>
+                            </div>
                         </div>
-                        <div class="total-row">
-                            <span>Subtotal:</span>
-                            <span id="totalAmount">₱0.00</span>
+                        
+                        <!-- Terms and Conditions -->
+                        <div class="terms-section">
+                            <label class="terms-label">
+                                <input type="checkbox" id="termsCheckbox" class="terms-checkbox">
+                                <span class="terms-text">I have read and agreed with the <a href="/frontend/pages/terms/terms-conditions.php" target="_blank" class="terms-link">Terms and Conditions</a></span>
+                            </label>
                         </div>
+                        
+                        <button class="checkout-btn" id="checkoutBtn" disabled onclick="proceedToCheckout()">
+                            Proceed to Checkout
+                        </button>
+                        
+                        <p class="checkout-help-text">
+                            Select items and accept terms to checkout
+                        </p>
+                        <p class="checkout-warning-text">
+                            ⓘ Pre-Order and Same Day items must be checked out separately
+                        </p>
                     </div>
                     
-                    <!-- Terms and Conditions -->
-                    <div style="margin: 15px 0;">
-                        <label style="display: flex; align-items: start; gap: 8px; font-size: 13px; cursor: pointer;">
-                            <input type="checkbox" id="termsCheckbox" style="margin-top: 3px; cursor: pointer;">
-                            <span>I have read and agreed with the Terms and Conditions</span>
-                        </label>
+                    <!-- Mobile Layout (1024px and below) -->
+                    <div class="mobile-summary-layout">
+                        <div class="mobile-total-checkout-row">
+                            <div class="mobile-total-info">
+                                <span class="mobile-total-label">Total: (<span id="selectedCountMobile">0</span> items) <span id="totalAmountMobile">₱0.00</span></span>
+                            </div>
+                            <button class="mobile-checkout-btn" id="checkoutBtnMobile" disabled onclick="proceedToCheckout()">
+                                Checkout
+                            </button>
+                        </div>
+                        
+                        <!-- Terms and Conditions Mobile -->
+                        <div class="mobile-terms-section">
+                            <label class="mobile-terms-label">
+                                <input type="checkbox" id="termsCheckboxMobile" class="mobile-terms-checkbox">
+                                <span class="mobile-terms-text">I have read and agreed with the <a href="/frontend/pages/terms/terms-conditions.php" target="_blank" class="mobile-terms-link">Terms and Conditions</a></span>
+                            </label>
+                        </div>
+                        
+                        <p class="mobile-warning-text">
+                            ⓘ Pre-Order and Same Day items must be checked out separately
+                        </p>
                     </div>
-                    
-                    <button class="checkout-btn" id="checkoutBtn" disabled onclick="proceedToCheckout()">
-                        Proceed to Checkout
-                    </button>
-
-                    <style>
-                        /* Checkout Button Loading States */
-                        .checkout-btn.loading {
-                            opacity: 0.7;
-                            cursor: not-allowed;
-                            pointer-events: none;
-                        }
-                        
-                        /* Ensure no duplicate circles from pseudo-elements */
-                        .checkout-btn.loading::after,
-                        .checkout-btn.loading::before {
-                            display: none !important;
-                        }
-                        
-                        .loading-spinner-small {
-                            width: 16px;
-                            height: 16px;
-                            border: 2px solid #f3f3f3;
-                            border-top: 2px solid #ffffff;
-                            border-radius: 50%;
-                            animation: spin 1s linear infinite;
-                            display: inline-block;
-                            margin-right: 6px;
-                        }
-                        
-                        @keyframes spin {
-                            0% { transform: rotate(0deg); }
-                            100% { transform: rotate(360deg); }
-                        }
-                    </style>
-                    <p style="font-size: 12px; color: #666; margin-top: 10px; text-align: center;">
-                        Select items and accept terms to checkout
-                    </p>
-                    <p style="font-size: 11px; color: #ff9800; margin-top: 5px; text-align: center; font-weight: 500;">
-                        ⓘ Pre-Order and Same Day items must be checked out separately
-                    </p>
                 </div>
             </div>
-        </div>
+        </div> <!-- End cart-grid -->
     </div>
 </div>
-
 <script>
 // Track selected items and shipping method
 let selectedItems = [];
@@ -681,9 +489,16 @@ function updateTotals() {
         updateFlexibleProductsDisplay(null);
     }
     
-    // Update display
+    // Update display for both desktop and mobile
     document.getElementById('selectedCount').textContent = selectedItems.length;
     document.getElementById('totalAmount').textContent = '₱' + total.toFixed(2);
+    
+    // Update mobile elements
+    const selectedCountMobile = document.getElementById('selectedCountMobile');
+    const totalAmountMobile = document.getElementById('totalAmountMobile');
+    if (selectedCountMobile) selectedCountMobile.textContent = selectedItems.length;
+    if (totalAmountMobile) totalAmountMobile.textContent = '₱' + total.toFixed(2);
+    
     updateCheckoutButton();
 }
 
@@ -830,39 +645,92 @@ function removeItem(cartId, type) {
 function updateCheckoutButton() {
     const termsChecked = document.getElementById('termsCheckbox').checked;
     const hasItems = selectedItems.length > 0;
+    
+    // Update desktop button
     document.getElementById('checkoutBtn').disabled = !(hasItems && termsChecked);
+    
+    // Update mobile elements
+    const termsCheckboxMobile = document.getElementById('termsCheckboxMobile');
+    const checkoutBtnMobile = document.getElementById('checkoutBtnMobile');
+    
+    if (termsCheckboxMobile && checkoutBtnMobile) {
+        const termsCheckedMobile = termsCheckboxMobile.checked;
+        checkoutBtnMobile.disabled = !(hasItems && termsCheckedMobile);
+    }
 }
 
-// Add terms checkbox listener
-document.getElementById('termsCheckbox').addEventListener('change', updateCheckoutButton);
+// Sync checkbox states
+function syncCheckboxes(source) {
+    const desktopCheckbox = document.getElementById('termsCheckbox');
+    const mobileCheckbox = document.getElementById('termsCheckboxMobile');
+    
+    if (source === 'desktop' && mobileCheckbox) {
+        mobileCheckbox.checked = desktopCheckbox.checked;
+    } else if (source === 'mobile' && desktopCheckbox) {
+        desktopCheckbox.checked = mobileCheckbox.checked;
+    }
+    
+    updateCheckoutButton();
+}
+
+// Add terms checkbox listeners
+document.getElementById('termsCheckbox').addEventListener('change', function() {
+    syncCheckboxes('desktop');
+});
+
+// Add mobile checkbox listener if it exists
+setTimeout(() => {
+    const mobileCheckbox = document.getElementById('termsCheckboxMobile');
+    if (mobileCheckbox) {
+        mobileCheckbox.addEventListener('change', function() {
+            syncCheckboxes('mobile');
+        });
+    }
+}, 100);
 
 function proceedToCheckout() {
     console.log('proceedToCheckout called, selectedItems:', selectedItems);
     
-    // Get checkout button and show loading state
+    // Determine which button was clicked based on screen size or button availability
     const checkoutBtn = document.getElementById('checkoutBtn');
-    const originalText = checkoutBtn.textContent;
+    const checkoutBtnMobile = document.getElementById('checkoutBtnMobile');
+    
+    let activeButton, originalText;
+    
+    // Check if mobile layout is visible (1024px and below)
+    if (window.innerWidth <= 1024 && checkoutBtnMobile) {
+        activeButton = checkoutBtnMobile;
+        originalText = 'Checkout';
+    } else {
+        activeButton = checkoutBtn;
+        originalText = checkoutBtn.textContent;
+    }
     
     // Show loading state
-    checkoutBtn.disabled = true;
-    checkoutBtn.classList.add('loading');
-    checkoutBtn.innerHTML = '<span class="loading-spinner-small"></span>Processing...';
+    activeButton.disabled = true;
+    activeButton.classList.add('loading');
+    activeButton.innerHTML = '<span class="loading-spinner-small"></span>Processing...';
     
     if (selectedItems.length === 0) {
         alert('Please select items to checkout by checking the boxes next to the items you want to purchase.');
         // Reset button state
-        checkoutBtn.disabled = false;
-        checkoutBtn.classList.remove('loading');
-        checkoutBtn.textContent = originalText;
+        activeButton.disabled = false;
+        activeButton.classList.remove('loading');
+        activeButton.textContent = originalText;
         return;
     }
     
-    if (!document.getElementById('termsCheckbox').checked) {
+    // Check terms and conditions
+    const termsChecked = window.innerWidth <= 1024 ? 
+        document.getElementById('termsCheckboxMobile').checked : 
+        document.getElementById('termsCheckbox').checked;
+    
+    if (!termsChecked) {
         alert('Please accept the Terms and Conditions');
         // Reset button state
-        checkoutBtn.disabled = false;
-        checkoutBtn.classList.remove('loading');
-        checkoutBtn.textContent = originalText;
+        activeButton.disabled = false;
+        activeButton.classList.remove('loading');
+        activeButton.textContent = originalText;
         return;
     }
     
