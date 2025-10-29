@@ -474,11 +474,32 @@ function showSaveButtons() {
 /**
  * Handle save preview button click
  */
-async function handleSavePreview() {
-    if (!pendingFile) return;
+async function handleSavePreview(event) {
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+    
+    if (!pendingFile) {
+        console.error('No pending file to save!');
+        return;
+    }
+    
+    console.log('Saving preview image...', pendingFile);
+    console.log('File size:', (pendingFile.size / 1024 / 1024).toFixed(2), 'MB');
+    console.log('File type:', pendingFile.type);
+    
+    // Disable save button during upload
+    const saveBtn = document.querySelector('.save-preview-btn');
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+    }
     
     // Upload the pending file
-    await uploadProfilePictureToCloudinary(pendingFile);
+    const result = await uploadProfilePictureToCloudinary(pendingFile);
+    
+    console.log('Upload result:', result);
     
     // Clear pending file and remove buttons
     pendingFile = null;
@@ -488,7 +509,14 @@ async function handleSavePreview() {
 /**
  * Handle cancel preview button click
  */
-function handleCancelPreview() {
+function handleCancelPreview(event) {
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+    
+    console.log('Canceling preview...');
+    
     // Clear pending file
     pendingFile = null;
     
@@ -565,8 +593,8 @@ function initializeProfilePictureUpload() {
     
     if (avatarContainer && fileInput) {
         avatarContainer.addEventListener('click', (e) => {
-            // Don't trigger file input if clicking remove button
-            if (e.target.closest('.remove-avatar-btn')) {
+            // Don't trigger file input if clicking remove button or preview buttons
+            if (e.target.closest('.remove-avatar-btn') || e.target.closest('.preview-buttons')) {
                 return;
             }
             fileInput.click();
