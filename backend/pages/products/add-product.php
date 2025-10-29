@@ -1,6 +1,9 @@
 <?php
-require_once __DIR__ . "/login/admin/admin-auth.php";
-
+session_start();
+if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
+    header("Location: ../auth/login-signup.php");
+    exit();
+}
 
 // Include config file for base URL
 require_once __DIR__ . "/../admin-includes/config.php";
