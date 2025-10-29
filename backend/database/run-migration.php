@@ -131,6 +131,20 @@ if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
         <button class="btn" onclick="runMigration('add-carousel-ajax-support.php', this)">Run Migration</button>
     </div>
     
+    <div class="migration-box">
+        <h2>Profile Picture AJAX Image Management Support</h2>
+        <p><strong>Migration:</strong> add-profile-picture-ajax-support.php</p>
+        <p><strong>Description:</strong> This migration prepares the users table for AJAX-based profile picture management.</p>
+        <p><strong>Changes:</strong></p>
+        <ul>
+            <li>Adds Cloudinary columns (<code>cloud_url</code>, <code>cloud_public_id</code>, <code>cloud_provider</code>) to <code>users</code> table</li>
+            <li>Adds performance indexes</li>
+            <li>Reuses <code>temp_uploaded_images</code> table from product/carousel images</li>
+            <li>Supports both admin and customer profile pictures</li>
+        </ul>
+        <button class="btn" onclick="runMigration('add-profile-picture-ajax-support.php', this)">Run Migration</button>
+    </div>
+    
     <div id="output"></div>
     
     <a href="/backend/pages/products/product-list.php" class="back-link">← Back to Products</a>

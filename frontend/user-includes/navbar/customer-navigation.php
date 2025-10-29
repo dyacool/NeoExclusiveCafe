@@ -230,7 +230,7 @@ if (!$navbar_conn) {
 
             <div class="nav-center">
                 <a href="../../../frontend/pages/home/user-dashboard.php" class="logo-container">
-                    <img src="/assets/images/user-logo.png" alt="NeoCafe Logo" class="logo">
+                    <img src="https://res.cloudinary.com/dvdccumbs/image/upload/v1761594924/neocafegoldlogo_i4a6cz.png" alt="NeoCafe Logo" class="logo">
                 </a>
             </div>
 
