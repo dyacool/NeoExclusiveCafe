@@ -135,21 +135,36 @@ function uploadToCloudinary($filePath, $folder = 'neocafe', $publicId = null) {
  */
 function getCloudinaryUrl($publicId, $transformations = []) {
     try {
-        $cloudinary = CloudinaryConfig::getInstance()->getCloudinary();
+        // Build URL manually for compatibility
+        $cloudName = getenv('CLOUDINARY_CLOUD_NAME') ?: $_ENV['CLOUDINARY_CLOUD_NAME'] ?? 'dvdccumbs';
         
         if (empty($transformations)) {
             // Default transformations for optimization
             $transformations = [
+                'width' => 800,
                 'quality' => 'auto',
                 'fetch_format' => 'auto'
             ];
         }
         
-        return $cloudinary->image($publicId)
-            ->resize(scale()->width(800))
-            ->delivery(quality('auto'))
-            ->delivery(format('auto'))
-            ->toUrl();
+        // Build transformation string
+        $transformParams = [];
+        if (isset($transformations['width'])) {
+            $transformParams[] = 'w_' . $transformations['width'];
+        }
+        if (isset($transformations['height'])) {
+            $transformParams[] = 'h_' . $transformations['height'];
+        }
+        if (isset($transformations['quality'])) {
+            $transformParams[] = 'q_' . $transformations['quality'];
+        }
+        if (isset($transformations['fetch_format'])) {
+            $transformParams[] = 'f_' . $transformations['fetch_format'];
+        }
+        
+        $transformString = !empty($transformParams) ? implode(',', $transformParams) . '/' : '';
+        
+        return "https://res.cloudinary.com/{$cloudName}/image/upload/{$transformString}{$publicId}";
     } catch (Exception $e) {
         error_log("Failed to get Cloudinary URL: " . $e->getMessage());
         return '';
