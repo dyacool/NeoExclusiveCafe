@@ -64,7 +64,7 @@ if (isset($_POST['resend-verification'])) {
                 $mail->setFrom("noreplyneoexclusive@gmail.com", "NeoExclusiveCafe");
                 $mail->addAddress($email);
                 $mail->Subject = "Email Verification";
-                $verificationLink = "http://neocafe.cafe:8080/frontend/login/user/verify-email.php?token=" . $token;
+                $verificationLink = "https://www.neocafe.shop/frontend/login/user/verify-email.php?token=" . $token;
                 $mail->Body = <<<END
                 <p>Hello {$user['firstname']},</p>
                 <p>We've received a request to resend your verification email. Please click the link below to verify your email address:</p>
