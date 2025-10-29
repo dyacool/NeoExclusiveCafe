@@ -218,7 +218,10 @@
   - Check lazy loading works correctly
   - _Requirements: 2.4, 2.5, 3.4, 6.4, 7.1, 7.2, 7.3_
 
-- [-] 9. Use test pages for verification
+- [x] 9. Use test pages for verification
+
+
+
 
 
 

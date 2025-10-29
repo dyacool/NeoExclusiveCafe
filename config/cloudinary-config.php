@@ -1,5 +1,11 @@
 <?php
-require_once __DIR__ . '/../vendor/autoload.php';
+// Check if vendor/autoload.php exists before requiring it
+$autoloadPath = __DIR__ . '/../vendor/autoload.php';
+if (!file_exists($autoloadPath)) {
+    error_log("CloudinaryConfig: vendor/autoload.php not found at: $autoloadPath");
+    throw new Exception("Composer autoload file not found. Please run 'composer install'");
+}
+require_once $autoloadPath;
 
 use Cloudinary\Cloudinary;
 use Cloudinary\Configuration\Configuration;

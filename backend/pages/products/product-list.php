@@ -10,7 +10,15 @@
     include __DIR__ . "/../admin-includes/database.php";
     require_once __DIR__ . "/../admin-includes/settings-helper.php";
     require_once __DIR__ . "/todays-products-handler.php";
-    require_once __DIR__ . "/../../backend/includes/cloudinary-image-fetcher.php";
+    
+    // Try to include Cloudinary image fetcher (may fail if vendor/autoload.php is missing)
+    try {
+        require_once __DIR__ . "/../../backend/includes/cloudinary-image-fetcher.php";
+    } catch (Exception $e) {
+        error_log("Failed to load cloudinary-image-fetcher.php: " . $e->getMessage());
+    } catch (Error $e) {
+        error_log("Fatal error loading cloudinary-image-fetcher.php: " . $e->getMessage());
+    }
     
     // Clean up past dates automatically when page loads
     try {
@@ -239,9 +247,6 @@
                 <table class="products-table">
                     <tbody id="productTableBody">
                         <?php
-                            // Include database connection
-                            require_once "../admin-includes/database.php";
-
                             // Count total products for pagination
                             $count_sql = "SELECT COUNT(*) as total FROM products WHERE deleted_at IS NULL";
                             $count_result = $conn->query($count_sql);
@@ -324,14 +329,20 @@
                             $productImages = [];
                             if (!empty($productIds)) {
                                 try {
-                                    $fetcher = new CloudinaryImageFetcher($conn);
-                                    $productImages = $fetcher->fetchMultipleProductImages(
-                                        $productIds, 
-                                        ['width' => 300, 'quality' => 'auto', 'fetch_format' => 'auto'],
-                                        true // Skip products without Cloudinary URLs
-                                    );
+                                    if (class_exists('CloudinaryImageFetcher')) {
+                                        $fetcher = new CloudinaryImageFetcher($conn);
+                                        $productImages = $fetcher->fetchMultipleProductImages(
+                                            $productIds, 
+                                            ['width' => 300, 'quality' => 'auto', 'fetch_format' => 'auto'],
+                                            true // Skip products without Cloudinary URLs
+                                        );
+                                    } else {
+                                        error_log("CloudinaryImageFetcher class not found");
+                                    }
                                 } catch (Exception $e) {
                                     error_log("Error fetching Cloudinary images: " . $e->getMessage());
+                                } catch (Error $e) {
+                                    error_log("Fatal error fetching Cloudinary images: " . $e->getMessage());
                                 }
                             }
 

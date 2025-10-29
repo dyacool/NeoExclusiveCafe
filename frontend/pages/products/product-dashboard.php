@@ -22,10 +22,22 @@ require_once __DIR__ . "/../../user-includes/user-header.php";
 require_once __DIR__ . "/../../user-includes/preview-mode.php";
 require_once __DIR__ . "/../../../backend/pages/admin-includes/database.php";
 require_once __DIR__ . "/../../../backend/pages/products/todays-products-handler.php";
-require_once __DIR__ . "/../../../backend/includes/cloudinary-image-fetcher.php";
+
+// Try to include Cloudinary image fetcher (may fail if vendor/autoload.php is missing)
+try {
+    require_once __DIR__ . "/../../../backend/includes/cloudinary-image-fetcher.php";
+} catch (Exception $e) {
+    error_log("Failed to load cloudinary-image-fetcher.php: " . $e->getMessage());
+} catch (Error $e) {
+    error_log("Fatal error loading cloudinary-image-fetcher.php: " . $e->getMessage());
+}
 
 // Clean up past dates automatically when page loads
-cleanupPastDates();
+try {
+    cleanupPastDates();
+} catch (Exception $e) {
+    error_log("Error cleaning up past dates: " . $e->getMessage());
+}
 
 // DISABLED: Function to truncate cart_availtoday when business hours are closed OR items are from previous days
 // This functionality is commented out for now
@@ -437,29 +449,36 @@ if ($cart_truncated) {
                     if (count($all_products) > 0) {
                         // Batch fetch images using CloudinaryImageFetcher for performance
                         $productIds = array_column($all_products, 'id');
-                        $fetcher = new CloudinaryImageFetcher($conn);
+                        $cloudinaryImages = [];
                         
-                        // Determine viewport size for responsive transformations
-                        // Mobile: 400px, Desktop: 800px (default to desktop)
-                        $isMobile = isset($_SERVER['HTTP_USER_AGENT']) && 
-                                   preg_match('/(android|iphone|ipad|mobile)/i', $_SERVER['HTTP_USER_AGENT']);
-                        $imageWidth = $isMobile ? 400 : 800;
-                        
-                        // Fetch all product images with responsive transformations
                         try {
-                            $cloudinaryImages = $fetcher->fetchMultipleProductImages(
-                                $productIds, 
-                                [
-                                    'width' => $imageWidth,
-                                    'quality' => 'auto',
-                                    'fetch_format' => 'auto',
-                                    'crop' => 'limit'
-                                ],
-                                true // Skip products without Cloudinary URLs
-                            );
+                            if (class_exists('CloudinaryImageFetcher')) {
+                                $fetcher = new CloudinaryImageFetcher($conn);
+                                
+                                // Determine viewport size for responsive transformations
+                                // Mobile: 400px, Desktop: 800px (default to desktop)
+                                $isMobile = isset($_SERVER['HTTP_USER_AGENT']) && 
+                                           preg_match('/(android|iphone|ipad|mobile)/i', $_SERVER['HTTP_USER_AGENT']);
+                                $imageWidth = $isMobile ? 400 : 800;
+                                
+                                // Fetch all product images with responsive transformations
+                                $cloudinaryImages = $fetcher->fetchMultipleProductImages(
+                                    $productIds, 
+                                    [
+                                        'width' => $imageWidth,
+                                        'quality' => 'auto',
+                                        'fetch_format' => 'auto',
+                                        'crop' => 'limit'
+                                    ],
+                                    true // Skip products without Cloudinary URLs
+                                );
+                            } else {
+                                error_log("CloudinaryImageFetcher class not found in product-dashboard.php");
+                            }
                         } catch (Exception $e) {
                             error_log("Error fetching Cloudinary images: " . $e->getMessage());
-                            $cloudinaryImages = [];
+                        } catch (Error $e) {
+                            error_log("Fatal error fetching Cloudinary images: " . $e->getMessage());
                         }
                         
                         foreach ($all_products as $row) {

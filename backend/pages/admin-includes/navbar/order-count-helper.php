@@ -26,9 +26,10 @@ function getOrderCounts($conn) {
         ];
     }
     
-    // Additional safety check with mysqli_ping in try-catch
+    // Check if connection is still alive by attempting a simple query
     try {
-        if (!mysqli_ping($conn)) {
+        $ping_result = @mysqli_query($conn, "SELECT 1");
+        if (!$ping_result) {
             return [
                 'total' => 0,
                 'active' => 0,
@@ -102,9 +103,10 @@ function getBulkOrderCounts($conn) {
         return ['total' => 0, 'active' => 0];
     }
     
-    // Additional safety check with mysqli_ping in try-catch
+    // Check if connection is still alive by attempting a simple query
     try {
-        if (!mysqli_ping($conn)) {
+        $ping_result = @mysqli_query($conn, "SELECT 1");
+        if (!$ping_result) {
             return ['total' => 0, 'active' => 0];
         }
     } catch (Exception $e) {
@@ -155,9 +157,10 @@ function getRefundCounts($conn) {
         return ['total' => 0, 'active' => 0];
     }
     
-    // Additional safety check with mysqli_ping in try-catch
+    // Check if connection is still alive by attempting a simple query
     try {
-        if (!mysqli_ping($conn)) {
+        $ping_result = @mysqli_query($conn, "SELECT 1");
+        if (!$ping_result) {
             return ['total' => 0, 'active' => 0];
         }
     } catch (Exception $e) {
