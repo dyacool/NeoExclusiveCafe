@@ -9,8 +9,8 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// Get user information
-$user_query = "SELECT id, firstname, lastname, username, email, created_at, profile_image FROM users WHERE id = ?";
+// Get user information including Cloudinary fields
+$user_query = "SELECT id, firstname, lastname, username, email, created_at, profile_image, cloud_url, cloud_public_id FROM users WHERE id = ?";
 $user_stmt = mysqli_prepare($conn, $user_query);
 mysqli_stmt_bind_param($user_stmt, "i", $user_id);
 mysqli_stmt_execute($user_stmt);
@@ -78,10 +78,14 @@ if ($bulk_orders_count_stmt === false) {
     mysqli_stmt_close($bulk_orders_count_stmt);
 }
 
-// Determine profile image url (root-relative stored in DB like /assets/public/profile-images/xxxx.jpg)
+// Determine profile image url - prioritize Cloudinary
 $profile_default_image_path = '/assets/images/profile.svg';
 $profile_image_url = $profile_default_image_path;
-if (isset($user['profile_image']) && !empty(trim($user['profile_image']))) {
+
+// Prioritize Cloudinary URL over legacy profile_image
+if (isset($user['cloud_url']) && !empty(trim($user['cloud_url']))) {
+    $profile_image_url = trim($user['cloud_url']);
+} elseif (isset($user['profile_image']) && !empty(trim($user['profile_image']))) {
     $db_path = trim($user['profile_image']);
     if ($db_path[0] !== '/') {
         $db_path = '/' . $db_path;

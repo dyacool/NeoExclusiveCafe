@@ -12,6 +12,7 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 // State management
 let isUploading = false;
+let pendingFile = null;
 
 /**
  * Get CSRF token from hidden field or meta tag
@@ -394,11 +395,145 @@ async function handleProfilePictureChange(event) {
         return;
     }
     
-    // Upload compressed image
-    await uploadProfilePictureToCloudinary(fileToUpload);
+    // Store the file and show preview
+    pendingFile = fileToUpload;
+    showImagePreview(fileToUpload);
     
     // Clear input so same file can be selected again if needed
     event.target.value = '';
+}
+
+/**
+ * Show image preview with save button
+ */
+function showImagePreview(file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const avatar = document.getElementById('avatar');
+        if (!avatar) return;
+        
+        // Remove existing content
+        avatar.innerHTML = '';
+        
+        // Create preview image
+        const img = document.createElement('img');
+        img.id = 'profile-image-preview';
+        img.src = e.target.result;
+        img.alt = 'Profile picture preview';
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'cover';
+        img.style.borderRadius = '50%';
+        img.style.opacity = '0.7';
+        
+        avatar.appendChild(img);
+        
+        // Show save and cancel buttons
+        showSaveButtons();
+    };
+    reader.readAsDataURL(file);
+}
+
+/**
+ * Show save and cancel buttons
+ */
+function showSaveButtons() {
+    const container = document.getElementById('avatar-upload-container');
+    if (!container) return;
+    
+    // Remove existing buttons if present
+    const existingButtons = container.querySelector('.preview-buttons');
+    if (existingButtons) {
+        existingButtons.remove();
+    }
+    
+    // Create button container
+    const buttonContainer = document.createElement('div');
+    buttonContainer.className = 'preview-buttons';
+    buttonContainer.style.cssText = 'display: flex; gap: 10px; margin-top: 10px; justify-content: center;';
+    
+    // Create save button
+    const saveBtn = document.createElement('button');
+    saveBtn.type = 'button';
+    saveBtn.className = 'save-preview-btn';
+    saveBtn.innerHTML = '<i class="fas fa-check"></i> Save';
+    saveBtn.onclick = handleSavePreview;
+    
+    // Create cancel button
+    const cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button';
+    cancelBtn.className = 'cancel-preview-btn';
+    cancelBtn.innerHTML = '<i class="fas fa-times"></i> Cancel';
+    cancelBtn.onclick = handleCancelPreview;
+    
+    buttonContainer.appendChild(saveBtn);
+    buttonContainer.appendChild(cancelBtn);
+    container.appendChild(buttonContainer);
+}
+
+/**
+ * Handle save preview button click
+ */
+async function handleSavePreview() {
+    if (!pendingFile) return;
+    
+    // Upload the pending file
+    await uploadProfilePictureToCloudinary(pendingFile);
+    
+    // Clear pending file and remove buttons
+    pendingFile = null;
+    removeSaveButtons();
+}
+
+/**
+ * Handle cancel preview button click
+ */
+function handleCancelPreview() {
+    // Clear pending file
+    pendingFile = null;
+    
+    // Remove buttons
+    removeSaveButtons();
+    
+    // Revert to original display
+    const avatar = document.getElementById('avatar');
+    const firstnameInput = document.getElementById('firstname');
+    const lastnameInput = document.getElementById('lastname');
+    
+    if (!avatar) return;
+    
+    // Check if there's an existing profile image
+    const existingImage = document.querySelector('#avatar img:not(#profile-image-preview)');
+    const existingPublicId = document.getElementById('remove-avatar-btn')?.dataset.publicId;
+    
+    if (existingPublicId) {
+        // Reload the page to restore original image
+        location.reload();
+    } else if (firstnameInput && lastnameInput) {
+        // Revert to initials
+        const firstname = firstnameInput.value || '';
+        const lastname = lastnameInput.value || '';
+        const initials = (firstname.charAt(0) + lastname.charAt(0)).toUpperCase();
+        
+        avatar.innerHTML = '';
+        const initialsSpan = document.createElement('span');
+        initialsSpan.id = 'initials';
+        initialsSpan.textContent = initials;
+        avatar.appendChild(initialsSpan);
+    }
+}
+
+/**
+ * Remove save buttons
+ */
+function removeSaveButtons() {
+    const container = document.getElementById('avatar-upload-container');
+    if (!container) return;
+    
+    const buttons = container.querySelector('.preview-buttons');
+    if (buttons) {
+        buttons.remove();
+    }
 }
 
 /**
