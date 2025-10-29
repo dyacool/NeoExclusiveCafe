@@ -72,7 +72,7 @@ if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
         switch ($_FILES['image']['error']) {
             case UPLOAD_ERR_INI_SIZE:
             case UPLOAD_ERR_FORM_SIZE:
-                $errorMessage = 'File size exceeds maximum limit (5MB)';
+                $errorMessage = 'File size exceeds maximum limit (10MB)';
                 break;
             case UPLOAD_ERR_PARTIAL:
                 $errorMessage = 'File was only partially uploaded';

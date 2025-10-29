@@ -299,7 +299,7 @@ $images_result = mysqli_query($conn, $images_query);
                            name="image" 
                            accept="image/jpeg,image/png,image/gif,image/webp"
                            style="display: none;">
-                    <span class="image-size-info">Recommended: 1920x1080px | Max: 5MB | Formats: JPEG, PNG, GIF, WebP</span>
+                    <span class="image-size-info">Recommended: 1920x1080px | Max: 10MB | Formats: JPEG, PNG, GIF, WebP</span>
                     
                     <!-- Image Preview Container -->
                     <div id="carouselPreviewContainer" class="carousel-preview-container"></div>

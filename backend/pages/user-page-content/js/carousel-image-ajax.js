@@ -8,7 +8,7 @@
 // Configuration
 const UPLOAD_ENDPOINT = '/backend/api/upload-carousel-image.php';
 const DELETE_ENDPOINT = '/backend/api/delete-carousel-image.php';
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 // State management
 let uploadingCount = 0;
@@ -322,7 +322,7 @@ function validateFile(file) {
     if (file.size > MAX_FILE_SIZE) {
         return {
             valid: false,
-            error: 'File size exceeds 5MB limit.'
+            error: 'File size exceeds 10MB limit.'
         };
     }
     
