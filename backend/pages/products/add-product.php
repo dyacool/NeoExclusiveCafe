@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . "/../../login/admin/admin-auth.php";
+require_once __DIR__ . "/login/admin/admin-auth.php";
 
 
 // Include config file for base URL
