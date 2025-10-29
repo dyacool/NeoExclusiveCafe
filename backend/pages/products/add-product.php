@@ -197,11 +197,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $publicId = 'product_' . $product_id . '_primary_' . time();
             
             try {
+                error_log("add-product.php: Attempting Cloudinary upload for product $product_id with public_id: $publicId");
+                error_log("add-product.php: Temp file: " . $_FILES['primary_image']['tmp_name'] . " exists: " . (file_exists($_FILES['primary_image']['tmp_name']) ? 'YES' : 'NO'));
+                
                 $cloudinaryResult = uploadToCloudinary(
                     $_FILES['primary_image']['tmp_name'], 
                     'neocafe/products', 
                     $publicId
                 );
+                
+                error_log("add-product.php: Cloudinary result: " . json_encode($cloudinaryResult));
                 
                 if ($cloudinaryResult['success']) {
                     // Store Cloudinary URL in database
@@ -215,17 +220,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     // Delete temporary file
                     @unlink($_FILES['primary_image']['tmp_name']);
                     
-                    error_log("Successfully uploaded primary image to Cloudinary for product $product_id");
+                    error_log("add-product.php: Successfully uploaded primary image to Cloudinary for product $product_id");
                 } else {
-                    throw new Exception($cloudinaryResult['error']);
+                    $errorMsg = $cloudinaryResult['error'] ?? 'Unknown error';
+                    $errorDetails = $cloudinaryResult['error_details'] ?? '';
+                    error_log("add-product.php: Cloudinary upload returned failure - Error: $errorMsg, Details: $errorDetails");
+                    throw new Exception($errorMsg);
                 }
             } catch (Exception $e) {
                 // Rollback product creation on upload failure
                 $conn->query("DELETE FROM products WHERE id = $product_id");
                 
-                error_log("Cloudinary upload failed for product $product_id: " . $e->getMessage());
+                error_log("add-product.php: Cloudinary upload exception for product $product_id: " . $e->getMessage());
+                error_log("add-product.php: Exception trace: " . $e->getTraceAsString());
                 
-                $_SESSION['error_message'] = "Failed to upload primary image to Cloudinary. Please try again.";
+                $_SESSION['error_message'] = "Failed to upload primary image to Cloudinary: " . $e->getMessage();
                 header("Location: /backend/pages/products/add-product.php");
                 exit();
             }
