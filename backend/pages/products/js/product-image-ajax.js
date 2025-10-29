@@ -48,6 +48,10 @@ async function uploadImageToCloudinary(file, imageType) {
     // Get product name from form for folder structure
     const productNameField = document.querySelector('input[name="name"]');
     const productName = productNameField ? productNameField.value : 'Unnamed_Product';
+    
+    console.log('Product name field:', productNameField);
+    console.log('Product name value:', productName);
+    
     formData.append('product_name', productName);
     
     try {

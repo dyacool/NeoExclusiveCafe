@@ -119,13 +119,24 @@ if (!in_array($imageType, ['primary', 'additional'])) {
 
 // Get product name for folder structure (sanitized)
 $productName = $_POST['product_name'] ?? 'Unnamed_Product';
+
+// Log what we received
+error_log("AJAX Upload - Received product_name: " . $productName);
+
 $sanitizedProductName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $productName);
 $sanitizedProductName = preg_replace('/_+/', '_', $sanitizedProductName);
 $sanitizedProductName = trim($sanitizedProductName, '_');
 
+// If sanitization resulted in empty string, use default
+if (empty($sanitizedProductName)) {
+    $sanitizedProductName = 'Unnamed_Product';
+}
+
 // Generate unique folder name with product name and timestamp
 $timestamp = time();
 $folderName = $sanitizedProductName . '_' . $timestamp;
+
+error_log("AJAX Upload - Folder name: " . $folderName);
 
 // Folder path: assets/product-images/[ProductName_timestamp]
 $folder = 'assets/product-images/' . $folderName;
