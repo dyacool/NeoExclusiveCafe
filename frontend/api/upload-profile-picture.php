@@ -8,6 +8,10 @@
  */
 
 session_start();
+
+// Start output buffering to catch any unwanted output
+ob_start();
+
 header('Content-Type: application/json');
 
 // Verify customer authentication
@@ -32,6 +36,9 @@ if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || $_POST['c
 
 require_once __DIR__ . '/../../backend/includes/cloudinary-helper.php';
 require_once __DIR__ . '/../user-includes/database.php';
+
+// Clean any output from included files
+ob_clean();
 
 /**
  * Log temporary image upload for orphan tracking
