@@ -437,7 +437,12 @@ input[readonly] {
   text-align: center;
   margin-bottom: 24px;
 }
-
+.avatar-upload-container{
+width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    overflow: hidden;
+}
 .section-header i {
   margin-right: 10px;
   color: var(--primary);
