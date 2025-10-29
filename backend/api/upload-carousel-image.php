@@ -67,27 +67,42 @@ function logTempImageUpload($conn, $publicId, $url) {
 // Validate uploaded file
 if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
     $errorMessage = 'No file uploaded';
+    $errorCode = 'UNKNOWN';
     
     if (isset($_FILES['image']['error'])) {
-        switch ($_FILES['image']['error']) {
+        $uploadError = $_FILES['image']['error'];
+        error_log("Carousel upload error code: " . $uploadError);
+        
+        switch ($uploadError) {
             case UPLOAD_ERR_INI_SIZE:
+                $errorMessage = 'File size exceeds server limit (upload_max_filesize in php.ini). Current file size: ' . (isset($_FILES['image']['size']) ? round($_FILES['image']['size'] / 1024 / 1024, 2) . 'MB' : 'unknown');
+                $errorCode = 'SERVER_SIZE_LIMIT';
+                error_log("Upload failed: UPLOAD_ERR_INI_SIZE - File size: " . ($_FILES['image']['size'] ?? 'unknown'));
+                break;
             case UPLOAD_ERR_FORM_SIZE:
-                $errorMessage = 'File size exceeds maximum limit (10MB)';
+                $errorMessage = 'File size exceeds form limit (MAX_FILE_SIZE). Current file size: ' . (isset($_FILES['image']['size']) ? round($_FILES['image']['size'] / 1024 / 1024, 2) . 'MB' : 'unknown');
+                $errorCode = 'FORM_SIZE_LIMIT';
+                error_log("Upload failed: UPLOAD_ERR_FORM_SIZE - File size: " . ($_FILES['image']['size'] ?? 'unknown'));
                 break;
             case UPLOAD_ERR_PARTIAL:
                 $errorMessage = 'File was only partially uploaded';
+                $errorCode = 'PARTIAL_UPLOAD';
                 break;
             case UPLOAD_ERR_NO_FILE:
                 $errorMessage = 'No file was uploaded';
+                $errorCode = 'NO_FILE';
                 break;
             case UPLOAD_ERR_NO_TMP_DIR:
                 $errorMessage = 'Missing temporary folder';
+                $errorCode = 'NO_TMP_DIR';
                 break;
             case UPLOAD_ERR_CANT_WRITE:
                 $errorMessage = 'Failed to write file to disk';
+                $errorCode = 'CANT_WRITE';
                 break;
             case UPLOAD_ERR_EXTENSION:
                 $errorMessage = 'File upload stopped by extension';
+                $errorCode = 'EXTENSION_BLOCKED';
                 break;
         }
     }
@@ -95,7 +110,8 @@ if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
     http_response_code(400);
     echo json_encode([
         'success' => false,
-        'error' => $errorMessage
+        'error' => $errorMessage,
+        'error_code' => $errorCode
     ]);
     exit();
 }

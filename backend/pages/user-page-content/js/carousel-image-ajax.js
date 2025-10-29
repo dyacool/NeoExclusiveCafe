@@ -330,17 +330,77 @@ function validateFile(file) {
 }
 
 /**
+ * Compress image before upload
+ * 
+ * @param {File} file - Original image file
+ * @param {number} maxSizeMB - Maximum size in MB (default 2MB)
+ * @param {number} maxWidth - Maximum width in pixels (default 1920)
+ * @returns {Promise<File>} Compressed image file
+ */
+async function compressImage(file, maxSizeMB = 2, maxWidth = 1920) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                
+                // Resize if needed
+                if (width > maxWidth) {
+                    height = (height * maxWidth) / width;
+                    width = maxWidth;
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // Try different quality levels to get under maxSizeMB
+                let quality = 0.9;
+                const tryCompress = () => {
+                    canvas.toBlob((blob) => {
+                        if (blob.size <= maxSizeMB * 1024 * 1024 || quality <= 0.5) {
+                            // Success or reached minimum quality
+                            const compressedFile = new File([blob], file.name, {
+                                type: 'image/jpeg',
+                                lastModified: Date.now()
+                            });
+                            console.log(`Compressed from ${(file.size / 1024 / 1024).toFixed(2)}MB to ${(blob.size / 1024 / 1024).toFixed(2)}MB`);
+                            resolve(compressedFile);
+                        } else {
+                            // Try lower quality
+                            quality -= 0.1;
+                            tryCompress();
+                        }
+                    }, 'image/jpeg', quality);
+                };
+                
+                tryCompress();
+            };
+            img.onerror = reject;
+        };
+        reader.onerror = reject;
+    });
+}
+
+/**
  * Handle carousel image file input change
  */
 async function handleCarouselImageChange(event) {
     const file = event.target.files[0];
     if (!file) return;
     
-    // Validate file
-    const validation = validateFile(file);
-    if (!validation.valid) {
-        showErrorMessage(validation.error);
-        event.target.value = ''; // Clear input
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+        showErrorMessage('Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.');
+        event.target.value = '';
         return;
     }
     
@@ -350,8 +410,29 @@ async function handleCarouselImageChange(event) {
         await deleteCarouselImageFromCloudinary(existingPublicId);
     }
     
-    // Upload new image
-    await uploadCarouselImageToCloudinary(file);
+    // Compress image if it's too large
+    let fileToUpload = file;
+    if (file.size > 2 * 1024 * 1024) { // If larger than 2MB
+        console.log('Compressing image...');
+        try {
+            fileToUpload = await compressImage(file, 2, 1920);
+        } catch (error) {
+            console.error('Compression failed:', error);
+            showErrorMessage('Failed to compress image. Please try a smaller file.');
+            event.target.value = '';
+            return;
+        }
+    }
+    
+    // Validate compressed file size
+    if (fileToUpload.size > MAX_FILE_SIZE) {
+        showErrorMessage('File size exceeds 10MB limit even after compression. Please use a smaller image.');
+        event.target.value = '';
+        return;
+    }
+    
+    // Upload compressed image
+    await uploadCarouselImageToCloudinary(fileToUpload);
     
     // Clear input so same file can be selected again if needed
     event.target.value = '';
