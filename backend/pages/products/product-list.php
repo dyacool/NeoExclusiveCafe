@@ -328,6 +328,7 @@
                             // Batch fetch images from Cloudinary with thumbnail transformations
                             $productImages = [];
                             if (!empty($productIds)) {
+                                error_log("product-list.php: Attempting to fetch images for " . count($productIds) . " products");
                                 try {
                                     if (class_exists('CloudinaryImageFetcher')) {
                                         $fetcher = new CloudinaryImageFetcher($conn);
@@ -336,14 +337,17 @@
                                             ['width' => 300, 'quality' => 'auto', 'fetch_format' => 'auto'],
                                             true // Skip products without Cloudinary URLs
                                         );
+                                        error_log("product-list.php: Successfully fetched " . count($productImages) . " images from Cloudinary");
                                     } else {
-                                        error_log("CloudinaryImageFetcher class not found");
+                                        error_log("product-list.php: CloudinaryImageFetcher class not found");
                                     }
                                 } catch (Exception $e) {
-                                    error_log("Error fetching Cloudinary images: " . $e->getMessage());
+                                    error_log("product-list.php: Error fetching Cloudinary images: " . $e->getMessage());
                                 } catch (Error $e) {
-                                    error_log("Fatal error fetching Cloudinary images: " . $e->getMessage());
+                                    error_log("product-list.php: Fatal error fetching Cloudinary images: " . $e->getMessage());
                                 }
+                            } else {
+                                error_log("product-list.php: No product IDs to fetch images for");
                             }
 
                             if (!empty($products)) {
@@ -383,7 +387,7 @@
                                     $statusClass = strtolower(str_replace(' ', '-', $row['status_name'] ?? 'Unknown'));
 
                                     // Get image from Cloudinary with error handling
-                                    $imagePath = '/assets/images/placeholder-product.png'; // Default placeholder
+                                    $imagePath = 'https://res.cloudinary.com/dvdccumbs/image/upload/v1/placeholder/no-image.jpg'; // Cloudinary placeholder
                                     try {
                                         if (isset($productImages[$row['id']])) {
                                             $imagePath = $productImages[$row['id']]['url'];
@@ -406,7 +410,7 @@
                                     echo "<tr data-status='" . $displayStatus . "' data-name='" . strtolower($row['name']) . "' data-sku='" . strtolower($row['sku']) . "'>
                                             <td>
                                                 <div class='product-image-container'>
-                                                    <img class='product-image' src='" . htmlspecialchars($imagePath) . "' alt='" . htmlspecialchars($row['name']) . "' loading='lazy' onerror=\"this.src='/assets/images/placeholder-product.png'\">
+                                                    <img class='product-image' src='" . htmlspecialchars($imagePath) . "' alt='" . htmlspecialchars($row['name']) . "' loading='lazy' onerror=\"this.src='https://res.cloudinary.com/dvdccumbs/image/upload/v1/placeholder/no-image.jpg'\">
                                                     " . ($row['is_featured'] ? "<span class='featured-badge'>★</span>" : "") . "
                                                 </div>
                                             </td>
