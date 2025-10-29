@@ -840,7 +840,23 @@ if ($bulk_orders_stmt === false) {
             return false;
         }
         
-        ordersTable.innerHTML = '<tbody><tr><td colspan="7" style="text-align: center; padding: 20px;">Loading...</td></tr></tbody>';
+        // Show loading state with full table structure
+        ordersTable.innerHTML = `
+            <thead>
+                <tr>
+                    <th>Order Date</th>
+                    <th>Order ID</th>
+                    <th>Total Items</th>
+                    <th>Total Amount</th>
+                    <th>Status</th>
+                    <th>Refund Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td colspan="7" style="text-align: center; padding: 20px;">Loading...</td></tr>
+            </tbody>
+        `;
         
         // Make AJAX request
         fetch(`ajax-pagination.php?type=orders&page=${page}`)
@@ -853,6 +869,9 @@ if ($bulk_orders_stmt === false) {
             })
             .then(data => {
                 console.log('Data received:', data); // Debug log
+                if (data.error) {
+                    throw new Error(data.error);
+                }
                 ordersTable.innerHTML = data.table_html;
                 if (data.pagination_html && ordersPagination) {
                     ordersPagination.innerHTML = data.pagination_html;
@@ -863,7 +882,22 @@ if ($bulk_orders_stmt === false) {
             })
             .catch(error => {
                 console.error('Error loading orders:', error);
-                ordersTable.innerHTML = '<tbody><tr><td colspan="7" style="text-align: center; padding: 20px; color: red;">Error loading orders. Please try again.</td></tr></tbody>';
+                ordersTable.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>Order Date</th>
+                            <th>Order ID</th>
+                            <th>Total Items</th>
+                            <th>Total Amount</th>
+                            <th>Status</th>
+                            <th>Refund Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="7" style="text-align: center; padding: 20px; color: red;">Error loading orders: ${error.message}. Please refresh the page and try again.</td></tr>
+                    </tbody>
+                `;
             });
         
         return false; // Prevent default action
@@ -881,7 +915,22 @@ if ($bulk_orders_stmt === false) {
             return false;
         }
         
-        bulkOrdersTable.innerHTML = '<tbody><tr><td colspan="6" style="text-align: center; padding: 20px;">Loading...</td></tr></tbody>';
+        // Show loading state with full table structure
+        bulkOrdersTable.innerHTML = `
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Date Submitted</th>
+                    <th>Total Items</th>
+                    <th>Total Amount</th>
+                    <th>Order Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td colspan="6" style="text-align: center; padding: 20px;">Loading...</td></tr>
+            </tbody>
+        `;
         
         // Make AJAX request
         fetch(`ajax-pagination.php?type=bulk_orders&page=${page}`)
@@ -894,6 +943,9 @@ if ($bulk_orders_stmt === false) {
             })
             .then(data => {
                 console.log('Bulk orders data received:', data); // Debug log
+                if (data.error) {
+                    throw new Error(data.error);
+                }
                 bulkOrdersTable.innerHTML = data.table_html;
                 if (data.pagination_html && bulkOrdersPagination) {
                     bulkOrdersPagination.innerHTML = data.pagination_html;
@@ -904,7 +956,21 @@ if ($bulk_orders_stmt === false) {
             })
             .catch(error => {
                 console.error('Error loading bulk orders:', error);
-                bulkOrdersTable.innerHTML = '<tbody><tr><td colspan="6" style="text-align: center; padding: 20px; color: red;">Error loading bulk orders. Please try again.</td></tr></tbody>';
+                bulkOrdersTable.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Date Submitted</th>
+                            <th>Total Items</th>
+                            <th>Total Amount</th>
+                            <th>Order Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="6" style="text-align: center; padding: 20px; color: red;">Error loading bulk orders: ${error.message}. Please refresh the page and try again.</td></tr>
+                    </tbody>
+                `;
             });
         
         return false; // Prevent default action

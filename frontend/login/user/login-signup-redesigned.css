@@ -151,10 +151,6 @@ body {
   box-sizing: border-box;
 }
 
-.input-field[type="password"] {
-  padding-right: 2.75rem;
-}
-
 .input-field:focus {
   outline: none;
   border-color: #256b4c;

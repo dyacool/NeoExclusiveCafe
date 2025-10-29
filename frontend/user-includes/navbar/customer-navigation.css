@@ -45,6 +45,57 @@ html {
   overflow-y: auto; /* Allow vertical scroll but prevent horizontal */
 }
 
+body {
+  background-color: var(--white);
+  color: var(--secondary);
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+
+.navbar-content-wrapper {
+  margin-top: 105px; /* Default desktop navbar height */
+  min-height: calc(100vh - 105px);
+}
+
+/* Responsive content wrapper margins */
+@media (max-width: 1024px) {
+  .navbar-content-wrapper {
+    margin-top: 140px; /* Mobile navbar height */
+    min-height: calc(100vh - 140px);
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar-content-wrapper {
+    margin-top: 150px; /* Tablet navbar height */
+    min-height: calc(100vh - 150px);
+  }
+}
+
+@media (max-width: 425px) {
+  .navbar-content-wrapper {
+    margin-top: 160px; /* Mobile L navbar height */
+    min-height: calc(100vh - 160px);
+  }
+}
+
+@media (max-width: 375px) {
+  .navbar-content-wrapper {
+    margin-top: 165px; /* Mobile M navbar height */
+    min-height: calc(100vh - 165px);
+  }
+}
+
+@media (max-width: 320px) {
+  .navbar-content-wrapper {
+    margin-top: 170px; /* Smallest mobile navbar height */
+    min-height: calc(100vh - 170px);
+  }
+}
+
 /* Prevent scroll indicators during page load */
 html.loading,
 body.loading {
@@ -60,9 +111,9 @@ body.loading {
 
 /* Header Wrapper */
 .header-wrapper {
-  position: fixed; /* Changed from sticky to fixed */
+  position: sticky;
   top: 0;
-  left: 0; /* Ensure it starts from the left edge */
+  left: 0;
   width: 100%;
   z-index: 1000;
   box-shadow: 0 2px 10px var(--shadow);
@@ -1129,7 +1180,7 @@ html.homepage-animation .main-nav {
   border-radius: 8px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
   padding: 10px 0;
-  z-index: 100;
+  z-index: 1100;
   opacity: 0;
   visibility: hidden;
   transform: translateY(10px);
@@ -1239,11 +1290,6 @@ html.homepage-animation .main-nav {
 /* Responsive Styles - IMPROVED */
 /* MOBILE LAYOUT STARTS HERE - 1024px and below */
 @media (max-width: 1024px) {
-  /* Add padding for mobile navbar height */
-  body {
-    padding-top: 140px; /* Increased padding for mobile navbar */
-  }
-
   /* Ensure full width and proper mobile structure */
   .nav-content {
     display: flex;
@@ -1319,7 +1365,7 @@ html.homepage-animation .main-nav {
     gap: 0;
     max-height: 500px;
     opacity: 1;
-    z-index: 100;
+    z-index: 1100;
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
     order: 4;
     border-top: 1px solid var(--primary);
@@ -1382,7 +1428,7 @@ html.homepage-animation .main-nav {
     right: 0;
     width: 200px;
     border-radius: 0;
-    z-index: 99;
+    z-index: 1100;
   }
 
   .nav-link {
@@ -1426,10 +1472,6 @@ html.homepage-animation .main-nav {
 
 /* Apply the same layout to smaller breakpoints */
 @media (max-width: 768px) {
-  body {
-    padding-top: 150px; /* Increased padding for tablet navbar */
-  }
-
   /* Keep the same structure as 1024px */
   .nav-content {
     padding: 8px 12px;
@@ -1447,10 +1489,6 @@ html.homepage-animation .main-nav {
 }
 
 @media (max-width: 425px) {
-  body {
-    padding-top: 160px; /* Increased padding for mobile L */
-  }
-
   /* Keep the same structure as 1024px */
   .nav-content {
     padding: 6px 10px;
@@ -1473,10 +1511,6 @@ html.homepage-animation .main-nav {
 }
 
 @media (max-width: 375px) {
-  body {
-    padding-top: 165px; /* Increased padding for mobile M */
-  }
-
   /* Keep the same structure as 1024px */
   .nav-content {
     padding: 5px 8px;
@@ -1499,10 +1533,6 @@ html.homepage-animation .main-nav {
 }
 
 @media (max-width: 320px) {
-  body {
-    padding-top: 170px; /* Maximum padding for smallest screens */
-  }
-
   /* Keep the same structure as 1024px */
   .nav-content {
     padding: 4px 6px;
@@ -1557,7 +1587,7 @@ html.homepage-animation .main-nav {
   border-radius: 8px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
   padding: 10px 0;
-  z-index: 100;
+  z-index: 1100;
   opacity: 0;
   visibility: hidden;
   transform: translateY(10px);
