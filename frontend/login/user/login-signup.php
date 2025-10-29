@@ -216,7 +216,7 @@ if (isset($_POST["reset-submit"])) {
                         $mail->Subject = "Password Reset Request";
                         $mail->Body = <<<END
                         <p>Hello,</p>
-                        <p>Click <a href="https://neocafe.cafe/frontend/login/user/forgot-pw-reset.php?token=$token">here</a>
+                        <p>Click <a href="https://neocafe.cafe/frontend/login/user/forgot-pw-reset.php?token=$token">here</a></a>
                         to reset your password.</p>
                         <p>This link will expire in 30 minutes.</p>
                         END;
@@ -446,7 +446,7 @@ if (isset($_POST["signin-submit"])) {
         <!-- Left Side - Background Image with Welcome Content -->
         <div class="left-side">
             <div class="welcome-content">
-                <img src="https://res.cloudinary.com/dvdccumbs/image/upload/v1761594974/login-background_ppmqhl.png" alt="NeoCafe Logo" class="logo" onerror="this.style.display='none'">
+                <img src="https://res.cloudinary.com/dvdccumbs/image/upload/v1761594932/user-logo_zer35f.png" alt="NeoCafe Logo" class="logo" onerror="this.style.display='none'">
                 <div class="welcome-text">
                     Welcome to Neo Cafe<br>
                 </div>
