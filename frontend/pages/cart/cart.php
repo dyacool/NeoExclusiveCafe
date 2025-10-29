@@ -5,7 +5,12 @@ session_set_cookie_params([
     'samesite' => 'Strict',
     'domain' => 'neocafe.cafe'
 ]);
-session_start();
+
+// Don't start session if it's already active
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 
 require_once '../../../backend/pages/admin-includes/database.php';
 

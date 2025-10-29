@@ -25,7 +25,12 @@ session_set_cookie_params([
     'samesite' => 'Strict',
     'domain' => $session_domain
 ]);
-session_start();
+
+// Don't start session if it's already active
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 
 // Require login for checkout - check for user role
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'user') {
