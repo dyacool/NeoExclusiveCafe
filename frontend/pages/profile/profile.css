@@ -300,33 +300,33 @@ body {
 /* Status Colors */
 .status-completed,
 .status-delivered {
-  background: linear-gradient(135deg, #d1e7dd 0%, #c3e6cb 100%);
+  background: #c8e6d8;
   color: #0f5132;
-  border-color: #a3cfbb;
+  border-color: transparent;
 }
 
 .status-processing {
-  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
-  color: #856404;
-  border-color: #ffd93d;
+  background: #c8e6d8;
+  color: #0a5c36;
+  border-color: transparent;
 }
 
 .status-pending {
-  background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
-  color: #842029;
-  border-color: #f1aeb5;
+  background: #c8e6d8;
+  color: #155724;
+  border-color: transparent;
 }
 
 .status-cancelled {
-  background: linear-gradient(135deg, #e2e3e5 0%, #d6d8db 100%);
-  color: #383d41;
-  border-color: #ced4da;
+  background: #e8e8e8;
+  color: #5a5a5a;
+  border-color: transparent;
 }
 
 .status-approved {
-  background: linear-gradient(135deg, #d1e7dd 0%, #a3cfbb 100%);
-  color: #155724;
-  border-color: #c3e6cb;
+  background: #c8e6d8;
+  color: #0f5132;
+  border-color: transparent;
 }
 
 /* Unified Status Badge Styling for all badges */
@@ -413,6 +413,7 @@ body {
   border: 2px solid;
   margin: 2px;
   cursor: pointer;
+  box-sizing: border-box;
 }
 
 .btn-view {
@@ -428,99 +429,70 @@ body {
   box-shadow: 0 4px 12px rgba(15, 81, 50, 0.3);
 }
 
-.btn-upload,
-.btn-refund {
-  background-color: #247d44;
+.btn-refund,
+.btn-upload {
+  background: linear-gradient(135deg, #0f5132 0%, #155724 100%);
   color: var(--white);
-  border-color: #59ac77;
+  border-color: #0f5132;
 }
-.btn-upload:hover,
-.btn-refund:hover {
-  background: #87c29d;
-  border-color: #59ac77;
+
+.btn-refund:hover,
+.btn-upload:hover {
+  background: linear-gradient(135deg, #0a3622 0%, #0f5132 100%);
+  border-color: #0a3622;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(89, 172, 119, 0.3);
+  box-shadow: 0 4px 12px rgba(15, 81, 50, 0.3);
 }
 
 /* Status Badges - Clean Original Style */
-.orders-table .status-completed {
-  background: linear-gradient(
-    135deg,
-    rgba(40, 167, 69, 0.1) 0%,
-    rgba(40, 167, 69, 0.05) 100%
-  );
-  color: var(--success);
+.orders-table .status-completed,
+.orders-table .status-delivered,
+.orders-table .status-approved {
+  background: #c8e6d8;
+  color: #0f5132;
   padding: 6px 12px;
-  border-radius: 6px;
+  border-radius: 20px;
   font-size: 0.85rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border: 1px solid rgba(40, 167, 69, 0.2);
+  border: none;
 }
 
 .orders-table .status-processing {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 193, 7, 0.1) 0%,
-    rgba(255, 193, 7, 0.05) 100%
-  );
-  color: var(--warning);
+  background: #c8e6d8;
+  color: #0a5c36;
   padding: 6px 12px;
-  border-radius: 6px;
+  border-radius: 20px;
   font-size: 0.85rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border: 1px solid rgba(255, 193, 7, 0.2);
+  border: none;
 }
 
 .orders-table .status-pending {
-  background: linear-gradient(
-    135deg,
-    rgba(23, 162, 184, 0.1) 0%,
-    rgba(23, 162, 184, 0.05) 100%
-  );
-  color: #17a2b8;
+  background: #c8e6d8;
+  color: #155724;
   padding: 6px 12px;
-  border-radius: 6px;
+  border-radius: 20px;
   font-size: 0.85rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border: 1px solid rgba(23, 162, 184, 0.2);
+  border: none;
 }
 
 .orders-table .status-cancelled {
-  background: linear-gradient(
-    135deg,
-    rgba(220, 53, 69, 0.1) 0%,
-    rgba(220, 53, 69, 0.05) 100%
-  );
-  color: var(--error);
+  background: #e8e8e8;
+  color: #5a5a5a;
   padding: 6px 12px;
-  border-radius: 6px;
+  border-radius: 20px;
   font-size: 0.85rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border: 1px solid rgba(220, 53, 69, 0.2);
-}
-
-.orders-table .status-approved {
-  background: linear-gradient(
-    135deg,
-    rgba(40, 167, 69, 0.1) 0%,
-    rgba(40, 167, 69, 0.05) 100%
-  );
-  color: var(--success);
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border: 1px solid rgba(40, 167, 69, 0.2);
+  border: none;
 }
 
 /* Legacy Action Buttons - REPLACED WITH NEW STYLING ABOVE */
@@ -1690,50 +1662,50 @@ body {
 
 /* Order status indicators */
 .status-completed {
-  color: #2e7d32;
-  background-color: rgba(46, 125, 50, 0.1);
+  color: #0f5132;
+  background-color: #c8e6d8;
   padding: 0.3rem 0.75rem;
-  border-radius: 4px;
+  border-radius: 20px;
   font-weight: 500;
 }
 
 .status-processing {
-  color: #1565c0;
-  background-color: rgba(21, 101, 192, 0.1);
+  color: #0a5c36;
+  background-color: #c8e6d8;
   padding: 0.3rem 0.75rem;
-  border-radius: 4px;
+  border-radius: 20px;
   font-weight: 500;
 }
 
 .status-pending {
-  color: #ed6c02;
-  background-color: rgba(237, 108, 2, 0.1);
+  color: #155724;
+  background-color: #c8e6d8;
   padding: 0.3rem 0.75rem;
-  border-radius: 4px;
+  border-radius: 20px;
   font-weight: 500;
 }
 
 .status-cancelled {
-  color: #d32f2f;
-  background-color: rgba(211, 47, 47, 0.1);
+  color: #5a5a5a;
+  background-color: #e8e8e8;
   padding: 0.3rem 0.75rem;
-  border-radius: 4px;
+  border-radius: 20px;
   font-weight: 500;
 }
 
 .status-approved {
-  color: #1976d2;
-  background-color: rgba(25, 118, 210, 0.1);
+  color: #0f5132;
+  background-color: #c8e6d8;
   padding: 0.3rem 0.75rem;
-  border-radius: 4px;
+  border-radius: 20px;
   font-weight: 500;
 }
 
 .status-payment_received {
-  color: #388e3c;
-  background-color: rgba(56, 142, 60, 0.1);
+  color: #0f5132;
+  background-color: #c8e6d8;
   padding: 0.3rem 0.75rem;
-  border-radius: 4px;
+  border-radius: 20px;
   font-weight: 500;
 }
 
@@ -1938,4 +1910,1601 @@ button.pagination-btn {
 .bulk-orders-table.loading {
   opacity: 0.6;
   pointer-events: none;
+}
+
+/* ===================================
+   FULL RESPONSIVE - 425PX AND BELOW
+   =================================== */
+
+@media (max-width: 425px) {
+  /* Container adjustments */
+  .neo-profile-container {
+    padding: 16px 12px;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  /* Header card - compact and centered */
+  .neo-profile-header-card {
+    padding: 20px 16px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .neo-profile-header-content {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  /* Avatar - smaller size */
+  .neo-profile-avatar {
+    width: 80px;
+    height: 80px;
+    border-width: 3px;
+  }
+
+  .neo-avatar-status {
+    width: 16px;
+    height: 16px;
+    bottom: 4px;
+    right: 4px;
+    border-width: 2px;
+  }
+
+  /* Profile info - centered and compact */
+  .neo-profile-info {
+    text-align: center;
+  }
+
+  .neo-profile-info h1 {
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+  }
+
+  .neo-profile-meta {
+    gap: 6px;
+  }
+
+  .neo-profile-meta p {
+    font-size: 0.875rem;
+    gap: 8px;
+  }
+
+  .neo-profile-meta svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Profile actions - side by side buttons */
+  .neo-profile-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .neo-profile-link {
+    flex: 0 1 auto;
+    justify-content: center;
+    padding: 10px 12px;
+    font-size: 0.9rem;
+  }
+
+  .neo-profile-link:hover {
+    transform: translateX(0) scale(1.02);
+  }
+
+  .neo-profile-link svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Stats - single column, compact cards */
+  .neo-profile-stats {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .neo-stat-card {
+    padding: 16px;
+    gap: 12px;
+    border-radius: 12px;
+  }
+
+  .neo-stat-content {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0;
+  }
+
+  .neo-stat-number {
+    font-size: 2rem;
+  }
+
+  .neo-stat-label {
+    font-size: 0.9rem;
+  }
+
+  /* Orders section - compact padding with overflow handling */
+  .neo-profile-orders {
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  .neo-profile-orders h2 {
+    font-size: 1.4rem;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+  }
+
+  /* Ensure table stays within bounds */
+  .orders-table {
+    width: 100%;
+    table-layout: fixed;
+    overflow: hidden;
+  }
+
+  /* Order cards - single column layout */
+  .orders-table tbody tr {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(6, auto);
+    padding: 16px;
+    gap: 12px;
+    margin-bottom: 12px;
+    border-radius: 10px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* All table cells - full width, stacked */
+  .orders-table td:nth-child(1),
+  .orders-table td:nth-child(2),
+  .orders-table td:nth-child(3),
+  .orders-table td:nth-child(4),
+  .orders-table td:nth-child(5),
+  .orders-table td:nth-child(6) {
+    grid-column: 1;
+  }
+
+  .orders-table td:nth-child(1) {
+    grid-row: 1;
+  }
+
+  .orders-table td:nth-child(2) {
+    grid-row: 2;
+  }
+
+  .orders-table td:nth-child(5) {
+    grid-row: 3;
+  }
+
+  .orders-table td:nth-child(3) {
+    grid-row: 4;
+  }
+
+  .orders-table td:nth-child(4) {
+    grid-row: 5;
+  }
+
+  .orders-table td:nth-child(6) {
+    grid-row: 6;
+  }
+
+  /* Table cell labels - smaller font */
+  .orders-table td::before {
+    font-size: 0.75rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .orders-table td {
+    font-size: 0.875rem;
+    width: 100%;
+    box-sizing: border-box;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* Buttons - side by side, responsive */
+  .orders-table td:nth-child(6) {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 30px;
+    align-items: center;
+    justify-content: flex-start;
+    margin-top: 4px;
+    width: 100%;
+  }
+
+  .btn-view,
+  .btn-refund,
+  .btn-upload,
+  .btn-proof {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    flex: 0 1 calc(50% - 15px);
+    min-width: 0;
+    max-width: calc(50% - 15px);
+    margin: 0;
+    padding: 8px 6px;
+    font-size: 0.7rem;
+    text-align: center;
+    box-sizing: border-box;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-radius: 6px;
+  }
+
+  .btn-view:hover,
+  .btn-refund:hover,
+  .btn-upload:hover,
+  .btn-proof:hover {
+    transform: translateY(-1px);
+  }
+
+  /* Make the actions column always full width */
+  .orders-table td:nth-child(6)::before {
+    display: block;
+    width: 100%;
+  }
+
+  /* Status badges - smaller */
+  .status-badge,
+  .refund-status-badge {
+    padding: 4px 10px !important;
+    font-size: 0.75rem !important;
+    border-radius: 16px !important;
+  }
+
+  /* Refund status container */
+  .refund-status-container {
+    gap: 4px;
+    width: 100%;
+  }
+
+  .refund-date {
+    font-size: 0.7rem;
+  }
+
+  /* Modal - full width on small screens */
+  .neo-modal-content {
+    width: 95%;
+    max-width: 100%;
+    padding: 20px 16px;
+    margin: 5% auto;
+    border-radius: 10px;
+  }
+
+  .neo-modal-header {
+    padding: 16px 20px;
+    border-radius: 10px 10px 0 0;
+  }
+
+  .neo-modal-header h3 {
+    font-size: 1.2rem;
+  }
+
+  .neo-modal-header svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .neo-modal-body {
+    padding: 20px;
+  }
+
+  .neo-modal-body p {
+    font-size: 1rem;
+  }
+
+  .neo-modal-subtitle {
+    font-size: 0.85rem !important;
+  }
+
+  .neo-modal-actions {
+    padding: 0 20px 20px 20px;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .neo-modal-btn {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 0.9rem;
+  }
+
+  .neo-modal-close {
+    padding: 12px;
+    font-size: 1.5rem;
+  }
+
+  /* Order details modal */
+  #orderDetailsContent h2 {
+    font-size: 1.4rem;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+  }
+
+  #orderDetailsContent h3 {
+    font-size: 1.15rem;
+    margin: 12px 0 8px;
+  }
+
+  .neo-order-info {
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+
+  .neo-order-info p {
+    font-size: 0.9rem;
+    margin: 0.5rem 0;
+  }
+
+  .neo-order-info p strong {
+    display: block;
+    width: 100%;
+    margin-bottom: 0.25rem;
+  }
+
+  /* Modal table - responsive */
+  .neo-modal-table {
+    display: block;
+    overflow-x: auto;
+    font-size: 0.85rem;
+  }
+
+  .neo-modal-table th,
+  .neo-modal-table td {
+    padding: 8px 6px;
+    font-size: 0.8rem;
+  }
+
+  .neo-modal-table th {
+    font-size: 0.75rem;
+  }
+
+  /* Pagination - compact */
+  .pagination-container {
+    padding: 12px 0;
+    gap: 10px;
+  }
+
+  .pagination {
+    gap: 4px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .pagination-btn {
+    padding: 6px 8px;
+    font-size: 0.75rem;
+    min-width: 32px;
+    height: 32px;
+  }
+
+  .pagination-info {
+    font-size: 0.75rem;
+    padding: 6px 10px;
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Loading states */
+  .neo-spinner {
+    width: 40px;
+    height: 40px;
+    border-width: 3px;
+  }
+
+  .neo-modal-loading {
+    padding: 2rem 1rem;
+  }
+
+  /* Empty states */
+  .orders-table td[colspan="4"] {
+    padding: 2rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  /* Ensure proper box-sizing */
+  * {
+    box-sizing: border-box;
+  }
+
+  /* Remove hover transforms on touch devices */
+  .orders-table tbody tr:hover {
+    transform: none;
+  }
+
+  /* Confirmation modal adjustments */
+  .neo-confirmation-modal {
+    max-width: 95%;
+  }
+}
+
+/* ===================================
+   EXTRA SMALL SCREENS - 320PX AND BELOW
+   =================================== */
+
+@media (max-width: 320px) {
+  /* Container - compact but readable */
+  .neo-profile-container {
+    padding: 12px 10px;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  /* Header card */
+  .neo-profile-header-card {
+    padding: 16px 12px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .neo-profile-header-content {
+    gap: 1rem;
+  }
+
+  /* Avatar - reasonable size */
+  .neo-profile-avatar {
+    width: 70px;
+    height: 70px;
+    border-width: 3px;
+  }
+
+  .neo-avatar-status {
+    width: 14px;
+    height: 14px;
+    bottom: 2px;
+    right: 2px;
+    border-width: 2px;
+  }
+
+  /* Profile info */
+  .neo-profile-info h1 {
+    font-size: 1.35rem;
+    margin-bottom: 6px;
+  }
+
+  .neo-profile-meta {
+    gap: 5px;
+  }
+
+  .neo-profile-meta p {
+    font-size: 0.8rem;
+    gap: 6px;
+  }
+
+  .neo-profile-meta svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Profile actions */
+  .neo-profile-actions {
+    gap: 6px;
+    margin-top: 10px;
+    justify-content: center;
+  }
+
+  .neo-profile-link {
+    flex: 0 1 auto;
+    padding: 8px 10px;
+    font-size: 0.8rem;
+  }
+
+  .neo-profile-link svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Stats */
+  .neo-profile-stats {
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .neo-stat-card {
+    padding: 14px;
+    gap: 10px;
+    border-radius: 10px;
+  }
+
+  .neo-stat-number {
+    font-size: 1.8rem;
+  }
+
+  .neo-stat-label {
+    font-size: 0.85rem;
+  }
+
+  /* Orders section - compact but readable */
+  .neo-profile-orders {
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  .neo-profile-orders h2 {
+    font-size: 1.3rem;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+  }
+
+  /* Ensure table stays within bounds */
+  .orders-table {
+    width: 100%;
+    table-layout: fixed;
+    overflow: hidden;
+  }
+
+  /* Order table rows - compact */
+  .orders-table tbody tr {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(6, auto);
+    padding: 12px;
+    gap: 8px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    border-left-width: 3px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* All table cells full width */
+  .orders-table td:nth-child(1),
+  .orders-table td:nth-child(2),
+  .orders-table td:nth-child(3),
+  .orders-table td:nth-child(4),
+  .orders-table td:nth-child(5),
+  .orders-table td:nth-child(6) {
+    grid-column: 1;
+  }
+
+  .orders-table td:nth-child(1) {
+    grid-row: 1;
+  }
+
+  .orders-table td:nth-child(2) {
+    grid-row: 2;
+  }
+
+  .orders-table td:nth-child(5) {
+    grid-row: 3;
+  }
+
+  .orders-table td:nth-child(3) {
+    grid-row: 4;
+  }
+
+  .orders-table td:nth-child(4) {
+    grid-row: 5;
+  }
+
+  .orders-table td:nth-child(6) {
+    grid-row: 6;
+  }
+
+  /* Table cell labels and content - readable size */
+  .orders-table td::before {
+    font-size: 0.7rem;
+    margin-bottom: 0.2rem;
+    font-weight: 600;
+  }
+
+  .orders-table td {
+    font-size: 0.8rem;
+    line-height: 1.4;
+    width: 100%;
+    box-sizing: border-box;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* Buttons container - side by side, responsive */
+  .orders-table td:nth-child(6) {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 35px;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  /* Buttons - side by side, responsive sizing */
+  .btn-view,
+  .btn-refund,
+  .btn-upload,
+  .btn-proof {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    flex: 0 1 calc(50% - 17.5px);
+    min-width: 0;
+    max-width: calc(50% - 17.5px);
+    margin: 0;
+    padding: 7px 5px;
+    font-size: 0.65rem;
+    text-align: center;
+    border-radius: 5px;
+    font-weight: 500;
+    box-sizing: border-box;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .btn-view:hover,
+  .btn-refund:hover,
+  .btn-upload:hover,
+  .btn-proof:hover {
+    transform: translateY(-1px);
+  }
+
+  /* Status badges - readable size */
+  .status-badge,
+  .refund-status-badge {
+    padding: 3px 8px !important;
+    font-size: 0.7rem !important;
+    border-radius: 12px !important;
+    border-width: 2px !important;
+  }
+
+  /* Refund status */
+  .refund-status-container {
+    gap: 3px;
+  }
+
+  .refund-date {
+    font-size: 0.65rem;
+  }
+
+  .refund-available,
+  .refund-na {
+    font-size: 0.8rem;
+  }
+
+  /* Modal */
+  .neo-modal-content {
+    width: 95%;
+    padding: 16px 12px;
+    margin: 5% auto;
+    border-radius: 10px;
+  }
+
+  .neo-modal-header {
+    padding: 12px 16px;
+  }
+
+  .neo-modal-header h3 {
+    font-size: 1.15rem;
+  }
+
+  .neo-modal-header svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .neo-modal-body {
+    padding: 16px;
+  }
+
+  .neo-modal-body p {
+    font-size: 0.9rem;
+  }
+
+  .neo-modal-subtitle {
+    font-size: 0.8rem !important;
+  }
+
+  .neo-modal-actions {
+    padding: 0 16px 16px 16px;
+    gap: 8px;
+  }
+
+  .neo-modal-btn {
+    padding: 10px 16px;
+    font-size: 0.85rem;
+  }
+
+  .neo-modal-close {
+    padding: 10px;
+    font-size: 1.4rem;
+  }
+
+  /* Order details modal */
+  #orderDetailsContent h2 {
+    font-size: 1.3rem;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+  }
+
+  #orderDetailsContent h3 {
+    font-size: 1.1rem;
+    margin: 10px 0 6px;
+  }
+
+  .neo-order-info {
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+
+  .neo-order-info p {
+    font-size: 0.85rem;
+    margin: 0.4rem 0;
+  }
+
+  /* Modal table */
+  .neo-modal-table {
+    font-size: 0.75rem;
+  }
+
+  .neo-modal-table th,
+  .neo-modal-table td {
+    padding: 6px 4px;
+    font-size: 0.75rem;
+  }
+
+  .neo-modal-table th {
+    font-size: 0.7rem;
+  }
+
+  /* Pagination */
+  .pagination-container {
+    padding: 10px 0;
+    gap: 6px;
+  }
+
+  .pagination {
+    gap: 3px;
+  }
+
+  .pagination-btn {
+    padding: 5px 7px;
+    font-size: 0.7rem;
+    min-width: 28px;
+    height: 28px;
+    border-width: 1px;
+  }
+
+  .pagination-info {
+    font-size: 0.7rem;
+    padding: 5px 8px;
+  }
+
+  /* Loading spinner */
+  .neo-spinner {
+    width: 35px;
+    height: 35px;
+    border-width: 3px;
+  }
+
+  .neo-modal-loading {
+    padding: 1.75rem 1rem;
+  }
+
+  /* Empty states */
+  .orders-table td[colspan="4"] {
+    padding: 1.75rem 1rem;
+    font-size: 0.85rem;
+  }
+
+.regular-orders-table.loading,
+.bulk-orders-table.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* ===================================
+   FULL RESPONSIVE - 425PX AND BELOW
+   =================================== */
+
+@media (max-width: 425px) {
+  /* Container adjustments */
+  .neo-profile-container {
+    padding: 16px 12px;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  /* Header card - compact and centered */
+  .neo-profile-header-card {
+    padding: 20px 16px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .neo-profile-header-content {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  /* Avatar - smaller size */
+  .neo-profile-avatar {
+    width: 80px;
+    height: 80px;
+    border-width: 3px;
+  }
+
+  .neo-avatar-status {
+    width: 16px;
+    height: 16px;
+    bottom: 4px;
+    right: 4px;
+    border-width: 2px;
+  }
+
+  /* Profile info - centered and compact */
+  .neo-profile-info {
+    text-align: center;
+  }
+
+  .neo-profile-info h1 {
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+  }
+
+  .neo-profile-meta {
+    gap: 6px;
+  }
+
+  .neo-profile-meta p {
+    font-size: 0.875rem;
+    gap: 8px;
+  }
+
+  .neo-profile-meta svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Profile actions - side by side buttons */
+  .neo-profile-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .neo-profile-link {
+    flex: 0 1 auto;
+    justify-content: center;
+    padding: 10px 12px;
+    font-size: 0.9rem;
+  }
+
+  .neo-profile-link:hover {
+    transform: translateX(0) scale(1.02);
+  }
+
+  .neo-profile-link svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Stats - single column, compact cards */
+  .neo-profile-stats {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .neo-stat-card {
+    padding: 16px;
+    gap: 12px;
+    border-radius: 12px;
+  }
+
+  .neo-stat-content {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0;
+  }
+
+  .neo-stat-number {
+    font-size: 2rem;
+  }
+
+  .neo-stat-label {
+    font-size: 0.9rem;
+  }
+
+  /* Orders section - compact padding with overflow handling */
+  .neo-profile-orders {
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  .neo-profile-orders h2 {
+    font-size: 1.4rem;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+  }
+
+  /* Ensure table stays within bounds */
+  .orders-table {
+    width: 100%;
+    table-layout: fixed;
+    overflow: hidden;
+  }
+
+  /* Order cards - single column layout */
+  .orders-table tbody tr {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(6, auto);
+    padding: 16px;
+    gap: 12px;
+    margin-bottom: 12px;
+    border-radius: 10px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* All table cells - full width, stacked */
+  .orders-table td:nth-child(1),
+  .orders-table td:nth-child(2),
+  .orders-table td:nth-child(3),
+  .orders-table td:nth-child(4),
+  .orders-table td:nth-child(5),
+  .orders-table td:nth-child(6) {
+    grid-column: 1;
+  }
+
+  .orders-table td:nth-child(1) {
+    grid-row: 1;
+  }
+
+  .orders-table td:nth-child(2) {
+    grid-row: 2;
+  }
+
+  .orders-table td:nth-child(5) {
+    grid-row: 3;
+  }
+
+  .orders-table td:nth-child(3) {
+    grid-row: 4;
+  }
+
+  .orders-table td:nth-child(4) {
+    grid-row: 5;
+  }
+
+  .orders-table td:nth-child(6) {
+    grid-row: 6;
+  }
+
+  /* Table cell labels - smaller font */
+  .orders-table td::before {
+    font-size: 0.75rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .orders-table td {
+    font-size: 0.875rem;
+    width: 100%;
+    box-sizing: border-box;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* Buttons - side by side, responsive */
+  .orders-table td:nth-child(6) {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 30px;
+    align-items: center;
+    justify-content: flex-start;
+    margin-top: 4px;
+    width: 100%;
+  }
+
+  .btn-view,
+  .btn-refund,
+  .btn-upload,
+  .btn-proof {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    flex: 0 1 calc(50% - 15px);
+    min-width: 0;
+    max-width: calc(50% - 15px);
+    margin: 0;
+    padding: 8px 6px;
+    font-size: 0.7rem;
+    text-align: center;
+    box-sizing: border-box;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-radius: 6px;
+  }
+
+  .btn-view:hover,
+  .btn-refund:hover,
+  .btn-upload:hover,
+  .btn-proof:hover {
+    transform: translateY(-1px);
+  }
+
+  /* Make the actions column always full width */
+  .orders-table td:nth-child(6)::before {
+    display: block;
+    width: 100%;
+  }
+
+  /* Status badges - smaller */
+  .status-badge,
+  .refund-status-badge {
+    padding: 4px 10px !important;
+    font-size: 0.75rem !important;
+    border-radius: 16px !important;
+  }
+
+  /* Refund status container */
+  .refund-status-container {
+    gap: 4px;
+    width: 100%;
+  }
+
+  .refund-date {
+    font-size: 0.7rem;
+  }
+
+  /* Modal - full width on small screens */
+  .neo-modal-content {
+    width: 95%;
+    max-width: 100%;
+    padding: 20px 16px;
+    margin: 5% auto;
+    border-radius: 10px;
+  }
+
+  .neo-modal-header {
+    padding: 16px 20px;
+    border-radius: 10px 10px 0 0;
+  }
+
+  .neo-modal-header h3 {
+    font-size: 1.2rem;
+  }
+
+  .neo-modal-header svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .neo-modal-body {
+    padding: 20px;
+  }
+
+  .neo-modal-body p {
+    font-size: 1rem;
+  }
+
+  .neo-modal-subtitle {
+    font-size: 0.85rem !important;
+  }
+
+  .neo-modal-actions {
+    padding: 0 20px 20px 20px;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .neo-modal-btn {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 0.9rem;
+  }
+
+  .neo-modal-close {
+    padding: 12px;
+    font-size: 1.5rem;
+  }
+
+  /* Order details modal */
+  #orderDetailsContent h2 {
+    font-size: 1.4rem;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+  }
+
+  #orderDetailsContent h3 {
+    font-size: 1.15rem;
+    margin: 12px 0 8px;
+  }
+
+  .neo-order-info {
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+
+  .neo-order-info p {
+    font-size: 0.9rem;
+    margin: 0.5rem 0;
+  }
+
+  .neo-order-info p strong {
+    display: block;
+    width: 100%;
+    margin-bottom: 0.25rem;
+  }
+
+  /* Modal table - responsive */
+  .neo-modal-table {
+    display: block;
+    overflow-x: auto;
+    font-size: 0.85rem;
+  }
+
+  .neo-modal-table th,
+  .neo-modal-table td {
+    padding: 8px 6px;
+    font-size: 0.8rem;
+  }
+
+  .neo-modal-table th {
+    font-size: 0.75rem;
+  }
+
+  /* Pagination - compact */
+  .pagination-container {
+    padding: 12px 0;
+    gap: 10px;
+  }
+
+  .pagination {
+    gap: 4px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .pagination-btn {
+    padding: 6px 8px;
+    font-size: 0.75rem;
+    min-width: 32px;
+    height: 32px;
+  }
+
+  .pagination-info {
+    font-size: 0.75rem;
+    padding: 6px 10px;
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Loading states */
+  .neo-spinner {
+    width: 40px;
+    height: 40px;
+    border-width: 3px;
+  }
+
+  .neo-modal-loading {
+    padding: 2rem 1rem;
+  }
+
+  /* Empty states */
+  .orders-table td[colspan="4"] {
+    padding: 2rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  /* Ensure proper box-sizing */
+  * {
+    box-sizing: border-box;
+  }
+
+  /* Remove hover transforms on touch devices */
+  .orders-table tbody tr:hover {
+    transform: none;
+  }
+
+  /* Confirmation modal adjustments */
+  .neo-confirmation-modal {
+    max-width: 95%;
+  }
+}
+
+/* ===================================
+   EXTRA SMALL SCREENS - 320PX AND BELOW
+   =================================== */
+
+@media (max-width: 320px) {
+  /* Container - compact but readable */
+  .neo-profile-container {
+    padding: 12px 10px;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  /* Header card */
+  .neo-profile-header-card {
+    padding: 16px 12px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .neo-profile-header-content {
+    gap: 1rem;
+  }
+
+  /* Avatar - reasonable size */
+  .neo-profile-avatar {
+    width: 70px;
+    height: 70px;
+    border-width: 3px;
+  }
+
+  .neo-avatar-status {
+    width: 14px;
+    height: 14px;
+    bottom: 2px;
+    right: 2px;
+    border-width: 2px;
+  }
+
+  /* Profile info */
+  .neo-profile-info h1 {
+    font-size: 1.35rem;
+    margin-bottom: 6px;
+  }
+
+  .neo-profile-meta {
+    gap: 5px;
+  }
+
+  .neo-profile-meta p {
+    font-size: 0.8rem;
+    gap: 6px;
+  }
+
+  .neo-profile-meta svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Profile actions */
+  .neo-profile-actions {
+    gap: 6px;
+    margin-top: 10px;
+    justify-content: center;
+  }
+
+  .neo-profile-link {
+    flex: 0 1 auto;
+    padding: 8px 10px;
+    font-size: 0.8rem;
+  }
+
+  .neo-profile-link svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Stats */
+  .neo-profile-stats {
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .neo-stat-card {
+    padding: 14px;
+    gap: 10px;
+    border-radius: 10px;
+  }
+
+  .neo-stat-number {
+    font-size: 1.8rem;
+  }
+
+  .neo-stat-label {
+    font-size: 0.85rem;
+  }
+
+  /* Orders section - compact but readable */
+  .neo-profile-orders {
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  .neo-profile-orders h2 {
+    font-size: 1.3rem;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+  }
+
+  /* Ensure table stays within bounds */
+  .orders-table {
+    width: 100%;
+    table-layout: fixed;
+    overflow: hidden;
+  }
+
+  /* Order table rows - compact */
+  .orders-table tbody tr {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(6, auto);
+    padding: 12px;
+    gap: 8px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    border-left-width: 3px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* All table cells full width */
+  .orders-table td:nth-child(1),
+  .orders-table td:nth-child(2),
+  .orders-table td:nth-child(3),
+  .orders-table td:nth-child(4),
+  .orders-table td:nth-child(5),
+  .orders-table td:nth-child(6) {
+    grid-column: 1;
+  }
+
+  .orders-table td:nth-child(1) {
+    grid-row: 1;
+  }
+
+  .orders-table td:nth-child(2) {
+    grid-row: 2;
+  }
+
+  .orders-table td:nth-child(5) {
+    grid-row: 3;
+  }
+
+  .orders-table td:nth-child(3) {
+    grid-row: 4;
+  }
+
+  .orders-table td:nth-child(4) {
+    grid-row: 5;
+  }
+
+  .orders-table td:nth-child(6) {
+    grid-row: 6;
+  }
+
+  /* Table cell labels and content - readable size */
+  .orders-table td::before {
+    font-size: 0.7rem;
+    margin-bottom: 0.2rem;
+    font-weight: 600;
+  }
+
+  .orders-table td {
+    font-size: 0.8rem;
+    line-height: 1.4;
+    width: 100%;
+    box-sizing: border-box;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* Buttons container - side by side, responsive */
+  .orders-table td:nth-child(6) {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 35px;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  /* Buttons - side by side, responsive sizing */
+  .btn-view,
+  .btn-refund,
+  .btn-upload,
+  .btn-proof {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    flex: 0 1 calc(50% - 17.5px);
+    min-width: 0;
+    max-width: calc(50% - 17.5px);
+    margin: 0;
+    padding: 7px 5px;
+    font-size: 0.65rem;
+    text-align: center;
+    border-radius: 5px;
+    font-weight: 500;
+    box-sizing: border-box;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .btn-view:hover,
+  .btn-refund:hover,
+  .btn-upload:hover,
+  .btn-proof:hover {
+    transform: translateY(-1px);
+  }
+
+  /* Status badges - readable size */
+  .status-badge,
+  .refund-status-badge {
+    padding: 3px 8px !important;
+    font-size: 0.7rem !important;
+    border-radius: 12px !important;
+    border-width: 2px !important;
+  }
+
+  /* Refund status */
+  .refund-status-container {
+    gap: 3px;
+  }
+
+  .refund-date {
+    font-size: 0.65rem;
+  }
+
+  .refund-available,
+  .refund-na {
+    font-size: 0.8rem;
+  }
+
+  /* Modal */
+  .neo-modal-content {
+    width: 95%;
+    padding: 16px 12px;
+    margin: 5% auto;
+    border-radius: 10px;
+  }
+
+  .neo-modal-header {
+    padding: 12px 16px;
+  }
+
+  .neo-modal-header h3 {
+    font-size: 1.15rem;
+  }
+
+  .neo-modal-header svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .neo-modal-body {
+    padding: 16px;
+  }
+
+  .neo-modal-body p {
+    font-size: 0.9rem;
+  }
+
+  .neo-modal-subtitle {
+    font-size: 0.8rem !important;
+  }
+
+  .neo-modal-actions {
+    padding: 0 16px 16px 16px;
+    gap: 8px;
+  }
+
+  .neo-modal-btn {
+    padding: 10px 16px;
+    font-size: 0.85rem;
+  }
+
+  .neo-modal-close {
+    padding: 10px;
+    font-size: 1.4rem;
+  }
+
+  /* Order details modal */
+  #orderDetailsContent h2 {
+    font-size: 1.3rem;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+  }
+
+  #orderDetailsContent h3 {
+    font-size: 1.1rem;
+    margin: 10px 0 6px;
+  }
+
+  .neo-order-info {
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+
+  .neo-order-info p {
+    font-size: 0.85rem;
+    margin: 0.4rem 0;
+  }
+
+  /* Modal table */
+  .neo-modal-table {
+    font-size: 0.75rem;
+  }
+
+  .neo-modal-table th,
+  .neo-modal-table td {
+    padding: 6px 4px;
+    font-size: 0.75rem;
+  }
+
+  .neo-modal-table th {
+    font-size: 0.7rem;
+  }
+
+  /* Pagination */
+  .pagination-container {
+    padding: 10px 0;
+    gap: 6px;
+  }
+
+  .pagination {
+    gap: 3px;
+  }
+
+  .pagination-btn {
+    padding: 5px 7px;
+    font-size: 0.7rem;
+    min-width: 28px;
+    height: 28px;
+    border-width: 1px;
+  }
+
+  .pagination-info {
+    font-size: 0.7rem;
+    padding: 5px 8px;
+  }
+
+  /* Loading spinner */
+  .neo-spinner {
+    width: 35px;
+    height: 35px;
+    border-width: 3px;
+  }
+
+  .neo-modal-loading {
+    padding: 1.75rem 1rem;
+  }
+
+  /* Empty states */
+  .orders-table td[colspan="4"] {
+    padding: 1.75rem 1rem;
+    font-size: 0.85rem;
+  }
 }
