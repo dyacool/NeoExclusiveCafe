@@ -279,22 +279,39 @@ class CloudinaryImageFetcher {
                 ];
             }
             
-            $imageBuilder = $this->cloudinary->image($publicId);
+            // Build transformation string manually for compatibility
+            $transformParams = [];
             
             if (isset($transformations['width'])) {
-                $imageBuilder->resize(scale()->width($transformations['width']));
+                $transformParams[] = 'w_' . $transformations['width'];
             }
             if (isset($transformations['height'])) {
-                $imageBuilder->resize(scale()->height($transformations['height']));
+                $transformParams[] = 'h_' . $transformations['height'];
+            }
+            if (isset($transformations['crop'])) {
+                $transformParams[] = 'c_' . $transformations['crop'];
             }
             if (isset($transformations['quality'])) {
-                $imageBuilder->delivery(quality($transformations['quality']));
+                $transformParams[] = 'q_' . $transformations['quality'];
             }
             if (isset($transformations['fetch_format'])) {
-                $imageBuilder->delivery(format($transformations['fetch_format']));
+                $transformParams[] = 'f_' . $transformations['fetch_format'];
             }
             
-            $url = $imageBuilder->toUrl();
+            // Build the URL manually
+            $cloudName = getenv('CLOUDINARY_CLOUD_NAME') ?: $_ENV['CLOUDINARY_CLOUD_NAME'] ?? 'dvdccumbs';
+            $transformString = !empty($transformParams) ? implode(',', $transformParams) : '';
+            
+            if (!empty($transformString)) {
+                $url = "https://res.cloudinary.com/{$cloudName}/image/upload/{$transformString}/{$publicId}";
+            } else {
+                $url = "https://res.cloudinary.com/{$cloudName}/image/upload/{$publicId}";
+            }
+            
+            // Add file extension if not present
+            if (!preg_match('/\.(jpg|jpeg|png|gif|webp)$/i', $url)) {
+                $url .= '.jpg';
+            }
             
             if (empty($url)) {
                 throw new Exception("Failed to generate Cloudinary URL");
