@@ -1,16 +1,6 @@
 <?php
-session_set_cookie_params([
-    'lifetime' => 0,
-    'httponly' => true,
-    'samesite' => 'Strict',
-    'domain' => 'neocafe.cafe'
-]);
-
-// Don't start session if it's already active
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
+// Session management is handled by included files
+// No need to start session here as it's already started by the included files
 
 require_once '../../../backend/pages/admin-includes/database.php';
 
@@ -566,6 +556,37 @@ foreach ($preorder_items as $item) {
                     <button class="checkout-btn" id="checkoutBtn" disabled onclick="proceedToCheckout()">
                         Proceed to Checkout
                     </button>
+
+                    <style>
+                        /* Checkout Button Loading States */
+                        .checkout-btn.loading {
+                            opacity: 0.7;
+                            cursor: not-allowed;
+                            pointer-events: none;
+                        }
+                        
+                        /* Ensure no duplicate circles from pseudo-elements */
+                        .checkout-btn.loading::after,
+                        .checkout-btn.loading::before {
+                            display: none !important;
+                        }
+                        
+                        .loading-spinner-small {
+                            width: 16px;
+                            height: 16px;
+                            border: 2px solid #f3f3f3;
+                            border-top: 2px solid #ffffff;
+                            border-radius: 50%;
+                            animation: spin 1s linear infinite;
+                            display: inline-block;
+                            margin-right: 6px;
+                        }
+                        
+                        @keyframes spin {
+                            0% { transform: rotate(0deg); }
+                            100% { transform: rotate(360deg); }
+                        }
+                    </style>
                     <p style="font-size: 12px; color: #666; margin-top: 10px; text-align: center;">
                         Select items and accept terms to checkout
                     </p>
@@ -818,13 +839,30 @@ document.getElementById('termsCheckbox').addEventListener('change', updateChecko
 function proceedToCheckout() {
     console.log('proceedToCheckout called, selectedItems:', selectedItems);
     
+    // Get checkout button and show loading state
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    const originalText = checkoutBtn.textContent;
+    
+    // Show loading state
+    checkoutBtn.disabled = true;
+    checkoutBtn.classList.add('loading');
+    checkoutBtn.innerHTML = '<span class="loading-spinner-small"></span>Processing...';
+    
     if (selectedItems.length === 0) {
         alert('Please select items to checkout by checking the boxes next to the items you want to purchase.');
+        // Reset button state
+        checkoutBtn.disabled = false;
+        checkoutBtn.classList.remove('loading');
+        checkoutBtn.textContent = originalText;
         return;
     }
     
     if (!document.getElementById('termsCheckbox').checked) {
         alert('Please accept the Terms and Conditions');
+        // Reset button state
+        checkoutBtn.disabled = false;
+        checkoutBtn.classList.remove('loading');
+        checkoutBtn.textContent = originalText;
         return;
     }
     
@@ -846,6 +884,10 @@ function proceedToCheckout() {
     // Check if user selected both types
     if (preorderIds.length > 0 && samedayIds.length > 0) {
         alert('Please checkout Pre-Order and Same Day Order items separately. Select only one type at a time.');
+        // Reset button state
+        checkoutBtn.disabled = false;
+        checkoutBtn.classList.remove('loading');
+        checkoutBtn.textContent = originalText;
         return;
     }
     
@@ -880,6 +922,10 @@ function proceedToCheckout() {
         console.log('Submitting to pre-order checkout with IDs:', preorderIds);
     } else {
         alert('No items selected for checkout. Please check the boxes next to items you want to purchase.');
+        // Reset button state
+        checkoutBtn.disabled = false;
+        checkoutBtn.classList.remove('loading');
+        checkoutBtn.textContent = originalText;
         return;
     }
     
@@ -892,7 +938,11 @@ function proceedToCheckout() {
     
     // Submit the form
     document.body.appendChild(form);
-    form.submit();
+    
+    // Small delay to show loading state before redirecting
+    setTimeout(() => {
+        form.submit();
+    }, 500);
 }
 </script>
 

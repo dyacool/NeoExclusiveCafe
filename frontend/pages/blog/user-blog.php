@@ -276,4 +276,3 @@ if (isset($_SESSION['user_id'])) {
     background: #256029;
 }
 </style>
-

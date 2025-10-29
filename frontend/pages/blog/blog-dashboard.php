@@ -1,18 +1,26 @@
 <?php
-// Don't start session if it's already active
+// Start session immediately to prevent headers already sent errors
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-// Define preview mode
-$is_preview_mode = !isset($_SESSION['user_id']) && !isset($_SESSION['admin_id']);
+
+// Session management is handled by included files
+// No need to start session here as it's already started by the included files
 
 $page_title = "Blog";
 $additional_css = [
     "../blog/blog-dashboard.css"
 ];
+
+// Include session management files first (before any HTML output)
+// Order matters: database.php must come before user-header.php to avoid session conflicts
+require_once "../../../backend/pages/admin-includes/database.php";
 require_once __DIR__ . "/../../user-includes/user-header.php";
 
-require_once "../../../backend/pages/admin-includes/database.php";
+// Define preview mode (after session is started)
+$is_preview_mode = !isset($_SESSION['user_id']) && !isset($_SESSION['admin_id']);
+
+// Include navigation after session is established
 require_once "../../user-includes/navbar/customer-navigation.php";
 
 // Only redirect to login if trying to access protected features
@@ -77,8 +85,43 @@ if (!$is_preview_mode && (!isset($_SESSION['is_verified']) || $_SESSION['is_veri
         </div>
     </div>
 
+    <!-- Full Page Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Loading...</div>
+        </div>
+    </div>
+
     <div id="footer-container">
         <?php require_once "../../user-includes/user-footer.php"; ?>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get all category links and loading overlay
+            const categoryLinks = document.querySelectorAll('.image-link');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            
+            categoryLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    // Prevent default navigation temporarily
+                    e.preventDefault();
+                    
+                    // Store the original href
+                    const originalHref = this.href;
+                    
+                    // Show full page loading overlay
+                    loadingOverlay.classList.add('active');
+                    
+                    // Show loading for a minimum time (for better UX)
+                    setTimeout(() => {
+                        // Navigate to the original URL
+                        window.location.href = originalHref;
+                    }, 800); // 800ms minimum loading time for better UX
+                });
+            });
+        });
+    </script>
 </body>
 </html>
