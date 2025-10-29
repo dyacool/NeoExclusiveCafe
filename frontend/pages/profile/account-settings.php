@@ -5,7 +5,7 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once "../../../backend/pages/admin-includes/database.php";
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: ../login.php");
+    header("Location: /frontend/pages/home/user-dashboard.php");
     exit();
 }
 

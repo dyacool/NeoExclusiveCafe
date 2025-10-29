@@ -15,13 +15,32 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     // Set timezone to match your server
     date_default_timezone_set('Asia/Manila');
     
+    // Debug logging
+    error_log("Verifying email with token: " . substr($token, 0, 10) . "...");
+    error_log("Token hash: " . substr($token_hash, 0, 20) . "...");
+    
     // First check if token exists and get expiration time
-    $sql = "SELECT *, UNIX_TIMESTAMP(verification_token_expires_at) as expires_timestamp, email FROM users WHERE verification_token = ?";
+    $sql = "SELECT id, email, UNIX_TIMESTAMP(verification_token_expires_at) as expires_timestamp, verification_token FROM users WHERE verification_token = ?";
     $stmt = $conn->prepare($sql);
+    if (!$stmt) {
+        error_log("Failed to prepare statement: " . $conn->error);
+        die("<script>alert('Database error occurred.'); window.location.href='/frontend/login/user/login-signup.php';</script>");
+    }
+    
     $stmt->bind_param("s", $token_hash);
     $stmt->execute();
     $result = $stmt->get_result();
     $user = $result->fetch_assoc();
+    
+    // Debug logging
+    if ($user) {
+        error_log("User found with ID: " . $user['id'] . ", email: " . $user['email']);
+        error_log("Stored token hash: " . substr($user['verification_token'], 0, 20) . "...");
+        error_log("Provided token hash: " . substr($token_hash, 0, 20) . "...");
+        error_log("Token match: " . ($user['verification_token'] === $token_hash ? 'YES' : 'NO'));
+    } else {
+        error_log("No user found with token hash: " . substr($token_hash, 0, 20) . "...");
+    }
     
     if (!$user) {
         die("<script>alert('Invalid verification token.'); window.location.href='/frontend/login/user/login-signup.php';</script>");

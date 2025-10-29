@@ -43,7 +43,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             // Email body with reset link
             $mail->Body = <<<END
             <p>Hello,</p>
-            <p>Click <a href="http://neocafe.cafe:8080/frontend/login/user/forgot-pw-reset.php?token=$token">here</a>
+            <p>Click <a href="https://www.neocafe.shop/frontend/login/user/forgot-pw-reset.php?token=$token">here</a>
             to reset your password.</p>
             <p>This link will expire in 30 minutes.</p>
             END;
