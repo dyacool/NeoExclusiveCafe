@@ -1,6 +1,9 @@
 <?php
-// Start session
-session_start();
+// Don't start session if it's already active
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 
 // Include database connection
 require_once "../../../backend/pages/admin-includes/database.php";

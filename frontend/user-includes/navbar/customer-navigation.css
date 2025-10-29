@@ -917,6 +917,7 @@ html.homepage-animation .main-nav {
 /* Mobile Responsive Design - Updated for 1024px */
 @media (max-width: 1024px) {
   .notification-dropdown {
+    display: none;
     position: fixed;
     top: 80px !important;
     left: 10px;

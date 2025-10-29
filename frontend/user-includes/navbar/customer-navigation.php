@@ -171,6 +171,8 @@ if (!$navbar_conn) {
                         </svg>
                     </a>
                     <div class="products-dropdown">
+                        <!-- All Products link -->
+                        <a href="/frontend/pages/products/product-dashboard.php">All Products</a>
                         <?php
                         // Fetch categories from database using the navbar connection
                         if ($navbar_conn) {
@@ -193,6 +195,8 @@ if (!$navbar_conn) {
                     </div>
                     <!-- Mobile Products Dropdown - Inside nav-left for better visibility -->
                     <div class="mobile-products-dropdown">
+                        <!-- All Products link for mobile -->
+                        <a href="/frontend/pages/products/product-dashboard.php" class="mobile-dropdown-item">All Products</a>
                         <?php
                         // Fetch categories for mobile dropdown using the navbar connection
                         if ($navbar_conn) {
