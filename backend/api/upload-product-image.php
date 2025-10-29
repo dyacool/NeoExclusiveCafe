@@ -117,17 +117,25 @@ if (!in_array($imageType, ['primary', 'additional'])) {
     $imageType = 'additional';
 }
 
-// Generate unique public ID with timestamp and random string
+// Get product name for folder structure (sanitized)
+$productName = $_POST['product_name'] ?? 'Unnamed_Product';
+$sanitizedProductName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $productName);
+$sanitizedProductName = preg_replace('/_+/', '_', $sanitizedProductName);
+$sanitizedProductName = trim($sanitizedProductName, '_');
+
+// Generate unique folder name with product name and timestamp
 $timestamp = time();
-$randomString = bin2hex(random_bytes(8));
-$sanitizedFilename = preg_replace('/[^a-zA-Z0-9_-]/', '_', pathinfo($_FILES['image']['name'], PATHINFO_FILENAME));
-$publicId = 'product_temp_' . $imageType . '_' . $timestamp . '_' . $randomString;
+$folderName = $sanitizedProductName . '_' . $timestamp;
+
+// Generate public ID: assets/product-images/[ProductName_timestamp]/[image_type]_[timestamp]
+$imageFilename = ($imageType === 'primary' ? 'primary' : 'additional_' . ($timestamp + rand(1, 999))) . '_' . $timestamp;
+$publicId = 'assets/product-images/' . $folderName . '/' . $imageFilename;
 
 try {
-    // Upload to Cloudinary
+    // Upload to Cloudinary (folder is included in public_id)
     $result = uploadToCloudinary(
         $_FILES['image']['tmp_name'],
-        'neocafe/products',
+        '', // Empty folder since it's in the public_id
         $publicId
     );
     

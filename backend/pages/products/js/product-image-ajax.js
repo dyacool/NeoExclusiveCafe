@@ -45,6 +45,11 @@ async function uploadImageToCloudinary(file, imageType) {
     formData.append('image_type', imageType);
     formData.append('csrf_token', getCsrfToken());
     
+    // Get product name from form for folder structure
+    const productNameField = document.querySelector('input[name="name"]');
+    const productName = productNameField ? productNameField.value : 'Unnamed_Product';
+    formData.append('product_name', productName);
+    
     try {
         showLoadingIndicator(imageType);
         uploadingCount++;
