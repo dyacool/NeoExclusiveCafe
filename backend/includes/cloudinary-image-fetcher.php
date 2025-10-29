@@ -426,9 +426,9 @@ class CloudinaryImageFetcher {
      * @return string Cloudinary placeholder image URL
      */
     public function getPlaceholderImage() {
-        // Use a Cloudinary placeholder image (generic no-image placeholder)
-        // This is a public Cloudinary placeholder that always works
-        return 'https://res.cloudinary.com/dvdccumbs/image/upload/v1/placeholder/no-image.jpg';
+        // Use a generic gray placeholder from Cloudinary's sample images
+        // This creates a 400x400 gray placeholder on-the-fly
+        return 'https://res.cloudinary.com/dvdccumbs/image/upload/c_fill,w_400,h_400,g_center/e_blur:1000,co_rgb:cccccc,b_rgb:f0f0f0/sample.jpg';
     }
     
     /**

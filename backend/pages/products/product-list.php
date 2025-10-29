@@ -260,6 +260,7 @@
                                         p.category_id, c.name AS category_name,
                                         p.is_featured, p.show_when_unavailable, p.hide_when_unavailable,
                                         p.quantity, p.availtoday_status_id, ats.name AS availtoday_status_name,
+                                        p.cloudinary_url,
                                         qpd.quantity as sameday_stock_today,
                                         GROUP_CONCAT(DISTINCT pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days,
                                         GROUP_CONCAT(DISTINCT tpd.available_date ORDER BY tpd.available_date SEPARATOR ',') as todays_product_dates,
@@ -285,6 +286,7 @@
                                                     p.category_id, c.name AS category_name,
                                                     p.is_featured, p.show_when_unavailable, p.hide_when_unavailable,
                                                     p.quantity, p.availtoday_status_id, ats.name AS availtoday_status_name,
+                                                    p.cloudinary_url,
                                                     qpd.quantity as sameday_stock_today,
                                                     GROUP_CONCAT(DISTINCT pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days,
                                                     GROUP_CONCAT(DISTINCT tpd.available_date ORDER BY tpd.available_date SEPARATOR ',') as todays_product_dates,
@@ -387,10 +389,13 @@
                                     $statusClass = strtolower(str_replace(' ', '-', $row['status_name'] ?? 'Unknown'));
 
                                     // Get image from Cloudinary with error handling
-                                    $imagePath = 'https://res.cloudinary.com/dvdccumbs/image/upload/v1/placeholder/no-image.jpg'; // Cloudinary placeholder
+                                    $imagePath = 'https://res.cloudinary.com/dvdccumbs/image/upload/c_fill,w_400,h_400,g_center/e_blur:1000,co_rgb:cccccc,b_rgb:f0f0f0/sample.jpg'; // Cloudinary placeholder
                                     try {
                                         if (isset($productImages[$row['id']])) {
                                             $imagePath = $productImages[$row['id']]['url'];
+                                            error_log("product-list.php: Product {$row['id']} using Cloudinary image: " . substr($imagePath, 0, 80));
+                                        } else {
+                                            error_log("product-list.php: Product {$row['id']} ({$row['name']}) NOT in productImages array - using placeholder. DB cloudinary_url: " . ($row['cloudinary_url'] ?? 'NULL'));
                                         }
                                     } catch (Exception $e) {
                                         error_log("Error displaying image for product {$row['id']}: " . $e->getMessage());
@@ -410,7 +415,7 @@
                                     echo "<tr data-status='" . $displayStatus . "' data-name='" . strtolower($row['name']) . "' data-sku='" . strtolower($row['sku']) . "'>
                                             <td>
                                                 <div class='product-image-container'>
-                                                    <img class='product-image' src='" . htmlspecialchars($imagePath) . "' alt='" . htmlspecialchars($row['name']) . "' loading='lazy' onerror=\"this.src='https://res.cloudinary.com/dvdccumbs/image/upload/v1/placeholder/no-image.jpg'\">
+                                                    <img class='product-image' src='" . htmlspecialchars($imagePath) . "' alt='" . htmlspecialchars($row['name']) . "' loading='lazy' onerror=\"this.src='https://res.cloudinary.com/dvdccumbs/image/upload/c_fill,w_400,h_400,g_center/e_blur:1000,co_rgb:cccccc,b_rgb:f0f0f0/sample.jpg'\">
                                                     " . ($row['is_featured'] ? "<span class='featured-badge'>★</span>" : "") . "
                                                 </div>
                                             </td>
