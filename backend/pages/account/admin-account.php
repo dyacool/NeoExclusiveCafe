@@ -14,8 +14,13 @@ require_once __DIR__ . "/../admin-includes/database.php";
 require_once __DIR__ . "/../admin-includes/navbar/navbar.php";
 require_once __DIR__ . "/../admin-includes/activity-logger.php";
 
-// Fetch admin information including profile_image
-$stmt = $conn->prepare("SELECT username, firstname, lastname, email, profile_image FROM users WHERE id = ? AND is_admin = TRUE");
+// Generate CSRF token if not exists
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+// Fetch admin information including profile_image and Cloudinary fields
+$stmt = $conn->prepare("SELECT username, firstname, lastname, email, profile_image, cloud_url, cloud_public_id FROM users WHERE id = ? AND is_admin = TRUE");
 $stmt->bind_param("i", $_SESSION["admin_id"]);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -26,12 +31,16 @@ if (!$admin) {
     exit();
 }
 
-// Determine profile image url
-$profile_default_image_path = '';
-$profile_image_url = $profile_default_image_path;
+// Determine profile image url - prioritize Cloudinary
+$profile_image_url = '';
+$profile_public_id = '';
 $has_profile_image = false;
 
-if (isset($admin['profile_image']) && !empty(trim($admin['profile_image']))) {
+if (isset($admin['cloud_url']) && !empty(trim($admin['cloud_url']))) {
+    $profile_image_url = trim($admin['cloud_url']);
+    $profile_public_id = $admin['cloud_public_id'] ?? '';
+    $has_profile_image = true;
+} elseif (isset($admin['profile_image']) && !empty(trim($admin['profile_image']))) {
     $db_path = trim($admin['profile_image']);
     if ($db_path[0] !== '/') {
         $db_path = '/' . $db_path;
@@ -58,14 +67,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         logAdminActivity($conn, 'UPDATE', "Updated account profile information", 'users', $_SESSION["admin_id"]);
         
         // Refresh admin data
-        $stmt = $conn->prepare("SELECT username, firstname, lastname, email, profile_image FROM users WHERE id = ? AND is_admin = TRUE");
+        $stmt = $conn->prepare("SELECT username, firstname, lastname, email, profile_image, cloud_url, cloud_public_id FROM users WHERE id = ? AND is_admin = TRUE");
         $stmt->bind_param("i", $_SESSION["admin_id"]);
         $stmt->execute();
         $result = $stmt->get_result();
         $admin = $result->fetch_assoc();
         
-        // Update profile image variables
-        if (isset($admin['profile_image']) && !empty(trim($admin['profile_image']))) {
+        // Update profile image variables - prioritize Cloudinary
+        if (isset($admin['cloud_url']) && !empty(trim($admin['cloud_url']))) {
+            $profile_image_url = trim($admin['cloud_url']);
+            $profile_public_id = $admin['cloud_public_id'] ?? '';
+            $has_profile_image = true;
+        } elseif (isset($admin['profile_image']) && !empty(trim($admin['profile_image']))) {
             $db_path = trim($admin['profile_image']);
             if ($db_path[0] !== '/') {
                 $db_path = '/' . $db_path;
@@ -85,6 +98,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Account Settings - Admin</title>
     <link rel="stylesheet" href="/backend/pages/account/admin-account.css">
+    <link rel="stylesheet" href="/backend/pages/account/css/profile-picture-ajax.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico">
     <style>
         /* Breadcrumb Styles */
@@ -207,9 +222,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <circle cx="12" cy="13" r="3"></circle>
                             </svg>
                         </div>
+                        <?php if ($has_profile_image && !empty($profile_public_id)): ?>
+                            <button type="button" class="remove-avatar-btn" id="remove-avatar-btn" data-public-id="<?php echo htmlspecialchars($profile_public_id); ?>" onclick="handleRemoveProfilePicture('<?php echo htmlspecialchars($profile_public_id); ?>')">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        <?php endif; ?>
                     </div>
                     <p class="avatar-hint">Click to change profile picture</p>
-                    <input type="file" id="file-input" class="hidden" accept="image/*">
+                    <input type="file" id="file-input" class="hidden" accept="image/jpeg,image/png,image/gif,image/webp">
+                    
+                    <!-- Hidden fields for CSRF token and user ID -->
+                    <input type="hidden" id="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                    <input type="hidden" id="user_id" value="<?php echo $_SESSION['admin_id']; ?>">
+                    
+                    <!-- Loading and success indicators -->
+                    <div id="profileLoadingIndicator" class="loading-indicator" style="display: none;">
+                        <i class="fas fa-spinner fa-spin"></i> Uploading...
+                    </div>
+                    <div id="profileSuccessIndicator" class="success-indicator" style="display: none;">
+                        <i class="fas fa-check-circle"></i> Upload successful!
+                    </div>
                     <h2 class="user-name"><?php echo htmlspecialchars($admin['firstname'] . ' ' . $admin['lastname']); ?></h2>
                     <p class="user-username">@<?php echo htmlspecialchars($admin['username']); ?></p>
                 </div>
@@ -252,134 +284,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
     </div>
 
-    <script>
-        // DOM elements
-        const avatarUploadContainer = document.getElementById('avatar-upload-container');
-        const fileInput = document.getElementById('file-input');
-        const avatar = document.getElementById('avatar');
-        const profileImage = document.getElementById('profile-image');
-        const initialsElement = document.getElementById('initials');
-        const profileForm = document.getElementById('profile-form');
-        const firstnameInput = document.getElementById('firstname');
-        const lastnameInput = document.getElementById('lastname');
-
-        // Update initials based on full name
-        function updateInitials() {
-            if (!initialsElement) return;
-            const firstname = firstnameInput.value;
-            const lastname = lastnameInput.value;
-            const initials = (firstname.charAt(0) + lastname.charAt(0)).toUpperCase();
-            initialsElement.textContent = initials;
-        }
-
-        // Handle avatar click to open file picker
-        avatarUploadContainer.addEventListener('click', () => {
-            fileInput.click();
-        });
-
-        // Handle file selection and upload
-        fileInput.addEventListener('change', async (event) => {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            // Validate file type
-            if (!file.type.match(/^image\/(jpeg|png|gif|webp)$/)) {
-                alert('Please select a valid image file (JPG, PNG, GIF, or WEBP)');
-                return;
-            }
-            
-            // Validate file size (5MB)
-            if (file.size > 5 * 1024 * 1024) {
-                alert('File size must be less than 5MB');
-                return;
-            }
-            
-            // Show loading state
-            avatar.style.opacity = '0.5';
-            avatarUploadContainer.style.cursor = 'wait';
-            
-            // Create FormData and upload
-            const formData = new FormData();
-            formData.append('profile_picture', file);
-            
-            try {
-                const response = await fetch('upload-profile-picture.php', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    // Update image display
-                    if (profileImage) {
-                        profileImage.src = result.image_url + '?t=' + Date.now(); // Cache bust
-                        profileImage.style.display = 'block';
-                        profileImage.onload = function() {
-                            if (initialsElement) initialsElement.style.display = 'none';
-                        };
-                    } else {
-                        // Create image element if it doesn't exist
-                        const newImg = document.createElement('img');
-                        newImg.id = 'profile-image';
-                        newImg.src = result.image_url + '?t=' + Date.now();
-                        newImg.alt = 'Profile picture';
-                        newImg.style.width = '100%';
-                        newImg.style.height = '100%';
-                        newImg.style.objectFit = 'cover';
-                        newImg.onload = function() {
-                            if (initialsElement) initialsElement.style.display = 'none';
-                        };
-                        avatar.appendChild(newImg);
-                    }
-                    
-                    // Show success message
-                    showMessage('Profile picture updated successfully!', 'success');
-                } else {
-                    alert('Error: ' + result.message);
-                }
-            } catch (error) {
-                console.error('Upload error:', error);
-                alert('Failed to upload profile picture. Please try again.');
-            } finally {
-                avatar.style.opacity = '1';
-                avatarUploadContainer.style.cursor = 'pointer';
-            }
-        });
-
-        // Update initials when name changes
-        firstnameInput.addEventListener('input', updateInitials);
-        lastnameInput.addEventListener('input', updateInitials);
-
-        // Show message function
-        function showMessage(message, type) {
-            const alertDiv = document.createElement('div');
-            alertDiv.className = `alert alert-${type}`;
-            alertDiv.innerHTML = `
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    ${type === 'success' 
-                        ? '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>'
-                        : '<circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line>'
-                    }
-                </svg>
-                ${message}
-            `;
-            
-            const container = document.querySelector('.main-container');
-            const existingAlert = container.querySelector('.alert');
-            if (existingAlert) {
-                existingAlert.remove();
-            }
-            container.insertBefore(alertDiv, container.firstChild);
-            
-            setTimeout(() => {
-                alertDiv.style.animation = 'fadeOut 0.5s ease';
-                setTimeout(() => alertDiv.remove(), 500);
-            }, 3000);
-        }
-
-        // Initialize
-        updateInitials();
-    </script>
+    <!-- Include AJAX JavaScript -->
+    <script src="/backend/pages/account/js/profile-picture-ajax.js"></script>
 </body>
 </html>

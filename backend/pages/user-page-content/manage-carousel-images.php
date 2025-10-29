@@ -25,6 +25,11 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Generate CSRF token if not exists
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 // Check if user is logged in as admin
 if (!isset($_SESSION['admin_id']) || !isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true || $_SESSION['admin_role'] !== 'admin') {
     header("Location: /login/admin/admin-login.php");
@@ -76,37 +81,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($check_order_data['count'] > 0) {
             $error_message = "Display order " . $display_order . " is already in use. Please choose a different order number.";
         } else {
-            // Handle image upload
-            $image_url = '';
-            if (isset($_FILES['image']) && $_FILES['image']['error'] === 0) {
-                $upload_dir = __DIR__ . '/../backend/assets/images/carousel/';
-                
-                // Create directory if it doesn't exist
-                if (!file_exists($upload_dir)) {
-                    mkdir($upload_dir, 0755, true);
-                }
-                
-                $file_name = time() . '_' . basename($_FILES['image']['name']);
-                $target_file = $upload_dir . $file_name;
-                
-                if (move_uploaded_file($_FILES['image']['tmp_name'], $target_file)) {
-                    // Store path relative to assets folder (consistent with user-dashboard.php)
-                    $image_url = 'images/carousel/' . $file_name;
-                } else {
-                    $error_message = "Failed to upload image.";
-                }
-            } else {
-                $error_message = "Please select an image.";
-            }
+            // Read image metadata from hidden fields (uploaded via AJAX)
+            $image_url = $_POST['carousel_image_url'] ?? '';
+            $public_id = $_POST['carousel_image_public_id'] ?? '';
             
-            if (!isset($error_message)) {
-                $insert_query = "INSERT INTO carousel_images (image_url, title, display_order, is_active, created_by) 
-                                VALUES (?, ?, ?, ?, ?)";
+            if (empty($image_url) || empty($public_id)) {
+                $error_message = "Please upload an image first.";
+            } else {
+                // Insert carousel image with Cloudinary metadata
+                $insert_query = "INSERT INTO carousel_images 
+                                (image_url, cloud_url, cloud_public_id, cloud_provider, 
+                                 title, display_order, is_active, created_by) 
+                                VALUES (?, ?, ?, 'cloudinary', ?, ?, ?, ?)";
                 $insert_stmt = mysqli_prepare($conn, $insert_query);
-                mysqli_stmt_bind_param($insert_stmt, "ssiis", $image_url, $title, $display_order, $is_active, $_SESSION['admin_id']);
+                mysqli_stmt_bind_param($insert_stmt, "ssssiis", 
+                    $image_url, $image_url, $public_id, 
+                    $title, $display_order, $is_active, $_SESSION['admin_id']);
                 
                 if (mysqli_stmt_execute($insert_stmt)) {
-                    $success_message = "Image added successfully!";
+                    // Remove from temp_uploaded_images table
+                    $delete_temp = "DELETE FROM temp_uploaded_images WHERE public_id = ?";
+                    $delete_stmt = mysqli_prepare($conn, $delete_temp);
+                    mysqli_stmt_bind_param($delete_stmt, "s", $public_id);
+                    mysqli_stmt_execute($delete_stmt);
+                    
+                    $success_message = "Carousel image added successfully!";
                     $new_image_id = mysqli_insert_id($conn);
                     logAdminActivity($conn, 'CREATE', "Added new carousel image: $title", 'carousel_images', $new_image_id);
                 } else {
@@ -259,6 +258,8 @@ $images_result = mysqli_query($conn, $images_query);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Carousel Image - Neo Cafe Admin</title>
     <link rel="stylesheet" href="manage-carousel.css">
+    <link rel="stylesheet" href="css/carousel-image-ajax.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 <?php include __DIR__ . "/../admin-includes/breadcrumbs/admin-breadcrumb.php"; ?>
@@ -277,14 +278,41 @@ $images_result = mysqli_query($conn, $images_query);
         <section class="admin-section">
             <h2>Add New Carousel Image</h2>
             <form action="" method="POST" enctype="multipart/form-data" class="admin-form">
+                <!-- CSRF Token -->
+                <input type="hidden" id="csrf_token" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                
+                <!-- Hidden fields for image metadata (populated by AJAX) -->
+                <input type="hidden" id="carousel_image_url" name="carousel_image_url">
+                <input type="hidden" id="carousel_image_public_id" name="carousel_image_public_id">
+                
                 <div class="form-group">
                     <label for="title">Image Title</label>
                     <input type="text" id="title" name="title" required>
                 </div>
                 
-                <div class="form-group">
-                    <label for="image">Image (Recommended: 1920x1080px)</label>
-                    <input type="file" id="image" name="image" accept="image/*" required>
+                <div class="form-group carousel-image-upload">
+                    <label for="carouselImageInput" class="carousel-upload-btn">
+                        <i class="fas fa-cloud-upload-alt"></i> Click to Upload Image
+                    </label>
+                    <input type="file" 
+                           id="carouselImageInput" 
+                           name="image" 
+                           accept="image/jpeg,image/png,image/gif,image/webp"
+                           style="display: none;">
+                    <span class="image-size-info">Recommended: 1920x1080px | Max: 10MB | Formats: JPEG, PNG, GIF, WebP</span>
+                    
+                    <!-- Image Preview Container -->
+                    <div id="carouselPreviewContainer" class="carousel-preview-container"></div>
+                    
+                    <!-- Loading Indicator -->
+                    <div id="carouselLoadingIndicator" class="loading-indicator" style="display: none;">
+                        <i class="fas fa-spinner fa-spin"></i> Uploading image...
+                    </div>
+                    
+                    <!-- Success Indicator -->
+                    <div id="carouselSuccessIndicator" class="success-indicator" style="display: none;">
+                        <i class="fas fa-check-circle"></i> Upload successful!
+                    </div>
                 </div>
                 
                 <div class="form-group">
@@ -400,9 +428,7 @@ $images_result = mysqli_query($conn, $images_query);
         require_once __DIR__ . "/../admin-includes/footer/admin-footer.php";
     ?>
 </main>
-</body>
-</html>
-
+<script src="js/carousel-image-ajax.js"></script>
 <script>
 function editImage(imageId) {
     document.getElementById('edit-form-' + imageId).style.display = 'block';
@@ -412,4 +438,6 @@ function cancelEdit(imageId) {
     document.getElementById('edit-form-' + imageId).style.display = 'none';
 }
 </script>
+</body>
+</html>
 

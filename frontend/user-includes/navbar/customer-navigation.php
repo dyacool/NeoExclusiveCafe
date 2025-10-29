@@ -26,7 +26,7 @@ if ($is_user_logged_in) {
             if (file_exists($db_path)) {
                 require_once $db_path;
                 if (isset($conn) && $conn instanceof mysqli) {
-                    $stmt = mysqli_prepare($conn, "SELECT firstname, lastname, profile_image FROM users WHERE id = ?");
+                    $stmt = mysqli_prepare($conn, "SELECT firstname, lastname, profile_image, cloud_url, cloud_public_id FROM users WHERE id = ?");
                     if ($stmt) {
                         mysqli_stmt_bind_param($stmt, "i", $user_id);
                         mysqli_stmt_execute($stmt);
@@ -34,7 +34,14 @@ if ($is_user_logged_in) {
                         if ($result && ($row = mysqli_fetch_assoc($result))) {
                             $user['firstname'] = $user['firstname'] !== '' ? $user['firstname'] : ($row['firstname'] ?? '');
                             $user['lastname'] = $user['lastname'] !== '' ? $user['lastname'] : ($row['lastname'] ?? '');
-                            $user['profile_image'] = $user['profile_image'] !== '' ? $user['profile_image'] : (trim($row['profile_image'] ?? ''));
+                            
+                            // Prioritize Cloudinary URL over legacy profile_image
+                            if (!empty(trim($row['cloud_url'] ?? ''))) {
+                                $user['profile_image'] = trim($row['cloud_url']);
+                            } elseif ($user['profile_image'] === '' && !empty(trim($row['profile_image'] ?? ''))) {
+                                $user['profile_image'] = trim($row['profile_image']);
+                            }
+                            
                             // Update session for future requests
                             if (!empty($user['profile_image'])) {
                                 $_SESSION['user_profile_image'] = $user['profile_image'];
@@ -67,8 +74,8 @@ $current_page = basename($_SERVER['PHP_SELF']);
 $navbar_conn = null;
 if (isset($conn) && $conn instanceof mysqli) {
     try {
-        // Check if existing connection is still valid
-        if ($conn->ping() && $conn->thread_id !== null) {
+        // Check if existing connection is still valid by checking thread_id
+        if ($conn->thread_id !== null) {
             $navbar_conn = $conn;
         }
     } catch (Exception $e) {
@@ -88,8 +95,8 @@ if (!$navbar_conn) {
             // Include database.php to get a fresh connection
             require_once $db_path;
             
-            // Check if we got a valid new connection
-            if (isset($conn) && $conn instanceof mysqli && $conn->ping()) {
+            // Check if we got a valid new connection by checking thread_id
+            if (isset($conn) && $conn instanceof mysqli && $conn->thread_id !== null) {
                 $navbar_conn = $conn;
             } else {
                 // Restore old conn value if new connection failed
@@ -230,7 +237,7 @@ if (!$navbar_conn) {
 
             <div class="nav-center">
                 <a href="../../../frontend/pages/home/user-dashboard.php" class="logo-container">
-                    <img src="/assets/images/user-logo.png" alt="NeoCafe Logo" class="logo">
+                    <img src="https://res.cloudinary.com/dvdccumbs/image/upload/v1761594924/neocafegoldlogo_i4a6cz.png" alt="NeoCafe Logo" class="logo">
                 </a>
             </div>
 
