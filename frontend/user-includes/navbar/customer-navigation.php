@@ -74,8 +74,8 @@ $current_page = basename($_SERVER['PHP_SELF']);
 $navbar_conn = null;
 if (isset($conn) && $conn instanceof mysqli) {
     try {
-        // Check if existing connection is still valid
-        if ($conn->ping() && $conn->thread_id !== null) {
+        // Check if existing connection is still valid by checking thread_id
+        if ($conn->thread_id !== null) {
             $navbar_conn = $conn;
         }
     } catch (Exception $e) {
@@ -95,8 +95,8 @@ if (!$navbar_conn) {
             // Include database.php to get a fresh connection
             require_once $db_path;
             
-            // Check if we got a valid new connection
-            if (isset($conn) && $conn instanceof mysqli && $conn->ping()) {
+            // Check if we got a valid new connection by checking thread_id
+            if (isset($conn) && $conn instanceof mysqli && $conn->thread_id !== null) {
                 $navbar_conn = $conn;
             } else {
                 // Restore old conn value if new connection failed
