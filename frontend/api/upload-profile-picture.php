@@ -7,15 +7,19 @@
  * Old profile pictures are automatically deleted from Cloudinary before uploading new ones.
  */
 
+// Suppress any output and errors
+error_reporting(0);
+ini_set('display_errors', 0);
+
 session_start();
 
-// Start output buffering to catch any unwanted output
+// Start output buffering
 ob_start();
-
-header('Content-Type: application/json');
 
 // Verify customer authentication
 if (!isset($_SESSION["user_id"])) {
+    ob_end_clean();
+    header('Content-Type: application/json');
     http_response_code(401);
     echo json_encode([
         'success' => false,
@@ -26,6 +30,8 @@ if (!isset($_SESSION["user_id"])) {
 
 // Verify CSRF token
 if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+    ob_end_clean();
+    header('Content-Type: application/json');
     http_response_code(403);
     echo json_encode([
         'success' => false,
@@ -37,8 +43,9 @@ if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || $_POST['c
 require_once __DIR__ . '/../../backend/includes/cloudinary-helper.php';
 require_once __DIR__ . '/../user-includes/database.php';
 
-// Clean any output from included files
-ob_clean();
+// Clean any output from included files and set header
+ob_end_clean();
+header('Content-Type: application/json');
 
 /**
  * Log temporary image upload for orphan tracking
