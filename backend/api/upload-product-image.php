@@ -135,7 +135,7 @@ try {
     // Upload to Cloudinary (folder is included in public_id)
     $result = uploadToCloudinary(
         $_FILES['image']['tmp_name'],
-        '', // Empty folder since it's in the public_id
+        null, // No folder parameter since it's in the public_id
         $publicId
     );
     

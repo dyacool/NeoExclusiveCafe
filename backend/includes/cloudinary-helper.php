@@ -61,7 +61,6 @@ function uploadToCloudinary($filePath, $folder = 'neocafe', $publicId = null) {
         $cloudinary = CloudinaryConfig::getInstance()->getCloudinary();
         
         $options = [
-            'folder' => $folder,
             'overwrite' => true,
             'resource_type' => 'auto',
             'quality' => 'auto',
@@ -70,6 +69,9 @@ function uploadToCloudinary($filePath, $folder = 'neocafe', $publicId = null) {
         
         if ($publicId) {
             $options['public_id'] = $publicId;
+        } elseif ($folder) {
+            // Only use folder parameter if no public_id is provided
+            $options['folder'] = $folder;
         }
         
         // Log upload attempt
