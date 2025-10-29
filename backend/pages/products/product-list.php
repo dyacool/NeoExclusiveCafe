@@ -325,26 +325,37 @@
                                 }
                             }
                             
-                            // Batch fetch images from Cloudinary with thumbnail transformations
+                            // Batch fetch images from product_images table
                             $productImages = [];
                             if (!empty($productIds)) {
                                 error_log("product-list.php: Attempting to fetch images for " . count($productIds) . " products");
                                 try {
-                                    if (class_exists('CloudinaryImageFetcher')) {
-                                        $fetcher = new CloudinaryImageFetcher($conn);
-                                        $productImages = $fetcher->fetchMultipleProductImages(
-                                            $productIds, 
-                                            ['width' => 300, 'quality' => 'auto', 'fetch_format' => 'auto'],
-                                            true // Skip products without Cloudinary URLs
-                                        );
-                                        error_log("product-list.php: Successfully fetched " . count($productImages) . " images from Cloudinary");
-                                    } else {
-                                        error_log("product-list.php: CloudinaryImageFetcher class not found");
+                                    // Query product_images table for primary images
+                                    $placeholders = implode(',', array_fill(0, count($productIds), '?'));
+                                    $sql = "SELECT product_id, cloud_url 
+                                            FROM product_images 
+                                            WHERE product_id IN ($placeholders) 
+                                            AND is_primary = 1 
+                                            AND is_removed = 0
+                                            ORDER BY product_id";
+                                    
+                                    $stmt = $conn->prepare($sql);
+                                    $types = str_repeat('i', count($productIds));
+                                    $stmt->bind_param($types, ...$productIds);
+                                    $stmt->execute();
+                                    $result = $stmt->get_result();
+                                    
+                                    while ($row = $result->fetch_assoc()) {
+                                        $productImages[$row['product_id']] = [
+                                            'url' => $row['cloud_url'],
+                                            'source' => 'cloudinary'
+                                        ];
                                     }
+                                    $stmt->close();
+                                    
+                                    error_log("product-list.php: Successfully fetched " . count($productImages) . " images from product_images table");
                                 } catch (Exception $e) {
-                                    error_log("product-list.php: Error fetching Cloudinary images: " . $e->getMessage());
-                                } catch (Error $e) {
-                                    error_log("product-list.php: Fatal error fetching Cloudinary images: " . $e->getMessage());
+                                    error_log("product-list.php: Error fetching images: " . $e->getMessage());
                                 }
                             } else {
                                 error_log("product-list.php: No product IDs to fetch images for");
