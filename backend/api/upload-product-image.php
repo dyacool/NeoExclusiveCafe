@@ -127,16 +127,18 @@ $sanitizedProductName = trim($sanitizedProductName, '_');
 $timestamp = time();
 $folderName = $sanitizedProductName . '_' . $timestamp;
 
-// Generate public ID: assets/product-images/[ProductName_timestamp]/[image_type]_[timestamp]
+// Folder path: assets/product-images/[ProductName_timestamp]
+$folder = 'assets/product-images/' . $folderName;
+
+// Generate simple filename for public_id (folder is separate)
 $imageFilename = ($imageType === 'primary' ? 'primary' : 'additional_' . ($timestamp + rand(1, 999))) . '_' . $timestamp;
-$publicId = 'assets/product-images/' . $folderName . '/' . $imageFilename;
 
 try {
-    // Upload to Cloudinary (folder is included in public_id)
+    // Upload to Cloudinary with folder and filename separate
     $result = uploadToCloudinary(
         $_FILES['image']['tmp_name'],
-        null, // No folder parameter since it's in the public_id
-        $publicId
+        $folder, // Folder path: assets/product-images/ProductName_timestamp
+        $imageFilename // Just the filename, not the full path
     );
     
     if ($result['success']) {
