@@ -5,6 +5,11 @@ if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
     exit();
 }
 
+// Generate CSRF token if not exists
+if (!isset($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 // Include config file for base URL
 require_once __DIR__ . "/../admin-includes/config.php";
 
@@ -176,148 +181,66 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($stmt->execute()) {
         $product_id = $stmt->insert_id;
 
-        // Handle Primary Image Upload - Direct to Cloudinary (no local storage)
-        if (!empty($_FILES['primary_image']['name'])) {
-            // Validate image file
-            $validation = validateUploadedImage($_FILES['primary_image']);
-            
-            if (!$validation['valid']) {
-                // Rollback product creation on validation failure
-                $conn->query("DELETE FROM products WHERE id = $product_id");
-                $_SESSION['error_message'] = "Primary image validation failed: " . $validation['error'];
-                header("Location: /backend/pages/products/add-product.php");
-                exit();
-            }
-            
-            // Upload directly to Cloudinary
-            require_once __DIR__ . '/../../includes/cloudinary-helper.php';
-            
-            // Generate sanitized public ID
-            $sanitizedName = sanitizeFilenameForCloudinary($_FILES['primary_image']['name']);
-            $publicId = 'product_' . $product_id . '_primary_' . time();
-            
+        // Handle Primary Image - Get from AJAX upload metadata
+        $primaryImageUrl = $_POST['primary_image_url'] ?? '';
+        $primaryImagePublicId = $_POST['primary_image_public_id'] ?? '';
+        
+        if (!empty($primaryImageUrl) && !empty($primaryImagePublicId)) {
             try {
-                error_log("add-product.php: Attempting Cloudinary upload for product $product_id with public_id: $publicId");
-                error_log("add-product.php: Temp file: " . $_FILES['primary_image']['tmp_name'] . " exists: " . (file_exists($_FILES['primary_image']['tmp_name']) ? 'YES' : 'NO'));
+                // Store primary image metadata in database (already uploaded via AJAX)
+                $stmt = $conn->prepare("INSERT INTO product_images (product_id, image_url, cloud_url, cloud_public_id, cloud_provider, is_primary) VALUES (?, NULL, ?, ?, 'cloudinary', 1)");
+                $stmt->bind_param("iss", $product_id, $primaryImageUrl, $primaryImagePublicId);
                 
-                $cloudinaryResult = uploadToCloudinary(
-                    $_FILES['primary_image']['tmp_name'], 
-                    'neocafe/products', 
-                    $publicId
-                );
-                
-                error_log("add-product.php: Cloudinary result: " . json_encode($cloudinaryResult));
-                
-                if ($cloudinaryResult['success']) {
-                    // Store Cloudinary URL in database
-                    $stmt = $conn->prepare("INSERT INTO product_images (product_id, image_url, cloud_url, cloud_public_id, cloud_provider, is_primary) VALUES (?, NULL, ?, ?, 'cloudinary', 1)");
-                    $stmt->bind_param("iss", $product_id, $cloudinaryResult['url'], $cloudinaryResult['public_id']);
-                    
-                    if (!$stmt->execute()) {
-                        throw new Exception("Failed to save image to database: " . $stmt->error);
-                    }
-                    
-                    // Delete temporary file
-                    @unlink($_FILES['primary_image']['tmp_name']);
-                    
-                    error_log("add-product.php: Successfully uploaded primary image to Cloudinary for product $product_id");
-                } else {
-                    $errorMsg = $cloudinaryResult['error'] ?? 'Unknown error';
-                    $errorDetails = $cloudinaryResult['error_details'] ?? '';
-                    error_log("add-product.php: Cloudinary upload returned failure - Error: $errorMsg, Details: $errorDetails");
-                    throw new Exception($errorMsg);
+                if (!$stmt->execute()) {
+                    throw new Exception("Failed to save primary image to database: " . $stmt->error);
                 }
+                
+                // Remove from temp tracking (no longer orphaned)
+                $conn->query("DELETE FROM temp_uploaded_images WHERE public_id = '$primaryImagePublicId'");
+                
+                error_log("add-product.php: Successfully saved primary image metadata for product $product_id");
             } catch (Exception $e) {
-                // Rollback product creation on upload failure
+                // Rollback product creation on database failure
                 $conn->query("DELETE FROM products WHERE id = $product_id");
                 
-                error_log("add-product.php: Cloudinary upload exception for product $product_id: " . $e->getMessage());
-                error_log("add-product.php: Exception trace: " . $e->getTraceAsString());
+                error_log("add-product.php: Failed to save primary image for product $product_id: " . $e->getMessage());
                 
-                $_SESSION['error_message'] = "Failed to upload primary image to Cloudinary: " . $e->getMessage();
+                $_SESSION['error_message'] = "Failed to save primary image: " . $e->getMessage();
                 header("Location: /backend/pages/products/add-product.php");
                 exit();
             }
         }
 
-        // Handle Additional Images Upload - Direct to Cloudinary (max 3 images)
-        if (!empty($_FILES['additional_images']['name'][0])) {
-            require_once __DIR__ . '/../../includes/cloudinary-helper.php';
+        // Handle Additional Images - Get from AJAX upload metadata
+        $additionalImageUrls = $_POST['additional_image_urls'] ?? '';
+        $additionalImagePublicIds = $_POST['additional_image_public_ids'] ?? '';
+        
+        if (!empty($additionalImageUrls) && !empty($additionalImagePublicIds)) {
+            $urls = json_decode($additionalImageUrls, true);
+            $publicIds = json_decode($additionalImagePublicIds, true);
             
-            $uploadedCount = 0;
-            $failedUploads = [];
-            $maxAdditionalImages = 3;
-            
-            foreach ($_FILES['additional_images']['tmp_name'] as $key => $tmp_name) {
-                // Stop if we've reached the maximum
-                if ($uploadedCount >= $maxAdditionalImages) {
-                    error_log("Maximum of $maxAdditionalImages additional images reached for product $product_id");
-                    break;
-                }
+            if (is_array($urls) && is_array($publicIds) && count($urls) === count($publicIds)) {
+                $stmt = $conn->prepare("INSERT INTO product_images (product_id, image_url, cloud_url, cloud_public_id, cloud_provider, is_primary) VALUES (?, NULL, ?, ?, 'cloudinary', 0)");
                 
-                // Skip empty uploads
-                if (empty($tmp_name) || empty($_FILES['additional_images']['name'][$key])) {
-                    continue;
-                }
-                
-                // Create file array for validation
-                $fileArray = [
-                    'name' => $_FILES['additional_images']['name'][$key],
-                    'type' => $_FILES['additional_images']['type'][$key],
-                    'tmp_name' => $tmp_name,
-                    'error' => $_FILES['additional_images']['error'][$key],
-                    'size' => $_FILES['additional_images']['size'][$key]
-                ];
-                
-                // Validate image file
-                $validation = validateUploadedImage($fileArray);
-                
-                if (!$validation['valid']) {
-                    $failedUploads[] = "Image " . ($key + 1) . ": " . $validation['error'];
-                    error_log("Additional image validation failed for product $product_id: " . $validation['error']);
-                    continue;
-                }
-                
-                // Generate sanitized public ID
-                $sanitizedName = sanitizeFilenameForCloudinary($_FILES['additional_images']['name'][$key]);
-                $publicId = 'product_' . $product_id . '_additional_' . ($uploadedCount + 1) . '_' . time();
-                
-                try {
-                    $cloudinaryResult = uploadToCloudinary(
-                        $tmp_name, 
-                        'neocafe/products', 
-                        $publicId
-                    );
+                foreach ($urls as $index => $url) {
+                    $publicId = $publicIds[$index];
                     
-                    if ($cloudinaryResult['success']) {
-                        // Store Cloudinary URL in database
-                        $stmt = $conn->prepare("INSERT INTO product_images (product_id, image_url, cloud_url, cloud_public_id, cloud_provider, is_primary) VALUES (?, NULL, ?, ?, 'cloudinary', 0)");
-                        $stmt->bind_param("iss", $product_id, $cloudinaryResult['url'], $cloudinaryResult['public_id']);
+                    try {
+                        $stmt->bind_param("iss", $product_id, $url, $publicId);
                         
                         if ($stmt->execute()) {
-                            $uploadedCount++;
-                            error_log("Successfully uploaded additional image $uploadedCount to Cloudinary for product $product_id");
+                            // Remove from temp tracking (no longer orphaned)
+                            $conn->query("DELETE FROM temp_uploaded_images WHERE public_id = '$publicId'");
+                            error_log("Successfully saved additional image " . ($index + 1) . " for product $product_id");
                         } else {
-                            $failedUploads[] = "Image " . ($key + 1) . ": Database save failed";
                             error_log("Failed to save additional image to database for product $product_id: " . $stmt->error);
                         }
-                        
-                        // Delete temporary file
-                        @unlink($tmp_name);
-                    } else {
-                        $failedUploads[] = "Image " . ($key + 1) . ": " . $cloudinaryResult['error'];
-                        error_log("Cloudinary upload failed for additional image (product $product_id): " . $cloudinaryResult['error']);
+                    } catch (Exception $e) {
+                        error_log("Exception saving additional image for product $product_id: " . $e->getMessage());
                     }
-                } catch (Exception $e) {
-                    $failedUploads[] = "Image " . ($key + 1) . ": " . $e->getMessage();
-                    error_log("Exception during additional image upload for product $product_id: " . $e->getMessage());
                 }
-            }
-            
-            // Log partial upload failures (but don't block product creation)
-            if (!empty($failedUploads)) {
-                error_log("Some additional images failed to upload for product $product_id: " . implode(", ", $failedUploads));
-                $_SESSION['warning_message'] = "Product created, but some additional images failed to upload: " . implode(", ", $failedUploads);
+                
+                $stmt->close();
             }
         }
 
@@ -392,7 +315,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico">
     <link rel="stylesheet" href="/backend/pages/products/add-product.css">
+    <link rel="stylesheet" href="/backend/pages/products/css/product-image-ajax.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="components/date-calendar.js" defer></script>
+    <script src="/backend/pages/products/js/product-image-ajax.js" defer></script>
     <style>
         .success-popup {
             display: none;
@@ -469,6 +395,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <?php endif; ?>
     <div class="mainContainer">
         <form method="post" enctype="multipart/form-data" onsubmit="return validateForm()">
+            <!-- Hidden fields for AJAX-uploaded image metadata -->
+            <input type="hidden" id="csrf_token" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+            <input type="hidden" id="primary_image_url" name="primary_image_url" value="">
+            <input type="hidden" id="primary_image_public_id" name="primary_image_public_id" value="">
+            <input type="hidden" id="additional_image_urls" name="additional_image_urls" value="">
+            <input type="hidden" id="additional_image_public_ids" name="additional_image_public_ids" value="">
+            
             <div class="container">
                 <div class="grp1">
                     <label>SKU:</label>
@@ -497,22 +430,34 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <div class="images-section">
                                 <label class="main-img">Primary Image (1 Image Only):</label>
                                 <div class="image-upload primary-image-upload">
-                                    <input type="file" name="primary_image" id="primaryImageInput" accept="image/*" required style="display: none;">
+                                    <input type="file" id="primaryImageInput" accept="image/*" style="display: none;">
                                     <label for="primaryImageInput" class="upload-btn add-img-btn" id="primaryUploadBtn">
                                         Click to Upload Image
                                     </label>
                                     <div class="primary-preview-container" id="primaryPreviewContainer"></div>
+                                    <div class="loading-indicator" id="primaryLoadingIndicator">
+                                        <i class="fas fa-spinner fa-spin"></i> Uploading...
+                                    </div>
+                                    <div class="success-indicator" id="primarySuccessIndicator">
+                                        <i class="fas fa-check-circle"></i> Upload successful!
+                                    </div>
                                 </div>
                             </div>
 
                             <div class="images-section">
                                 <label class="additional-img">Additional Images (Up to 3):</label>
                                 <div class="image-upload additional-images-upload">
-                                    <input type="file" name="additional_images[]" id="additionalImagesInput" accept="image/*" multiple style="display: none;">
+                                    <input type="file" id="additionalImagesInput" accept="image/*" multiple style="display: none;">
                                     <label for="additionalImagesInput" class="upload-btn add-img-btn" id="additionalUploadBtn">
-                                        Click to Upload Image
+                                        Click to Upload Additional Images (0/3)
                                     </label>
                                     <div class="additional-preview-container" id="additionalPreviewContainer"></div>
+                                    <div class="loading-indicator" id="additionalLoadingIndicator">
+                                        <i class="fas fa-spinner fa-spin"></i> Uploading...
+                                    </div>
+                                    <div class="success-indicator" id="additionalSuccessIndicator">
+                                        <i class="fas fa-check-circle"></i> Upload successful!
+                                    </div>
                                 </div>
                             </div>
                         </div>

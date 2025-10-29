@@ -24,16 +24,32 @@ Admin Upload → Validation → Cloudinary Upload → Store URL in DB → Displa
 
 ### 1. Database Schema Updates
 
-**Migration Script:** `add-cloudinary-columns.php`
+**Current Schema:** `product_images` table already has Cloudinary columns
 
 ```sql
--- Add Cloudinary URL columns
-ALTER TABLE products 
-ADD COLUMN cloudinary_url VARCHAR(500) NULL AFTER image_path,
-ADD COLUMN cloudinary_additional_images TEXT NULL AFTER additional_images;
+-- Existing product_images table structure:
+CREATE TABLE `product_images` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `product_id` int(11) NOT NULL,
+  `image_url` varchar(255) NOT NULL,  -- Legacy local path (make nullable)
+  `cloud_public_id` varchar(255) DEFAULT NULL,
+  `cloud_provider` varchar(50) DEFAULT 'cloudinary',
+  `cloud_url` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `is_primary` tinyint(1) NOT NULL DEFAULT 0,
+  `is_removed` tinyint(1) DEFAULT 0,
+  `temp_filename` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `product_id` (`product_id`),
+  KEY `cloud_public_id` (`cloud_public_id`)
+);
+```
 
--- Index for performance
-CREATE INDEX idx_cloudinary_url ON products(cloudinary_url);
+**Migration Needed:** Make `image_url` nullable for Cloudinary-only images
+
+```sql
+-- Allow image_url to be NULL since we're using cloud_url
+ALTER TABLE product_images MODIFY COLUMN image_url varchar(255) NULL;
 ```
 
 ### 2. Image Upload Flow (Add Product)
@@ -208,30 +224,23 @@ $stmt->execute();
 
 ## Data Models
 
-### Products Table Schema
+### Product Images Table Schema
 
 ```sql
-CREATE TABLE products (
+CREATE TABLE product_images (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    sku VARCHAR(50) UNIQUE NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    description TEXT,
-    price DECIMAL(10,2),
-    stock INT,
-    
-    -- Legacy local paths (keep for backward compatibility during migration)
-    image_path VARCHAR(255),
-    additional_images TEXT,
-    
-    -- New Cloudinary URLs
-    cloudinary_url VARCHAR(500),
-    cloudinary_additional_images TEXT,
-    
+    product_id INT NOT NULL,
+    image_url VARCHAR(255) NULL,  -- Legacy local path (nullable for Cloudinary-only)
+    cloud_public_id VARCHAR(255) NULL,
+    cloud_provider VARCHAR(50) DEFAULT 'cloudinary',
+    cloud_url TEXT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP NULL,
+    is_primary TINYINT(1) NOT NULL DEFAULT 0,
+    is_removed TINYINT(1) DEFAULT 0,
+    temp_filename VARCHAR(255) NULL,
     
-    INDEX idx_cloudinary_url (cloudinary_url)
+    INDEX idx_product_id (product_id),
+    INDEX idx_cloud_public_id (cloud_public_id)
 );
 ```
 

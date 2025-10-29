@@ -70,11 +70,11 @@ This feature integrates Cloudinary cloud storage throughout the entire product m
 
 #### Acceptance Criteria
 
-1. THE System SHALL have a `cloudinary_url` column in the products table for primary images
-2. THE System SHALL have a `cloudinary_additional_images` column in the products table for additional images
-3. WHEN querying products, THE System SHALL retrieve Cloudinary URLs instead of local paths
-4. THE System SHALL maintain backward compatibility with existing `image_path` columns during migration
-5. THE System SHALL provide a migration script to add columns if they don't exist
+1. THE System SHALL have a `cloud_url` column in the product_images table for Cloudinary URLs
+2. THE System SHALL have a `cloud_public_id` column in the product_images table for Cloudinary public IDs
+3. THE System SHALL have a `cloud_provider` column in the product_images table defaulting to 'cloudinary'
+4. WHEN inserting images, THE System SHALL allow `image_url` to be NULL or store the cloud_url value
+5. WHEN querying products, THE System SHALL retrieve Cloudinary URLs from the cloud_url column
 
 ### Requirement 6
 

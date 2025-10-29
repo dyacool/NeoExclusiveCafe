@@ -1,48 +1,39 @@
 # Implementation Plan: Cloudinary Product Image Integration
 
-- [x] 1. Database preparation and migration
+- [ ] 1. Database preparation and migration
 
-
-
-
-
-  - Run `add-cloudinary-columns.php` to add Cloudinary URL columns to products table
-  - Verify columns exist with proper data types and indexes
-  - Test database schema changes on development environment
+  - Verify product_images table has cloud_url, cloud_public_id, and cloud_provider columns
+  - Make image_url column nullable: `ALTER TABLE product_images MODIFY COLUMN image_url varchar(255) NULL;`
+  - Test database schema changes work correctly
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
 
-- [x] 2. Update product image upload (add-product.php)
+- [ ] 2. Update product image upload (add-product.php)
 
+- [ ] 2.1 Modify primary image upload logic
 
-
-
-- [x] 2.1 Modify primary image upload logic
-
-
-  - Remove local file storage code from add-product.php
-  - Implement direct Cloudinary upload using `uploadToCloudinary()` helper
-  - Store Cloudinary URL in `cloudinary_url` column instead of local path
+  - Fix the INSERT statement to properly handle NULL image_url or use cloud_url value
+  - Ensure cloud_url, cloud_public_id, and cloud_provider are correctly inserted
+  - Verify Cloudinary upload works and stores data in product_images table
   - Add proper error handling for failed Cloudinary uploads
   - Delete temporary files after successful upload
   - _Requirements: 1.1, 1.2, 1.4, 1.5, 7.1, 7.2, 7.4_
 
 
-- [x] 2.2 Modify additional images upload logic
+- [ ] 2.2 Modify additional images upload logic
 
-  - Update additional images upload to use Cloudinary
-  - Store multiple Cloudinary URLs as JSON array in `cloudinary_additional_images` column
+  - Fix the INSERT statement for additional images to properly handle NULL image_url
+  - Store each additional image as separate row in product_images table with is_primary=0
   - Implement loop to upload each additional image (max 3)
   - Handle partial upload failures gracefully
   - _Requirements: 1.3, 1.4, 7.1, 7.2_
 
 - [x] 2.3 Add image validation before upload
 
-
-  - Implement file type validation (JPEG, PNG, GIF, WebP only)
-  - Add file size validation (max 10MB)
-  - Verify image validity using `getimagesize()`
-  - Sanitize filenames for Cloudinary public IDs
-  - Display specific error messages for validation failures
+  - File type validation already implemented (JPEG, PNG, GIF, WebP only)
+  - File size validation already implemented (max 10MB)
+  - Image validity check using `getimagesize()` already implemented
+  - Filename sanitization for Cloudinary public IDs already implemented
+  - Error messages already implemented
   - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
 
 - [x] 3. Update product list display (product-list.php)
