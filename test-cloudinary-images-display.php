@@ -233,6 +233,21 @@ $fetcher = new CloudinaryImageFetcher($conn);
                 echo '<span class="status error">✗ Cloudinary Connection Failed</span>';
             }
             
+            // Check if cloudinary_url column exists
+            $checkColumn = $conn->query("SHOW COLUMNS FROM products LIKE 'cloudinary_url'");
+            
+            if ($checkColumn->num_rows == 0) {
+                echo '<div class="error-box">';
+                echo '<strong>⚠️ Database not ready for Cloudinary!</strong><br><br>';
+                echo 'The <code>cloudinary_url</code> column does not exist in the products table.<br><br>';
+                echo '<strong>To fix this:</strong><br>';
+                echo '1. Run: <code>php add-cloudinary-columns.php</code><br>';
+                echo '2. Then migrate your images to Cloudinary<br>';
+                echo '3. Refresh this page';
+                echo '</div>';
+                exit;
+            }
+            
             // Get products with Cloudinary URLs
             $sql = "SELECT id, name, cloudinary_url FROM products WHERE cloudinary_url IS NOT NULL AND cloudinary_url != '' AND deleted_at IS NULL LIMIT 12";
             $result = $conn->query($sql);
