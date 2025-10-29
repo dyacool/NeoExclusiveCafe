@@ -260,7 +260,6 @@
                                         p.category_id, c.name AS category_name,
                                         p.is_featured, p.show_when_unavailable, p.hide_when_unavailable,
                                         p.quantity, p.availtoday_status_id, ats.name AS availtoday_status_name,
-                                        p.cloudinary_url,
                                         qpd.quantity as sameday_stock_today,
                                         GROUP_CONCAT(DISTINCT pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days,
                                         GROUP_CONCAT(DISTINCT tpd.available_date ORDER BY tpd.available_date SEPARATOR ',') as todays_product_dates,
@@ -286,7 +285,6 @@
                                                     p.category_id, c.name AS category_name,
                                                     p.is_featured, p.show_when_unavailable, p.hide_when_unavailable,
                                                     p.quantity, p.availtoday_status_id, ats.name AS availtoday_status_name,
-                                                    p.cloudinary_url,
                                                     qpd.quantity as sameday_stock_today,
                                                     GROUP_CONCAT(DISTINCT pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days,
                                                     GROUP_CONCAT(DISTINCT tpd.available_date ORDER BY tpd.available_date SEPARATOR ',') as todays_product_dates,
@@ -395,7 +393,7 @@
                                             $imagePath = $productImages[$row['id']]['url'];
                                             error_log("product-list.php: Product {$row['id']} using Cloudinary image: " . substr($imagePath, 0, 80));
                                         } else {
-                                            error_log("product-list.php: Product {$row['id']} ({$row['name']}) NOT in productImages array - using placeholder. DB cloudinary_url: " . ($row['cloudinary_url'] ?? 'NULL'));
+                                            error_log("product-list.php: Product {$row['id']} ({$row['name']}) NOT in productImages array - using placeholder");
                                         }
                                     } catch (Exception $e) {
                                         error_log("Error displaying image for product {$row['id']}: " . $e->getMessage());
