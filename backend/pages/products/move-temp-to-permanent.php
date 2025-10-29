@@ -1,12 +1,30 @@
 <?php
+/**
+ * DEPRECATED: This file is deprecated as of the Cloudinary integration.
+ * All images are now stored in Cloudinary, not locally.
+ * This file is kept for backward compatibility only.
+ */
+
 session_start();
 require_once '../admin-includes/database.php';
+require_once '../../includes/cloudinary-helper.php';
+
+// Log deprecated file access
+logLocalFileAccess(__FILE__, 'DEPRECATED_ACCESS', 'move-temp-to-permanent.php accessed - this file should not be used with Cloudinary integration');
 
 // Check if admin is logged in
 if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
     echo json_encode(['success' => false, 'error' => 'Unauthorized access']);
     exit;
 }
+
+// Return deprecation warning
+echo json_encode([
+    'success' => false,
+    'error' => 'This endpoint is deprecated. Images are now managed through Cloudinary.',
+    'deprecated' => true
+]);
+exit;
 
 // Get parameters
 $tempFilename = $_POST['temp_filename'] ?? '';

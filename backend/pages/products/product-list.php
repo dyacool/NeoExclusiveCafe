@@ -10,6 +10,7 @@
     include __DIR__ . "/../admin-includes/database.php";
     require_once __DIR__ . "/../admin-includes/settings-helper.php";
     require_once __DIR__ . "/todays-products-handler.php";
+    require_once __DIR__ . "/../../backend/includes/cloudinary-image-fetcher.php";
     
     // Clean up past dates automatically when page loads
     try {
@@ -252,7 +253,6 @@
                                         p.id, p.sku, p.name, p.description, p.price, p.status_id, ps.name AS status_name, 
                                         p.unavailable_status_id, ups.name AS unavailable_status_name,
                                         p.category_id, c.name AS category_name,
-                                        COALESCE(pi.cloud_url, pi.image_url) as image_url,
                                         p.is_featured, p.show_when_unavailable, p.hide_when_unavailable,
                                         p.quantity, p.availtoday_status_id, ats.name AS availtoday_status_name,
                                         qpd.quantity as sameday_stock_today,
@@ -264,7 +264,6 @@
                                     LEFT JOIN unavail_products_status ups ON p.unavailable_status_id = ups.id
                                     LEFT JOIN availtoday_status ats ON p.availtoday_status_id = ats.id
                                     LEFT JOIN categories c ON p.category_id = c.id
-                                    LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
                                     LEFT JOIN product_day pd ON p.id = pd.product_id
                                     LEFT JOIN todays_products_dates tpd ON p.id = tpd.product_id
                                     LEFT JOIN regular_products_today_dates rptd ON p.id = rptd.product_id
@@ -279,7 +278,6 @@
                                                     p.id, p.sku, p.name, p.description, p.price, p.status_id, ps.name AS status_name, 
                                                     p.unavailable_status_id, ups.name AS unavailable_status_name,
                                                     p.category_id, c.name AS category_name,
-                                                    COALESCE(pi.cloud_url, pi.image_url) as image_url,
                                                     p.is_featured, p.show_when_unavailable, p.hide_when_unavailable,
                                                     p.quantity, p.availtoday_status_id, ats.name AS availtoday_status_name,
                                                     qpd.quantity as sameday_stock_today,
@@ -291,7 +289,6 @@
                                                 LEFT JOIN unavail_products_status ups ON p.unavailable_status_id = ups.id
                                                 LEFT JOIN availtoday_status ats ON p.availtoday_status_id = ats.id
                                                 LEFT JOIN categories c ON p.category_id = c.id
-                                                LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
                                                 LEFT JOIN product_day pd ON p.id = pd.product_id
                                                 LEFT JOIN todays_products_dates tpd ON p.id = tpd.product_id
                                                 LEFT JOIN regular_products_today_dates rptd ON p.id = rptd.product_id
@@ -312,9 +309,34 @@
                             }
                                     
                             $result = $conn->query($sql);
-
+                            
+                            // Collect product IDs for batch image fetching
+                            $productIds = [];
+                            $products = [];
                             if ($result->num_rows > 0) {
                                 while ($row = $result->fetch_assoc()) {
+                                    $productIds[] = $row['id'];
+                                    $products[] = $row;
+                                }
+                            }
+                            
+                            // Batch fetch images from Cloudinary with thumbnail transformations
+                            $productImages = [];
+                            if (!empty($productIds)) {
+                                try {
+                                    $fetcher = new CloudinaryImageFetcher($conn);
+                                    $productImages = $fetcher->fetchMultipleProductImages(
+                                        $productIds, 
+                                        ['width' => 300, 'quality' => 'auto', 'fetch_format' => 'auto'],
+                                        true // Skip products without Cloudinary URLs
+                                    );
+                                } catch (Exception $e) {
+                                    error_log("Error fetching Cloudinary images: " . $e->getMessage());
+                                }
+                            }
+
+                            if (!empty($products)) {
+                                foreach ($products as $row) {
                                     // Debug: Log availtoday_status data
                                     error_log("Product ID: " . $row['id'] . " | availtoday_status_id: " . ($row['availtoday_status_id'] ?? 'NULL') . " | availtoday_status_name: " . ($row['availtoday_status_name'] ?? 'NULL'), 3, __DIR__ . "/../../../logs/php_errors.log");
                                     
@@ -349,16 +371,14 @@
 
                                     $statusClass = strtolower(str_replace(' ', '-', $row['status_name'] ?? 'Unknown'));
 
-                                    // Construct image path - handle both Cloudinary URLs and local paths
-                                    $imagePath = '';
-                                    if (!empty($row['image_url'])) {
-                                        if (strpos($row['image_url'], 'http://') === 0 || strpos($row['image_url'], 'https://') === 0) {
-                                            // It's a full URL (Cloudinary)
-                                            $imagePath = $row['image_url'];
-                                        } else {
-                                            // It's a local path
-                                            $imagePath = '/assets/' . $row['image_url'];
+                                    // Get image from Cloudinary with error handling
+                                    $imagePath = '/assets/images/placeholder-product.png'; // Default placeholder
+                                    try {
+                                        if (isset($productImages[$row['id']])) {
+                                            $imagePath = $productImages[$row['id']]['url'];
                                         }
+                                    } catch (Exception $e) {
+                                        error_log("Error displaying image for product {$row['id']}: " . $e->getMessage());
                                     }
 
                                     $displayStatus = ($row['status_id'] == 4) ? 'Same Day Order' : ($row['status_name'] ?? 'Unknown');
@@ -375,7 +395,7 @@
                                     echo "<tr data-status='" . $displayStatus . "' data-name='" . strtolower($row['name']) . "' data-sku='" . strtolower($row['sku']) . "'>
                                             <td>
                                                 <div class='product-image-container'>
-                                                    <img class='product-image' src='" . htmlspecialchars($imagePath) . "' alt='" . htmlspecialchars($row['name']) . "' loading='lazy'>
+                                                    <img class='product-image' src='" . htmlspecialchars($imagePath) . "' alt='" . htmlspecialchars($row['name']) . "' loading='lazy' onerror=\"this.src='/assets/images/placeholder-product.png'\">
                                                     " . ($row['is_featured'] ? "<span class='featured-badge'>★</span>" : "") . "
                                                 </div>
                                             </td>

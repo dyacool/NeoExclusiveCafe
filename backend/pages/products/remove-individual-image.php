@@ -1,12 +1,31 @@
 <?php
+/**
+ * DEPRECATED: This file is deprecated as of the Cloudinary integration.
+ * All images are now stored in Cloudinary, not locally.
+ * Use manage-additional-images.php instead.
+ * This file is kept for backward compatibility only.
+ */
+
 session_start();
 require_once '../admin-includes/database.php';
+require_once '../../includes/cloudinary-helper.php';
+
+// Log deprecated file access
+logLocalFileAccess(__FILE__, 'DEPRECATED_ACCESS', 'remove-individual-image.php accessed - use manage-additional-images.php instead');
 
 // Check if admin is logged in
 if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
     echo json_encode(['success' => false, 'error' => 'Unauthorized access']);
     exit;
 }
+
+// Return deprecation warning
+echo json_encode([
+    'success' => false,
+    'error' => 'This endpoint is deprecated. Use manage-additional-images.php instead.',
+    'deprecated' => true
+]);
+exit;
 
 // Get parameters
 $imageId = $_POST['image_id'] ?? '';

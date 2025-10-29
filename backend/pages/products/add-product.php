@@ -11,6 +11,71 @@ require_once __DIR__ . "/../admin-includes/config.php";
 include __DIR__ . "/../admin-includes/database.php";
 require_once __DIR__ . "/../admin-includes/activity-logger.php";
 
+/**
+ * Validate uploaded image file
+ * 
+ * @param array $file $_FILES array element
+ * @return array ['valid' => bool, 'error' => string|null]
+ */
+function validateUploadedImage($file) {
+    // Check if file was uploaded
+    if (!isset($file['tmp_name']) || empty($file['tmp_name'])) {
+        return ['valid' => false, 'error' => 'No file uploaded'];
+    }
+    
+    // Check for upload errors
+    if ($file['error'] !== UPLOAD_ERR_OK) {
+        return ['valid' => false, 'error' => 'File upload error: ' . $file['error']];
+    }
+    
+    // Validate file exists
+    if (!file_exists($file['tmp_name'])) {
+        return ['valid' => false, 'error' => 'Uploaded file not found'];
+    }
+    
+    // Validate file type using getimagesize
+    $imageInfo = @getimagesize($file['tmp_name']);
+    if ($imageInfo === false) {
+        return ['valid' => false, 'error' => 'File is not a valid image'];
+    }
+    
+    // Check allowed MIME types (JPEG, PNG, GIF, WebP)
+    $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!in_array($imageInfo['mime'], $allowedMimeTypes)) {
+        return ['valid' => false, 'error' => 'Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed'];
+    }
+    
+    // Check file size (max 10MB)
+    $maxSize = 10 * 1024 * 1024; // 10MB in bytes
+    if ($file['size'] > $maxSize) {
+        return ['valid' => false, 'error' => 'File size exceeds 10MB limit'];
+    }
+    
+    return ['valid' => true, 'error' => null];
+}
+
+/**
+ * Sanitize filename for Cloudinary public ID
+ * 
+ * @param string $filename Original filename
+ * @return string Sanitized filename
+ */
+function sanitizeFilenameForCloudinary($filename) {
+    // Remove extension
+    $name = pathinfo($filename, PATHINFO_FILENAME);
+    
+    // Replace spaces and special characters with underscores
+    $name = preg_replace('/[^a-zA-Z0-9_-]/', '_', $name);
+    
+    // Remove multiple consecutive underscores
+    $name = preg_replace('/_+/', '_', $name);
+    
+    // Trim underscores from start and end
+    $name = trim($name, '_');
+    
+    return $name;
+}
+
 // Function to generate SKU **only when inserting a new product**
 function generateSKU($conn) {
     $prefix = "SD-";
@@ -111,92 +176,139 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($stmt->execute()) {
         $product_id = $stmt->insert_id;
 
-        // Create product folder with unique timestamp to avoid conflicts
-        $timestamp = time();
-        $cleanProductName = preg_replace('/[^a-zA-Z0-9-_]/', '_', $name);
-        $folderName = $cleanProductName . '_' . $timestamp;
-        $productFolder = __DIR__ . "/../../../assets/product-images/" . $folderName . "/";
-        
-        if (!file_exists($productFolder)) {
-            mkdir($productFolder, 0777, true);
-        }
-
-        // Handle Primary Image Upload
+        // Handle Primary Image Upload - Direct to Cloudinary (no local storage)
         if (!empty($_FILES['primary_image']['name'])) {
-            $fileName = basename($_FILES['primary_image']['name']);
-            $fileExt = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+            // Validate image file
+            $validation = validateUploadedImage($_FILES['primary_image']);
             
-            // Only allow certain image file formats
-            $allowedTypes = array('jpg', 'jpeg', 'png', 'webp', 'jfif');
-            if (in_array($fileExt, $allowedTypes)) {
-                // Create a clean, web-safe filename
-                $cleanFileName = 'primary_' . $timestamp . '.' . $fileExt;
-                $filePath = $productFolder . $cleanFileName;
+            if (!$validation['valid']) {
+                // Rollback product creation on validation failure
+                $conn->query("DELETE FROM products WHERE id = $product_id");
+                $_SESSION['error_message'] = "Primary image validation failed: " . $validation['error'];
+                header("Location: /backend/pages/products/add-product.php");
+                exit();
+            }
+            
+            // Upload directly to Cloudinary
+            require_once __DIR__ . '/../../includes/cloudinary-helper.php';
+            
+            // Generate sanitized public ID
+            $sanitizedName = sanitizeFilenameForCloudinary($_FILES['primary_image']['name']);
+            $publicId = 'product_' . $product_id . '_primary_' . time();
+            
+            try {
+                $cloudinaryResult = uploadToCloudinary(
+                    $_FILES['primary_image']['tmp_name'], 
+                    'neocafe/products', 
+                    $publicId
+                );
                 
-                if (move_uploaded_file($_FILES['primary_image']['tmp_name'], $filePath)) {
-                    // Upload to Cloudinary
-                    require_once __DIR__ . '/../../../backend/includes/cloudinary-helper.php';
-                    $cloudinaryResult = uploadToCloudinary($filePath, 'neocafe/products', 'product_' . $product_id . '_primary');
+                if ($cloudinaryResult['success']) {
+                    // Store Cloudinary URL in database
+                    $stmt = $conn->prepare("INSERT INTO product_images (product_id, image_url, cloud_url, cloud_public_id, cloud_provider, is_primary) VALUES (?, NULL, ?, ?, 'cloudinary', 1)");
+                    $stmt->bind_param("iss", $product_id, $cloudinaryResult['url'], $cloudinaryResult['public_id']);
                     
-                    if ($cloudinaryResult['success']) {
-                        // Store both local path and Cloudinary URL in database
-                        $dbImagePath = "product-images/" . $folderName . "/" . $cleanFileName;
-                        $stmt = $conn->prepare("INSERT INTO product_images (product_id, image_url, cloud_url, cloud_public_id, cloud_provider, is_primary) VALUES (?, ?, ?, ?, 'cloudinary', 1)");
-                        $stmt->bind_param("isss", $product_id, $dbImagePath, $cloudinaryResult['url'], $cloudinaryResult['public_id']);
-                        $stmt->execute();
-                        
-                        // Delete local file after successful Cloudinary upload
-                        @unlink($filePath);
-                    } else {
-                        // Fallback: Store only local path if Cloudinary upload fails
-                        $dbImagePath = "product-images/" . $folderName . "/" . $cleanFileName;
-                        $stmt = $conn->prepare("INSERT INTO product_images (product_id, image_url, is_primary) VALUES (?, ?, 1)");
-                        $stmt->bind_param("is", $product_id, $dbImagePath);
-                        $stmt->execute();
-                        error_log("Cloudinary upload failed for primary image: " . $cloudinaryResult['error']);
+                    if (!$stmt->execute()) {
+                        throw new Exception("Failed to save image to database: " . $stmt->error);
                     }
+                    
+                    // Delete temporary file
+                    @unlink($_FILES['primary_image']['tmp_name']);
+                    
+                    error_log("Successfully uploaded primary image to Cloudinary for product $product_id");
+                } else {
+                    throw new Exception($cloudinaryResult['error']);
                 }
+            } catch (Exception $e) {
+                // Rollback product creation on upload failure
+                $conn->query("DELETE FROM products WHERE id = $product_id");
+                
+                error_log("Cloudinary upload failed for product $product_id: " . $e->getMessage());
+                
+                $_SESSION['error_message'] = "Failed to upload primary image to Cloudinary. Please try again.";
+                header("Location: /backend/pages/products/add-product.php");
+                exit();
             }
         }
 
-        // Handle Additional Images Upload
+        // Handle Additional Images Upload - Direct to Cloudinary (max 3 images)
         if (!empty($_FILES['additional_images']['name'][0])) {
-            require_once __DIR__ . '/../../../backend/includes/cloudinary-helper.php';
+            require_once __DIR__ . '/../../includes/cloudinary-helper.php';
+            
+            $uploadedCount = 0;
+            $failedUploads = [];
+            $maxAdditionalImages = 3;
             
             foreach ($_FILES['additional_images']['tmp_name'] as $key => $tmp_name) {
-                $fileName = basename($_FILES['additional_images']['name'][$key]);
-                $fileExt = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
-                
-                // Only allow certain image file formats
-                $allowedTypes = array('jpg', 'jpeg', 'png', 'webp', 'jfif');
-                if (in_array($fileExt, $allowedTypes)) {
-                    // Create a clean, web-safe filename
-                    $cleanFileName = 'additional_' . $timestamp . '_' . ($key + 1) . '.' . $fileExt;
-                    $filePath = $productFolder . $cleanFileName;
-                    
-                    if (move_uploaded_file($tmp_name, $filePath)) {
-                        // Upload to Cloudinary
-                        $cloudinaryResult = uploadToCloudinary($filePath, 'neocafe/products', 'product_' . $product_id . '_additional_' . ($key + 1));
-                        
-                        if ($cloudinaryResult['success']) {
-                            // Store both local path and Cloudinary URL in database
-                            $dbImagePath = "product-images/" . $folderName . "/" . $cleanFileName;
-                            $stmt = $conn->prepare("INSERT INTO product_images (product_id, image_url, cloud_url, cloud_public_id, cloud_provider, is_primary) VALUES (?, ?, ?, ?, 'cloudinary', 0)");
-                            $stmt->bind_param("isss", $product_id, $dbImagePath, $cloudinaryResult['url'], $cloudinaryResult['public_id']);
-                            $stmt->execute();
-                            
-                            // Delete local file after successful Cloudinary upload
-                            @unlink($filePath);
-                        } else {
-                            // Fallback: Store only local path if Cloudinary upload fails
-                            $dbImagePath = "product-images/" . $folderName . "/" . $cleanFileName;
-                            $stmt = $conn->prepare("INSERT INTO product_images (product_id, image_url, is_primary) VALUES (?, ?, 0)");
-                            $stmt->bind_param("is", $product_id, $dbImagePath);
-                            $stmt->execute();
-                            error_log("Cloudinary upload failed for additional image: " . $cloudinaryResult['error']);
-                        }
-                    }
+                // Stop if we've reached the maximum
+                if ($uploadedCount >= $maxAdditionalImages) {
+                    error_log("Maximum of $maxAdditionalImages additional images reached for product $product_id");
+                    break;
                 }
+                
+                // Skip empty uploads
+                if (empty($tmp_name) || empty($_FILES['additional_images']['name'][$key])) {
+                    continue;
+                }
+                
+                // Create file array for validation
+                $fileArray = [
+                    'name' => $_FILES['additional_images']['name'][$key],
+                    'type' => $_FILES['additional_images']['type'][$key],
+                    'tmp_name' => $tmp_name,
+                    'error' => $_FILES['additional_images']['error'][$key],
+                    'size' => $_FILES['additional_images']['size'][$key]
+                ];
+                
+                // Validate image file
+                $validation = validateUploadedImage($fileArray);
+                
+                if (!$validation['valid']) {
+                    $failedUploads[] = "Image " . ($key + 1) . ": " . $validation['error'];
+                    error_log("Additional image validation failed for product $product_id: " . $validation['error']);
+                    continue;
+                }
+                
+                // Generate sanitized public ID
+                $sanitizedName = sanitizeFilenameForCloudinary($_FILES['additional_images']['name'][$key]);
+                $publicId = 'product_' . $product_id . '_additional_' . ($uploadedCount + 1) . '_' . time();
+                
+                try {
+                    $cloudinaryResult = uploadToCloudinary(
+                        $tmp_name, 
+                        'neocafe/products', 
+                        $publicId
+                    );
+                    
+                    if ($cloudinaryResult['success']) {
+                        // Store Cloudinary URL in database
+                        $stmt = $conn->prepare("INSERT INTO product_images (product_id, image_url, cloud_url, cloud_public_id, cloud_provider, is_primary) VALUES (?, NULL, ?, ?, 'cloudinary', 0)");
+                        $stmt->bind_param("iss", $product_id, $cloudinaryResult['url'], $cloudinaryResult['public_id']);
+                        
+                        if ($stmt->execute()) {
+                            $uploadedCount++;
+                            error_log("Successfully uploaded additional image $uploadedCount to Cloudinary for product $product_id");
+                        } else {
+                            $failedUploads[] = "Image " . ($key + 1) . ": Database save failed";
+                            error_log("Failed to save additional image to database for product $product_id: " . $stmt->error);
+                        }
+                        
+                        // Delete temporary file
+                        @unlink($tmp_name);
+                    } else {
+                        $failedUploads[] = "Image " . ($key + 1) . ": " . $cloudinaryResult['error'];
+                        error_log("Cloudinary upload failed for additional image (product $product_id): " . $cloudinaryResult['error']);
+                    }
+                } catch (Exception $e) {
+                    $failedUploads[] = "Image " . ($key + 1) . ": " . $e->getMessage();
+                    error_log("Exception during additional image upload for product $product_id: " . $e->getMessage());
+                }
+            }
+            
+            // Log partial upload failures (but don't block product creation)
+            if (!empty($failedUploads)) {
+                error_log("Some additional images failed to upload for product $product_id: " . implode(", ", $failedUploads));
+                $_SESSION['warning_message'] = "Product created, but some additional images failed to upload: " . implode(", ", $failedUploads);
             }
         }
 
@@ -325,6 +437,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <?php 
         echo $_SESSION['success_message'];
         unset($_SESSION['success_message']);
+        ?>
+    </div>
+    <?php endif; ?>
+    
+    <?php if(isset($_SESSION['error_message'])): ?>
+    <div class="error-popup" id="errorPopup" style="background-color: #ef4444;">
+        <?php 
+        echo $_SESSION['error_message'];
+        unset($_SESSION['error_message']);
+        ?>
+    </div>
+    <?php endif; ?>
+    
+    <?php if(isset($_SESSION['warning_message'])): ?>
+    <div class="warning-popup" id="warningPopup" style="background-color: #f59e0b;">
+        <?php 
+        echo $_SESSION['warning_message'];
+        unset($_SESSION['warning_message']);
         ?>
     </div>
     <?php endif; ?>
@@ -467,7 +597,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </script>
 
 <script>
-    // Show success popup if it exists
+    // Show success, error, and warning popups if they exist
     document.addEventListener('DOMContentLoaded', function() {
         const successPopup = document.getElementById('successPopup');
         if (successPopup) {
@@ -477,7 +607,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 setTimeout(() => {
                     successPopup.style.display = 'none';
                 }, 500);
-            }, 500);
+            }, 3000);
+        }
+        
+        const errorPopup = document.getElementById('errorPopup');
+        if (errorPopup) {
+            errorPopup.style.display = 'block';
+            setTimeout(() => {
+                errorPopup.style.animation = 'fadeOut 1s ease-out forwards';
+                setTimeout(() => {
+                    errorPopup.style.display = 'none';
+                }, 500);
+            }, 5000);
+        }
+        
+        const warningPopup = document.getElementById('warningPopup');
+        if (warningPopup) {
+            warningPopup.style.display = 'block';
+            setTimeout(() => {
+                warningPopup.style.animation = 'fadeOut 1s ease-out forwards';
+                setTimeout(() => {
+                    warningPopup.style.display = 'none';
+                }, 500);
+            }, 5000);
         }
 
         // Global variables to track uploaded files

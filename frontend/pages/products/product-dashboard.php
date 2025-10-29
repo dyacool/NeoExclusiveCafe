@@ -22,6 +22,7 @@ require_once __DIR__ . "/../../user-includes/user-header.php";
 require_once __DIR__ . "/../../user-includes/preview-mode.php";
 require_once __DIR__ . "/../../../backend/pages/admin-includes/database.php";
 require_once __DIR__ . "/../../../backend/pages/products/todays-products-handler.php";
+require_once __DIR__ . "/../../../backend/includes/cloudinary-image-fetcher.php";
 
 // Clean up past dates automatically when page loads
 cleanupPastDates();
@@ -434,6 +435,33 @@ if ($cart_truncated) {
                     });
 
                     if (count($all_products) > 0) {
+                        // Batch fetch images using CloudinaryImageFetcher for performance
+                        $productIds = array_column($all_products, 'id');
+                        $fetcher = new CloudinaryImageFetcher($conn);
+                        
+                        // Determine viewport size for responsive transformations
+                        // Mobile: 400px, Desktop: 800px (default to desktop)
+                        $isMobile = isset($_SERVER['HTTP_USER_AGENT']) && 
+                                   preg_match('/(android|iphone|ipad|mobile)/i', $_SERVER['HTTP_USER_AGENT']);
+                        $imageWidth = $isMobile ? 400 : 800;
+                        
+                        // Fetch all product images with responsive transformations
+                        try {
+                            $cloudinaryImages = $fetcher->fetchMultipleProductImages(
+                                $productIds, 
+                                [
+                                    'width' => $imageWidth,
+                                    'quality' => 'auto',
+                                    'fetch_format' => 'auto',
+                                    'crop' => 'limit'
+                                ],
+                                true // Skip products without Cloudinary URLs
+                            );
+                        } catch (Exception $e) {
+                            error_log("Error fetching Cloudinary images: " . $e->getMessage());
+                            $cloudinaryImages = [];
+                        }
+                        
                         foreach ($all_products as $row) {
                             // Get all images for this product (prioritize Cloudinary URLs)
                             $images_sql = "SELECT COALESCE(cloud_url, image_url) as image_url FROM product_images WHERE product_id = ?";
@@ -566,16 +594,32 @@ if ($cart_truncated) {
                                         <span class='unavailable-reason'>" . htmlspecialchars($unavailable_reason) . "</span>
                                       </div>";
                             } 
-                            // Handle both Cloudinary URLs (full URLs) and local paths
-                            $image_src = $row['image_url'] ?: 'images/no-image.jpg';
-                            if (strpos($image_src, 'http://') === 0 || strpos($image_src, 'https://') === 0) {
-                                // It's a full URL (Cloudinary)
-                                $image_path = $image_src;
-                            } else {
-                                // It's a local path
-                                $image_path = '../../../assets/' . $image_src;
+                            
+                            // Use CloudinaryImageFetcher result with fallback to placeholder
+                            $image_path = '../../../assets/images/no-image.jpg'; // Default placeholder
+                            $image_alt = htmlspecialchars($row['name']);
+                            
+                            if (isset($cloudinaryImages[$row['id']])) {
+                                // Use Cloudinary URL from batch fetch
+                                $image_path = htmlspecialchars($cloudinaryImages[$row['id']]['url']);
+                            } elseif (!empty($row['image_url'])) {
+                                // Fallback: Handle both Cloudinary URLs (full URLs) and local paths
+                                $image_src = $row['image_url'];
+                                if (strpos($image_src, 'http://') === 0 || strpos($image_src, 'https://') === 0) {
+                                    // It's a full URL (Cloudinary)
+                                    $image_path = htmlspecialchars($image_src);
+                                } else {
+                                    // It's a local path
+                                    $image_path = '../../../assets/' . htmlspecialchars($image_src);
+                                }
                             }
-                            echo "    <img src='" . htmlspecialchars($image_path) . "' alt='" . htmlspecialchars($row['name']) . "'>
+                            
+                            // Add lazy loading and error handling
+                            echo "    <img src='" . $image_path . "' 
+                                           alt='" . $image_alt . "' 
+                                           loading='lazy'
+                                           onerror=\"this.onerror=null; this.src='../../../assets/images/no-image.jpg';\"
+                                           class='product-dashboard-image'>
                                     </div>
                                     <div class='product-info'>
                                         <h3 class='productname'>" . htmlspecialchars($row['name']) . "</h3>
@@ -1107,6 +1151,66 @@ function closeProductModal() {
         const productData = JSON.parse(element.getAttribute('data-product'));
         openProductModal(productData);
     };
+    
+    // Add loading state handling for images with performance optimizations
+    document.addEventListener('DOMContentLoaded', function() {
+        const productImages = document.querySelectorAll('.product-dashboard-image');
+        
+        // Use Intersection Observer for better lazy loading performance
+        if ('IntersectionObserver' in window) {
+            const imageObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        
+                        // Mark image as loaded when it finishes loading
+                        if (img.complete) {
+                            handleImageLoad(img);
+                        } else {
+                            img.addEventListener('load', function() {
+                                handleImageLoad(this);
+                            });
+                            
+                            // Handle error case
+                            img.addEventListener('error', function() {
+                                handleImageLoad(this);
+                            });
+                        }
+                        
+                        observer.unobserve(img);
+                    }
+                });
+            }, {
+                rootMargin: '50px' // Start loading images 50px before they enter viewport
+            });
+            
+            productImages.forEach(img => {
+                imageObserver.observe(img);
+            });
+        } else {
+            // Fallback for browsers without Intersection Observer
+            productImages.forEach(img => {
+                if (img.complete) {
+                    handleImageLoad(img);
+                } else {
+                    img.addEventListener('load', function() {
+                        handleImageLoad(this);
+                    });
+                    img.addEventListener('error', function() {
+                        handleImageLoad(this);
+                    });
+                }
+            });
+        }
+        
+        function handleImageLoad(img) {
+            img.classList.add('loaded');
+            const productImageContainer = img.closest('.product-image');
+            if (productImageContainer) {
+                productImageContainer.classList.add('image-loaded');
+            }
+        }
+    });
 
     // Quantity Modal Variables
     let pendingCartProduct = null;
@@ -1606,6 +1710,66 @@ function closeProductModal() {
             left: 10px;
             max-width: none;
         }
+    }
+    
+    /* Product image loading and error handling */
+    .product-dashboard-image {
+        transition: opacity 0.3s ease-in-out;
+        opacity: 0;
+        min-height: 200px;
+        object-fit: cover;
+    }
+    
+    .product-dashboard-image[loading='lazy'] {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: loading-shimmer 1.5s infinite;
+    }
+    
+    @keyframes loading-shimmer {
+        0% {
+            background-position: 200% 0;
+        }
+        100% {
+            background-position: -200% 0;
+        }
+    }
+    
+    /* Fade in effect when image loads */
+    .product-dashboard-image.loaded {
+        opacity: 1;
+    }
+    
+    /* Loading overlay for product images */
+    .product-image {
+        position: relative;
+    }
+    
+    .product-image::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: loading-shimmer 1.5s infinite;
+        z-index: 1;
+        pointer-events: none;
+        opacity: 1;
+        transition: opacity 0.3s ease-in-out;
+    }
+    
+    .product-image.image-loaded::before {
+        opacity: 0;
+    }
+    
+    /* Performance optimization: Use GPU acceleration for animations */
+    .product-dashboard-image,
+    .product-image::before {
+        will-change: opacity;
+        transform: translateZ(0);
     }
 </style>
             
