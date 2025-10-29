@@ -105,7 +105,7 @@ if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
     <h1>🗄️ Database Migration Runner</h1>
     
     <div class="migration-box">
-        <h2>AJAX Image Management Support</h2>
+        <h2>AJAX Image Management Support (Products)</h2>
         <p><strong>Migration:</strong> add-ajax-image-support.php</p>
         <p><strong>Description:</strong> This migration prepares the database for AJAX-based image management with Cloudinary.</p>
         <p><strong>Changes:</strong></p>
@@ -114,7 +114,21 @@ if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
             <li>Creates <code>temp_uploaded_images</code> table for orphan tracking</li>
             <li>Adds performance indexes</li>
         </ul>
-        <button class="btn" onclick="runMigration()">Run Migration</button>
+        <button class="btn" onclick="runMigration('add-ajax-image-support.php', this)">Run Migration</button>
+    </div>
+    
+    <div class="migration-box">
+        <h2>Carousel AJAX Image Management Support</h2>
+        <p><strong>Migration:</strong> add-carousel-ajax-support.php</p>
+        <p><strong>Description:</strong> This migration prepares the carousel_images table for AJAX-based image management.</p>
+        <p><strong>Changes:</strong></p>
+        <ul>
+            <li>Adds Cloudinary columns (<code>cloud_url</code>, <code>cloud_public_id</code>, <code>cloud_provider</code>) to <code>carousel_images</code> table</li>
+            <li>Makes <code>image_url</code> column nullable</li>
+            <li>Adds performance indexes</li>
+            <li>Reuses <code>temp_uploaded_images</code> table from product images</li>
+        </ul>
+        <button class="btn" onclick="runMigration('add-carousel-ajax-support.php', this)">Run Migration</button>
     </div>
     
     <div id="output"></div>
@@ -122,17 +136,16 @@ if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
     <a href="/backend/pages/products/product-list.php" class="back-link">← Back to Products</a>
     
     <script>
-        async function runMigration() {
-            const btn = document.querySelector('.btn');
+        async function runMigration(migrationFile, btn) {
             const output = document.getElementById('output');
             
             btn.disabled = true;
             btn.textContent = 'Running...';
             output.style.display = 'block';
-            output.innerHTML = '<span class="warning">Running migration...</span>\n\n';
+            output.innerHTML = '<span class="warning">Running migration: ' + migrationFile + '</span>\n\n';
             
             try {
-                const response = await fetch('migrations/add-ajax-image-support.php');
+                const response = await fetch('migrations/' + migrationFile);
                 const text = await response.text();
                 
                 // Format output with colors
