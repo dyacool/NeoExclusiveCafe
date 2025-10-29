@@ -1149,6 +1149,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
             } catch (error) {
                 console.error('[AVAILTODAY CHECKOUT] Payment error:', error);
+                console.log('[LOADING STATE] Resetting loading state due to error');
                 alert('An error occurred while processing your payment: ' + error.message);
                 setLoadingState(false);
                 orderProcessing = false;
@@ -1165,6 +1166,8 @@ function setLoadingState(isLoading) {
         return;
     }
     
+    console.log('[LOADING STATE] Setting loading state:', isLoading, 'for button:', submitButton);
+    
     const buttonText = submitButton.querySelector('.button-text') || submitButton;
     
     if (isLoading) {
@@ -1176,6 +1179,8 @@ function setLoadingState(isLoading) {
         buttonText.innerHTML = '<span class="spinner"></span>Processing Order...';
         submitButton.style.opacity = '0.7';
         submitButton.style.cursor = 'not-allowed';
+        
+        console.log('[LOADING STATE] Button updated with loading state:', buttonText.innerHTML);
         
         // Start 20-second countdown to re-enable button
         startCountdownTimer(submitButton, buttonText);
@@ -1901,6 +1906,12 @@ option {
 
 @keyframes spin {
     to { transform: rotate(360deg); }
+}
+
+/* Ensure no duplicate circles */
+.place-order-btn::after,
+.place-order-btn::before {
+    display: none !important;
 }
 
 .btn-processing {

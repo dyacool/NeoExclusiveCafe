@@ -234,7 +234,7 @@
 
 .post-excerpt {
   color: #666;
-  margin-bottom: 1rem;
+  margin-bottom: 0;
   line-height: 1.6;
   font-size: 14px;
   text-align: justify;
