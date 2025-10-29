@@ -11,7 +11,7 @@ session_start();
 header('Content-Type: application/json');
 
 // Verify customer authentication
-if (!isset($_SESSION["user_id"]) || !isset($_SESSION["username"])) {
+if (!isset($_SESSION["user_id"])) {
     http_response_code(401);
     echo json_encode([
         'success' => false,
