@@ -15,7 +15,12 @@ $user_id = $_SESSION['user_id'];
 // Check if username exists in session, otherwise get it from database
 $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
 
-// Get user details from database
+// Generate CSRF token if not exists
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+// Get user details from database including Cloudinary fields
 $query = "SELECT * FROM users WHERE id = ?";
 $stmt = mysqli_prepare($conn, $query);
 mysqli_stmt_bind_param($stmt, "i", $user_id);
@@ -33,6 +38,24 @@ $lastname = $row['lastname'];
 // Get username from database if not in session
 if (empty($username) && isset($row['username'])) {
     $username = $row['username'];
+}
+
+// Determine profile image url - prioritize Cloudinary
+$profile_image_url = '';
+$profile_public_id = '';
+$has_profile_image = false;
+
+if (isset($row['cloud_url']) && !empty(trim($row['cloud_url']))) {
+    $profile_image_url = trim($row['cloud_url']);
+    $profile_public_id = $row['cloud_public_id'] ?? '';
+    $has_profile_image = true;
+} elseif (isset($row['profile_image']) && !empty(trim($row['profile_image']))) {
+    $db_path = trim($row['profile_image']);
+    if ($db_path[0] !== '/') {
+        $db_path = '/' . $db_path;
+    }
+    $profile_image_url = $db_path;
+    $has_profile_image = true;
 }
 
 $message = "";
@@ -72,81 +95,6 @@ if (isset($_POST['change_password'])) {
     }
 }
 
-// Handle profile image upload
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['profile_image'])) {
-    // Save to project root assets folder: C:\xampp\htdocs\NeoCafe\assets\public\profile-images
-    $upload_dir = __DIR__ . '/../../../assets/public/profile-images/';
-    
-    // Debug information
-    error_reporting(E_ALL);
-    ini_set('display_errors', 1);
-    echo "<!-- Debug: Upload directory = " . $upload_dir . " -->";
-    echo "<!-- Debug: File data = " . print_r($_FILES['profile_image'], true) . " -->";
-    
-    // Create directory if it doesn't exist
-    if (!file_exists($upload_dir)) {
-        $mkdir_result = mkdir($upload_dir, 0777, true);
-        if (!$mkdir_result) {
-            $error = "Failed to create upload directory. Please check permissions.";
-            echo "<!-- Debug: Failed to create directory -->";
-        }
-    }
-    
-    $file = $_FILES['profile_image'];
-    if ($file['error'] === UPLOAD_ERR_OK) {
-        $file_extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        $allowed_extensions = ['jpg', 'jpeg', 'png', 'gif'];
-        
-        if (in_array($file_extension, $allowed_extensions)) {
-            // Generate a secure random filename
-            try {
-                $random_bytes = random_bytes(16);
-                $random_string = bin2hex($random_bytes);
-            } catch (Exception $e) {
-                $random_string = bin2hex(openssl_random_pseudo_bytes(16));
-            }
-            $new_filename = 'profile_' . $random_string . '.' . $file_extension;
-            $upload_path = $upload_dir . $new_filename;
-            echo "<!-- Debug: Attempting to upload to = " . $upload_path . " -->";
-            
-            if (move_uploaded_file($file['tmp_name'], $upload_path)) {
-                // Store the relative path in database
-                $image_path = '/assets/public/profile-images/' . $new_filename;
-                $update_query = "UPDATE users SET profile_image = ? WHERE id = ?";
-                $update_stmt = mysqli_prepare($conn, $update_query);
-                mysqli_stmt_bind_param($update_stmt, "si", $image_path, $user_id);
-                if (mysqli_stmt_execute($update_stmt)) {
-                    $_SESSION['message'] = "Profile picture updated successfully!";
-                    // Update session so navbar/profile can fetch immediately
-                    $_SESSION['user_profile_image'] = $image_path;
-                    echo "<!-- Debug: Database updated with path = " . $image_path . " -->";
-                    // Redirect to prevent form resubmission
-                    header("Location: " . $_SERVER['PHP_SELF']);
-                    exit();
-                } else {
-                    $error = "Error updating profile picture in database: " . mysqli_error($conn);
-                    echo "<!-- Debug: Database error = " . mysqli_error($conn) . " -->";
-                }
-            } else {
-                $error = "Error moving uploaded file. Upload path: " . $upload_path;
-                echo "<!-- Debug: Failed to move uploaded file -->";
-            }
-        } else {
-            $error = "Invalid file type. Please upload a JPG, JPEG, PNG or GIF file.";
-        }
-    } else {
-        $error = "Error uploading file. Error code: " . $file['error'];
-    }
-}
-
-// Get user details from database
-$query = "SELECT * FROM users WHERE id = ?";
-$stmt = mysqli_prepare($conn, $query);
-mysqli_stmt_bind_param($stmt, "i", $user_id);
-mysqli_stmt_execute($stmt);
-$result = mysqli_stmt_get_result($stmt);
-$row = mysqli_fetch_assoc($result);
-
 // Get message from session if exists
 if (isset($_SESSION['message'])) {
     $message = $_SESSION['message'];
@@ -155,6 +103,8 @@ if (isset($_SESSION['message'])) {
 
 // Debug current profile image
 echo "<!-- Current profile image path: " . ($row['profile_image'] ?? 'null') . " -->";
+echo "<!-- Current cloud URL: " . ($row['cloud_url'] ?? 'null') . " -->";
+echo "<!-- Current cloud public ID: " . ($row['cloud_public_id'] ?? 'null') . " -->";
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -163,6 +113,7 @@ echo "<!-- Current profile image path: " . ($row['profile_image'] ?? 'null') . "
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Account Settings - Neo Exclusive Cafe</title>
     <link rel="stylesheet" href="account-settings.css">
+    <link rel="stylesheet" href="../account/css/profile-picture-ajax.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
@@ -185,33 +136,55 @@ echo "<!-- Current profile image path: " . ($row['profile_image'] ?? 'null') . "
             
             <!-- Profile Picture Section -->
             <div class="profile-picture-section">
-                <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="POST" enctype="multipart/form-data" class="profile-image-form">
-                    <div class="current-profile-picture" onclick="document.getElementById('profile_image').click()">
-                        <?php if (!empty($row['profile_image'])): ?>
-                            <?php $display_path = trim($row['profile_image']); if ($display_path !== '' && $display_path[0] !== '/') { $display_path = '/' . $display_path; } ?>
-                            <img src="<?php echo htmlspecialchars($display_path); ?>" alt="Profile Image">
+                <div class="avatar-upload-container" id="avatar-upload-container">
+                    <div class="avatar" id="avatar">
+                        <?php if ($has_profile_image): ?>
+                            <img id="profile-image" src="<?php echo htmlspecialchars($profile_image_url); ?>" alt="Profile picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
                         <?php else: ?>
-                            <img src="/assets/images/profile.svg" alt="Default Profile Image">
+                            <span id="initials"><?php echo strtoupper(substr($firstname, 0, 1) . substr($lastname, 0, 1)); ?></span>
                         <?php endif; ?>
                     </div>
-                    <input type="file" id="profile_image" name="profile_image" accept="image/*" class="profile-picture-input" onchange="this.form.submit()">
-                    <small class="file-info">Click on the image to change your profile picture<br>Supported formats: JPG, JPEG, PNG, GIF</small>
-                </form>
+                    <div class="avatar-overlay">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path>
+                            <circle cx="12" cy="13" r="3"></circle>
+                        </svg>
+                    </div>
+                    <?php if ($has_profile_image && !empty($profile_public_id)): ?>
+                        <button type="button" class="remove-avatar-btn" id="remove-avatar-btn" data-public-id="<?php echo htmlspecialchars($profile_public_id); ?>" onclick="handleRemoveProfilePicture('<?php echo htmlspecialchars($profile_public_id); ?>')">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    <?php endif; ?>
+                </div>
+                <p class="avatar-hint">Click to change profile picture</p>
+                <input type="file" id="file-input" class="hidden" accept="image/jpeg,image/png,image/gif,image/webp">
+                
+                <!-- Hidden fields for CSRF token and user ID -->
+                <input type="hidden" id="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                <input type="hidden" id="user_id" value="<?php echo $_SESSION['user_id']; ?>">
+                
+                <!-- Loading and success indicators -->
+                <div id="profileLoadingIndicator" class="loading-indicator" style="display: none;">
+                    <i class="fas fa-spinner fa-spin"></i> Uploading...
+                </div>
+                <div id="profileSuccessIndicator" class="success-indicator" style="display: none;">
+                    <i class="fas fa-check-circle"></i> Upload successful!
+                </div>
             </div>
 
             <div class="form-group">
                 <label>Username:</label>
-                <input type="text" value="<?php echo htmlspecialchars($username); ?>" readonly>
+                <input type="text" id="username" value="<?php echo htmlspecialchars($username); ?>" readonly>
             </div>
             
             <div class="form-group">
                 <label>First Name:</label>
-                <input type="text" value="<?php echo htmlspecialchars($firstname); ?>" readonly>
+                <input type="text" id="firstname" value="<?php echo htmlspecialchars($firstname); ?>" readonly>
             </div>
             
             <div class="form-group">
                 <label>Last Name:</label>
-                <input type="text" value="<?php echo htmlspecialchars($lastname); ?>" readonly>
+                <input type="text" id="lastname" value="<?php echo htmlspecialchars($lastname); ?>" readonly>
             </div>
             
             <div class="form-group">
@@ -275,5 +248,8 @@ echo "<!-- Current profile image path: " . ($row['profile_image'] ?? 'null') . "
             }
         });
     </script>
+    
+    <!-- Include AJAX JavaScript -->
+    <script src="../account/js/profile-picture-ajax.js"></script>
 </body>
 </html>

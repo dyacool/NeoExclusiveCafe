@@ -75,6 +75,9 @@
   - Implement uploadProfilePictureToCloudinary() function with compression
   - Implement deleteProfilePictureFromCloudinary() function
   - Add file validation (type, size)
+
+
+
   - Implement automatic image compression for files >2MB
   - Add updateAvatarDisplay() to show uploaded image
   - Add revertToInitials() to show initials when no image
@@ -82,6 +85,8 @@
   - Add event handlers for avatar click and file input change
   - Add event handler for remove button click
   - _Requirements: 1.1, 1.2, 1.3, 1.5, 3.1, 3.3, 9.1, 9.2, 9.3, 9.4, 9.5_
+
+
 
 - [ ] 7. Create CSS styling for admin profile picture interface
   - Create backend/pages/account/css/profile-picture-ajax.css
@@ -94,6 +99,8 @@
 
 - [ ] 8. Update admin account page to use AJAX profile picture upload
   - Update backend/pages/account/admin-account.php
+
+
   - Add CSRF token generation and hidden fields
   - Update avatar display logic to prioritize Cloudinary URLs using COALESCE pattern
   - Add remove button for existing profile pictures
@@ -101,6 +108,9 @@
   - Include profile-picture-ajax.js and profile-picture-ajax.css
   - Remove old upload script and replace with AJAX implementation
   - Update query to fetch cloud_url and cloud_public_id from users table
+
+
+
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 3.1, 3.2, 3.3, 8.4_
 
 - [ ] 9. Create JavaScript module for customer profile picture AJAX
@@ -136,35 +146,43 @@
   - Update query to fetch cloud_url and cloud_public_id from users table
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 4.1, 4.2, 4.3, 8.4_
 
-- [ ] 12. Update admin navigation bar to display Cloudinary profile pictures
+- [x] 12. Update admin navigation bar to display Cloudinary profile pictures
+
+
   - Update backend/pages/admin-includes/navbar/navbar.php
   - Modify query to use COALESCE(cloud_url, profile_image) pattern
   - Update display logic to show Cloudinary URLs when available
   - Fallback to initials when no profile picture exists
   - _Requirements: 8.1, 8.4, 8.5_
 
-- [ ] 13. Update customer navigation bar to display Cloudinary profile pictures
+- [x] 13. Update customer navigation bar to display Cloudinary profile pictures
+
+
   - Update frontend/user-includes/navbar/customer-navigation.php
   - Modify query to use COALESCE(cloud_url, profile_image) pattern
   - Update display logic to show Cloudinary URLs when available
   - Fallback to initials when no profile picture exists
   - _Requirements: 8.1, 8.4, 8.5_
 
-- [ ] 14. Update admin profile display page to show Cloudinary profile pictures
+- [x] 14. Update admin profile display page to show Cloudinary profile pictures
+
   - Find and update backend/pages/account/admin-profile.php
   - Modify query to use COALESCE(cloud_url, profile_image) pattern
   - Update display logic to show Cloudinary URLs when available
   - Fallback to initials when no profile picture exists
   - _Requirements: 8.2, 8.4, 8.5_
 
-- [ ] 15. Update all other profile picture display locations
+- [x] 15. Update all other profile picture display locations
+
   - Search for all locations displaying profile pictures (comments, reviews, orders)
   - Update queries to use COALESCE(cloud_url, profile_image) pattern
   - Update display logic to prioritize Cloudinary URLs
   - Ensure consistent fallback to initials across all displays
   - _Requirements: 8.3, 8.4, 8.5_
 
-- [ ] 16. Verify orphan cleanup tracking
+- [x] 16. Verify orphan cleanup tracking
+
+
   - Test that uploads are logged to temp_uploaded_images table
   - Test that successful saves remove entries from temp_uploaded_images
   - Test that cancelled uploads remain in temp_uploaded_images for cleanup

@@ -26,7 +26,7 @@ if ($is_user_logged_in) {
             if (file_exists($db_path)) {
                 require_once $db_path;
                 if (isset($conn) && $conn instanceof mysqli) {
-                    $stmt = mysqli_prepare($conn, "SELECT firstname, lastname, profile_image FROM users WHERE id = ?");
+                    $stmt = mysqli_prepare($conn, "SELECT firstname, lastname, profile_image, cloud_url, cloud_public_id FROM users WHERE id = ?");
                     if ($stmt) {
                         mysqli_stmt_bind_param($stmt, "i", $user_id);
                         mysqli_stmt_execute($stmt);
@@ -34,7 +34,14 @@ if ($is_user_logged_in) {
                         if ($result && ($row = mysqli_fetch_assoc($result))) {
                             $user['firstname'] = $user['firstname'] !== '' ? $user['firstname'] : ($row['firstname'] ?? '');
                             $user['lastname'] = $user['lastname'] !== '' ? $user['lastname'] : ($row['lastname'] ?? '');
-                            $user['profile_image'] = $user['profile_image'] !== '' ? $user['profile_image'] : (trim($row['profile_image'] ?? ''));
+                            
+                            // Prioritize Cloudinary URL over legacy profile_image
+                            if (!empty(trim($row['cloud_url'] ?? ''))) {
+                                $user['profile_image'] = trim($row['cloud_url']);
+                            } elseif ($user['profile_image'] === '' && !empty(trim($row['profile_image'] ?? ''))) {
+                                $user['profile_image'] = trim($row['profile_image']);
+                            }
+                            
                             // Update session for future requests
                             if (!empty($user['profile_image'])) {
                                 $_SESSION['user_profile_image'] = $user['profile_image'];

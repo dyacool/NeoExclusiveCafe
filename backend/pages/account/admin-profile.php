@@ -13,8 +13,8 @@ if (!isset($_SESSION["admin_id"]) || !isset($_SESSION["is_admin"]) || $_SESSION[
 require_once __DIR__ . "/../admin-includes/database.php";
 require_once __DIR__ . "/../admin-includes/navbar/navbar.php";
 
-// Fetch admin information including profile_image
-$stmt = $conn->prepare("SELECT username, firstname, lastname, email, profile_image FROM users WHERE id = ? AND is_admin = TRUE");
+// Fetch admin information including profile_image and Cloudinary fields
+$stmt = $conn->prepare("SELECT username, firstname, lastname, email, profile_image, cloud_url, cloud_public_id FROM users WHERE id = ? AND is_admin = TRUE");
 $stmt->bind_param("i", $_SESSION["admin_id"]);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -25,12 +25,14 @@ if (!$admin) {
     exit();
 }
 
-// Determine profile image url
-$profile_default_image_path = '';
-$profile_image_url = $profile_default_image_path;
+// Determine profile image url - prioritize Cloudinary
+$profile_image_url = '';
 $has_profile_image = false;
 
-if (isset($admin['profile_image']) && !empty(trim($admin['profile_image']))) {
+if (isset($admin['cloud_url']) && !empty(trim($admin['cloud_url']))) {
+    $profile_image_url = trim($admin['cloud_url']);
+    $has_profile_image = true;
+} elseif (isset($admin['profile_image']) && !empty(trim($admin['profile_image']))) {
     $db_path = trim($admin['profile_image']);
     if ($db_path[0] !== '/') {
         $db_path = '/' . $db_path;
