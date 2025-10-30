@@ -489,10 +489,17 @@ async function handleProfilePictureChange(event) {
  * Show image preview with save button
  */
 function showImagePreview(file) {
+    console.log('showImagePreview called with file:', file.name);
     const reader = new FileReader();
     reader.onload = (e) => {
+        console.log('FileReader loaded');
         const avatar = document.getElementById('avatar');
-        if (!avatar) return;
+        if (!avatar) {
+            console.error('Avatar element not found!');
+            return;
+        }
+        
+        console.log('Avatar element found:', avatar);
         
         // Remove existing content
         avatar.innerHTML = '';
@@ -509,6 +516,7 @@ function showImagePreview(file) {
         img.style.opacity = '0.7';
         
         avatar.appendChild(img);
+        console.log('Preview image appended');
         
         // Show save and cancel buttons
         showSaveButtons();
@@ -520,11 +528,19 @@ function showImagePreview(file) {
  * Show save and cancel buttons
  */
 function showSaveButtons() {
-    const container = document.getElementById('avatar-upload-container');
-    if (!container) return;
+    console.log('showSaveButtons called');
+    
+    // Find the profile-picture-section (parent of avatar-upload-container)
+    const profileSection = document.querySelector('.profile-picture-section');
+    if (!profileSection) {
+        console.error('profile-picture-section not found!');
+        return;
+    }
+    
+    console.log('Profile section found:', profileSection);
     
     // Remove existing buttons if present
-    const existingButtons = container.querySelector('.preview-buttons');
+    const existingButtons = profileSection.querySelector('.preview-buttons');
     if (existingButtons) {
         existingButtons.remove();
     }
@@ -532,7 +548,7 @@ function showSaveButtons() {
     // Create button container
     const buttonContainer = document.createElement('div');
     buttonContainer.className = 'preview-buttons';
-    buttonContainer.style.cssText = 'display: flex; gap: 10px; margin-top: 10px; justify-content: center;';
+    buttonContainer.style.cssText = 'display: flex !important; gap: 10px; margin-top: 15px; justify-content: center; width: 100%;';
     
     // Create save button
     const saveBtn = document.createElement('button');
@@ -550,7 +566,11 @@ function showSaveButtons() {
     
     buttonContainer.appendChild(saveBtn);
     buttonContainer.appendChild(cancelBtn);
-    container.appendChild(buttonContainer);
+    
+    // Append to profile-picture-section (after avatar-upload-container and avatar-hint)
+    profileSection.appendChild(buttonContainer);
+    
+    console.log('Buttons appended to profile section:', buttonContainer);
 }
 
 /**
@@ -637,10 +657,10 @@ function handleCancelPreview(event) {
  * Remove save buttons
  */
 function removeSaveButtons() {
-    const container = document.getElementById('avatar-upload-container');
-    if (!container) return;
+    const profileSection = document.querySelector('.profile-picture-section');
+    if (!profileSection) return;
     
-    const buttons = container.querySelector('.preview-buttons');
+    const buttons = profileSection.querySelector('.preview-buttons');
     if (buttons) {
         buttons.remove();
     }

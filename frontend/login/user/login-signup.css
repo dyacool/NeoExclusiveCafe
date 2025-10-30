@@ -4,7 +4,8 @@
 :root {
   --surface-bg: #ffffff;
   --card-bg: #ffffff;
-  --page-bg: #f6f7f9; /* subtle background */
+  --page-bg: #f6f7f9;
+  /* subtle background */
   --text: #212529;
   --muted: #6c757d;
   --border: #e9ecef;
@@ -41,7 +42,8 @@ body::before {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  opacity: 0.15; /* subtle so content remains legible */
+  opacity: 0.15;
+  /* subtle so content remains legible */
   filter: none;
 }
 
@@ -62,11 +64,9 @@ body::before {
   max-height: 88vh;
   display: block;
   position: relative;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.9),
-    rgba(250, 250, 250, 0.9)
-  );
+  background: linear-gradient(180deg,
+      rgba(255, 255, 255, 0.9),
+      rgba(250, 250, 250, 0.9));
   border-radius: calc(var(--radius) + 4px);
   box-shadow: 0 14px 30px rgba(13, 38, 59, 0.12);
   min-height: 450px;
@@ -80,6 +80,7 @@ body::before {
   height: 100%;
   transition: all 0.6s ease-in-out;
 }
+
 .sign-in-container,
 .sign-up-container {
   top: 0;
@@ -91,18 +92,22 @@ body::before {
   justify-content: center;
   gap: 0.625rem;
 }
+
 .sign-in-container {
   left: 0;
   z-index: 2;
 }
+
 .sign-up-container {
   left: 0;
   opacity: 0;
   z-index: 1;
 }
+
 .container.right-panel-active .sign-in-container {
   transform: translateX(100%);
 }
+
 .container.right-panel-active .sign-up-container {
   transform: translateX(100%);
   opacity: 1;
@@ -111,11 +116,13 @@ body::before {
 }
 
 @keyframes show {
+
   0%,
   49.99% {
     opacity: 0;
     z-index: 1;
   }
+
   50%,
   100% {
     opacity: 1;
@@ -130,6 +137,7 @@ body::before {
   margin-bottom: 0.35rem;
   color: var(--text);
 }
+
 .form-sub {
   font-size: 0.875rem;
   color: var(--muted);
@@ -151,6 +159,7 @@ textarea {
   color: var(--text);
   transition: box-shadow 0.18s ease, border-color 0.18s ease;
 }
+
 input:focus,
 textarea:focus {
   outline: none;
@@ -162,6 +171,7 @@ textarea:focus {
   display: flex;
   gap: 0.75rem;
 }
+
 .form-row .col {
   flex: 1;
 }
@@ -176,25 +186,27 @@ textarea:focus {
   font-weight: 600;
   font-size: 14px;
 }
+
 .btn-primary {
-  background: linear-gradient(
-    135deg,
-    var(--primary-grad-start) 0%,
-    var(--primary-grad-end) 100%
-  );
+  background: linear-gradient(135deg,
+      var(--primary-grad-start) 0%,
+      var(--primary-grad-end) 100%);
   color: #fff;
   box-shadow: 0 6px 18px rgba(139, 92, 246, 0.22);
   transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
+
 .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 12px 30px rgba(139, 92, 246, 0.28);
 }
+
 .btn-ghost {
   background: transparent;
   color: var(--primary-grad-end);
   border: 1px solid rgba(124, 58, 237, 0.12);
 }
+
 .btn-full {
   width: 100%;
 }
@@ -204,6 +216,7 @@ a {
   color: var(--primary-grad-end);
   text-decoration: none;
 }
+
 a:hover {
   text-decoration: underline;
 }
@@ -218,9 +231,11 @@ a:hover {
   transition: transform 0.6s ease-in-out;
   z-index: 100;
 }
+
 .container.right-panel-active .overlay-container {
   transform: translateX(-100%);
 }
+
 .overlay {
   position: relative;
   left: -100%;
@@ -230,9 +245,11 @@ a:hover {
   transition: transform 0.6s ease-in-out;
   display: flex;
 }
+
 .container.right-panel-active .overlay {
   transform: translateX(50%);
 }
+
 .overlay-panel {
   position: absolute;
   display: flex;
@@ -246,36 +263,40 @@ a:hover {
   width: 50%;
   transition: transform 0.6s ease-in-out;
 }
+
 .overlay-left {
   transform: translateX(-20%);
 }
+
 .container.right-panel-active .overlay-left {
   transform: translateX(0);
 }
+
 .overlay-right {
   right: 0;
   transform: translateX(0);
 }
+
 .container.right-panel-active .overlay-right {
   transform: translateX(20%);
 }
 
 .overlay {
-  background-image: linear-gradient(
-      135deg,
+  background-image: linear-gradient(135deg,
       rgba(139, 92, 246, 0.9) 0%,
-      rgba(124, 58, 237, 0.9) 100%
-    ),
+      rgba(124, 58, 237, 0.9) 100%),
     url("/assets/images/login-background.png");
   background-size: cover;
   background-position: center;
   color: #fff;
 }
+
 .overlay h2 {
   margin: 0;
   font-size: 1.5rem;
   font-weight: 700;
 }
+
 .overlay p {
   color: rgba(255, 255, 255, 0.9);
   margin-top: 0.5rem;
@@ -298,21 +319,25 @@ a:hover {
   visibility: hidden;
   transition: opacity 0.25s ease, visibility 0.25s ease;
 }
+
 .alert {
   top: 14px;
   background: #f44336;
   color: #fff;
 }
+
 .alert.show,
 .salert.show {
   opacity: 1;
   visibility: visible;
 }
+
 .salert {
   top: 14px;
   background: #dff4e6;
   color: #0b3a1a;
 }
+
 .closebtn {
   position: absolute;
   top: 6px;

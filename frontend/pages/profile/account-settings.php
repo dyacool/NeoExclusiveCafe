@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="../../css/users/account-settings.css"><?php
+<?php
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -138,29 +138,32 @@ echo "<!-- Current cloud public ID: " . ($row['cloud_public_id'] ?? 'null') . " 
             <div class="profile-picture-section">
                 <div class="avatar-upload-container" id="avatar-upload-container">
                     <div class="avatar" id="avatar">
-                        <?php 
-                        // Always show initials with randomized green color
-                        $initials = strtoupper(substr($firstname, 0, 1) . substr($lastname, 0, 1));
-                        
-                        // Generate consistent random green-toned color based on user's name
-                        $seed = crc32($firstname . $lastname);
-                        mt_srand($seed);
-                        
-                        // Green color ranges: hue 80-160 (yellow-green to blue-green)
-                        $hue = mt_rand(80, 160);
-                        $saturation = mt_rand(40, 70); // Medium saturation
-                        $lightness = mt_rand(35, 50); // Medium-dark for good contrast
-                        
-                        $color1 = "hsl($hue, {$saturation}%, $lightness%)";
-                        
-                        // Second color slightly different
-                        $hue2 = $hue + mt_rand(-15, 15);
-                        $lightness2 = $lightness + mt_rand(-5, 10);
-                        $color2 = "hsl($hue2, {$saturation}%, $lightness2%)";
-                        
-                        $gradient = "linear-gradient(135deg, $color1 0%, $color2 100%)";
+                        <?php if ($has_profile_image): ?>
+                            <img id="profile-image" src="<?php echo htmlspecialchars($profile_image_url); ?>" alt="Profile picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                        <?php else: 
+                            // Show initials with randomized green color
+                            $initials = strtoupper(substr($firstname, 0, 1) . substr($lastname, 0, 1));
+                            
+                            // Generate consistent random green-toned color based on user's name
+                            $seed = crc32($firstname . $lastname);
+                            mt_srand($seed);
+                            
+                            // Green color ranges: hue 80-160 (yellow-green to blue-green)
+                            $hue = mt_rand(80, 160);
+                            $saturation = mt_rand(40, 70); // Medium saturation
+                            $lightness = mt_rand(35, 50); // Medium-dark for good contrast
+                            
+                            $color1 = "hsl($hue, {$saturation}%, $lightness%)";
+                            
+                            // Second color slightly different
+                            $hue2 = $hue + mt_rand(-15, 15);
+                            $lightness2 = $lightness + mt_rand(-5, 10);
+                            $color2 = "hsl($hue2, {$saturation}%, $lightness2%)";
+                            
+                            $gradient = "linear-gradient(135deg, $color1 0%, $color2 100%)";
                         ?>
-                        <span id="initials" style="background: <?php echo $gradient ?>;"><?php echo $initials; ?></span>
+                            <span id="initials" style="background: <?php echo $gradient ?>;"><?php echo $initials; ?></span>
+                        <?php endif; ?>
                     </div>
                     <div class="avatar-overlay">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
