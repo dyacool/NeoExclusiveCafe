@@ -18,7 +18,7 @@
     
     // Try to include Cloudinary image fetcher (may fail if vendor/autoload.php is missing)
     try {
-        require_once __DIR__ . "/../../backend/includes/cloudinary-image-fetcher.php";
+        require_once __DIR__ . "/../../includes/cloudinary-image-fetcher.php";
     } catch (Exception $e) {
         error_log("Failed to load cloudinary-image-fetcher.php: " . $e->getMessage());
     } catch (Error $e) {

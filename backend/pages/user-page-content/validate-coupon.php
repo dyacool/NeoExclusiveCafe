@@ -1,4 +1,6 @@
 <?php
+session_start();
+
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST');
@@ -12,6 +14,46 @@ ini_set('log_errors', 1);
 
 require_once __DIR__ . '/database-config.php';
 
+// Function to check per-user usage limit
+function checkPerUserUsage($conn, $user_id, $coupon_id, $per_user_limit) {
+    error_log("checkPerUserUsage called: user_id=$user_id, coupon_id=$coupon_id, limit=$per_user_limit");
+    
+    // If no per-user limit set, allow unlimited uses
+    if ($per_user_limit === null || $per_user_limit <= 0) {
+        error_log("checkPerUserUsage: No limit set, allowing");
+        return ['allowed' => true];
+    }
+    
+    // Count how many times this user has used this coupon
+    $sql = "SELECT COUNT(*) as usage_count FROM coupon_usage 
+            WHERE user_id = ? AND coupon_id = ?";
+    $stmt = $conn->prepare($sql);
+    
+    if (!$stmt) {
+        error_log('Error preparing per-user usage check: ' . $conn->error);
+        return ['allowed' => true]; // Fail open to not block users
+    }
+    
+    $stmt->bind_param("ii", $user_id, $coupon_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $stmt->close();
+    
+    $usage_count = intval($row['usage_count']);
+    error_log("checkPerUserUsage: Found $usage_count previous uses (limit: $per_user_limit)");
+    
+    if ($usage_count >= $per_user_limit) {
+        error_log("checkPerUserUsage: LIMIT EXCEEDED");
+        return [
+            'allowed' => false,
+            'message' => 'You have already used this coupon the maximum number of times allowed'
+        ];
+    }
+    
+    error_log("checkPerUserUsage: ALLOWED (usage: $usage_count/$per_user_limit)");
+    return ['allowed' => true, 'usage_count' => $usage_count];
+}
 
 $input = json_decode(file_get_contents('php://input'), true);
 
@@ -37,6 +79,7 @@ if ($subtotal <= 0) {
 try {
     $conn = getDBConnection();
     createPromotionsTable($conn);
+    createCouponUsageTable($conn);
     
     // First, try to find in promotions table (regular coupons)
     $sql = "SELECT * FROM promotions WHERE code = ? AND status = 'active' AND activation_date <= CURDATE() AND expiration_date >= CURDATE()";
@@ -127,6 +170,40 @@ try {
             echo json_encode(['success' => false, 'message' => 'This coupon has reached its usage limit']);
             exit();
         }
+    }
+    
+    // Check per-user usage limit (only for regular coupons, not vouchers)
+    if (!$is_voucher && isset($coupon['usage_limit_per_user']) && $coupon['usage_limit_per_user'] > 0) {
+        error_log("Per-user limit check: Coupon ID {$coupon['id']}, Limit: {$coupon['usage_limit_per_user']}");
+        
+        // Check if user is logged in
+        if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
+            error_log("Per-user limit check: User not logged in");
+            echo json_encode([
+                'success' => false, 
+                'message' => 'Please log in to use this coupon'
+            ]);
+            exit();
+        }
+        
+        // Check per-user usage
+        $user_id = intval($_SESSION['user_id']);
+        error_log("Per-user limit check: User ID $user_id");
+        
+        $per_user_check = checkPerUserUsage($conn, $user_id, $coupon['id'], $coupon['usage_limit_per_user']);
+        error_log("Per-user limit check result: " . json_encode($per_user_check));
+        
+        if (!$per_user_check['allowed']) {
+            error_log("Per-user limit check: REJECTED");
+            echo json_encode([
+                'success' => false, 
+                'message' => $per_user_check['message']
+            ]);
+            exit();
+        }
+        error_log("Per-user limit check: ALLOWED");
+    } else {
+        error_log("Per-user limit check: SKIPPED (is_voucher=$is_voucher, limit=" . ($coupon['usage_limit_per_user'] ?? 'NULL') . ")");
     }
     
 

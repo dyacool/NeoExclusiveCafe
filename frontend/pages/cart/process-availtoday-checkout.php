@@ -297,8 +297,13 @@ try {
     error_log("Cleared availtoday cart for user: " . $_SESSION['user_id']);
     
     // Update coupon/voucher usage count if applied
+    error_log("=== AVAILTODAY COUPON RECORDING CHECK ===");
+    error_log("applied_coupon exists: " . (isset($applied_coupon) ? 'YES' : 'NO'));
+    error_log("applied_coupon data: " . json_encode($applied_coupon));
+    
     if ($applied_coupon && isset($applied_coupon['id'])) {
         $is_voucher = isset($applied_coupon['is_voucher']) && $applied_coupon['is_voucher'];
+        error_log("Is voucher: " . ($is_voucher ? 'YES' : 'NO'));
         
         if ($is_voucher) {
             // Update refund_vouchers table - mark as used
@@ -320,25 +325,41 @@ try {
                 error_log("Warning: Failed to prepare voucher update statement: " . $conn->error);
             }
         } else {
+            error_log("=== RECORDING COUPON USAGE (AVAILTODAY) ===");
+            // Record per-user coupon usage
+            require_once '../../../backend/pages/user-page-content/database-config.php';
+            $user_id = $_SESSION['user_id'];
+            $coupon_id = intval($applied_coupon['id']);
+            
+            error_log("User ID: $user_id, Coupon ID: $coupon_id, Order ID: $order_id");
+            
+            // Record the usage
+            if (recordCouponUsage($conn, $user_id, $coupon_id, $order_id)) {
+                error_log("✓ Coupon usage recorded successfully: User $user_id used coupon $coupon_id on order $order_id");
+            } else {
+                error_log("✗ Failed to record coupon usage for order $order_id");
+            }
+            
             // Update promotions table - increment usage count
             $update_coupon_sql = "UPDATE promotions SET used_count = used_count + 1 WHERE id = ?";
             $update_coupon_stmt = $conn->prepare($update_coupon_sql);
             
             if ($update_coupon_stmt) {
-                $coupon_id = intval($applied_coupon['id']);
                 $update_coupon_stmt->bind_param("i", $coupon_id);
                 
                 if (!$update_coupon_stmt->execute()) {
-                    error_log("Warning: Failed to update coupon usage count: " . $update_coupon_stmt->error);
+                    error_log("✗ Failed to update coupon usage count: " . $update_coupon_stmt->error);
                 } else {
-                    error_log("Successfully updated coupon usage count for coupon ID: " . $coupon_id);
+                    error_log("✓ Successfully updated coupon usage count for coupon ID: " . $coupon_id);
                 }
                 
                 $update_coupon_stmt->close();
             } else {
-                error_log("Warning: Failed to prepare coupon update statement: " . $conn->error);
+                error_log("✗ Failed to prepare coupon update statement: " . $conn->error);
             }
         }
+    } else {
+        error_log("=== NO COUPON TO RECORD (AVAILTODAY) ===");
     }
     
     // Commit transaction

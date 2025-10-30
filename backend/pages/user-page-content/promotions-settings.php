@@ -13,6 +13,7 @@ require_once __DIR__ . '/database-config.php';
 // Initialize database and create table if needed
 $conn = getDBConnection();
 createPromotionsTable($conn);
+createCouponUsageTable($conn);
 ?>
 <!DOCTYPE html>
 <html lang="en">

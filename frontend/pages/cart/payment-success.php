@@ -16,6 +16,65 @@ if (!isset($_SESSION['payment_success'])) {
 $payment_data = $_SESSION['payment_success'];
 $order_type = $_GET['type'] ?? 'regular';
 
+// Include database connection and coupon functions
+require_once '../../../backend/pages/admin-includes/database.php';
+require_once '../../../backend/pages/user-page-content/database-config.php';
+
+// Record coupon usage if a coupon was applied
+error_log("=== PAYMENT SUCCESS COUPON RECORDING CHECK ===");
+$applied_coupon = $_SESSION['applied_coupon'] ?? null;
+error_log("applied_coupon exists: " . (isset($applied_coupon) ? 'YES' : 'NO'));
+error_log("applied_coupon data: " . json_encode($applied_coupon));
+
+if ($applied_coupon && isset($applied_coupon['id']) && intval($applied_coupon['id']) > 0) {
+    error_log("=== RECORDING COUPON USAGE (PAYMENT SUCCESS) ===");
+    $user_id = $_SESSION['user_id'] ?? null;
+    $coupon_id = intval($applied_coupon['id']);
+    $order_id = $payment_data['order_id'] ?? null;
+    
+    if ($user_id && $order_id) {
+        error_log("User ID: $user_id, Coupon ID: $coupon_id, Order ID: $order_id");
+        
+        // Record the usage
+        if (recordCouponUsage($conn, $user_id, $coupon_id, $order_id)) {
+            error_log("✓ Coupon usage recorded successfully: User $user_id used coupon $coupon_id on order $order_id");
+            
+            // Update global used_count
+            $update_sql = "UPDATE promotions SET used_count = used_count + 1 WHERE id = ?";
+            $update_stmt = $conn->prepare($update_sql);
+            if ($update_stmt) {
+                $update_stmt->bind_param("i", $coupon_id);
+                if ($update_stmt->execute()) {
+                    error_log("✓ Global used_count updated for coupon $coupon_id");
+                } else {
+                    error_log("✗ Failed to update global used_count: " . $update_stmt->error);
+                }
+                $update_stmt->close();
+            } else {
+                error_log("✗ Failed to prepare used_count update statement");
+            }
+            
+            // Clear the applied coupon from session after successful recording
+            unset($_SESSION['applied_coupon']);
+            error_log("✓ Cleared applied_coupon from session");
+        } else {
+            error_log("✗ Failed to record coupon usage for order $order_id");
+        }
+    } else {
+        if (!$user_id) {
+            error_log("✗ No user_id in session, cannot record coupon usage");
+        }
+        if (!$order_id) {
+            error_log("✗ No order_id in payment_data, cannot record coupon usage");
+        }
+    }
+} else {
+    error_log("=== NO COUPON TO RECORD (PAYMENT SUCCESS) ===");
+    if ($applied_coupon) {
+        error_log("Coupon ID issue: " . (isset($applied_coupon['id']) ? "ID = " . $applied_coupon['id'] : "ID not set"));
+    }
+}
+
 $page_title = "Payment Successful";
 $additional_css = ["checkout.css"];
 
@@ -88,7 +147,7 @@ require_once "../../user-includes/user-header.php";
         
         <div class="action-buttons">
             <a href="../products/product-dashboard.php" class="btn btn-primary">Continue Shopping</a>
-            <a href="../profile/order-history.php" class="btn btn-secondary">View Orders</a>
+            <a href="../profile/profile.php" class="btn btn-secondary">View Orders</a>
         </div>
     </div>
 </div>

@@ -87,4 +87,46 @@ function createPromotionsTable($conn) {
         }
     }
 }
+
+function createCouponUsageTable($conn) {
+    $sql = "CREATE TABLE IF NOT EXISTS coupon_usage (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        coupon_id INT NOT NULL,
+        order_id INT DEFAULT NULL,
+        used_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY unique_user_coupon_order (user_id, coupon_id, order_id),
+        INDEX idx_user_coupon (user_id, coupon_id),
+        INDEX idx_coupon (coupon_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci";
+    
+    if ($conn->query($sql) === TRUE) {
+        // Table created or already exists
+    } else {
+        error_log("Error creating coupon_usage table: " . $conn->error);
+    }
+}
+
+function recordCouponUsage($conn, $user_id, $coupon_id, $order_id = null) {
+    try {
+        $sql = "INSERT INTO coupon_usage (user_id, coupon_id, order_id) 
+                VALUES (?, ?, ?)
+                ON DUPLICATE KEY UPDATE used_at = CURRENT_TIMESTAMP";
+        $stmt = $conn->prepare($sql);
+        
+        if (!$stmt) {
+            error_log("Error preparing coupon usage insert: " . $conn->error);
+            return false;
+        }
+        
+        $stmt->bind_param("iii", $user_id, $coupon_id, $order_id);
+        $result = $stmt->execute();
+        $stmt->close();
+        
+        return $result;
+    } catch (Exception $e) {
+        error_log("Error recording coupon usage: " . $e->getMessage());
+        return false;
+    }
+}
 ?>

@@ -314,6 +314,49 @@ try {
             throw $ex;
         }
 
+        // Record coupon usage if a coupon was applied
+        error_log("=== PAYMONGO COUPON RECORDING CHECK ===");
+        $applied_coupon = $order_data['applied_coupon'] ?? $_SESSION['applied_coupon'] ?? null;
+        error_log("applied_coupon exists: " . (isset($applied_coupon) ? 'YES' : 'NO'));
+        error_log("applied_coupon data: " . json_encode($applied_coupon));
+        
+        if ($applied_coupon && isset($applied_coupon['id']) && intval($applied_coupon['id']) > 0) {
+            error_log("=== RECORDING COUPON USAGE (PAYMONGO) ===");
+            require_once '../../../backend/pages/user-page-content/database-config.php';
+            $user_id = $_SESSION['user_id'] ?? null;
+            $coupon_id = intval($applied_coupon['id']);
+            
+            if ($user_id) {
+                error_log("User ID: $user_id, Coupon ID: $coupon_id, Order ID: $order_id_created");
+                
+                // Record the usage
+                if (recordCouponUsage($conn, $user_id, $coupon_id, $order_id_created)) {
+                    error_log("✓ Coupon usage recorded successfully: User $user_id used coupon $coupon_id on order $order_id_created");
+                    
+                    // Update global used_count
+                    $update_sql = "UPDATE promotions SET used_count = used_count + 1 WHERE id = ?";
+                    $update_stmt = $conn->prepare($update_sql);
+                    if ($update_stmt) {
+                        $update_stmt->bind_param("i", $coupon_id);
+                        if ($update_stmt->execute()) {
+                            error_log("✓ Global used_count updated for coupon $coupon_id");
+                        } else {
+                            error_log("✗ Failed to update global used_count: " . $update_stmt->error);
+                        }
+                        $update_stmt->close();
+                    } else {
+                        error_log("✗ Failed to prepare used_count update statement");
+                    }
+                } else {
+                    error_log("✗ Failed to record coupon usage for order $order_id_created");
+                }
+            } else {
+                error_log("✗ No user_id in session, cannot record coupon usage");
+            }
+        } else {
+            error_log("=== NO COUPON TO RECORD (PAYMONGO) ===");
+        }
+
         // Send email but don't block on failure
         try {
             sendOrderConfirmationEmail($order_id_created, is_array($pending_payment['order_data']) ? $pending_payment['order_data'] : $order_data, $type);

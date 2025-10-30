@@ -572,9 +572,14 @@ $debug_info = [
         <input type="hidden" name="cart_items" value="<?php echo htmlspecialchars(json_encode($cart_items)); ?>">
         <input type="hidden" name="cart_total" value="<?php echo $cart_total; ?>">
         <input type="hidden" name="has_mixed_status" value="<?php echo $has_mixed_availtoday_status ? '1' : '0'; ?>">
+        <input type="hidden" id="hidden_shipping_fee" name="shipping_fee" value="0">
+        <input type="hidden" id="hidden_discount_amount" name="discount_amount" value="0">
+        <input type="hidden" id="hidden_final_total" name="final_total" value="<?php echo $cart_total; ?>">
 
         <!-- Place Order Button -->
-        <button type="submit" class="btn-primary place-order-btn" style="background-color: #256035;">Place Order - ₱<?php echo number_format($cart_total, 2); ?></button>
+        <button type="submit" class="btn-primary place-order-btn" style="background-color: #256035;" id="place-order-btn">
+            Place Order - <span id="button-total">₱<?php echo number_format($cart_total, 2); ?></span>
+        </button>
     </form>
 </div>
 
@@ -590,19 +595,7 @@ $debug_info = [
                 <label class="form-label">Select Delivery Location *</label>
                 <select name="delivery_location" class="form-control form-control-md" id="delivery_location" required>
                     <option value="">Choose your delivery location</option>
-                    <optgroup label="Laguna">
-                        <option value="Sta. Rosa, Laguna 4026">Sta. Rosa, Laguna 4026</option>
-                        <option value="Sta. Rosa, Laguna 4034">Sta. Rosa, Laguna 4034</option>
-                        <option value="Cabuyao, Laguna 4025">Cabuyao, Laguna 4025</option>
-                        <option value="Calamba, Laguna 4027">Calamba, Laguna 4027</option>
-                        <option value="Calamba, Laguna 4028">Calamba, Laguna 4028</option>
-                        <option value="Calamba, Laguna 4029">Calamba, Laguna 4029</option>
-                        <option value="Binan, Laguna 4024">Binan, Laguna 4024</option>
-                    </optgroup>
-                    <optgroup label="Cavite">
-                        <option value="Silang, Cavite 4118">Silang, Cavite 4118</option>
-                        <option value="Tagaytay, Cavite 4120">Tagaytay, Cavite 4120</option>
-                    </optgroup>
+                    <!-- Locations will be loaded dynamically from database -->
                 </select>
             </div>
             <div class="form-group mb-3">
@@ -620,6 +613,9 @@ $debug_info = [
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 <!-- Add jQuery -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<!-- Delivery Locations Loader -->
+<script src="delivery-locations-loader.js"></script>
 
 <!-- PayMongo SDK -->
 <script src="https://js.paymongo.com/v1"></script>
@@ -678,13 +674,34 @@ function hideAppliedCoupon() {
 
 function updateOrderTotal() {
     const totalElement = document.getElementById('total');
-    const shippingFee = parseFloat(document.getElementById('shipping_fee').textContent.replace('₱', '').replace(',', '')) || 0;
+    const shippingFeeElement = document.getElementById('shipping_fee');
+    let shippingFee = parseFloat(shippingFeeElement?.textContent.replace('₱', '').replace(',', '')) || 0;
+    
+    // Check if free shipping coupon is applied
+    if (appliedCoupon && appliedCoupon.type === 'free_shipping') {
+        shippingFee = 0;
+        // Update shipping fee display to show ₱0.00
+        if (shippingFeeElement) {
+            shippingFeeElement.textContent = '₱0.00';
+        }
+    }
     
     const total = subtotal - discountAmount + shippingFee;
     
     if (totalElement) {
         totalElement.textContent = '₱' + total.toFixed(2);
     }
+    
+    // Update hidden fields for form submission
+    const hiddenShippingFee = document.getElementById('hidden_shipping_fee');
+    const hiddenDiscountAmount = document.getElementById('hidden_discount_amount');
+    const hiddenFinalTotal = document.getElementById('hidden_final_total');
+    const buttonTotal = document.getElementById('button-total');
+    
+    if (hiddenShippingFee) hiddenShippingFee.value = shippingFee;
+    if (hiddenDiscountAmount) hiddenDiscountAmount.value = discountAmount;
+    if (hiddenFinalTotal) hiddenFinalTotal.value = total;
+    if (buttonTotal) buttonTotal.textContent = '₱' + total.toFixed(2);
 }
 
 function calculateDiscount(coupon, subtotalAmount) {
@@ -692,15 +709,19 @@ function calculateDiscount(coupon, subtotalAmount) {
     
     if (coupon.type === 'percentage') {
         discount = (subtotalAmount * coupon.value) / 100;
+        // Ensure discount doesn't exceed subtotal
+        return Math.min(discount, subtotalAmount);
     } else if (coupon.type === 'fixed') {
         discount = coupon.value;
+        // Ensure discount doesn't exceed subtotal
+        return Math.min(discount, subtotalAmount);
     } else if (coupon.type === 'free_shipping') {
-        // Free shipping discount will be applied to shipping fee
-        discount = 0;
+        // Free shipping - discount is handled by setting shipping fee to 0
+        // Return 0 for discount amount since shipping fee will be zeroed
+        return 0;
     }
     
-    // Ensure discount doesn't exceed subtotal
-    return Math.min(discount, subtotalAmount);
+    return discount;
 }
 
 // Modal functionality
@@ -803,7 +824,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (saveLocationBtn) {
         saveLocationBtn.addEventListener('click', function() {
-            const deliveryLocation = document.getElementById('delivery_location').value;
+            const deliveryLocationSelect = document.getElementById('delivery_location');
+            const deliveryLocation = deliveryLocationSelect.value;
             const completeAddress = document.getElementById('complete_address').value;
 
             if (!deliveryLocation) {
@@ -821,6 +843,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (deliveryAddressInput) {
                 deliveryAddressInput.value = fullAddress;
+            }
+
+            // Get delivery fee from selected option
+            const selectedOption = deliveryLocationSelect.options[deliveryLocationSelect.selectedIndex];
+            const deliveryFee = parseFloat(selectedOption.dataset.deliveryFee) || 0;
+            
+            // Update shipping fee display
+            const shippingFeeElement = document.getElementById('shipping_fee');
+            if (shippingFeeElement) {
+                shippingFeeElement.textContent = '₱' + deliveryFee.toFixed(2);
+            }
+            
+            // Update total - recalculate directly
+            const subtotalElement = document.getElementById('subtotal');
+            const totalElement = document.getElementById('total');
+            const discountElement = document.getElementById('discount_amount');
+            
+            if (subtotalElement && totalElement) {
+                // Parse subtotal from display
+                const subtotalValue = parseFloat(subtotalElement.textContent.replace('₱', '').replace(',', '')) || 0;
+                // Parse discount if exists
+                const discountValue = discountElement ? parseFloat(discountElement.textContent.replace('₱', '').replace('-', '').replace(',', '')) || 0 : 0;
+                // Calculate total
+                const total = subtotalValue + deliveryFee - discountValue;
+                totalElement.textContent = '₱' + total.toFixed(2);
             }
 
             modal.style.display = 'none';
@@ -872,19 +919,37 @@ async function checkCoupon() {
             console.log('[COUPON] Applied coupon:', appliedCoupon);
             console.log('[COUPON] Discount amount:', discountAmount);
             
+            // Save coupon to PHP session
+            await fetch('save-coupon-session.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    coupon: appliedCoupon,
+                    discount_amount: discountAmount
+                })
+            });
+            
             // Show applied coupon
             showAppliedCoupon(appliedCoupon);
             showCouponMessage(result.message, true);
             
-            // Update totals
+            // Update totals (updateOrderTotal will handle free shipping)
             updateOrderTotal();
             
-            // Show discount row
+            // Show/hide discount row based on coupon type
             const discountRow = document.getElementById('discount-row');
             const discountAmountElement = document.getElementById('discount_amount');
             if (discountRow && discountAmountElement) {
-                discountRow.style.display = 'flex';
-                discountAmountElement.textContent = `-₱${discountAmount.toFixed(2)}`;
+                if (appliedCoupon.type === 'free_shipping') {
+                    // For free shipping, don't show discount row (shipping fee will show ₱0.00)
+                    discountRow.style.display = 'none';
+                } else {
+                    // For other discounts, show the discount amount
+                    discountRow.style.display = 'flex';
+                    discountAmountElement.textContent = `-₱${discountAmount.toFixed(2)}`;
+                }
             }
             
             // Clear input
@@ -903,6 +968,8 @@ async function checkCoupon() {
 }
 
 function removeCoupon() {
+    const wasFreeShipping = appliedCoupon && appliedCoupon.type === 'free_shipping';
+    
     appliedCoupon = null;
     discountAmount = 0;
     
@@ -913,6 +980,26 @@ function removeCoupon() {
     const discountRow = document.getElementById('discount-row');
     if (discountRow) {
         discountRow.style.display = 'none';
+    }
+    
+    // If it was free shipping, restore the original shipping fee
+    if (wasFreeShipping) {
+        const shippingFeeElement = document.getElementById('shipping_fee');
+        const deliveryRadio = document.getElementById('delivery');
+        const pickupRadio = document.getElementById('pickup');
+        
+        // Restore shipping fee based on delivery method
+        if (deliveryRadio && deliveryRadio.checked && shippingFeeElement) {
+            // Get the delivery fee from the selected location if available
+            const deliveryLocationSelect = document.getElementById('delivery_location');
+            if (deliveryLocationSelect && deliveryLocationSelect.value) {
+                const selectedOption = deliveryLocationSelect.options[deliveryLocationSelect.selectedIndex];
+                const deliveryFee = parseFloat(selectedOption.dataset.deliveryFee) || 0;
+                shippingFeeElement.textContent = '₱' + deliveryFee.toFixed(2);
+            }
+        } else if (pickupRadio && pickupRadio.checked && shippingFeeElement) {
+            shippingFeeElement.textContent = '₱0.00';
+        }
     }
     
     // Update totals

@@ -1,25 +1,40 @@
 <?php
+error_reporting(0);
+ini_set('display_errors', 0);
+ob_start();
+
 session_start();
+
+header('Content-Type: application/json');
 
 // Check if user is admin
 if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
+    ob_end_clean();
     http_response_code(403);
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
     exit();
 }
 
 // Include database configuration
-// Database connection
 require_once __DIR__ . '/../admin-includes/database.php';
 require_once __DIR__ . '/../admin-includes/activity-logger.php';
 
-// Get database connection
-$conn = getDBConnection();
-if (!$conn) {
+// Direct database connection (avoid getDBConnection which uses die())
+$servername = "mysql-neoexclusivecafe.alwaysdata.net";
+$username = "429123";
+$password = "NeoCafe123";
+$dbname = "neoexclusivecafe_crud";
+
+$conn = @new mysqli($servername, $username, $password, $dbname);
+
+if ($conn->connect_error) {
+    ob_end_clean();
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'Database connection failed']);
     exit();
 }
+
+@$conn->set_charset("utf8");
 
 // Check if delivery_locations table exists, if not create it
 $table_check = "SHOW TABLES LIKE 'delivery_locations'";
@@ -49,19 +64,25 @@ $action = $_POST['action'] ?? '';
 
 switch ($action) {
     case 'add':
+        ob_end_clean();
         addLocation($conn);
         break;
     case 'update':
+        ob_end_clean();
         updateLocation($conn);
         break;
     case 'delete':
+        ob_end_clean();
         deleteLocation($conn);
         break;
     default:
+        ob_end_clean();
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'Invalid action']);
         break;
 }
+
+exit();
 
 function addLocation($conn) {
     // Validate required fields

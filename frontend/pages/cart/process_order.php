@@ -453,6 +453,44 @@ try {
     // Add the generated order_id to orderDetails for email
     $orderDetails['order_id'] = $order_id;
     
+    // Record coupon usage if a coupon was applied
+    error_log("=== COUPON RECORDING CHECK ===");
+    error_log("applied_coupon exists: " . (isset($applied_coupon) ? 'YES' : 'NO'));
+    error_log("applied_coupon data: " . json_encode($applied_coupon));
+    
+    if ($applied_coupon && isset($applied_coupon['id'])) {
+        error_log("=== RECORDING COUPON USAGE ===");
+        require_once '../../../backend/pages/user-page-content/database-config.php';
+        $user_id = $orderDetails['user_id'];
+        $coupon_id = intval($applied_coupon['id']);
+        
+        error_log("User ID: $user_id, Coupon ID: $coupon_id, Order ID: $order_id");
+        
+        // Record the usage
+        if (recordCouponUsage($conn, $user_id, $coupon_id, $order_id)) {
+            error_log("✓ Coupon usage recorded successfully: User $user_id used coupon $coupon_id on order $order_id");
+            
+            // Update global used_count
+            $update_sql = "UPDATE promotions SET used_count = used_count + 1 WHERE id = ?";
+            $update_stmt = $conn->prepare($update_sql);
+            if ($update_stmt) {
+                $update_stmt->bind_param("i", $coupon_id);
+                if ($update_stmt->execute()) {
+                    error_log("✓ Global used_count updated for coupon $coupon_id");
+                } else {
+                    error_log("✗ Failed to update global used_count: " . $update_stmt->error);
+                }
+                $update_stmt->close();
+            } else {
+                error_log("✗ Failed to prepare used_count update statement");
+            }
+        } else {
+            error_log("✗ Failed to record coupon usage for order $order_id");
+        }
+    } else {
+        error_log("=== NO COUPON TO RECORD ===");
+    }
+    
     // Send email to admin
     if (!sendOrderEmail($orderDetails, $admin_email)) {
         // Log email failure but don't stop the process
