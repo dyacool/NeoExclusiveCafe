@@ -1599,56 +1599,30 @@ function handleFormSubmit(event) {
     submitBtn.disabled = true;
   }
 
-  const uploadPromises = [];
-
-  // Handle image operations
-  if (pendingImageChanges.primary === "remove") {
-    const deleteRemovedFormData = new FormData();
-    deleteRemovedFormData.append("product_id", formData.id);
-    uploadPromises.push(
-      fetch("delete-removed-images.php", {
-        method: "POST",
-        body: deleteRemovedFormData,
-      }).then((response) => response.json())
-    );
-  } else if (tempImageInfo.primary) {
-    const primaryFormData = new FormData();
-    primaryFormData.append("temp_filename", tempImageInfo.primary.filename);
-    primaryFormData.append("product_id", formData.id);
-    primaryFormData.append("image_type", "primary");
-    primaryFormData.append("action", "move");
-    uploadPromises.push(
-      fetch("move-temp-to-permanent.php", {
-        method: "POST",
-        body: primaryFormData,
-      }).then((response) => response.json())
-    );
+  // Images are already uploaded to Cloudinary via AJAX
+  // We just need to include the image metadata in the formData
+  
+  // Add primary image metadata if uploaded
+  if (tempImageInfo.primary) {
+    formData.primary_image_url = tempImageInfo.primary.url;
+    formData.primary_image_public_id = tempImageInfo.primary.public_id;
+  } else if (pendingImageChanges.primary === "remove") {
+    formData.remove_primary_image = true;
   }
 
+  // Add additional images metadata if uploaded
+  if (tempImageInfo.additional && tempImageInfo.additional.length > 0) {
+    formData.additional_image_urls = JSON.stringify(tempImageInfo.additional.map(img => img.url));
+    formData.additional_image_public_ids = JSON.stringify(tempImageInfo.additional.map(img => img.public_id));
+  }
+
+  // Add images to remove
   if (pendingImageChanges.additional.toRemove.length > 0) {
-    const deleteRemovedFormData = new FormData();
-    deleteRemovedFormData.append("product_id", formData.id);
-    uploadPromises.push(
-      fetch("delete-removed-images.php", {
-        method: "POST",
-        body: deleteRemovedFormData,
-      }).then((response) => response.json())
-    );
+    formData.remove_additional_image_ids = JSON.stringify(pendingImageChanges.additional.toRemove);
   }
 
-  tempImageInfo.additional.forEach((tempInfo) => {
-    const additionalFormData = new FormData();
-    additionalFormData.append("temp_filename", tempInfo.filename);
-    additionalFormData.append("product_id", formData.id);
-    additionalFormData.append("image_type", "additional");
-    additionalFormData.append("action", "move");
-    uploadPromises.push(
-      fetch("move-temp-to-permanent.php", {
-        method: "POST",
-        body: additionalFormData,
-      }).then((response) => response.json())
-    );
-  });
+  // No need for uploadPromises anymore - images are already on Cloudinary
+  const uploadPromises = [];
 
   Promise.all(uploadPromises)
     .then((uploadResults) => {
