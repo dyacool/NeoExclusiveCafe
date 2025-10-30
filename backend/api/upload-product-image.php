@@ -7,13 +7,23 @@
  * table until they are associated with a saved product.
  */
 
+// Start output buffering to prevent any accidental output
+ob_start();
+
 try {
     session_start();
 } catch (Exception $e) {
     error_log("Session start failed: " . $e->getMessage());
 }
 
+// Clean any previous output and set headers
+ob_clean();
 header('Content-Type: application/json');
+
+// Enable error reporting for debugging but don't display errors
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
 
 // Verify admin authentication
 if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
@@ -34,11 +44,6 @@ if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || $_POST['c
     ]);
     exit();
 }
-
-// Enable error reporting for debugging
-error_reporting(E_ALL);
-ini_set('display_errors', 0); // Don't display errors in JSON response
-ini_set('log_errors', 1);
 
 require_once __DIR__ . '/../includes/cloudinary-helper.php';
 require_once __DIR__ . '/../pages/admin-includes/database.php';

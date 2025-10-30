@@ -101,7 +101,6 @@ if ($stmt = mysqli_prepare($conn, $query)) {
                         <th>Admin</th>
                         <th>Action</th>
                         <th>Description</th>
-                        <th>IP Address</th>
                         <th>Date & Time</th>
                     </tr>
                 </thead>
@@ -122,7 +121,6 @@ if ($stmt = mysqli_prepare($conn, $query)) {
                                     </span>
                                 </td>
                                 <td><?php echo htmlspecialchars($row['action_description']); ?></td>
-                                <td><?php echo htmlspecialchars($row['ip_address']); ?></td>
                                 <td><?php echo date('M d, Y h:i A', strtotime($row['timestamp'])); ?></td>
                             </tr>
                         <?php endwhile; ?>
