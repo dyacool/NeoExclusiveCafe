@@ -111,6 +111,25 @@ if (!$validation['valid']) {
     exit();
 }
 
+// Resize image if dimensions exceed 5000x5000
+$fileToUpload = $_FILES['image']['tmp_name'];
+$resizeResult = resizeImageIfNeeded($fileToUpload, 5000, 5000);
+
+if (!$resizeResult['success']) {
+    http_response_code(400);
+    echo json_encode([
+        'success' => false,
+        'error' => 'Failed to process image: ' . $resizeResult['error']
+    ]);
+    exit();
+}
+
+// Use resized image if it was resized
+if ($resizeResult['resized']) {
+    $fileToUpload = $resizeResult['file_path'];
+    error_log("Image was resized from {$resizeResult['original_width']}x{$resizeResult['original_height']} to {$resizeResult['new_width']}x{$resizeResult['new_height']}");
+}
+
 // Get image type (primary or additional)
 $imageType = $_POST['image_type'] ?? 'additional';
 if (!in_array($imageType, ['primary', 'additional'])) {
@@ -147,7 +166,7 @@ $imageFilename = ($imageType === 'primary' ? 'primary' : 'additional_' . ($times
 try {
     // Upload to Cloudinary with folder and filename separate
     $result = uploadToCloudinary(
-        $_FILES['image']['tmp_name'],
+        $fileToUpload, // Use potentially resized image
         $folder, // Folder path: assets/product-images/ProductName_timestamp
         $imageFilename // Just the filename, not the full path
     );
@@ -193,8 +212,11 @@ try {
     ]);
 }
 
-// Delete temporary file
+// Delete temporary files
 @unlink($_FILES['image']['tmp_name']);
+if ($resizeResult['resized'] && isset($resizeResult['file_path'])) {
+    @unlink($resizeResult['file_path']);
+}
 
 $conn->close();
 ?>

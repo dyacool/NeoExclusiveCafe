@@ -237,6 +237,127 @@ function deleteFromCloudinary($publicId) {
 }
 
 /**
+ * Resize image if dimensions exceed maximum
+ * 
+ * @param string $filePath File path to resize
+ * @param int $maxWidth Maximum width
+ * @param int $maxHeight Maximum height
+ * @return array Result with success status and new file path
+ */
+function resizeImageIfNeeded($filePath, $maxWidth = 5000, $maxHeight = 5000) {
+    $imageInfo = @getimagesize($filePath);
+    if ($imageInfo === false) {
+        return [
+            'success' => false,
+            'error' => 'Invalid image file'
+        ];
+    }
+    
+    list($width, $height, $type) = $imageInfo;
+    
+    // Check if resizing is needed
+    if ($width <= $maxWidth && $height <= $maxHeight) {
+        return [
+            'success' => true,
+            'resized' => false,
+            'file_path' => $filePath,
+            'width' => $width,
+            'height' => $height
+        ];
+    }
+    
+    // Calculate new dimensions maintaining aspect ratio
+    $ratio = min($maxWidth / $width, $maxHeight / $height);
+    $newWidth = (int)($width * $ratio);
+    $newHeight = (int)($height * $ratio);
+    
+    // Create image resource based on type
+    switch ($type) {
+        case IMAGETYPE_JPEG:
+            $source = imagecreatefromjpeg($filePath);
+            break;
+        case IMAGETYPE_PNG:
+            $source = imagecreatefrompng($filePath);
+            break;
+        case IMAGETYPE_GIF:
+            $source = imagecreatefromgif($filePath);
+            break;
+        case IMAGETYPE_WEBP:
+            $source = imagecreatefromwebp($filePath);
+            break;
+        default:
+            return [
+                'success' => false,
+                'error' => 'Unsupported image type'
+            ];
+    }
+    
+    if (!$source) {
+        return [
+            'success' => false,
+            'error' => 'Failed to create image resource'
+        ];
+    }
+    
+    // Create new image
+    $resized = imagecreatetruecolor($newWidth, $newHeight);
+    
+    // Preserve transparency for PNG and GIF
+    if ($type === IMAGETYPE_PNG || $type === IMAGETYPE_GIF) {
+        imagealphablending($resized, false);
+        imagesavealpha($resized, true);
+        $transparent = imagecolorallocatealpha($resized, 255, 255, 255, 127);
+        imagefilledrectangle($resized, 0, 0, $newWidth, $newHeight, $transparent);
+    }
+    
+    // Resize image
+    imagecopyresampled($resized, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+    
+    // Generate temporary file path
+    $tempPath = sys_get_temp_dir() . '/' . uniqid('resized_') . '_' . basename($filePath);
+    
+    // Save resized image
+    $saved = false;
+    switch ($type) {
+        case IMAGETYPE_JPEG:
+            $saved = imagejpeg($resized, $tempPath, 90);
+            break;
+        case IMAGETYPE_PNG:
+            $saved = imagepng($resized, $tempPath, 8);
+            break;
+        case IMAGETYPE_GIF:
+            $saved = imagegif($resized, $tempPath);
+            break;
+        case IMAGETYPE_WEBP:
+            $saved = imagewebp($resized, $tempPath, 90);
+            break;
+    }
+    
+    // Free memory
+    imagedestroy($source);
+    imagedestroy($resized);
+    
+    if (!$saved) {
+        return [
+            'success' => false,
+            'error' => 'Failed to save resized image'
+        ];
+    }
+    
+    error_log("Image resized from {$width}x{$height} to {$newWidth}x{$newHeight}");
+    
+    return [
+        'success' => true,
+        'resized' => true,
+        'file_path' => $tempPath,
+        'original_width' => $width,
+        'original_height' => $height,
+        'new_width' => $newWidth,
+        'new_height' => $newHeight
+    ];
+}
+
+/**
  * Validate image file
  * 
  * @param string $filePath File path to validate
@@ -274,21 +395,16 @@ function validateImageFile($filePath) {
         ];
     }
     
-    // Check image dimensions
+    // Note: We no longer reject large dimensions, we'll resize them instead
     list($width, $height) = $imageInfo;
-    if ($width > 5000 || $height > 5000) {
-        return [
-            'valid' => false,
-            'error' => 'Image dimensions exceed 5000x5000 limit'
-        ];
-    }
     
     return [
         'valid' => true,
         'width' => $width,
         'height' => $height,
         'mime_type' => $imageInfo['mime'],
-        'size' => $fileSize
+        'size' => $fileSize,
+        'needs_resize' => ($width > 5000 || $height > 5000)
     ];
 }
 
