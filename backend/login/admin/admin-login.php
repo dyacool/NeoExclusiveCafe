@@ -319,7 +319,7 @@ if (isset($_GET['error'])) {
 <body>
     <div class="main-container">
         <div class="logo-container">
-            <img src="../../../assets/images/user-logo.png" alt="Neo Cafe Logo">
+            <img src="../../../assets/images/user-logo.png https://res.cloudinary.com/dvdccumbs/image/upload/v1761594932/user-logo_zer35f.png" alt="Neo Cafe Logo">
         </div>
         
         <div class="login-container">

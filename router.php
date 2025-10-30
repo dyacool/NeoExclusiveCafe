@@ -6,10 +6,10 @@
 
 // Configuration
 $config = [
-    'admin_domain' => 'admin.neocafe.cafe',
-    'main_domain' => 'neocafe.cafe',
+    'admin_domain' => 'admin.neocafe.shop',
+    'main_domain' => 'neocafe.shop',
     'admin_path' => '/backend/login/admin/admin-login.php',
-    'user_path' => '/frontend/pages/home/user-dashboard.php',
+    'user_path' => '/frontend/login/user/login-signup.php',
     'default_path' => '/frontend/pages/home/user-dashboard.php'
 ];
 
