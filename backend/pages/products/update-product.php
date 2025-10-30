@@ -95,13 +95,13 @@ try {
     if (isset($input['availtoday_status_id']) && $input['availtoday_status_id'] !== "null" && $input['availtoday_status_id'] !== "") {
         $availtoday_status_id = filter_var($input['availtoday_status_id'], FILTER_VALIDATE_INT);
     }
-    $log_file = __DIR__ . "/../../../logs/php_errors.log";
-    error_log("[" . date('Y-m-d H:i:s') . "] Availtoday Status ID received: " . ($input['availtoday_status_id'] ?? 'NOT SET') . "\n", 3, $log_file);
-    error_log("[" . date('Y-m-d H:i:s') . "] Availtoday Status ID after filter: " . ($availtoday_status_id ?? 'NULL') . "\n", 3, $log_file);
-    error_log("[" . date('Y-m-d H:i:s') . "] Status ID: " . $status_id . "\n", 3, $log_file);
-    error_log("[" . date('Y-m-d H:i:s') . "] Is Available Today: " . ($input['is_available_today'] ?? 'NOT SET') . "\n", 3, $log_file);
-    error_log("[" . date('Y-m-d H:i:s') . "] Todays Product Dates: " . ($input['todays_product_dates'] ?? 'NOT SET') . "\n", 3, $log_file);
-    error_log("[" . date('Y-m-d H:i:s') . "] Available Today Dates: " . ($input['available_today_dates'] ?? 'NOT SET') . "\n", 3, $log_file);
+    // Use standard error_log (writes to PHP error log)
+    error_log("Availtoday Status ID received: " . ($input['availtoday_status_id'] ?? 'NOT SET'));
+    error_log("Availtoday Status ID after filter: " . ($availtoday_status_id ?? 'NULL'));
+    error_log("Status ID: " . $status_id);
+    error_log("Is Available Today: " . ($input['is_available_today'] ?? 'NOT SET'));
+    error_log("Todays Product Dates: " . ($input['todays_product_dates'] ?? 'NOT SET'));
+    error_log("Available Today Dates: " . ($input['available_today_dates'] ?? 'NOT SET'));
     
     // Auto-set quantity to 0 if product is being set to unavailable
     if ($unavailable_status_id !== null) {
