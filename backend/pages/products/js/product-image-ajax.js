@@ -85,8 +85,8 @@ async function uploadImageToCloudinary(file, imageType) {
         showErrorMessage('Upload failed: ' + error.message, imageType);
         return null;
     } finally {
-        hideLoadingIndicator(imageType);
         uploadingCount--;
+        hideLoadingIndicator(imageType);
     }
 }
 

@@ -7,7 +7,12 @@
  * table until they are associated with a saved product.
  */
 
-session_start();
+try {
+    session_start();
+} catch (Exception $e) {
+    error_log("Session start failed: " . $e->getMessage());
+}
+
 header('Content-Type: application/json');
 
 // Verify admin authentication
@@ -29,6 +34,11 @@ if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || $_POST['c
     ]);
     exit();
 }
+
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 0); // Don't display errors in JSON response
+ini_set('log_errors', 1);
 
 require_once __DIR__ . '/../includes/cloudinary-helper.php';
 require_once __DIR__ . '/../pages/admin-includes/database.php';
@@ -111,23 +121,29 @@ if (!$validation['valid']) {
     exit();
 }
 
-// Resize image if dimensions exceed 5000x5000
+// Resize image if dimensions exceed 5000x5000 (optional - only if GD available)
 $fileToUpload = $_FILES['image']['tmp_name'];
-$resizeResult = resizeImageIfNeeded($fileToUpload, 5000, 5000);
+$resizeResult = ['success' => true, 'resized' => false, 'file_path' => $fileToUpload];
 
-if (!$resizeResult['success']) {
-    http_response_code(400);
-    echo json_encode([
-        'success' => false,
-        'error' => 'Failed to process image: ' . $resizeResult['error']
-    ]);
-    exit();
-}
-
-// Use resized image if it was resized
-if ($resizeResult['resized']) {
-    $fileToUpload = $resizeResult['file_path'];
-    error_log("Image was resized from {$resizeResult['original_width']}x{$resizeResult['original_height']} to {$resizeResult['new_width']}x{$resizeResult['new_height']}");
+// Check if image needs resizing
+if ($validation['needs_resize']) {
+    try {
+        $resizeResult = resizeImageIfNeeded($fileToUpload, 5000, 5000);
+        
+        if ($resizeResult['success'] && $resizeResult['resized']) {
+            // Use resized image
+            $fileToUpload = $resizeResult['file_path'];
+            error_log("Image was resized from {$resizeResult['original_width']}x{$resizeResult['original_height']} to {$resizeResult['new_width']}x{$resizeResult['new_height']}");
+        } else if (!$resizeResult['success']) {
+            // Resize failed, but continue with original image
+            error_log("Image resize failed: " . ($resizeResult['error'] ?? 'Unknown error') . ". Uploading original image.");
+            $fileToUpload = $_FILES['image']['tmp_name'];
+        }
+    } catch (Exception $e) {
+        error_log("Image resize exception: " . $e->getMessage() . ". Uploading original image.");
+        // Continue with original file if resize fails
+        $fileToUpload = $_FILES['image']['tmp_name'];
+    }
 }
 
 // Get image type (primary or additional)
@@ -214,7 +230,7 @@ try {
 
 // Delete temporary files
 @unlink($_FILES['image']['tmp_name']);
-if ($resizeResult['resized'] && isset($resizeResult['file_path'])) {
+if (isset($resizeResult) && $resizeResult['resized'] && isset($resizeResult['file_path'])) {
     @unlink($resizeResult['file_path']);
 }
 

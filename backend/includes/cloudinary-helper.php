@@ -245,6 +245,15 @@ function deleteFromCloudinary($publicId) {
  * @return array Result with success status and new file path
  */
 function resizeImageIfNeeded($filePath, $maxWidth = 5000, $maxHeight = 5000) {
+    // Check if GD library is available
+    if (!extension_loaded('gd')) {
+        error_log("GD library not available for image resizing");
+        return [
+            'success' => false,
+            'error' => 'Image processing library not available'
+        ];
+    }
+    
     $imageInfo = @getimagesize($filePath);
     if ($imageInfo === false) {
         return [
