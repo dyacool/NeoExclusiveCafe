@@ -434,13 +434,6 @@ if (isset($_POST["signin-submit"])) {
         </div>
     <?php endif; ?>
 
-    <!-- Back to Home Link -->
-    <div class="back-home">
-        <a href="/frontend/pages/home/user-dashboard.php">
-            ← Back to Home
-        </a>
-    </div>
-
     <!-- Main Container -->
     <div class="main-container">
         <!-- Left Side - Background Image with Welcome Content -->
@@ -468,12 +461,7 @@ if (isset($_POST["signin-submit"])) {
                         
                         <div class="input-group password-input-group">
                             <input type="password" name="password" id="login-password" class="input-field" placeholder="Password" required>
-                            <span class="toggle-password" onclick="togglePassword('login-password', this)">
-                                <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                    <circle cx="12" cy="12" r="3"></circle>
-                                </svg>
-                            </span>
+
                         </div>
                         
                         <div class="utility-row">

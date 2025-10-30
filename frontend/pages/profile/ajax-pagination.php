@@ -2,9 +2,17 @@
 session_start();
 require_once "../../../backend/pages/admin-includes/database.php";
 
+// Set content type for JSON response
+header('Content-Type: application/json');
+
+// Enable error reporting for debugging (remove in production)
+error_reporting(E_ALL);
+ini_set('display_errors', 0); // Don't display errors directly
+ini_set('log_errors', 1); // Log errors instead
+
 if (!isset($_SESSION['user_id'])) {
     http_response_code(401);
-    echo json_encode(['error' => 'Unauthorized']);
+    echo json_encode(['error' => 'Unauthorized - Please log in again']);
     exit();
 }
 
@@ -13,10 +21,18 @@ $user_id = $_SESSION['user_id'];
 // Get user information
 $user_query = "SELECT email FROM users WHERE id = ?";
 $user_stmt = mysqli_prepare($conn, $user_query);
+
+if (!$user_stmt) {
+    http_response_code(500);
+    echo json_encode(['error' => 'Database error: ' . mysqli_error($conn)]);
+    exit();
+}
+
 mysqli_stmt_bind_param($user_stmt, "i", $user_id);
 mysqli_stmt_execute($user_stmt);
 $user_result = mysqli_stmt_get_result($user_stmt);
 $user = mysqli_fetch_assoc($user_result);
+mysqli_stmt_close($user_stmt);
 
 if (!$user) {
     http_response_code(404);
@@ -31,8 +47,8 @@ $refunds_table_check = "SHOW TABLES LIKE 'order_refunds'";
 $refunds_table_result = $conn->query($refunds_table_check);
 $refunds_table_exists = $refunds_table_result && $refunds_table_result->num_rows > 0;
 
-// Pagination settings
-$orders_per_page = 2;
+// Pagination settings - Must match profile.php
+$orders_per_page = 3;
 $bulk_orders_per_page = 4;
 
 $type = $_GET['type'] ?? '';
@@ -46,14 +62,38 @@ if ($type === 'orders') {
     if ($refunds_table_exists) {
         $count_sql = "SELECT COUNT(*) as total FROM orders o WHERE o.customer_email = ?";
         $count_stmt = mysqli_prepare($conn, $count_sql);
+        if (!$count_stmt) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Database error preparing count query: ' . mysqli_error($conn)]);
+            exit();
+        }
         mysqli_stmt_bind_param($count_stmt, "s", $user_email);
     } else {
         $count_sql = "SELECT COUNT(*) as total FROM orders WHERE customer_email = ?";
         $count_stmt = mysqli_prepare($conn, $count_sql);
+        if (!$count_stmt) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Database error preparing count query: ' . mysqli_error($conn)]);
+            exit();
+        }
         mysqli_stmt_bind_param($count_stmt, "s", $user_email);
     }
-    mysqli_stmt_execute($count_stmt);
+    
+    if (!mysqli_stmt_execute($count_stmt)) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Database error executing count query: ' . mysqli_stmt_error($count_stmt)]);
+        mysqli_stmt_close($count_stmt);
+        exit();
+    }
+    
     $count_result = mysqli_stmt_get_result($count_stmt);
+    if (!$count_result) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Database error getting count result: ' . mysqli_stmt_error($count_stmt)]);
+        mysqli_stmt_close($count_stmt);
+        exit();
+    }
+    
     $total_orders = mysqli_fetch_assoc($count_result)['total'];
     $total_pages = ceil($total_orders / $orders_per_page);
     mysqli_stmt_close($count_stmt);
@@ -68,14 +108,37 @@ if ($type === 'orders') {
                 ORDER BY o.order_date DESC
                 LIMIT ? OFFSET ?";
         $stmt = mysqli_prepare($conn, $sql);
+        if (!$stmt) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Database error preparing orders query: ' . mysqli_error($conn)]);
+            exit();
+        }
         mysqli_stmt_bind_param($stmt, "isii", $user_id, $user_email, $orders_per_page, $offset);
     } else {
         $sql = "SELECT order_id, status, order_date, total_items, total_amount, delivery_method FROM orders WHERE customer_email = ? ORDER BY order_date DESC LIMIT ? OFFSET ?";
         $stmt = mysqli_prepare($conn, $sql);
+        if (!$stmt) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Database error preparing orders query: ' . mysqli_error($conn)]);
+            exit();
+        }
         mysqli_stmt_bind_param($stmt, "sii", $user_email, $orders_per_page, $offset);
     }
-    mysqli_stmt_execute($stmt);
+    
+    if (!mysqli_stmt_execute($stmt)) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Database error executing orders query: ' . mysqli_stmt_error($stmt)]);
+        mysqli_stmt_close($stmt);
+        exit();
+    }
+    
     $result = mysqli_stmt_get_result($stmt);
+    if (!$result) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Database error getting orders result: ' . mysqli_stmt_error($stmt)]);
+        mysqli_stmt_close($stmt);
+        exit();
+    }
     
     // Generate table HTML
     $table_html = '
@@ -165,7 +228,7 @@ if ($type === 'orders') {
         
         $pagination_html .= '</div>';
         $pagination_html .= '<div class="pagination-info">';
-        $pagination_html .= 'Showing ' . min($offset + 1, $total_orders) . '-' . min($offset + $orders_per_page, $total_orders) . ' of ' . $total_orders . ' orders';
+        $pagination_html .= 'Showing ' . min($offset + $orders_per_page, $total_orders) . ' of ' . $total_orders . ' orders';
         $pagination_html .= '</div>';
     }
     
@@ -173,6 +236,8 @@ if ($type === 'orders') {
         'table_html' => $table_html,
         'pagination_html' => $pagination_html
     ]);
+    
+    mysqli_stmt_close($stmt);
     
 } elseif ($type === 'bulk_orders') {
     // Handle bulk orders pagination
@@ -271,7 +336,7 @@ if ($type === 'orders') {
         
         $pagination_html .= '</div>';
         $pagination_html .= '<div class="pagination-info">';
-        $pagination_html .= 'Showing ' . min($offset + 1, $total_bulk_orders) . '-' . min($offset + $bulk_orders_per_page, $total_bulk_orders) . ' of ' . $total_bulk_orders . ' bulk orders';
+        $pagination_html .= 'Showing ' . min($offset + $bulk_orders_per_page, $total_bulk_orders) . ' of ' . $total_bulk_orders . ' bulk orders';
         $pagination_html .= '</div>';
     }
     
