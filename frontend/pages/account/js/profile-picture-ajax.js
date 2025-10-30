@@ -60,6 +60,11 @@ async function uploadProfilePictureToCloudinary(file) {
             updateAvatarDisplay(result.url, result.public_id);
             showSuccessMessage('Profile picture updated successfully!');
             
+            // Reload page after 1 second to update navbar and profile page
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+            
             return result;
         } else {
             showErrorMessage(result.error || 'Upload failed');
@@ -99,6 +104,12 @@ async function deleteProfilePictureFromCloudinary(publicId) {
         if (result.success) {
             revertToInitials();
             showSuccessMessage('Profile picture removed successfully!');
+            
+            // Reload page after 1 second to update navbar and profile page
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+            
             return true;
         } else {
             showErrorMessage(result.error || 'Delete failed');
@@ -141,7 +152,56 @@ function updateAvatarDisplay(url, publicId) {
     // Update or add remove button
     updateRemoveButton(publicId);
     
+    // Update navbar profile avatar
+    updateNavbarAvatar(url);
+    
+    // Update profile page avatar
+    updateProfilePageAvatar(url);
+    
     console.log('Avatar updated with new image:', url);
+}
+
+/**
+ * Update navbar profile avatar
+ * 
+ * @param {string} url - Cloudinary URL
+ */
+function updateNavbarAvatar(url) {
+    const navbarAvatar = document.querySelector('.profile-avatar');
+    if (!navbarAvatar) return;
+    
+    // Check if there's already an image or initials
+    const existingImg = navbarAvatar.querySelector('img');
+    const existingInitials = navbarAvatar.querySelector('.profile-initial');
+    
+    if (existingImg) {
+        // Update existing image
+        existingImg.src = url + '?t=' + Date.now();
+    } else if (existingInitials) {
+        // Replace initials with image
+        navbarAvatar.innerHTML = '';
+        const img = document.createElement('img');
+        img.src = url + '?t=' + Date.now();
+        img.alt = 'Profile Image';
+        navbarAvatar.appendChild(img);
+    }
+    
+    console.log('Navbar avatar updated');
+}
+
+/**
+ * Update profile page avatar
+ * 
+ * @param {string} url - Cloudinary URL
+ */
+function updateProfilePageAvatar(url) {
+    const profileAvatar = document.querySelector('.neo-profile-avatar img');
+    if (!profileAvatar) return;
+    
+    // Update profile page image
+    profileAvatar.src = url + '?t=' + Date.now();
+    
+    console.log('Profile page avatar updated');
 }
 
 /**
@@ -174,7 +234,29 @@ function revertToInitials() {
         removeBtn.remove();
     }
     
+    // Update navbar to show initials
+    updateNavbarToInitials(initials);
+    
     console.log('Avatar reverted to initials:', initials);
+}
+
+/**
+ * Update navbar to show initials instead of image
+ * 
+ * @param {string} initials - User initials
+ */
+function updateNavbarToInitials(initials) {
+    const navbarAvatar = document.querySelector('.profile-avatar');
+    if (!navbarAvatar) return;
+    
+    // Replace content with initials
+    navbarAvatar.innerHTML = '';
+    const initialsSpan = document.createElement('span');
+    initialsSpan.className = 'profile-initial';
+    initialsSpan.textContent = initials;
+    navbarAvatar.appendChild(initialsSpan);
+    
+    console.log('Navbar reverted to initials');
 }
 
 /**

@@ -231,6 +231,10 @@ try {
         if ($stmt->execute()) {
             error_log("Successfully updated user profile with new picture: " . $result['public_id']);
             
+            // Update session with new profile image
+            $_SESSION['user_profile_image'] = $result['url'];
+            error_log("Session updated with new profile image: " . $result['url']);
+            
             // Remove from temp_uploaded_images after successful save
             $deleteStmt = $conn->prepare("DELETE FROM temp_uploaded_images WHERE public_id = ?");
             $deleteStmt->bind_param("s", $result['public_id']);

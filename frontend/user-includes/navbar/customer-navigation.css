@@ -1120,6 +1120,21 @@ html.homepage-animation .main-nav {
   display: block;
 }
 
+/* Profile initials styling for users without profile pictures */
+.profile-avatar .profile-initial {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  text-transform: uppercase;
+  user-select: none;
+}
+
 .profile-name {
   padding: 0 5px;
   font-size: 16px;

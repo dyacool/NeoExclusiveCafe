@@ -12,7 +12,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
         'lifetime' => 0,
         'httponly' => true,
         'samesite' => 'Strict',
-        'domain' => 'neocafe.cafe'
+        'domain' => 'neocafe.shop'
     ]);
     session_start();
 } else {
@@ -121,7 +121,7 @@ if (isset($_POST['signup-submit'])) {
             $mail->setFrom("noreplyneoexclusive@gmail.com", "NeoExclusive");
             $mail->addAddress($email);
             $mail->Subject = "Email Verification";
-            $verificationLink = "https://neocafe.cafe/frontend/login/user/verify-email.php?token=" . $token;
+            $verificationLink = "https://www.neocafe.shop/frontend/login/user/verify-email.php?token=" . $token;
             $mail->Body = <<<END
             <p>Hello $firstname,</p>
             <p>Thank you for registering! Please click the link below to verify your email address:</p>
@@ -216,7 +216,7 @@ if (isset($_POST["reset-submit"])) {
                         $mail->Subject = "Password Reset Request";
                         $mail->Body = <<<END
                         <p>Hello,</p>
-                        <p>Click <a href="https://neocafe.cafe/frontend/login/user/forgot-pw-reset.php?token=$token">here</a></a>
+                        <p>Click <a href="https://www.neocafe.shop/frontend/login/user/forgot-pw-reset.php?token=$token">here</a>
                         to reset your password.</p>
                         <p>This link will expire in 30 minutes.</p>
                         END;

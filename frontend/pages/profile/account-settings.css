@@ -443,6 +443,23 @@ width: 150px;
     border-radius: 50%;
     overflow: hidden;
 }
+
+/* Profile initials styling for users without profile pictures */
+.avatar .profile-initial,
+#initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  font-size: 3rem;
+  font-weight: 600;
+  color: #ffffff;
+  text-transform: uppercase;
+  user-select: none;
+}
+
 .section-header i {
   margin-right: 10px;
   color: var(--primary);

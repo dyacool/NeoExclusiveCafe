@@ -312,13 +312,28 @@ if (!$navbar_conn) {
                     <a href="<?php echo $is_admin_logged_in ? '/backend/pages/homepage/admin-homepage.php' : '/frontend/pages/profile/profile.php'; ?>"class="profile-link" id="profile-trigger">
                             <div class="profile-avatar">
                                 <?php 
-                                $sessionProfileImage = isset($user['profile_image']) ? trim($user['profile_image']) : '';
-                                if ($sessionProfileImage !== '') {
-                                    if ($sessionProfileImage[0] !== '/') { $sessionProfileImage = '/' . $sessionProfileImage; }
-                                    echo '<img src="' . htmlspecialchars($sessionProfileImage) . '" alt="Profile Image">';
-                                } else {
-                                    echo '<span class="profile-initial">' . substr(htmlspecialchars($user['firstname']), 0, 1) . '</span>';
-                                }
+                                // Always show initials with randomized green color
+                                $initials = strtoupper(substr($user['firstname'], 0, 1) . substr($user['lastname'], 0, 1));
+                                
+                                // Generate consistent random green-toned color based on user's name
+                                $seed = crc32($user['firstname'] . $user['lastname']);
+                                mt_srand($seed);
+                                
+                                // Green color ranges: hue 80-160 (yellow-green to blue-green)
+                                $hue = mt_rand(80, 160);
+                                $saturation = mt_rand(40, 70); // Medium saturation
+                                $lightness = mt_rand(35, 50); // Medium-dark for good contrast
+                                
+                                $color1 = "hsl($hue, {$saturation}%, $lightness%)";
+                                
+                                // Second color slightly different
+                                $hue2 = $hue + mt_rand(-15, 15);
+                                $lightness2 = $lightness + mt_rand(-5, 10);
+                                $color2 = "hsl($hue2, {$saturation}%, $lightness2%)";
+                                
+                                $gradient = "linear-gradient(135deg, $color1 0%, $color2 100%)";
+                                
+                                echo '<span class="profile-initial" style="background: ' . $gradient . ';">' . htmlspecialchars($initials) . '</span>';
                                 ?>
                             </div>
                             <span class="profile-name"><?php echo htmlspecialchars($user['firstname']); ?></span>

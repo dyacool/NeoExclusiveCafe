@@ -156,6 +156,12 @@ try {
     if ($stmt->execute()) {
         error_log("Successfully cleared profile picture from user $userId database record");
         
+        // Clear session profile image
+        if (isset($_SESSION['user_profile_image'])) {
+            unset($_SESSION['user_profile_image']);
+            error_log("Session profile image cleared");
+        }
+        
         // Remove from temp tracking table
         $removed = removeTempImageLog($conn, $publicId);
         
