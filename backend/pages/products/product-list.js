@@ -1005,8 +1005,12 @@ function displayProductImages() {
 
   // Display primary image
   if (effectivePrimary) {
-    const imageUrl = effectivePrimary.is_temp
+    const imageUrl = effectivePrimary.cloud_url
+      ? effectivePrimary.cloud_url
+      : effectivePrimary.is_temp
       ? `/${effectivePrimary.image_url}`
+      : effectivePrimary.image_url.startsWith("http://") || effectivePrimary.image_url.startsWith("https://")
+      ? effectivePrimary.image_url
       : effectivePrimary.image_url.startsWith("assets/")
       ? `/${effectivePrimary.image_url}`
       : `/assets/${effectivePrimary.image_url}`;
@@ -1041,8 +1045,12 @@ function displayProductImages() {
     imagesGrid.className = "additional-images-grid";
 
     effectiveAdditional.forEach((image, index) => {
-      const imageUrl = image.is_temp
+      const imageUrl = image.cloud_url
+        ? image.cloud_url
+        : image.is_temp
         ? `/${image.image_url}`
+        : image.image_url.startsWith("http://") || image.image_url.startsWith("https://")
+        ? image.image_url
         : image.image_url.startsWith("assets/")
         ? `/${image.image_url}`
         : `/assets/${image.image_url}`;
