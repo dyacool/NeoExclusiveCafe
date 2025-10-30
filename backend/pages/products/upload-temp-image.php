@@ -1,5 +1,22 @@
 <?php
+/**
+ * DEPRECATED: This endpoint is deprecated
+ * Use /backend/api/upload-product-image.php instead
+ */
 session_start();
+header('Content-Type: application/json');
+
+// Return deprecation message
+echo json_encode([
+    'success' => false,
+    'error' => 'This endpoint is deprecated. Images are now managed through Cloudinary.',
+    'deprecated' => true,
+    'new_endpoint' => '/backend/api/upload-product-image.php'
+]);
+exit;
+
+// OLD CODE BELOW - KEPT FOR REFERENCE
+/*
 require_once '../admin-includes/database.php';
 
 // Check if admin is logged in
@@ -56,4 +73,5 @@ if (move_uploaded_file($file['tmp_name'], $tempPath)) {
 } else {
     echo json_encode(['success' => false, 'error' => 'Failed to save temporary file']);
 }
+*/
 ?>
