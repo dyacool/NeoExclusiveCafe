@@ -304,6 +304,52 @@ try {
         $regular_today_stmt->close();
     }
         
+        // Handle image updates
+        // Primary image
+        if (isset($input['primary_image_url']) && isset($input['primary_image_public_id'])) {
+            // Delete existing primary image
+            $conn->query("DELETE FROM product_images WHERE product_id = $id AND is_primary = 1");
+            
+            // Insert new primary image
+            $stmt_img = $conn->prepare("INSERT INTO product_images (product_id, image_url, cloud_url, cloud_public_id, cloud_provider, is_primary) VALUES (?, NULL, ?, ?, 'cloudinary', 1)");
+            $stmt_img->bind_param("iss", $id, $input['primary_image_url'], $input['primary_image_public_id']);
+            $stmt_img->execute();
+            $stmt_img->close();
+        } else if (isset($input['remove_primary_image']) && $input['remove_primary_image']) {
+            // Remove primary image
+            $conn->query("DELETE FROM product_images WHERE product_id = $id AND is_primary = 1");
+        }
+        
+        // Additional images
+        if (isset($input['additional_image_urls']) && isset($input['additional_image_public_ids'])) {
+            $urls = json_decode($input['additional_image_urls'], true);
+            $publicIds = json_decode($input['additional_image_public_ids'], true);
+            
+            if (is_array($urls) && is_array($publicIds) && count($urls) === count($publicIds)) {
+                $stmt_img = $conn->prepare("INSERT INTO product_images (product_id, image_url, cloud_url, cloud_public_id, cloud_provider, is_primary) VALUES (?, NULL, ?, ?, 'cloudinary', 0)");
+                
+                foreach ($urls as $index => $url) {
+                    $publicId = $publicIds[$index];
+                    $stmt_img->bind_param("iss", $id, $url, $publicId);
+                    $stmt_img->execute();
+                }
+                $stmt_img->close();
+            }
+        }
+        
+        // Remove additional images
+        if (isset($input['remove_additional_image_ids'])) {
+            $idsToRemove = json_decode($input['remove_additional_image_ids'], true);
+            if (is_array($idsToRemove) && count($idsToRemove) > 0) {
+                $placeholders = implode(',', array_fill(0, count($idsToRemove), '?'));
+                $stmt_del = $conn->prepare("DELETE FROM product_images WHERE id IN ($placeholders)");
+                $types = str_repeat('i', count($idsToRemove));
+                $stmt_del->bind_param($types, ...$idsToRemove);
+                $stmt_del->execute();
+                $stmt_del->close();
+            }
+        }
+        
         // Log the activity
         logAdminActivity($conn, 'UPDATE', "Updated product: $name (ID: $id)", 'products', $id);
         
