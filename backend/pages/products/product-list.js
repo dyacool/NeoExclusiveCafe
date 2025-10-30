@@ -1216,12 +1216,19 @@ function uploadPrimaryImage(file) {
   const productId = document.getElementById("editProductId").value;
   const productName = document.getElementById("editProductName").value || "Product";
   
+  // Get CSRF token
+  const csrfToken = document.getElementById("csrf_token")?.value;
+  if (!csrfToken) {
+    showNotification("Security token missing. Please refresh the page.", "error");
+    return;
+  }
+  
   const formData = new FormData();
   formData.append("image", file);
   formData.append("product_id", productId);
   formData.append("product_name", productName);
   formData.append("image_type", "primary");
-  formData.append("csrf_token", document.getElementById("csrf_token")?.value || "");
+  formData.append("csrf_token", csrfToken);
 
   // Show loading state
   showNotification("Uploading primary image...", "info");
@@ -1282,12 +1289,19 @@ function uploadAdditionalImage(file) {
   const productId = document.getElementById("editProductId").value;
   const productName = document.getElementById("editProductName").value || "Product";
   
+  // Get CSRF token
+  const csrfToken = document.getElementById("csrf_token")?.value;
+  if (!csrfToken) {
+    showNotification("Security token missing. Please refresh the page.", "error");
+    return;
+  }
+  
   const formData = new FormData();
   formData.append("image", file);
   formData.append("product_id", productId);
   formData.append("product_name", productName);
   formData.append("image_type", "additional");
-  formData.append("csrf_token", document.getElementById("csrf_token")?.value || "");
+  formData.append("csrf_token", csrfToken);
 
   // Show loading state
   showNotification("Uploading additional image...", "info");

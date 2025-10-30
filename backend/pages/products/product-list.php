@@ -5,6 +5,11 @@
         exit();
     }
 
+    // Generate CSRF token if not exists
+    if (!isset($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+
     // Include config file for base URL
     require_once __DIR__ . "/../admin-includes/config.php";
     include __DIR__ . "/../admin-includes/database.php";
@@ -106,6 +111,9 @@
 </head>
 <body>
 <?php include __DIR__ . "/../admin-includes/navbar/navbar.php"; ?>
+
+<!-- Hidden CSRF token for AJAX requests -->
+<input type="hidden" id="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
 
 <!-- FIXED: Wrap content in container with proper class -->
 <div class="product-list-container">
