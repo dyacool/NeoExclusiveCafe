@@ -1,10 +1,4 @@
-/**
- * Product Image AJAX Styles
- * 
- * Styles for real-time image upload previews, loading indicators, and error messages
- */
-
-/* Image Preview Container */
+/* Image Preview Containers */
 .primary-preview-container,
 .additional-preview-container {
     display: flex;
@@ -14,7 +8,7 @@
     min-height: 50px;
 }
 
-/* Individual Image Preview */
+/* Image Preview Items */
 .image-preview {
     position: relative;
     width: 150px;
@@ -22,12 +16,15 @@
     border: 2px solid #e0e0e0;
     border-radius: 8px;
     overflow: hidden;
-    background-color: #f5f5f5;
+    background-color: #f9f9f9;
     transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .image-preview:hover {
-    border-color: #4CAF50;
+    border-color: #4A90E2;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -35,6 +32,8 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center;
+    background-color: white;
 }
 
 /* Remove Button */
@@ -42,8 +41,8 @@
     position: absolute;
     top: 5px;
     right: 5px;
-    width: 30px;
-    height: 30px;
+    width: 24px;
+    height: 24px;
     border: none;
     border-radius: 50%;
     background-color: rgba(244, 67, 54, 0.9);
@@ -52,7 +51,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: 12px;
     transition: all 0.2s ease;
     z-index: 10;
 }
@@ -68,11 +67,7 @@
     transform: none;
 }
 
-.remove-image-btn i {
-    pointer-events: none;
-}
-
-/* Loading Indicator */
+/* Loading Indicators */
 .loading-indicator {
     display: none;
     align-items: center;
@@ -92,15 +87,10 @@
 }
 
 @keyframes spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
-/* Success Indicator */
 .success-indicator {
     display: none;
     align-items: center;
@@ -114,11 +104,7 @@
     margin-top: 10px;
 }
 
-.success-indicator i {
-    font-size: 16px;
-}
-
-/* Error Notification */
+/* Error Messages */
 .image-error-notification {
     display: flex;
     align-items: center;
@@ -133,10 +119,6 @@
     animation: slideIn 0.3s ease-out;
 }
 
-.image-error-notification i {
-    font-size: 16px;
-}
-
 @keyframes slideIn {
     from {
         opacity: 0;
@@ -148,38 +130,10 @@
     }
 }
 
-/* Upload Button States */
-.upload-btn {
-    display: inline-block;
-    padding: 12px 24px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    text-align: center;
-}
-
-.upload-btn:hover {
-    background-color: #45a049;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.upload-btn:active {
-    transform: scale(0.98);
-}
-
-/* Image Upload Section */
-.image-upload {
-    margin-bottom: 20px;
-}
-
-.image-upload label.upload-btn {
-    display: inline-block;
-    margin-bottom: 10px;
+/* Primary Image Specific Styling */
+.primary-image-upload .image-preview {
+    width: 200px;
+    height: 200px;
 }
 
 /* Responsive Design */
@@ -189,74 +143,31 @@
         height: 120px;
     }
     
+    .primary-image-upload .image-preview {
+        width: 150px;
+        height: 150px;
+    }
+    
     .primary-preview-container,
     .additional-preview-container {
         gap: 10px;
     }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 425px) {
     .image-preview {
         width: 100px;
         height: 100px;
     }
     
-    .remove-image-btn {
-        width: 25px;
-        height: 25px;
-        font-size: 12px;
-    }
-}
-
-/* Primary Image Specific Styles */
-.primary-image-upload .image-preview {
-    width: 200px;
-    height: 200px;
-}
-
-@media (max-width: 768px) {
     .primary-image-upload .image-preview {
-        width: 150px;
-        height: 150px;
+        width: 120px;
+        height: 120px;
     }
-}
-
-/* Additional Images Specific Styles */
-.additional-images-upload .additional-preview-container {
-    max-width: 100%;
-}
-
-/* Image Count Badge */
-.image-count-badge {
-    display: inline-block;
-    padding: 2px 8px;
-    background-color: #2196F3;
-    color: white;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 600;
-    margin-left: 8px;
-}
-
-/* Drag and Drop Styles (for future enhancement) */
-.image-upload.drag-over {
-    background-color: #e3f2fd;
-    border: 2px dashed #2196F3;
-}
-
-/* Accessibility */
-.upload-btn:focus,
-.remove-image-btn:focus {
-    outline: 2px solid #2196F3;
-    outline-offset: 2px;
-}
-
-/* Print Styles */
-@media print {
-    .remove-image-btn,
-    .loading-indicator,
-    .success-indicator,
-    .image-error-notification {
-        display: none !important;
+    
+    .remove-image-btn {
+        width: 20px;
+        height: 20px;
+        font-size: 10px;
     }
 }

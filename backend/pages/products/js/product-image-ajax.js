@@ -63,7 +63,23 @@ async function uploadImageToCloudinary(file, imageType) {
             body: formData
         });
         
-        const result = await response.json();
+        // Check if response is ok
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        // Get response text first to debug JSON issues
+        const responseText = await response.text();
+        console.log('Raw response:', responseText);
+        
+        let result;
+        try {
+            result = JSON.parse(responseText);
+        } catch (jsonError) {
+            console.error('JSON parse error:', jsonError);
+            console.error('Response text:', responseText);
+            throw new Error('Invalid JSON response from server');
+        }
         
         if (result.success) {
             addImagePreview(result.url, result.public_id, imageType);

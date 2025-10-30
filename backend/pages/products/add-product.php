@@ -476,11 +476,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                      </select>
                      
 
-                     <!-- isAvailableToday radio button - only shown when Pick Up or Delivery is selected -->
+                     <!-- isAvailableToday checkbox - only shown when Pick Up or Delivery is selected -->
                      <div id="isAvailableTodayContainer" style="display: none; margin-top: 10px;">
-                         <div class="radio-group">
-                             <div class="radio-item">
-                                 <input type="radio" id="isAvailableToday" name="isAvailableToday" value="true">
+                         <div class="checkbox-group">
+                             <div class="checkbox-item">
+                                 <input type="checkbox" id="isAvailableToday" name="isAvailableToday" value="true">
                                  <label for="isAvailableToday">Set to same day order too</label>
                              </div>
                          </div>
