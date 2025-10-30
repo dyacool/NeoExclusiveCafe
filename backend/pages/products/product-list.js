@@ -1214,12 +1214,19 @@ function uploadPrimaryImage(file) {
   }
 
   const productId = document.getElementById("editProductId").value;
+  const productName = document.getElementById("editProductName").value || "Product";
+  
   const formData = new FormData();
   formData.append("image", file);
   formData.append("product_id", productId);
+  formData.append("product_name", productName);
   formData.append("image_type", "primary");
+  formData.append("csrf_token", document.getElementById("csrf_token")?.value || "");
 
-  fetch("upload-temp-image.php", {
+  // Show loading state
+  showNotification("Uploading primary image...", "info");
+
+  fetch("/backend/api/upload-product-image.php", {
     method: "POST",
     body: formData,
   })
@@ -1229,25 +1236,27 @@ function uploadPrimaryImage(file) {
         const tempId = "temp_" + Date.now();
         const tempImage = {
           id: tempId,
-          image_url: data.temp_path,
+          image_url: data.url,
+          cloud_url: data.url,
+          cloud_public_id: data.public_id,
           is_temp: true,
         };
 
         tempImageInfo.primary = {
           id: tempId,
-          filename: data.temp_filename,
-          path: data.temp_path,
+          url: data.url,
+          public_id: data.public_id,
         };
         pendingImageChanges.primary = tempImage;
         displayProductImages();
-        showNotification("Primary image added (pending save)", "success");
+        showNotification("Primary image uploaded successfully", "success");
       } else {
         showNotification("Error uploading image: " + data.error, "error");
       }
     })
     .catch((error) => {
       console.error("Error uploading primary image:", error);
-      showNotification("Error uploading primary image", "error");
+      showNotification("Error uploading primary image: " + error.message, "error");
     });
 }
 
@@ -1271,12 +1280,19 @@ function uploadAdditionalImage(file) {
   }
 
   const productId = document.getElementById("editProductId").value;
+  const productName = document.getElementById("editProductName").value || "Product";
+  
   const formData = new FormData();
   formData.append("image", file);
   formData.append("product_id", productId);
+  formData.append("product_name", productName);
   formData.append("image_type", "additional");
+  formData.append("csrf_token", document.getElementById("csrf_token")?.value || "");
 
-  fetch("upload-temp-image.php", {
+  // Show loading state
+  showNotification("Uploading additional image...", "info");
+
+  fetch("/backend/api/upload-product-image.php", {
     method: "POST",
     body: formData,
   })
@@ -1286,18 +1302,20 @@ function uploadAdditionalImage(file) {
         const tempId = "temp_" + Date.now();
         const tempImage = {
           id: tempId,
-          image_url: data.temp_path,
+          image_url: data.url,
+          cloud_url: data.url,
+          cloud_public_id: data.public_id,
           is_temp: true,
         };
 
         tempImageInfo.additional.push({
           id: tempId,
-          filename: data.temp_filename,
-          path: data.temp_path,
+          url: data.url,
+          public_id: data.public_id,
         });
         pendingImageChanges.additional.toAdd.push(tempImage);
         displayProductImages();
-        showNotification("Additional image added (pending save)", "success");
+        showNotification("Additional image uploaded successfully", "success");
       } else {
         showNotification("Error uploading image: " + data.error, "error");
       }
