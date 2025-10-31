@@ -1804,3 +1804,35 @@ select {
     padding: 1rem;
   }
 }
+
+/* Pricing Disclaimer Styles */
+.pricing-disclaimer {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background-color: #f8f9fa;
+  border-left: 4px solid var(--primary);
+  border-radius: 4px;
+}
+
+.pricing-disclaimer p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6c757d;
+  line-height: 1.4;
+}
+
+.pricing-disclaimer em {
+  font-style: italic;
+}
+
+/* Order Summary Table Enhancements */
+.summary-table th:nth-child(2),
+.summary-table td:nth-child(2),
+.summary-table th:nth-child(4),
+.summary-table td:nth-child(4) {
+  text-align: right;
+}
+
+.order-summary-table .pricing-disclaimer {
+  margin-top: 0.75rem;
+}

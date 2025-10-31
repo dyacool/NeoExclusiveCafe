@@ -784,6 +784,41 @@ body {
   }
 }
 
+/* Discount Pricing Styles */
+.discount-total {
+  background-color: #f0fdf4;
+  border-left: 4px solid #059669;
+  padding-left: 8px;
+}
+
+.discount-amount {
+  color: #047857;
+  font-weight: 600;
+}
+
+.discount-price {
+  color: #047857;
+  font-weight: 500;
+}
+
+.discount-subtotal {
+  color: #047857;
+  font-weight: 500;
+}
+
+.discount-total-row {
+  background-color: #f0fdf4;
+}
+
+.discount-total-amount {
+  color: #047857;
+  font-size: 1.1em;
+}
+
+.text-muted {
+  color: #6b7280;
+}
+
 /* Print styles */
 @media print {
   body {

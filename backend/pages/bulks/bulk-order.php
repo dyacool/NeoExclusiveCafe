@@ -145,7 +145,9 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'save_customer_inf
     $contact = trim($_POST['contact'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $billing = trim($_POST['billing_address'] ?? '');
-    $sql = "UPDATE bulk_orders SET name = ?, contact = ?, email = ?, billing_address = ?, admin_updated = NOW() WHERE id = ?"; 
+    
+    // Update customer info and automatically approve the order
+    $sql = "UPDATE bulk_orders SET name = ?, contact = ?, email = ?, billing_address = ?, status = 'approved', admin_updated = NOW() WHERE id = ?"; 
     $stmt = mysqli_prepare($conn, $sql);
     mysqli_stmt_bind_param($stmt, "ssssi", $name, $contact, $email, $billing, $target_id);
     $ok = mysqli_stmt_execute($stmt);
@@ -154,11 +156,11 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'save_customer_inf
     
     // Log the activity
     if ($ok) {
-        logAdminActivity($conn, 'UPDATE', "Updated customer info for bulk order #$target_id", 'bulk_orders', $target_id);
+        logAdminActivity($conn, 'UPDATE', "Updated customer info for bulk order #$target_id and auto-approved order", 'bulk_orders', $target_id);
     }
     
     header('Content-Type: application/json');
-    echo json_encode(['success' => (bool)$ok, 'error' => $ok ? null : ($err ?: 'Update failed')]);
+    echo json_encode(['success' => (bool)$ok, 'error' => $ok ? null : ($err ?: 'Update failed'), 'new_status' => 'approved']);
     exit();
 }
 
@@ -169,7 +171,9 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'save_order_detail
     $time_needed = $_POST['time_needed'] ?? null;
     $delivery = trim($_POST['delivery_address'] ?? '');
     $admin_notes = trim($_POST['admin_notes'] ?? '');
-    $sql = "UPDATE bulk_orders SET purpose = ?, date_needed = ?, time_needed = ?, delivery_address = ?, admin_notes = ?, admin_updated = NOW() WHERE id = ?";
+    
+    // Update order details and automatically approve the order
+    $sql = "UPDATE bulk_orders SET purpose = ?, date_needed = ?, time_needed = ?, delivery_address = ?, admin_notes = ?, status = 'approved', admin_updated = NOW() WHERE id = ?";
     $stmt = mysqli_prepare($conn, $sql);
     mysqli_stmt_bind_param($stmt, "sssssi", $purpose, $date_needed, $time_needed, $delivery, $admin_notes, $target_id);
     $ok = mysqli_stmt_execute($stmt);
@@ -178,11 +182,11 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'save_order_detail
     
     // Log the activity
     if ($ok) {
-        logAdminActivity($conn, 'UPDATE', "Updated order details for bulk order #$target_id", 'bulk_orders', $target_id);
+        logAdminActivity($conn, 'UPDATE', "Updated order details for bulk order #$target_id and auto-approved order", 'bulk_orders', $target_id);
     }
     
     header('Content-Type: application/json');
-    echo json_encode(['success' => (bool)$ok, 'error' => $ok ? null : ($err ?: 'Update failed')]);
+    echo json_encode(['success' => (bool)$ok, 'error' => $ok ? null : ($err ?: 'Update failed'), 'new_status' => 'approved']);
     exit();
 }
 
@@ -199,16 +203,78 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'save_all') {
     $admin_notes = trim($_POST['admin_notes'] ?? '');
     $ok = false; $err='';
     if ($orderId) {
-        $stmt = $conn->prepare("UPDATE bulk_orders SET name=?, contact=?, email=?, billing_address=?, purpose=?, date_needed=?, time_needed=?, delivery_address=?, admin_notes=?, admin_updated=NOW(), updated_at=NOW() WHERE id=?");
+        // Update all fields and automatically approve the order
+        $stmt = $conn->prepare("UPDATE bulk_orders SET name=?, contact=?, email=?, billing_address=?, purpose=?, date_needed=?, time_needed=?, delivery_address=?, admin_notes=?, status='approved', admin_updated=NOW(), updated_at=NOW() WHERE id=?");
         if ($stmt) {
             $stmt->bind_param('sssssssssi', $name, $contact, $email, $billing, $purpose, $date_needed, $time_needed, $delivery, $admin_notes, $orderId);
             $ok = $stmt->execute();
             if (!$ok) { $err = $stmt->error; }
             $stmt->close();
+            
+            // Log the activity
+            if ($ok) {
+                logAdminActivity($conn, 'UPDATE', "Updated all order details for bulk order #$orderId and auto-approved order", 'bulk_orders', $orderId);
+            }
         } else { $err = $conn->error; }
     } else { $err = 'Invalid order id'; }
     header('Content-Type: application/json');
-    echo json_encode(['success'=>$ok,'error'=>$err ?: null]);
+    echo json_encode(['success'=>$ok,'error'=>$err ?: null, 'new_status' => 'approved']);
+    exit();
+}
+
+// Handle discount price updates
+if ($_POST && isset($_POST['action']) && $_POST['action'] === 'update_discount_prices') {
+    $target_id = isset($_POST['order_id']) ? (int)$_POST['order_id'] : $order_id;
+    $items_data = isset($_POST['items']) ? json_decode($_POST['items'], true) : [];
+    
+    $ok = true;
+    $err = '';
+    $discount_total = 0;
+    
+    if (!empty($items_data)) {
+        foreach ($items_data as $item_data) {
+            $item_id = (int)$item_data['id'];
+            $discount_price = floatval($item_data['discount_price'] ?? 0);
+            $quantity = intval($item_data['quantity']);
+            
+            // Allow NULL for discount_price if it's 0 or empty
+            $discount_price_value = $discount_price > 0 ? $discount_price : null;
+            
+            if ($discount_price > 0) {
+                $discount_total += $discount_price * $quantity;
+            }
+            
+            $update_item_sql = "UPDATE bulk_order_items SET discount_price = ? WHERE id = ? AND bulk_order_id = ?";
+            $update_item_stmt = mysqli_prepare($conn, $update_item_sql);
+            mysqli_stmt_bind_param($update_item_stmt, "dii", $discount_price_value, $item_id, $target_id);
+            if (!mysqli_stmt_execute($update_item_stmt)) {
+                $ok = false;
+                $err = mysqli_error($conn);
+                break;
+            }
+            mysqli_stmt_close($update_item_stmt);
+        }
+        
+        // Update discount total in bulk_orders table
+        if ($ok) {
+            $discount_total_value = $discount_total > 0 ? $discount_total : null;
+            // Update discount total and automatically approve the order when discount is applied
+            $update_discount_total_sql = "UPDATE bulk_orders SET discount_total = ?, status = 'approved', admin_updated = NOW() WHERE id = ?";
+            $update_discount_total_stmt = mysqli_prepare($conn, $update_discount_total_sql);
+            mysqli_stmt_bind_param($update_discount_total_stmt, "di", $discount_total_value, $target_id);
+            $ok = mysqli_stmt_execute($update_discount_total_stmt);
+            if (!$ok) { $err = mysqli_error($conn); }
+            mysqli_stmt_close($update_discount_total_stmt);
+            
+            // Log the activity
+            if ($ok) {
+                logAdminActivity($conn, 'UPDATE', "Updated discount pricing for bulk order #$target_id (Discount Total: ₱" . number_format($discount_total, 2) . ") and auto-approved order", 'bulk_orders', $target_id);
+            }
+        }
+    }
+    
+    header('Content-Type: application/json');
+    echo json_encode(['success' => $ok, 'error' => $ok ? null : ($err ?: 'Update failed'), 'discount_total' => $discount_total, 'new_status' => 'approved']);
     exit();
 }
 
@@ -319,11 +385,41 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
     <div class="bulk-order-detail-container">
         <div class="page-header">
             <div class="header-content">
-                <h1> Bulk Order ID: #<?php echo htmlspecialchars($order_id_display); ?></h1>
-                <div class="header-actions">
-                    <button class="btn btn-secondary btn-xs" id="toggleAllEdit"><i class="fas fa-pen"></i> Edit</button>
-                    <button class="btn btn-primary btn-xs" id="saveAllBtn" disabled><i class="fas fa-save"></i> Save</button>
-                    <span id="all-saved" style="display:none; color:#16a34a; margin-left:8px;"><i class="fas fa-check"></i> Saved</span>
+                <div class="header-title">
+                    <h1>Bulk Order Form: #<?php echo htmlspecialchars($order_id_display); ?></h1>
+                </div>
+                <div class="header-controls">
+                    <!-- Status Update -->
+                    <div class="status-control">
+                        <label for="new_status">Status:</label>
+                        <select id="new_status" class="status-select" data-order-id="<?php echo (int)$order['id']; ?>">
+                            <?php $statuses = [
+                                'pending' => 'Pending',
+                                'approved' => 'Approved',
+                                'payment_received' => 'Payment Received',
+                                'payment_rejected' => 'Payment Rejected',
+                                'ready_for_delivery' => 'Ready for Delivery',
+                                'cancelled' => 'Cancelled',
+                                'rejected' => 'Rejected',
+                                'completed' => 'Completed',
+                            ];
+                            foreach ($statuses as $val => $label): ?>
+                                <option value="<?php echo $val; ?>" <?php echo ($order['status'] === $val) ? 'selected' : ''; ?>><?php echo $label; ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <span id="status-saved" class="saved-indicator"><i class="fas fa-check"></i> Saved</span>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <button class="btn btn-secondary btn-xs" id="toggleAllEdit">
+                            <i class="fas fa-pen"></i> <span class="btn-text">Edit Information</span>
+                        </button>
+                        <button class="btn btn-primary btn-xs" id="saveAllBtn" disabled>
+                            <i class="fas fa-save"></i> <span class="btn-text">Save</span>
+                        </button>
+                        <span id="all-saved" class="saved-indicator"><i class="fas fa-check"></i> Saved</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -339,32 +435,6 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
                 <i class="fas fa-exclamation-circle"></i> <?php echo htmlspecialchars($error_message); ?>
             </div>
         <?php endif; ?>
-
-        <!-- Status Update Section -->
-        <div class="status-update-section">
-            <h3><i class="fas fa-edit"></i> Update Order Status</h3>
-            <div class="status-form">
-                <div class="form-group">
-                    <label for="new_status">Change Status:</label>
-                    <select id="new_status" class="status-select" data-order-id="<?php echo (int)$order['id']; ?>">
-                        <?php $statuses = [
-                            'pending' => 'Pending',
-                            'approved' => 'Approved',
-                            'payment_received' => 'Payment Received',
-                            'payment_rejected' => 'Payment Rejected',
-                            'ready_for_delivery' => 'Ready for Delivery',
-                            'cancelled' => 'Cancelled',
-                            'rejected' => 'Rejected',
-                            'completed' => 'Completed',
-                        ];
-                        foreach ($statuses as $val => $label): ?>
-                            <option value="<?php echo $val; ?>" <?php echo ($order['status'] === $val) ? 'selected' : ''; ?>><?php echo $label; ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <span id="status-saved" style="display:none; color:#16a34a; margin-left:8px;"><i class="fas fa-check"></i> Saved</span>
-                </div>
-            </div>
-        </div>
 
         <!-- Order Information Grid -->
         <div class="order-info-grid">
@@ -541,17 +611,21 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
         <div class="items-table-container">
             <div class="card-header-flex">
                 <h3><i class="fas fa-shopping-cart"></i> Order Items</h3>
-                <button type="button" class="btn btn-primary btn-xs" id="savePricesBtn">
-                    <i class="fas fa-save"></i> Save Prices
-                </button>
+                <div class="pricing-controls">
+                    <button type="button" class="btn btn-primary btn-xs" id="saveDiscountPricesBtn" style="margin-left: 10px;">
+                        <i class="fas fa-percentage"></i> Save Discount Prices
+                    </button>
+                </div>
             </div>
             <table class="items-table" id="itemsTable">
                 <thead>
                     <tr>
                         <th>Product Name</th>
-                        <th style="width: 150px;">Unit Price (₱)</th>
-                        <th style="width: 100px;">Quantity</th>
-                        <th style="width: 150px;">Subtotal (₱)</th>
+                        <th style="width: 120px;">Retail Price (₱)</th>
+                        <th style="width: 150px;">Discount Price (₱)</th>
+                        <th style="width: 50px;">Qty</th>
+                        <th style="width: 120px;">Regular Subtotal (₱)</th>
+                        <th style="width: 120px;">Discounted Subtotal (₱)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -561,29 +635,68 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
                             <td><?php echo htmlspecialchars($item['product_name']); ?></td>
                             <td>
                                 <input type="number" 
-                                       class="editable-input price-input" 
-                                       data-item-id="<?php echo $item['id']; ?>"
+                                       class="readonly-price-input" 
                                        value="<?php echo number_format($item['product_price'], 2, '.', ''); ?>" 
+                                       readonly
+                                       title="Retail price from customer form (read-only)">
+                            </td>
+                            <td>
+                                <input type="number" 
+                                       class="editable-input discount-price-input" 
+                                       data-item-id="<?php echo $item['id']; ?>"
+                                       value="<?php echo $item['discount_price'] ? number_format($item['discount_price'], 2, '.', '') : ''; ?>" 
                                        min="0" 
                                        step="0.01"
-                                       onchange="calculateSubtotal(<?php echo $item['id']; ?>)">
+                                       placeholder="Enter discount price"
+                                       onchange="calculateDiscountSubtotal(<?php echo $item['id']; ?>)">
                             </td>
                             <td class="quantity-cell"><?php echo number_format($item['quantity']); ?></td>
-                            <td class="subtotal-cell" data-item-id="<?php echo $item['id']; ?>">
+                            <td class="regular-subtotal-cell" data-item-id="<?php echo $item['id']; ?>">
                                 ₱<?php echo number_format($item['subtotal'], 2); ?>
+                            </td>
+                            <td class="discount-subtotal-cell" data-item-id="<?php echo $item['id']; ?>">
+                                <?php 
+                                if ($item['discount_price']) {
+                                    echo '₱' . number_format($item['discount_price'] * $item['quantity'], 2);
+                                } else {
+                                    echo '<span class="text-muted">-</span>';
+                                }
+                                ?>
                             </td>
                         </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="4" style="text-align: center; color: #666;">No items found for this order</td>
+                            <td colspan="6" style="text-align: center; color: #666;">No items found for this order</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="3"><strong>Total Amount:</strong></td>
+                        <td colspan="4"><strong>Regular Total:</strong></td>
                         <td id="grandTotalCell"><strong>₱<?php echo number_format($total_amount, 2); ?></strong></td>
+                        <td><span class="text-muted">-</span></td>
+                    </tr>
+                    <tr class="discount-total-row">
+                        <td colspan="4"><strong>Discounted Total:</strong></td>
+                        <td><span class="text-muted">-</span></td>
+                        <td id="discountTotalCell">
+                            <strong>
+                                <?php 
+                                $discount_total = 0;
+                                foreach ($items as $item) {
+                                    if ($item['discount_price']) {
+                                        $discount_total += $item['discount_price'] * $item['quantity'];
+                                    }
+                                }
+                                if ($discount_total > 0) {
+                                    echo '₱' . number_format($discount_total, 2);
+                                } else {
+                                    echo '<span class="text-muted">No discounts applied</span>';
+                                }
+                                ?>
+                            </strong>
+                        </td>
                     </tr>
                 </tfoot>
             </table>
@@ -635,6 +748,9 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
     </div>
     <style>
         .editable-input { border: 1px solid #d1d5db; border-radius: 6px; padding: 8px; width: 100%; background: #fffdf7; }
+        .readonly-price-input { border: 1px solid #e5e7eb; border-radius: 6px; padding: 8px; width: 100%; background: #f9fafb; color: #6b7280; cursor: not-allowed; }
+        .discount-price-input { border: 1px solid #059669; border-radius: 6px; padding: 8px; width: 100%; background: #ecfdf5; }
+        .discount-price-input:focus { border-color: #047857; box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.1); }
         .edit-actions { margin-top: 10px; }
         .card-header-flex { display:flex; align-items:center; justify-content:space-between; gap: 10px; }
         .btn-xs { padding: 4px 8px; font-size: 12px; }
@@ -645,6 +761,137 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
         .image-modal { display:none; position: fixed; z-index: 9999; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.75); align-items:center; justify-content:center; }
         .image-modal img { max-width: 90%; max-height: 90%; border-radius: 8px; }
         .image-modal .close { position:absolute; top:20px; right:24px; font-size:28px; color:#fff; cursor:pointer; }
+        .discount-total-row { background-color: #f0fdf4; font-weight: bold; }
+        .pricing-controls { display: flex; gap: 10px; align-items: center; }
+        
+        /* Responsive Header Styles */
+        .header-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .header-title h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            white-space: nowrap;
+        }
+        
+        .header-controls {
+            display: flex;
+            flex-direction: row;
+            gap: 12px;
+            min-width: 300px;
+        }
+        
+        .status-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .status-control label {
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        
+        .status-select {
+            padding: 4px 8px;
+            font-size: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            min-width: 150px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .saved-indicator {
+            display: none;
+            color: #16a34a;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .header-title h1 {
+                font-size: 1.25rem;
+                white-space: normal;
+                text-align: center;
+            }
+            
+            .header-controls {
+                flex-direction: row;
+                min-width: auto;
+                width: 100%;
+            }
+            
+            .status-control {
+                justify-content: center;
+                border-radius: 6px;
+            }
+            
+            .action-buttons {
+                justify-content: center;
+            }
+            
+            .btn-text {
+                display: none;
+            }
+            
+            .btn {
+                padding: 8px 12px;
+            }
+        }
+        
+        /* Small Mobile */
+        @media (max-width: 480px) {
+
+            .card-header-flex{
+            }
+            
+
+            .header-controls {
+                flex-direction: column;
+                min-width: auto;
+                width: 100%;
+            }
+            .status-control {
+                flex-direction: row;
+                gap: 4px;
+                text-align: center;
+            }
+            
+            .status-select {
+                min-width: auto;
+                width: 100%;
+                max-width: 200px;
+            }
+            
+            .action-buttons {
+                flex-direction: row;
+                gap: 8px;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 100px;
+            }
+        }
     </style>
     <div id="imgModal" class="image-modal" onclick="closeImageModal(event)">
         <span class="close" onclick="closeImageModal(event)">&times;</span>
@@ -762,6 +1009,12 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
                                     adminSection.style.display = 'none';
                                 }
                             }
+                            
+                            // Auto-update status if returned
+                            if (data.new_status) {
+                                updateStatusUI(data.new_status);
+                            }
+                            
                             // Toggle back to view mode
                             editing = false;
                             viewBlocks.forEach(b => b.classList.remove('hidden'));
@@ -795,9 +1048,30 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
             
             calculateGrandTotal();
         }
+
+        function calculateDiscountSubtotal(itemId) {
+            const row = document.querySelector(`tr[data-item-id="${itemId}"]`);
+            if (!row) return;
+            
+            const discountPriceInput = row.querySelector('.discount-price-input');
+            const quantityCell = row.querySelector('.quantity-cell');
+            const discountSubtotalCell = row.querySelector('.discount-subtotal-cell');
+            
+            const discountPrice = parseFloat(discountPriceInput.value) || 0;
+            const quantity = parseInt(quantityCell.textContent.replace(/,/g, '')) || 0;
+            
+            if (discountPrice > 0) {
+                const discountSubtotal = discountPrice * quantity;
+                discountSubtotalCell.innerHTML = '₱' + discountSubtotal.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            } else {
+                discountSubtotalCell.innerHTML = '<span class="text-muted">-</span>';
+            }
+            
+            calculateDiscountTotal();
+        }
         
         function calculateGrandTotal() {
-            const subtotalCells = document.querySelectorAll('.subtotal-cell');
+            const subtotalCells = document.querySelectorAll('.regular-subtotal-cell');
             let total = 0;
             
             subtotalCells.forEach(cell => {
@@ -807,6 +1081,28 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
             
             const grandTotalCell = document.getElementById('grandTotalCell');
             grandTotalCell.innerHTML = '<strong>₱' + total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</strong>';
+        }
+
+        function calculateDiscountTotal() {
+            const discountSubtotalCells = document.querySelectorAll('.discount-subtotal-cell');
+            let total = 0;
+            let hasDiscounts = false;
+            
+            discountSubtotalCells.forEach(cell => {
+                const textContent = cell.textContent || cell.innerText;
+                if (textContent && textContent.includes('₱')) {
+                    const value = parseFloat(textContent.replace(/₱|,/g, '')) || 0;
+                    total += value;
+                    hasDiscounts = true;
+                }
+            });
+            
+            const discountTotalCell = document.getElementById('discountTotalCell');
+            if (hasDiscounts && total > 0) {
+                discountTotalCell.innerHTML = '<strong>₱' + total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</strong>';
+            } else {
+                discountTotalCell.innerHTML = '<strong><span class="text-muted">No discounts applied</span></strong>';
+            }
         }
         
         // Save prices button handler
@@ -878,8 +1174,183 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
             }
         })();
         
-        // Make calculateSubtotal available globally
+        // Save discount prices button handler
+        (function() {
+            const saveDiscountPricesBtn = document.getElementById('saveDiscountPricesBtn');
+            if (saveDiscountPricesBtn) {
+                saveDiscountPricesBtn.addEventListener('click', async () => {
+                    console.log('Save discount prices button clicked');
+                    
+                    const itemsData = [];
+                    const rows = document.querySelectorAll('#itemsTable tbody tr[data-item-id]');
+                    
+                    console.log('Found rows:', rows.length);
+                    
+                    rows.forEach((row, index) => {
+                        const itemId = row.getAttribute('data-item-id');
+                        const discountPriceInput = row.querySelector('.discount-price-input');
+                        const quantityCell = row.querySelector('.quantity-cell');
+                        
+                        console.log(`Row ${index}:`, {
+                            itemId: itemId,
+                            hasDiscountInput: !!discountPriceInput,
+                            hasQuantityCell: !!quantityCell,
+                            discountValue: discountPriceInput ? discountPriceInput.value : 'null',
+                            quantityText: quantityCell ? quantityCell.textContent : 'null'
+                        });
+                        
+                        if (itemId && discountPriceInput && quantityCell) {
+                            const discountPrice = parseFloat(discountPriceInput.value) || 0;
+                            const quantity = parseInt(quantityCell.textContent.replace(/,/g, '')) || 0;
+                            
+                            itemsData.push({
+                                id: parseInt(itemId),
+                                discount_price: discountPrice,
+                                quantity: quantity
+                            });
+                        }
+                    });
+                    
+                    console.log('Items data collected:', itemsData);
+                    
+                    if (itemsData.length === 0) {
+                        console.error('No items found to save');
+                        alert('No items to save. Please check if the table has loaded properly and try refreshing the page.');
+                        return;
+                    }
+                    
+                    const formData = new FormData();
+                    formData.append('action', 'update_discount_prices');
+                    formData.append('order_id', '<?php echo (int)$order_id; ?>');
+                    formData.append('items', JSON.stringify(itemsData));
+                    
+                    console.log('Sending form data:', {
+                        action: 'update_discount_prices',
+                        order_id: '<?php echo (int)$order_id; ?>',
+                        items: JSON.stringify(itemsData)
+                    });
+                    
+                    try {
+                        saveDiscountPricesBtn.disabled = true;
+                        saveDiscountPricesBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                        
+                        const response = await fetch(window.location.href, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        console.log('Response status:', response.status);
+                        const data = await response.json();
+                        console.log('Response data:', data);
+                        
+                        if (data.success) {
+                            saveDiscountPricesBtn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+                            setTimeout(() => {
+                                saveDiscountPricesBtn.innerHTML = '<i class="fas fa-percentage"></i> Save Discount Prices';
+                                saveDiscountPricesBtn.disabled = false;
+                            }, 1500);
+                            
+                            // Auto-update status if returned
+                            if (data.new_status) {
+                                updateStatusUI(data.new_status);
+                            }
+                            
+                            // Update the discount totals in real-time
+                            calculateDiscountTotal();
+                        } else {
+                            console.error('Server error:', data.error);
+                            alert('Failed to save discount prices: ' + (data.error || 'Unknown error'));
+                            saveDiscountPricesBtn.innerHTML = '<i class="fas fa-percentage"></i> Save Discount Prices';
+                            saveDiscountPricesBtn.disabled = false;
+                        }
+                    } catch (e) {
+                        console.error('Request failed:', e);
+                        alert('Request failed: ' + e.message);
+                        saveDiscountPricesBtn.innerHTML = '<i class="fas fa-percentage"></i> Save Discount Prices';
+                        saveDiscountPricesBtn.disabled = false;
+                    }
+                });
+            } else {
+                console.error('Save discount prices button not found');
+            }
+        })();
+        
+        // Make functions available globally
         window.calculateSubtotal = calculateSubtotal;
+        window.calculateDiscountSubtotal = calculateDiscountSubtotal;
+
+        // Function to update status UI elements
+        function updateStatusUI(newStatus) {
+            // Update the status dropdown
+            const statusSelect = document.getElementById('new_status');
+            if (statusSelect) {
+                statusSelect.value = newStatus;
+            }
+            
+            // Update the status badge in Order Details section
+            const statusBadge = document.querySelector('.status-badge');
+            if (statusBadge) {
+                const statusLabels = {
+                    'pending': 'Pending',
+                    'approved': 'Approved',
+                    'payment_received': 'Payment Received',
+                    'payment_rejected': 'Payment Rejected',
+                    'ready_for_delivery': 'Ready For Delivery',
+                    'cancelled': 'Cancelled',
+                    'rejected': 'Rejected',
+                    'completed': 'Completed'
+                };
+                
+                statusBadge.textContent = statusLabels[newStatus] || newStatus;
+                statusBadge.className = 'status-badge status-' + newStatus.toLowerCase().replace('_', '-');
+            }
+            
+            // Show a notification that status was auto-updated
+            const statusNotification = document.createElement('div');
+            statusNotification.innerHTML = '<i class="fas fa-check-circle"></i> Order automatically approved!';
+            statusNotification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #10b981;
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                font-weight: 500;
+                z-index: 10000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                animation: slideIn 0.3s ease-out;
+            `;
+            
+            // Add animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                @keyframes slideOut {
+                    from { transform: translateX(0); opacity: 1; }
+                    to { transform: translateX(100%); opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            document.body.appendChild(statusNotification);
+            
+            // Remove notification after 3 seconds
+            setTimeout(() => {
+                statusNotification.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => {
+                    if (statusNotification.parentNode) {
+                        statusNotification.parentNode.removeChild(statusNotification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+        
+        // Make updateStatusUI available globally
+        window.updateStatusUI = updateStatusUI;
 
         // Image modal
         function openImageModal(src) {

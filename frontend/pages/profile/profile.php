@@ -199,7 +199,7 @@ if ($bulk_count_stmt === false) {
 // Fetch user bulk orders (with pagination)
 $bulk_orders_sql = "SELECT id, 
                            unique_order_id as display_order_id,
-                           name, contact, email, billing_address, order_type, delivery_address, purpose, date_needed, time_needed, created_at, status, total_items, total_amount, proof_of_payment, admin_updated, note, admin_notes 
+                           name, contact, email, billing_address, order_type, delivery_address, purpose, date_needed, time_needed, created_at, status, total_items, total_amount, discount_total, proof_of_payment, admin_updated, note, admin_notes 
                     FROM bulk_orders 
                     WHERE user_id = ? 
                     ORDER BY created_at DESC
@@ -548,7 +548,14 @@ if ($bulk_orders_stmt === false) {
                             <td>#<?php echo htmlspecialchars($bulk_order['display_order_id']); ?></td>
                             <td><?php echo htmlspecialchars(date("M j, Y", strtotime($bulk_order['created_at']))); ?></td>
                             <td><?php echo htmlspecialchars($bulk_order['total_items']); ?> items</td>
-                            <td>₱<?php echo htmlspecialchars(number_format($bulk_order['total_amount'], 2)); ?></td>
+                            <td>
+                                <?php if ($bulk_order['discount_total'] && $bulk_order['discount_total'] > 0): ?>
+                                    <span style="color: #047857; font-weight: 600;">₱<?php echo htmlspecialchars(number_format($bulk_order['discount_total'], 2)); ?></span>
+                                    <br><small style="color: #6b7280; text-decoration: line-through;">₱<?php echo htmlspecialchars(number_format($bulk_order['total_amount'], 2)); ?></small>
+                                <?php else: ?>
+                                    ₱<?php echo htmlspecialchars(number_format($bulk_order['total_amount'], 2)); ?>
+                                <?php endif; ?>
+                            </td>
                             <td><span class="status-badge status-<?php echo htmlspecialchars(strtolower($bulk_order['status'])); ?>"><?php echo htmlspecialchars(ucfirst(str_replace('_', ' ', $bulk_order['status']))); ?></span></td>
                             <td class="actions-column">
                                 <a href="../bulk/bulk-order-details.php?id=<?php echo $bulk_order['display_order_id']; ?>" class="btn-view">View Details</a>

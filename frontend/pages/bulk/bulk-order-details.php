@@ -221,15 +221,14 @@ if (isset($_SESSION['flash_error'])) {
                         <label>Total Items:</label>
                         <span><?php echo number_format($order['total_items']); ?></span>
                     </div>
-                    <?php if ($order['status'] !== 'pending' && $order['total_amount'] > 0): ?>
                     <div class="info-item">
-                        <label>Total Amount:</label>
+                        <label>Regular Total:</label>
                         <span class="total-amount">₱<?php echo number_format($order['total_amount'], 2); ?></span>
                     </div>
-                    <?php else: ?>
-                    <div class="info-item">
-                        <label>Total Amount:</label>
-                        <span class="total-amount">Pending Quotation</span>
+                    <?php if ($order['discount_total'] && $order['discount_total'] > 0): ?>
+                    <div class="info-item discount-total">
+                        <label>Discounted Total:</label>
+                        <span class="discount-amount">₱<?php echo number_format($order['discount_total'], 2); ?></span>
                     </div>
                     <?php endif; ?>
                 </div>
@@ -242,12 +241,23 @@ if (isset($_SESSION['flash_error'])) {
                     <thead>
                         <tr>
                             <th>Product</th>
-                            <?php if ($order['status'] !== 'pending'): ?>
-                            <th>Price</th>
+                            <th>Retail Price</th>
+                            <?php 
+                            // Check if any item has discount pricing
+                            $has_discounts = false;
+                            foreach ($items as $item) {
+                                if (isset($item['discount_price']) && $item['discount_price'] && $item['discount_price'] > 0) {
+                                    $has_discounts = true;
+                                    break;
+                                }
+                            }
+                            if ($has_discounts): ?>
+                            <th>Discount Price</th>
                             <?php endif; ?>
                             <th>Quantity</th>
-                            <?php if ($order['status'] !== 'pending'): ?>
                             <th>Subtotal</th>
+                            <?php if ($has_discounts): ?>
+                            <th>Discounted Subtotal</th>
                             <?php endif; ?>
                         </tr>
                     </thead>
@@ -256,36 +266,53 @@ if (isset($_SESSION['flash_error'])) {
                             <?php foreach ($items as $item): ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($item['product_name']); ?></td>
-                                <?php if ($order['status'] !== 'pending'): ?>
                                 <td>₱<?php echo number_format($item['product_price'], 2); ?></td>
+                                <?php if ($has_discounts): ?>
+                                <td>
+                                    <?php if (isset($item['discount_price']) && $item['discount_price'] && $item['discount_price'] > 0): ?>
+                                        <span class="discount-price">₱<?php echo number_format($item['discount_price'], 2); ?></span>
+                                    <?php else: ?>
+                                        <span class="text-muted">-</span>
+                                    <?php endif; ?>
+                                </td>
                                 <?php endif; ?>
                                 <td><?php echo $item['quantity']; ?></td>
-                                <?php if ($order['status'] !== 'pending'): ?>
                                 <td>₱<?php echo number_format($item['subtotal'], 2); ?></td>
+                                <?php if ($has_discounts): ?>
+                                <td>
+                                    <?php if (isset($item['discount_price']) && $item['discount_price'] && $item['discount_price'] > 0): ?>
+                                        <span class="discount-subtotal">₱<?php echo number_format($item['discount_price'] * $item['quantity'], 2); ?></span>
+                                    <?php else: ?>
+                                        <span class="text-muted">-</span>
+                                    <?php endif; ?>
+                                </td>
                                 <?php endif; ?>
                             </tr>
                             <?php endforeach; ?>
-                            <?php if ($order['status'] === 'pending'): ?>
-                            <tr>
-                                <td colspan="2" style="text-align: center; padding: 1rem; color: #666; font-style: italic;">
-                                    Pricing will be provided after review of your quotation request.
-                                </td>
-                            </tr>
-                            <?php endif; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="<?php echo $order['status'] !== 'pending' ? '4' : '2'; ?>" style="text-align: center; color: #666;">No items found for this order</td>
+                                <td colspan="<?php echo $has_discounts ? '6' : '4'; ?>" style="text-align: center; color: #666;">No items found for this order</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
-                    <?php if ($order['status'] !== 'pending' && floatval($order['total_amount']) > 0): ?>
                     <tfoot>
                         <tr>
-                            <td colspan="3"><strong>Total Amount:</strong></td>
+                            <td colspan="<?php echo $has_discounts ? '4' : '3'; ?>"><strong>Regular Total:</strong></td>
                             <td><strong>₱<?php echo number_format($order['total_amount'], 2); ?></strong></td>
+                            <?php if ($has_discounts): ?>
+                            <td><span class="text-muted">-</span></td>
+                            <?php endif; ?>
                         </tr>
+                        <?php if ($order['discount_total'] && $order['discount_total'] > 0): ?>
+                        <tr class="discount-total-row">
+                            <td colspan="<?php echo $has_discounts ? '4' : '3'; ?>"><strong>Discounted Total:</strong></td>
+                            <td><span class="text-muted">-</span></td>
+                            <?php if ($has_discounts): ?>
+                            <td><strong class="discount-total-amount">₱<?php echo number_format($order['discount_total'], 2); ?></strong></td>
+                            <?php endif; ?>
+                        </tr>
+                        <?php endif; ?>
                     </tfoot>
-                    <?php endif; ?>
                 </table>
             </div>
         </div>

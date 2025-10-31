@@ -86,7 +86,7 @@ body {
 
 .main-container {
   max-width: 1400px;
-  margin: 2rem auto;
+  margin: 0 auto;
   padding: 2rem;
   background: white;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -422,14 +422,7 @@ body {
 
 /* Responsive */
 @media (max-width: 768px) {
-  .breadcrumb {
-    margin: 1rem;
-    padding: 0 1.25rem;
-    font-size: 0.875rem;
-  }
-
   .main-container {
-    margin: 1.25rem;
     padding: 1.25rem;
   }
 

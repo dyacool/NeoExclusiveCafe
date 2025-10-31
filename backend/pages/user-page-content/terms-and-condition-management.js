@@ -6,6 +6,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
 let quill;
 let isContentChanged = false;
+let initialContent = "";
+let initialTitle = "";
+let isInitializing = true;
 
 // Initialize Quill.js Editor
 function initializeEditor() {
@@ -30,65 +33,102 @@ function initializeEditor() {
 
   // Set initial content from textarea
   const textarea = document.getElementById("content");
-  if (textarea.value.trim()) {
+  if (textarea && textarea.value.trim()) {
     quill.root.innerHTML = textarea.value;
   }
 
+  // Store initial content for comparison
+  setTimeout(() => {
+    initialContent = quill.root.innerHTML;
+    initialTitle = document.getElementById("title")
+      ? document.getElementById("title").value
+      : "";
+    isInitializing = false;
+  }, 100);
+
   // Listen for content changes
   quill.on("text-change", function () {
-    isContentChanged = true;
-    updateSaveStatus();
-    // Update hidden textarea
-    textarea.value = quill.root.innerHTML;
+    if (!isInitializing) {
+      checkForChanges();
+      // Update hidden textarea
+      if (textarea) {
+        textarea.value = quill.root.innerHTML;
+      }
+    }
   });
+}
+
+// Check if content has actually changed
+function checkForChanges() {
+  const currentContent = quill ? quill.root.innerHTML : "";
+  const currentTitle = document.getElementById("title")
+    ? document.getElementById("title").value
+    : "";
+
+  isContentChanged =
+    currentContent !== initialContent || currentTitle !== initialTitle;
+  updateSaveStatus();
 }
 
 // Setup form handling
 function setupFormHandling() {
   const form = document.getElementById("termsForm");
-  const saveBtn = form.querySelector(".btn-save");
   const titleInput = document.getElementById("title");
 
   // Track title changes
-  titleInput.addEventListener("input", function () {
-    isContentChanged = true;
-    updateSaveStatus();
-  });
+  if (titleInput) {
+    titleInput.addEventListener("input", function () {
+      if (!isInitializing) {
+        checkForChanges();
+      }
+    });
+  }
 
   // Handle form submission
-  form.addEventListener("submit", function (e) {
-    const title = document.getElementById("title").value.trim();
+  if (form) {
+    form.addEventListener("submit", function (e) {
+      const title = document.getElementById("title");
+      const titleValue = title ? title.value.trim() : "";
 
-    if (!title) {
-      e.preventDefault();
-      showNotification("Please enter a title", "error");
-      document.getElementById("title").focus();
-      return;
-    }
+      if (!titleValue) {
+        e.preventDefault();
+        showNotification("Please enter a title", "error");
+        if (title) title.focus();
+        return;
+      }
 
-    if (!quill) {
-      e.preventDefault();
-      showNotification("Editor not initialized", "error");
-      return;
-    }
+      if (!quill) {
+        e.preventDefault();
+        showNotification("Editor not initialized", "error");
+        return;
+      }
 
-    const content = quill.root.innerHTML;
-    if (!content.trim() || content === "<p><br></p>") {
-      e.preventDefault();
-      showNotification("Please enter content", "error");
-      quill.focus();
-      return;
-    }
+      const content = quill.root.innerHTML;
+      const contentText = quill.getText().trim();
 
-    // Update hidden textarea before submission
-    document.getElementById("content").value = content;
+      if (!contentText || contentText.length === 0) {
+        e.preventDefault();
+        showNotification("Please enter content", "error");
+        quill.focus();
+        return;
+      }
 
-    // Allow form to submit normally
-  });
+      // Update hidden textarea before submission
+      const textarea = document.getElementById("content");
+      if (textarea) {
+        textarea.value = content;
+      }
+
+      // Reset change tracking after successful submission
+      isContentChanged = false;
+
+      // Allow form to submit normally
+    });
+  }
 
   // Prevent accidental navigation away with unsaved changes
   window.addEventListener("beforeunload", function (e) {
-    if (isContentChanged) {
+    if (isContentChanged && !isInitializing) {
       e.preventDefault();
       e.returnValue =
         "You have unsaved changes. Are you sure you want to leave?";
@@ -99,37 +139,25 @@ function setupFormHandling() {
 
 // Update save status indicator
 function updateSaveStatus() {
-  const saveBtn = document.querySelector(".btn-save");
-  if (isContentChanged) {
-    saveBtn.textContent = "Save Changes";
-    saveBtn.style.background = "#dc3545";
-  } else {
-    saveBtn.textContent = "Update Terms";
-    saveBtn.style.background = "#2d5a27";
-  }
-}
+  const saveBtn = document.querySelector(".btn-primary");
+  if (!saveBtn) return;
 
-// Update last updated timestamp
-function updateLastUpdated() {
-  const lastUpdatedEl = document.querySelector(".last-updated");
-  if (lastUpdatedEl) {
-    const now = new Date();
-    lastUpdatedEl.textContent = `Last updated: ${now.toLocaleDateString(
-      "en-US",
-      {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      }
-    )}`;
+  const iconHtml =
+    '<svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+
+  if (isContentChanged) {
+    saveBtn.innerHTML = iconHtml + "Save Changes";
+    saveBtn.style.backgroundColor = "var(--green-600)";
+  } else {
+    saveBtn.innerHTML = iconHtml + "Update Terms";
+    saveBtn.style.backgroundColor = "var(--green-600)";
   }
 }
 
 // Set button loading state
 function setButtonLoading(button, loading) {
+  if (!button) return;
+
   if (loading) {
     button.disabled = true;
     button.classList.add("loading");
@@ -138,7 +166,7 @@ function setButtonLoading(button, loading) {
   } else {
     button.disabled = false;
     button.classList.remove("loading");
-    button.textContent = button.dataset.originalText || "Save";
+    button.textContent = button.dataset.originalText || "Update Terms";
   }
 }
 
@@ -152,16 +180,18 @@ function showNotification(message, type = "success") {
   const notification = document.createElement("div");
   notification.className = `notification ${type}`;
   notification.innerHTML = `
-        <span>${message}</span>
-        <button onclick="this.parentElement.remove()" style="
-            background: none;
-            border: none;
-            color: inherit;
-            font-size: 18px;
-            cursor: pointer;
-            margin-left: 10px;
-        ">&times;</button>
-    `;
+    <span>${message}</span>
+    <button onclick="this.parentElement.remove()" style="
+      background: none;
+      border: none;
+      color: inherit;
+      font-size: 18px;
+      cursor: pointer;
+      margin-left: 10px;
+      padding: 0;
+      line-height: 1;
+    ">&times;</button>
+  `;
 
   // Style the notification
   Object.assign(notification.style, {
@@ -169,32 +199,35 @@ function showNotification(message, type = "success") {
     top: "20px",
     right: "20px",
     padding: "15px 20px",
-    borderRadius: "5px",
+    borderRadius: "8px",
     color: "white",
-    background: type === "success" ? "#28a745" : "#dc3545",
-    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+    background: type === "success" ? "var(--green-600)" : "var(--red-600)",
+    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
     zIndex: "10000",
     display: "flex",
     alignItems: "center",
     animation: "slideInRight 0.3s ease-out",
+    fontFamily: "Inter, sans-serif",
+    fontSize: "14px",
+    fontWeight: "500",
   });
 
-  // Add CSS for animation
+  // Add CSS for animation if not already added
   if (!document.querySelector("#notification-styles")) {
     const style = document.createElement("style");
     style.id = "notification-styles";
     style.textContent = `
-            @keyframes slideInRight {
-                from {
-                    transform: translateX(100%);
-                    opacity: 0;
-                }
-                to {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-            }
-        `;
+      @keyframes slideInRight {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+    `;
     document.head.appendChild(style);
   }
 

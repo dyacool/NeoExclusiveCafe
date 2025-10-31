@@ -24,70 +24,115 @@ $bulk_order_id = null;
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_bulk_order'])) {
-    try {
-        // Get form data
-        $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
-        $name = mysqli_real_escape_string($conn, $_POST['name']);
-        $contact = mysqli_real_escape_string($conn, $_POST['contact']);
-        $email = mysqli_real_escape_string($conn, $_POST['email']);
-        $billing_address = mysqli_real_escape_string($conn, $_POST['billing_address']);
-        $order_type = mysqli_real_escape_string($conn, $_POST['order_type']);
-        $delivery_address = isset($_POST['delivery_address']) ? mysqli_real_escape_string($conn, $_POST['delivery_address']) : '';
-        $purpose = mysqli_real_escape_string($conn, $_POST['purpose']);
-        $date_needed = mysqli_real_escape_string($conn, $_POST['date_needed']);
-        $time_needed = mysqli_real_escape_string($conn, $_POST['time_needed']);
-        $note = mysqli_real_escape_string($conn, $_POST['note']);
+    // Check for submission token to prevent duplicates
+    $submission_token = $_POST['submission_token'] ?? '';
+    $stored_token = $_SESSION['bulk_order_token'] ?? '';
+    
+    if (empty($submission_token) || $submission_token !== $stored_token) {
+        $error_message = "Invalid submission. Please refresh the page and try again.";
+    } else {
+        // Clear the token to prevent reuse
+        unset($_SESSION['bulk_order_token']);
         
-        // Get selected products
-        $selected_products = json_decode($_POST['selected_products'], true);
+        // Check for duplicate submission within the last 30 seconds
+        $submission_check_query = "SELECT id FROM bulk_orders 
+                                  WHERE user_id = ? 
+                                  AND created_at > DATE_SUB(NOW(), INTERVAL 30 SECOND) 
+                                  ORDER BY created_at DESC LIMIT 1";
+        $check_stmt = mysqli_prepare($conn, $submission_check_query);
+        mysqli_stmt_bind_param($check_stmt, "i", $_SESSION['user_id']);
+        mysqli_stmt_execute($check_stmt);
+        $check_result = mysqli_stmt_get_result($check_stmt);
         
-        // Calculate total items
-        $total_items = 0;
-        foreach ($selected_products as $product) {
-            $total_items += intval($product['quantity']);
-        }
-        
-        // Insert bulk order first (total_amount will be 0 until admin sets prices)
-        $total_amount = 0;
-        $insert_order = "INSERT INTO bulk_orders (user_id, name, contact, email, billing_address, order_type, delivery_address, purpose, date_needed, time_needed, note, total_amount, total_items) 
-                        VALUES ('$user_id', '$name', '$contact', '$email', '$billing_address', '$order_type', '$delivery_address', '$purpose', '$date_needed', '$time_needed', '$note', '$total_amount', '$total_items')";
-        
-        if (mysqli_query($conn, $insert_order)) {
-            $bulk_order_id = mysqli_insert_id($conn); // Get the auto-increment ID
-            
-            // Generate and update unique_order_id based on the actual auto-incremented ID
-            $unique_order_id = 'BO' . str_pad($bulk_order_id, 6, '0', STR_PAD_LEFT);
-            $update_unique_id = "UPDATE bulk_orders SET unique_order_id = '$unique_order_id' WHERE id = $bulk_order_id";
-            mysqli_query($conn, $update_unique_id);
-            
-            // Insert order items (price and subtotal will be 0 until admin sets them)
-            foreach ($selected_products as $product) {
-                $product_id = intval($product['id']);
-                $product_name = mysqli_real_escape_string($conn, $product['name']);
-                $product_price = 0; // Will be set by admin
-                $quantity = intval($product['quantity']);
-                $subtotal = 0; // Will be calculated when admin sets price
+        if (mysqli_num_rows($check_result) > 0) {
+            $error_message = "A submission was already made recently. Please wait before submitting again.";
+        } else {
+            try {
+                // Get form data
+                $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
+                $name = mysqli_real_escape_string($conn, $_POST['name']);
+                $contact = mysqli_real_escape_string($conn, $_POST['contact']);
+                $email = mysqli_real_escape_string($conn, $_POST['email']);
+                $billing_address = mysqli_real_escape_string($conn, $_POST['billing_address']);
+                $order_type = mysqli_real_escape_string($conn, $_POST['order_type']);
+                $delivery_address = isset($_POST['delivery_address']) ? mysqli_real_escape_string($conn, $_POST['delivery_address']) : '';
+                $purpose = mysqli_real_escape_string($conn, $_POST['purpose']);
+                $date_needed = mysqli_real_escape_string($conn, $_POST['date_needed']);
+                $time_needed = mysqli_real_escape_string($conn, $_POST['time_needed']);
+                $note = mysqli_real_escape_string($conn, $_POST['note']);
                 
-                $insert_item = "INSERT INTO bulk_order_items (bulk_order_id, product_id, product_name, product_price, quantity, subtotal) 
-                               VALUES ('$bulk_order_id', '$product_id', '$product_name', '$product_price', '$quantity', '$subtotal')";
-                mysqli_query($conn, $insert_item);
+                // Get selected products
+                $selected_products = json_decode($_POST['selected_products'], true);
+            
+            // Calculate total items and total amount from submitted data
+            $total_items = 0;
+            $total_amount = 0;
+            foreach ($selected_products as $product) {
+                $total_items += intval($product['quantity']);
+                $total_amount += floatval($product['subtotal'] ?? 0);
             }
             
-            $show_success_modal = true;
-        } else {
-            $error_message = "Error submitting order: " . mysqli_error($conn);
+            // Insert bulk order with the calculated total amount
+            $insert_order = "INSERT INTO bulk_orders (user_id, name, contact, email, billing_address, order_type, delivery_address, purpose, date_needed, time_needed, note, total_amount, total_items) 
+                            VALUES ('$user_id', '$name', '$contact', '$email', '$billing_address', '$order_type', '$delivery_address', '$purpose', '$date_needed', '$time_needed', '$note', '$total_amount', '$total_items')";
+            
+            if (mysqli_query($conn, $insert_order)) {
+                $bulk_order_id = mysqli_insert_id($conn); // Get the auto-increment ID
+                
+                // Generate and update unique_order_id based on the actual auto-incremented ID
+                $unique_order_id = 'BO' . str_pad($bulk_order_id, 6, '0', STR_PAD_LEFT);
+                $update_unique_id = "UPDATE bulk_orders SET unique_order_id = '$unique_order_id' WHERE id = $bulk_order_id";
+                mysqli_query($conn, $update_unique_id);
+                
+                // Insert order items with actual prices from form submission
+                foreach ($selected_products as $product) {
+                    $product_id = intval($product['id']);
+                    $product_name = mysqli_real_escape_string($conn, $product['name']);
+                    $product_price = floatval($product['price'] ?? 0); // Store the actual retail price
+                    $quantity = intval($product['quantity']);
+                    $subtotal = floatval($product['subtotal'] ?? 0); // Store the calculated subtotal
+                    
+                    $insert_item = "INSERT INTO bulk_order_items (bulk_order_id, product_id, product_name, product_price, quantity, subtotal) 
+                                   VALUES ('$bulk_order_id', '$product_id', '$product_name', '$product_price', '$quantity', '$subtotal')";
+                    mysqli_query($conn, $insert_item);
+                }
+                
+                $show_success_modal = true;
+            } else {
+                $error_message = "Error submitting order: " . mysqli_error($conn);
+            }
+            
+        } catch (Exception $e) {
+            $error_message = "Error: " . $e->getMessage();
         }
-        
-    } catch (Exception $e) {
-        $error_message = "Error: " . $e->getMessage();
+        }
+        mysqli_stmt_close($check_stmt);
     }
 }
 
-        // Get all products from database with product details and primary image
-$products_query = "SELECT p.id, p.name, ps.name as status_name,
-                   (SELECT pi.image_url 
+// Generate a unique submission token
+if (!isset($_SESSION['bulk_order_token'])) {
+    $_SESSION['bulk_order_token'] = bin2hex(random_bytes(32));
+}
+
+// Get current user information
+$user_query = "SELECT firstname, lastname, email FROM users WHERE id = ?";
+$user_stmt = mysqli_prepare($conn, $user_query);
+mysqli_stmt_bind_param($user_stmt, "i", $_SESSION['user_id']);
+mysqli_stmt_execute($user_stmt);
+$user_result = mysqli_stmt_get_result($user_stmt);
+$current_user = mysqli_fetch_assoc($user_result);
+mysqli_stmt_close($user_stmt);
+
+// Set default values for form
+$default_name = $current_user ? trim(($current_user['firstname'] ?? '') . ' ' . ($current_user['lastname'] ?? '')) : '';
+$default_email = $current_user['email'] ?? '';
+
+        // Get all products from database with product details, primary image, and price
+$products_query = "SELECT p.id, p.name, p.price, ps.name as status_name,
+                   (SELECT pi.cloud_url 
                     FROM product_images pi 
-                    WHERE pi.product_id = p.id AND pi.is_primary = 1 
+                    WHERE pi.product_id = p.id AND pi.is_primary = 1 AND pi.is_removed = 0
                     LIMIT 1) as primary_image
                    FROM products p 
                    LEFT JOIN product_statuses ps ON p.status_id = ps.id 
@@ -159,7 +204,7 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
                 <div class="section-content">
                     <div class="form-group">
                         <label for="name">Full Name <span class="required">*</span></label>
-                        <input type="text" id="name" name="name" required placeholder="FName LName">
+                        <input type="text" id="name" name="name" required placeholder="FName LName" value="<?php echo htmlspecialchars($default_name); ?>">
                     </div>
 
                     <div class="form-group">
@@ -174,7 +219,7 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
 
                     <div class="form-group">
                         <label for="email">Email Address <span class="required">*</span></label>
-                        <input type="email" id="email" name="email" required placeholder="example@email.com">
+                        <input type="email" id="email" name="email" required placeholder="example@email.com" value="<?php echo htmlspecialchars($default_email); ?>">
                     </div>
 
                     <div class="form-group">
@@ -203,7 +248,14 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
 
                     <div class="form-group">
                         <label for="purpose">Purpose of Order <span class="required">*</span></label>
-                        <textarea id="purpose" name="purpose" rows="2" required placeholder="e.g., Corporate event, Wedding, Birthday party, etc." style="resize: none;"></textarea>
+                        <select id="purpose" name="purpose" required>
+                            <option value="">Select Purpose</option>
+                            <option value="Corporate Event">Corporate Event</option>
+                            <option value="Wedding">Wedding</option>
+                            <option value="Birthday Party">Birthday Party</option>
+                            <option value="Business Supply">Business Supply</option>
+                            <option value="Others">Others</option>
+                        </select>
                     </div>
 
                     <div class="form-group">
@@ -262,10 +314,10 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
                                     <div class="product-header">
                                         <div class="product-image-wrapper">
                                             <?php if ($product['primary_image']): ?>
-                                                <img src="../../<?php echo htmlspecialchars($product['primary_image']); ?>" 
+                                                <img src="<?php echo htmlspecialchars($product['primary_image']); ?>" 
                                                      alt="<?php echo htmlspecialchars($product['name']); ?>"
                                                      class="product-image"
-                                                     onerror="this.onerror=null; this.src='../../assets/images/no-image-placeholder.png';">
+                                                     onerror="this.onerror=null; this.src='https://res.cloudinary.com/dvdccumbs/image/upload/c_fill,w_400,h_400,g_center/e_blur:1000,co_rgb:cccccc,b_rgb:f0f0f0/sample.jpg';">
                                             <?php else: ?>
                                                 <div class="no-image-placeholder">
                                                     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2">
@@ -281,6 +333,7 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
                                                    id="product_<?php echo $product['id']; ?>" 
                                                    value="<?php echo $product['id']; ?>"
                                                    data-name="<?php echo htmlspecialchars($product['name']); ?>"
+                                                   data-price="<?php echo $product['price']; ?>"
                                                    class="product-checkbox product-select"
                                                    onchange="toggleQuantitySection(<?php echo $product['id']; ?>)">
                                         </div>
@@ -288,6 +341,7 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
                                             <label for="product_<?php echo $product['id']; ?>" class="product-name">
                                                 <?php echo htmlspecialchars($product['name']); ?>
                                             </label>
+                                            <div class="product-price">₱<?php echo number_format($product['price'], 2); ?></div>
                                         </div>
                                     </div>
                                     <div class="quantity-section" id="quantity_section_<?php echo $product['id']; ?>" style="display: none;">
@@ -303,6 +357,9 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
                                                        onchange="updateOrderSummary()"
                                                        oninput="updateOrderSummary()">
                                                 <button type="button" class="quantity-btn" onclick="updateQuantity(<?php echo $product['id']; ?>, 1)">+</button>
+                                            </div>
+                                            <div class="item-subtotal" id="subtotal_<?php echo $product['id']; ?>">
+                                                ₱<?php echo number_format($product['price'] * 10, 2); ?>
                                             </div>
                                         </div>
                                     </div>
@@ -449,6 +506,9 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
                             </tfoot>
                         </table>
                     </div>
+                    <div class="pricing-disclaimer">
+                        <p><em>Note: The amounts shown are retail prices. Our team will review your order and apply appropriate bulk discounts based on quantities and order total before finalizing.</em></p>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -465,6 +525,7 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
     <!-- Hidden Form for Final Submission -->
     <form id="finalSubmissionForm" method="POST" style="display: none;">
         <input type="hidden" name="submit_bulk_order" value="1">
+        <input type="hidden" name="submission_token" value="<?php echo $_SESSION['bulk_order_token']; ?>">
         <input type="hidden" name="name" id="final-name">
         <input type="hidden" name="contact" id="final-contact">
         <input type="hidden" name="email" id="final-email">
@@ -506,7 +567,7 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
     <?php endif; ?>
     </div> <!-- End of wrapper -->
 
-    <script src="bulk-form-new.js?v=<?php echo time(); ?>"></script>
+    <script src="bulk-form-fixed.js?v=<?php echo time(); ?>"></script>
     <script>
         // Copy billing address to delivery address
         function copyBillingToDelivery() {

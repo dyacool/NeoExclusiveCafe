@@ -80,13 +80,13 @@ if ($result && $result->num_rows > 0) {
 
 // Process form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $title = trim($_POST['title']);
-    $about_text = $_POST['about_text']; // Don't trim content to preserve formatting
+    $title = isset($_POST['title']) ? trim($_POST['title']) : '';
+    $about_text = isset($_POST['about_text']) ? $_POST['about_text'] : ''; // Don't trim content to preserve formatting
     
-    $image_path = $about['image_path']; // Default to current image
+    $image_path = isset($about['image_path']) ? $about['image_path'] : ''; // Default to current image
     
     // Handle image upload if a new image was provided
-    if (isset($_FILES['about_image']) && $_FILES['about_image']['size'] > 0) {
+    if (isset($_FILES['about_image']) && $_FILES['about_image']['error'] === UPLOAD_ERR_OK && $_FILES['about_image']['size'] > 0) {
         // Fixed path: Navigate up two directories from current location to backend, then to assets/images
         $target_dir = __DIR__ . "/../../assets/images/";
         
@@ -127,6 +127,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $upload_error = "Sorry, there was an error uploading your file. Please check file permissions.";
                 }
             }
+        }
+    } elseif (isset($_FILES['about_image']) && $_FILES['about_image']['error'] !== UPLOAD_ERR_NO_FILE) {
+        // Handle other upload errors
+        switch ($_FILES['about_image']['error']) {
+            case UPLOAD_ERR_INI_SIZE:
+            case UPLOAD_ERR_FORM_SIZE:
+                $upload_error = "The uploaded file is too large.";
+                break;
+            case UPLOAD_ERR_PARTIAL:
+                $upload_error = "The uploaded file was only partially uploaded.";
+                break;
+            default:
+                $upload_error = "An error occurred during file upload.";
+                break;
         }
     }
     
@@ -189,9 +203,11 @@ $conn->close();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About Page Management - Neo Exclusive Cafe</title>
     <link rel="stylesheet" href="terms-and-condition-management.css">
+    <link rel="stylesheet" href="about-settings.css">
     <!-- Quill.js Editor - Free Rich Text Editor -->
     <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+    
 </head>
 <body>
     <?php include __DIR__ . "/../admin-includes/breadcrumbs/admin-breadcrumb.php"; ?>
@@ -284,18 +300,27 @@ $conn->close();
                                     </div>
                                 <?php endif; ?>
                             </div>
-                            <div class="file-upload-area">
-                                <input type="file" id="about_image" name="about_image" accept="image/*" class="file-input-hidden" onchange="updateFileName(this)">
-                                <button type="button" class="btn btn-secondary file-upload-btn" onclick="document.getElementById('about_image').click()">
-                                    <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                                    </svg>
-                                    Choose Image
-                                </button>
-                                <span class="file-name" id="file-name">No file selected</span>
-                            </div>
                         </div>
-                        <div class="form-help">Leave empty to keep current image. Maximum file size: 5MB. Supported formats: JPG, PNG, GIF, WebP</div>
+                        <div class="file-upload-area">
+                            <input type="file" 
+                                   id="about_image" 
+                                   name="about_image" 
+                                   accept="image/*" 
+                                   class="file-input-hidden" 
+                                   onchange="updateFileName(this)"
+                                   aria-describedby="file-help">
+                            <button type="button" 
+                                    class="btn btn-secondary file-upload-btn" 
+                                    onclick="document.getElementById('about_image').click()"
+                                    aria-label="Choose image file">
+                                <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                </svg>
+                                Choose Image
+                            </button>
+                            <span class="file-name" id="file-name">No file selected</span>
+                        </div>
+                        <div class="form-help" id="file-help">Leave empty to keep current image. Maximum file size: 5MB. Supported formats: JPG, PNG, GIF, WebP</div>
                     </div>
 
                     <div class="form-actions">

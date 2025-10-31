@@ -121,10 +121,6 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .admin-breadcrumb-container {
-    padding: 0.75rem 1rem;
-  }
-
   .admin-breadcrumb-item {
     font-size: 0.8125rem;
   }

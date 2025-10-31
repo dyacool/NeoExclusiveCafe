@@ -45,35 +45,29 @@ body {
 .admin-container {
   max-width: 1600px;
   margin: 0 auto;
-  padding: 24px;
 }
 
 /* Page Header */
 .page-header {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 24px;
-  border: 1px solid var(--gray-200);
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  padding: 0 0 1rem 0;
+  border-bottom: 1px solid var(--gray-200);
 }
 
 .page-header-content {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-}
-
-.page-title-section h1 {
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--gray-900);
-  margin-bottom: 4px;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .page-subtitle {
   color: var(--gray-600);
-  font-size: 14px;
+  font-size: 1rem;
+  padding: 10px 0;
+  margin: 0;
 }
 
 .page-actions {
@@ -172,10 +166,11 @@ body {
 }
 
 .settings-info {
+  margin-bottom: 1rem;
   color: var(--gray-600);
-  font-size: 14px;
-  margin-bottom: 24px;
+  font-size: 0.875rem;
   line-height: 1.5;
+  text-align: right;
 }
 
 /* Form Styles */

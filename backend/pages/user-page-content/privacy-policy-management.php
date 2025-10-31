@@ -105,38 +105,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } elseif (empty($content)) {
         $error_message = "Content is required.";
     } else {
-        // Update or insert privacy policy
-        $update_sql = "UPDATE privacy_policy SET title = ?, content = ? WHERE id = 1";
-        $stmt = $conn->prepare($update_sql);
+        // Use INSERT ... ON DUPLICATE KEY UPDATE to handle both insert and update
+        $upsert_sql = "INSERT INTO privacy_policy (id, title, content) 
+                       VALUES (1, ?, ?) 
+                       ON DUPLICATE KEY UPDATE 
+                       title = VALUES(title), 
+                       content = VALUES(content), 
+                       last_updated = CURRENT_TIMESTAMP";
+        
+        $stmt = $conn->prepare($upsert_sql);
         
         if ($stmt) {
             $stmt->bind_param("ss", $title, $content);
             
             if ($stmt->execute()) {
-                if ($stmt->affected_rows > 0) {
-                    $success_message = "Privacy policy updated successfully!";
-                    logAdminActivity($conn, 'UPDATE', "Updated privacy policy content", 'privacy_policy', 1);
-                    // Refresh the data
-                    $privacy['title'] = $title;
-                    $privacy['content'] = $content;
-                    $privacy['last_updated'] = date('Y-m-d H:i:s');
-                } else {
-                    // Try insert if update didn't affect any rows
-                    $insert_sql = "INSERT INTO privacy_policy (id, title, content) VALUES (1, ?, ?)";
-                    $insert_stmt = $conn->prepare($insert_sql);
-                    if ($insert_stmt) {
-                        $insert_stmt->bind_param("ss", $title, $content);
-                        if ($insert_stmt->execute()) {
-                            $success_message = "Privacy policy created successfully!";
-                            $privacy['title'] = $title;
-                            $privacy['content'] = $content;
-                            $privacy['last_updated'] = date('Y-m-d H:i:s');
-                        } else {
-                            $error_message = "Error creating privacy policy: " . $insert_stmt->error;
-                        }
-                        $insert_stmt->close();
-                    }
-                }
+                $success_message = "Privacy policy updated successfully!";
+                logAdminActivity($conn, 'UPDATE', "Updated privacy policy content", 'privacy_policy', 1);
+                
+                // Refresh the data
+                $privacy['title'] = $title;
+                $privacy['content'] = $content;
+                $privacy['last_updated'] = date('Y-m-d H:i:s');
             } else {
                 $error_message = "Error updating privacy policy: " . $stmt->error;
             }
@@ -169,17 +158,7 @@ $conn->close();
             <div class="page-header">
                 <div class="page-header-content">
                     <div class="page-title-section">
-                        <h1 class="page-title">Privacy Policy Management</h1>
                         <p class="page-subtitle">Manage your website's privacy policy content</p>
-                    </div>
-                    <div class="page-actions">
-                        <button type="button" class="btn btn-secondary" onclick="previewPrivacyPolicy()">
-                            <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                            </svg>
-                            Preview
-                        </button>
                     </div>
                 </div>
             </div>
@@ -205,10 +184,7 @@ $conn->close();
 
             <!-- Main Content -->
             <div class="admin-section">
-                <h2>Privacy Policy Content</h2>
                 <p class="settings-info">
-                    Configure your website's privacy policy that will be displayed to users. 
-                    Use the rich text editor to format your content with proper styling.
                     <?php if (isset($privacy['last_updated'])): ?>
                         Last updated: <?php echo date('F j, Y, g:i a', strtotime($privacy['last_updated'])); ?>
                     <?php endif; ?>

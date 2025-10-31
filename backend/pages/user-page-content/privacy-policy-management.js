@@ -6,6 +6,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
 let quill;
 let isContentChanged = false;
+let initialContent = "";
+let initialTitle = "";
+let isInitializing = true;
 
 // Initialize Quill.js Editor
 function initializeEditor() {
@@ -30,64 +33,119 @@ function initializeEditor() {
 
   // Set initial content from textarea
   const textarea = document.getElementById("content");
-  if (textarea.value.trim()) {
+  if (textarea && textarea.value.trim()) {
     quill.root.innerHTML = textarea.value;
   }
 
+  // Store initial content for comparison
+  setTimeout(() => {
+    initialContent = quill.root.innerHTML;
+    initialTitle = document.getElementById("title")
+      ? document.getElementById("title").value
+      : "";
+    isInitializing = false;
+  }, 100);
+
   // Listen for content changes
   quill.on("text-change", function () {
-    isContentChanged = true;
-    // Update hidden textarea
-    textarea.value = quill.root.innerHTML;
+    if (!isInitializing) {
+      checkForChanges();
+      // Update hidden textarea
+      if (textarea) {
+        textarea.value = quill.root.innerHTML;
+      }
+    }
   });
+}
+
+// Check if content has actually changed
+function checkForChanges() {
+  const currentContent = quill ? quill.root.innerHTML : "";
+  const currentTitle = document.getElementById("title")
+    ? document.getElementById("title").value
+    : "";
+
+  isContentChanged =
+    currentContent !== initialContent || currentTitle !== initialTitle;
+  updateSaveStatus();
+}
+
+// Update save status indicator
+function updateSaveStatus() {
+  const saveBtn = document.querySelector(".btn-primary");
+  if (!saveBtn) return;
+
+  const iconHtml =
+    '<svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+
+  if (isContentChanged) {
+    saveBtn.innerHTML = iconHtml + "Save Changes";
+    saveBtn.style.backgroundColor = "var(--orange-600)";
+  } else {
+    saveBtn.innerHTML = iconHtml + "Update Privacy Policy";
+    saveBtn.style.backgroundColor = "var(--green-600)";
+  }
 }
 
 // Setup form handling
 function setupFormHandling() {
   const form = document.getElementById("privacyForm");
-  const saveBtn = form.querySelector(".btn-save");
   const titleInput = document.getElementById("title");
 
   // Track title changes
-  titleInput.addEventListener("input", function () {
-    isContentChanged = true;
-  });
+  if (titleInput) {
+    titleInput.addEventListener("input", function () {
+      if (!isInitializing) {
+        checkForChanges();
+      }
+    });
+  }
 
   // Handle form submission
-  form.addEventListener("submit", function (e) {
-    const title = document.getElementById("title").value.trim();
+  if (form) {
+    form.addEventListener("submit", function (e) {
+      const title = document.getElementById("title");
+      const titleValue = title ? title.value.trim() : "";
 
-    if (!title) {
-      e.preventDefault();
-      showNotification("Please enter a title", "error");
-      document.getElementById("title").focus();
-      return;
-    }
+      if (!titleValue) {
+        e.preventDefault();
+        showNotification("Please enter a title", "error");
+        if (title) title.focus();
+        return;
+      }
 
-    if (!quill) {
-      e.preventDefault();
-      showNotification("Editor not initialized", "error");
-      return;
-    }
+      if (!quill) {
+        e.preventDefault();
+        showNotification("Editor not initialized", "error");
+        return;
+      }
 
-    const content = quill.root.innerHTML;
-    if (!content.trim() || content === "<p><br></p>") {
-      e.preventDefault();
-      showNotification("Please enter content", "error");
-      quill.focus();
-      return;
-    }
+      const content = quill.root.innerHTML;
+      const contentText = quill.getText().trim();
 
-    // Update hidden textarea before submission
-    document.getElementById("content").value = quill.root.innerHTML;
+      if (!contentText || contentText.length === 0) {
+        e.preventDefault();
+        showNotification("Please enter content", "error");
+        quill.focus();
+        return;
+      }
 
-    // Allow normal form submission
-    isContentChanged = false;
-  });
+      // Update hidden textarea before submission
+      const textarea = document.getElementById("content");
+      if (textarea) {
+        textarea.value = content;
+      }
+
+      // Reset change tracking after successful submission
+      isContentChanged = false;
+
+      // Allow form to submit normally
+    });
+  }
 
   // Prevent accidental navigation away with unsaved changes
   window.addEventListener("beforeunload", function (e) {
-    if (isContentChanged) {
+    if (isContentChanged && !isInitializing) {
       e.preventDefault();
       e.returnValue =
         "You have unsaved changes. Are you sure you want to leave?";

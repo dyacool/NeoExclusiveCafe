@@ -46,8 +46,7 @@ $route_mappings = [
     'bulk-order' => ['Bulk Order Details', ''],
     
     // Orders
-    'view-orders' => ['Orders', ''],
-    'order-details' => ['Order Details', ''],
+    'view-orders' => ['Order Details', ''],
     
     // Products
     'view-products' => ['Products', ''],
@@ -89,10 +88,11 @@ $hierarchy = [
     'blog-details' => ['Blog'],
     
     // Order Management children
-    'view-orders' => ['Order Management'],
-    'order-details' => ['Order Management'],
-    'bulk-order-lists' => ['Order Management'],
-    'bulk-order' => ['Order Management'],
+    'view-orders' => ['Orders'],
+    'order-details' => ['Orders'],
+
+    'bulk-order-lists' => ['Bulk Orders'],
+    'bulk-order' => ['Bulk Orders'],
 
     'refund-request-lists' => ['Refund Requests'],
     'refund-details' => ['Refund Requests'],
@@ -118,7 +118,8 @@ function generateAdminBreadcrumb($current_file, $route_mappings, $hierarchy) {
     $parent_urls = [
         'Content Management' => '../user-page-content/user-content-settings.php',
         'Blog' => '../blog/admin-blog.php',
-        'Order Management' => '../orders/order-list.php',
+        'Orders' => '../orders/order-list.php',
+        'Bulk Orders' => '../bulks/bulk-order-lists.php',
         'Product Management' => '../products/view-products.php',
         'Refund Requests' => '../refund/refund-request-lists.php',
         'Profile' => '../account/admin-profile.php'

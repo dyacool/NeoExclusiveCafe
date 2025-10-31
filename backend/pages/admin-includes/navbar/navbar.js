@@ -445,6 +445,8 @@ document.addEventListener("DOMContentLoaded", () => {
       "user-content-settings.php": 'a[href*="user-content-settings.php"]',
       "calendar.php": 'a[href*="calendar.php"]',
       "promotions-settings.php": 'a[href*="promotions-settings.php"]',
+      "refund-request-lists.php": 'a[href*="refund-request-lists.php"]',
+      "bulk-order-lists.php": 'a[href*="bulk-order-lists.php"]',
     };
 
     if (currentPage === "product-list.php") {

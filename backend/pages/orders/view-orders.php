@@ -32,11 +32,11 @@ if (mysqli_num_rows($order_result) == 0) {
 
 $order = mysqli_fetch_assoc($order_result);
 
-// Get order items with product images
-$items_sql = "SELECT oi.*, pi.image_url 
+// Get order items with product images from Cloudinary
+$items_sql = "SELECT oi.*, pi.cloud_url 
               FROM order_items oi 
               LEFT JOIN products p ON oi.product_name = p.name 
-              LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1 
+              LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1 AND pi.is_removed = 0
               WHERE oi.order_id = ?";
 $stmt = mysqli_prepare($conn, $items_sql);
 if (!$stmt) {
@@ -426,13 +426,8 @@ $items_result = mysqli_stmt_get_result($stmt);
 </head>
 <body>
     <?php include __DIR__ . "/../admin-includes/navbar/navbar.php"; ?>
-    
-    <div class="breadcrumb">
-        <a href="/backend/pages/orders/order-list.php">Orders</a>
-        <span class="separator">></span>
-        <span class="current">Order #<?php echo $order_id; ?> - Details</span>
-    </div>
-    
+    <?php include __DIR__ . '/../admin-includes/breadcrumbs/admin-breadcrumb.php'; ?>
+
     <div class="main-container">
         <div class="order-details">
             <div class="order-info">
@@ -555,16 +550,19 @@ $items_result = mysqli_stmt_get_result($stmt);
                                     $item_total = $item['price'] * $item['quantity'];
                                     $subtotal += $item_total;
                                     
-                                    // Construct image path same as product-list.php
+                                    // Use Cloudinary URL directly or fallback to placeholder
                                     $imagePath = '';
-                                    if (!empty($item['image_url'])) {
-                                        $imagePath = '/assets/' . $item['image_url'];
+                                    if (!empty($item['cloud_url'])) {
+                                        $imagePath = $item['cloud_url'];
+                                    } else {
+                                        // Cloudinary placeholder for missing images
+                                        $imagePath = 'https://res.cloudinary.com/dvdccumbs/image/upload/c_fill,w_400,h_400,g_center/e_blur:1000,co_rgb:cccccc,b_rgb:f0f0f0/sample.jpg';
                                     }
                                 ?>
                                     <tr>
                                         <td class="product-image">
                                             <?php if (!empty($imagePath)): ?>
-                                                <img src="<?php echo htmlspecialchars($imagePath); ?>" alt="<?php echo htmlspecialchars($item['product_name']); ?>" loading="lazy">
+                                                <img src="<?php echo htmlspecialchars($imagePath); ?>" alt="<?php echo htmlspecialchars($item['product_name']); ?>" loading="lazy" onerror="this.src='https://res.cloudinary.com/dvdccumbs/image/upload/c_fill,w_400,h_400,g_center/e_blur:1000,co_rgb:cccccc,b_rgb:f0f0f0/sample.jpg'">
                                             <?php else: ?>
                                                 <div class="no-image">No Image</div>
                                             <?php endif; ?>

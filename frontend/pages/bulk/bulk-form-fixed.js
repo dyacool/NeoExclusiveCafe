@@ -1,6 +1,7 @@
-// Bulk Order Form JavaScript - Updated for Quotation System (No Prices)
+// Bulk Order Form JavaScript - Fixed for Duplicate Submission Issue
 
 let selectedProducts = [];
+let isSubmitting = false; // Prevent multiple submissions
 
 // Toggle quantity section visibility when checkbox is checked/unchecked
 function toggleQuantitySection(productId) {
@@ -66,35 +67,20 @@ function initializeForm() {
 }
 
 function setupEventListeners() {
+  // Remove any existing event listeners first
+  removeExistingListeners();
+
   // Discard button
   const discardBtn = document.getElementById("discardBtn");
   if (discardBtn) {
-    discardBtn.addEventListener("click", function () {
-      if (
-        confirm(
-          "Are you sure you want to discard this quotation request? All information will be lost."
-        )
-      ) {
-        clearForm();
-      }
-    });
+    discardBtn.addEventListener("click", handleDiscardClick);
   }
 
   // Review Order button
   const reviewOrderBtn = document.getElementById("reviewOrderBtn");
   if (reviewOrderBtn) {
     console.log("Review Order button found and event listener attached");
-    reviewOrderBtn.addEventListener("click", function (e) {
-      e.preventDefault();
-      console.log("Review Order button clicked");
-      console.log("Selected products:", selectedProducts);
-      if (validateForm()) {
-        console.log("Form is valid, showing modal");
-        showConfirmationModal();
-      } else {
-        console.log("Form validation failed");
-      }
-    });
+    reviewOrderBtn.addEventListener("click", handleReviewOrderClick);
   } else {
     console.error("Review Order button not found!");
   }
@@ -102,14 +88,60 @@ function setupEventListeners() {
   // Confirmation modal event listeners
   setupConfirmationModal();
 
-  // Add event listeners for quantity inputs
-  document.addEventListener("input", function (e) {
-    if (e.target.id && e.target.id.startsWith("quantity_")) {
-      const productId = e.target.id.replace("quantity_", "");
-      updateProductSubtotal(productId);
-      updateOrderSummary();
-    }
-  });
+  // Add event listeners for quantity inputs (using event delegation)
+  document.addEventListener("input", handleQuantityInput);
+}
+
+function removeExistingListeners() {
+  // Remove existing listeners to prevent duplicates
+  const discardBtn = document.getElementById("discardBtn");
+  const reviewOrderBtn = document.getElementById("reviewOrderBtn");
+
+  if (discardBtn) {
+    discardBtn.removeEventListener("click", handleDiscardClick);
+  }
+  if (reviewOrderBtn) {
+    reviewOrderBtn.removeEventListener("click", handleReviewOrderClick);
+  }
+
+  document.removeEventListener("input", handleQuantityInput);
+}
+
+function handleDiscardClick() {
+  if (
+    confirm(
+      "Are you sure you want to discard this quotation request? All information will be lost."
+    )
+  ) {
+    clearForm();
+  }
+}
+
+function handleReviewOrderClick(e) {
+  e.preventDefault();
+
+  if (isSubmitting) {
+    console.log("Already processing submission, ignoring click");
+    return;
+  }
+
+  console.log("Review Order button clicked");
+  console.log("Selected products:", selectedProducts);
+
+  if (validateForm()) {
+    console.log("Form is valid, showing modal");
+    showConfirmationModal();
+  } else {
+    console.log("Form validation failed");
+  }
+}
+
+function handleQuantityInput(e) {
+  if (e.target.id && e.target.id.startsWith("quantity_")) {
+    const productId = e.target.id.replace("quantity_", "");
+    updateProductSubtotal(productId);
+    updateOrderSummary();
+  }
 }
 
 function updateQuantity(productId, change) {
@@ -404,24 +436,33 @@ function setupConfirmationModal() {
 
   console.log("Modal elements:", { modal, closeBtn, editBtn, confirmBtn });
 
+  // Remove existing event listeners to prevent duplicates
   if (closeBtn) {
-    closeBtn.onclick = function () {
+    closeBtn.onclick = null;
+    closeBtn.addEventListener("click", function () {
       modal.classList.remove("show");
-    };
+    });
   }
 
   if (editBtn) {
-    editBtn.onclick = function () {
+    editBtn.onclick = null;
+    editBtn.addEventListener("click", function () {
       modal.classList.remove("show");
-    };
+    });
   }
 
   if (confirmBtn) {
-    confirmBtn.onclick = function () {
+    confirmBtn.onclick = null;
+    confirmBtn.addEventListener("click", function () {
+      if (isSubmitting) {
+        console.log("Already submitting, ignoring click");
+        return;
+      }
       submitFinalForm();
-    };
+    });
   }
 
+  // Close modal when clicking outside
   window.onclick = function (event) {
     if (event.target === modal) {
       modal.classList.remove("show");
@@ -430,6 +471,21 @@ function setupConfirmationModal() {
 }
 
 function submitFinalForm() {
+  if (isSubmitting) {
+    console.log("Already submitting, preventing duplicate submission");
+    return;
+  }
+
+  isSubmitting = true;
+  console.log("Starting form submission...");
+
+  // Disable the submit button to prevent multiple clicks
+  const confirmBtn = document.getElementById("confirmSubmitBtn");
+  if (confirmBtn) {
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = "Submitting...";
+  }
+
   // Copy all form data to the hidden final submission form
   document.getElementById("final-name").value =
     document.getElementById("name").value;
@@ -454,8 +510,23 @@ function submitFinalForm() {
   document.getElementById("final-selected-products").value =
     JSON.stringify(selectedProducts);
 
+  // Close the modal
+  const modal = document.getElementById("confirmationModal");
+  if (modal) {
+    modal.classList.remove("show");
+  }
+
   // Submit the hidden form
-  document.getElementById("finalSubmissionForm").submit();
+  try {
+    document.getElementById("finalSubmissionForm").submit();
+  } catch (error) {
+    console.error("Error submitting form:", error);
+    isSubmitting = false;
+    if (confirmBtn) {
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = "Confirm & Submit Order";
+    }
+  }
 }
 
 function clearForm() {
@@ -464,13 +535,26 @@ function clearForm() {
   updateOrderSummary();
 
   // Reset all quantity inputs
-  document.querySelectorAll('[id^="qty-"]').forEach((input) => {
-    input.value = 0;
+  document.querySelectorAll('[id^="quantity_"]').forEach((input) => {
+    input.value = 10;
+  });
+
+  // Hide all quantity sections
+  document.querySelectorAll('[id^="quantity_section_"]').forEach((section) => {
+    section.style.display = "none";
+  });
+
+  // Uncheck all product checkboxes
+  document.querySelectorAll(".product-checkbox").forEach((checkbox) => {
+    checkbox.checked = false;
   });
 
   // Clear storage
   localStorage.clear();
   sessionStorage.clear();
+
+  // Reset submission flag
+  isSubmitting = false;
 }
 
 function updateSubmitButton() {
@@ -502,9 +586,14 @@ function formatTime(timeString) {
   return `${displayHour}:${minutes} ${ampm}`;
 }
 
-// Prevent form restoration
+// Prevent form restoration and multiple executions
 window.addEventListener("pageshow", function (event) {
   if (event.persisted) {
     window.location.reload();
   }
+});
+
+// Reset submission flag on page unload
+window.addEventListener("beforeunload", function () {
+  isSubmitting = false;
 });

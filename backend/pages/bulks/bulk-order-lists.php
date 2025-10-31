@@ -141,6 +141,7 @@ $sql = "SELECT bo.id,
                bo.date_needed, bo.time_needed, bo.note, 
                COALESCE(bo.total_amount, 0) as total_amount, 
                COALESCE(bo.total_items, 0) as total_items,
+               bo.discount_total,
                bo.created_at, bo.status, bo.proof_of_payment, bo.admin_updated,
                u.firstname, u.lastname, u.username
         FROM bulk_orders bo
@@ -159,10 +160,11 @@ $bulk_order_totals = [];
 if ($result && mysqli_num_rows($result) > 0) {
     mysqli_data_seek($result, 0);
     while ($row = mysqli_fetch_assoc($result)) {
-        // Use the stored total_items and total_amount from the main table
+        // Use the stored total_items, total_amount, and discount_total from the main table
         $bulk_order_totals[$row['id']] = [
             'total_items' => $row['total_items'] ?? 0,
-            'total_amount' => $row['total_amount'] ?? 0
+            'total_amount' => $row['total_amount'] ?? 0,
+            'discount_total' => $row['discount_total'] ?? null
         ];
     }
     mysqli_data_seek($result, 0);
@@ -270,14 +272,15 @@ if ($result && mysqli_num_rows($result) > 0) {
                             <th>Customer</th>
                             <th>Date Submitted</th>
                             <th>Total Items</th>
-                            <th>Total Amount</th>
+                            <th>Regular Total</th>
+                            <th>Discounted Total</th>
                             <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php while ($order = mysqli_fetch_assoc($result)): ?>
                             <?php
-                            $totals = isset($bulk_order_totals[$order['id']]) ? $bulk_order_totals[$order['id']] : ['total_items' => 0, 'total_amount' => 0];
+                            $totals = isset($bulk_order_totals[$order['id']]) ? $bulk_order_totals[$order['id']] : ['total_items' => 0, 'total_amount' => 0, 'discount_total' => null];
                             $user_name = $order['firstname'] && $order['lastname'] 
                                 ? $order['firstname'] . ' ' . $order['lastname'] 
                                 : ($order['username'] ?: 'Guest User');
@@ -305,10 +308,13 @@ if ($result && mysqli_num_rows($result) > 0) {
                                     <?php echo number_format($totals['total_items']); ?>
                                 </td>
                                 <td onclick="window.location.href='bulk-order.php?id=<?php echo $order['id']; ?>'" style="cursor:pointer;">
-                                    <?php if ($totals['total_amount'] > 0): ?>
-                                        ₱<?php echo number_format($totals['total_amount'], 2); ?>
+                                    ₱<?php echo number_format($totals['total_amount'], 2); ?>
+                                </td>
+                                <td onclick="window.location.href='bulk-order.php?id=<?php echo $order['id']; ?>'" style="cursor:pointer;">
+                                    <?php if ($totals['discount_total'] && $totals['discount_total'] > 0): ?>
+                                        <span style="color: #047857; font-weight: 600;">₱<?php echo number_format($totals['discount_total'], 2); ?></span>
                                     <?php else: ?>
-                                        <span style="color: #9ca3af; font-style: italic;">Pending Quote</span>
+                                        <span style="color: #9ca3af; font-style: italic;">No discount</span>
                                     <?php endif; ?>
                                 </td>
                                 <td>
