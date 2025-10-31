@@ -116,12 +116,15 @@ $preorder_stmt->close();
 // Get Same Day Order items (from availtoday_cart table)
 $sameday_query = "
     SELECT c.id AS cart_id, c.quantity, c.product_id,
-           p.name AS product_name, p.price, p.quantity as product_stock, p.status_id,
+           p.name AS product_name, p.price, 
+           COALESCE(qpd.quantity, 0) as product_stock, 
+           p.status_id,
            ps.name as status_name,
            (SELECT COALESCE(cloud_url, image_url) FROM product_images WHERE product_id = p.id AND is_primary = 1 LIMIT 1) AS image_url
     FROM availtoday_cart c
     JOIN products p ON c.product_id = p.id
     LEFT JOIN product_statuses ps ON p.status_id = ps.id
+    LEFT JOIN quantity_per_day_sdo qpd ON p.id = qpd.product_id AND qpd.date = CURDATE()
     WHERE c.user_id = ? AND p.deleted_at IS NULL
     ORDER BY p.name ASC
 ";

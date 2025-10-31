@@ -50,6 +50,7 @@ $postal_code = trim($_POST['postal_code'] ?? '');
 $special_instructions = trim($_POST['special_instructions'] ?? '');
 $shipping_method = $_POST['shipping_method'] ?? 'pickup';
 $cart_total = floatval($_POST['cart_total'] ?? 0);
+$shipping_fee = floatval($_POST['shipping_fee'] ?? 0);
 $has_mixed_status = intval($_POST['has_mixed_status'] ?? 0);
 
 // Decode cart items
@@ -66,6 +67,8 @@ if (!empty($_POST['applied_coupon'])) {
     error_log("Coupon applied: " . print_r($applied_coupon, true));
     error_log("Discount amount: " . $discount_amount);
 }
+
+error_log("POST data - Cart total: $cart_total, Shipping fee: $shipping_fee, Discount: $discount_amount");
 
 // Validate required fields
 $errors = [];
@@ -103,6 +106,88 @@ try {
     // Start transaction
     $conn->begin_transaction();
     
+    // Check order limits for today's date before proceeding
+    $today_date = date('Y-m-d');
+    
+    // STEP 1: Check date_limits for admin blocks (applies to both delivery and pickup)
+    $date_limit_query = "SELECT 
+        CASE 
+            WHEN os.status = 'not_accepting' THEN 'not_accepting'
+            ELSE 'accepting'
+        END as status
+    FROM (SELECT ? as date) d
+    LEFT JOIN orderdate_status os ON d.date = os.date";
+    
+    $date_limit_stmt = $conn->prepare($date_limit_query);
+    if (!$date_limit_stmt) {
+        throw new Exception('Failed to prepare date limit check statement: ' . $conn->error);
+    }
+    
+    $date_limit_stmt->bind_param("s", $today_date);
+    if (!$date_limit_stmt->execute()) {
+        throw new Exception('Failed to execute date limit check: ' . $date_limit_stmt->error);
+    }
+    
+    $date_limit_result = $date_limit_stmt->get_result();
+    $date_limit_data = $date_limit_result->fetch_assoc();
+    
+    if ($date_limit_data && $date_limit_data['status'] === 'not_accepting') {
+        throw new Exception('Sorry, we are not accepting same-day orders today.');
+    }
+    
+    error_log("Date limit check for $today_date: status=" . ($date_limit_data['status'] ?? 'accepting'));
+    
+    // STEP 2: Check order count limits ONLY for delivery orders (pickup is unlimited)
+    if ($shipping_method === 'delivery') {
+        // Get the same-day delivery order limit from availtoday_order_limit table
+        $availtoday_limit_query = "SELECT limit_orders FROM availtoday_order_limit ORDER BY id DESC LIMIT 1";
+        $availtoday_limit_result = $conn->query($availtoday_limit_query);
+        
+        if (!$availtoday_limit_result) {
+            throw new Exception('Failed to get same-day order limit: ' . $conn->error);
+        }
+        
+        $availtoday_limit = 50; // Default limit
+        if ($availtoday_limit_result->num_rows > 0) {
+            $availtoday_limit_row = $availtoday_limit_result->fetch_assoc();
+            $availtoday_limit = intval($availtoday_limit_row['limit_orders']);
+        }
+        
+        // Count current same-day DELIVERY orders for today
+        $current_orders_query = "SELECT COUNT(DISTINCT order_id) as current_orders 
+            FROM orders 
+            WHERE (pickup_date = ? OR delivery_date = ?) 
+            AND delivery_method = 'Delivery'
+            AND status NOT IN ('Completed', 'Delivered', 'Picked-up', 'Cancelled')";
+        
+        $current_orders_stmt = $conn->prepare($current_orders_query);
+        if (!$current_orders_stmt) {
+            throw new Exception('Failed to prepare current orders check: ' . $conn->error);
+        }
+        
+        $current_orders_stmt->bind_param("ss", $today_date, $today_date);
+        if (!$current_orders_stmt->execute()) {
+            throw new Exception('Failed to execute current orders check: ' . $current_orders_stmt->error);
+        }
+        
+        $current_orders_result = $current_orders_stmt->get_result();
+        $current_orders_data = $current_orders_result->fetch_assoc();
+        $current_orders = intval($current_orders_data['current_orders']);
+        
+        error_log("Same-day DELIVERY order limit check for $today_date: limit=$availtoday_limit, current=$current_orders");
+        
+        if ($current_orders >= $availtoday_limit) {
+            throw new Exception('Sorry, we have reached the same-day delivery order limit for today. Please try pickup instead or select a pre-order date.');
+        }
+        
+        $current_orders_stmt->close();
+    } else {
+        // Pickup orders have no count limits
+        error_log("Same-day PICKUP order for $today_date: No order count limits applied (unlimited)");
+    }
+    
+    $date_limit_stmt->close();
+    
     // Create order record - matching actual orders table structure
     $customer_full_name = $first_name . ' ' . $last_name;
     $delivery_method_enum = ($shipping_method === 'delivery') ? 'Delivery' : 'Pick-up';
@@ -115,18 +200,17 @@ try {
         $combined_notes .= $coupon_info;
     }
     
-    $today_date = date('Y-m-d');
     $pickup_time = '10:00:00'; // Default pickup time for same-day orders
     
-    // Calculate final total with discount
-    $final_total = $cart_total - $discount_amount;
+    // Calculate final total with shipping fee and discount
+    $final_total = $cart_total + $shipping_fee - $discount_amount;
     
     // Validate that total is not negative
     if ($final_total < 0) {
         $final_total = 0;
     }
     
-    error_log("Cart total: $cart_total, Discount: $discount_amount, Final total: $final_total");
+    error_log("Cart total: $cart_total, Shipping fee: $shipping_fee, Discount: $discount_amount, Final total: $final_total");
     
     // Combine address fields
     $full_address = trim($address);

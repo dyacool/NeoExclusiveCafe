@@ -35,8 +35,10 @@ try {
 // Clean up past dates automatically when page loads
 try {
     cleanupPastDates();
+    // Also clean up today's dates if business hours have closed
+    cleanupTodaysDatesAfterBusinessHours();
 } catch (Exception $e) {
-    error_log("Error cleaning up past dates: " . $e->getMessage());
+    error_log("Error cleaning up dates: " . $e->getMessage());
 }
 
 // DISABLED: Function to truncate cart_availtoday when business hours are closed OR items are from previous days
@@ -295,18 +297,9 @@ if ($cart_truncated) {
             </div>
         </div>
         
-        <!-- Centered message for when business is closed -->
-        <div id="closedMessage" class="business-closed-message" style="display: none;">
-            <div class="closed-icon"></div>
-            <h2>Business Hours Have Ended</h2>
-            <p>Check again tomorrow for exciting pre-made breads!</p>
-            <div class="business-hours-display" id="businessHoursDisplay">
-                <div class="loading-spinner-small"></div>
-                <span>Loading hours...</span>
-            </div>
-        </div>
+
         
-        <div class="scroll-container" id="scrollContainer" style="display: none;">
+        <div class="scroll-container" id="scrollContainer" style="display: block;">
             <div class="products-grid" id="productScroll">
                 <?php
                     // Get today's date
@@ -800,8 +793,8 @@ if ($cart_truncated) {
             scrollContainer.classList.add('normal-grid');
         }
         
-            // Initialize business hours functionality
-        initBusinessHours();
+            // Initialize page display
+        initPageDisplay();
     });
 
     function setupScroll() {
@@ -821,121 +814,33 @@ if ($cart_truncated) {
 
     // Available Today cart functions are now handled by availtoday-cart.js
 
-    // Business Hours Management
-    let businessHours = {
-        openingTime: null,
-        closingTime: null
-    };
-
-    function initBusinessHours() {
-        loadBusinessHours();
-        // Check every minute
-        setInterval(checkBusinessHoursAndUpdateDisplay, 60000);
-    }
-
-    function loadBusinessHours() {
-        fetch('get-business-hours.php')
-            .then(response => response.json())
-            .then(data => {
-                if (data.success && data.businessHours) {
-                    businessHours.openingTime = data.businessHours.opening_time;
-                    businessHours.closingTime = data.businessHours.closing_time;
-                    updateTimerDisplay();
-                    // Check immediately after data loads
-                    checkBusinessHoursAndUpdateDisplay();
-                    // Hide loading message once data is loaded
-                    hideLoadingMessage();
-                }
-            })
-            .catch(error => {
-                console.error('Error loading business hours:', error);
-                hideLoadingMessage();
-            });
-    }
-    
-    function hideLoadingMessage() {
+    // Initialize page display
+    function initPageDisplay() {
+        // Hide loading message
         const loadingMessage = document.getElementById('loadingMessage');
         if (loadingMessage) {
             loadingMessage.style.display = 'none';
         }
-    }
-
-    function checkBusinessHoursAndUpdateDisplay() {
-        const currentTime = new Date().toTimeString().slice(0, 5);
-        const isOpen = isWithinBusinessHours(currentTime);
-        updateProductVisibility(isOpen);
-        updateTimerDisplay();
-    }
-
-    function isWithinBusinessHours(currentTime) {
-        if (!businessHours.openingTime || !businessHours.closingTime) return false;
         
-        const currentMinutes = parseInt(currentTime.split(':')[0]) * 60 + parseInt(currentTime.split(':')[1]);
-        const openingMinutes = parseInt(businessHours.openingTime.split(':')[0]) * 60 + parseInt(businessHours.openingTime.split(':')[1]);
-        const closingMinutes = parseInt(businessHours.closingTime.split(':')[0]) * 60 + parseInt(businessHours.closingTime.split(':')[1]);
-        
-        return currentMinutes >= openingMinutes && currentMinutes < closingMinutes;
-    }
-
-    function updateProductVisibility(isOpen) {
+        // Show products grid and container
         const productsGrid = document.getElementById('productScroll');
         const scrollContainer = document.getElementById('scrollContainer');
         const headerSection = document.getElementById('headerSection');
-        const closedMessage = document.getElementById('closedMessage');
-        const loadingMessage = document.getElementById('loadingMessage');
-        const businessHoursDisplay = document.getElementById('businessHoursDisplay');
         
-        // Hide loading message once we know the state
-        if (loadingMessage) {
-            loadingMessage.style.display = 'none';
-        }
+        if (productsGrid) productsGrid.style.display = 'grid';
+        if (scrollContainer) scrollContainer.style.display = 'block';
+        if (headerSection) headerSection.style.display = 'block';
         
-        if (!isOpen) {
-            // Business is closed - show closed message
-            productsGrid.style.display = 'none';
-            scrollContainer.style.display = 'none';
-            headerSection.style.display = 'none';
-            closedMessage.style.display = 'flex';
-            
-            // Update business hours display with formatted time
-            if (businessHours.openingTime && businessHours.closingTime) {
-                businessHoursDisplay.innerHTML = `<span>Business Hours: ${formatTimeForDisplay(businessHours.openingTime)} - ${formatTimeForDisplay(businessHours.closingTime)}</span>`;
-            }
-        } else {
-            // Business is open - show products
-            productsGrid.style.display = 'grid';
-            scrollContainer.style.display = 'block';
-            headerSection.style.display = 'block';
-            closedMessage.style.display = 'none';
-            
-            // Update subtitle with current date
-            const subtitle = document.getElementById('currentDate');
-            if (subtitle) {
-                subtitle.textContent = new Date().toLocaleDateString('en-US', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                });
-            }
+        // Update subtitle with current date
+        const subtitle = document.getElementById('currentDate');
+        if (subtitle) {
+            subtitle.textContent = new Date().toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
         }
-    }
-
-    function updateTimerDisplay() {
-        // Update business hours display in closed message if visible
-        const businessHoursDisplay = document.getElementById('businessHoursDisplay');
-        if (businessHoursDisplay && businessHours.openingTime && businessHours.closingTime) {
-            businessHoursDisplay.innerHTML = `<span>Business Hours: ${formatTimeForDisplay(businessHours.openingTime)} - ${formatTimeForDisplay(businessHours.closingTime)}</span>`;
-        }
-    }
-
-    function formatTimeForDisplay(timeString) {
-        // Convert 24-hour format to 12-hour format
-        const [hours, minutes] = timeString.split(':');
-        const hour = parseInt(hours);
-        const ampm = hour >= 12 ? 'PM' : 'AM';
-        const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-        return `${displayHour}:${minutes} ${ampm}`;
     }
 
     function updateQuantity(button, change) {
@@ -1340,6 +1245,9 @@ function closeProductModal() {
         const orderTypeSelector = document.getElementById('orderTypeSelector');
         const dateDisplay = document.getElementById('quantityModalDate');
         
+        // Show modal first
+        modal.style.display = 'flex';
+        
         // Determine which order types to show
         // Status 1, 2, 3 = Pre-order products
         // Status 4 = Same Day Order products
@@ -1347,6 +1255,9 @@ function closeProductModal() {
         
         if ((statusId == 1 || statusId == 2 || statusId == 3) && availtodayStatusId) {
             // Product has BOTH pre-order and same day order
+            // Show loading state
+            setQuantityModalLoading(true);
+            
             // Check if same-day is actually available today
             const sameDayAvailable = await checkSameDayAvailability(pendingCartProduct.id);
             
@@ -1366,6 +1277,9 @@ function closeProductModal() {
                 quantityInput.value = 1;
                 quantityInput.max = productStock;
             }
+            
+            // Remove loading state
+            setQuantityModalLoading(false);
         } else if (statusId == 4) {
             // Same Day Order ONLY - Fetch today's quantity
             orderTypeSelector.style.display = 'none';
@@ -1373,12 +1287,18 @@ function closeProductModal() {
             dateDisplay.textContent = 'For: Today';
             pendingCartProduct.selectedOrderType = 'sameday';
             
+            // Show loading state
+            setQuantityModalLoading(true);
+            
             // Fetch today's quantity before showing modal
             document.getElementById('quantityModalStock').textContent = 'Loading...';
             quantityInput.value = 1;
             quantityInput.max = 1;
             
-            fetchTodayQuantity(pendingCartProduct.id);
+            await fetchTodayQuantity(pendingCartProduct.id);
+            
+            // Remove loading state
+            setQuantityModalLoading(false);
         } else {
             // Pre-order ONLY (status 1, 2, or 3 without availtoday_status_id)
             orderTypeSelector.style.display = 'none';
@@ -1388,8 +1308,40 @@ function closeProductModal() {
             quantityInput.value = 1;
             quantityInput.max = productStock;
         }
+    }
+    
+    // Set loading state for quantity modal
+    function setQuantityModalLoading(isLoading) {
+        const modal = document.getElementById('quantityModal');
+        const modalContent = modal.querySelector('.modal-content');
+        const quantityInput = document.getElementById('quantityModalInput');
+        const buttons = modal.querySelectorAll('button');
         
-        modal.style.display = 'flex';
+        if (isLoading) {
+            // Add loading overlay
+            if (!modal.querySelector('.modal-loading-overlay')) {
+                const overlay = document.createElement('div');
+                overlay.className = 'modal-loading-overlay';
+                overlay.innerHTML = '<div class="loading-spinner"></div>';
+                overlay.style.cssText = 'position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.8); display: flex; align-items: center; justify-content: center; z-index: 10; border-radius: 8px;';
+                modalContent.style.position = 'relative';
+                modalContent.appendChild(overlay);
+            }
+            
+            // Disable inputs and buttons
+            quantityInput.disabled = true;
+            buttons.forEach(btn => btn.disabled = true);
+        } else {
+            // Remove loading overlay
+            const overlay = modal.querySelector('.modal-loading-overlay');
+            if (overlay) {
+                overlay.remove();
+            }
+            
+            // Enable inputs and buttons
+            quantityInput.disabled = false;
+            buttons.forEach(btn => btn.disabled = false);
+        }
     }
 
     // Select order type
@@ -1412,7 +1364,10 @@ function closeProductModal() {
             
             // Fetch today's specific quantity from database
             if (pendingCartProduct) {
-                fetchTodayQuantity(pendingCartProduct.id);
+                setQuantityModalLoading(true);
+                fetchTodayQuantity(pendingCartProduct.id).then(() => {
+                    setQuantityModalLoading(false);
+                });
             }
         } else {
             dateDisplay.style.display = 'none';
@@ -1432,33 +1387,33 @@ function closeProductModal() {
     }
 
     // Fetch today's specific quantity for same day orders
-    function fetchTodayQuantity(productId) {
+    async function fetchTodayQuantity(productId) {
         const stockDisplay = document.getElementById('quantityModalStock');
         stockDisplay.textContent = 'Loading...';
         
-        fetch(`get-sdo-quantity.php?product_id=${productId}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const todayQuantity = data.quantity || 0;
-                    stockDisplay.textContent = `Stock: ${todayQuantity}`;
-                    
-                    const quantityInput = document.getElementById('quantityModalInput');
-                    quantityInput.max = todayQuantity;
-                    quantityInput.value = Math.min(parseInt(quantityInput.value) || 1, todayQuantity);
-                    
-                    if (todayQuantity === 0) {
-                        stockDisplay.textContent = 'Stock: 0 (Not available today)';
-                    }
-                } else {
-                    console.error('Error fetching today quantity:', data.error);
-                    stockDisplay.textContent = 'Stock: 0';
+        try {
+            const response = await fetch(`get-sdo-quantity.php?product_id=${productId}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                const todayQuantity = data.quantity || 0;
+                stockDisplay.textContent = `Stock: ${todayQuantity}`;
+                
+                const quantityInput = document.getElementById('quantityModalInput');
+                quantityInput.max = todayQuantity;
+                quantityInput.value = Math.min(parseInt(quantityInput.value) || 1, todayQuantity);
+                
+                if (todayQuantity === 0) {
+                    stockDisplay.textContent = 'Stock: 0 (Not available today)';
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
+            } else {
+                console.error('Error fetching today quantity:', data.error);
                 stockDisplay.textContent = 'Stock: 0';
-            });
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            stockDisplay.textContent = 'Stock: 0';
+        }
     }
 
     // Close quantity modal

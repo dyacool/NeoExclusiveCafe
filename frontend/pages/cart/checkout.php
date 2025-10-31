@@ -748,6 +748,41 @@ $debug_info = [
       margin: 10px 0;
     }
     
+    /* Calendar Loading State */
+    .calendar-loading {
+      position: relative;
+      pointer-events: none;
+      opacity: 0.6;
+    }
+    
+    .calendar-loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      border-radius: 8px;
+    }
+    
+    .calendar-loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #256035;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
     /* Responsive Design */
     @media (max-width: 768px) {
       .delivery-content {
@@ -1369,7 +1404,8 @@ $debug_info = [
                         // Check date limits
                         if (this.dateLimits[dateStr]) {
                             const dateInfo = this.dateLimits[dateStr];
-                            if (dateInfo.limit === 0 || dateInfo.status === 'not_accepting' || dateInfo.is_full) {
+                            // Disable if: limit is 0, status is not_accepting, is_full is true, or is_available is false
+                            if (dateInfo.limit === 0 || dateInfo.status === 'not_accepting' || dateInfo.is_full || dateInfo.is_available === false) {
                                 dayClass += ' not-accepting';
                             } else if (dateInfo.count > 0) {
                                 dayClass += ' available';
@@ -1382,15 +1418,10 @@ $debug_info = [
                         }
                         
                         const dayNumber = currentDate.getDate();
-                        let ordersCount = '';
-                        
-                        if (this.dateLimits[dateStr] && this.dateLimits[dateStr].count > 0) {
-                            ordersCount = `<span class="orders-count">${this.dateLimits[dateStr].count}</span>`;
-                        }
                         
                         html += `
                             <div class="${dayClass}" data-date="${dateStr}" ${isPast ? 'data-disabled="true"' : ''} ${!isAvailableDay ? 'data-unavailable="true"' : ''}>
-                                ${dayNumber}${ordersCount}
+                                ${dayNumber}
                             </div>
                         `;
                         
@@ -1590,6 +1621,32 @@ $debug_info = [
             return todayStr;
         }
 
+        function showCalendarLoading() {
+            if (pickupCalendarEl) {
+                const calendar = pickupCalendarEl.querySelector('.custom-calendar');
+                if (calendar && !calendar.querySelector('.calendar-loading-overlay')) {
+                    calendar.classList.add('calendar-loading');
+                    const loadingOverlay = document.createElement('div');
+                    loadingOverlay.className = 'calendar-loading-overlay';
+                    loadingOverlay.innerHTML = '<div class="calendar-loading-spinner"></div>';
+                    calendar.appendChild(loadingOverlay);
+                }
+            }
+        }
+        
+        function hideCalendarLoading() {
+            if (pickupCalendarEl) {
+                const calendar = pickupCalendarEl.querySelector('.custom-calendar');
+                if (calendar) {
+                    calendar.classList.remove('calendar-loading');
+                    const loadingOverlay = calendar.querySelector('.calendar-loading-overlay');
+                    if (loadingOverlay) {
+                        loadingOverlay.remove();
+                    }
+                }
+            }
+        }
+
         function fetchDateLimits(start, end) {
             // Use local timezone instead of UTC to avoid date offset issues
             const startStr = start.getFullYear() + '-' + 
@@ -1599,9 +1656,16 @@ $debug_info = [
                          String(end.getMonth() + 1).padStart(2, '0') + '-' + 
                          String(end.getDate()).padStart(2, '0');
             
-            console.log('Fetching date limits for:', startStr, 'to', endStr);
+            // Determine current fulfillment method
+            const isDelivery = deliveryRadio && deliveryRadio.checked;
+            const fulfillmentMethod = isDelivery ? 'delivery' : 'pickup';
             
-            fetch("../../../backend/pages/homepage/get-date-limits.php?start=${startStr}&end=${endStr}", {
+            console.log('Fetching date availability for:', startStr, 'to', endStr, '| Method:', fulfillmentMethod);
+            
+            // Show loading indicator
+            showCalendarLoading();
+            
+            fetch(`../../../backend/pages/calendar/get-date-availability.php?start_date=${startStr}&end_date=${endStr}&fulfillment_method=${fulfillmentMethod}`, {
                 headers: {
                     'Accept': 'application/json'
                 }
@@ -1610,47 +1674,48 @@ $debug_info = [
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
-                    return response.text();
+                    return response.json();
                 })
-                .then(text => {
-                    try {
-                        const jsonStr = text.replace(/<!--[\s\S]*?-->/g, '').trim();
-                        const data = JSON.parse(jsonStr);
+                .then(data => {
+                    if (data.success && data.dates) {
+                        dateLimits = {};
                         
-                        if (data.success && data.dates) {
-                            dateLimits = {};
-                            
-                            data.dates.forEach(date => {
-                                dateLimits[date.date] = {
-                                    limit: parseInt(date.limit) || 0,
-                                    count: parseInt(date.current_orders) || 0,
-                                    is_full: date.is_full || parseInt(date.current_orders) >= parseInt(date.limit),
-                                    active_orders: parseInt(date.active_orders) || 0,
-                                    remaining_slots: parseInt(date.limit) - (parseInt(date.current_orders) || 0),
-                                    status: date.status || (parseInt(date.limit) === 0 ? 'not_accepting' : 'accepting')
-                                };
-                            });
+                        // Convert dates object to the format expected by calendar
+                        Object.keys(data.dates).forEach(dateKey => {
+                            const dateInfo = data.dates[dateKey];
+                            const isDisabled = dateInfo.status === 'disabled' || dateInfo.status === 'full';
+                            dateLimits[dateKey] = {
+                                limit: dateInfo.limit,
+                                count: dateInfo.current_orders,
+                                is_full: dateInfo.status === 'full' || dateInfo.status === 'disabled',
+                                remaining_slots: dateInfo.remaining_slots,
+                                status: isDisabled ? 'not_accepting' : 'accepting',
+                                message: dateInfo.message,
+                                is_available: dateInfo.is_available && !isDisabled
+                            };
+                        });
 
-                            console.log('Date limits loaded:', dateLimits);
+                        console.log('Date availability loaded:', dateLimits);
 
-                            // Update the calendar with new date limits
-                            if (pickupCalendar) {
-                                pickupCalendar.updateDateLimits(dateLimits);
-                            }
-                            
-                            // Ensure the calendar is properly rendered
-                            if (pickupCalendar) {
-                                pickupCalendar.render();
-                            }
-                        } else {
-                            console.warn('No date limits data received or invalid format');
+                        // Update the calendar with new date limits
+                        if (pickupCalendar) {
+                            pickupCalendar.updateDateLimits(dateLimits);
                         }
-                    } catch (e) {
-                        console.error('Error parsing date limits response:', e);
+                        
+                        // Ensure the calendar is properly rendered
+                        if (pickupCalendar) {
+                            pickupCalendar.render();
+                        }
+                    } else {
+                        console.warn('No date availability data received:', data);
                     }
                 })
                 .catch(error => {
-                    console.error('Error fetching date limits:', error);
+                    console.error('Error fetching date availability:', error);
+                })
+                .finally(() => {
+                    // Hide loading indicator
+                    hideCalendarLoading();
                 });
         }
 
@@ -1686,26 +1751,60 @@ $debug_info = [
                             deliveryDetails.insertBefore(pickupCalendarEl.parentNode, addressSection.nextSibling);
                         }
                     }
+                    
+                    // Re-fetch date limits with new fulfillment method
+                    pickupCalendar.fetchCurrentMonthLimits();
                 }
             } catch (error) {
                 console.error('Error rendering calendar:', error);
             }
             
-            const shippingFee = isPickup ? 0 : 50;
-            if (shippingFeeDisplay) {
-                shippingFeeDisplay.textContent = '₱' + shippingFee.toFixed(2);
+            // Show loading state while recalculating
+            const orderSummary = document.querySelector('.order-summary');
+            if (orderSummary) {
+                orderSummary.style.opacity = '0.6';
+                orderSummary.style.pointerEvents = 'none';
             }
             
-            updateTotalAmount(shippingFee);
-            
-            if (addressInput) {
-                addressInput.required = !isPickup;
+            // Small delay to show loading state
+            setTimeout(() => {
+                let shippingFee = 0;
+                
                 if (isPickup) {
-                    addressInput.value = "Pickup at store";
-                } else if (addressInput.value === "Pickup at store") {
-                    addressInput.value = "";
+                    // Pickup: No shipping fee
+                    shippingFee = 0;
+                } else {
+                    // Delivery: Check if location is selected, otherwise default to 50
+                    const deliveryLocationSelect = document.getElementById('delivery_location');
+                    if (deliveryLocationSelect && deliveryLocationSelect.value) {
+                        const selectedOption = deliveryLocationSelect.options[deliveryLocationSelect.selectedIndex];
+                        shippingFee = parseFloat(selectedOption.dataset.deliveryFee) || 50;
+                    } else {
+                        shippingFee = 50; // Default delivery fee
+                    }
                 }
-            }
+                
+                if (shippingFeeDisplay) {
+                    shippingFeeDisplay.textContent = '₱' + shippingFee.toFixed(2);
+                }
+                
+                updateTotalAmount(shippingFee);
+                
+                if (addressInput) {
+                    addressInput.required = !isPickup;
+                    if (isPickup) {
+                        addressInput.value = "Pickup at store";
+                    } else if (addressInput.value === "Pickup at store") {
+                        addressInput.value = "";
+                    }
+                }
+                
+                // Remove loading state
+                if (orderSummary) {
+                    orderSummary.style.opacity = '1';
+                    orderSummary.style.pointerEvents = 'auto';
+                }
+            }, 300);
         }
         
         // Coupon Functions

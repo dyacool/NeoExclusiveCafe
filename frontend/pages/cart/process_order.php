@@ -121,58 +121,103 @@ try {
         $order_date = $_POST['pickup_date'];
     }
 
-    // Check order limits before proceeding
-    // First get the default limit
-    $default_query = "SELECT default_limit FROM order_limits WHERE id = 1";
-    $default_result = $conn->query($default_query);
-    $default_limit = $default_result->fetch_assoc()['default_limit'] ?? 10;
+    // Validate order based on delivery method
+    if ($orderDetails['delivery_method'] === 'delivery') {
+        // For DELIVERY orders: Check both order_limits and date_limits
+        
+        // First get the default delivery limit
+        $default_query = "SELECT default_limit FROM order_limits WHERE id = 1";
+        $default_result = $conn->query($default_query);
+        $default_limit = $default_result->fetch_assoc()['default_limit'] ?? 10;
 
-    // Check if the date has a specific limit or is not accepting orders
-    $limit_query = "SELECT 
-        COALESCE(dl.limit_value, ?) as limit_value,
-        COUNT(DISTINCT o.order_id) as current_orders,
-        CASE 
-            WHEN os.status = 'not_accepting' OR dl.limit_value = 0 OR dl.not_accepting_orders = TRUE THEN 'not_accepting'
-            ELSE 'accepting'
-        END as status
-    FROM (SELECT ? as date) d
-    LEFT JOIN date_limits dl ON d.date = dl.date
-    LEFT JOIN orders o ON (d.date = o.pickup_date OR d.date = o.delivery_date) 
-        AND o.status IN ('Pending')
-    LEFT JOIN orderdate_status os ON d.date = os.date
-    GROUP BY dl.limit_value, dl.not_accepting_orders, os.status";
+        // Check if the date has a specific limit or is not accepting orders
+        // Count only DELIVERY orders for the limit check
+        $limit_query = "SELECT 
+            COALESCE(dl.limit_value, ?) as limit_value,
+            COUNT(DISTINCT o.order_id) as current_orders,
+            CASE 
+                WHEN os.status = 'not_accepting' OR dl.not_accepting_orders = TRUE THEN 'not_accepting'
+                ELSE 'accepting'
+            END as status
+        FROM (SELECT ? as date) d
+        LEFT JOIN date_limits dl ON d.date = dl.date
+        LEFT JOIN orders o ON d.date = o.delivery_date
+            AND o.delivery_method = 'Delivery'
+            AND o.status NOT IN ('Completed', 'Delivered', 'Picked-up', 'Cancelled')
+        LEFT JOIN orderdate_status os ON d.date = os.date
+        GROUP BY dl.limit_value, dl.not_accepting_orders, os.status";
 
-    $limit_stmt = $conn->prepare($limit_query);
-    if (!$limit_stmt) {
-        throw new Exception('Failed to prepare limit check statement: ' . $conn->error);
-    }
-    
-    $limit_stmt->bind_param("is", $default_limit, $order_date);
-    if (!$limit_stmt->execute()) {
-        throw new Exception('Failed to execute limit check: ' . $limit_stmt->error . "\nQuery: " . $limit_query);
-    }
-    
-    $limit_result = $limit_stmt->get_result();
-    $limit_data = $limit_result->fetch_assoc();
+        $limit_stmt = $conn->prepare($limit_query);
+        if (!$limit_stmt) {
+            throw new Exception('Failed to prepare limit check statement: ' . $conn->error);
+        }
+        
+        $limit_stmt->bind_param("is", $default_limit, $order_date);
+        if (!$limit_stmt->execute()) {
+            throw new Exception('Failed to execute limit check: ' . $limit_stmt->error);
+        }
+        
+        $limit_result = $limit_stmt->get_result();
+        $limit_data = $limit_result->fetch_assoc();
 
-    if (!$limit_data) {
-        // If no result, use default values
-        $limit_data = [
-            'limit_value' => $default_limit,
-            'current_orders' => 0,
-            'status' => 'accepting'
-        ];
-    }
+        if (!$limit_data) {
+            // If no result, use default values
+            $limit_data = [
+                'limit_value' => $default_limit,
+                'current_orders' => 0,
+                'status' => 'accepting'
+            ];
+        }
 
-    if ($limit_data['status'] === 'not_accepting') {
-        throw new Exception('Sorry, we are not accepting orders for this date.');
-    }
+        // Check if date is blocked
+        if ($limit_data['status'] === 'not_accepting') {
+            error_log("Delivery order rejected: Date $order_date is not accepting orders");
+            throw new Exception('Sorry, we are not accepting orders for this date.');
+        }
 
-    $limit = intval($limit_data['limit_value']);
-    $current_orders = intval($limit_data['current_orders']);
+        // Check if delivery limit is reached
+        $limit = intval($limit_data['limit_value']);
+        $current_orders = intval($limit_data['current_orders']);
 
-    if ($current_orders >= $limit) {
-        throw new Exception('Sorry, the selected date has reached its order limit. Please choose another date.');
+        if ($current_orders >= $limit) {
+            error_log("Delivery order rejected: Limit reached for $order_date (Current: $current_orders, Limit: $limit)");
+            throw new Exception('Sorry, we have reached the delivery order limit for this date. Please choose another date.');
+        }
+        
+        error_log("Delivery order validation passed for $order_date (Current: $current_orders, Limit: $limit)");
+        
+    } else {
+        // For PICKUP orders: Check only date_limits (ignore order_limits)
+        
+        $date_check_query = "SELECT 
+            CASE 
+                WHEN os.status = 'not_accepting' OR dl.not_accepting_orders = TRUE THEN 'not_accepting'
+                ELSE 'accepting'
+            END as status
+        FROM (SELECT ? as date) d
+        LEFT JOIN date_limits dl ON d.date = dl.date
+        LEFT JOIN orderdate_status os ON d.date = os.date";
+
+        $date_stmt = $conn->prepare($date_check_query);
+        if (!$date_stmt) {
+            throw new Exception('Failed to prepare date check statement: ' . $conn->error);
+        }
+        
+        $date_stmt->bind_param("s", $order_date);
+        if (!$date_stmt->execute()) {
+            throw new Exception('Failed to execute date check: ' . $date_stmt->error);
+        }
+        
+        $date_result = $date_stmt->get_result();
+        $date_data = $date_result->fetch_assoc();
+
+        // Check if date is blocked
+        if ($date_data && $date_data['status'] === 'not_accepting') {
+            error_log("Pickup order rejected: Date $order_date is not accepting orders");
+            throw new Exception('Sorry, we are not accepting orders for this date.');
+        }
+        
+        error_log("Pickup order validation passed for $order_date (no order limit check)");
     }
     
     // First, create or update customer record

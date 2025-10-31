@@ -5,11 +5,11 @@ let showCompletedOrders = false;
 
 // Initialize calendar when DOM is loaded
 document.addEventListener("DOMContentLoaded", function () {
+  cleanupPastDates(); // Clean up old dates first
   loadToggleState(); // Load saved toggle state first
   renderCalendar(currentDate);
   loadOrderLimit();
   loadAvailTodayOrderLimit();
-  loadBusinessHours();
   loadDateLimitsForMonth(currentDate); // Add this line to load date limits
   setupEventListeners();
   setupModalEventListeners(); // Add modal event listeners
@@ -29,29 +29,7 @@ function setupEventListeners() {
     loadDateLimitsForMonth(currentDate); // Load date limits for new month
   };
 
-  // Order limit input change handler
-  const dailyLimitInput = document.getElementById("dailyLimit");
-  if (dailyLimitInput) {
-    dailyLimitInput.addEventListener("change", function () {
-      const value = parseInt(this.value);
-      if (value === 0) {
-        // If limit is set to 0, set business hours to 00:00
-        document.getElementById("openingTime").value = "00:00";
-        document.getElementById("closingTime").value = "00:00";
-        updateBusinessHours(); // Auto-save the 00:00 time
-      } else {
-        // If limit is greater than 0, check if business hours are 00:00 and reset them
-        const openingTime = document.getElementById("openingTime").value;
-        const closingTime = document.getElementById("closingTime").value;
-        if (openingTime === "00:00" && closingTime === "00:00") {
-          // Reset to default business hours
-          document.getElementById("openingTime").value = "08:00";
-          document.getElementById("closingTime").value = "17:00";
-          updateBusinessHours();
-        }
-      }
-    });
-  }
+  // Order limit input change handler removed - business hours moved to dashboard
 
   // Modal close functionality
   const orderModal = document.getElementById("orderModal");
@@ -458,41 +436,6 @@ function updateDateLimit(date) {
     });
 }
 
-function updateDailyLimit() {
-  const limit = document.getElementById("dailyLimit").value;
-  if (!limit || parseInt(limit) <= 0) {
-    alert("Please enter a valid limit greater than 0");
-    return;
-  }
-
-  fetch("update-limit.php", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      type: "daily",
-      limit: parseInt(limit),
-    }),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.success) {
-        alert("Daily limit updated successfully!");
-        // Refresh the calendar
-        renderCalendar(currentDate);
-        // Refresh the default limit display
-        refreshDefaultLimit();
-      } else {
-        alert("Error updating limit: " + (data.error || "Unknown error"));
-      }
-    })
-    .catch((error) => {
-      console.error("Error updating limit:", error);
-      alert("Error updating limit. Please try again.");
-    });
-}
-
 function updateBusinessHours() {
   const openingTime = document.getElementById("openingTime").value;
   const closingTime = document.getElementById("closingTime").value;
@@ -546,21 +489,7 @@ function updateBusinessHours() {
     });
 }
 
-function loadBusinessHours() {
-  fetch("get-business-hours.php")
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.success && data.businessHours) {
-        document.getElementById("openingTime").value =
-          data.businessHours.opening_time;
-        document.getElementById("closingTime").value =
-          data.businessHours.closing_time;
-      }
-    })
-    .catch((error) => {
-      console.error("Error loading business hours:", error);
-    });
-}
+
 
 function showOrderDetails(orderId) {
   fetch("get-order-details.php?id=" + orderId)
@@ -750,6 +679,8 @@ function toggleCompletedOrders() {
 
 // Order Limit Functions
 function loadOrderLimit() {
+  const dailyLimitInput = document.getElementById("dailyLimit");
+  
   fetch("get-date-limits.php?get_default=true")
     .then((response) => response.text())
     .then((text) => {
@@ -758,23 +689,36 @@ function loadOrderLimit() {
       try {
         const data = JSON.parse(jsonStr);
         if (data.success && data.default_limit !== undefined) {
-          document.getElementById("dailyLimit").value = data.default_limit;
+          dailyLimitInput.value = data.default_limit;
+          dailyLimitInput.disabled = false;
+          dailyLimitInput.placeholder = "";
         } else {
           console.error("Invalid response format:", data);
+          dailyLimitInput.placeholder = "Error loading";
         }
       } catch (e) {
         console.error("Error parsing JSON:", e, "Response:", jsonStr);
+        dailyLimitInput.placeholder = "Error loading";
       }
     })
-    .catch((error) => console.error("Error fetching default limit:", error));
+    .catch((error) => {
+      console.error("Error fetching default limit:", error);
+      dailyLimitInput.placeholder = "Error loading";
+    });
 }
 
 function updateDailyLimit() {
   const limit = document.getElementById("dailyLimit").value;
-  if (!limit || parseInt(limit) <= 0) {
-    alert("Please enter a valid limit greater than 0");
+  const limitValue = parseInt(limit);
+  
+  console.log("updateDailyLimit called with value:", limit, "parsed:", limitValue);
+  
+  if (!limit || isNaN(limitValue) || limitValue < 0) {
+    alert("Please enter a valid limit (0 or greater)");
     return;
   }
+
+  console.log("Sending update request to update-limit.php");
 
   fetch("update-limit.php", {
     method: "POST",
@@ -783,18 +727,22 @@ function updateDailyLimit() {
     },
     body: JSON.stringify({
       type: "daily",
-      limit: parseInt(limit),
+      limit: limitValue,
     }),
   })
-    .then((response) => response.json())
+    .then((response) => {
+      console.log("Update response status:", response.status);
+      return response.json();
+    })
     .then((data) => {
+      console.log("Update response data:", data);
       if (data.success) {
         alert("Daily limit updated successfully!");
         // Refresh the calendar and reload date limits
         renderCalendar(currentDate);
         loadDateLimitsForMonth(currentDate);
-        // Refresh the default limit display
-        refreshDefaultLimit();
+        // Reload the order limit to show updated value
+        loadOrderLimit();
       } else {
         alert("Error updating limit: " + (data.error || "Unknown error"));
       }
@@ -807,20 +755,25 @@ function updateDailyLimit() {
 
 // Available Today Order Limit Functions
 function loadAvailTodayOrderLimit() {
+  const availtodayLimitInput = document.getElementById("availtodayOrderLimit");
+  
   fetch("availtoday-order-limit-api.php?action=get_limit")
     .then((response) => response.json())
     .then((data) => {
       if (data.success) {
-        document.getElementById("availtodayOrderLimit").value =
-          data.limit_orders;
+        availtodayLimitInput.value = data.limit_orders;
+        availtodayLimitInput.disabled = false;
+        availtodayLimitInput.placeholder = "";
         updateAvailTodayOrderLimitStatus(data.limit_orders);
       } else {
         console.error("Error loading availtoday order limit:", data.error);
+        availtodayLimitInput.placeholder = "Error loading";
       }
     })
-    .catch((error) =>
-      console.error("Error loading availtoday order limit:", error)
-    );
+    .catch((error) => {
+      console.error("Error loading availtoday order limit:", error);
+      availtodayLimitInput.placeholder = "Error loading";
+    });
 }
 
 function updateAvailTodayOrderLimit() {
@@ -1130,3 +1083,20 @@ function saveDateLimit() {
 window.openDateLimitModal = openDateLimitModal;
 window.closeDateLimitModal = closeDateLimitModal;
 window.saveDateLimit = saveDateLimit;
+
+
+// Cleanup Past Dates Function
+function cleanupPastDates() {
+  fetch("cleanup-past-dates.php")
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.success) {
+        console.log("Cleaned up past dates:", data.deleted_count, "date(s) removed");
+      } else {
+        console.warn("Failed to cleanup past dates:", data.error);
+      }
+    })
+    .catch((error) => {
+      console.error("Error cleaning up past dates:", error);
+    });
+}

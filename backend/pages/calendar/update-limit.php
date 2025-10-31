@@ -53,19 +53,35 @@ try {
 
     try {
         if ($data['type'] === 'daily') {
-            // Update or insert default limit
-            $query = "INSERT INTO order_limits (id, default_limit) VALUES (1, ?) 
-                     ON DUPLICATE KEY UPDATE default_limit = ?";
+            // Update the existing row with id=1 (do not insert new rows)
+            $query = "UPDATE order_limits SET default_limit = ?, updated_at = CURRENT_TIMESTAMP WHERE id = 1";
             $stmt = $conn->prepare($query);
             if (!$stmt) {
                 throw new Exception("Failed to prepare statement: " . $conn->error);
             }
             
-            $stmt->bind_param("ii", $limit, $limit);
+            $stmt->bind_param("i", $limit);
             if (!$stmt->execute()) {
                 throw new Exception("Failed to update daily limit: " . $stmt->error);
             }
-            error_log("Updated daily limit to: $limit");
+            
+            // Check if the row was updated
+            if ($stmt->affected_rows === 0) {
+                // Row doesn't exist, create it
+                $insert_query = "INSERT INTO order_limits (id, default_limit, created_at, updated_at) VALUES (1, ?, NOW(), NOW())";
+                $insert_stmt = $conn->prepare($insert_query);
+                if (!$insert_stmt) {
+                    throw new Exception("Failed to prepare insert statement: " . $conn->error);
+                }
+                $insert_stmt->bind_param("i", $limit);
+                if (!$insert_stmt->execute()) {
+                    throw new Exception("Failed to insert daily limit: " . $insert_stmt->error);
+                }
+                $insert_stmt->close();
+                error_log("Inserted new daily limit row with id=1, limit=$limit");
+            } else {
+                error_log("Updated daily limit to: $limit (affected rows: " . $stmt->affected_rows . ")");
+            }
 
         } else if ($data['type'] === 'date' && isset($data['date'])) {
             $date = $data['date'];

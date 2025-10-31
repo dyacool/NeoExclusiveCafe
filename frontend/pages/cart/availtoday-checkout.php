@@ -381,9 +381,56 @@ $debug_info = [
                 $allow_pickup = !$has_delivery_only_items; // Pickup allowed if no delivery-only items
                 $allow_delivery = !$has_pickup_only_items; // Delivery allowed if no pickup-only items
             }
+            
+            // Check same-day delivery order limit (only affects delivery, not pickup)
+            $delivery_limit_reached = false;
+            $delivery_limit_message = '';
+            
+            if ($allow_delivery) {
+                $today_date = date('Y-m-d');
+                
+                // Get the same-day delivery order limit from availtoday_order_limit table
+                $availtoday_limit_query = "SELECT limit_orders FROM availtoday_order_limit ORDER BY id DESC LIMIT 1";
+                $availtoday_limit_result = $conn->query($availtoday_limit_query);
+                
+                $availtoday_limit = 50; // Default limit
+                if ($availtoday_limit_result && $availtoday_limit_result->num_rows > 0) {
+                    $availtoday_limit_row = $availtoday_limit_result->fetch_assoc();
+                    $availtoday_limit = intval($availtoday_limit_row['limit_orders']);
+                }
+                
+                // Count current same-day DELIVERY orders for today
+                $current_orders_query = "SELECT COUNT(DISTINCT order_id) as current_orders 
+                    FROM orders 
+                    WHERE (pickup_date = ? OR delivery_date = ?) 
+                    AND delivery_method = 'Delivery'
+                    AND status NOT IN ('Completed', 'Delivered', 'Picked-up', 'Cancelled')";
+                
+                $current_orders_stmt = $conn->prepare($current_orders_query);
+                if ($current_orders_stmt) {
+                    $current_orders_stmt->bind_param("ss", $today_date, $today_date);
+                    $current_orders_stmt->execute();
+                    $current_orders_result = $current_orders_stmt->get_result();
+                    $current_orders_data = $current_orders_result->fetch_assoc();
+                    $current_orders = intval($current_orders_data['current_orders']);
+                    
+                    if ($current_orders >= $availtoday_limit) {
+                        $delivery_limit_reached = true;
+                        $allow_delivery = false;
+                        $delivery_limit_message = "Same-day delivery limit reached ($current_orders/$availtoday_limit orders). Pickup is still available!";
+                        error_log("Same-day delivery limit reached: $current_orders/$availtoday_limit - disabling delivery option");
+                    }
+                    
+                    $current_orders_stmt->close();
+                }
+            }
             ?>
             
-            <?php if ($has_pickup_only_items && $has_delivery_only_items): ?>
+            <?php if ($delivery_limit_reached): ?>
+                <div class="shipping-method-notice" style="background: #fff3cd; border-color: #ffc107;">
+                    <p><strong>⚠️ Same-Day Delivery Limit Reached:</strong> <?= htmlspecialchars($delivery_limit_message) ?></p>
+                </div>
+            <?php elseif ($has_pickup_only_items && $has_delivery_only_items): ?>
                 <div class="shipping-method-notice">
                     <p><strong>Mixed Cart:</strong> Your cart contains both pickup-only and delivery-only items. Only pickup is available.</p>
                 </div>
@@ -405,15 +452,23 @@ $debug_info = [
             <div class="delivery-type">
                 <label class="radio-option">
                     <input type="radio" id="pickup" name="delivery_method" value="pickup" 
-                           <?= $shipping_method === 'pickup' ? 'checked' : '' ?>
+                           <?= ($shipping_method === 'pickup' || !$allow_delivery) ? 'checked' : '' ?>
                            <?= !$allow_pickup ? 'disabled' : '' ?>>
                     <span>Pick Up <?= !$allow_pickup ? '(Not available - cart has delivery-only items)' : '' ?></span>
                 </label>
                 <label class="radio-option">
                     <input type="radio" id="delivery" name="delivery_method" value="delivery"
-                           <?= $shipping_method === 'delivery' ? 'checked' : '' ?>
+                           <?= $shipping_method === 'delivery' && $allow_delivery ? 'checked' : '' ?>
                            <?= !$allow_delivery ? 'disabled' : '' ?>>
-                    <span>Delivery <?= !$allow_delivery ? '(Not available - cart has pickup-only items)' : '' ?></span>
+                    <span>Delivery 
+                        <?php 
+                        if ($delivery_limit_reached) {
+                            echo '(Limit reached - pickup available)';
+                        } elseif (!$allow_delivery) {
+                            echo '(Not available - cart has pickup-only items)';
+                        }
+                        ?>
+                    </span>
                 </label>
             </div>
             
@@ -578,7 +633,7 @@ $debug_info = [
 
         <!-- Place Order Button -->
         <button type="submit" class="btn-primary place-order-btn" style="background-color: #256035;" id="place-order-btn">
-            Place Order - <span id="button-total">₱<?php echo number_format($cart_total, 2); ?></span>
+            Place Order
         </button>
     </form>
 </div>
@@ -746,6 +801,47 @@ document.addEventListener('DOMContentLoaded', function() {
         if (deliveryDetails) {
             deliveryDetails.style.display = isPickup ? 'none' : 'block';
         }
+        
+        // Show loading state while recalculating
+        const orderSummary = document.querySelector('.order-summary');
+        if (orderSummary) {
+            orderSummary.style.opacity = '0.6';
+            orderSummary.style.pointerEvents = 'none';
+        }
+        
+        // Small delay to show loading state
+        setTimeout(() => {
+            let shippingFee = 0;
+            
+            if (isPickup) {
+                // Pickup: No shipping fee
+                shippingFee = 0;
+            } else {
+                // Delivery: Check if location is selected, otherwise default to 0
+                const deliveryLocationSelect = document.getElementById('delivery_location');
+                if (deliveryLocationSelect && deliveryLocationSelect.value) {
+                    const selectedOption = deliveryLocationSelect.options[deliveryLocationSelect.selectedIndex];
+                    shippingFee = parseFloat(selectedOption.dataset.deliveryFee) || 0;
+                } else {
+                    shippingFee = 0; // No default fee until location is selected
+                }
+            }
+            
+            // Update shipping fee display
+            const shippingFeeElement = document.getElementById('shipping_fee');
+            if (shippingFeeElement) {
+                shippingFeeElement.textContent = '₱' + shippingFee.toFixed(2);
+            }
+            
+            // Update order total
+            updateOrderTotal();
+            
+            // Remove loading state
+            if (orderSummary) {
+                orderSummary.style.opacity = '1';
+                orderSummary.style.pointerEvents = 'auto';
+            }
+        }, 300);
     }
 
     if (pickupRadio) {
@@ -1112,6 +1208,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 formData.append('cart_items', JSON.stringify(cartItems));
                 formData.append('selected_cart_ids', cartItems.map(item => item.cart_id).join(','));
                 formData.append('cart_total', cartTotal);
+                
+                // Add shipping fee
+                const shippingFeeElement = document.getElementById('shipping_fee');
+                const shippingFee = shippingFeeElement ? parseFloat(shippingFeeElement.textContent.replace('₱', '').replace(',', '')) || 0 : 0;
+                formData.append('shipping_fee', shippingFee);
+                console.log('[AVAILTODAY CHECKOUT] Shipping Fee:', shippingFee);
+                
                 formData.append('user_name', userName);
                 formData.append('user_email', userEmail);
                 
@@ -1183,13 +1286,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 orderData.customer_name = userName;
                 orderData.customer_email = userEmail;
                 
-                // Calculate final amount with discount
+                // Calculate final amount with shipping fee and discount
                 console.log('[AVAILTODAY CHECKOUT] DEBUG - appliedCoupon:', appliedCoupon);
                 console.log('[AVAILTODAY CHECKOUT] DEBUG - discountAmount variable:', discountAmount);
                 console.log('[AVAILTODAY CHECKOUT] DEBUG - typeof discountAmount:', typeof discountAmount);
                 
-                const finalAmount = cartTotal - (discountAmount || 0);
+                const finalAmount = cartTotal + shippingFee - (discountAmount || 0);
                 console.log('[AVAILTODAY CHECKOUT] Cart Total:', cartTotal);
+                console.log('[AVAILTODAY CHECKOUT] Shipping Fee:', shippingFee);
                 console.log('[AVAILTODAY CHECKOUT] Discount Amount:', discountAmount);
                 console.log('[AVAILTODAY CHECKOUT] Final Amount:', finalAmount);
                 console.log('[AVAILTODAY CHECKOUT] Final Amount being sent to PayMongo:', parseFloat(finalAmount));
