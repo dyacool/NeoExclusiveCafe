@@ -73,10 +73,83 @@ try {
             foreach ($cart_items as $ci) { $total_items += intval($ci['quantity'] ?? 0); }
 
             $total_amount = floatval($pending_payment['amount'] ?? ($order_data['cart_total'] ?? 0));
-            $customer_name = trim(($order_data['user_name'] ?? ($order_data['customer_name'] ?? '')));
-            $customer_email = $order_data['user_email'] ?? ($order_data['customer_email'] ?? null);
-            $customer_contact = $order_data['phone'] ?? $order_data['contact_number'] ?? null;
-            $customer_address = $order_data['delivery_address'] ?? ($order_data['address'] ?? null);
+            
+            // Try to get customer info from primary saved info first
+            $customer_name = '';
+            $customer_email = null;
+            $customer_contact = null;
+            $customer_address = null;
+            
+            // Check if user has primary saved customer info
+            if (isset($_SESSION['user_id'])) {
+                $user_id = intval($_SESSION['user_id']);
+                
+                // First, check if user has any saved info but no primary set
+                $check_primary_sql = "SELECT COUNT(*) as total, SUM(is_primary) as primary_count 
+                                      FROM saved_customer_info 
+                                      WHERE user_id = ?";
+                $check_primary_stmt = $conn->prepare($check_primary_sql);
+                if ($check_primary_stmt) {
+                    $check_primary_stmt->bind_param("i", $user_id);
+                    $check_primary_stmt->execute();
+                    $check_result = $check_primary_stmt->get_result();
+                    $check_row = $check_result->fetch_assoc();
+                    $total_entries = intval($check_row['total']);
+                    $primary_count = intval($check_row['primary_count']);
+                    $check_primary_stmt->close();
+                    
+                    // If user has saved info but no primary, set the first one as primary
+                    if ($total_entries > 0 && $primary_count === 0) {
+                        error_log("User $user_id has $total_entries saved entries but no primary. Setting first entry as primary.");
+                        $set_first_primary_sql = "UPDATE saved_customer_info 
+                                                  SET is_primary = 1 
+                                                  WHERE user_id = ? 
+                                                  ORDER BY created_at ASC 
+                                                  LIMIT 1";
+                        $set_first_primary_stmt = $conn->prepare($set_first_primary_sql);
+                        if ($set_first_primary_stmt) {
+                            $set_first_primary_stmt->bind_param("i", $user_id);
+                            $set_first_primary_stmt->execute();
+                            error_log("✓ Automatically set first entry as primary for user $user_id");
+                            $set_first_primary_stmt->close();
+                        }
+                    }
+                }
+                
+                // Now get the primary saved customer info
+                $primary_info_sql = "SELECT first_name, last_name, email, phone, complete_address 
+                                     FROM saved_customer_info 
+                                     WHERE user_id = ? AND is_primary = 1 
+                                     LIMIT 1";
+                $primary_stmt = $conn->prepare($primary_info_sql);
+                if ($primary_stmt) {
+                    $primary_stmt->bind_param("i", $user_id);
+                    $primary_stmt->execute();
+                    $primary_result = $primary_stmt->get_result();
+                    if ($primary_row = $primary_result->fetch_assoc()) {
+                        $customer_name = trim($primary_row['first_name'] . ' ' . $primary_row['last_name']);
+                        $customer_email = $primary_row['email'];
+                        $customer_contact = $primary_row['phone'];
+                        $customer_address = $primary_row['complete_address'];
+                        error_log("Using primary saved customer info for user $user_id: $customer_name");
+                    }
+                    $primary_stmt->close();
+                }
+            }
+            
+            // Fallback to order_data if no primary info found
+            if (empty($customer_name)) {
+                $customer_name = trim(($order_data['user_name'] ?? ($order_data['customer_name'] ?? '')));
+            }
+            if (empty($customer_email)) {
+                $customer_email = $order_data['user_email'] ?? ($order_data['customer_email'] ?? null);
+            }
+            if (empty($customer_contact)) {
+                $customer_contact = $order_data['phone'] ?? $order_data['contact_number'] ?? null;
+            }
+            if (empty($customer_address)) {
+                $customer_address = $order_data['delivery_address'] ?? ($order_data['address'] ?? null);
+            }
             $payment_method = $pending_payment['payment_method'] ?? ($order_data['payment_method'] ?? '');
             $delivery_method_raw = $order_data['delivery_method'] ?? 'pickup';
             $delivery_method = $delivery_method_raw === 'delivery' ? 'Delivery' : 'Pick-up';
@@ -355,6 +428,13 @@ try {
             }
         } else {
             error_log("=== NO COUPON TO RECORD (PAYMONGO) ===");
+        }
+
+        // Auto-save customer information if user doesn't have any saved info
+        try {
+            autoSaveCustomerInfo($customer_name, $customer_email, $customer_contact, $customer_address, $order_data);
+        } catch (Exception $e) {
+            error_log("Auto-save customer info failed: " . $e->getMessage());
         }
 
         // Send email but don't block on failure
@@ -660,5 +740,161 @@ function createCustomerEmailBody($orderDetails) {
     </html>";
     
     return $emailBody;
+}
+
+/**
+ * Auto-save customer information if user doesn't have any saved info
+ * This creates a primary customer info entry based on the order data
+ */
+function autoSaveCustomerInfo($customer_name, $customer_email, $customer_contact, $customer_address, $order_data) {
+    global $conn;
+    
+    // Only proceed if user is logged in
+    if (!isset($_SESSION['user_id'])) {
+        error_log("Auto-save customer info: No user_id in session");
+        return false;
+    }
+    
+    $user_id = intval($_SESSION['user_id']);
+    
+    try {
+        // Check if user already has saved customer info
+        $check_sql = "SELECT COUNT(*) as count FROM saved_customer_info WHERE user_id = ?";
+        $check_stmt = $conn->prepare($check_sql);
+        if (!$check_stmt) {
+            error_log("Auto-save customer info: Failed to prepare check statement");
+            return false;
+        }
+        
+        $check_stmt->bind_param("i", $user_id);
+        $check_stmt->execute();
+        $check_result = $check_stmt->get_result();
+        $check_row = $check_result->fetch_assoc();
+        $existing_count = intval($check_row['count']);
+        $check_stmt->close();
+        
+        // If user already has saved info, don't auto-save
+        if ($existing_count > 0) {
+            error_log("Auto-save customer info: User $user_id already has $existing_count saved entries, skipping auto-save");
+            return false;
+        }
+        
+        error_log("=== AUTO-SAVING CUSTOMER INFO ===");
+        error_log("User ID: $user_id has no saved customer info, creating first entry");
+        
+        // Parse customer name into first and last name
+        $name_parts = explode(' ', trim($customer_name), 2);
+        $first_name = $name_parts[0] ?? '';
+        $last_name = $name_parts[1] ?? '';
+        
+        // Validate required fields
+        if (empty($first_name) || empty($customer_email) || empty($customer_contact)) {
+            error_log("Auto-save customer info: Missing required fields (name: $first_name, email: $customer_email, phone: $customer_contact)");
+            return false;
+        }
+        
+        // Try to extract delivery location from order_data
+        $delivery_location_id = null;
+        
+        // Check if delivery_location or delivery_location_id exists in order_data
+        if (isset($order_data['delivery_location_id']) && intval($order_data['delivery_location_id']) > 0) {
+            $delivery_location_id = intval($order_data['delivery_location_id']);
+        } elseif (isset($order_data['delivery_location'])) {
+            // Try to find delivery location by name
+            $location_name = $order_data['delivery_location'];
+            $location_sql = "SELECT delivery_id FROM delivery_locations WHERE CONCAT(municipality, ', ', city) LIKE ? LIMIT 1";
+            $location_stmt = $conn->prepare($location_sql);
+            if ($location_stmt) {
+                $search_term = "%$location_name%";
+                $location_stmt->bind_param("s", $search_term);
+                $location_stmt->execute();
+                $location_result = $location_stmt->get_result();
+                if ($location_row = $location_result->fetch_assoc()) {
+                    $delivery_location_id = intval($location_row['delivery_id']);
+                }
+                $location_stmt->close();
+            }
+        }
+        
+        // If still no delivery location, try to infer from address
+        if (!$delivery_location_id && !empty($customer_address)) {
+            // Try to match address with delivery locations
+            $location_sql = "SELECT delivery_id FROM delivery_locations 
+                            WHERE ? LIKE CONCAT('%', municipality, '%') 
+                               OR ? LIKE CONCAT('%', city, '%')
+                            LIMIT 1";
+            $location_stmt = $conn->prepare($location_sql);
+            if ($location_stmt) {
+                $location_stmt->bind_param("ss", $customer_address, $customer_address);
+                $location_stmt->execute();
+                $location_result = $location_stmt->get_result();
+                if ($location_row = $location_result->fetch_assoc()) {
+                    $delivery_location_id = intval($location_row['delivery_id']);
+                }
+                $location_stmt->close();
+            }
+        }
+        
+        // If still no delivery location, use a default one (first available)
+        if (!$delivery_location_id) {
+            $default_location_sql = "SELECT delivery_id FROM delivery_locations ORDER BY delivery_id ASC LIMIT 1";
+            $default_result = $conn->query($default_location_sql);
+            if ($default_result && $default_row = $default_result->fetch_assoc()) {
+                $delivery_location_id = intval($default_row['delivery_id']);
+                error_log("Auto-save customer info: Using default delivery location ID: $delivery_location_id");
+            }
+        }
+        
+        // Final validation - must have delivery location
+        if (!$delivery_location_id) {
+            error_log("Auto-save customer info: Could not determine delivery location, aborting");
+            return false;
+        }
+        
+        // Use complete address or fallback to customer_address
+        $complete_address = $customer_address ?? '';
+        if (empty($complete_address)) {
+            error_log("Auto-save customer info: No address provided, aborting");
+            return false;
+        }
+        
+        // Insert the customer info as primary (first entry is always primary)
+        $insert_sql = "INSERT INTO saved_customer_info 
+                      (user_id, label, first_name, last_name, email, phone, delivery_location_id, complete_address, is_primary) 
+                      VALUES (?, 'My Address', ?, ?, ?, ?, ?, ?, 1)";
+        
+        $insert_stmt = $conn->prepare($insert_sql);
+        if (!$insert_stmt) {
+            error_log("Auto-save customer info: Failed to prepare insert statement: " . $conn->error);
+            return false;
+        }
+        
+        $insert_stmt->bind_param("issssss", 
+            $user_id, 
+            $first_name, 
+            $last_name, 
+            $customer_email, 
+            $customer_contact, 
+            $delivery_location_id, 
+            $complete_address
+        );
+        
+        if ($insert_stmt->execute()) {
+            $saved_id = $insert_stmt->insert_id;
+            error_log("✓ Auto-saved customer info successfully for user $user_id (ID: $saved_id)");
+            error_log("   Name: $first_name $last_name, Email: $customer_email, Phone: $customer_contact");
+            error_log("   Location ID: $delivery_location_id, Address: $complete_address");
+            $insert_stmt->close();
+            return true;
+        } else {
+            error_log("✗ Failed to auto-save customer info: " . $insert_stmt->error);
+            $insert_stmt->close();
+            return false;
+        }
+        
+    } catch (Exception $e) {
+        error_log("Auto-save customer info error: " . $e->getMessage());
+        return false;
+    }
 }
 ?>

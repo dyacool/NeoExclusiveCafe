@@ -460,6 +460,7 @@ $debug_info = [
   <title>Checkout Page</title>
 
   <link rel="stylesheet" href="checkout.css">
+  <link rel="stylesheet" href="saved-info.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   
@@ -2363,7 +2364,13 @@ $debug_info = [
     <form id="checkout-form">
         <!-- User Information Section -->
         <div class="section-card user-information">
-            <h2>User Information</h2>
+            <div class="section-header-with-button">
+                <h2>User Information</h2>
+                <button type="button" id="loadContactsBtn" class="btn-load-contacts">
+                    📋 Load Contacts and Address
+                </button>
+            </div>
+            
             <div class="user-details">
                 <div class="detail-row">
                     <span class="detail-label">Name:</span>
@@ -2373,6 +2380,8 @@ $debug_info = [
                             echo htmlspecialchars($fullname); 
                         ?>
                     </span>
+                    <input type="hidden" id="first_name" name="first_name" value="<?php echo htmlspecialchars($user['firstname'] ?? ''); ?>">
+                    <input type="hidden" id="last_name" name="last_name" value="<?php echo htmlspecialchars($user['lastname'] ?? ''); ?>">
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Email:</span>
@@ -2641,12 +2650,31 @@ $debug_info = [
     </div>
 </div>
 
+<!-- Saved Information Modal -->
+<div id="savedInfoModal" class="saved-info-modal">
+    <div class="saved-info-modal-content">
+        <div class="saved-info-modal-header">
+            <h2>Manage Saved Information</h2>
+            <button class="saved-info-close-btn">&times;</button>
+        </div>
+        <div class="saved-info-modal-body">
+            <div id="savedEntriesList" class="saved-entries-list">
+                <!-- Entries will be loaded dynamically -->
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Add Bootstrap CSS -->
 <!-- Add jQuery -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
 <!-- Delivery Locations Loader -->
 <script src="delivery-locations-loader.js"></script>
+
+<!-- Saved Info Manager -->
+<script src="saved-info-manager.js"></script>
+<script src="saved-info-ui.js"></script>
 
 <script>
 // Modal functionality
@@ -2671,7 +2699,95 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    saveLocationBtn.addEventListener('click', function() {
+    // Auto-load primary customer address when delivery is selected
+    async function loadPrimaryCustomerAddress() {
+        try {
+            const response = await fetch('../../../backend/api/get-primary-info.php');
+            const data = await response.json();
+            
+            if (data.success && data.entry && data.entry.complete_address) {
+                // User has saved address, auto-fill it
+                const fullAddress = `${data.entry.complete_address}, ${data.entry.delivery_location}`;
+                if (deliveryAddressInput) {
+                    deliveryAddressInput.value = fullAddress;
+                }
+                
+                // Update shipping fee
+                const deliveryFee = data.entry.delivery_fee || 0;
+                const shippingFeeElement = document.getElementById('shipping_fee');
+                if (shippingFeeElement) {
+                    shippingFeeElement.textContent = '₱' + deliveryFee.toFixed(2);
+                }
+                
+                // Update total
+                updateTotalWithShipping(deliveryFee);
+                
+                console.log('Auto-loaded primary customer address:', fullAddress);
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error('Error loading primary customer address:', error);
+            return false;
+        }
+    }
+    
+    // Update total with shipping fee
+    function updateTotalWithShipping(deliveryFee) {
+        const subtotalElement = document.getElementById('subtotal');
+        const totalElement = document.getElementById('total');
+        const discountElement = document.getElementById('discount_amount');
+        
+        if (subtotalElement && totalElement) {
+            const subtotalValue = parseFloat(subtotalElement.textContent.replace('₱', '').replace(',', '')) || 0;
+            const discountValue = discountElement ? parseFloat(discountElement.textContent.replace('₱', '').replace('-', '').replace(',', '')) || 0 : 0;
+            const total = subtotalValue + deliveryFee - discountValue;
+            totalElement.textContent = '₱' + total.toFixed(2);
+        }
+    }
+    
+    // Update primary customer info with selected location
+    async function updatePrimaryWithLocation(deliveryLocationId, completeAddress) {
+        try {
+            // First check if user has primary info
+            const checkResponse = await fetch('../../../backend/api/get-primary-info.php');
+            const checkData = await checkResponse.json();
+            
+            if (checkData.success && checkData.entry) {
+                // User has primary info, check if complete_address is empty
+                if (!checkData.entry.complete_address || checkData.entry.complete_address.trim() === '') {
+                    // Update the primary info with the new location
+                    const updateResponse = await fetch('../../../backend/api/save-customer-info.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            id: checkData.entry.id,
+                            label: checkData.entry.label,
+                            first_name: checkData.entry.first_name,
+                            last_name: checkData.entry.last_name,
+                            email: checkData.entry.email,
+                            phone: checkData.entry.phone,
+                            delivery_location_id: deliveryLocationId,
+                            complete_address: completeAddress,
+                            set_as_primary: true
+                        })
+                    });
+                    
+                    const updateData = await updateResponse.json();
+                    if (updateData.success) {
+                        console.log('✓ Updated primary customer info with delivery location');
+                        return true;
+                    }
+                }
+            }
+            return false;
+        } catch (error) {
+            console.error('Error updating primary customer info:', error);
+            return false;
+        }
+    }
+
+    saveLocationBtn.addEventListener('click', async function() {
         const deliveryLocationSelect = document.getElementById('delivery_location');
         const deliveryLocation = deliveryLocationSelect.value;
         const completeAddress = document.getElementById('complete_address').value;
@@ -2693,9 +2809,10 @@ document.addEventListener('DOMContentLoaded', function() {
             deliveryAddressInput.value = fullAddress;
         }
 
-        // Get delivery fee from selected option
+        // Get delivery fee and location ID from selected option
         const selectedOption = deliveryLocationSelect.options[deliveryLocationSelect.selectedIndex];
         const deliveryFee = parseFloat(selectedOption.dataset.deliveryFee) || 0;
+        const deliveryLocationId = parseInt(selectedOption.dataset.locationId) || 0;
         
         // Update shipping fee display
         const shippingFeeElement = document.getElementById('shipping_fee');
@@ -2703,23 +2820,31 @@ document.addEventListener('DOMContentLoaded', function() {
             shippingFeeElement.textContent = '₱' + deliveryFee.toFixed(2);
         }
         
-        // Update total - recalculate directly since updateTotalAmount is in different scope
-        const subtotalElement = document.getElementById('subtotal');
-        const totalElement = document.getElementById('total');
-        const discountElement = document.getElementById('discount_amount');
+        // Update total
+        updateTotalWithShipping(deliveryFee);
         
-        if (subtotalElement && totalElement) {
-            // Parse subtotal from display
-            const subtotalValue = parseFloat(subtotalElement.textContent.replace('₱', '').replace(',', '')) || 0;
-            // Parse discount if exists
-            const discountValue = discountElement ? parseFloat(discountElement.textContent.replace('₱', '').replace('-', '').replace(',', '')) || 0 : 0;
-            // Calculate total
-            const total = subtotalValue + deliveryFee - discountValue;
-            totalElement.textContent = '₱' + total.toFixed(2);
+        // Update primary customer info if it has empty address
+        if (deliveryLocationId > 0) {
+            await updatePrimaryWithLocation(deliveryLocationId, completeAddress.trim());
         }
 
         modal.style.display = 'none';
     });
+    
+    // Auto-load address when delivery radio is selected
+    const deliveryRadioBtn = document.getElementById('delivery');
+    if (deliveryRadioBtn) {
+        deliveryRadioBtn.addEventListener('change', function() {
+            if (this.checked) {
+                loadPrimaryCustomerAddress();
+            }
+        });
+        
+        // Also load on page load if delivery is already selected
+        if (deliveryRadioBtn.checked) {
+            loadPrimaryCustomerAddress();
+        }
+    }
 });
 
 const phoneInput = document.getElementById('contact_number');

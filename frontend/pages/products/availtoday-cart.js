@@ -73,7 +73,7 @@ function checkBusinessHoursAndClearCart() {
                 if (currentTime > closingTime) {
                     console.log('Business hours closed, clearing Available Today cart');
                     clearAvailableTodayCart();
-                    showNotification('Business hours closed. Cart has been cleared.', 'info');
+                    // REMOVED: showNotification('Business hours closed. Cart has been cleared.', 'info');
                     
                     // Disable add to cart buttons
                     disableAddToCartButtons();
@@ -103,9 +103,10 @@ function truncateCartAvailToday() {
         .then(data => {
             if (data.success) {
                 console.log('Cart truncated successfully:', data.message);
-                if (data.action === 'truncated') {
-                    showNotification('Cart has been cleared for the day.', 'info');
-                }
+                // REMOVED: Notification popup
+                // if (data.action === 'truncated') {
+                //     showNotification('Cart has been cleared for the day.', 'info');
+                // }
             } else {
                 console.error('Failed to truncate cart:', data.error);
             }

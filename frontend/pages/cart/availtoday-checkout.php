@@ -291,6 +291,7 @@ $debug_info = [
   <meta charset="UTF-8">
   <title>Available Today Checkout</title>
   <link rel="stylesheet" href="checkout.css">
+  <link rel="stylesheet" href="saved-info.css">
 </head>
 <body class="checkout-page">
 <?php include '../../user-includes/navbar/customer-navigation.php'; ?>
@@ -300,7 +301,13 @@ $debug_info = [
         
         <!-- User Information Section -->
         <div class="section-card user-information">
-            <h2>User Information</h2>
+            <div class="section-header-with-button">
+                <h2>User Information</h2>
+                <button type="button" id="loadContactsBtn" class="btn-load-contacts">
+                    📋 Load Contacts and Address
+                </button>
+            </div>
+            
             <div class="user-details">
                 <div class="detail-row">
                     <span class="detail-label">Name:</span>
@@ -341,11 +348,11 @@ $debug_info = [
                             }
                         ?>
                     </span>
-                    <input type="hidden" name="email" value="<?php 
+                    <input type="hidden" id="email" name="email" value="<?php 
                         echo !empty($user['email']) ? htmlspecialchars($user['email']) : '';
                     ?>">
-                    <input type="hidden" name="first_name" value="<?php echo htmlspecialchars($user['firstname'] ?? ''); ?>">
-                    <input type="hidden" name="last_name" value="<?php echo htmlspecialchars($user['lastname'] ?? ''); ?>">
+                    <input type="hidden" id="first_name" name="first_name" value="<?php echo htmlspecialchars($user['firstname'] ?? ''); ?>">
+                    <input type="hidden" id="last_name" name="last_name" value="<?php echo htmlspecialchars($user['lastname'] ?? ''); ?>">
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Contact:</span>
@@ -671,6 +678,10 @@ $debug_info = [
 
 <!-- Delivery Locations Loader -->
 <script src="delivery-locations-loader.js"></script>
+
+<!-- Saved Info Manager -->
+<script src="saved-info-manager.js"></script>
+<script src="saved-info-ui.js"></script>
 
 <!-- PayMongo SDK -->
 <script src="https://js.paymongo.com/v1"></script>
@@ -2139,6 +2150,21 @@ option {
 
 document.head.insertAdjacentHTML('beforeend', additionalStyles);
 </script>
+
+<!-- Saved Information Modal -->
+<div id="savedInfoModal" class="saved-info-modal">
+    <div class="saved-info-modal-content">
+        <div class="saved-info-modal-header">
+            <h2>Manage Saved Information</h2>
+            <button class="saved-info-close-btn">&times;</button>
+        </div>
+        <div class="saved-info-modal-body">
+            <div id="savedEntriesList" class="saved-entries-list">
+                <!-- Entries will be loaded dynamically -->
+            </div>
+        </div>
+    </div>
+</div>
 
 <?php
 include '../../user-includes/footer.php';
