@@ -960,8 +960,7 @@
   }
 
   .action-button {
-    padding: 0.4375rem 0.875rem 0.4375rem 0.75rem;
-    font-size: 0.625rem !important;
+    font-size: 0.75rem !important;
     transition: background-color 0.2s ease, box-shadow 0.2s ease; /* Only animate safe properties */
   }
 
@@ -1026,10 +1025,9 @@
 /* Mobile responsive modal */
 @media (max-width: 480px) {
   .mobile-header-bottom {
-    padding: 0.75rem 1.5rem;
+    padding: 0.75rem 1rem;
   }
   .action-button {
-    padding: 0.3rem 0.7rem;
     font-size: 0.75rem;
   }
 

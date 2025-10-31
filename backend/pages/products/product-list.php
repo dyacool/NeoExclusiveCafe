@@ -169,7 +169,6 @@
                         Unavailable
                     </button>
 
-
                     <select id="unavailableTypeDropdown" class="unavailable-type-dropdown" style="display: none;" onchange="filterUnavailableByType()">
                         <option value="all-unavailable">All Unavailable</option>
                         <option value="unavailable-delivery">Unavailable Delivery</option>
@@ -180,43 +179,55 @@
                 </div>
             </div>
             
-            <!-- Global Available Days Selector -->
-            <div class="filter-group" style="margin-top: 20px;">
-                <label class="filter-label">Set Available Days (for Pick Up, Delivery, and Delivery or Pick Up):</label>
-                <div class="checkbox-group days-group" style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 10px;">
-                    <div class="checkbox-item">
-                        <input type="checkbox" name="global_available_days[]" id="global_sunday" value="Sunday" <?php echo in_array('Sunday', $globalAvailableDays) ? 'checked' : ''; ?> onchange="updateGlobalAvailableDays()">
-                        <label for="global_sunday" style="display: inline; cursor: pointer;">Sunday</label>
+            <!-- Preorder Days Settings -->
+            <div class="filter-group">
+                <button type="button" class="preorder-days-toggle" onclick="togglePreorderDaysSettings()" id="preorderDaysToggle">
+                    <svg class="toggle-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6,9 12,15 18,9"></polyline>
+                    </svg>
+                    Preorder Days Settings
+                    <span class="current-selection"><?php echo !empty($globalAvailableDays) ? '(' . count($globalAvailableDays) . ' days selected)' : '(No days selected)'; ?></span>
+                </button>
+                
+                <div class="preorder-days-content" id="preorderDaysContent" style="display: none;">
+                    <label class="filter-label">Set Available Days (for Pick Up, Delivery, and Delivery or Pick Up):</label>
+                    <div class="checkbox-group days-group" style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 10px;">
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="global_available_days[]" id="global_sunday" value="Sunday" <?php echo in_array('Sunday', $globalAvailableDays) ? 'checked' : ''; ?> onchange="updateGlobalAvailableDays()">
+                            <label for="global_sunday" style="display: inline; cursor: pointer;">Sunday</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="global_available_days[]" id="global_monday" value="Monday" <?php echo in_array('Monday', $globalAvailableDays) ? 'checked' : ''; ?> onchange="updateGlobalAvailableDays()">
+                            <label for="global_monday" style="display: inline; cursor: pointer;">Monday</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="global_available_days[]" id="global_tuesday" value="Tuesday" <?php echo in_array('Tuesday', $globalAvailableDays) ? 'checked' : ''; ?> onchange="updateGlobalAvailableDays()">
+                            <label for="global_tuesday" style="display: inline; cursor: pointer;">Tuesday</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="global_available_days[]" id="global_wednesday" value="Wednesday" <?php echo in_array('Wednesday', $globalAvailableDays) ? 'checked' : ''; ?> onchange="updateGlobalAvailableDays()">
+                            <label for="global_wednesday" style="display: inline; cursor: pointer;">Wednesday</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="global_available_days[]" id="global_thursday" value="Thursday" <?php echo in_array('Thursday', $globalAvailableDays) ? 'checked' : ''; ?> onchange="updateGlobalAvailableDays()">
+                            <label for="global_thursday" style="display: inline; cursor: pointer;">Thursday</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="global_available_days[]" id="global_friday" value="Friday" <?php echo in_array('Friday', $globalAvailableDays) ? 'checked' : ''; ?> onchange="updateGlobalAvailableDays()">
+                            <label for="global_friday" style="display: inline; cursor: pointer;">Friday</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="global_available_days[]" id="global_saturday" value="Saturday" <?php echo in_array('Saturday', $globalAvailableDays) ? 'checked' : ''; ?> onchange="updateGlobalAvailableDays()">
+                            <label for="global_saturday" style="display: inline; cursor: pointer;">Saturday</label>
+                        </div>
                     </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" name="global_available_days[]" id="global_monday" value="Monday" <?php echo in_array('Monday', $globalAvailableDays) ? 'checked' : ''; ?> onchange="updateGlobalAvailableDays()">
-                        <label for="global_monday" style="display: inline; cursor: pointer;">Monday</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" name="global_available_days[]" id="global_tuesday" value="Tuesday" <?php echo in_array('Tuesday', $globalAvailableDays) ? 'checked' : ''; ?> onchange="updateGlobalAvailableDays()">
-                        <label for="global_tuesday" style="display: inline; cursor: pointer;">Tuesday</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" name="global_available_days[]" id="global_wednesday" value="Wednesday" <?php echo in_array('Wednesday', $globalAvailableDays) ? 'checked' : ''; ?> onchange="updateGlobalAvailableDays()">
-                        <label for="global_wednesday" style="display: inline; cursor: pointer;">Wednesday</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" name="global_available_days[]" id="global_thursday" value="Thursday" <?php echo in_array('Thursday', $globalAvailableDays) ? 'checked' : ''; ?> onchange="updateGlobalAvailableDays()">
-                        <label for="global_thursday" style="display: inline; cursor: pointer;">Thursday</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" name="global_available_days[]" id="global_friday" value="Friday" <?php echo in_array('Friday', $globalAvailableDays) ? 'checked' : ''; ?> onchange="updateGlobalAvailableDays()">
-                        <label for="global_friday" style="display: inline; cursor: pointer;">Friday</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" name="global_available_days[]" id="global_saturday" value="Saturday" <?php echo in_array('Saturday', $globalAvailableDays) ? 'checked' : ''; ?> onchange="updateGlobalAvailableDays()">
-                        <label for="global_saturday" style="display: inline; cursor: pointer;">Saturday</label>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                        <p style="margin: 0; font-size: 13px; color: #666;">
+                            <strong>Current Selection:</strong> <?php echo !empty($globalAvailableDays) ? implode(', ', $globalAvailableDays) : 'None selected'; ?>
+                        </p>
+                        <button type="button" class="btn btn-primary" onclick="applyGlobalAvailableDays()">Apply</button>
                     </div>
                 </div>
-                <button type="button" class="btn btn-primary" style="margin-top: 15px;" onclick="applyGlobalAvailableDays()">Apply to All Eligible Products</button>
-                <p style="margin-top: 10px; font-size: 13px; color: #666;">
-                    <strong>Current Selection:</strong> <?php echo !empty($globalAvailableDays) ? implode(', ', $globalAvailableDays) : 'None selected'; ?>
-                </p>
             </div>
         </div>
 
@@ -271,7 +282,20 @@
                                         qpd.quantity as sameday_stock_today,
                                         GROUP_CONCAT(DISTINCT pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days,
                                         GROUP_CONCAT(DISTINCT tpd.available_date ORDER BY tpd.available_date SEPARATOR ',') as todays_product_dates,
-                                        GROUP_CONCAT(DISTINCT rptd.available_date ORDER BY rptd.available_date SEPARATOR ',') as regular_today_dates
+                                        GROUP_CONCAT(DISTINCT rptd.available_date ORDER BY rptd.available_date SEPARATOR ',') as regular_today_dates,
+                                        -- Check if same day order has future dates
+                                        CASE 
+                                            WHEN p.status_id = 4 AND EXISTS (
+                                                SELECT 1 FROM todays_products_dates tpd2 
+                                                WHERE tpd2.product_id = p.id AND tpd2.available_date >= CURDATE()
+                                            ) THEN 1
+                                            ELSE 0
+                                        END as has_future_sdo_dates,
+                                        -- Check if product has stock (for same day order or regular)
+                                        CASE 
+                                            WHEN p.status_id = 4 THEN COALESCE(qpd.quantity, 0)
+                                            ELSE p.quantity
+                                        END as effective_stock
                                     FROM products p
                                     LEFT JOIN product_statuses ps ON p.status_id = ps.id
                                     LEFT JOIN unavail_products_status ups ON p.unavailable_status_id = ups.id
@@ -283,7 +307,21 @@
                                     LEFT JOIN quantity_per_day_sdo qpd ON p.id = qpd.product_id AND qpd.date = CURDATE()
                                     WHERE p.deleted_at IS NULL AND p.id > 0
                                     GROUP BY p.id
-                                    ORDER BY p.created_at DESC
+                                    ORDER BY 
+                                        -- 1. Same Day Order with future dates and stock first
+                                        CASE 
+                                            WHEN p.status_id = 4 AND has_future_sdo_dates = 1 AND effective_stock > 0 THEN 1
+                                            -- 2. Pre-order products (Pickup, Delivery, Delivery or Pickup) with stock
+                                            WHEN p.status_id IN (1, 2, 3) AND effective_stock > 0 THEN 2
+                                            -- 3. Pre-order products without stock
+                                            WHEN p.status_id IN (1, 2, 3) AND effective_stock = 0 THEN 3
+                                            -- 4. Same Day Order without future dates or stock (unavailable)
+                                            WHEN p.status_id = 4 THEN 4
+                                            -- 5. Everything else
+                                            ELSE 5
+                                        END ASC,
+                                        -- Within each group, sort by created date (newest first)
+                                        p.created_at DESC
                                     LIMIT $items_per_page OFFSET $offset";
                                     
                             // Also get all products for JavaScript filtering (without pagination)
@@ -296,7 +334,20 @@
                                                     qpd.quantity as sameday_stock_today,
                                                     GROUP_CONCAT(DISTINCT pd.day_of_week ORDER BY FIELD(pd.day_of_week, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') SEPARATOR ', ') as available_days,
                                                     GROUP_CONCAT(DISTINCT tpd.available_date ORDER BY tpd.available_date SEPARATOR ',') as todays_product_dates,
-                                                    GROUP_CONCAT(DISTINCT rptd.available_date ORDER BY rptd.available_date SEPARATOR ',') as regular_today_dates
+                                                    GROUP_CONCAT(DISTINCT rptd.available_date ORDER BY rptd.available_date SEPARATOR ',') as regular_today_dates,
+                                                    -- Check if same day order has future dates
+                                                    CASE 
+                                                        WHEN p.status_id = 4 AND EXISTS (
+                                                            SELECT 1 FROM todays_products_dates tpd2 
+                                                            WHERE tpd2.product_id = p.id AND tpd2.available_date >= CURDATE()
+                                                        ) THEN 1
+                                                        ELSE 0
+                                                    END as has_future_sdo_dates,
+                                                    -- Check if product has stock (for same day order or regular)
+                                                    CASE 
+                                                        WHEN p.status_id = 4 THEN COALESCE(qpd.quantity, 0)
+                                                        ELSE p.quantity
+                                                    END as effective_stock
                                                 FROM products p
                                                 LEFT JOIN product_statuses ps ON p.status_id = ps.id
                                                 LEFT JOIN unavail_products_status ups ON p.unavailable_status_id = ups.id
@@ -308,7 +359,21 @@
                                                 LEFT JOIN quantity_per_day_sdo qpd ON p.id = qpd.product_id AND qpd.date = CURDATE()
                                                 WHERE p.deleted_at IS NULL AND p.id > 0
                                                 GROUP BY p.id
-                                                ORDER BY p.created_at DESC";
+                                                ORDER BY 
+                                                    -- 1. Same Day Order with future dates and stock first
+                                                    CASE 
+                                                        WHEN p.status_id = 4 AND has_future_sdo_dates = 1 AND effective_stock > 0 THEN 1
+                                                        -- 2. Pre-order products (Pickup, Delivery, Delivery or Pickup) with stock
+                                                        WHEN p.status_id IN (1, 2, 3) AND effective_stock > 0 THEN 2
+                                                        -- 3. Pre-order products without stock
+                                                        WHEN p.status_id IN (1, 2, 3) AND effective_stock = 0 THEN 3
+                                                        -- 4. Same Day Order without future dates or stock (unavailable)
+                                                        WHEN p.status_id = 4 THEN 4
+                                                        -- 5. Everything else
+                                                        ELSE 5
+                                                    END ASC,
+                                                    -- Within each group, sort by created date (newest first)
+                                                    p.created_at DESC";
                                     
                             $all_products_result = $conn->query($all_products_sql);
                             $all_products_data = [];

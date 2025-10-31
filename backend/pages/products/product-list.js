@@ -30,28 +30,29 @@ document.addEventListener("DOMContentLoaded", () => {
 // Update filter counts
 function updateFilterCounts() {
   if (!allProductsData || allProductsData.length === 0) return;
-  
+
   const counts = {
     all: allProductsData.length,
-    pickup: allProductsData.filter(p => p.status_id == 1).length,
-    delivery: allProductsData.filter(p => p.status_id == 2).length,
-    deliveryPickup: allProductsData.filter(p => p.status_id == 3).length,
-    availableToday: allProductsData.filter(p => p.status_id == 4).length,
-    featured: allProductsData.filter(p => p.is_featured == 1).length,
-    unavailable: allProductsData.filter(p => p.unavailable_status_id !== null).length
+    pickup: allProductsData.filter((p) => p.status_id == 1).length,
+    delivery: allProductsData.filter((p) => p.status_id == 2).length,
+    deliveryPickup: allProductsData.filter((p) => p.status_id == 3).length,
+    availableToday: allProductsData.filter((p) => p.status_id == 4).length,
+    featured: allProductsData.filter((p) => p.is_featured == 1).length,
+    unavailable: allProductsData.filter((p) => p.unavailable_status_id !== null)
+      .length,
   };
-  
+
   // Update count badges
   const countElements = {
-    'count-all': counts.all,
-    'count-pickup': counts.pickup,
-    'count-delivery': counts.delivery,
-    'count-delivery-pickup': counts.deliveryPickup,
-    'count-available-today': counts.availableToday,
-    'count-featured': counts.featured,
-    'count-unavailable': counts.unavailable
+    "count-all": counts.all,
+    "count-pickup": counts.pickup,
+    "count-delivery": counts.delivery,
+    "count-delivery-pickup": counts.deliveryPickup,
+    "count-available-today": counts.availableToday,
+    "count-featured": counts.featured,
+    "count-unavailable": counts.unavailable,
   };
-  
+
   for (const [id, count] of Object.entries(countElements)) {
     const element = document.getElementById(id);
     if (element) {
@@ -252,12 +253,15 @@ function createProductRow(product) {
     <td>
       <div class='status-container'>
         <span class='status-badge status-${statusClass}'>${
-    product.status_id == 4 ? 'Same Day Order' : (product.status_name || "Unknown")
+    product.status_id == 4 ? "Same Day Order" : product.status_name || "Unknown"
   }</span>
         ${
           product.status_id == 4 && product.availtoday_status_name
             ? `<span class='availtoday-badge'>For ${product.availtoday_status_name}</span>`
-            : (product.status_id == 1 || product.status_id == 2 || product.status_id == 3) && product.availtoday_status_name
+            : (product.status_id == 1 ||
+                product.status_id == 2 ||
+                product.status_id == 3) &&
+              product.availtoday_status_name
             ? `<span class='availtoday-badge-also'>Also for SDO: ${product.availtoday_status_name}</span>`
             : ""
         }
@@ -481,13 +485,14 @@ function openEditModal(
   document.getElementById("editProductPrice").value = price;
   document.getElementById("editProductQuantity").value = quantity;
   document.getElementById("editProductStatus").value = status;
-  
+
   // Set category
   const categorySelect = document.getElementById("editProductCategory");
   if (categorySelect) {
-    categorySelect.value = (categoryId && categoryId !== 'null') ? categoryId : '';
+    categorySelect.value =
+      categoryId && categoryId !== "null" ? categoryId : "";
   }
-  
+
   // Update dynamic status name label
   const dynamicStatusLabel = document.getElementById("dynamicStatusName");
   if (dynamicStatusLabel) {
@@ -500,13 +505,20 @@ function openEditModal(
 
   if (availtodayOptions && availtodaySelect) {
     // Always set the value (preserve it even when hidden)
-    availtodaySelect.value = (availtodayStatusId && availtodayStatusId !== "null") ? availtodayStatusId : "";
-    
+    availtodaySelect.value =
+      availtodayStatusId && availtodayStatusId !== "null"
+        ? availtodayStatusId
+        : "";
+
     // Show/hide dropdown based on status
     if (status == 4) {
       // Same Day Order (status_id 4) - always show dropdown
       availtodayOptions.style.display = "block";
-    } else if ((status == 1 || status == 2 || status == 3) && availtodayStatusId && availtodayStatusId !== "null") {
+    } else if (
+      (status == 1 || status == 2 || status == 3) &&
+      availtodayStatusId &&
+      availtodayStatusId !== "null"
+    ) {
       // Pick Up, Delivery, or Delivery or Pick Up - show if they have availtoday_status_id set
       availtodayOptions.style.display = "block";
     } else {
@@ -590,7 +602,9 @@ function openEditModal(
   }
 
   // Display current available days (read-only)
-  const currentAvailableDaysSpan = document.getElementById("currentAvailableDays");
+  const currentAvailableDaysSpan = document.getElementById(
+    "currentAvailableDays"
+  );
   if (currentAvailableDaysSpan) {
     if (availableDays) {
       currentAvailableDaysSpan.textContent = availableDays;
@@ -600,7 +614,9 @@ function openEditModal(
   }
 
   // Show/hide available days container for specific statuses
-  const regularAvailableDaysContainer = document.getElementById("regularAvailableDaysContainer");
+  const regularAvailableDaysContainer = document.getElementById(
+    "regularAvailableDaysContainer"
+  );
   if (regularAvailableDaysContainer) {
     if (
       statusName === "Delivery" ||
@@ -623,7 +639,11 @@ function openEditModal(
   );
 
   if (isAvailableTodayContainer && isAvailableTodayRadio) {
-    if (statusName === "Pick Up" || statusName === "Delivery" || statusName === "Delivery or Pick Up") {
+    if (
+      statusName === "Pick Up" ||
+      statusName === "Delivery" ||
+      statusName === "Delivery or Pick Up"
+    ) {
       isAvailableTodayContainer.style.display = "block";
 
       // Check if availtoday_status_id is not null to activate the radio button
@@ -702,9 +722,9 @@ function openEditModal(
         }
       }
     }
-    
+
     // Initialize SDO quantity manager
-    if (typeof initializeSDOQuantities === 'function') {
+    if (typeof initializeSDOQuantities === "function") {
       initializeSDOQuantities(id);
     }
   }, 200); // Increased timeout to ensure calendars are fully initialized
@@ -730,7 +750,7 @@ function setupStatusChangeListener() {
     statusSelect.addEventListener("change", function () {
       const selectedStatus = this.options[this.selectedIndex].text;
       const selectedValue = this.value;
-      
+
       // Update dynamic status name label
       const dynamicStatusLabel = document.getElementById("dynamicStatusName");
       if (dynamicStatusLabel) {
@@ -738,7 +758,9 @@ function setupStatusChangeListener() {
       }
 
       // Show/hide available days container for specific statuses
-      const regularAvailableDaysContainer = document.getElementById("regularAvailableDaysContainer");
+      const regularAvailableDaysContainer = document.getElementById(
+        "regularAvailableDaysContainer"
+      );
       if (regularAvailableDaysContainer) {
         if (
           selectedStatus === "Delivery" ||
@@ -753,7 +775,11 @@ function setupStatusChangeListener() {
 
       // Handle isAvailableToday radio button visibility - only show for Pick Up, Delivery, or Delivery or Pick Up
       if (isAvailableTodayContainer) {
-        if (selectedStatus === "Pick Up" || selectedStatus === "Delivery" || selectedStatus === "Delivery or Pick Up") {
+        if (
+          selectedStatus === "Pick Up" ||
+          selectedStatus === "Delivery" ||
+          selectedStatus === "Delivery or Pick Up"
+        ) {
           isAvailableTodayContainer.style.display = "block";
         } else {
           isAvailableTodayContainer.style.display = "none";
@@ -1009,7 +1035,8 @@ function displayProductImages() {
       ? effectivePrimary.cloud_url
       : effectivePrimary.is_temp
       ? `/${effectivePrimary.image_url}`
-      : effectivePrimary.image_url.startsWith("http://") || effectivePrimary.image_url.startsWith("https://")
+      : effectivePrimary.image_url.startsWith("http://") ||
+        effectivePrimary.image_url.startsWith("https://")
       ? effectivePrimary.image_url
       : effectivePrimary.image_url.startsWith("assets/")
       ? `/${effectivePrimary.image_url}`
@@ -1049,7 +1076,8 @@ function displayProductImages() {
         ? image.cloud_url
         : image.is_temp
         ? `/${image.image_url}`
-        : image.image_url.startsWith("http://") || image.image_url.startsWith("https://")
+        : image.image_url.startsWith("http://") ||
+          image.image_url.startsWith("https://")
         ? image.image_url
         : image.image_url.startsWith("assets/")
         ? `/${image.image_url}`
@@ -1214,15 +1242,19 @@ function uploadPrimaryImage(file) {
   }
 
   const productId = document.getElementById("editProductId").value;
-  const productName = document.getElementById("editProductName").value || "Product";
-  
+  const productName =
+    document.getElementById("editProductName").value || "Product";
+
   // Get CSRF token
   const csrfToken = document.getElementById("csrf_token")?.value;
   if (!csrfToken) {
-    showNotification("Security token missing. Please refresh the page.", "error");
+    showNotification(
+      "Security token missing. Please refresh the page.",
+      "error"
+    );
     return;
   }
-  
+
   const formData = new FormData();
   formData.append("image", file);
   formData.append("product_id", productId);
@@ -1263,7 +1295,10 @@ function uploadPrimaryImage(file) {
     })
     .catch((error) => {
       console.error("Error uploading primary image:", error);
-      showNotification("Error uploading primary image: " + error.message, "error");
+      showNotification(
+        "Error uploading primary image: " + error.message,
+        "error"
+      );
     });
 }
 
@@ -1287,15 +1322,19 @@ function uploadAdditionalImage(file) {
   }
 
   const productId = document.getElementById("editProductId").value;
-  const productName = document.getElementById("editProductName").value || "Product";
-  
+  const productName =
+    document.getElementById("editProductName").value || "Product";
+
   // Get CSRF token
   const csrfToken = document.getElementById("csrf_token")?.value;
   if (!csrfToken) {
-    showNotification("Security token missing. Please refresh the page.", "error");
+    showNotification(
+      "Security token missing. Please refresh the page.",
+      "error"
+    );
     return;
   }
-  
+
   const formData = new FormData();
   formData.append("image", file);
   formData.append("product_id", productId);
@@ -1518,28 +1557,38 @@ function handleFormSubmit(event) {
   const isAvailable = document.getElementById("editAvailable").checked;
   const unavailableTypeId =
     document.getElementById("editUnavailableType").value || null;
-  
+
   // Get availtoday_status_id logic:
   // - If status is "Same Day Order" (4), always use the dropdown value
   // - If status is "Pick Up" (1), "Delivery" (2), or "Delivery or Pick Up" (3) AND "Set to same day order too" is checked, use the dropdown value
   // - Otherwise, set to null
   const selectedStatusId = document.getElementById("editProductStatus").value;
   // Reuse isAvailableTodayRadio from line 1385
-  const isSetToSameDayToo = isAvailableTodayRadio ? isAvailableTodayRadio.checked : false;
-  
+  const isSetToSameDayToo = isAvailableTodayRadio
+    ? isAvailableTodayRadio.checked
+    : false;
+
   let availtodayStatusId = null;
   if (selectedStatusId == 4) {
     // Same Day Order - always use dropdown value
-    availtodayStatusId = document.getElementById("editAvailtodayStatus").value || null;
-  } else if ((selectedStatusId == 1 || selectedStatusId == 2 || selectedStatusId == 3) && isSetToSameDayToo) {
+    availtodayStatusId =
+      document.getElementById("editAvailtodayStatus").value || null;
+  } else if (
+    (selectedStatusId == 1 || selectedStatusId == 2 || selectedStatusId == 3) &&
+    isSetToSameDayToo
+  ) {
     // Pick Up, Delivery, or Delivery or Pick Up with "Set to same day order too" checked
-    availtodayStatusId = document.getElementById("editAvailtodayStatus").value || null;
+    availtodayStatusId =
+      document.getElementById("editAvailtodayStatus").value || null;
   }
-  
+
   console.log("DEBUG: Selected status_id:", selectedStatusId);
   console.log("DEBUG: Is set to same day too:", isSetToSameDayToo);
   console.log("DEBUG: availtodayStatusId value:", availtodayStatusId);
-  console.log("DEBUG: editAvailtodayStatus dropdown value:", document.getElementById("editAvailtodayStatus")?.value);
+  console.log(
+    "DEBUG: editAvailtodayStatus dropdown value:",
+    document.getElementById("editAvailtodayStatus")?.value
+  );
 
   // Get calendar data
   const todaysProductDatesInput = document.getElementById("todaysProductDates");
@@ -1556,9 +1605,9 @@ function handleFormSubmit(event) {
 
   // Collect SDO quantities BEFORE creating formData (while modal is still open)
   const sdoQuantitiesData = {};
-  const sdoInputs = document.querySelectorAll('.sdo-quantity-input[data-date]');
-  sdoInputs.forEach(input => {
-    const date = input.getAttribute('data-date');
+  const sdoInputs = document.querySelectorAll(".sdo-quantity-input[data-date]");
+  sdoInputs.forEach((input) => {
+    const date = input.getAttribute("data-date");
     const quantity = parseInt(input.value) || 0;
     sdoQuantitiesData[date] = quantity;
   });
@@ -1589,10 +1638,12 @@ function handleFormSubmit(event) {
     available_today_dates: JSON.stringify(availableTodayDates),
     pending_image_changes: pendingImageChanges,
   };
-  
+
   console.log("DEBUG: Final formData being sent:", formData);
 
-  const submitBtn = document.querySelector('button[type="submit"][form="editProductForm"]');
+  const submitBtn = document.querySelector(
+    'button[type="submit"][form="editProductForm"]'
+  );
   const originalText = submitBtn ? submitBtn.textContent : null;
   if (submitBtn) {
     submitBtn.textContent = "Saving...";
@@ -1601,7 +1652,7 @@ function handleFormSubmit(event) {
 
   // Images are already uploaded to Cloudinary via AJAX
   // We just need to include the image metadata in the formData
-  
+
   // Add primary image metadata if uploaded
   if (tempImageInfo.primary) {
     formData.primary_image_url = tempImageInfo.primary.url;
@@ -1612,13 +1663,19 @@ function handleFormSubmit(event) {
 
   // Add additional images metadata if uploaded
   if (tempImageInfo.additional && tempImageInfo.additional.length > 0) {
-    formData.additional_image_urls = JSON.stringify(tempImageInfo.additional.map(img => img.url));
-    formData.additional_image_public_ids = JSON.stringify(tempImageInfo.additional.map(img => img.public_id));
+    formData.additional_image_urls = JSON.stringify(
+      tempImageInfo.additional.map((img) => img.url)
+    );
+    formData.additional_image_public_ids = JSON.stringify(
+      tempImageInfo.additional.map((img) => img.public_id)
+    );
   }
 
   // Add images to remove
   if (pendingImageChanges.additional.toRemove.length > 0) {
-    formData.remove_additional_image_ids = JSON.stringify(pendingImageChanges.additional.toRemove);
+    formData.remove_additional_image_ids = JSON.stringify(
+      pendingImageChanges.additional.toRemove
+    );
   }
 
   // No need for uploadPromises anymore - images are already on Cloudinary
@@ -1656,17 +1713,25 @@ function handleFormSubmit(event) {
     .then((data) => {
       if (data.success) {
         // Save SDO quantities if the function exists and we have quantities to save
-        if (typeof saveSDOQuantitiesWithData === 'function' && Object.keys(sdoQuantitiesData).length > 0) {
-          return saveSDOQuantitiesWithData(formData.id, sdoQuantitiesData).then(() => {
-            showNotification("Product updated successfully!", "success");
-            closeModal();
-            setTimeout(() => location.reload(), 1000);
-          }).catch((error) => {
-            console.error("Error saving SDO quantities:", error);
-            showNotification("Product updated but failed to save quantities", "warning");
-            closeModal();
-            setTimeout(() => location.reload(), 1000);
-          });
+        if (
+          typeof saveSDOQuantitiesWithData === "function" &&
+          Object.keys(sdoQuantitiesData).length > 0
+        ) {
+          return saveSDOQuantitiesWithData(formData.id, sdoQuantitiesData)
+            .then(() => {
+              showNotification("Product updated successfully!", "success");
+              closeModal();
+              setTimeout(() => location.reload(), 1000);
+            })
+            .catch((error) => {
+              console.error("Error saving SDO quantities:", error);
+              showNotification(
+                "Product updated but failed to save quantities",
+                "warning"
+              );
+              closeModal();
+              setTimeout(() => location.reload(), 1000);
+            });
         } else {
           showNotification("Product updated successfully!", "success");
           closeModal();
@@ -1772,7 +1837,8 @@ function updateFilterCounts() {
   document.getElementById("count-featured").textContent = counts.featured;
   document.getElementById("count-unavailable").textContent =
     counts["Unavailable"];
-  document.getElementById("count-available-today").textContent = counts["Same Day Order"];
+  document.getElementById("count-available-today").textContent =
+    counts["Same Day Order"];
 }
 
 function showNotification(message, type = "info") {
@@ -2062,7 +2128,6 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
-
 // Global Available Days functionality
 function updateGlobalAvailableDays() {
   // This function is called when checkboxes change
@@ -2070,54 +2135,61 @@ function updateGlobalAvailableDays() {
 }
 
 function applyGlobalAvailableDays() {
-  const checkboxes = document.querySelectorAll('input[name="global_available_days[]"]:checked');
-  const selectedDays = Array.from(checkboxes).map(cb => cb.value);
-  
+  const checkboxes = document.querySelectorAll(
+    'input[name="global_available_days[]"]:checked'
+  );
+  const selectedDays = Array.from(checkboxes).map((cb) => cb.value);
+
   if (selectedDays.length === 0) {
-    alert('Please select at least one day before applying.');
+    alert("Please select at least one day before applying.");
     return;
   }
-  
-  if (!confirm(`This will update available days for all Pick Up, Delivery, and Delivery or Pick Up products to: ${selectedDays.join(', ')}.\n\nAre you sure you want to continue?`)) {
+
+  if (
+    !confirm(
+      `This will update available days for all Pick Up, Delivery, and Delivery or Pick Up products to: ${selectedDays.join(
+        ", "
+      )}.\n\nAre you sure you want to continue?`
+    )
+  ) {
     return;
   }
-  
+
   // Show loading state
   const button = event.target;
   const originalText = button.textContent;
-  button.textContent = 'Applying...';
+  button.textContent = "Applying...";
   button.disabled = true;
-  
+
   // Send AJAX request
-  fetch('/backend/pages/products/update-global-available-days.php', {
-    method: 'POST',
+  fetch("/backend/pages/products/update-global-available-days.php", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      days: selectedDays
+      days: selectedDays,
+    }),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.success) {
+        alert(`Success! Updated ${data.updated_count} products.`);
+        // Reload the page to show updated data
+        location.reload();
+      } else {
+        alert("Error: " + data.message);
+      }
     })
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.success) {
-      alert(`Success! Updated ${data.updated_count} products.`);
-      // Reload the page to show updated data
-      location.reload();
-    } else {
-      alert('Error: ' + data.message);
-    }
-  })
-  .catch(error => {
-    console.error('Error:', error);
-    alert('An error occurred while updating available days.');
-  })
-  .finally(() => {
-    button.textContent = originalText;
-    button.disabled = false;
-  });
+    .catch((error) => {
+      console.error("Error:", error);
+      alert("An error occurred while updating available days.");
+    })
+    .finally(() => {
+      button.textContent = originalText;
+      button.disabled = false;
+    });
 }
-
 
 // Global Available Days Functions
 function updateGlobalAvailableDays() {
@@ -2151,7 +2223,13 @@ function applyGlobalAvailableDays() {
   }
 
   // Confirm action
-  if (!confirm(`This will apply the selected days (${selectedDays.join(", ")}) to all products with Pick Up, Delivery, or Delivery or Pick Up status. Continue?`)) {
+  if (
+    !confirm(
+      `This will apply the selected days (${selectedDays.join(
+        ", "
+      )}) to all products with Pick Up, Delivery, or Delivery or Pick Up status. Continue?`
+    )
+  ) {
     return;
   }
 
@@ -2166,7 +2244,7 @@ function applyGlobalAvailableDays() {
   })
     .then((response) => {
       if (!response.ok) {
-        return response.text().then(text => {
+        return response.text().then((text) => {
           console.error("Server error response:", text);
           throw new Error(`Server error: ${response.status}`);
         });
@@ -2186,6 +2264,59 @@ function applyGlobalAvailableDays() {
     })
     .catch((error) => {
       console.error("Error:", error);
-      showNotification("An error occurred while applying days: " + error.message, "error");
+      showNotification(
+        "An error occurred while applying days: " + error.message,
+        "error"
+      );
     });
+}
+
+// Toggle Preorder Days Settings
+function togglePreorderDaysSettings() {
+  const toggleButton = document.getElementById("preorderDaysToggle");
+  const content = document.getElementById("preorderDaysContent");
+
+  if (content.style.display === "none" || content.style.display === "") {
+    content.style.display = "block";
+    toggleButton.classList.add("expanded");
+  } else {
+    content.style.display = "none";
+    toggleButton.classList.remove("expanded");
+  }
+}
+
+// Update the current selection text when checkboxes change
+function updateGlobalAvailableDays() {
+  const checkboxes = document.querySelectorAll(
+    'input[name="global_available_days[]"]'
+  );
+  const selectedDays = [];
+
+  checkboxes.forEach((checkbox) => {
+    if (checkbox.checked) {
+      selectedDays.push(checkbox.value);
+    }
+  });
+
+  // Update the current selection display in the toggle button
+  const currentSelectionSpan = document.querySelector(
+    ".preorder-days-toggle .current-selection"
+  );
+  if (currentSelectionSpan) {
+    if (selectedDays.length > 0) {
+      currentSelectionSpan.textContent = `(${selectedDays.length} days selected)`;
+    } else {
+      currentSelectionSpan.textContent = "(No days selected)";
+    }
+  }
+
+  // Update the current selection display in the content
+  const currentSelectionP = document.querySelector(
+    ".preorder-days-content p strong"
+  );
+  if (currentSelectionP && currentSelectionP.parentNode) {
+    currentSelectionP.parentNode.innerHTML =
+      "<strong>Current Selection:</strong> " +
+      (selectedDays.length > 0 ? selectedDays.join(", ") : "None selected");
+  }
 }

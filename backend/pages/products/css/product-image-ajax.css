@@ -1,173 +1,356 @@
-/* Image Preview Containers */
-.primary-preview-container,
+/**
+ * Product Image AJAX CSS
+ * Consistent styling with add-product design
+ */
+
+/* CSS Variables - Matching add-product design */
+:root {
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --green-600: #16a34a;
+  --red-500: #ef4444;
+  --red-600: #dc2626;
+}
+
+/* Make upload containers clickable */
+.primary-image-upload,
+.additional-images-upload {
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.primary-image-upload:hover,
+.additional-images-upload:hover {
+  border-color: var(--green-600);
+}
+
+/* Disable cursor when images are present or max reached */
+.primary-image-upload:has(.image-preview) {
+  cursor: default;
+}
+
+.primary-image-upload:has(.image-preview):hover {
+  border-color: var(--gray-300);
+}
+
+.additional-images-upload.max-reached {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.additional-images-upload.max-reached:hover {
+  border-color: var(--gray-300);
+}
+
+/* Primary Preview Container - Matches add-product design */
+.primary-preview-container {
+  width: calc(100% - 10px);
+  height: calc(100% - 10px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
+  padding: 5px;
+  box-sizing: border-box;
+  position: relative;
+  pointer-events: none; /* Prevent clicking through to container */
+}
+
+/* Additional Preview Container - Matches add-product design */
 .additional-preview-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    margin-top: 15px;
-    min-height: 50px;
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 12px;
+  box-sizing: border-box;
+  pointer-events: none; /* Prevent clicking through to container */
 }
 
-/* Image Preview Items */
+.additional-preview-container.active {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 10px;
+  width: 100%;
+}
+
+.additional-preview-container .image-preview:nth-child(3) {
+  grid-column: 1 / span 2;
+}
+
+/* Image Preview Items - Updated to match add-product design */
 .image-preview {
-    position: relative;
-    width: 150px;
-    height: 150px;
-    border: 2px solid #e0e0e0;
-    border-radius: 8px;
-    overflow: hidden;
-    background-color: #f9f9f9;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  position: relative;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin: 0;
+  background-color: white;
+  pointer-events: all; /* Re-enable pointer events for preview items */
 }
 
-.image-preview:hover {
-    border-color: #4A90E2;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+/* Primary image preview styling */
+.primary-preview-container .image-preview {
+  width: 100%;
+  height: 100%;
+}
+
+/* Additional image preview styling */
+.additional-preview-container .image-preview {
+  width: 105px;
+  height: 105px;
 }
 
 .image-preview img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-    background-color: white;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background-color: white;
 }
 
-/* Remove Button */
+/* Remove Button - Updated to match add-product design */
 .remove-image-btn {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    width: 24px;
-    height: 24px;
-    border: none;
-    border-radius: 50%;
-    background-color: rgba(244, 67, 54, 0.9);
-    color: white;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    transition: all 0.2s ease;
-    z-index: 10;
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 24px;
+  height: 24px;
+  background-color: rgba(239, 68, 68, 0.9);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  font-weight: 600;
+  z-index: 10;
 }
 
 .remove-image-btn:hover {
-    background-color: rgba(211, 47, 47, 1);
-    transform: scale(1.1);
+  background-color: var(--red-600);
+  transform: scale(1.1);
 }
 
 .remove-image-btn:disabled {
-    background-color: rgba(158, 158, 158, 0.9);
-    cursor: not-allowed;
-    transform: none;
+  background-color: rgba(158, 158, 158, 0.9);
+  cursor: not-allowed;
+  transform: none;
 }
 
-/* Loading Indicators */
-.loading-indicator {
-    display: none;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 15px;
-    background-color: #e3f2fd;
-    border: 1px solid #2196F3;
-    border-radius: 4px;
-    color: #1976D2;
-    font-size: 14px;
-    margin-top: 10px;
+/* Upload button styling */
+.add-img-btn {
+  pointer-events: all; /* Ensure button is clickable */
+  cursor: pointer;
+}
+
+/* Loading and Success Indicators - Updated to match add-product design */
+.loading-indicator,
+.success-indicator {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(255, 255, 255, 0.95);
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  font-size: 0.875rem;
+  color: var(--gray-700);
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
 }
 
 .loading-indicator i {
-    font-size: 16px;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+  font-size: 16px;
+  animation: spin 1s linear infinite;
 }
 
 .success-indicator {
-    display: none;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 15px;
-    background-color: #e8f5e9;
-    border: 1px solid #4CAF50;
-    border-radius: 4px;
-    color: #2e7d32;
-    font-size: 14px;
-    margin-top: 10px;
+  color: var(--green-600);
 }
 
-/* Error Messages */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Error Messages - Updated styling */
 .image-error-notification {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 15px;
-    background-color: #ffebee;
-    border: 1px solid #f44336;
-    border-radius: 4px;
-    color: #c62828;
-    font-size: 14px;
-    margin-top: 10px;
-    animation: slideIn 0.3s ease-out;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 15px;
+  background-color: #ffebee;
+  border: 1px solid #f44336;
+  border-radius: 4px;
+  color: #c62828;
+  font-size: 14px;
+  margin-top: 10px;
+  animation: slideIn 0.3s ease-out;
+  position: relative;
+  z-index: 5;
+  pointer-events: none;
 }
 
 @keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-/* Primary Image Specific Styling */
-.primary-image-upload .image-preview {
-    width: 200px;
-    height: 200px;
+/* Hide upload buttons when images are present - Updated logic */
+.primary-image-upload .add-img-btn {
+  transition: opacity 0.2s ease;
+  display: flex;
 }
 
-/* Responsive Design */
+.primary-image-upload:has(.image-preview) .add-img-btn {
+  display: none;
+}
+
+.additional-images-upload .add-img-btn {
+  transition: opacity 0.2s ease;
+  display: flex;
+}
+
+.additional-images-upload:has(.additional-preview-container.active)
+  .add-img-btn {
+  display: none;
+}
+
+/* Ensure remove buttons work properly */
+.remove-btn,
+.remove-image-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 24px;
+  height: 24px;
+  background-color: rgba(239, 68, 68, 0.9);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  font-weight: 600;
+  z-index: 10;
+  line-height: 1;
+  font-family: Arial, sans-serif;
+}
+
+.remove-btn:hover,
+.remove-image-btn:hover {
+  background-color: var(--red-600);
+  transform: scale(1.1);
+}
+
+.remove-btn:disabled,
+.remove-image-btn:disabled {
+  background-color: rgba(158, 158, 158, 0.9);
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Responsive Design - Updated to match add-product breakpoints */
+@media (max-width: 1024px) {
+  .additional-preview-container .image-preview {
+    width: 95px;
+    height: 95px;
+  }
+}
+
 @media (max-width: 768px) {
-    .image-preview {
-        width: 120px;
-        height: 120px;
-    }
-    
-    .primary-image-upload .image-preview {
-        width: 150px;
-        height: 150px;
-    }
-    
-    .primary-preview-container,
-    .additional-preview-container {
-        gap: 10px;
-    }
+  .additional-preview-container .image-preview {
+    width: 85px;
+    height: 85px;
+  }
 }
 
 @media (max-width: 425px) {
-    .image-preview {
-        width: 100px;
-        height: 100px;
-    }
-    
-    .primary-image-upload .image-preview {
-        width: 120px;
-        height: 120px;
-    }
-    
-    .remove-image-btn {
-        width: 20px;
-        height: 20px;
-        font-size: 10px;
-    }
+  .additional-preview-container .image-preview {
+    width: 80px;
+    height: 80px;
+  }
+
+  .remove-image-btn {
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 375px) {
+  .additional-preview-container .image-preview {
+    width: 75px;
+    height: 75px;
+  }
+}
+
+@media (max-width: 320px) {
+  .additional-preview-container .image-preview {
+    width: 70px;
+    height: 70px;
+  }
+
+  .remove-image-btn {
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+  }
+}
+
+/* Utility classes for compatibility */
+.primary-preview-item {
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin: 0;
+  position: relative;
+}
+
+.image-preview-item {
+  position: relative;
+  width: 105px;
+  height: 105px;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin: 0;
+}
+
+.image-preview-item img,
+.primary-preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }

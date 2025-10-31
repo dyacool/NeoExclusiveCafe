@@ -377,7 +377,7 @@ input[type="checkbox"]:checked::after {
   cursor: pointer;
   font-size: 0.875rem;
   font-weight: 400;
-  color: #4A90E2;
+  color: #4a90e2;
   border: none;
   text-decoration: underline;
   padding: 0;
@@ -387,7 +387,7 @@ input[type="checkbox"]:checked::after {
 }
 
 .add-img-btn:hover {
-  color: #357ABD;
+  color: #357abd;
   text-decoration: underline;
 }
 
@@ -395,8 +395,7 @@ input[type="checkbox"]:checked::after {
 .add-img-btn:focus {
   outline: none;
   transform: translate(-50%, -50%);
-  color: #2E5A8A;
-}
+  color: #2e5a8a;
 }
 
 #isAvailableTodayContainer {
