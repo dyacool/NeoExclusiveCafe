@@ -276,6 +276,81 @@ function cleanupPastDates() {
     }
 }
 
+/**
+ * Clean up today's dates when business hours close
+ * This removes today's date from same-day products so they no longer appear
+ */
+function cleanupTodaysDatesAfterBusinessHours() {
+    global $conn;
+    
+    $today = date('Y-m-d');
+    $current_time = date('H:i:s');
+    
+    try {
+        // Get business hours
+        $business_hours_query = "SELECT opening_time, closing_time FROM business_hours ORDER BY id DESC LIMIT 1";
+        $business_hours_result = $conn->query($business_hours_query);
+        
+        if (!$business_hours_result || $business_hours_result->num_rows === 0) {
+            // No business hours set, don't clean up
+            return false;
+        }
+        
+        $business_hours = $business_hours_result->fetch_assoc();
+        $closing_time = $business_hours['closing_time'];
+        
+        // Convert times to minutes for comparison
+        $current_minutes = (intval(substr($current_time, 0, 2)) * 60) + intval(substr($current_time, 3, 2));
+        $closing_minutes = (intval(substr($closing_time, 0, 2)) * 60) + intval(substr($closing_time, 3, 2));
+        
+        // Check if business is closed
+        $is_closed = false;
+        
+        // Handle midnight crossing
+        if ($closing_minutes > 1200 && $current_minutes < 600) {
+            $is_closed = true;
+        } else if ($current_minutes > $closing_minutes) {
+            $is_closed = true;
+        }
+        
+        if (!$is_closed) {
+            // Business is still open, don't clean up
+            return false;
+        }
+        
+        // Business is closed, remove today's dates
+        $conn->begin_transaction();
+        
+        // Remove today's date from todays_products_dates
+        $stmt1 = $conn->prepare("DELETE FROM todays_products_dates WHERE available_date = ?");
+        $stmt1->bind_param("s", $today);
+        $stmt1->execute();
+        $deleted1 = $stmt1->affected_rows;
+        $stmt1->close();
+        
+        // Remove today's date from regular_products_today_dates
+        $stmt2 = $conn->prepare("DELETE FROM regular_products_today_dates WHERE available_date = ?");
+        $stmt2->bind_param("s", $today);
+        $stmt2->execute();
+        $deleted2 = $stmt2->affected_rows;
+        $stmt2->close();
+        
+        $conn->commit();
+        
+        // Log cleanup results
+        if ($deleted1 > 0 || $deleted2 > 0) {
+            error_log("Business hours closed - Removed today's dates: $deleted1 from todays_products_dates, $deleted2 from regular_products_today_dates");
+        }
+        
+        return true;
+        
+    } catch (Exception $e) {
+        $conn->rollback();
+        error_log("Error cleaning up today's dates after business hours: " . $e->getMessage());
+        return false;
+    }
+}
+
 // Handle AJAX requests
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     header('Content-Type: application/json');

@@ -460,6 +460,7 @@ $debug_info = [
   <title>Checkout Page</title>
 
   <link rel="stylesheet" href="checkout.css">
+  <link rel="stylesheet" href="saved-info.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   
@@ -746,6 +747,41 @@ $debug_info = [
       border: 1px solid #f5c6cb;
       border-radius: 4px;
       margin: 10px 0;
+    }
+    
+    /* Calendar Loading State */
+    .calendar-loading {
+      position: relative;
+      pointer-events: none;
+      opacity: 0.6;
+    }
+    
+    .calendar-loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      border-radius: 8px;
+    }
+    
+    .calendar-loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #256035;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
     
     /* Responsive Design */
@@ -1369,7 +1405,8 @@ $debug_info = [
                         // Check date limits
                         if (this.dateLimits[dateStr]) {
                             const dateInfo = this.dateLimits[dateStr];
-                            if (dateInfo.limit === 0 || dateInfo.status === 'not_accepting' || dateInfo.is_full) {
+                            // Disable if: limit is 0, status is not_accepting, is_full is true, or is_available is false
+                            if (dateInfo.limit === 0 || dateInfo.status === 'not_accepting' || dateInfo.is_full || dateInfo.is_available === false) {
                                 dayClass += ' not-accepting';
                             } else if (dateInfo.count > 0) {
                                 dayClass += ' available';
@@ -1382,15 +1419,10 @@ $debug_info = [
                         }
                         
                         const dayNumber = currentDate.getDate();
-                        let ordersCount = '';
-                        
-                        if (this.dateLimits[dateStr] && this.dateLimits[dateStr].count > 0) {
-                            ordersCount = `<span class="orders-count">${this.dateLimits[dateStr].count}</span>`;
-                        }
                         
                         html += `
                             <div class="${dayClass}" data-date="${dateStr}" ${isPast ? 'data-disabled="true"' : ''} ${!isAvailableDay ? 'data-unavailable="true"' : ''}>
-                                ${dayNumber}${ordersCount}
+                                ${dayNumber}
                             </div>
                         `;
                         
@@ -1590,6 +1622,32 @@ $debug_info = [
             return todayStr;
         }
 
+        function showCalendarLoading() {
+            if (pickupCalendarEl) {
+                const calendar = pickupCalendarEl.querySelector('.custom-calendar');
+                if (calendar && !calendar.querySelector('.calendar-loading-overlay')) {
+                    calendar.classList.add('calendar-loading');
+                    const loadingOverlay = document.createElement('div');
+                    loadingOverlay.className = 'calendar-loading-overlay';
+                    loadingOverlay.innerHTML = '<div class="calendar-loading-spinner"></div>';
+                    calendar.appendChild(loadingOverlay);
+                }
+            }
+        }
+        
+        function hideCalendarLoading() {
+            if (pickupCalendarEl) {
+                const calendar = pickupCalendarEl.querySelector('.custom-calendar');
+                if (calendar) {
+                    calendar.classList.remove('calendar-loading');
+                    const loadingOverlay = calendar.querySelector('.calendar-loading-overlay');
+                    if (loadingOverlay) {
+                        loadingOverlay.remove();
+                    }
+                }
+            }
+        }
+
         function fetchDateLimits(start, end) {
             // Use local timezone instead of UTC to avoid date offset issues
             const startStr = start.getFullYear() + '-' + 
@@ -1599,9 +1657,16 @@ $debug_info = [
                          String(end.getMonth() + 1).padStart(2, '0') + '-' + 
                          String(end.getDate()).padStart(2, '0');
             
-            console.log('Fetching date limits for:', startStr, 'to', endStr);
+            // Determine current fulfillment method
+            const isDelivery = deliveryRadio && deliveryRadio.checked;
+            const fulfillmentMethod = isDelivery ? 'delivery' : 'pickup';
             
-            fetch("../../../backend/pages/homepage/get-date-limits.php?start=${startStr}&end=${endStr}", {
+            console.log('Fetching date availability for:', startStr, 'to', endStr, '| Method:', fulfillmentMethod);
+            
+            // Show loading indicator
+            showCalendarLoading();
+            
+            fetch(`../../../backend/pages/calendar/get-date-availability.php?start_date=${startStr}&end_date=${endStr}&fulfillment_method=${fulfillmentMethod}`, {
                 headers: {
                     'Accept': 'application/json'
                 }
@@ -1610,47 +1675,48 @@ $debug_info = [
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
-                    return response.text();
+                    return response.json();
                 })
-                .then(text => {
-                    try {
-                        const jsonStr = text.replace(/<!--[\s\S]*?-->/g, '').trim();
-                        const data = JSON.parse(jsonStr);
+                .then(data => {
+                    if (data.success && data.dates) {
+                        dateLimits = {};
                         
-                        if (data.success && data.dates) {
-                            dateLimits = {};
-                            
-                            data.dates.forEach(date => {
-                                dateLimits[date.date] = {
-                                    limit: parseInt(date.limit) || 0,
-                                    count: parseInt(date.current_orders) || 0,
-                                    is_full: date.is_full || parseInt(date.current_orders) >= parseInt(date.limit),
-                                    active_orders: parseInt(date.active_orders) || 0,
-                                    remaining_slots: parseInt(date.limit) - (parseInt(date.current_orders) || 0),
-                                    status: date.status || (parseInt(date.limit) === 0 ? 'not_accepting' : 'accepting')
-                                };
-                            });
+                        // Convert dates object to the format expected by calendar
+                        Object.keys(data.dates).forEach(dateKey => {
+                            const dateInfo = data.dates[dateKey];
+                            const isDisabled = dateInfo.status === 'disabled' || dateInfo.status === 'full';
+                            dateLimits[dateKey] = {
+                                limit: dateInfo.limit,
+                                count: dateInfo.current_orders,
+                                is_full: dateInfo.status === 'full' || dateInfo.status === 'disabled',
+                                remaining_slots: dateInfo.remaining_slots,
+                                status: isDisabled ? 'not_accepting' : 'accepting',
+                                message: dateInfo.message,
+                                is_available: dateInfo.is_available && !isDisabled
+                            };
+                        });
 
-                            console.log('Date limits loaded:', dateLimits);
+                        console.log('Date availability loaded:', dateLimits);
 
-                            // Update the calendar with new date limits
-                            if (pickupCalendar) {
-                                pickupCalendar.updateDateLimits(dateLimits);
-                            }
-                            
-                            // Ensure the calendar is properly rendered
-                            if (pickupCalendar) {
-                                pickupCalendar.render();
-                            }
-                        } else {
-                            console.warn('No date limits data received or invalid format');
+                        // Update the calendar with new date limits
+                        if (pickupCalendar) {
+                            pickupCalendar.updateDateLimits(dateLimits);
                         }
-                    } catch (e) {
-                        console.error('Error parsing date limits response:', e);
+                        
+                        // Ensure the calendar is properly rendered
+                        if (pickupCalendar) {
+                            pickupCalendar.render();
+                        }
+                    } else {
+                        console.warn('No date availability data received:', data);
                     }
                 })
                 .catch(error => {
-                    console.error('Error fetching date limits:', error);
+                    console.error('Error fetching date availability:', error);
+                })
+                .finally(() => {
+                    // Hide loading indicator
+                    hideCalendarLoading();
                 });
         }
 
@@ -1686,26 +1752,60 @@ $debug_info = [
                             deliveryDetails.insertBefore(pickupCalendarEl.parentNode, addressSection.nextSibling);
                         }
                     }
+                    
+                    // Re-fetch date limits with new fulfillment method
+                    pickupCalendar.fetchCurrentMonthLimits();
                 }
             } catch (error) {
                 console.error('Error rendering calendar:', error);
             }
             
-            const shippingFee = isPickup ? 0 : 50;
-            if (shippingFeeDisplay) {
-                shippingFeeDisplay.textContent = '₱' + shippingFee.toFixed(2);
+            // Show loading state while recalculating
+            const orderSummary = document.querySelector('.order-summary');
+            if (orderSummary) {
+                orderSummary.style.opacity = '0.6';
+                orderSummary.style.pointerEvents = 'none';
             }
             
-            updateTotalAmount(shippingFee);
-            
-            if (addressInput) {
-                addressInput.required = !isPickup;
+            // Small delay to show loading state
+            setTimeout(() => {
+                let shippingFee = 0;
+                
                 if (isPickup) {
-                    addressInput.value = "Pickup at store";
-                } else if (addressInput.value === "Pickup at store") {
-                    addressInput.value = "";
+                    // Pickup: No shipping fee
+                    shippingFee = 0;
+                } else {
+                    // Delivery: Check if location is selected, otherwise default to 50
+                    const deliveryLocationSelect = document.getElementById('delivery_location');
+                    if (deliveryLocationSelect && deliveryLocationSelect.value) {
+                        const selectedOption = deliveryLocationSelect.options[deliveryLocationSelect.selectedIndex];
+                        shippingFee = parseFloat(selectedOption.dataset.deliveryFee) || 50;
+                    } else {
+                        shippingFee = 50; // Default delivery fee
+                    }
                 }
-            }
+                
+                if (shippingFeeDisplay) {
+                    shippingFeeDisplay.textContent = '₱' + shippingFee.toFixed(2);
+                }
+                
+                updateTotalAmount(shippingFee);
+                
+                if (addressInput) {
+                    addressInput.required = !isPickup;
+                    if (isPickup) {
+                        addressInput.value = "Pickup at store";
+                    } else if (addressInput.value === "Pickup at store") {
+                        addressInput.value = "";
+                    }
+                }
+                
+                // Remove loading state
+                if (orderSummary) {
+                    orderSummary.style.opacity = '1';
+                    orderSummary.style.pointerEvents = 'auto';
+                }
+            }, 300);
         }
         
         // Coupon Functions
@@ -2264,7 +2364,13 @@ $debug_info = [
     <form id="checkout-form">
         <!-- User Information Section -->
         <div class="section-card user-information">
-            <h2>User Information</h2>
+            <div class="section-header-with-button">
+                <h2>User Information</h2>
+                <button type="button" id="loadContactsBtn" class="btn-load-contacts">
+                    📋 Load Contacts and Address
+                </button>
+            </div>
+            
             <div class="user-details">
                 <div class="detail-row">
                     <span class="detail-label">Name:</span>
@@ -2274,6 +2380,8 @@ $debug_info = [
                             echo htmlspecialchars($fullname); 
                         ?>
                     </span>
+                    <input type="hidden" id="first_name" name="first_name" value="<?php echo htmlspecialchars($user['firstname'] ?? ''); ?>">
+                    <input type="hidden" id="last_name" name="last_name" value="<?php echo htmlspecialchars($user['lastname'] ?? ''); ?>">
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Email:</span>
@@ -2542,12 +2650,31 @@ $debug_info = [
     </div>
 </div>
 
+<!-- Saved Information Modal -->
+<div id="savedInfoModal" class="saved-info-modal">
+    <div class="saved-info-modal-content">
+        <div class="saved-info-modal-header">
+            <h2>Manage Saved Information</h2>
+            <button class="saved-info-close-btn">&times;</button>
+        </div>
+        <div class="saved-info-modal-body">
+            <div id="savedEntriesList" class="saved-entries-list">
+                <!-- Entries will be loaded dynamically -->
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Add Bootstrap CSS -->
 <!-- Add jQuery -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
 <!-- Delivery Locations Loader -->
 <script src="delivery-locations-loader.js"></script>
+
+<!-- Saved Info Manager -->
+<script src="saved-info-manager.js"></script>
+<script src="saved-info-ui.js"></script>
 
 <script>
 // Modal functionality
@@ -2572,7 +2699,95 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    saveLocationBtn.addEventListener('click', function() {
+    // Auto-load primary customer address when delivery is selected
+    async function loadPrimaryCustomerAddress() {
+        try {
+            const response = await fetch('../../../backend/api/get-primary-info.php');
+            const data = await response.json();
+            
+            if (data.success && data.entry && data.entry.complete_address) {
+                // User has saved address, auto-fill it
+                const fullAddress = `${data.entry.complete_address}, ${data.entry.delivery_location}`;
+                if (deliveryAddressInput) {
+                    deliveryAddressInput.value = fullAddress;
+                }
+                
+                // Update shipping fee
+                const deliveryFee = data.entry.delivery_fee || 0;
+                const shippingFeeElement = document.getElementById('shipping_fee');
+                if (shippingFeeElement) {
+                    shippingFeeElement.textContent = '₱' + deliveryFee.toFixed(2);
+                }
+                
+                // Update total
+                updateTotalWithShipping(deliveryFee);
+                
+                console.log('Auto-loaded primary customer address:', fullAddress);
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error('Error loading primary customer address:', error);
+            return false;
+        }
+    }
+    
+    // Update total with shipping fee
+    function updateTotalWithShipping(deliveryFee) {
+        const subtotalElement = document.getElementById('subtotal');
+        const totalElement = document.getElementById('total');
+        const discountElement = document.getElementById('discount_amount');
+        
+        if (subtotalElement && totalElement) {
+            const subtotalValue = parseFloat(subtotalElement.textContent.replace('₱', '').replace(',', '')) || 0;
+            const discountValue = discountElement ? parseFloat(discountElement.textContent.replace('₱', '').replace('-', '').replace(',', '')) || 0 : 0;
+            const total = subtotalValue + deliveryFee - discountValue;
+            totalElement.textContent = '₱' + total.toFixed(2);
+        }
+    }
+    
+    // Update primary customer info with selected location
+    async function updatePrimaryWithLocation(deliveryLocationId, completeAddress) {
+        try {
+            // First check if user has primary info
+            const checkResponse = await fetch('../../../backend/api/get-primary-info.php');
+            const checkData = await checkResponse.json();
+            
+            if (checkData.success && checkData.entry) {
+                // User has primary info, check if complete_address is empty
+                if (!checkData.entry.complete_address || checkData.entry.complete_address.trim() === '') {
+                    // Update the primary info with the new location
+                    const updateResponse = await fetch('../../../backend/api/save-customer-info.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            id: checkData.entry.id,
+                            label: checkData.entry.label,
+                            first_name: checkData.entry.first_name,
+                            last_name: checkData.entry.last_name,
+                            email: checkData.entry.email,
+                            phone: checkData.entry.phone,
+                            delivery_location_id: deliveryLocationId,
+                            complete_address: completeAddress,
+                            set_as_primary: true
+                        })
+                    });
+                    
+                    const updateData = await updateResponse.json();
+                    if (updateData.success) {
+                        console.log('✓ Updated primary customer info with delivery location');
+                        return true;
+                    }
+                }
+            }
+            return false;
+        } catch (error) {
+            console.error('Error updating primary customer info:', error);
+            return false;
+        }
+    }
+
+    saveLocationBtn.addEventListener('click', async function() {
         const deliveryLocationSelect = document.getElementById('delivery_location');
         const deliveryLocation = deliveryLocationSelect.value;
         const completeAddress = document.getElementById('complete_address').value;
@@ -2594,9 +2809,10 @@ document.addEventListener('DOMContentLoaded', function() {
             deliveryAddressInput.value = fullAddress;
         }
 
-        // Get delivery fee from selected option
+        // Get delivery fee and location ID from selected option
         const selectedOption = deliveryLocationSelect.options[deliveryLocationSelect.selectedIndex];
         const deliveryFee = parseFloat(selectedOption.dataset.deliveryFee) || 0;
+        const deliveryLocationId = parseInt(selectedOption.dataset.locationId) || 0;
         
         // Update shipping fee display
         const shippingFeeElement = document.getElementById('shipping_fee');
@@ -2604,23 +2820,31 @@ document.addEventListener('DOMContentLoaded', function() {
             shippingFeeElement.textContent = '₱' + deliveryFee.toFixed(2);
         }
         
-        // Update total - recalculate directly since updateTotalAmount is in different scope
-        const subtotalElement = document.getElementById('subtotal');
-        const totalElement = document.getElementById('total');
-        const discountElement = document.getElementById('discount_amount');
+        // Update total
+        updateTotalWithShipping(deliveryFee);
         
-        if (subtotalElement && totalElement) {
-            // Parse subtotal from display
-            const subtotalValue = parseFloat(subtotalElement.textContent.replace('₱', '').replace(',', '')) || 0;
-            // Parse discount if exists
-            const discountValue = discountElement ? parseFloat(discountElement.textContent.replace('₱', '').replace('-', '').replace(',', '')) || 0 : 0;
-            // Calculate total
-            const total = subtotalValue + deliveryFee - discountValue;
-            totalElement.textContent = '₱' + total.toFixed(2);
+        // Update primary customer info if it has empty address
+        if (deliveryLocationId > 0) {
+            await updatePrimaryWithLocation(deliveryLocationId, completeAddress.trim());
         }
 
         modal.style.display = 'none';
     });
+    
+    // Auto-load address when delivery radio is selected
+    const deliveryRadioBtn = document.getElementById('delivery');
+    if (deliveryRadioBtn) {
+        deliveryRadioBtn.addEventListener('change', function() {
+            if (this.checked) {
+                loadPrimaryCustomerAddress();
+            }
+        });
+        
+        // Also load on page load if delivery is already selected
+        if (deliveryRadioBtn.checked) {
+            loadPrimaryCustomerAddress();
+        }
+    }
 });
 
 const phoneInput = document.getElementById('contact_number');

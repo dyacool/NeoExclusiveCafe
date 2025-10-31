@@ -38,7 +38,8 @@ try {
     $description = isset($input['description']) ? trim($input['description']) : '';
     $price = filter_var($input['price'], FILTER_VALIDATE_FLOAT);
     $status_id = filter_var($input['status_id'], FILTER_VALIDATE_INT);
-    $quantity = filter_var($input['quantity'], FILTER_VALIDATE_INT);
+    // Handle quantity - convert to int to handle strings with leading zeros like "02"
+    $quantity = isset($input['quantity']) ? intval($input['quantity']) : 0;
     
     // Handle category
     $category_id = null;
@@ -108,8 +109,13 @@ try {
         $quantity = 0;
     }
 
-    if ($id === false || empty($name) || $price === false || $status_id === false || $quantity === false) {
+    if ($id === false || empty($name) || $price === false || $status_id === false) {
         throw new Exception('Invalid input data');
+    }
+    
+    // Quantity can be 0 (for Same Day Order products), so don't validate against false
+    if ($quantity < 0) {
+        throw new Exception('Quantity cannot be negative');
     }
 
     // Update product with unavailable status and category

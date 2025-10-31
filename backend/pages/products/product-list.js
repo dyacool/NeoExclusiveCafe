@@ -1488,7 +1488,15 @@ function handleFormSubmit(event) {
   event.preventDefault();
 
   const statusSelect = document.getElementById("editProductStatus");
-  const selectedStatus = statusSelect.options[statusSelect.selectedIndex].text;
+  
+  // Check if statusSelect exists and has a valid selection
+  if (!statusSelect || statusSelect.selectedIndex === -1) {
+    showNotification("Please select a product status.", "error");
+    return;
+  }
+  
+  const selectedOption = statusSelect.options[statusSelect.selectedIndex];
+  const selectedStatus = selectedOption ? selectedOption.text : "";
   const selectedValue = statusSelect.value;
 
   // Validate availtoday_status when Same Day Order is selected

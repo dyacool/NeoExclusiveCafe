@@ -84,20 +84,20 @@ if ($count_result) {
 
                 <!-- Order Limit -->
                 <div class="control-card">
-                    <h3>Daily Order Limit</h3>
+                    <h3>Daily Delivery Transaction Limit (Pre-Order)</h3>
                     <div class="control-row">
                         <label>No. of Orders:</label>
-                        <input type="number" id="dailyLimit" min="0" value="5">
+                        <input type="number" id="dailyLimit" min="0" placeholder="Loading..." disabled>
                         <button class="btn-primary" onclick="updateDailyLimit()">Save</button>
                     </div>
                 </div>
 
                 <!-- Same Day Order Limit -->
                 <div class="control-card">
-                    <h3>Same Day Order Limit</h3>
+                    <h3>Same Day Delivery Transaction Limit</h3>
                     <div class="control-row">
                         <label>No. of Orders:</label>
-                        <input type="number" id="availtodayOrderLimit" min="0" value="1">
+                        <input type="number" id="availtodayOrderLimit" min="0" placeholder="Loading..." disabled>
                         <button class="btn-primary" onclick="updateAvailTodayOrderLimit()">Save</button>
                     </div>
                 </div>
