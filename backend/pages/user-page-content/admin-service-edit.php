@@ -1,42 +1,31 @@
 <?php
-// Start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Enable error reporting for debugging
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 $page_title = "Edit Service Section";
 
-// Include database connection
 if (!isset($conn)) {
     require_once "../admin-includes/database.php";
 }
 require_once "../admin-includes/activity-logger.php";
 
-// Include admin header
 require_once "../admin-includes/navbar/navbar.php";
 
-// Check if admin is logged in - adjust this to match your actual session variable
 if (!isset($_SESSION['admin_id']) && !isset($_SESSION['admin_username'])) {
-    // Save the current URL to redirect back after login
     $_SESSION['redirect_after_login'] = $_SERVER['REQUEST_URI'];
-    
-    // Redirect to login page
     echo "<script>window.location.href = 'admin-login.php';</script>";
     exit();
 }
 
-// Function to log messages to file for debugging
 function debug_log($message) {
     error_log("[" . date('Y-m-d H:i:s') . "] " . $message);
 }
 
-// Function to create tables if they don't exist
 function ensure_tables_exist($conn) {
-    // Create service_section_settings table if it doesn't exist
     $create_settings_table = "CREATE TABLE IF NOT EXISTS `service_section_settings` (
         `id` int(11) NOT NULL AUTO_INCREMENT,
         `title` varchar(255) NOT NULL DEFAULT 'Our Services',
@@ -50,7 +39,6 @@ function ensure_tables_exist($conn) {
         return false;
     }
     
-    // Create service_cards table if it doesn't exist
     $create_cards_table = "CREATE TABLE IF NOT EXISTS `service_cards` (
         `id` int(11) NOT NULL AUTO_INCREMENT,
         `icon_name` varchar(50) NOT NULL,
@@ -70,16 +58,13 @@ function ensure_tables_exist($conn) {
     return true;
 }
 
-// Ensure tables exist
 ensure_tables_exist($conn);
 
-// Initialize settings with default values
 $settings = [
     'title' => 'Our Services',
     'subtitle' => 'What we offer'
 ];
 
-// Check if settings exist in database, if not insert default values
 $check_settings = mysqli_query($conn, "SELECT COUNT(*) as count FROM service_section_settings");
 $settings_count = mysqli_fetch_assoc($check_settings)['count'];
 
@@ -92,25 +77,21 @@ if ($settings_count == 0) {
     }
 }
 
-// Process form submission for section settings
 if (isset($_POST['update_settings'])) {
     $title = mysqli_real_escape_string($conn, $_POST['title']);
     $subtitle = mysqli_real_escape_string($conn, $_POST['subtitle']);
     
     debug_log("Updating service settings - Title: $title, Subtitle: $subtitle");
     
-    // Check if settings exist
     $check_settings = mysqli_query($conn, "SELECT COUNT(*) as count FROM service_section_settings");
     $settings_count = mysqli_fetch_assoc($check_settings)['count'];
     
     if ($settings_count == 0) {
-        // Insert new settings
         $insert_query = "INSERT INTO service_section_settings (title, subtitle) VALUES ('$title', '$subtitle')";
         
         if (mysqli_query($conn, $insert_query)) {
             $success_message = "Service section settings created successfully!";
             debug_log("Service settings created successfully");
-            // Update local settings
             $settings['title'] = $title;
             $settings['subtitle'] = $subtitle;
         } else {
@@ -118,7 +99,6 @@ if (isset($_POST['update_settings'])) {
             debug_log("Error creating settings: " . mysqli_error($conn));
         }
     } else {
-        // Update existing settings
         $update_query = "UPDATE service_section_settings SET title = '$title', subtitle = '$subtitle' WHERE id = 1";
         
         if (mysqli_query($conn, $update_query)) {
@@ -282,7 +262,9 @@ if (!$cards_result) {
                 <p class="help-text">A brief description that appears below the title.</p>
             </div>
             
-            <button type="submit" name="update_settings" class="btn btn-primary">Update Settings</button>
+            <div style="display: flex; justify-content: flex-end;">
+                <button type="submit" name="update_settings" class="btn btn-primary">Update</button>
+            </div>
         </form>
     </div>
     
@@ -346,7 +328,9 @@ if (!$cards_result) {
             <?php endforeach; ?>
         </div>
         
-        <button type="button" class="btn btn-success mt-3" id="add-card-btn">Add New Card</button>
+        <div style="display: flex; justify-content: flex-end;">
+            <button type="button" class="btn btn-success mt-3" id="add-card-btn">Add New Card</button>
+        </div>
     </div>
     
     <!-- Add/Edit Card Modal -->

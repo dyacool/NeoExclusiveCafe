@@ -61,10 +61,10 @@ body {
 }
 
 .admin-section h2 {
-  font-size: 1.5rem;
+  text-align: center !important;
+  font-size: 1.25rem;
   font-weight: 600;
   color: var(--gray-900);
-  margin-bottom: 1.5rem;
 }
 
 /* Form Styles */

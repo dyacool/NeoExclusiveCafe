@@ -47,7 +47,6 @@ body {
 .admin-main {
   width: 100%;
   margin: 0;
-  padding-top: 1rem;
   background-color: var(--gray-50);
 }
 
@@ -69,13 +68,16 @@ body {
 }
 
 .admin-section h2 {
-  font-size: 1rem;
+  text-align: center !important;
+  font-size: 1.25rem;
   font-weight: 600;
   color: var(--gray-900);
-  margin-bottom: 1.5rem;
+  text-align: center;
 }
 
 .settings-info {
+  text-align: center !important;
+  align-items: center !important;
   margin-bottom: 1rem;
   color: var(--gray-500);
   font-size: 0.875rem;
@@ -149,6 +151,7 @@ body {
 
 .form-actions {
   display: flex;
+  justify-content: flex-end;
   gap: 1rem;
   margin-top: 1rem;
 }

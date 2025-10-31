@@ -124,7 +124,6 @@ if (!$settings) {
         
         <!-- Carousel Settings Form -->
         <section class="admin-section">
-            <p class="settings-info">These settings apply to all carousel slides.</p>
             
             <form action="" method="POST" class="admin-form">
                 <div class="form-group">
@@ -155,7 +154,6 @@ if (!$settings) {
         
         <!-- Preview Section -->
         <section class="admin-section">
-            <h2>Preview</h2>
             <div class="carousel-preview">
                 <div class="preview-content">
                     <h3 class="preview-title"><?php echo htmlspecialchars($settings['title']); ?></h3>
