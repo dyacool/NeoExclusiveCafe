@@ -602,6 +602,79 @@ if (isset($_POST["signin-submit"])) {
         .password-input-group .input-field {
             padding-right: 45px;
         }
+
+        /* Confirmation Popup - Success/Error Notification */
+        .confirmation-popup {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: white;
+            color: #333;
+            padding: 16px 24px;
+            border-radius: 12px;
+            z-index: 10000;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            font-weight: 600;
+            min-width: 300px;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            border: 2px solid transparent;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        /* Success State - Green Theme */
+        .confirmation-popup.success {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            color: #2e7d32;
+            border-color: #4caf50;
+            box-shadow: 0 10px 40px rgba(76, 175, 80, 0.3);
+        }
+
+        /* Error State - Red Theme */
+        .confirmation-popup.error {
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+            color: #c62828;
+            border-color: #f44336;
+            box-shadow: 0 10px 40px rgba(244, 67, 54, 0.3);
+        }
+
+        /* Show Animation */
+        .confirmation-popup.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Hide Animation */
+        .confirmation-popup.hide {
+            opacity: 0;
+            transform: translateX(-50%) translateY(-100px);
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .confirmation-popup {
+                top: 70px;
+                min-width: 280px;
+                max-width: 90%;
+                padding: 14px 20px;
+                font-size: 14px;
+            }
+            
+            .confirmation-popup.show {
+                transform: translateX(-50%) translateY(0);
+            }
+            
+            .confirmation-popup.hide {
+                transform: translateX(-50%) translateY(-100px);
+            }
+        }
     </style>
 
     <script>

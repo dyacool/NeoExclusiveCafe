@@ -43,43 +43,104 @@ $total_row = mysqli_fetch_assoc($count_result);
 $total_posts = $total_row['total'];
 $total_pages = ceil($total_posts / $posts_per_page);
 
-// Check if logged-in user has completed orders for testimonial eligibility
-$has_completed_orders = false;
-if (isset($_SESSION['user_id'])) {
+// Initialize variables
+$user_logged_in = isset($_SESSION['user_id']);
+$show_create_button = false;
+$create_button_message = '';
+
+if ($user_logged_in) {
     $user_id = $_SESSION['user_id'];
+    
+    // Get user email for orders query
+    $email_query = "SELECT email FROM users WHERE id = ?";
+    $email_stmt = mysqli_prepare($conn, $email_query);
+    mysqli_stmt_bind_param($email_stmt, "i", $user_id);
+    mysqli_stmt_execute($email_stmt);
+    $email_result = mysqli_stmt_get_result($email_stmt);
+    $user_email = '';
+    if ($email_result && $email_row = mysqli_fetch_assoc($email_result)) {
+        $user_email = $email_row['email'];
+    }
+    mysqli_stmt_close($email_stmt);
+    
+    // Check completed orders
+    $completed_orders = 0;
     $order_check_query = "SELECT COUNT(*) as completed_orders FROM orders 
-                          WHERE user_id = ? AND (status = 'delivered' OR status = 'picked-up')";
+                          WHERE customer_email = ? AND (status = 'Delivered' OR status = 'Picked-up')";
     $order_stmt = mysqli_prepare($conn, $order_check_query);
     
-    if ($order_stmt) {
-        mysqli_stmt_bind_param($order_stmt, "i", $user_id);
+    if ($order_stmt && !empty($user_email)) {
+        mysqli_stmt_bind_param($order_stmt, "s", $user_email);
         mysqli_stmt_execute($order_stmt);
         $order_result = mysqli_stmt_get_result($order_stmt);
         if ($order_result) {
             $order_row = mysqli_fetch_assoc($order_result);
-            $has_completed_orders = $order_row['completed_orders'] > 0;
+            $completed_orders = $order_row['completed_orders'];
         }
         mysqli_stmt_close($order_stmt);
-    } else {
-        // If orders table doesn't exist or query fails, allow testimonials for now
-        $has_completed_orders = true;
+    }
+    
+    // Check existing blog posts
+    $existing_posts = 0;
+    $post_check_query = "SELECT COUNT(*) as post_count FROM user_blog_post WHERE user_id = ? AND status = 'published'";
+    $post_stmt = mysqli_prepare($conn, $post_check_query);
+    
+    if ($post_stmt) {
+        mysqli_stmt_bind_param($post_stmt, "i", $user_id);
+        mysqli_stmt_execute($post_stmt);
+        $post_result = mysqli_stmt_get_result($post_stmt);
+        if ($post_result) {
+            $post_row = mysqli_fetch_assoc($post_result);
+            $existing_posts = $post_row['post_count'];
+        }
+        mysqli_stmt_close($post_stmt);
+    }
+    
+    // Logic: Show button only if user has more completed orders than blog posts
+    if ($completed_orders > $existing_posts) {
+        $show_create_button = true;
+    } else if ($completed_orders == 0) {
+        $create_button_message = 'Complete an order first to share your experience';
+    } else if ($existing_posts >= $completed_orders) {
+        $create_button_message = 'You can create 1 testimonial per completed order';
     }
 }
 ?>
 
 <?php include __DIR__ . "/../../user-includes/bread-crumb/bread-crumb.php"; ?>
 
+<!-- Confirmation Popup -->
+<div id="confirmationPopup"></div>
+
 <div class="blog-container fade-in">
+
+    <?php if (isset($_SESSION['error_message'])): ?>
+        <div class="error-message-box">
+            <?php 
+                echo htmlspecialchars($_SESSION['error_message']); 
+                unset($_SESSION['error_message']);
+            ?>
+        </div>
+    <?php endif; ?>
+
+    <?php if (isset($_SESSION['success_message'])): ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                showConfirmation('<?php echo addslashes($_SESSION['success_message']); ?>', 'success');
+            });
+        </script>
+        <?php unset($_SESSION['success_message']); ?>
+    <?php endif; ?>
 
     <div class="blog-header">
         <h1>Customer Testimonials</h1>
-        <?php if (isset($_SESSION['user_id'])): ?>
-            <?php if ($has_completed_orders): ?>
+        <?php if ($user_logged_in): ?>
+            <?php if ($show_create_button): ?>
                 <a href="create-blog.php" class="create-post-btn">
                     <i class="fas fa-plus"></i> Create Post
                 </a>
             <?php else: ?>
-                <div class="create-post-disabled" title="Complete an order first to share your experience">
+                <div class="create-post-disabled" title="<?php echo htmlspecialchars($create_button_message); ?>">
                     <i class="fas fa-lock"></i> Create Post
                 </div>
             <?php endif; ?>
@@ -141,10 +202,7 @@ if (isset($_SESSION['user_id'])) {
                     
                     <div class="post-content">
                         <h3 class="post-title"><?php echo htmlspecialchars($post['title']); ?></h3>
-                        <p class="post-excerpt"><?php echo nl2br(htmlspecialchars(substr($post['content'], 0, 170) . (strlen($post['content']) > 170 ? '...' : ''))); ?></p>
-                        <?php if (strlen($post['content']) > 170): ?>
-                            <a href="view-blog.php?id=<?= htmlspecialchars($post['id']) ?>" class="read-more">Read more...</a>
-                        <?php endif; ?>
+                        <p class="post-excerpt"><?php echo nl2br(htmlspecialchars($post['content'])); ?></p>
                     </div>
                 </div>
             <?php endwhile; ?>
@@ -169,16 +227,6 @@ if (isset($_SESSION['user_id'])) {
     <?php else: ?>
         <div class="no-posts">
             <h2>No posts yet!</h2>
-            <p>Be the first to share your experience at Neo Exclusive Cafe.</p>
-            <?php if (isset($_SESSION['user_id'])): ?>
-                <?php if ($has_completed_orders): ?>
-                    <a href="create-blog.php" class="create-post-btn">Create Your First Post</a>
-                <?php else: ?>
-                    <p style="color: #666; margin-top: 1rem;">Complete an order first to share your experience and create a testimonial.</p>
-                <?php endif; ?>
-            <?php else: ?>
-                <p>Please <a href="/frontend/login/user/login-signup.php">log in</a> to create a post.</p>
-            <?php endif; ?>
         </div>
     <?php endif; ?>
 </div>
@@ -238,9 +286,83 @@ if (isset($_SESSION['user_id'])) {
     }
 </script>
 
-<?php include __DIR__ . "/../../user-includes/user-footer.php"; ?>
-
 <style>
+    /* Confirmation Popup */
+    .confirmation-popup {
+        position: fixed;
+        top: 80px;
+        left: 50%;
+        transform: translateX(-50%) translateY(-100px);
+        background: white;
+        color: #333;
+        padding: 16px 24px;
+        border-radius: 12px;
+        z-index: 10000;
+        opacity: 0;
+        transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        font-weight: 600;
+        min-width: 300px;
+        max-width: 500px;
+        text-align: center;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        border: 2px solid transparent;
+        font-size: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    /* Success State - Green Theme */
+    .confirmation-popup.success {
+        background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+        color: #2e7d32;
+        border-color: #4caf50;
+        box-shadow: 0 10px 40px rgba(76, 175, 80, 0.3);
+    }
+
+    /* Error State - Red Theme */
+    .confirmation-popup.error {
+        background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+        color: #c62828;
+        border-color: #f44336;
+        box-shadow: 0 10px 40px rgba(244, 67, 54, 0.3);
+    }
+
+    /* Show Animation */
+    .confirmation-popup.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    /* Hide Animation */
+    .confirmation-popup.hide {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-100px);
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .confirmation-popup {
+            top: 70px;
+            min-width: 280px;
+            max-width: 90%;
+            padding: 14px 20px;
+            font-size: 14px;
+        }
+    }
+
+    .error-message-box {
+    background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+    color: #c62828;
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border-left: 4px solid #f44336;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(244, 67, 54, 0.2);
+}
+
 .create-post-disabled {
     font-size: 16px;
     color: #999;
@@ -276,3 +398,29 @@ if (isset($_SESSION['user_id'])) {
     background: #256029;
 }
 </style>
+
+<script>
+    // Confirmation popup function
+    function showConfirmation(message, type = 'success') {
+        const popup = document.getElementById('confirmationPopup');
+        const icon = type === 'success' ? '✓' : '✕';
+        
+        popup.innerHTML = `${icon} ${message}`;
+        popup.className = `confirmation-popup ${type}`;
+        
+        setTimeout(() => {
+            popup.classList.add('show');
+        }, 10);
+        
+        setTimeout(() => {
+            popup.classList.remove('show');
+            popup.classList.add('hide');
+            setTimeout(() => {
+                popup.className = '';
+                popup.innerHTML = '';
+            }, 400);
+        }, 3000);
+    }
+</script>
+
+<?php include __DIR__ . "/../../user-includes/user-footer.php"; ?>

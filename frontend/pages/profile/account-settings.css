@@ -437,11 +437,11 @@ input[readonly] {
   text-align: center;
   margin-bottom: 24px;
 }
-.avatar-upload-container{
-width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    overflow: hidden;
+.avatar-upload-container {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  overflow: hidden;
 }
 
 /* Profile initials styling for users without profile pictures */

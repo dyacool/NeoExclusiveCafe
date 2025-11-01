@@ -3,11 +3,12 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-require_once __DIR__ . "/../../user-includes/user-header.php";
-require_once "../../../backend/pages/admin-includes/database.php";
 
-// Set the content type to JSON
+// Set the content type to JSON FIRST before any output
 header('Content-Type: application/json');
+
+require_once __DIR__ . "/../../../config/database-config.php";
+$conn = getDatabaseConnection();
 
 // Initialize response array
 $response = array('success' => false, 'message' => '');
