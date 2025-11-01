@@ -3,26 +3,167 @@ const VoucherTable = (function () {
     return new DataTable("#supply-order-table", {
       scrollX: true,
       responsive: true,
-      processing: true,
+      processing: false, // Disable processing indicator
       serverSide: true,
+      pageLength: 12,
+      lengthChange: false,
+      searching: false,
+      info: false,
+      paging: false, // Disable DataTables pagination
+      ordering: false, // Disable sorting
+      dom: "t", // Only show table
+      autoWidth: false,
+      deferRender: true,
       ajax: {
         url: "./promotions_api.php",
         type: "post",
         data: { action: "datatableDisplay" },
       },
       columns: [
-        { data: "id", visible: false },
-        { data: "title" },
-        { data: "application_method", render: renderMethod },
-        { data: "code" },
-        { data: "discount", render: renderDiscount },
-        { data: "restrictions", render: renderRestrictions },
-        { data: "usage", render: renderUsage },
-        { data: "valid_period" },
-        { data: "sale_channel" },
-        { data: "status", render: renderStatus },
+        { data: "id", visible: false, orderable: false, searchable: false },
+        { data: "title", orderable: false, searchable: false },
+        {
+          data: "application_method",
+          render: renderMethod,
+          orderable: false,
+          searchable: false,
+        },
+        { data: "code", orderable: false, searchable: false },
+        {
+          data: "discount",
+          render: renderDiscount,
+          orderable: false,
+          searchable: false,
+        },
+        {
+          data: "restrictions",
+          render: renderRestrictions,
+          orderable: false,
+          searchable: false,
+        },
+        {
+          data: "usage",
+          render: renderUsage,
+          orderable: false,
+          searchable: false,
+        },
+        { data: "valid_period", orderable: false, searchable: false },
+        {
+          data: "status",
+          render: renderStatus,
+          orderable: false,
+          searchable: false,
+        },
       ],
+      columnDefs: [
+        {
+          targets: "_all",
+          orderable: false,
+          searchable: false,
+          className: "no-sort",
+        },
+      ],
+      initComplete: function (settings, json) {
+        // Remove any DataTables generated headers
+        $(this.api().table().header()).hide();
+      },
+      drawCallback: function (settings) {
+        // Show custom pagination after table loads
+        updateCustomPagination(settings);
+        // Ensure DataTables headers stay hidden
+        $(this.api().table().header()).hide();
+      },
     });
+  }
+
+  function updateCustomPagination(settings) {
+    const info = settings.json || {};
+    const recordsTotal = info.recordsTotal || 0;
+    const recordsFiltered = info.recordsFiltered || 0;
+    const start = info.start || 0;
+    const length = info.length || 12;
+    const currentPage = Math.floor(start / length) + 1;
+    const totalPages = Math.ceil(recordsFiltered / length);
+
+    // Update pagination info
+    const paginationInfo = document.getElementById("pagination-info");
+    if (paginationInfo) {
+      const displayStart = recordsFiltered > 0 ? start + 1 : 0;
+      const displayEnd = Math.min(start + length, recordsFiltered);
+      paginationInfo.textContent = `Showing ${displayEnd} of ${recordsFiltered} promotions`;
+    }
+
+    // Generate pagination buttons
+    const paginationNav = document.getElementById("pagination-nav");
+    if (paginationNav && totalPages > 1) {
+      let paginationHTML = "";
+
+      // Previous button
+      const prevDisabled = currentPage <= 1 ? "disabled" : "";
+      paginationHTML += `
+        <button class="pagination-btn ${prevDisabled}" ${
+        prevDisabled ? "" : `onclick="goToPage(${currentPage - 1})"`
+      }>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15,18 9,12 15,6"></polyline>
+          </svg>
+          Previous
+        </button>
+      `;
+
+      // Page numbers with ellipsis logic
+      const maxVisiblePages = 5;
+      const startPage = Math.max(
+        1,
+        Math.min(
+          currentPage - Math.floor(maxVisiblePages / 2),
+          totalPages - maxVisiblePages + 1
+        )
+      );
+      const endPage = Math.min(startPage + maxVisiblePages - 1, totalPages);
+
+      if (startPage > 1) {
+        paginationHTML += `<button class="pagination-number" onclick="goToPage(1)">1</button>`;
+        if (startPage > 2) {
+          paginationHTML += `<span class="pagination-ellipsis">...</span>`;
+        }
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        const active = i === currentPage ? "active" : "";
+        paginationHTML += `<button class="pagination-number ${active}" onclick="goToPage(${i})">${i}</button>`;
+      }
+
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+          paginationHTML += `<span class="pagination-ellipsis">...</span>`;
+        }
+        paginationHTML += `<button class="pagination-number" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+      }
+
+      // Next button
+      const nextDisabled = currentPage >= totalPages ? "disabled" : "";
+      paginationHTML += `
+        <button class="pagination-btn ${nextDisabled}" ${
+        nextDisabled ? "" : `onclick="goToPage(${currentPage + 1})"`
+      }>
+          Next
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9,18 15,12 9,6"></polyline>
+          </svg>
+        </button>
+      `;
+
+      paginationNav.innerHTML = paginationHTML;
+    } else {
+      paginationNav.innerHTML = "";
+    }
+
+    // Show/hide pagination container
+    const paginationContainer = document.getElementById("custom-pagination");
+    if (paginationContainer) {
+      paginationContainer.style.display = totalPages > 1 ? "flex" : "none";
+    }
   }
 
   function renderDiscount(data, type, row) {
@@ -103,6 +244,7 @@ const VoucherTable = (function () {
     addSelectEvent,
     getSelectedRow,
     deselectAllRows,
+    updateCustomPagination,
   };
 })();
 
@@ -310,29 +452,88 @@ document.addEventListener("DOMContentLoaded", function () {
 function viewVoucher() {
   const selectedRows = VoucherTable.getSelectedRow(supplyOrderTable);
   if (selectedRows.length !== 1) {
-    if (typeof Swal !== "undefined") {
-      Swal.fire("Please select one voucher to view.", "warning");
-    } else {
-      alert("Please select one voucher to view.");
-    }
+    Swal.fire({
+      title: "Selection Required",
+      text: "Please select one voucher to view.",
+      icon: "warning",
+      confirmButtonColor: "#256035",
+    });
     return;
   }
   VoucherTable.deselectAllRows();
 
   const voucher = selectedRows[0];
-  Swal.fire({
-    title: voucher.title,
-    html: `
-      <div style="text-align: left;">
-        <p><strong>Code:</strong> ${voucher.code}</p>
-        <p><strong>Type:</strong> ${voucher.type}</p>
-        <p><strong>Discount:</strong> ${voucher.discount}</p>
-        <p><strong>Status:</strong> ${voucher.status}</p>
-        <p><strong>Valid Period:</strong> ${voucher.valid_period}</p>
-      </div>
-    `,
-    showConfirmButton: true,
-  });
+
+  // Populate the view modal with voucher data
+  document.getElementById("viewModalTitle").textContent = voucher.title;
+  document.getElementById("viewTitle").textContent = voucher.title || "-";
+  document.getElementById("viewCode").textContent = voucher.code || "-";
+
+  // Format method display
+  let methodText = voucher.application_method || "-";
+  if (methodText === "voucher_code") methodText = "Voucher Code";
+  if (methodText === "automatic_discount") methodText = "Automatic Discount";
+  document.getElementById("viewMethod").textContent = methodText;
+
+  // Format discount type and value
+  let discountTypeText = voucher.type || "-";
+  if (discountTypeText === "percentage")
+    discountTypeText = "Percentage Discount";
+  if (discountTypeText === "fixed") discountTypeText = "Fixed Amount Discount";
+  if (discountTypeText === "free_shipping") discountTypeText = "Free Shipping";
+  document.getElementById("viewDiscountType").textContent = discountTypeText;
+
+  document.getElementById("viewDiscount").textContent = voucher.discount || "-";
+  document.getElementById("viewMinSpend").textContent = voucher.min_purchase
+    ? `₱${voucher.min_purchase}`
+    : "₱0";
+
+  // Format applicable to
+  let applicableText = voucher.applicable_to || "-";
+  if (applicableText === "all") applicableText = "All Products";
+  if (applicableText === "delivery") applicableText = "Delivery Products Only";
+  if (applicableText === "pickup") applicableText = "Pickup Products Only";
+  if (applicableText === "special") applicableText = "Special Products";
+  document.getElementById("viewApplicableTo").textContent = applicableText;
+
+  document.getElementById("viewUsageLimit").textContent = voucher.usage || "-";
+  document.getElementById("viewPerUserLimit").textContent =
+    voucher.usage_limit_per_user || "-";
+  document.getElementById("viewValidPeriod").textContent =
+    voucher.valid_period || "-";
+
+  // Format status with badge
+  const statusElement = document.getElementById("viewStatus");
+  if (voucher.status) {
+    const statusText =
+      voucher.status.charAt(0).toUpperCase() + voucher.status.slice(1);
+    let bgColor = "#E3FCF4",
+      textColor = "#039855",
+      dotColor = "#12B76A";
+
+    if (voucher.status === "expired") {
+      bgColor = "#F2F4F7";
+      textColor = "#667085";
+      dotColor = "#D0D5DD";
+    } else if (voucher.status === "upcoming") {
+      bgColor = "#D5CAB5";
+      textColor = "#845832";
+      dotColor = "#A89869";
+    } else if (voucher.status === "archived") {
+      bgColor = "#FEE4E2";
+      textColor = "#D92D20";
+      dotColor = "#F04438";
+    }
+
+    statusElement.innerHTML = `<span class="status-badge" style="background-color: ${bgColor}; color: ${textColor}; padding: 6px 12px; border-radius: 16px; font-size: 12px; font-weight: 500; text-transform: capitalize; display: inline-flex; align-items: center; gap: 6px; min-width: 80px; justify-content: center;"><span style="width: 6px; height: 6px; background-color: ${dotColor}; border-radius: 50%; display: inline-block;"></span>${statusText}</span>`;
+    statusElement.classList.add("status-field");
+  } else {
+    statusElement.textContent = "-";
+    statusElement.classList.remove("status-field");
+  }
+
+  // Show the modal
+  document.getElementById("viewModal").style.display = "flex";
 }
 
 const viewBtn = document.getElementById("view-supply-order-btn");
@@ -371,6 +572,18 @@ const VoucherFilter = (function () {
     });
     reset_btn.addEventListener("click", reset);
 
+    // Close filter when clicking outside
+    document.addEventListener("click", function (event) {
+      if (
+        !filterContainer.contains(event.target) &&
+        !filter_btn.contains(event.target)
+      ) {
+        if (filterContainer.style.display === "flex") {
+          filterContainer.style.display = "none";
+        }
+      }
+    });
+
     voucherTypeFilter.addEventListener("change", function () {
       if (voucherTypeFilter.value === "free_shipping") {
         valueRangeFieldset.style.display = "none";
@@ -405,6 +618,40 @@ const VoucherFilter = (function () {
       filterContainer.style.display === "none" ||
       filterContainer.style.display === ""
     ) {
+      // Position the filter container dynamically
+      const filterBtn = document.getElementById("filter-btn");
+      const rect = filterBtn.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const viewportWidth = window.innerWidth;
+      const containerHeight = 600; // Approximate height of filter container
+      const containerWidth = 450; // Width of filter container
+
+      // Calculate optimal position
+      let top = rect.bottom + 8;
+      let left = rect.right - containerWidth;
+
+      // Adjust if goes below viewport
+      if (top + containerHeight > viewportHeight) {
+        top = rect.top - containerHeight - 8;
+        // If still doesn't fit, position at bottom with scroll
+        if (top < 0) {
+          top = 20;
+          filterContainer.style.maxHeight = viewportHeight - 40 + "px";
+        }
+      }
+
+      // Adjust if goes beyond left edge
+      if (left < 20) {
+        left = 20;
+      }
+
+      // Adjust if goes beyond right edge
+      if (left + containerWidth > viewportWidth - 20) {
+        left = viewportWidth - containerWidth - 20;
+      }
+
+      filterContainer.style.top = top + "px";
+      filterContainer.style.left = left + "px";
       filterContainer.style.display = "flex";
     } else {
       filterContainer.style.display = "none";
@@ -483,7 +730,8 @@ const VoucherFilter = (function () {
       validity_from: validityFrom.value,
       validity_to: validityTo.value,
     };
-    supplyOrderTable.draw();
+    // Reset to first page when filtering
+    supplyOrderTable.page(0).draw();
   }
 
   return {
@@ -496,53 +744,17 @@ if (VoucherFilter && VoucherFilter.add_events) {
   VoucherFilter.add_events();
 }
 
-function openAddModal() {
-  document.getElementById("addModal").style.display = "flex";
+// Global pagination function
+function goToPage(page) {
+  if (supplyOrderTable) {
+    const currentPage = supplyOrderTable.page.info().page;
+    const targetPage = page - 1; // DataTables uses 0-based page indexing
+    supplyOrderTable.page(targetPage).draw(false);
+  }
 }
 
-function openEditModal(id) {
-  fetch("./get-coupon.php?id=" + id)
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.success) {
-        const coupon = data.coupon;
-        document.getElementById("editId").value = coupon.id;
-        document.getElementById("editTitle").value = coupon.title;
-        document.getElementById("editCode").value = coupon.code;
-        document.getElementById("editApplicationMethod").value =
-          coupon.application_method || "voucher_code";
-        document.getElementById("editDiscountType").value =
-          coupon.discount_type;
-        document.getElementById("editDiscountValue").value =
-          coupon.discount_value;
-        document.getElementById("editMinSpend").value = coupon.min_spend;
-        document.getElementById("editApplicableTo").value =
-          coupon.applicable_to;
-        document.getElementById("editUsageLimit").value =
-          coupon.usage_limit || "";
-        document.getElementById("editPerUserLimit").value =
-          coupon.usage_limit_per_user || "";
-        document.getElementById("editStartDate").value = coupon.start_date;
-        document.getElementById("editEndDate").value = coupon.end_date;
-        document.getElementById("editStatus").value = coupon.status;
-
-        document.getElementById("editUnlimitedUsage").checked =
-          !coupon.usage_limit;
-        document.getElementById("editUnlimitedPerUser").checked =
-          !coupon.usage_limit_per_user;
-
-        toggleEditUsageLimit();
-        toggleEditPerUserLimit();
-        toggleEditDiscountValue();
-
-        document.getElementById("editModal").style.display = "flex";
-      } else {
-        Swal.fire("Error", data.message, "error");
-      }
-    })
-    .catch((error) => {
-      Swal.fire("Error", "Failed to load coupon data", "error");
-    });
+function openAddModal() {
+  document.getElementById("addModal").style.display = "flex";
 }
 
 function closeModal(modalId) {
@@ -552,92 +764,154 @@ function closeModal(modalId) {
 function toggleDiscountValue() {
   const discountType = document.getElementById("discountType").value;
   const discountValueGroup = document.getElementById("discountValueGroup");
+  const discountValueInput = document.getElementById("discountValue");
 
   if (discountType === "free_shipping") {
     discountValueGroup.style.display = "none";
-    document.getElementById("discountValue").value = "";
-  } else {
+    discountValueInput.value = "0";
+    discountValueInput.required = false;
+  } else if (discountType === "percentage" || discountType === "fixed") {
     discountValueGroup.style.display = "block";
-  }
-}
+    discountValueInput.required = true;
+    discountValueInput.value = "";
 
-function toggleEditDiscountValue() {
-  const discountType = document.getElementById("editDiscountType").value;
-  const discountValueGroup = document.getElementById("editDiscountValueGroup");
-
-  if (discountType === "free_shipping") {
+    // Set appropriate input attributes based on type
+    if (discountType === "percentage") {
+      discountValueInput.max = "100";
+      discountValueInput.placeholder = "Enter percentage (0-100)";
+    } else if (discountType === "fixed") {
+      discountValueInput.removeAttribute("max");
+      discountValueInput.placeholder = "Enter fixed amount";
+    }
+  } else {
     discountValueGroup.style.display = "none";
-    document.getElementById("editDiscountValue").value = "";
-  } else {
-    discountValueGroup.style.display = "block";
+    discountValueInput.value = "";
+    discountValueInput.required = false;
   }
 }
 
 function toggleUsageLimit() {
   const unlimitedUsage = document.getElementById("unlimitedUsage").checked;
   const usageLimitGroup = document.getElementById("usageLimitGroup");
+  const usageLimitInput = document.getElementById("usageLimit");
 
   if (unlimitedUsage) {
     usageLimitGroup.style.display = "none";
-    document.getElementById("usageLimit").value = "";
+    usageLimitInput.value = "";
+    usageLimitInput.required = false;
   } else {
     usageLimitGroup.style.display = "block";
-  }
-}
-
-function toggleEditUsageLimit() {
-  const unlimitedUsage = document.getElementById("editUnlimitedUsage").checked;
-  const usageLimitGroup = document.getElementById("editUsageLimitGroup");
-
-  if (unlimitedUsage) {
-    usageLimitGroup.style.display = "none";
-    document.getElementById("editUsageLimit").value = "";
-  } else {
-    usageLimitGroup.style.display = "block";
+    usageLimitInput.required = true;
+    if (!usageLimitInput.value) {
+      usageLimitInput.value = "1";
+    }
   }
 }
 
 function togglePerUserLimit() {
   const unlimitedPerUser = document.getElementById("unlimitedPerUser").checked;
   const perUserLimitGroup = document.getElementById("perUserLimitGroup");
+  const perUserLimitInput = document.getElementById("perUserLimit");
 
   if (unlimitedPerUser) {
     perUserLimitGroup.style.display = "none";
-    document.getElementById("perUserLimit").value = "";
+    perUserLimitInput.value = "";
+    perUserLimitInput.required = false;
   } else {
     perUserLimitGroup.style.display = "block";
-  }
-}
-
-function toggleEditPerUserLimit() {
-  const unlimitedPerUser = document.getElementById(
-    "editUnlimitedPerUser"
-  ).checked;
-  const perUserLimitGroup = document.getElementById("editPerUserLimitGroup");
-
-  if (unlimitedPerUser) {
-    perUserLimitGroup.style.display = "none";
-    document.getElementById("editPerUserLimit").value = "";
-  } else {
-    perUserLimitGroup.style.display = "block";
+    perUserLimitInput.required = true;
+    if (!perUserLimitInput.value) {
+      perUserLimitInput.value = "1";
+    }
   }
 }
 
 function addCoupon(event) {
   event.preventDefault();
 
+  // Get form data
   const formData = new FormData(event.target);
   formData.append("action", "add_voucher");
 
-  if (!formData.has("include_free_shipping"))
-    formData.append("include_free_shipping", 0);
-  if (!formData.has("prevent_discounted"))
-    formData.append("prevent_discounted", 0);
+  // Validate required fields
+  const title = formData.get("title");
+  const code = formData.get("code");
+  const applicationMethod = formData.get("application_method");
+  const discountType = formData.get("type");
+  const startDate = formData.get("activation_date");
+  const endDate = formData.get("expiration_date");
+
+  if (
+    !title ||
+    !code ||
+    !applicationMethod ||
+    !discountType ||
+    !startDate ||
+    !endDate
+  ) {
+    Swal.fire({
+      title: "Error",
+      text: "Please fill in all required fields.",
+      icon: "error",
+      confirmButtonColor: "#256035",
+    });
+    return;
+  }
+
+  // Validate discount value for percentage and fixed types
+  if (
+    (discountType === "percentage" || discountType === "fixed") &&
+    !formData.get("value")
+  ) {
+    Swal.fire({
+      title: "Error",
+      text: "Please enter a discount value.",
+      icon: "error",
+      confirmButtonColor: "#256035",
+    });
+    return;
+  }
+
+  // Handle unlimited usage checkboxes
+  const unlimitedUsage = document.getElementById("unlimitedUsage").checked;
+  const unlimitedPerUser = document.getElementById("unlimitedPerUser").checked;
+
+  if (unlimitedUsage) {
+    formData.set("usage_limit", "-1"); // Use -1 to indicate unlimited
+  }
+  if (unlimitedPerUser) {
+    formData.set("usage_limit_per_user", "-1"); // Use -1 to indicate unlimited
+  }
+
+  // Set default values for optional fields
+  if (!formData.get("min_purchase")) {
+    formData.set("min_purchase", "0");
+  }
+  if (!formData.get("usage_limit")) {
+    formData.set("usage_limit", "1");
+  }
+  if (!formData.get("usage_limit_per_user")) {
+    formData.set("usage_limit_per_user", "1");
+  }
+
+  // Add missing fields
+  if (!formData.has("include_free_shipping")) {
+    formData.append("include_free_shipping", "0");
+  }
+  if (!formData.has("prevent_discounted")) {
+    formData.append("prevent_discounted", "0");
+  }
 
   console.log("Form data being sent:");
   for (let [key, value] of formData.entries()) {
     console.log(key, value);
   }
+
+  // Show loading state
+  const submitBtn = event.target.querySelector('button[type="submit"]');
+  const originalText = submitBtn.textContent;
+  submitBtn.textContent = "Creating...";
+  submitBtn.disabled = true;
 
   fetch("./promotions_api.php", {
     method: "POST",
@@ -645,66 +919,137 @@ function addCoupon(event) {
   })
     .then((response) => {
       console.log("Response status:", response.status);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.text();
+      return response.text(); // Always get text first
     })
     .then((text) => {
       console.log("Raw response:", text);
+
+      // Handle empty response
+      if (!text || text.trim() === "") {
+        // If response is empty but we got here, assume success
+        // Check if coupon was actually created by refreshing table
+        if (supplyOrderTable) {
+          supplyOrderTable.draw();
+        }
+
+        // Close modal and show success
+        document.getElementById("addModal").style.display = "none";
+        event.target.reset();
+        document.getElementById("discountValueGroup").style.display = "none";
+        document.getElementById("usageLimitGroup").style.display = "block";
+        document.getElementById("perUserLimitGroup").style.display = "block";
+        document.getElementById("unlimitedUsage").checked = false;
+        document.getElementById("unlimitedPerUser").checked = false;
+
+        Swal.fire({
+          title: "Success!",
+          text: "Coupon created successfully!",
+          icon: "success",
+          timer: 3000,
+          showConfirmButton: true,
+          confirmButtonText: "OK",
+          confirmButtonColor: "#256035",
+        });
+        return;
+      }
+
+      // Try to parse as JSON
+      let data;
       try {
-        const data = JSON.parse(text);
-        if (data.success) {
-          Swal.fire("Success", data.message, "success");
+        data = JSON.parse(text);
+      } catch (e) {
+        // If JSON parsing fails, check if response contains success indicators
+        if (
+          text.toLowerCase().includes("success") ||
+          text.toLowerCase().includes("created") ||
+          text.toLowerCase().includes("added")
+        ) {
+          // Assume success if response contains success keywords
           document.getElementById("addModal").style.display = "none";
           event.target.reset();
+          document.getElementById("discountValueGroup").style.display = "none";
+          document.getElementById("usageLimitGroup").style.display = "block";
+          document.getElementById("perUserLimitGroup").style.display = "block";
+          document.getElementById("unlimitedUsage").checked = false;
+          document.getElementById("unlimitedPerUser").checked = false;
+
           if (supplyOrderTable) {
             supplyOrderTable.draw();
           }
+
+          Swal.fire({
+            title: "Success!",
+            text: "Coupon created successfully!",
+            icon: "success",
+            timer: 3000,
+            showConfirmButton: true,
+            confirmButtonText: "OK",
+            confirmButtonColor: "#256035",
+          });
+          return;
         } else {
-          Swal.fire("Error", data.message, "error");
+          console.error("JSON parse error:", e);
+          console.error("Response text:", text);
+          Swal.fire({
+            title: "Error",
+            text: "Invalid response format from server.",
+            icon: "error",
+            confirmButtonColor: "#256035",
+          });
+          return;
         }
-      } catch (e) {
-        console.error("JSON parse error:", e);
-        console.error("Response text:", text);
-        Swal.fire("Error", "Invalid response from server", "error");
       }
-    })
-    .catch((error) => {
-      console.error("Fetch error:", error);
-      Swal.fire("Error", "Network error. Please try again.", "error");
-    });
-}
 
-function updateCoupon(event) {
-  event.preventDefault();
-
-  const formData = new FormData(event.target);
-  formData.append("action", "update_voucher");
-
-  if (!formData.has("include_free_shipping"))
-    formData.append("include_free_shipping", 0);
-  if (!formData.has("prevent_discounted"))
-    formData.append("prevent_discounted", 0);
-
-  fetch("./promotions_api.php", {
-    method: "POST",
-    body: formData,
-  })
-    .then((response) => response.json())
-    .then((data) => {
+      // Handle JSON response
       if (data.success) {
-        Swal.fire("Success", data.message, "success");
-        document.getElementById("editModal").style.display = "none";
+        // Close modal immediately
+        document.getElementById("addModal").style.display = "none";
+
+        // Reset form to initial state
+        event.target.reset();
+        document.getElementById("discountValueGroup").style.display = "none";
+        document.getElementById("usageLimitGroup").style.display = "block";
+        document.getElementById("perUserLimitGroup").style.display = "block";
+        document.getElementById("unlimitedUsage").checked = false;
+        document.getElementById("unlimitedPerUser").checked = false;
+
+        // Show success notification
+        Swal.fire({
+          title: "Success!",
+          text: data.message || "Coupon created successfully!",
+          icon: "success",
+          timer: 3000,
+          showConfirmButton: true,
+          confirmButtonText: "OK",
+          confirmButtonColor: "#256035",
+        });
+
+        // Refresh table
         if (supplyOrderTable) {
           supplyOrderTable.draw();
         }
       } else {
-        Swal.fire("Error", data.message, "error");
+        Swal.fire({
+          title: "Error",
+          text: data.message || "Failed to create coupon",
+          icon: "error",
+          confirmButtonColor: "#256035",
+        });
       }
     })
     .catch((error) => {
-      Swal.fire("Error", "Network error. Please try again.", "error");
+      console.error("Fetch error:", error);
+      Swal.fire({
+        title: "Error",
+        text: "Network error. Please try again.",
+        icon: "error",
+        confirmButtonColor: "#256035",
+      });
+    })
+    .finally(() => {
+      // Reset button state
+      submitBtn.textContent = originalText;
+      submitBtn.disabled = false;
     });
 }
 

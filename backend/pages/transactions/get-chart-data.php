@@ -175,8 +175,7 @@ try {
                             WHERE o.status IN ('Delivered', 'Picked-up') 
                             AND DATE(o.order_date) BETWEEN ? AND ?
                             GROUP BY oi.product_name
-                            ORDER BY total_quantity DESC
-                            LIMIT 10";
+                            ORDER BY total_quantity DESC";
         
         $stmt = mysqli_prepare($conn, $top_products_sql);
         mysqli_stmt_bind_param($stmt, "ss", $start_date, $end_date);
