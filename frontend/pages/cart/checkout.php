@@ -79,7 +79,8 @@ if (empty($selected_cart_ids)) {
 
 $page_title = "Checkout";
 $additional_css = [
-    "checkout.css"
+    "checkout.css",
+    "../../assets/css/checkout-additional.css"
 ];
 
 
@@ -460,6 +461,7 @@ $debug_info = [
   <title>Checkout Page</title>
 
   <link rel="stylesheet" href="checkout.css">
+  <link rel="stylesheet" href="checkout-additional.css">
   <link rel="stylesheet" href="saved-info.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -599,25 +601,24 @@ $debug_info = [
     }
     
     .calendar-day.disabled {
-      background: #f5f5f5;
+      background: #f8f9fa;
       color: #ccc;
       cursor: not-allowed;
     }
     
     .calendar-day.not-accepting {
-      background: #ffebee;
+      background: #f8f9fa;
       color: #c62828;
       cursor: not-allowed;
     }
     
     .calendar-day.not-accepting::after {
-      content: '✕';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 18px;
-      font-weight: bold;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 14px;
+        opacity: 0.7;
     }
     
     .calendar-day.unavailable-day {
@@ -628,7 +629,6 @@ $debug_info = [
     }
     
     .calendar-day.unavailable-day::after {
-      content: '🚫';
       position: absolute;
       top: 50%;
       left: 50%;
@@ -1212,26 +1212,7 @@ $debug_info = [
       background: #c82333;
     }
     
-    /* Responsive Design for Coupon Section */
-    @media (max-width: 768px) {
-      .coupon-input-group {
-        flex-direction: column;
-      }
-      
-      .btn-apply-coupon {
-        width: 100%;
-      }
-      
-      .applied-coupon-info {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-      }
-      
-      .btn-remove-coupon {
-        align-self: flex-end;
-      }
-    }
+
   </style>
   
   <script>
@@ -1380,7 +1361,7 @@ $debug_info = [
 
                     let currentDate = new Date(startDate);
                     let dayCount = 0;
-                    const maxDays = 42; // 6 weeks * 7 days
+                    const maxDays = 35; // 6 weeks * 7 days
                     
                     while ((currentDate <= lastDay || currentDate.getDay() !== 0) && dayCount < maxDays) {
                         // Use local timezone instead of UTC to avoid date offset issues
@@ -2153,7 +2134,6 @@ $debug_info = [
                 if (!indicator && inheritedMethod) {
                     indicator = document.createElement('span');
                     indicator.className = 'shipping-indicator';
-                    indicator.style.cssText = 'display: inline-block; margin-left: 8px; padding: 2px 8px; background: #f0f0f0; border-radius: 3px; font-size: 11px; color: #666;';
                     const nameElement = item.querySelector('.item-name');
                     if (nameElement) {
                         nameElement.appendChild(indicator);
@@ -2359,270 +2339,288 @@ $debug_info = [
 <?php include '../../user-includes/navbar/customer-navigation.php'; ?>
     <?php include __DIR__ . "/../../user-includes/bread-crumb/bread-crumb.php"; ?>
 
-
-<div class="checkout-container">
-    <form id="checkout-form">
-        <!-- User Information Section -->
-        <div class="section-card user-information">
-            <div class="section-header-with-button">
-                <h2>User Information</h2>
-                <button type="button" id="loadContactsBtn" class="btn-load-contacts">
-                    📋 Load Contacts and Address
-                </button>
-            </div>
-            
-            <div class="user-details">
-                <div class="detail-row">
-                    <span class="detail-label">Name:</span>
-                    <span class="detail-value" id="user-name">
-                        <?php 
-                            $fullname = trim($user['firstname'] . ' ' . $user['lastname']);
-                            echo htmlspecialchars($fullname); 
-                        ?>
-                    </span>
-                    <input type="hidden" id="first_name" name="first_name" value="<?php echo htmlspecialchars($user['firstname'] ?? ''); ?>">
-                    <input type="hidden" id="last_name" name="last_name" value="<?php echo htmlspecialchars($user['lastname'] ?? ''); ?>">
+<div class="content-wrapper">
+    <div class="checkout-container">
+        <form id="checkout-form">
+            <!-- User Information Section -->
+            <div class="section-card user-information">
+                <div class="section-header-with-button">
+                    <h2>User Information</h2>
+                    <button type="button" id="loadContactsBtn" class="btn-load-contacts">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                    </button>
                 </div>
-                <div class="detail-row">
-                    <span class="detail-label">Email:</span>
-                    <span class="detail-value" id="user-email">
-                        <?php 
-                            error_log("User data at display point: " . print_r($user, true));
-                            error_log("Session data at display point: " . print_r($_SESSION, true));
-                            
-                            // Try multiple ways to get the email
-                            $email = null;
-                            
-                            if (!empty($user['email'])) {
-                                $email = $user['email'];
-                            } elseif (isset($_SESSION['session_data']['user_data']['email'])) {
-                                $email = $_SESSION['session_data']['user_data']['email'];
-                            } elseif (isset($_SESSION['user_data']['email'])) {
-                                $email = $_SESSION['user_data']['email'];
-                            }
-                            
-                            if ($email) {
-                                echo htmlspecialchars($email);
-                            } else {
-                                echo 'Email not available';
-                            }
-                        ?>
-                    </span>
-                    <input type="hidden" name="customer_email" value="<?php 
-                        echo !empty($email) ? htmlspecialchars($email) : '';
-                    ?>">
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Contact:</span>
-                    <input type="tel" id="contact_number" name="contact_number" 
-                           placeholder="09xxxxxxxxx (11 digits)" 
-                           required 
-                           pattern="09\d{9}"
-                           title="Please enter a valid 11-digit phone number starting with 09"
-                           maxlength="11"
-                           minlength="11"
-                           inputmode="numeric">
-                </div>
-            </div>
-        </div>
-
-        <!-- Combined Shipping Options & Details -->
-        <div class="section-card shipping-details">
-            <h2>Shipping Options</h2>
-            
-            <?php if ($has_pickup_only && $has_flexible): ?>
-                <div class="shipping-method-notice">
-                    <p><strong>Pick Up Required:</strong> The selected items for checkout are Pick Up Only products.</p>
-                </div>
-            <?php elseif ($has_delivery_only && $has_flexible): ?>
-                <div class="shipping-method-notice">
-                    <p>The selected items for checkout are Delivery Only products.</p>
-                    <p><strong>Delivery Areas:</strong> We deliver to Sta. Rosa, Cabuyao, Calamba, Binan (Laguna), Silang, and Tagaytay (Cavite) only.</p>
-                </div>
-            <?php elseif ($has_pickup_only): ?>
-                <div class="shipping-method-notice">
-                    <p><strong>Pick Up Required:</strong> The selected items for checkout are Pick Up Only products.</p>
-                </div>
-            <?php elseif ($has_delivery_only): ?>
-                <div class="shipping-method-notice">
-                    <p>The selected items for checkout are Delivery Only products.</p>
-                    <p><strong>Delivery Areas:</strong> We deliver to Sta. Rosa, Cabuyao, Calamba, Binan (Laguna), Silang, and Tagaytay (Cavite) only.</p>
-                </div>
-            <?php elseif ($has_flexible): ?>
-                <div class="shipping-method-notice" style="background: #e3f2fd; border-color: #90caf9;">
-                    <p><strong>Choose Your Shipping Method:</strong> The selected items for checkout have flexible shipping options. You can choose either Pick Up or Delivery.</p>
-                </div>
-            <?php endif; ?>
-            
-            <div class="delivery-modes">
-                <div>
-                    <label class="section-subtitle">Select Delivery Method:</label>
-                </div>
-                <div class="delivery-type">
-                    <label class="radio-option">
-                        <input type="radio" id="pickup" name="delivery_method" value="pickup" 
-                            <?= $shipping_method === 'pickup' ? 'checked' : '' ?>
-                            <?= !$can_change_shipping && $shipping_method !== 'pickup' ? 'disabled' : '' ?>>
-                        <span>Pick Up <?= !$can_change_shipping && $shipping_method !== 'pickup' ? '(Not available)' : '' ?></span>
-                    </label>
-                    <label class="radio-option">
-                        <input type="radio" id="delivery" name="delivery_method" value="delivery"
-                            <?= $shipping_method === 'delivery' ? 'checked' : '' ?>
-                            <?= !$can_change_shipping && $shipping_method !== 'delivery' ? 'disabled' : '' ?>>
-                        <span>Delivery <?= !$can_change_shipping && $shipping_method !== 'delivery' ? '(Not available)' : '' ?></span>
-                    </label>
-                </div>
-            </div>
-    
-            <!-- Pickup Details -->
-            <div id="pickup-details" class="delivery-content">
-                <div class="calendar-section">
-                    <div id="calendar"></div>
-                </div>
-                <div class="datetime-inputs">
-                    <div class="form-group">
-                        <label for="pickup_date">Pickup Date:</label>
-                        <input type="text" id="pickup_date" name="pickup_date" readonly required>
+                
+                <div class="user-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Name:</span>
+                        <span class="detail-value" id="user-name">
+                            <?php 
+                                $fullname = trim($user['firstname'] . ' ' . $user['lastname']);
+                                echo htmlspecialchars($fullname); 
+                            ?>
+                        </span>
+                        <input type="hidden" id="first_name" name="first_name" value="<?php echo htmlspecialchars($user['firstname'] ?? ''); ?>">
+                        <input type="hidden" id="last_name" name="last_name" value="<?php echo htmlspecialchars($user['lastname'] ?? ''); ?>">
                     </div>
-                    <div class="form-group">
-                        <label for="pickup_time">Pickup Time:</label>
-                        <input type="time" id="pickup_time" name="pickup_time" required>
+                    <div class="detail-row">
+                        <span class="detail-label">Email:</span>
+                        <span class="detail-value" id="user-email">
+                            <?php 
+                                error_log("User data at display point: " . print_r($user, true));
+                                error_log("Session data at display point: " . print_r($_SESSION, true));
+                                
+                                // Try multiple ways to get the email
+                                $email = null;
+                                
+                                if (!empty($user['email'])) {
+                                    $email = $user['email'];
+                                } elseif (isset($_SESSION['session_data']['user_data']['email'])) {
+                                    $email = $_SESSION['session_data']['user_data']['email'];
+                                } elseif (isset($_SESSION['user_data']['email'])) {
+                                    $email = $_SESSION['user_data']['email'];
+                                }
+                                
+                                if ($email) {
+                                    echo htmlspecialchars($email);
+                                } else {
+                                    echo 'Email not available';
+                                }
+                            ?>
+                        </span>
+                        <input type="hidden" name="customer_email" value="<?php 
+                            echo !empty($email) ? htmlspecialchars($email) : '';
+                        ?>">
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Contact:</span>
+                        <input type="tel" id="contact_number" name="contact_number" 
+                            placeholder="09xxxxxxxxx (11 digits)" 
+                            required 
+                            pattern="09\d{9}"
+                            title="Please enter a valid 11-digit phone number starting with 09"
+                            maxlength="11"
+                            minlength="11"
+                            inputmode="numeric">
                     </div>
                 </div>
             </div>
 
-            <!-- Delivery Details -->
-            <div id="delivery-details" class="delivery-content" style="display: none;">
-                <div class="address-section">
+            <!-- Combined Shipping Options & Details -->
+            <div class="section-card shipping-details">
+                <h2>Shipping Options</h2>
+                
+                <?php if ($has_pickup_only && $has_flexible): ?>
+                    <div class="shipping-method-notice">
+                        <p><strong>Pick Up Required:</strong> The selected items for checkout are Pick Up Only products.</p>
+                    </div>
+                <?php elseif ($has_delivery_only && $has_flexible): ?>
+                    <div class="shipping-method-notice">
+                        <p>The selected items for checkout are Delivery Only products.</p>
+                        <p><strong>Delivery Areas:</strong> We deliver to Sta. Rosa, Cabuyao, Calamba, Binan (Laguna), Silang, and Tagaytay (Cavite) only.</p>
+                    </div>
+                <?php elseif ($has_pickup_only): ?>
+                    <div class="shipping-method-notice">
+                        <p><strong>Pick Up Required:</strong> The selected items for checkout are Pick Up Only products.</p>
+                    </div>
+                <?php elseif ($has_delivery_only): ?>
+                    <div class="shipping-method-notice">
+                        <p>The selected items for checkout are Delivery Only products.</p>
+                        <p><strong>Delivery Areas:</strong> We deliver to Sta. Rosa, Cabuyao, Calamba, Binan (Laguna), Silang, and Tagaytay (Cavite) only.</p>
+                    </div>
+                <?php elseif ($has_flexible): ?>
+                    <div class="shipping-method-notice" style="background: #e3f2fd; border-color: #90caf9;">
+                        <p><strong>Choose Your Shipping Method:</strong> The selected items for checkout have flexible shipping options. You can choose either Pick Up or Delivery.</p>
+                    </div>
+                <?php endif; ?>
+                
+                <div class="delivery-modes">
                     <div>
-                        <label for="delivery_address" class="section-subtitle" >Delivery Address:</label>
+                        <label class="section-subtitle">Select Delivery Method:</label>
                     </div>
-                    <div class="address-input-group">
-                        <input type="text" id="delivery_address" name="delivery_address" 
-                               placeholder="Use set location button to enter delivery address" readonly>
-                        <button type="button" id="setLocationBtn" class="btn-secondary">Set Location</button>
-                    </div>
-                </div>
-                <div class="datetime-inputs">
-                    <div class="form-group">
-                        <label for="delivery_date">Delivery Date:</label>
-                        <input type="text" id="delivery_date" name="delivery_date" placeholder="Select Date From the Calendar above" readonly required>
-                    </div>
-                    <div class="form-group">
-                        <label for="delivery_time">Delivery Time:</label>
-                        <input type="time" id="delivery_time" name="delivery_time" 
-                               min="06:00" max="18:00" step="1800" required>
-                        <small class="time-note">Available time: 6:00 AM - 6:00 PM</small>
+                    <div class="delivery-type">
+                        <label class="radio-option">
+                            <input type="radio" id="pickup" name="delivery_method" value="pickup" 
+                                <?= $shipping_method === 'pickup' ? 'checked' : '' ?>
+                                <?= !$can_change_shipping && $shipping_method !== 'pickup' ? 'disabled' : '' ?>>
+                            <span>Pick Up <?= !$can_change_shipping && $shipping_method !== 'pickup' ? '(Not available)' : '' ?></span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" id="delivery" name="delivery_method" value="delivery"
+                                <?= $shipping_method === 'delivery' ? 'checked' : '' ?>
+                                <?= !$can_change_shipping && $shipping_method !== 'delivery' ? 'disabled' : '' ?>>
+                            <span>Delivery <?= !$can_change_shipping && $shipping_method !== 'delivery' ? '(Not available)' : '' ?></span>
+                        </label>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- DIV 4: Order Summary -->
-        <div class="section-card order-summary">
-            <h2>Order Summary</h2>
-            
-            <!-- Coupon Code Section -->
-
-            
-            <div class="summary-items">
-                <?php foreach ($cart_items as $item): ?>
-                    <div class="item" data-status-id="<?= $item['status_id'] ?>">
-                        <div class="item-info">
-                            <h3 class="item-name">
-                                <?= htmlspecialchars($item['name']) ?>
-                                <?php if ($item['status_id'] == 3): ?>
-                                    <span class="shipping-indicator" style="display: inline-block; margin-left: 8px; padding: 2px 8px; background: #f0f0f0; border-radius: 3px; font-size: 11px; color: #666; font-weight: normal;"></span>
-                                <?php endif; ?>
-                            </h3>
-                            <p class="quantity"><?= $item['quantity'] ?> x <?= $item['price'] ?></p>
-                            <?php if ($item['status_id'] == 1): ?>
-                                <p class="product-shipping-method" style="font-size: 12px; color: #4CAF50; font-weight: 600;">🚶 Pick Up Only</p>
-                            <?php elseif ($item['status_id'] == 2): ?>
-                                <p class="product-shipping-method" style="font-size: 12px; color: #2196F3; font-weight: 600;">🚚 Delivery Only</p>
-                            <?php elseif ($item['status_id'] == 3): ?>
-                                <p class="product-shipping-method" style="font-size: 12px; color: #9C27B0; font-weight: 600;">✨ Flexible (Delivery or Pick-Up)</p>
-                            <?php endif; ?>
+        
+                <!-- Pickup Details -->
+                <div id="pickup-details" class="delivery-content">
+                    <div class="calendar-section">
+                        <div id="calendar"></div>
+                    </div>
+                    <div class="datetime-inputs">
+                        <div class="form-group">
+                            <label for="pickup_date">Pickup Date:</label>
+                            <input type="text" id="pickup_date" name="pickup_date" readonly required>
                         </div>
-                        <div class="item-price">₱<?= number_format($item['price'] * $item['quantity'], 2) ?></div>
+                        <div class="form-group">
+                            <label for="pickup_time">Pickup Time:</label>
+                            <input type="time" id="pickup_time" name="pickup_time" required>
+                        </div>
                     </div>
-                <?php endforeach; ?>
-            </div>
+                </div>
 
-
-            <div class="summary-totals">
-                <div class="total-row">
-                    <span>Subtotal:</span>
-                    <span id="subtotal">₱<?= number_format($cart_total, 2) ?></span>
-                </div>
-                <div class="total-row" id="discount-row" style="display: none;">
-                    <span>Discount:</span>
-                    <span id="discount_amount">-₱0.00</span>
-                </div>
-                <div class="total-row" id="shipping-row">
-                    <span>Shipping Fee:</span>
-                    <span id="shipping_fee">₱0.00</span>
-                </div>
-                <div class="total-row total-final">
-                    <span>Total:</span>
-                    <span id="total">₱<?= number_format($cart_total, 2) ?></span>
-                </div>
-            </div>
-
-            <div class="coupon-section">
-                <div class="coupon-input-group">
-                    <input type="text" id="coupon_code" name="coupon_code" 
-                           placeholder="Enter coupon code" 
-                           class="coupon-input">
-                    <button type="button" id="apply_coupon_btn" class="btn-apply-coupon">Apply</button>
-                </div>
-                <div id="coupon_message" class="coupon-message"></div>
-                <div id="coupon_applied" class="coupon-applied" style="display: none;">
-                    <div class="applied-coupon-info">
-                        <span class="coupon-code-display"></span>
-                        <span class="coupon-discount"></span>
-                        <button type="button" id="remove_coupon_btn" class="btn-remove-coupon">Remove</button>
+                <!-- Delivery Details -->
+                <div id="delivery-details" class="delivery-content" style="display: none;">
+                    <div class="address-section">
+                        <div>
+                            <label for="delivery_address" class="section-subtitle" >Delivery Address:</label>
+                        </div>
+                        <div class="address-input-group">
+                            <input type="text" id="delivery_address" name="delivery_address" 
+                                placeholder="Use set location button to enter delivery address" readonly>
+                            <button type="button" id="setLocationBtn" class="btn-secondary">Set Location</button>
+                        </div>
+                    </div>
+                    <div class="datetime-inputs">
+                        <div class="form-group">
+                            <label for="delivery_date">Delivery Date:</label>
+                            <input type="text" id="delivery_date" name="delivery_date" placeholder="Select Date From the Calendar above" readonly required>
+                        </div>
+                        <div class="form-group">
+                            <label for="delivery_time">Delivery Time:</label>
+                            <input type="time" id="delivery_time" name="delivery_time" 
+                                min="06:00" max="18:00" step="1800" required>
+                            <small class="time-note">Available time: 6:00 AM - 6:00 PM</small>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- DIV 5: Payment Mode -->
-        <div class="section-card payment-mode">
-            <h2>Mode of Payment</h2>
-            <div class="payment-options">
-                <label class="payment-option">
-                    <input type="radio" name="payment_method" value="gcash" id="gcash" checked>
-                    <div class="payment-option-content">
-                        <span class="payment-text">GCash</span>
+            <!-- DIV 4: Order Summary -->
+            <div class="section-card order-summary">
+                <h2>Order Summary</h2>
+                
+                <!-- Coupon Code Section -->
+
+                
+                <div class="summary-items">
+                    <?php foreach ($cart_items as $item): ?>
+                        <div class="item" data-status-id="<?= $item['status_id'] ?>">
+                            <div class="item-info">
+                                <h3 class="item-name">
+                                    <?= htmlspecialchars($item['name']) ?>
+                                    <?php if ($item['status_id'] == 3): ?>
+                                        <span class="shipping-indicator" style="display: inline-block; margin-left: 8px; padding: 2px 8px; background: #f0f0f0; border-radius: 3px; font-size: 11px; color: #666; font-weight: normal;"></span>
+                                    <?php endif; ?>
+                                </h3>
+                                <p class="quantity"><?= $item['quantity'] ?> x <?= $item['price'] ?></p>
+                                <?php if ($item['status_id'] == 1): ?>
+                                    <p class="product-shipping-method" style="font-size: 12px; color: #4CAF50; font-weight: 600;">🚶 Pick Up Only</p>
+                                <?php elseif ($item['status_id'] == 2): ?>
+                                    <p class="product-shipping-method" style="font-size: 12px; color: #2196F3; font-weight: 600;">🚚 Delivery Only</p>
+                                <?php elseif ($item['status_id'] == 3): ?>
+                                    <p class="product-shipping-method" style="font-size: 12px; color: #9C27B0; font-weight: 600;">✨ Flexible (Delivery or Pick-Up)</p>
+                                <?php endif; ?>
+                            </div>
+                            <div class="item-price">₱<?= number_format($item['price'] * $item['quantity'], 2) ?></div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+
+
+                <div class="summary-totals">
+                    <div class="total-row">
+                        <span>Subtotal:</span>
+                        <span id="subtotal">₱<?= number_format($cart_total, 2) ?></span>
                     </div>
-                </label>
-                <label class="payment-option">
-                    <input type="radio" name="payment_method" value="maya" id="maya">
-                    <div class="payment-option-content">
-                        <span class="payment-text">Maya</span>
+                    <div class="total-row" id="discount-row" style="display: none;">
+                        <span>Discount:</span>
+                        <span id="discount_amount">-₱0.00</span>
                     </div>
-                </label>
-                <label class="payment-option">
-                    <input type="radio" name="payment_method" value="card" id="card">
-                    <div class="payment-option-content">
-                        <span class="payment-text">Credit/Debit Card</span>
+                    <div class="total-row" id="shipping-row">
+                        <span>Shipping Fee:</span>
+                        <span id="shipping_fee">₱0.00</span>
                     </div>
-                </label>
+                    <div class="total-row total-final">
+                        <span>Total:</span>
+                        <span id="total">₱<?= number_format($cart_total, 2) ?></span>
+                    </div>
+                </div>
+
+                <div class="coupon-section">
+                    <div class="coupon-input-group">
+                        <input type="text" id="coupon_code" name="coupon_code" 
+                            placeholder="Enter coupon code" 
+                            class="coupon-input">
+                        <button type="button" id="apply_coupon_btn" class="btn-apply-coupon">Apply</button>
+                    </div>
+                    <div id="coupon_message" class="coupon-message"></div>
+                    <div id="coupon_applied" class="coupon-applied" style="display: none;">
+                        <div class="applied-coupon-info">
+                            <span class="coupon-code-display"></span>
+                            <span class="coupon-discount"></span>
+                            <button type="button" id="remove_coupon_btn" class="btn-remove-coupon">Remove</button>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="payment-note">
-                <p>Payment instructions will be provided after placing your order.</p>
+
+            <!-- DIV 5: Payment Mode -->
+            <div class="section-card payment-mode">
+                <h2>Mode of Payment</h2>
+                <div class="payment-options">
+                    <label class="payment-option">
+                        <input type="radio" name="payment_method" value="gcash" id="gcash" checked>
+                        <div class="payment-option-content">
+                            <span class="payment-text">GCash</span>
+                            <small class="payment-desc">Pay with GCash e-wallet</small>
+                        </div>
+                    </label>
+                    <label class="payment-option">
+                        <input type="radio" name="payment_method" value="maya" id="maya">
+                        <div class="payment-option-content">
+                            <span class="payment-text">Maya</span>
+                            <small class="payment-desc">Pay with Maya e-wallet</small>
+                        </div>
+                    </label>
+                    <label class="payment-option">
+                        <input type="radio" name="payment_method" value="card" id="card">
+                        <div class="payment-option-content">
+                            <span class="payment-text">Credit/Debit Card</span>
+                            <small class="payment-desc">Pay with Visa, Mastercard</small>
+                        </div>
+                    </label>
+                </div>
+                
+                <!-- Card Payment Form (hidden by default) -->
+                <div id="card-payment-form" class="card-payment-form" style="display: none;">
+                    <h3>Card Details</h3>
+                    <div id="card-element">
+                        <!-- PayMongo card element will be mounted here -->
+                    </div>
+                    <div id="card-errors" class="card-errors"></div>
+                </div>
+                
+                <div class="payment-note">
+                    <p><strong>Secure Payment:</strong> All payments are processed securely through PayMongo.</p>
+                    <p><small>Test Mode: Use test card numbers for testing payments.</small></p>
+                </div>
             </div>
-        </div>
 
-        <div class="section-card order-notes">
-            <h2>Order Notes</h2>
-            <textarea id="order_notes" name="order_notes" 
-                      placeholder="Add any special instructions or notes here (optional)"></textarea>
-        </div>
+            <div class="section-card order-notes">
+                <h2>Order Notes</h2>
+                <textarea id="order_notes" name="order_notes" 
+                        placeholder="Add any special instructions or notes here (optional)"></textarea>
+            </div>
 
-        <button type="submit" class="btn-primary place-order-btn" style="background-color: #256035;">Place Order</button>
-    </form>
+            <button type="submit" class="btn-primary place-order-btn" style="background-color: #256035;">Place Order</button>
+        </form>
+    </div>
 </div>
 
 <div id="locationModal" class="modal">

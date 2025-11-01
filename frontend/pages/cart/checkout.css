@@ -28,6 +28,10 @@
   font-family: "Inter", "Segoe UI", "Arial", sans-serif;
 }
 
+.content-wrapper {
+  padding: 0 1rem;
+}
+
 body.checkout-page {
   background-color: var(--background-color);
   color: var(--text-color);
@@ -249,18 +253,19 @@ textarea:user-valid,
 select:user-valid {
   border-color: #10b981;
 }
-
-/* Order Summary Section */
-.summary-items {
-  margin-bottom: 24px;
+.shipping-indicator {
+  display: none !important;
 }
-
 .item {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0 2rem 1rem 2rem;
   border-bottom: 1px solid var(--light-gray);
+}
+
+.item:last-child {
+  border-bottom: none;
 }
 
 .item-info h3 {
@@ -279,6 +284,13 @@ select:user-valid {
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--text-color);
+}
+
+/* Summary Totals */
+.summary-totals {
+  border-top: 2px solid var(--light-gray);
+  padding-top: 16px;
+  margin-bottom: 24px;
 }
 
 .total-row {
@@ -302,12 +314,6 @@ select:user-valid {
 
 .total-final {
   border-top: 2px solid var(--light-gray);
-}
-
-.total-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px 0;
 }
 
 /* Payment Mode Section */
@@ -335,7 +341,6 @@ select:user-valid {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 15px;
 }
 
 .payment-text {
@@ -387,8 +392,8 @@ select:user-valid {
 /* Place Order Button */
 .place-order-btn {
   width: 100%;
-  padding: 16px;
-  font-size: 1.25rem;
+  padding: 10px;
+  font-size: 1rem;
   font-weight: 600;
   background-color: #256035;
   color: white;
@@ -409,39 +414,6 @@ select:user-valid {
 .place-order-btn:active {
   transform: translateY(0);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .checkout-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .datetime-inputs {
-    grid-template-columns: 1fr;
-  }
-
-  .delivery-type {
-    flex-direction: column;
-  }
-
-  .payment-options {
-    flex-direction: column;
-  }
-
-  .detail-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 5px;
-  }
-
-  .detail-label {
-    min-width: auto;
-  }
-
-  .address-section {
-    flex-direction: column;
-  }
 }
 
 /* Calendar styles */
@@ -990,10 +962,6 @@ input[type="tel"]:user-valid {
   transform: translateY(-50%);
 }
 
-.payment-option-content {
-  align-items: flex-start;
-}
-
 /* Add payment icons */
 .payment-icon {
   font-size: 1.5rem;
@@ -1122,27 +1090,6 @@ input[type="tel"]:user-valid {
   color: #2f603c;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-}
-
-/* Calendar responsiveness */
-@media (max-width: 768px) {
-  .calendar-container {
-    padding: 8px;
-    margin: 10px 0;
-  }
-
-  .fc .fc-toolbar {
-    gap: 8px;
-  }
-
-  .fc .fc-toolbar-title {
-    font-size: 0.9em;
-  }
-
-  .fc .fc-button {
-    padding: 0.2em 0.4em;
-    font-size: 0.8em;
-  }
 }
 
 /* Tooltip styling */
@@ -1343,44 +1290,4 @@ input[type="time"]:invalid {
   width: 35px;
   height: 35px;
   border-radius: 50%;
-}
-
-/* Fix navigation dropdown styles */
-.checkout-page .dropdown-menu {
-  padding: 4px 0;
-  display: none;
-  position: absolute;
-  background-color: var(--text-green);
-  min-width: 220px;
-  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
-  z-index: 1;
-  left: calc(20% - 90px);
-  border-radius: 4px;
-}
-
-.checkout-page .dropdown-menu a {
-  color: var(--text-match);
-}
-
-.checkout-page .dropdown-menu a:hover {
-  color: #948573;
-  text-decoration: none;
-}
-
-/* Ensure navigation has proper spacing */
-.checkout-page .nav-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  text-decoration: none;
-}
-
-.checkout-page .nav-left {
-  gap: 15px;
-  text-decoration: none;
-}
-
-.checkout-page .nav-right {
-  gap: 15px;
-  text-decoration: none;
 }

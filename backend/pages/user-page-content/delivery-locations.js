@@ -1,6 +1,66 @@
 // Global variables
 let currentDeleteId = null;
 
+// Notification System
+function showNotification(message, type = "success") {
+  // Remove existing notifications
+  const existingNotifications = document.querySelectorAll(".notification");
+  existingNotifications.forEach((notification) => notification.remove());
+
+  // Get notification container
+  const container = document.getElementById("notification-container");
+
+  // Create notification element
+  const notification = document.createElement("div");
+  notification.className = `notification notification-${type}`;
+  notification.innerHTML = `
+    <div class="notification-content">
+      <span class="notification-message">${message}</span>
+      <button class="notification-close" onclick="closeNotification(this)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  `;
+
+  // Add to container
+  container.appendChild(notification);
+
+  // Show notification with animation
+  setTimeout(() => notification.classList.add("show"), 100);
+
+  // Auto-hide after 5 seconds
+  setTimeout(() => {
+    notification.classList.remove("show");
+    setTimeout(() => notification.remove(), 300);
+  }, 5000);
+}
+
+function closeNotification(button) {
+  const notification = button.closest(".notification");
+  notification.classList.remove("show");
+  setTimeout(() => notification.remove(), 300);
+}
+
+// Loading state management
+function setButtonLoading(button, isLoading, originalText = "") {
+  if (isLoading) {
+    button.disabled = true;
+    button.dataset.originalText = button.innerHTML;
+    button.innerHTML = `
+      <span class="loading-spinner"></span>
+      Loading...
+    `;
+    button.classList.add("loading");
+  } else {
+    button.disabled = false;
+    button.innerHTML = button.dataset.originalText || originalText;
+    button.classList.remove("loading");
+  }
+}
+
 // Modal functions
 function openAddModal() {
   console.log("openAddModal called");
@@ -51,6 +111,15 @@ function closeDeleteModal() {
 
 function confirmDelete() {
   if (currentDeleteId) {
+    const deleteButton = document.querySelector("#deleteModal .btn-danger");
+    deleteButton.disabled = true;
+    deleteButton.dataset.originalText = deleteButton.innerHTML;
+    deleteButton.innerHTML = `
+      <span class="loading-spinner"></span>
+      Deleting...
+    `;
+    deleteButton.classList.add("loading");
+
     // Send delete request
     fetch("/backend/pages/user-page-content/delivery-locations-handler.php", {
       method: "POST",
@@ -61,18 +130,24 @@ function confirmDelete() {
     })
       .then((response) => response.json())
       .then((data) => {
+        setButtonLoading(deleteButton, false);
+
         if (data.success) {
-          location.reload();
+          showNotification(
+            data.message || "Location deleted successfully!",
+            "success"
+          );
+          closeDeleteModal();
+          setTimeout(() => location.reload(), 1500);
         } else {
-          alert("Error deleting location: " + data.message);
+          showNotification(data.message || "Error deleting location", "error");
         }
       })
       .catch((error) => {
         console.error("Error:", error);
-        alert("Error deleting location");
+        setButtonLoading(deleteButton, false);
+        showNotification("Error deleting location: " + error.message, "error");
       });
-
-    closeDeleteModal();
   }
 }
 
@@ -80,6 +155,15 @@ function confirmDelete() {
 function addLocation(event) {
   console.log("addLocation called");
   event.preventDefault();
+
+  const submitButton = event.target.querySelector('button[type="submit"]');
+  submitButton.disabled = true;
+  submitButton.dataset.originalText = submitButton.innerHTML;
+  submitButton.innerHTML = `
+    <span class="loading-spinner"></span>
+    Adding...
+  `;
+  submitButton.classList.add("loading");
 
   const formData = new FormData(event.target);
   formData.append("action", "add");
@@ -96,21 +180,37 @@ function addLocation(event) {
     })
     .then((data) => {
       console.log("Response data:", data);
+      setButtonLoading(submitButton, false);
+
       if (data.success) {
-        alert("Location added successfully!");
-        location.reload();
+        showNotification(
+          data.message || "Location added successfully!",
+          "success"
+        );
+        closeAddModal();
+        setTimeout(() => location.reload(), 1500);
       } else {
-        alert("Error adding location: " + data.message);
+        showNotification(data.message || "Error adding location", "error");
       }
     })
     .catch((error) => {
       console.error("Error:", error);
-      alert("Error adding location: " + error.message);
+      setButtonLoading(submitButton, false);
+      showNotification("Error adding location: " + error.message, "error");
     });
 }
 
 function updateLocation(event) {
   event.preventDefault();
+
+  const submitButton = event.target.querySelector('button[type="submit"]');
+  submitButton.disabled = true;
+  submitButton.dataset.originalText = submitButton.innerHTML;
+  submitButton.innerHTML = `
+    <span class="loading-spinner"></span>
+    Updating...
+  `;
+  submitButton.classList.add("loading");
 
   const formData = new FormData(event.target);
   formData.append("action", "update");
@@ -121,15 +221,23 @@ function updateLocation(event) {
   })
     .then((response) => response.json())
     .then((data) => {
+      setButtonLoading(submitButton, false);
+
       if (data.success) {
-        location.reload();
+        showNotification(
+          data.message || "Location updated successfully!",
+          "success"
+        );
+        closeEditModal();
+        setTimeout(() => location.reload(), 1500);
       } else {
-        alert("Error updating location: " + data.message);
+        showNotification(data.message || "Error updating location", "error");
       }
     })
     .catch((error) => {
       console.error("Error:", error);
-      alert("Error updating location");
+      setButtonLoading(submitButton, false);
+      showNotification("Error updating location: " + error.message, "error");
     });
 }
 

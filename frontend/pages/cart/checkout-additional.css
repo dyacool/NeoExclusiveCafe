@@ -1,0 +1,171 @@
+@media (max-width: 768px) {
+  .payment-options {
+    flex-direction: row;
+    gap: 10px;
+  }
+
+  .detail-row {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+  .delivery-type {
+    flex-direction: row;
+    gap: 10px;
+  }
+
+  .datetime-inputs {
+    justify-content: space-between;
+  }
+
+  #pickup-details .calendar-section,
+  #delivery-details .calendar-section {
+    margin-bottom: 0 !important;
+    margin-top: 0 !important;
+  }
+
+  .item {
+    padding: 0 1rem 1rem 1rem;
+  }
+
+  .total-row {
+    padding: 10px 1rem !important;
+  }
+
+  .section-card {
+    margin-bottom: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .section-card h2 {
+    font-size: 1.25rem;
+  }
+
+  .detail-label {
+    min-width: 70px;
+  }
+
+  .section-card {
+    padding: 1rem;
+  }
+
+  .payment-options {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .payment-note {
+    padding: 12px 16px;
+    font-size: 12px !important;
+  }
+
+  .shipping-method-notice p {
+    font-size: 12px !important;
+  }
+
+  .saved-info-badge {
+    display: none !important;
+  }
+
+  .item-info h3,
+  .item-price {
+    font-size: 1rem;
+    margin-bottom: 0;
+  }
+
+  .quantity {
+    color: var(--text-light);
+    font-size: 0.875rem;
+  }
+
+  .total-final span {
+    font-size: 1.25rem !important;
+  }
+
+  .btn-apply-coupon {
+    padding: 8px 1.5rem;
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 375px) {
+  .detail-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .shipping-details {
+    margin-bottom: 1rem !important;
+  }
+
+  .radio-option {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 320px) {
+  .btn-apply-coupon {
+    padding: 10px 1rem !important;
+  }
+
+  .coupon-input {
+    padding: 5px 8px;
+  }
+  .section-card {
+    padding: 0.75rem;
+  }
+  .weekday {
+    padding: 10px 6px;
+    font-size: 10px;
+  }
+
+  .calendar-day {
+    padding: 8px 6px;
+    min-height: 35px;
+    font-size: 10px;
+  }
+  .datetime-inputs {
+    padding: 0;
+  }
+
+  .datetime-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 0px;
+  }
+  .datetime-inputs .form-group {
+    gap: 0px;
+  }
+  .datetime-inputs .form-group label {
+    text-align: left;
+  }
+  .item-info h3,
+  .item-price {
+    font-size: 0.875rem;
+    margin-bottom: 0;
+  }
+  .total-row span {
+    font-size: 0.875rem;
+  }
+  .total-final span {
+    font-size: 1rem !important;
+  }
+
+  .coupon-input-group {
+    gap: 5px;
+  }
+
+  .coupon-section {
+    margin-top: 0 !important;
+    padding: 0 !important;
+    background: none !important;
+    border-radius: 0;
+    border: none !important;
+  }
+
+  .order-notes textarea {
+    font-size: 0.85rem;
+  }
+}

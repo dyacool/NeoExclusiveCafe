@@ -113,6 +113,11 @@ $preorder_result = $preorder_stmt->get_result();
 $preorder_items = $preorder_result->fetch_all(MYSQLI_ASSOC);
 $preorder_stmt->close();
 
+// Filter out any invalid items (just to be safe)
+$preorder_items = array_filter($preorder_items, function($item) {
+    return !empty($item['cart_id']) && !empty($item['product_name']);
+});
+
 // Get Same Day Order items (from availtoday_cart table)
 $sameday_query = "
     SELECT c.id AS cart_id, c.quantity, c.product_id,
@@ -134,6 +139,11 @@ $sameday_stmt->execute();
 $sameday_result = $sameday_stmt->get_result();
 $sameday_items = $sameday_result->fetch_all(MYSQLI_ASSOC);
 $sameday_stmt->close();
+
+// Filter out any invalid items (just to be safe)
+$sameday_items = array_filter($sameday_items, function($item) {
+    return !empty($item['cart_id']) && !empty($item['product_name']);
+});
 
 // Determine current shipping method from cart
 $current_shipping_method = null;
@@ -224,9 +234,8 @@ foreach ($preorder_items as $item) {
                                            data-status-id="<?= $item['status_id'] ?>">
                                 </td>
                                 <td>
-                                    <div style="position: relative; display: inline-block;">
-                                        <img src="<?= $image ?>" alt="<?= htmlspecialchars($item['product_name']) ?>" 
-                                             style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;">
+                                    <div class="cart-item-image-container" style="position: relative; display: inline-block;">
+                                        <img class="cart-item-image" src="<?= $image ?>" alt="<?= htmlspecialchars($item['product_name']) ?>" >
                                         <?php if ($item['status_id'] == 1): ?>
                                             <span class="image-badge badge-pickup">Pick Up Only</span>
                                         <?php elseif ($item['status_id'] == 2): ?>
@@ -234,7 +243,19 @@ foreach ($preorder_items as $item) {
                                         <?php endif; ?>
                                     </div>
                                 </td>
-                                <td><?= htmlspecialchars($item['product_name']) ?></td>
+                                <td>
+                                    <div class="product-info-mobile">
+                                        <div class="product-name-mobile"><?= htmlspecialchars($item['product_name']) ?></div>
+                                        <div class="product-controls-mobile">
+                                            <div class="quantity-controls">
+                                                <button class="quantity-btn" onclick="updateQuantityInstant(<?= $item['cart_id'] ?>, <?= $item['quantity'] - 1 ?>, 'preorder', <?= $item['product_stock'] ?>, this)">-</button>
+                                                <span class="quantity-display"><?= $item['quantity'] ?></span>
+                                                <button class="quantity-btn" onclick="updateQuantityInstant(<?= $item['cart_id'] ?>, <?= $item['quantity'] + 1 ?>, 'preorder', <?= $item['product_stock'] ?>, this)">+</button>
+                                            </div>
+                                            <div class="mobile-price">₱<?= number_format($item['price'] * $item['quantity'], 2) ?></div>
+                                        </div>
+                                    </div>
+                                </td>
                                 <td>
                                     <div class="quantity-controls">
                                         <button class="quantity-btn" onclick="updateQuantityInstant(<?= $item['cart_id'] ?>, <?= $item['quantity'] - 1 ?>, 'preorder', <?= $item['product_stock'] ?>, this)">-</button>
@@ -304,9 +325,8 @@ foreach ($preorder_items as $item) {
                                            data-status-id="<?= $item['status_id'] ?>">
                                 </td>
                                 <td>
-                                    <div style="position: relative; display: inline-block;">
-                                        <img src="<?= $image ?>" alt="<?= htmlspecialchars($item['product_name']) ?>" 
-                                             style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;">
+                                    <div class="cart-item-image-container" style="position: relative; display: inline-block;">
+                                        <img class="cart-item-image" src="<?= $image ?>" alt="<?= htmlspecialchars($item['product_name']) ?>" >
                                         <?php if ($item['status_id'] == 1): ?>
                                             <span class="image-badge badge-pickup">Pick Up Only</span>
                                         <?php elseif ($item['status_id'] == 2): ?>
@@ -314,7 +334,19 @@ foreach ($preorder_items as $item) {
                                         <?php endif; ?>
                                     </div>
                                 </td>
-                                <td><?= htmlspecialchars($item['product_name']) ?></td>
+                                <td>
+                                    <div class="product-info-mobile">
+                                        <div class="product-name-mobile"><?= htmlspecialchars($item['product_name']) ?></div>
+                                        <div class="product-controls-mobile">
+                                            <div class="quantity-controls">
+                                                <button class="quantity-btn" onclick="updateQuantityInstant(<?= $item['cart_id'] ?>, <?= $item['quantity'] - 1 ?>, 'sameday', <?= $item['product_stock'] ?>, this)">-</button>
+                                                <span class="quantity-display"><?= $item['quantity'] ?></span>
+                                                <button class="quantity-btn" onclick="updateQuantityInstant(<?= $item['cart_id'] ?>, <?= $item['quantity'] + 1 ?>, 'sameday', <?= $item['product_stock'] ?>, this)">+</button>
+                                            </div>
+                                            <div class="mobile-price">₱<?= number_format($item['price'] * $item['quantity'], 2) ?></div>
+                                        </div>
+                                    </div>
+                                </td>
                                 <td>
                                     <div class="quantity-controls">
                                         <button class="quantity-btn" onclick="updateQuantityInstant(<?= $item['cart_id'] ?>, <?= $item['quantity'] - 1 ?>, 'sameday', <?= $item['product_stock'] ?>, this)">-</button>
@@ -549,10 +581,40 @@ function updateQuantity(cartId, newQuantity, type) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            location.reload();
+            // Find and update the row instead of reloading
+            const row = document.querySelector(`tr[data-cart-id="${cartId}"]`);
+            if (row) {
+                const quantityDisplay = row.querySelector('.quantity-display');
+                if (quantityDisplay) {
+                    quantityDisplay.textContent = newQuantity;
+                }
+                
+                // Update the total price for this row
+                const priceCell = row.cells[4]; // Price column
+                const totalCell = row.cells[5]; // Total column
+                if (priceCell && totalCell) {
+                    const priceText = priceCell.textContent.replace('₱', '').replace(',', '');
+                    const price = parseFloat(priceText);
+                    const newTotal = price * newQuantity;
+                    totalCell.textContent = '₱' + newTotal.toFixed(2);
+                    
+                    // Update checkbox data-total if checked
+                    const checkbox = row.querySelector('.item-checkbox');
+                    if (checkbox) {
+                        checkbox.setAttribute('data-total', newTotal);
+                        if (checkbox.checked) {
+                            updateTotals(); // Update cart totals
+                        }
+                    }
+                }
+            }
         } else {
             alert(data.message || 'Failed to update quantity');
         }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to update quantity');
     });
 }
 
@@ -629,6 +691,17 @@ function removeItem(cartId, type) {
     
     const url = type === 'preorder' ? 'remove-from-cart.php' : 'remove-from-cart-sameday.php';
     
+    // Find the row to remove
+    const row = document.querySelector(`tr[data-cart-id="${cartId}"]`);
+    if (!row) return;
+    
+    // Disable the remove button during the request
+    const removeBtn = row.querySelector('.remove-btn');
+    if (removeBtn) {
+        removeBtn.disabled = true;
+        removeBtn.style.opacity = '0.5';
+    }
+    
     fetch(url, {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
@@ -637,9 +710,54 @@ function removeItem(cartId, type) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            location.reload();
+            // Remove the row with animation
+            row.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            row.style.opacity = '0';
+            row.style.transform = 'translateX(-20px)';
+            
+            setTimeout(() => {
+                row.remove();
+                
+                // Update totals if this item was selected
+                const checkbox = row.querySelector('.item-checkbox');
+                if (checkbox && checkbox.checked) {
+                    updateTotals();
+                }
+                
+                // Check if section is now empty and show "no items" message
+                const table = row.closest('table');
+                const tbody = table ? table.querySelector('tbody') : null;
+                
+                if (tbody && tbody.children.length === 0) {
+                    const cartSection = table.closest('.cart-section');
+                    if (cartSection) {
+                        // Remove the table
+                        table.remove();
+                        
+                        // Add no items message
+                        const noItemsDiv = document.createElement('div');
+                        noItemsDiv.className = 'no-items';
+                        noItemsDiv.textContent = type === 'preorder' ? 'No pre-order items in cart' : 'No same day order items in cart';
+                        cartSection.appendChild(noItemsDiv);
+                    }
+                }
+            }, 300);
         } else {
             alert(data.message || 'Failed to remove item');
+            // Re-enable button on error
+            if (removeBtn) {
+                removeBtn.disabled = false;
+                removeBtn.style.opacity = '1';
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to remove item');
+        // Re-enable button on error
+        if (removeBtn) {
+            removeBtn.disabled = false;
+            removeBtn.style.opacity = '1';
         }
     });
 }
