@@ -10,6 +10,8 @@
 
 
 
+
+
 - [ ] 2. Copy HTML structure from checkout.php to availtoday-checkout.php
 - [ ] 2.1 Copy the complete HTML head section
   - Copy all CSS links and style tags
@@ -66,6 +68,8 @@
 - [ ] 3.3 Copy coupon system JavaScript
   - Copy applyCoupon() function
   - Copy removeCoupon() function
+
+
   - Copy calculateDiscount() function
   - Copy showCouponMessage() function
   - Copy showAppliedCoupon() and hideAppliedCoupon() functions
@@ -78,6 +82,28 @@
   - Remove any calendar initialization code
   - Add console logs for debugging
   - _Requirements: 5.1, 5.2, 5.3_
+
+- [ ] 3.6 Implement dynamic minimum time (current time + 2 hours)
+  - Create calculateMinimumTime() function that adds 2 hours to current time
+  - Set min attribute on pickup_time input to calculated minimum time
+  - Set min attribute on delivery_time input to calculated minimum time
+  - Set default value of time inputs to minimum time
+  - Add validation on time input change to prevent selecting earlier times
+  - Display minimum time to user in same-day notice section
+  - Implement setInterval to update minimum time every minute if page stays open
+  - Show alert if user tries to select time earlier than minimum
+  - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5_
+
+- [ ] 3.7 Implement business hours check for delivery availability
+  - Fetch business hours (opening_time, closing_time) from business_hours table
+  - Pass closing_time to JavaScript
+  - Create isDeliveryAvailable() function to compare minimum time with closing time
+  - Disable delivery radio button if minimum time exceeds closing time
+  - Automatically select pickup when delivery is disabled
+  - Display "Delivery unavailable - too close to closing time" message
+  - Add CSS styling for disabled delivery option
+  - Hide delivery details section when delivery is disabled
+  - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5_
 
 - [ ] 3.5 Copy form validation logic
   - Copy checkValidity() checks

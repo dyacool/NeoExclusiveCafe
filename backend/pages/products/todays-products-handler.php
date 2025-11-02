@@ -319,17 +319,22 @@ function cleanupTodaysDatesAfterBusinessHours() {
         }
         
         // Business is closed, remove today's dates
+        // BUT preserve dates that have SDO quantities set
         $conn->begin_transaction();
         
-        // Remove today's date from todays_products_dates
-        $stmt1 = $conn->prepare("DELETE FROM todays_products_dates WHERE available_date = ?");
+        // Remove today's date from todays_products_dates (only if no SDO quantity exists)
+        $stmt1 = $conn->prepare("DELETE tpd FROM todays_products_dates tpd 
+                                  LEFT JOIN quantity_per_day_sdo qpd ON tpd.product_id = qpd.product_id AND qpd.date = tpd.available_date
+                                  WHERE tpd.available_date = ? AND qpd.id IS NULL");
         $stmt1->bind_param("s", $today);
         $stmt1->execute();
         $deleted1 = $stmt1->affected_rows;
         $stmt1->close();
         
-        // Remove today's date from regular_products_today_dates
-        $stmt2 = $conn->prepare("DELETE FROM regular_products_today_dates WHERE available_date = ?");
+        // Remove today's date from regular_products_today_dates (only if no SDO quantity exists)
+        $stmt2 = $conn->prepare("DELETE rptd FROM regular_products_today_dates rptd 
+                                  LEFT JOIN quantity_per_day_sdo qpd ON rptd.product_id = qpd.product_id AND qpd.date = rptd.available_date
+                                  WHERE rptd.available_date = ? AND qpd.id IS NULL");
         $stmt2->bind_param("s", $today);
         $stmt2->execute();
         $deleted2 = $stmt2->affected_rows;

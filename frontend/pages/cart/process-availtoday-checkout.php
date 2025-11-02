@@ -488,6 +488,30 @@ try {
                     error_log("New stock after deduction: $new_stock");
                     if ($new_stock <= 0) {
                         error_log("Product '$product_name' (ID: $product_id) same-day stock depleted for $today_date");
+                        
+                        // Remove the date from the appropriate dates table since quantity is 0
+                        // Get product status to determine which table to use
+                        $status_check_sql = "SELECT status_id FROM products WHERE id = ?";
+                        $status_check_stmt = $conn->prepare($status_check_sql);
+                        $status_check_stmt->bind_param("i", $product_id);
+                        $status_check_stmt->execute();
+                        $status_result = $status_check_stmt->get_result();
+                        $status_row = $status_result->fetch_assoc();
+                        $status_id = $status_row['status_id'];
+                        $status_check_stmt->close();
+                        
+                        // Determine which table to delete from
+                        $dates_table = ($status_id == 4) ? 'todays_products_dates' : 'regular_products_today_dates';
+                        
+                        // Remove the date since quantity is 0
+                        $remove_date_sql = "DELETE FROM $dates_table WHERE product_id = ? AND available_date = ?";
+                        $remove_date_stmt = $conn->prepare($remove_date_sql);
+                        $remove_date_stmt->bind_param("is", $product_id, $today_date);
+                        $remove_date_stmt->execute();
+                        $removed_rows = $remove_date_stmt->affected_rows;
+                        $remove_date_stmt->close();
+                        
+                        error_log("Product '$product_name' quantity reached 0 for $today_date. Removed date from $dates_table (Rows affected: $removed_rows)");
                     }
                 } else {
                     error_log("FAILED to update same-day inventory for product ID $product_id: " . $update_stock_stmt->error);

@@ -1552,13 +1552,13 @@ $debug_info = [
             
             // Set default times
             if (pickupTimeInput && !pickupTimeInput.value) {
-                pickupTimeInput.value = '09:00'; // Default to 9:00 AM
-                console.log('[CHECKOUT] Set default pickup time: 09:00');
+                pickupTimeInput.value = '09:00:00'; // Default to 9:00 AM
+                console.log('[CHECKOUT] Set default pickup time: 09:00:00');
             }
             
             if (deliveryTimeInput && !deliveryTimeInput.value) {
-                deliveryTimeInput.value = '09:00'; // Default to 9:00 AM
-                console.log('[CHECKOUT] Set default delivery time: 09:00');
+                deliveryTimeInput.value = '09:00:00'; // Default to 9:00 AM
+                console.log('[CHECKOUT] Set default delivery time: 09:00:00');
             }
         }
 
@@ -2002,22 +2002,22 @@ $debug_info = [
         }
 
         function initializeTimeInputs() {
-            const timeInputs = document.querySelectorAll('input[type="time"]');
-            timeInputs.forEach(input => {
-                input.value = '06:00';
-                
-                input.addEventListener('change', function() {
-                    const time = this.value;
-                    const [hours, minutes] = time.split(':').map(Number);
-                    const totalMinutes = hours * 60 + minutes;
-                    
-                    if (totalMinutes < 360 || totalMinutes > 1080) {
-                        alert('Please select a time between 6:00 AM and 6:00 PM');
-                        this.value = '06:00';
-                        return;
-                    }
-                    
-                    const roundedMinutes = Math.round(minutes / 30) * 30;
+            const pickupTimeSelect = document.getElementById('pickup_time');
+            const deliveryTimeSelect = document.getElementById('delivery_time');
+            
+            // Set default to 9:00 AM if not already set
+            if (pickupTimeSelect && !pickupTimeSelect.value) {
+                pickupTimeSelect.value = '09:00:00';
+            }
+            if (deliveryTimeSelect && !deliveryTimeSelect.value) {
+                deliveryTimeSelect.value = '09:00:00';
+            }
+            
+            // Time selects are already validated by HTML5 required attribute
+            // No additional validation needed since we're using select dropdowns with predefined hours
+            
+            // Placeholder for compatibility - no rounding needed for select dropdowns
+            const roundedMinutes = 0;
                     const roundedHours = hours + Math.floor(roundedMinutes / 60);
                     const finalMinutes = roundedMinutes % 60;
                     
@@ -2505,7 +2505,22 @@ $debug_info = [
                         </div>
                         <div class="form-group">
                             <label for="pickup_time">Pickup Time:</label>
-                            <input type="time" id="pickup_time" name="pickup_time" required>
+                            <select id="pickup_time" name="pickup_time" required class="time-select">
+                                <option value="">Select hour</option>
+                                <option value="06:00:00">6:00 AM</option>
+                                <option value="07:00:00">7:00 AM</option>
+                                <option value="08:00:00">8:00 AM</option>
+                                <option value="09:00:00" selected>9:00 AM</option>
+                                <option value="10:00:00">10:00 AM</option>
+                                <option value="11:00:00">11:00 AM</option>
+                                <option value="12:00:00">12:00 PM</option>
+                                <option value="13:00:00">1:00 PM</option>
+                                <option value="14:00:00">2:00 PM</option>
+                                <option value="15:00:00">3:00 PM</option>
+                                <option value="16:00:00">4:00 PM</option>
+                                <option value="17:00:00">5:00 PM</option>
+                                <option value="18:00:00">6:00 PM</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -2529,8 +2544,22 @@ $debug_info = [
                         </div>
                         <div class="form-group">
                             <label for="delivery_time">Delivery Time:</label>
-                            <input type="time" id="delivery_time" name="delivery_time" 
-                                min="06:00" max="18:00" step="1800" required>
+                            <select id="delivery_time" name="delivery_time" required class="time-select">
+                                <option value="">Select hour</option>
+                                <option value="06:00:00">6:00 AM</option>
+                                <option value="07:00:00">7:00 AM</option>
+                                <option value="08:00:00">8:00 AM</option>
+                                <option value="09:00:00" selected>9:00 AM</option>
+                                <option value="10:00:00">10:00 AM</option>
+                                <option value="11:00:00">11:00 AM</option>
+                                <option value="12:00:00">12:00 PM</option>
+                                <option value="13:00:00">1:00 PM</option>
+                                <option value="14:00:00">2:00 PM</option>
+                                <option value="15:00:00">3:00 PM</option>
+                                <option value="16:00:00">4:00 PM</option>
+                                <option value="17:00:00">5:00 PM</option>
+                                <option value="18:00:00">6:00 PM</option>
+                            </select>
                             <small class="time-note">Available time: 6:00 AM - 6:00 PM</small>
                         </div>
                     </div>

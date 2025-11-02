@@ -378,6 +378,30 @@ try {
                                 
                                 $new_sdo_stock = $current_sdo_stock - $qty;
                                 error_log("SUCCESS: Product '$product_name' same-day stock updated for $today_date: $current_sdo_stock -> $new_sdo_stock (Affected rows: $affected)");
+                                
+                                // If quantity reached 0, remove the date from the appropriate dates table
+                                if ($new_sdo_stock <= 0) {
+                                    // Get product status to determine which table to use
+                                    $status_check = $conn->prepare("SELECT status_id FROM products WHERE id = ?");
+                                    $status_check->bind_param("i", $pid);
+                                    $status_check->execute();
+                                    $status_result = $status_check->get_result();
+                                    $status_row = $status_result->fetch_assoc();
+                                    $status_id = $status_row['status_id'];
+                                    $status_check->close();
+                                    
+                                    // Determine which table to delete from
+                                    $dates_table = ($status_id == 4) ? 'todays_products_dates' : 'regular_products_today_dates';
+                                    
+                                    // Remove the date since quantity is 0
+                                    $remove_date = $conn->prepare("DELETE FROM $dates_table WHERE product_id = ? AND available_date = ?");
+                                    $remove_date->bind_param("is", $pid, $today_date);
+                                    $remove_date->execute();
+                                    $removed_rows = $remove_date->affected_rows;
+                                    $remove_date->close();
+                                    
+                                    error_log("Product '$product_name' quantity reached 0 for $today_date. Removed date from $dates_table (Rows affected: $removed_rows)");
+                                }
                             } else {
                                 error_log("WARNING: Insufficient same-day stock for product '$product_name' on $today_date. Requested: $qty, Available: $current_sdo_stock");
                             }
@@ -510,6 +534,52 @@ try {
             sendOrderConfirmationEmail($order_id_created, is_array($pending_payment['order_data']) ? $pending_payment['order_data'] : $order_data, $type);
         } catch (Exception $e) {
             error_log("Order confirmation email failed: " . $e->getMessage());
+        }
+        
+        // Auto-update order status for same-day orders
+        try {
+            // Check if this is a same-day order (order_date = pickup_date or delivery_date)
+            $check_sameday_sql = "SELECT order_id, delivery_method, 
+                                  DATE(order_date) as order_date_only,
+                                  pickup_date, delivery_date, status
+                                  FROM orders WHERE order_id = ?";
+            $check_stmt = $conn->prepare($check_sameday_sql);
+            $check_stmt->bind_param("i", $order_id_created);
+            $check_stmt->execute();
+            $order_result = $check_stmt->get_result();
+            
+            if ($order_row = $order_result->fetch_assoc()) {
+                $is_same_day = false;
+                $new_status = null;
+                
+                // Check if pickup order placed today for today
+                if ($order_row['delivery_method'] === 'Pick-up' && 
+                    $order_row['order_date_only'] === $order_row['pickup_date']) {
+                    $is_same_day = true;
+                    $new_status = 'Ready for Pick-up';
+                }
+                // Check if delivery order placed today for today
+                else if ($order_row['delivery_method'] === 'Delivery' && 
+                         $order_row['order_date_only'] === $order_row['delivery_date']) {
+                    $is_same_day = true;
+                    $new_status = 'Ready for Delivery';
+                }
+                
+                // Update status if it's a same-day order and currently Confirmed
+                if ($is_same_day && $new_status && $order_row['status'] === 'Confirmed') {
+                    $update_status_sql = "UPDATE orders SET status = ? WHERE order_id = ?";
+                    $update_stmt = $conn->prepare($update_status_sql);
+                    $update_stmt->bind_param("si", $new_status, $order_id_created);
+                    
+                    if ($update_stmt->execute()) {
+                        error_log("[AUTO-STATUS] Same-day order #$order_id_created automatically updated to '$new_status'");
+                    }
+                    $update_stmt->close();
+                }
+            }
+            $check_stmt->close();
+        } catch (Exception $e) {
+            error_log("[AUTO-STATUS] Error updating order status: " . $e->getMessage());
         }
 
         // Success session payload
@@ -705,7 +775,8 @@ function sendOrderConfirmationEmail($order_id, $order_data, $order_type) {
             'order_date' => date('Y-m-d H:i:s'),
             'pickup_date' => $order_data['pickup_date'] ?? date('Y-m-d', strtotime('+1 day')),
             'delivery_date' => $order_data['delivery_date'] ?? date('Y-m-d', strtotime('+1 day')),
-            'delivery_time' => $order_data['delivery_time'] ?? '10:00:00',
+            'pickup_time' => $order_data['pickup_time'] ?? '09:00:00',
+            'delivery_time' => $order_data['delivery_time'] ?? '09:00:00',
             'order_notes' => $order_data['special_instructions'] ?? ($order_data['order_notes'] ?? ''),
             'order_type' => $order_type,
             'cart_items' => $normalized_items,

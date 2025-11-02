@@ -1,25 +1,10 @@
 <?php
-/**
- * Toggle Auto-Status API
- * 
- * Handles saving and retrieving the auto-status toggle preference
- * for automatic order status management.
- * 
- * Methods:
- * - POST: Save auto-status preference
- * - GET: Retrieve current auto-status preference
- */
-
 session_start();
 
-// Check admin authentication
+// Check if user is admin
 if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
     http_response_code(403);
-    header('Content-Type: application/json');
-    echo json_encode([
-        'success' => false,
-        'error' => 'Unauthorized access'
-    ]);
+    echo json_encode(['success' => false, 'error' => 'Unauthorized']);
     exit();
 }
 
@@ -29,59 +14,30 @@ header('Content-Type: application/json');
 
 try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        // Handle POST request - Save auto-status preference
+        // Save auto-status preference
         $input = json_decode(file_get_contents('php://input'), true);
         
-        // Validate input
         if (!isset($input['enabled'])) {
             http_response_code(400);
-            echo json_encode([
-                'success' => false,
-                'error' => 'Missing required parameter: enabled'
-            ]);
+            echo json_encode(['success' => false, 'error' => 'Missing enabled parameter']);
             exit();
         }
         
-        // Convert to integer (0 or 1)
-        $enabled = $input['enabled'] ? 1 : 0;
+        $enabled = (int)$input['enabled'];
         
-        // Get the most recent record ID to update
-        $check_sql = "SELECT id FROM order_status_settings WHERE admin_id IS NULL ORDER BY updated_at DESC LIMIT 1";
-        $check_result = mysqli_query($conn, $check_sql);
-        
-        if ($check_result && mysqli_num_rows($check_result) > 0) {
-            // Update the most recent record
-            $row = mysqli_fetch_assoc($check_result);
-            $record_id = $row['id'];
-            $sql = "UPDATE order_status_settings SET auto_status_enabled = ? WHERE id = ?";
-        } else {
-            // No record exists, we'll insert one
-            $record_id = null;
-            $sql = "INSERT INTO order_status_settings (admin_id, auto_status_enabled) VALUES (NULL, ?)";
-        }
+        // Use global setting (admin_id = NULL)
+        $sql = "INSERT INTO order_status_settings (admin_id, auto_status_enabled) 
+                VALUES (NULL, ?) 
+                ON DUPLICATE KEY UPDATE auto_status_enabled = ?";
         
         $stmt = mysqli_prepare($conn, $sql);
-        
         if (!$stmt) {
             throw new Exception('Failed to prepare statement: ' . mysqli_error($conn));
         }
         
-        if ($record_id !== null) {
-            // Updating existing record
-            mysqli_stmt_bind_param($stmt, "ii", $enabled, $record_id);
-        } else {
-            // Inserting new record
-            mysqli_stmt_bind_param($stmt, "i", $enabled);
-        }
+        mysqli_stmt_bind_param($stmt, "ii", $enabled, $enabled);
         
         if (mysqli_stmt_execute($stmt)) {
-            // Log the activity
-            if (file_exists('../admin-includes/activity-logger.php')) {
-                require_once '../admin-includes/activity-logger.php';
-                $status_text = $enabled ? 'enabled' : 'disabled';
-                logAdminActivity($conn, 'UPDATE', "Auto-status $status_text", 'order_status_settings', null);
-            }
-            
             echo json_encode([
                 'success' => true,
                 'enabled' => (bool)$enabled,
@@ -94,9 +50,8 @@ try {
         mysqli_stmt_close($stmt);
         
     } elseif ($_SERVER['REQUEST_METHOD'] === 'GET') {
-        // Handle GET request - Retrieve current auto-status preference
-        // Get the most recent record in case there are duplicates
-        $sql = "SELECT auto_status_enabled FROM order_status_settings WHERE admin_id IS NULL ORDER BY updated_at DESC LIMIT 1";
+        // Get current auto-status preference
+        $sql = "SELECT auto_status_enabled FROM order_status_settings WHERE admin_id IS NULL LIMIT 1";
         $result = mysqli_query($conn, $sql);
         
         if (!$result) {
@@ -118,26 +73,18 @@ try {
         }
         
     } else {
-        // Method not allowed
         http_response_code(405);
-        echo json_encode([
-            'success' => false,
-            'error' => 'Method not allowed. Use GET or POST.'
-        ]);
+        echo json_encode(['success' => false, 'error' => 'Method not allowed']);
     }
     
 } catch (Exception $e) {
-    // Handle errors
-    error_log('Toggle Auto-Status Error: ' . $e->getMessage());
+    error_log('Toggle auto-status error: ' . $e->getMessage());
     http_response_code(500);
     echo json_encode([
         'success' => false,
-        'error' => 'An error occurred while processing your request'
+        'error' => 'An error occurred while updating the setting'
     ]);
 }
 
-// Close database connection
-if (isset($conn)) {
-    mysqli_close($conn);
-}
+mysqli_close($conn);
 ?>

@@ -357,20 +357,32 @@ LIMIT ? OFFSET ?
 
 #### Status Transition Rules
 
-**For Pickup Orders:**
+**For Same-Day Orders (order_date = due_date):**
+```
+When auto-status enabled:
+  Pickup: Confirmed → Ready for Pick-up (immediately upon order placement)
+  Delivery: Confirmed → Ready for Delivery (immediately upon order placement)
+
+When auto-status disabled:
+  Both: Confirmed (standard flow)
+```
+
+**For Pickup Orders (regular):**
 ```
 Confirmed → Preparing (when due_date = tomorrow)
 Preparing → Ready for Pick-up (when due_date = today)
 Ready for Pick-up → Picked-up (manual only)
 ```
 
-**For Delivery Orders:**
+**For Delivery Orders (regular):**
 ```
 Confirmed → Preparing (when due_date = tomorrow)
 Preparing → Ready for Delivery (when due_date = today)
 Ready for Delivery → Out for Delivery (manual only)
 Out for Delivery → Delivered (manual only, by rider)
 ```
+
+**Design Decision:** Same-day orders skip "Preparing" status because they require immediate fulfillment. This is detected by comparing order_date with pickup_date/delivery_date.
 
 #### Cron Job Implementation
 
@@ -386,6 +398,24 @@ if (!isAutoStatusEnabled()) {
 // Get current date/time
 $today = date('Y-m-d');
 $tomorrow = date('Y-m-d', strtotime('+1 day'));
+
+// Handle same-day pickup orders (order placed today for today)
+$sql = "UPDATE orders 
+        SET status = 'Ready for Pick-up' 
+        WHERE delivery_method = 'Pick-up' 
+        AND pickup_date = DATE(order_date)
+        AND pickup_date = ?
+        AND status = 'Confirmed'";
+executeAndNotify($sql, [$today]);
+
+// Handle same-day delivery orders (order placed today for today)
+$sql = "UPDATE orders 
+        SET status = 'Ready for Delivery' 
+        WHERE delivery_method = 'Delivery' 
+        AND delivery_date = DATE(order_date)
+        AND delivery_date = ?
+        AND status = 'Confirmed'";
+executeAndNotify($sql, [$today]);
 
 // Update pickup orders due tomorrow to "Preparing"
 $sql = "UPDATE orders 
@@ -427,6 +457,8 @@ function executeAndNotify($sql, $params) {
     //   - Log activity
 }
 ```
+
+**Design Decision:** Same-day orders are processed first to ensure immediate status update. The condition `pickup_date = DATE(order_date)` ensures we only catch orders placed today for today.
 
 **Cron Schedule:** Run every hour during business hours (e.g., 6 AM - 10 PM)
 

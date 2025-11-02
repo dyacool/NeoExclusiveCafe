@@ -11,6 +11,8 @@
 
 
 
+
+
   - _Requirements: 6.1, 6.2, 6.3, 6.4_
 
 - [ ] 2. Implement toggle auto-status API endpoint
@@ -24,6 +26,8 @@
   - Return JSON responses with success/error status
   - Handle database errors gracefully with appropriate error messages
   - _Requirements: 1.2, 1.5, 6.5_
+
+
 
 - [ ] 3. Add toggle switch UI to order list page
   - Update `backend/pages/orders/order-list.php` to include toggle switch HTML
@@ -41,6 +45,8 @@
 - [ ] 4. Implement automatic status update cron job
   - Create `backend/api/auto-update-order-status.php` file
   - Check if auto-status is enabled before processing updates
+  - Implement SQL query to update same-day pickup orders to "Ready for Pick-up" status (order_date = pickup_date = today)
+  - Implement SQL query to update same-day delivery orders to "Ready for Delivery" status (order_date = delivery_date = today)
   - Implement SQL query to update pickup orders due tomorrow to "Preparing" status
   - Implement SQL query to update pickup orders due today to "Ready for Pick-up" status
   - Implement SQL query to update delivery orders due tomorrow to "Preparing" status
@@ -49,11 +55,14 @@
   - Integrate existing in-app notification system for each status change
   - Log all automatic status changes using activity logger
   - Return JSON summary of updated orders
-  - _Requirements: 2.1, 2.2, 2.5, 3.1, 3.2, 3.6, 7.1, 7.3, 7.4, 7.5_
+  - _Requirements: 2.1, 2.2, 2.5, 3.1, 3.2, 3.6, 7.1, 7.2, 7.3, 7.4, 8.1, 8.2, 8.3, 8.4, 8.5_
 
 - [ ] 5. Enhance order sorting with priority-based queueing
   - Modify SQL query in `order-list.php` to add priority calculation using CASE statement
   - Implement priority level 1 for overdue orders (past due date, not completed)
+
+
+
   - Implement priority level 2 for orders due today
   - Implement priority level 3 for orders due tomorrow
   - Implement priority level 4 for future orders
@@ -114,6 +123,8 @@
 
 - [ ]* 12. Write integration tests for auto-update cron job
   - Test cron job only runs when auto-status is enabled
+  - Test same-day pickup orders immediately transition to "Ready for Pick-up"
+  - Test same-day delivery orders immediately transition to "Ready for Delivery"
   - Test pickup orders due tomorrow transition to "Preparing"
   - Test pickup orders due today transition to "Ready for Pick-up"
   - Test delivery orders due tomorrow transition to "Preparing"
@@ -122,7 +133,7 @@
   - Test in-app notifications are created for each update
   - Test activity logging works correctly
   - Test manual statuses (Picked-up, Delivered) are not auto-updated
-  - _Requirements: 2.1, 2.2, 2.3, 2.5, 3.1, 3.2, 3.3, 3.4, 3.6, 7.1, 7.2, 7.3, 7.4, 7.5_
+  - _Requirements: 2.1, 2.2, 2.3, 2.5, 3.1, 3.2, 3.3, 3.4, 3.6, 7.1, 7.2, 7.3, 7.4, 8.1, 8.2, 8.3, 8.4, 8.5_
 
 - [ ]* 13. Write integration tests for order priority sorting
   - Test overdue orders appear first in list

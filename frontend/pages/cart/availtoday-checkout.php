@@ -275,13 +275,24 @@ error_log("Available Today Checkout - Total: " . $cart_total);
 error_log("Available Today Checkout - Shipping method: " . $shipping_method);
 error_log("Available Today Checkout - Mixed status: " . ($has_mixed_availtoday_status ? 'Yes' : 'No'));
 
+// Fetch business hours for delivery availability check
+$business_hours_query = "SELECT opening_time, closing_time FROM business_hours LIMIT 1";
+$business_hours_result = $conn->query($business_hours_query);
+$closing_time = '20:00:00'; // Default closing time
+if ($business_hours_result && $business_hours_result->num_rows > 0) {
+    $business_hours_row = $business_hours_result->fetch_assoc();
+    $closing_time = $business_hours_row['closing_time'];
+}
+error_log("Business closing time: " . $closing_time);
+
 // Add debug information to be shown in console
 $debug_info = [
     'session_id' => session_id(),
     'user_id' => $_SESSION['user_id'] ?? 'not set',
     'user_data' => $user,
     'cart_items' => $cart_items,
-    'shipping_method' => $shipping_method
+    'shipping_method' => $shipping_method,
+    'closing_time' => $closing_time
 ];
 ?>
 
@@ -492,15 +503,62 @@ $debug_info = [
                 
                 <!-- Pickup Details -->
                 <div id="pickup-details" class="delivery-content" style="display: none;">
-                    <div class="method-notice">
-                        <p class="auto-assigned-note">No date and time selection needed for same-day pickup.</p>
+                    <div class="same-day-notice" style="background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 6px; padding: 12px; margin-bottom: 15px;">
+                        <p style="margin: 0 0 8px 0;"><strong>Same-Day Order:</strong> This order is for today, <?= date('F j, Y') ?></p>
+                        <p style="margin: 0; font-size: 14px; color: #2e7d32;">Minimum pickup time: <span id="min-time-display-pickup"></span> (2 hours from now)</p>
                     </div>
+                    <div class="form-group">
+                        <label for="pickup_time">Pickup Time:</label>
+                        <select id="pickup_time" name="pickup_time" required class="time-select">
+                            <option value="">Select hour</option>
+                            <option value="06:00:00">6:00 AM</option>
+                            <option value="07:00:00">7:00 AM</option>
+                            <option value="08:00:00">8:00 AM</option>
+                            <option value="09:00:00">9:00 AM</option>
+                            <option value="10:00:00">10:00 AM</option>
+                            <option value="11:00:00">11:00 AM</option>
+                            <option value="12:00:00">12:00 PM</option>
+                            <option value="13:00:00">1:00 PM</option>
+                            <option value="14:00:00">2:00 PM</option>
+                            <option value="15:00:00">3:00 PM</option>
+                            <option value="16:00:00">4:00 PM</option>
+                            <option value="17:00:00">5:00 PM</option>
+                            <option value="18:00:00">6:00 PM</option>
+                            <option value="19:00:00">7:00 PM</option>
+                            <option value="20:00:00">8:00 PM</option>
+                        </select>
+                        <small class="time-note">Select your preferred pickup time (minimum 2 hours from now)</small>
+                    </div>
+                    <input type="hidden" id="pickup_date" name="pickup_date" value="<?= date('Y-m-d') ?>">
                 </div>
 
                 <!-- Delivery Details -->
                 <div id="delivery-details" class="delivery-content" style="display: none;">
-                    <div class="method-notice">
-                        <p class="auto-assigned-note">No date and time selection needed for same-day delivery.</p>
+                    <div class="same-day-notice" style="background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 6px; padding: 12px; margin-bottom: 15px;">
+                        <p style="margin: 0 0 8px 0;"><strong>Same-Day Order:</strong> This order is for today, <?= date('F j, Y') ?></p>
+                        <p style="margin: 0; font-size: 14px; color: #2e7d32;">Minimum delivery time: <span id="min-time-display-delivery"></span> (2 hours from now)</p>
+                    </div>
+                    <div class="form-group">
+                        <label for="delivery_time">Delivery Time:</label>
+                        <select id="delivery_time" name="delivery_time" required class="time-select">
+                            <option value="">Select hour</option>
+                            <option value="06:00:00">6:00 AM</option>
+                            <option value="07:00:00">7:00 AM</option>
+                            <option value="08:00:00">8:00 AM</option>
+                            <option value="09:00:00">9:00 AM</option>
+                            <option value="10:00:00">10:00 AM</option>
+                            <option value="11:00:00">11:00 AM</option>
+                            <option value="12:00:00">12:00 PM</option>
+                            <option value="13:00:00">1:00 PM</option>
+                            <option value="14:00:00">2:00 PM</option>
+                            <option value="15:00:00">3:00 PM</option>
+                            <option value="16:00:00">4:00 PM</option>
+                            <option value="17:00:00">5:00 PM</option>
+                            <option value="18:00:00">6:00 PM</option>
+                            <option value="19:00:00">7:00 PM</option>
+                            <option value="20:00:00">8:00 PM</option>
+                        </select>
+                        <small class="time-note">Select your preferred delivery time (minimum 2 hours from now)</small>
                     </div>
                     <div class="address-section">
                         <div>
@@ -512,6 +570,7 @@ $debug_info = [
                             <button type="button" id="setLocationBtn" class="btn-secondary">Set Location</button>
                         </div>
                     </div>
+                    <input type="hidden" id="delivery_date" name="delivery_date" value="<?= date('Y-m-d') ?>">
                 </div>
             </div>
 
@@ -704,6 +763,141 @@ let appliedCoupon = null;
 let discountAmount = 0;
 const subtotal = <?= json_encode($cart_total) ?>;
 
+// Business hours and time management
+const closingTime = '<?= $closing_time ?>'; // e.g., "20:00:00"
+
+// Calculate minimum time (current time + 2 hours)
+function calculateMinimumTime() {
+    const now = new Date();
+    const minTime = new Date(now.getTime() + (2 * 60 * 60 * 1000)); // Add 2 hours
+    
+    const hours = String(minTime.getHours()).padStart(2, '0');
+    const minutes = String(minTime.getMinutes()).padStart(2, '0');
+    
+    return `${hours}:${minutes}`;
+}
+
+// Check if delivery is available based on closing time
+function isDeliveryAvailable() {
+    const minTime = calculateMinimumTime();
+    const minTimeParts = minTime.split(':');
+    const closingTimeParts = closingTime.split(':');
+    
+    const minTimeMinutes = parseInt(minTimeParts[0]) * 60 + parseInt(minTimeParts[1]);
+    const closingTimeMinutes = parseInt(closingTimeParts[0]) * 60 + parseInt(closingTimeParts[1]);
+    
+    return minTimeMinutes < closingTimeMinutes;
+}
+
+// Initialize time inputs and delivery availability
+function initializeTimeInputs() {
+    const pickupTimeSelect = document.getElementById('pickup_time');
+    const deliveryTimeSelect = document.getElementById('delivery_time');
+    const deliveryRadio = document.getElementById('delivery');
+    const pickupRadio = document.getElementById('pickup');
+    
+    const minTime = calculateMinimumTime();
+    const minHour = parseInt(minTime.split(':')[0]);
+    
+    // Disable options that are before minimum time and set default
+    function updateTimeOptions(selectElement) {
+        if (!selectElement) return;
+        
+        let firstValidOption = null;
+        Array.from(selectElement.options).forEach(option => {
+            if (option.value === '') return; // Skip placeholder
+            
+            const optionHour = parseInt(option.value.split(':')[0]);
+            if (optionHour < minHour) {
+                option.disabled = true;
+                option.style.color = '#ccc';
+            } else {
+                option.disabled = false;
+                option.style.color = '';
+                if (!firstValidOption) {
+                    firstValidOption = option.value;
+                }
+            }
+        });
+        
+        // Set to first valid option if nothing selected
+        if (!selectElement.value && firstValidOption) {
+            selectElement.value = firstValidOption;
+        }
+    }
+    
+    updateTimeOptions(pickupTimeSelect);
+    updateTimeOptions(deliveryTimeSelect);
+    
+    // Display minimum time to user
+    const minTimeDisplayPickup = document.getElementById('min-time-display-pickup');
+    const minTimeDisplayDelivery = document.getElementById('min-time-display-delivery');
+    if (minTimeDisplayPickup) minTimeDisplayPickup.textContent = minTime;
+    if (minTimeDisplayDelivery) minTimeDisplayDelivery.textContent = minTime;
+    
+    // Check if delivery is available based on business hours
+    if (!isDeliveryAvailable() && deliveryRadio && pickupRadio) {
+        deliveryRadio.disabled = true;
+        deliveryRadio.parentElement.classList.add('disabled');
+        deliveryRadio.parentElement.style.opacity = '0.5';
+        deliveryRadio.parentElement.style.cursor = 'not-allowed';
+        pickupRadio.checked = true;
+        
+        // Show message in delivery section
+        const deliveryDetails = document.getElementById('delivery-details');
+        if (deliveryDetails) {
+            const existingMessage = deliveryDetails.querySelector('.delivery-unavailable-message');
+            if (!existingMessage) {
+                const message = document.createElement('p');
+                message.className = 'delivery-unavailable-message';
+                message.textContent = 'Delivery unavailable - too close to closing time';
+                message.style.cssText = 'background-color: #fee; color: #e74c3c; font-weight: bold; padding: 10px; border-radius: 5px; margin-bottom: 10px;';
+                deliveryDetails.insertBefore(message, deliveryDetails.firstChild);
+            }
+        }
+        
+        console.log('[AVAILTODAY] Delivery disabled - minimum time exceeds closing time');
+    }
+    
+    // Add validation on time select change
+    if (pickupTimeSelect) {
+        pickupTimeSelect.addEventListener('change', function() {
+            const selectedHour = parseInt(this.value.split(':')[0]);
+            const currentMinTime = calculateMinimumTime();
+            const currentMinHour = parseInt(currentMinTime.split(':')[0]);
+            
+            if (selectedHour < currentMinHour) {
+                alert(`Minimum time is ${currentMinTime} (current time + 2 hours)`);
+                updateTimeOptions(this);
+            }
+        });
+    }
+    
+    if (deliveryTimeSelect) {
+        deliveryTimeSelect.addEventListener('change', function() {
+            const selectedHour = parseInt(this.value.split(':')[0]);
+            const currentMinTime = calculateMinimumTime();
+            const currentMinHour = parseInt(currentMinTime.split(':')[0]);
+            
+            if (selectedHour < currentMinHour) {
+                alert(`Minimum time is ${currentMinTime} (current time + 2 hours)`);
+                updateTimeOptions(this);
+            }
+        });
+    }
+    
+    // Update minimum time every minute if page stays open
+    setInterval(() => {
+        const newMinTime = calculateMinimumTime();
+        updateTimeOptions(pickupTimeSelect);
+        updateTimeOptions(deliveryTimeSelect);
+        if (minTimeDisplayPickup) minTimeDisplayPickup.textContent = newMinTime;
+        if (minTimeDisplayDelivery) minTimeDisplayDelivery.textContent = newMinTime;
+        
+        console.log('[AVAILTODAY] Minimum time updated:', newMinTime);
+    }, 60000); // Update every minute
+}
+
 // Coupon helper functions
 function showCouponMessage(message, isSuccess = false) {
     const messageElement = document.getElementById('coupon_message');
@@ -804,6 +998,9 @@ function calculateDiscount(coupon, subtotalAmount) {
 
 // Modal functionality
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize time inputs and delivery availability check
+    initializeTimeInputs();
+    
     const modal = document.getElementById('locationModal');
     const setLocationBtn = document.getElementById('setLocationBtn');
     const closeBtn = document.querySelector('.close-btn');

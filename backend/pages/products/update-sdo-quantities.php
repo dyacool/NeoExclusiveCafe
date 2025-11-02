@@ -86,15 +86,75 @@ try {
         mysqli_stmt_close($insert_stmt);
     }
     
+    // Get product status to determine which table to use
+    $status_sql = "SELECT status_id FROM products WHERE id = ?";
+    $status_stmt = mysqli_prepare($conn, $status_sql);
+    mysqli_stmt_bind_param($status_stmt, "i", $product_id);
+    mysqli_stmt_execute($status_stmt);
+    $status_result = mysqli_stmt_get_result($status_stmt);
+    $product = mysqli_fetch_assoc($status_result);
+    $status_id = $product['status_id'];
+    mysqli_stmt_close($status_stmt);
+    
+    logMessage("Product status_id: $status_id");
+    
+    // Determine which table to use based on status
+    // Status 4 = Same-day only → todays_products_dates
+    // Status 1, 2, 3 = Pre-order (with or without same-day) → regular_products_today_dates
+    $dates_table = ($status_id == 4) ? 'todays_products_dates' : 'regular_products_today_dates';
+    
+    logMessage("Using dates table: $dates_table");
+    
+    // Delete existing dates for this product from the appropriate table
+    $delete_dates_sql = "DELETE FROM $dates_table WHERE product_id = ?";
+    $delete_dates_stmt = mysqli_prepare($conn, $delete_dates_sql);
+    
+    if (!$delete_dates_stmt) {
+        throw new Exception("Failed to prepare delete dates statement: " . mysqli_error($conn));
+    }
+    
+    mysqli_stmt_bind_param($delete_dates_stmt, "i", $product_id);
+    mysqli_stmt_execute($delete_dates_stmt);
+    $deleted_dates_count = mysqli_stmt_affected_rows($delete_dates_stmt);
+    mysqli_stmt_close($delete_dates_stmt);
+    
+    logMessage("Deleted $deleted_dates_count existing dates from $dates_table for product $product_id");
+    
+    // Insert new dates into the appropriate table
+    $inserted_dates_count = 0;
+    if (!empty($quantities)) {
+        $insert_dates_sql = "INSERT INTO $dates_table (product_id, available_date, availtoday_status_id) 
+                             VALUES (?, ?, 1)";
+        $insert_dates_stmt = mysqli_prepare($conn, $insert_dates_sql);
+        
+        if (!$insert_dates_stmt) {
+            throw new Exception("Failed to prepare insert dates statement: " . mysqli_error($conn));
+        }
+        
+        foreach ($quantities as $date => $quantity) {
+            logMessage("Inserting date into $dates_table: product_id=$product_id, date=$date");
+            mysqli_stmt_bind_param($insert_dates_stmt, "is", $product_id, $date);
+            
+            if (!mysqli_stmt_execute($insert_dates_stmt)) {
+                throw new Exception("Failed to insert date $date: " . mysqli_stmt_error($insert_dates_stmt));
+            }
+            $inserted_dates_count++;
+        }
+        
+        mysqli_stmt_close($insert_dates_stmt);
+    }
+    
     mysqli_commit($conn);
     
-    logMessage("Successfully saved $inserted_count quantities for product $product_id");
+    logMessage("Successfully saved $inserted_count quantities and $inserted_dates_count dates for product $product_id");
     
     echo json_encode([
         'success' => true,
-        'message' => 'Quantities updated successfully',
+        'message' => 'Quantities and dates updated successfully',
         'inserted' => $inserted_count,
-        'deleted' => $deleted_count
+        'deleted' => $deleted_count,
+        'dates_inserted' => $inserted_dates_count,
+        'dates_deleted' => $deleted_dates_count
     ]);
     
 } catch (Exception $e) {

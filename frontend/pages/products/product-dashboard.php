@@ -53,13 +53,17 @@ function truncateCartIfBusinessClosed() {
         // STEP 1: Remove old date assignments from products (date-based cleanup)
         // Remove dates from previous days so products are no longer marked for same-day delivery
         
-        // Remove old dates from Today's products table
-        $old_todays_dates = "DELETE FROM todays_products_dates WHERE available_date < CURDATE()";
+        // Remove old dates from Today's products table (but preserve dates with SDO quantities)
+        $old_todays_dates = "DELETE tpd FROM todays_products_dates tpd 
+                             LEFT JOIN quantity_per_day_sdo qpd ON tpd.product_id = qpd.product_id AND qpd.date = tpd.available_date
+                             WHERE tpd.available_date < CURDATE() AND qpd.id IS NULL";
         $result1 = $conn->query($old_todays_dates);
         $removed_todays = ($result1 && $conn->affected_rows > 0) ? $conn->affected_rows : 0;
         
-        // Remove old dates from regular products' today dates table
-        $old_regular_dates = "DELETE FROM regular_products_today_dates WHERE available_date < CURDATE()";
+        // Remove old dates from regular products' today dates table (but preserve dates with SDO quantities)
+        $old_regular_dates = "DELETE rptd FROM regular_products_today_dates rptd 
+                              LEFT JOIN quantity_per_day_sdo qpd ON rptd.product_id = qpd.product_id AND qpd.date = rptd.available_date
+                              WHERE rptd.available_date < CURDATE() AND qpd.id IS NULL";
         $result2 = $conn->query($old_regular_dates);
         $removed_regular = ($result2 && $conn->affected_rows > 0) ? $conn->affected_rows : 0;
         

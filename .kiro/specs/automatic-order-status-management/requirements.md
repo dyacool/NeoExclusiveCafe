@@ -15,6 +15,7 @@ This document specifies the requirements for an automatic order status managemen
 - **Order_Status**: The current state of an order in the fulfillment process
 - **Due_Date**: The scheduled date for order delivery or pickup
 - **Status_Settings_Table**: A database table storing the auto-status toggle preference per admin user
+- **Same_Day_Order**: An order placed with a Due_Date equal to the current date (order date = due date)
 
 ## Requirements
 
@@ -91,7 +92,19 @@ This document specifies the requirements for an automatic order status managemen
 4. WHEN no preference exists for an admin user, THE Order_Management_System SHALL default the auto-status toggle to disabled
 5. WHEN the admin updates the toggle preference, THE Order_Management_System SHALL update the Status_Settings_Table within 1 second
 
-### Requirement 7: Email Notification Preservation
+### Requirement 7: Same-Day Order Immediate Status
+
+**User Story:** As an admin, I want same-day orders to immediately be marked as ready for fulfillment, so that urgent orders can be processed without delay.
+
+#### Acceptance Criteria
+
+1. WHERE the auto-status toggle is enabled, WHEN a Same_Day_Order is placed for pickup, THE Order_Management_System SHALL immediately set the Order_Status to "Ready for Pick-up"
+2. WHERE the auto-status toggle is enabled, WHEN a Same_Day_Order is placed for delivery, THE Order_Management_System SHALL immediately set the Order_Status to "Ready for Delivery"
+3. THE Order_Management_System SHALL skip the "Confirmed" and "Preparing" statuses for Same_Day_Order
+4. WHEN a Same_Day_Order status is set automatically, THE Order_Management_System SHALL trigger the existing email notification system
+5. WHERE the auto-status toggle is disabled, THE Order_Management_System SHALL set Same_Day_Order to "Confirmed" status like regular orders
+
+### Requirement 8: Email Notification Preservation
 
 **User Story:** As an admin, I want email notifications to continue working with automatic status updates, so that customers remain informed about their order progress.
 

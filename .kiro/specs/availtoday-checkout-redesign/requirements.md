@@ -12,6 +12,8 @@ This feature redesigns the same-day order checkout (`availtoday-checkout.php`) t
 - **Unified Payment Success**: A single payment confirmation page used for both checkout types
 - **Auto-Load User Info**: THE system feature that automatically populates customer information from saved_customer_info table
 - **Coupon System**: THE discount code functionality available during checkout
+- **Minimum_Time_Buffer**: A 2-hour buffer added to the current time to determine the earliest selectable pickup/delivery time
+- **Business_Hours**: The operating hours stored in the business_hours database table (opening_time and closing_time)
 
 ## Requirements
 
@@ -103,4 +105,28 @@ This feature redesigns the same-day order checkout (`availtoday-checkout.php`) t
 2. THE Same-Day Checkout SHALL display validation errors inline with form fields
 3. THE Same-Day Checkout SHALL prevent form submission if validation fails
 4. THE Same-Day Checkout SHALL show a loading state during payment processing
+
+### Requirement 9
+
+**User Story:** As a customer, I want the minimum selectable time to be at least 2 hours from now, so that the business has adequate time to prepare my same-day order
+
+#### Acceptance Criteria
+
+1. WHEN the Same-Day Checkout loads, THE Same-Day Checkout SHALL calculate the Minimum_Time_Buffer as current time plus 2 hours
+2. THE Same-Day Checkout SHALL set the minimum selectable time in the time picker to the Minimum_Time_Buffer
+3. WHEN the current time is 7:30 AM, THE Same-Day Checkout SHALL set the minimum selectable time to 9:30 AM
+4. THE Same-Day Checkout SHALL prevent customers from selecting times earlier than the Minimum_Time_Buffer
+5. THE Same-Day Checkout SHALL dynamically update the minimum time if the page remains open and time passes
+
+### Requirement 10
+
+**User Story:** As a customer, I want delivery to be unavailable when it's too late in the day, so that I only see realistic fulfillment options
+
+#### Acceptance Criteria
+
+1. WHEN the Same-Day Checkout loads, THE Same-Day Checkout SHALL fetch Business_Hours from the business_hours database table
+2. WHEN the Minimum_Time_Buffer exceeds the closing_time from Business_Hours, THE Same-Day Checkout SHALL disable the delivery option
+3. WHEN delivery is disabled, THE Same-Day Checkout SHALL automatically select pickup as the only available option
+4. WHEN delivery is disabled, THE Same-Day Checkout SHALL display a message "Delivery unavailable - too close to closing time"
+5. THE Same-Day Checkout SHALL allow pickup orders regardless of closing time
 

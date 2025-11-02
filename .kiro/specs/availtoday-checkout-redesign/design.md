@@ -165,7 +165,7 @@ if (result.payment_url) {
 }
 ```
 
-### 4. Date Handling for Same-Day Orders
+### 4. Date and Time Handling for Same-Day Orders
 
 **Automatic Date Setting:**
 ```javascript
@@ -180,12 +180,136 @@ document.getElementById('pickup_date').value = todayStr;
 document.getElementById('delivery_date').value = todayStr;
 ```
 
+**Dynamic Minimum Time (Current Time + 2 Hours):**
+```javascript
+// Calculate minimum time (current time + 2 hours)
+function calculateMinimumTime() {
+    const now = new Date();
+    const minTime = new Date(now.getTime() + (2 * 60 * 60 * 1000)); // Add 2 hours
+    
+    const hours = String(minTime.getHours()).padStart(2, '0');
+    const minutes = String(minTime.getMinutes()).padStart(2, '0');
+    
+    return `${hours}:${minutes}`;
+}
+
+// Set minimum time on time inputs
+const pickupTimeInput = document.getElementById('pickup_time');
+const deliveryTimeInput = document.getElementById('delivery_time');
+
+const minTime = calculateMinimumTime();
+pickupTimeInput.setAttribute('min', minTime);
+deliveryTimeInput.setAttribute('min', minTime);
+
+// Set default value to minimum time
+pickupTimeInput.value = minTime;
+deliveryTimeInput.value = minTime;
+
+// Validate on change
+pickupTimeInput.addEventListener('change', function() {
+    if (this.value < minTime) {
+        alert(`Minimum time is ${minTime} (current time + 2 hours)`);
+        this.value = minTime;
+    }
+});
+
+deliveryTimeInput.addEventListener('change', function() {
+    if (this.value < minTime) {
+        alert(`Minimum time is ${minTime} (current time + 2 hours)`);
+        this.value = minTime;
+    }
+});
+
+// Update minimum time every minute if page stays open
+setInterval(() => {
+    const newMinTime = calculateMinimumTime();
+    pickupTimeInput.setAttribute('min', newMinTime);
+    deliveryTimeInput.setAttribute('min', newMinTime);
+}, 60000); // Update every minute
+```
+
 **Display to User:**
 ```html
 <div class="same-day-notice">
     <p><strong>Same-Day Order:</strong> This order is for today, <?= date('F j, Y') ?></p>
+    <p class="time-notice">Minimum pickup/delivery time: <span id="min-time-display"></span> (2 hours from now)</p>
 </div>
+
+<script>
+// Display minimum time to user
+document.getElementById('min-time-display').textContent = calculateMinimumTime();
+</script>
 ```
+
+**Business Hours Integration:**
+```php
+// Fetch business hours from database
+$sql = "SELECT opening_time, closing_time FROM business_hours LIMIT 1";
+$result = mysqli_query($conn, $sql);
+$business_hours = mysqli_fetch_assoc($result);
+
+$closing_time = $business_hours['closing_time']; // e.g., "20:00:00"
+```
+
+```javascript
+// Pass closing time to JavaScript
+const closingTime = '<?= $closing_time ?>'; // e.g., "20:00:00"
+
+// Check if minimum time exceeds closing time
+function isDeliveryAvailable() {
+    const minTime = calculateMinimumTime();
+    const minTimeParts = minTime.split(':');
+    const closingTimeParts = closingTime.split(':');
+    
+    const minTimeMinutes = parseInt(minTimeParts[0]) * 60 + parseInt(minTimeParts[1]);
+    const closingTimeMinutes = parseInt(closingTimeParts[0]) * 60 + parseInt(closingTimeParts[1]);
+    
+    return minTimeMinutes < closingTimeMinutes;
+}
+
+// Disable delivery if past closing time
+const deliveryRadio = document.getElementById('delivery');
+const pickupRadio = document.getElementById('pickup');
+
+if (!isDeliveryAvailable()) {
+    deliveryRadio.disabled = true;
+    deliveryRadio.parentElement.classList.add('disabled');
+    pickupRadio.checked = true;
+    
+    // Show message
+    const deliverySection = document.querySelector('.delivery-details');
+    const message = document.createElement('p');
+    message.className = 'delivery-unavailable-message';
+    message.textContent = 'Delivery unavailable - too close to closing time';
+    message.style.color = '#e74c3c';
+    message.style.fontWeight = 'bold';
+    deliverySection.insertBefore(message, deliverySection.firstChild);
+    
+    // Hide delivery details
+    document.querySelector('.delivery-details').style.display = 'none';
+}
+```
+
+**CSS for Disabled State:**
+```css
+.shipping-option.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.shipping-option.disabled input[type="radio"] {
+    cursor: not-allowed;
+}
+
+.delivery-unavailable-message {
+    background-color: #fee;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+```
+
+**Design Decision:** The 2-hour buffer ensures the business has adequate preparation time for same-day orders. The minimum time updates dynamically if the customer keeps the page open, preventing them from selecting a time that has already passed. Delivery is disabled when the minimum time exceeds business closing hours, ensuring realistic fulfillment expectations.
 
 ### 5. PayMongo Integration Flow
 

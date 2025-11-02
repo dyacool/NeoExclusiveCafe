@@ -14,18 +14,32 @@ function initializeSDOQuantities(productId) {
     sdoQuantities = Object.create(null);
     
     // Fetch existing quantities from server
-    fetch(`get-sdo-quantities.php?product_id=${productId}`)
-        .then(response => response.json())
+    const url = `get-sdo-quantities.php?product_id=${productId}`;
+    console.log('Fetching SDO quantities from:', url);
+    
+    fetch(url)
+        .then(response => {
+            console.log('Fetch response status:', response.status);
+            return response.json();
+        })
         .then(data => {
-            console.log('Loaded SDO quantities:', data);
+            console.log('Loaded SDO quantities response:', data);
+            console.log('Data success:', data.success);
+            console.log('Data quantities:', data.quantities);
+            console.log('Quantities keys:', Object.keys(data.quantities || {}));
+            
             if (data.success) {
                 // Ensure we copy to a plain object
                 const quantities = data.quantities || {};
                 sdoQuantities = Object.create(null);
                 Object.keys(quantities).forEach(key => {
+                    console.log(`Setting sdoQuantities[${key}] = ${quantities[key]}`);
                     sdoQuantities[key] = quantities[key];
                 });
+                console.log('Final sdoQuantities object:', sdoQuantities);
                 updateQuantityDisplay();
+            } else {
+                console.error('Failed to load SDO quantities:', data.message);
             }
         })
         .catch(error => {
@@ -82,20 +96,28 @@ function updateQuantityDisplay() {
     
     console.log('Selected dates after split:', selectedDates);
     
-    // Clean up quantities for dates that are no longer selected
-    const currentDates = Object.keys(sdoQuantities);
-    currentDates.forEach(date => {
-        if (!selectedDates.includes(date)) {
-            console.log('Removing quantity for unselected date:', date);
-            delete sdoQuantities[date];
-        }
-    });
+    // Only clean up quantities if we have selected dates
+    // Don't remove quantities if calendar is empty (might be loading)
+    if (selectedDates.length > 0) {
+        const currentDates = Object.keys(sdoQuantities);
+        currentDates.forEach(date => {
+            if (!selectedDates.includes(date)) {
+                console.log('Removing quantity for unselected date:', date);
+                delete sdoQuantities[date];
+            }
+        });
+    }
     
-    if (selectedDates.length === 0) {
+    // If no dates selected AND no saved quantities, show placeholder
+    if (selectedDates.length === 0 && Object.keys(sdoQuantities).length === 0) {
         container.innerHTML = '<p style="color: #6b7280; font-size: 13px;">Select dates to set quantities</p>';
-        // Clear all quantities when no dates selected
-        sdoQuantities = Object.create(null);
         return;
+    }
+    
+    // If we have saved quantities but no selected dates, display the saved quantities
+    if (selectedDates.length === 0 && Object.keys(sdoQuantities).length > 0) {
+        selectedDates = Object.keys(sdoQuantities);
+        console.log('Using saved quantity dates:', selectedDates);
     }
     
     // Sort dates
@@ -233,6 +255,8 @@ function saveSDOQuantitiesWithData(productId, quantitiesToSave) {
         Object.keys(quantitiesToSave).forEach(key => {
             sdoQuantities[key] = quantitiesToSave[key];
         });
+        // Refresh the display to show saved values
+        updateQuantityDisplay();
         return data;
     });
 }
