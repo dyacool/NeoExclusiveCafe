@@ -12,7 +12,7 @@
 return [
     'moderation' => [
         // Enable/disable moderation globally
-        'enabled' => true,
+        'enabled' => false,
         
         // Moderation provider: 'aws_rek' (AWS Rekognition), 'google_vision', 'webpurify'
         'provider' => 'aws_rek',
