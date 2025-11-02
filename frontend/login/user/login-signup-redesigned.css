@@ -40,7 +40,11 @@ body {
 .left-side {
   min-height: calc(100vh - 105px);
   flex: 2;
-  background: url("/assets/images/login-background.png") no-repeat center/cover;
+  background: linear-gradient(135deg, #8b4513 0%, #cd853f 50%, #deb887 100%);
+  background-image: url("/backend/assets/images/login-background.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
   position: relative;
   display: flex;
   align-items: center;
