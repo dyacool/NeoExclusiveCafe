@@ -10,7 +10,22 @@ require_once __DIR__ . "/../../login/admin/admin-auth.php";
 
 // Admin authentication is handled by admin-auth.php include
 
-$action = $_GET['action'] ?? '';
+// Debug logging
+error_log("availtoday-order-limit-api.php called");
+error_log("GET params: " . print_r($_GET, true));
+error_log("POST params: " . print_r($_POST, true));
+
+$action = $_GET['action'] ?? $_POST['action'] ?? '';
+
+error_log("Action determined: " . ($action ?: 'EMPTY'));
+
+if (empty($action)) {
+    echo json_encode([
+        'success' => false, 
+        'error' => 'Missing action parameter. Use ?action=get_limit or ?action=update_limit'
+    ]);
+    exit;
+}
 
 switch ($action) {
     case 'get_limit':
@@ -20,11 +35,14 @@ switch ($action) {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             updateLimit();
         } else {
-            echo json_encode(['success' => false, 'error' => 'Invalid request method']);
+            echo json_encode(['success' => false, 'error' => 'Invalid request method. Use POST for update_limit']);
         }
         break;
     default:
-        echo json_encode(['success' => false, 'error' => 'Invalid action']);
+        echo json_encode([
+            'success' => false, 
+            'error' => 'Invalid action: ' . htmlspecialchars($action) . '. Valid actions are: get_limit, update_limit'
+        ]);
         break;
 }
 
@@ -54,8 +72,8 @@ function getCurrentLimit() {
             return;
         }
         
-        // Get the latest limit
-        $query = "SELECT limit_orders FROM availtoday_order_limit ORDER BY updated_at DESC LIMIT 1";
+        // Get the latest limit (highest ID)
+        $query = "SELECT limit_orders FROM availtoday_order_limit ORDER BY id DESC LIMIT 1";
         $result = $conn->query($query);
         
         if ($result && $result->num_rows > 0) {
@@ -101,7 +119,7 @@ function updateLimit() {
             $conn->query($createTable);
         }
         
-        // Insert new limit record
+        // Insert new limit record (auto-increment ID)
         $query = "INSERT INTO availtoday_order_limit (limit_orders) VALUES (?)";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("i", $limit);

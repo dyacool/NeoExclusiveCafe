@@ -30,15 +30,19 @@ function sendOrderNotificationEmail($orderDetails) {
         
         error_log("Dates formatted - Order: $orderDate, Pickup: $pickupDate, Delivery: $deliveryDate, Time: $orderTime");
         
-        // Determine the relevant date based on delivery method
-        $relevantDate = ($orderDetails['delivery_method'] == 'Pick-up') ? $pickupDate : $deliveryDate;
+        // Determine order type (Sameday Order or Pre-Order)
+        $orderType = determineOrderType($orderDetails);
+        error_log("Order type determined: " . $orderType);
         
-        // Create email subject
-        $subject = "Order #{$orderDetails['order_id']} - {$orderDetails['delivery_method']} - {$relevantDate}";
+        // Get delivery method for title
+        $deliveryMethod = $orderDetails['delivery_method'];
+        
+        // Create email subject with order type and delivery method
+        $subject = "{$orderType} ({$deliveryMethod}) - Order #{$orderDetails['order_id']}";
         error_log("Email subject created: " . $subject);
         
-        // Generate the email body
-        $emailBody = createOrderEmailBody($orderDetails);
+        // Generate the email body with order type and delivery method
+        $emailBody = createOrderEmailBody($orderDetails, $orderType, $deliveryMethod);
         error_log("Email body generated, length: " . strlen($emailBody));
         
         // Send the email
@@ -55,10 +59,78 @@ function sendOrderNotificationEmail($orderDetails) {
     }
 }
 
+// Function to determine order type based on pickup/delivery date
+function determineOrderType($orderDetails) {
+    try {
+        error_log("Determining order type for order details: " . print_r($orderDetails, true));
+        
+        // Determine the relevant date based on delivery method
+        $relevantDate = null;
+        
+        if (isset($orderDetails['delivery_method'])) {
+            if ($orderDetails['delivery_method'] === 'Pick-up' || $orderDetails['delivery_method'] === 'pickup') {
+                $relevantDate = isset($orderDetails['pickup_date']) ? $orderDetails['pickup_date'] : null;
+                error_log("Using pickup_date for order type determination: " . ($relevantDate ?? 'NULL'));
+            } else if ($orderDetails['delivery_method'] === 'Delivery' || $orderDetails['delivery_method'] === 'delivery') {
+                $relevantDate = isset($orderDetails['delivery_date']) ? $orderDetails['delivery_date'] : null;
+                error_log("Using delivery_date for order type determination: " . ($relevantDate ?? 'NULL'));
+            }
+        }
+        
+        // If no relevant date found, check both fields as fallback
+        if (empty($relevantDate)) {
+            $relevantDate = isset($orderDetails['pickup_date']) ? $orderDetails['pickup_date'] : 
+                           (isset($orderDetails['delivery_date']) ? $orderDetails['delivery_date'] : null);
+            error_log("Using fallback date for order type determination: " . ($relevantDate ?? 'NULL'));
+        }
+        
+        // If still no date, return Pre-Order as safe default
+        if (empty($relevantDate)) {
+            error_log("No date found in order details, defaulting to Pre-Order");
+            return "Pre-Order";
+        }
+        
+        // Get current date in Y-m-d format
+        $currentDate = date('Y-m-d');
+        error_log("Current date: $currentDate, Relevant order date: $relevantDate");
+        
+        // Parse the relevant date to ensure it's in proper format
+        $orderDateTimestamp = strtotime($relevantDate);
+        if ($orderDateTimestamp === false) {
+            error_log("Failed to parse order date '$relevantDate', defaulting to Pre-Order");
+            return "Pre-Order";
+        }
+        
+        // Convert to Y-m-d format for comparison
+        $orderDate = date('Y-m-d', $orderDateTimestamp);
+        
+        // Compare dates
+        if ($orderDate === $currentDate) {
+            error_log("Order date matches current date - classified as Sameday Order");
+            return "Sameday Order";
+        } else {
+            error_log("Order date is different from current date - classified as Pre-Order");
+            return "Pre-Order";
+        }
+        
+    } catch (Exception $e) {
+        error_log("Error determining order type: " . $e->getMessage());
+        error_log("Stack trace: " . $e->getTraceAsString());
+        // Return Pre-Order as safe default on error
+        return "Pre-Order";
+    }
+}
+
 // Function to create order email body
-function createOrderEmailBody($order) {
+function createOrderEmailBody($order, $orderType = "New Order", $deliveryMethod = "") {
     // Base URL for assets and links
     $baseUrl = getBaseUrl();
+    
+    // Format the title with delivery method if provided
+    $emailTitle = htmlspecialchars($orderType);
+    if (!empty($deliveryMethod)) {
+        $emailTitle .= ' (' . htmlspecialchars($deliveryMethod) . ')';
+    }
     
     // Start building HTML email
     $html = '
@@ -85,7 +157,7 @@ function createOrderEmailBody($order) {
     <body>
         <div class="container">
             <div class="header">
-                <h1>New Order Notification</h1>
+                <h1>' . $emailTitle . ' Notification</h1>
                 <p>Order #' . $order['order_id'] . '</p>
                 <p>' . date('F j, Y g:i A') . '</p>
             </div>
@@ -93,7 +165,7 @@ function createOrderEmailBody($order) {
             <div class="section">
                 <h2>Customer Information</h2>
                 <p><strong>Name:</strong> ' . htmlspecialchars($order['customer_name']) . '</p>
-                <p><strong>Email:</strong> ' . htmlspecialchars($order['user_email']) . '</p>
+                <p><strong>Email:</strong> ' . htmlspecialchars($order['user_email'] ?? 'Not provided') . '</p>
                 <p><strong>Contact:</strong> ' . htmlspecialchars($order['customer_contact']) . '</p>
                 <p><strong>Address:</strong> ' . htmlspecialchars($order['customer_address'] ?? 'N/A') . '</p>
             </div>

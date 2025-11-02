@@ -789,7 +789,7 @@ function updateAvailTodayOrderLimit() {
   formData.append("action", "update_limit");
   formData.append("limit", limit);
 
-  fetch("availtoday-order-limit-api.php", {
+  fetch("availtoday-order-limit-api.php?action=update_limit", {
     method: "POST",
     body: formData,
   })
@@ -799,22 +799,8 @@ function updateAvailTodayOrderLimit() {
         alert("Available Today order limit updated successfully!");
         updateAvailTodayOrderLimitStatus(data.limit_orders);
 
-        // If limit is 0, automatically set business hours to 00:00
-        if (data.limit_orders === 0) {
-          document.getElementById("openingTime").value = "00:00";
-          document.getElementById("closingTime").value = "00:00";
-          updateBusinessHours();
-        } else {
-          // If limit is greater than 0, check if business hours are 00:00 and reset them
-          const openingTime = document.getElementById("openingTime").value;
-          const closingTime = document.getElementById("closingTime").value;
-          if (openingTime === "00:00" && closingTime === "00:00") {
-            // Reset to default business hours
-            document.getElementById("openingTime").value = "08:00";
-            document.getElementById("closingTime").value = "17:00";
-            updateBusinessHours();
-          }
-        }
+        // Note: Business hours management has been moved to dashboard
+        // Automatic business hours updates are disabled
       } else {
         alert(
           "Error updating Available Today order limit: " +

@@ -32,6 +32,75 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role']) || $_SESSION[
 
 // Include database connection
 require_once '../../../backend/pages/admin-includes/database.php';
+require_once '../../../backend/pages/admin-includes/mailer.php';
+
+/**
+ * Fetch customer information from saved_customer_info table
+ * Retrieves email, complete_address, phone, and name for the given user
+ * Prioritizes primary records, falls back to most recent
+ * 
+ * @param mysqli $conn Database connection
+ * @param int $user_id User ID to fetch info for
+ * @return array|null Associative array with customer data or null if not found
+ */
+function fetchCustomerInfoFromSaved($conn, $user_id) {
+    try {
+        error_log("=== FETCHING SAVED CUSTOMER INFO ===");
+        error_log("User ID: " . $user_id);
+        
+        $query = "SELECT 
+                    sci.email, 
+                    sci.complete_address, 
+                    sci.phone, 
+                    sci.first_name, 
+                    sci.last_name,
+                    CONCAT(dl.municipality, ', ', dl.city, ' ', dl.postal_code) as delivery_location
+                FROM saved_customer_info sci
+                LEFT JOIN delivery_locations dl ON sci.delivery_location_id = dl.delivery_id
+                WHERE sci.user_id = ? 
+                ORDER BY sci.is_primary DESC, sci.updated_at DESC 
+                LIMIT 1";
+        
+        $stmt = $conn->prepare($query);
+        if (!$stmt) {
+            error_log("Failed to prepare saved info query: " . $conn->error);
+            return null;
+        }
+        
+        $stmt->bind_param("i", $user_id);
+        
+        if (!$stmt->execute()) {
+            error_log("Failed to execute saved info query: " . $stmt->error);
+            $stmt->close();
+            return null;
+        }
+        
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows === 0) {
+            error_log("No saved customer info found for user_id: " . $user_id);
+            $stmt->close();
+            return null;
+        }
+        
+        $saved_info = $result->fetch_assoc();
+        $stmt->close();
+        
+        error_log("✓ Saved customer info retrieved successfully");
+        error_log("Email: " . ($saved_info['email'] ?? 'NULL'));
+        error_log("Complete Address: " . ($saved_info['complete_address'] ?? 'NULL'));
+        error_log("Phone: " . ($saved_info['phone'] ?? 'NULL'));
+        error_log("Name: " . ($saved_info['first_name'] ?? '') . ' ' . ($saved_info['last_name'] ?? ''));
+        error_log("=== END FETCHING SAVED CUSTOMER INFO ===");
+        
+        return $saved_info;
+        
+    } catch (Exception $e) {
+        error_log("Error fetching saved customer info: " . $e->getMessage());
+        error_log("Stack trace: " . $e->getTraceAsString());
+        return null;
+    }
+}
 
 // Check if form was submitted
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -52,6 +121,65 @@ $shipping_method = $_POST['shipping_method'] ?? 'pickup';
 $cart_total = floatval($_POST['cart_total'] ?? 0);
 $shipping_fee = floatval($_POST['shipping_fee'] ?? 0);
 $has_mixed_status = intval($_POST['has_mixed_status'] ?? 0);
+
+// Fetch saved customer info and merge with POST data
+error_log("=== CUSTOMER DATA MERGING START ===");
+error_log("POST data - Email: " . ($email ?: 'EMPTY') . ", Phone: " . ($phone ?: 'EMPTY'));
+error_log("POST data - First Name: " . ($first_name ?: 'EMPTY') . ", Last Name: " . ($last_name ?: 'EMPTY'));
+error_log("POST data - Address: " . ($address ?: 'EMPTY') . ", City: " . ($city ?: 'EMPTY'));
+
+$saved_info = null;
+if (isset($_SESSION['user_id'])) {
+    $saved_info = fetchCustomerInfoFromSaved($conn, intval($_SESSION['user_id']));
+}
+
+// Merge saved info with POST data - saved info takes precedence
+if ($saved_info !== null) {
+    error_log("Merging saved customer info with POST data...");
+    
+    // Email: saved info takes precedence
+    if (!empty($saved_info['email'])) {
+        $email = $saved_info['email'];
+        error_log("Using email from saved info: " . $email);
+    }
+    
+    // Phone: saved info takes precedence
+    if (!empty($saved_info['phone'])) {
+        $phone = $saved_info['phone'];
+        error_log("Using phone from saved info: " . $phone);
+    }
+    
+    // Name: saved info takes precedence
+    if (!empty($saved_info['first_name'])) {
+        $first_name = $saved_info['first_name'];
+        error_log("Using first_name from saved info: " . $first_name);
+    }
+    if (!empty($saved_info['last_name'])) {
+        $last_name = $saved_info['last_name'];
+        error_log("Using last_name from saved info: " . $last_name);
+    }
+    
+    // Address: For delivery orders, use complete_address from saved info
+    if ($shipping_method === 'delivery' && !empty($saved_info['complete_address'])) {
+        $address = $saved_info['complete_address'];
+        // Clear city and postal_code since complete_address already includes full address
+        $city = '';
+        $postal_code = '';
+        error_log("Using complete_address from saved info for delivery: " . $address);
+    }
+} else {
+    error_log("No saved customer info found, using POST data only");
+}
+
+// Log final merged values
+error_log("=== FINAL MERGED VALUES ===");
+error_log("Email: " . ($email ?: 'EMPTY'));
+error_log("Phone: " . ($phone ?: 'EMPTY'));
+error_log("First Name: " . ($first_name ?: 'EMPTY'));
+error_log("Last Name: " . ($last_name ?: 'EMPTY'));
+error_log("Address: " . ($address ?: 'EMPTY'));
+error_log("Shipping Method: " . $shipping_method);
+error_log("=== CUSTOMER DATA MERGING END ===");
 
 // Decode cart items
 $cart_items = json_decode($_POST['cart_items'] ?? '[]', true);
@@ -74,7 +202,10 @@ error_log("POST data - Cart total: $cart_total, Shipping fee: $shipping_fee, Dis
 $errors = [];
 if (empty($first_name)) $errors[] = 'First name is required';
 if (empty($last_name)) $errors[] = 'Last name is required';
-if (empty($email)) $errors[] = 'Email is required';
+if (empty($email)) {
+    $errors[] = 'Email is required';
+    error_log("CRITICAL: Email is empty after merging, user_id: " . ($_SESSION['user_id'] ?? 'UNKNOWN'));
+}
 if (empty($phone)) $errors[] = 'Phone number is required';
 if (empty($cart_items)) $errors[] = 'No cart items found';
 if ($cart_total <= 0) $errors[] = 'Invalid cart total';
@@ -90,8 +221,14 @@ foreach ($cart_items as $item) {
 }
 
 if ($has_delivery_items) {
-    if (empty($address)) $errors[] = 'Delivery address is required';
-    if (empty($city)) $errors[] = 'City is required';
+    if (empty($address)) {
+        $errors[] = 'Delivery address is required';
+        error_log("CRITICAL: Delivery address is empty for delivery order, user_id: " . ($_SESSION['user_id'] ?? 'UNKNOWN'));
+    }
+    // City is only required if we're not using saved info (saved info has complete address)
+    if (empty($city) && $saved_info === null) {
+        $errors[] = 'City is required';
+    }
 }
 
 // If there are validation errors, redirect back with errors
@@ -139,7 +276,7 @@ try {
     
     // STEP 2: Check order count limits ONLY for delivery orders (pickup is unlimited)
     if ($shipping_method === 'delivery') {
-        // Get the same-day delivery order limit from availtoday_order_limit table
+        // Get the same-day delivery order limit from availtoday_order_limit table (highest ID = latest)
         $availtoday_limit_query = "SELECT limit_orders FROM availtoday_order_limit ORDER BY id DESC LIMIT 1";
         $availtoday_limit_result = $conn->query($availtoday_limit_query);
         
@@ -452,6 +589,32 @@ try {
     error_log("TRANSACTION COMMITTED SUCCESSFULLY");
     error_log("Order ID: $order_id created successfully");
     error_log("========================================");
+    
+    // Send email notification to admin
+    $orderDetails = [
+        'order_id' => $order_id,
+        'customer_name' => $customer_full_name,
+        'user_email' => $email,
+        'customer_contact' => $phone,
+        'customer_address' => $full_address,
+        'delivery_method' => $delivery_method_enum,
+        'pickup_date' => $today_date,
+        'pickup_time' => $pickup_time,
+        'delivery_date' => ($shipping_method === 'delivery') ? $today_date : null,
+        'delivery_time' => ($shipping_method === 'delivery') ? $pickup_time : null,
+        'payment_method' => 'Cash on Delivery',
+        'cart_items' => $cart_items,
+        'cart_total' => $cart_total,
+        'shipping_fee' => $shipping_fee,
+        'total_amount' => $final_total,
+        'order_notes' => $combined_notes,
+        'discount_amount' => $discount_amount,
+        'applied_coupon' => $applied_coupon
+    ];
+    
+    if (!sendOrderNotificationEmail($orderDetails)) {
+        error_log("Failed to send order email for order " . $order_id);
+    }
     
     // Store order info in session for confirmation page
     $_SESSION['order_confirmation'] = [
