@@ -10,6 +10,7 @@ session_set_cookie_params([
 session_start();
 require_once '../../../backend/pages/admin-includes/database.php';
 require_once '../../../backend/pages/admin-includes/mailer.php';
+require_once '../../../backend/pages/admin-includes/notifications/notification.php';
 
 // Ensure no output before JSON response
 ob_start();
@@ -381,6 +382,59 @@ try {
     }
 
     error_log("Final order_id to be used: " . $order_id);
+
+    // Create admin notification for new order
+    try {
+        $notificationHandler = new NotificationHandler($conn);
+        
+        // Get username if available
+        $username = null;
+        if (isset($orderDetails['user_id']) && $orderDetails['user_id']) {
+            $username_sql = "SELECT username FROM users WHERE id = ?";
+            $username_stmt = $conn->prepare($username_sql);
+            $username_stmt->bind_param("i", $orderDetails['user_id']);
+            $username_stmt->execute();
+            $username_result = $username_stmt->get_result();
+            if ($username_row = $username_result->fetch_assoc()) {
+                $username = $username_row['username'];
+            }
+        }
+        
+        // Create new order notification
+        $notificationHandler->createOrderNotification(
+            $order_id,
+            'order_new',
+            $customer_name,
+            $username,
+            null,
+            $delivery_method,
+            $delivery_method === 'Delivery' ? $delivery_date : $pickup_date,
+            $delivery_method === 'Delivery' ? $delivery_time : $pickup_time
+        );
+        
+        // Check if order is for tomorrow and create warning notification
+        $order_date_check = $delivery_method === 'Delivery' ? $delivery_date : $pickup_date;
+        if ($order_date_check) {
+            $tomorrow = date('Y-m-d', strtotime('+1 day'));
+            if ($order_date_check === $tomorrow) {
+                $notificationHandler->createOrderNotification(
+                    $order_id,
+                    'order_warning',
+                    $customer_name,
+                    $username,
+                    null,
+                    $delivery_method,
+                    $order_date_check,
+                    $delivery_method === 'Delivery' ? $delivery_time : $pickup_time
+                );
+            }
+        }
+        
+        error_log("✓ Admin notifications created for order #$order_id");
+    } catch (Exception $notif_error) {
+        error_log("Failed to create notification: " . $notif_error->getMessage());
+        // Don't stop the order process if notification fails
+    }
 
     // Save order items with explicit column list
     foreach ($orderDetails['cart_items'] as $item) {

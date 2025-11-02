@@ -416,7 +416,7 @@ try {
                     <!-- Today Income -->
                     <div class="service-card">
                         <div class="card-header">
-                            <span class="card-title">Today Income</span>
+                            <span class="card-title">Total Sales Today</span>
                             <i class="card-icon"></i>
                         </div>
                         <div class="card-value fas fa-peso-sign"> <?php echo number_format($stats['today_income'], 0); ?></div>
@@ -426,7 +426,7 @@ try {
                     <!-- Net Income -->
                     <div class="service-card">
                         <div class="card-header">
-                            <span class="card-title">Net Income</span>
+                            <span class="card-title">Total Revenue (All Time)</span>
                             <i class="fas fa-chart-line card-icon"></i>
                         </div>
                         <div class="card-value fas fa-peso-sign"> <?php echo number_format($stats['net_income'], 0); ?></div>

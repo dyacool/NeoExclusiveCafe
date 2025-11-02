@@ -19,6 +19,9 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
+// Include notification handler
+require_once '../../../backend/pages/admin-includes/notifications/notification.php';
+
 $show_success_modal = false;
 $bulk_order_id = null;
 
@@ -95,6 +98,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_bulk_order']))
                     $insert_item = "INSERT INTO bulk_order_items (bulk_order_id, product_id, product_name, product_price, quantity, subtotal) 
                                    VALUES ('$bulk_order_id', '$product_id', '$product_name', '$product_price', '$quantity', '$subtotal')";
                     mysqli_query($conn, $insert_item);
+                }
+                
+                // Create admin notification for new bulk order
+                try {
+                    $notificationHandler = new NotificationHandler($conn);
+                    
+                    // Get username
+                    $username = null;
+                    $username_sql = "SELECT username FROM users WHERE id = ?";
+                    $username_stmt = $conn->prepare($username_sql);
+                    $username_stmt->bind_param("i", $user_id);
+                    $username_stmt->execute();
+                    $username_result = $username_stmt->get_result();
+                    if ($username_row = $username_result->fetch_assoc()) {
+                        $username = $username_row['username'];
+                    }
+                    
+                    $notificationHandler->createBulkOrderNotification(
+                        $bulk_order_id,
+                        'bulk_new',
+                        $name,
+                        $username
+                    );
+                    
+                    error_log("✓ Admin notification created for bulk order #$bulk_order_id");
+                } catch (Exception $notif_error) {
+                    error_log("Failed to create bulk order notification: " . $notif_error->getMessage());
                 }
                 
                 $show_success_modal = true;

@@ -180,15 +180,8 @@ class NotificationHandler {
     
     // Get notification icon based on type
     public function getIcon($type) {
-        $icons = [
-            'order_new' => '🛒',
-            'order_status' => '📦',
-            'order_warning' => '⚠️',
-            'bulk_new' => '📋',
-            'bulk_status' => '✅',
-            'bulk_payment' => '💳'
-        ];
-        return $icons[$type] ?? '🔔';
+        // Return empty string - no icons
+        return '';
     }
     
     // Format time ago
@@ -248,12 +241,19 @@ if (isset($_GET['action']) || isset($_POST['action'])) {
     exit;
 }
 
-if (!isset($NOTIFICATION_BELL_RENDERED)) {
+// Only render notification bell UI on dashboard page
+// The NotificationHandler class is still available for creating notifications on all admin pages
+// But the UI (bell button and dropdown) only appears on dashboard
+$is_dashboard_page = isset($_SESSION['is_admin']) && $_SESSION['is_admin'] === true && 
+                     (basename($_SERVER['PHP_SELF']) === 'dashboard.php' || 
+                      strpos($_SERVER['REQUEST_URI'], '/dashboard/') !== false);
+
+if (!isset($NOTIFICATION_BELL_RENDERED) && $is_dashboard_page) {
     $NOTIFICATION_BELL_RENDERED = true;
     $handler = new NotificationHandler($conn);
     $unreadCount = $handler->getUnreadCount();
 ?>
- Notification Bell Icon 
+<!-- Notification Bell Icon -->
 <div class="notification-bell-container">
     <button class="notification-bell-btn" id="notificationBellBtn" aria-label="Notifications">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -265,7 +265,7 @@ if (!isset($NOTIFICATION_BELL_RENDERED)) {
         <?php endif; ?>
     </button>
     
-     Dropdown 
+    <!-- Dropdown -->
     <div class="notification-dropdown" id="notificationDropdown">
         <div class="notification-dropdown-header">
             <h3>Notifications</h3>
@@ -278,20 +278,6 @@ if (!isset($NOTIFICATION_BELL_RENDERED)) {
         
         <div class="notification-dropdown-footer">
             <a href="/backend/pages/notifications/all-notifications.php" class="view-all-btn">View all notifications</a>
-        </div>
-    </div>
-</div>
-
- Desktop Modal 
-<div class="notification-modal" id="notificationModal">
-    <div class="notification-modal-content">
-        <button class="notification-modal-close" id="modalCloseBtn">&times;</button>
-        <div class="notification-modal-icon" id="modalIcon"></div>
-        <h2 id="modalTitle"></h2>
-        <p id="modalMessage"></p>
-        <div class="notification-modal-actions">
-            <button class="btn-secondary" id="modalMarkReadBtn">Mark as read</button>
-            <button class="btn-primary" id="modalViewBtn">View details</button>
         </div>
     </div>
 </div>

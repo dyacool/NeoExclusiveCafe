@@ -180,6 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "view-orders.php": "Order Details",
       "refund-details.php": "Refund Request Detail",
       "activity-logs.php": "Activity Logs",
+      "all-notifications.php": "Notifications",
     };
 
     const pageTitle = pageTitles[currentPage] || "Neo Cafe Admin";
@@ -421,6 +422,555 @@ document.addEventListener("DOMContentLoaded", () => {
     mobileHeaderActions.appendChild(mobileAddPostButton);
   }
 
+  function addNotificationButton() {
+    if (
+      !window.location.pathname.includes("dashboard.php") &&
+      !window.location.pathname.includes("admin-homepage.php")
+    )
+      return;
+
+    let headerActions = document.querySelector(".header-actions");
+
+    if (!headerActions) {
+      headerActions = document.createElement("div");
+      headerActions.className = "header-actions";
+      const header = document.querySelector(".header");
+      if (header) {
+        header.appendChild(headerActions);
+      }
+    }
+
+    // Create notification container
+    const notificationContainer = document.createElement("div");
+    notificationContainer.className = "notification-bell-container";
+    notificationContainer.id = "navbarNotificationContainer";
+
+    // Create notification button
+    const notificationButton = document.createElement("button");
+    notificationButton.className = "btn notification-button action-button";
+    notificationButton.id = "navbarNotificationBtn";
+    notificationButton.setAttribute("aria-label", "Notifications");
+
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("width", "20");
+    svg.setAttribute("height", "20");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("fill", "none");
+    svg.setAttribute("stroke", "currentColor");
+    svg.setAttribute("stroke-width", "2");
+    svg.setAttribute("stroke-linecap", "round");
+    svg.setAttribute("stroke-linejoin", "round");
+
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", "M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9");
+
+    const path2 = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "path"
+    );
+    path2.setAttribute("d", "M13.73 21a2 2 0 0 1-3.46 0");
+
+    svg.appendChild(path);
+    svg.appendChild(path2);
+    notificationButton.appendChild(svg);
+
+    // Create notification badge
+    const badge = document.createElement("span");
+    badge.className = "notification-badge";
+    badge.id = "navbarNotificationBadge";
+    badge.style.display = "none";
+    notificationButton.appendChild(badge);
+
+    // Create dropdown
+    const dropdown = document.createElement("div");
+    dropdown.className = "notification-dropdown";
+    dropdown.id = "navbarNotificationDropdown";
+    dropdown.innerHTML = `
+      <div class="notification-dropdown-header">
+        <h3>Notifications</h3>
+        <button class="mark-all-read-btn" id="navbarMarkAllRead">Mark all as read</button>
+      </div>
+      <div class="notification-list" id="navbarNotificationList">
+        <div class="notification-loading">Loading...</div>
+      </div>
+      <div class="notification-dropdown-footer">
+        <a href="/backend/pages/notifications/all-notifications.php" class="view-all-btn">View all notifications</a>
+      </div>
+    `;
+
+    notificationContainer.appendChild(notificationButton);
+    notificationContainer.appendChild(dropdown);
+
+    headerActions.innerHTML = "";
+    headerActions.appendChild(notificationContainer);
+
+    // Initialize notification functionality
+    initNotificationDropdown();
+
+    // Mobile version
+    let mobileHeaderActions = document.querySelector(".mobile-header-actions");
+
+    if (!mobileHeaderActions) {
+      mobileHeaderActions = document.createElement("div");
+      mobileHeaderActions.className = "mobile-header-actions";
+      const mobileHeaderBottom = document.querySelector(
+        ".mobile-header-bottom"
+      );
+      if (mobileHeaderBottom) {
+        mobileHeaderBottom.appendChild(mobileHeaderActions);
+      }
+    }
+
+    // Create mobile notification container
+    const mobileNotificationContainer = document.createElement("div");
+    mobileNotificationContainer.className =
+      "notification-bell-container mobile-notification-container";
+    mobileNotificationContainer.id = "mobileNotificationContainer";
+
+    const mobileNotificationButton = document.createElement("button");
+    mobileNotificationButton.className =
+      "btn notification-button action-button mobile-action-button";
+    mobileNotificationButton.id = "mobileNotificationBtn";
+    mobileNotificationButton.setAttribute("aria-label", "Notifications");
+
+    const mobileSvg = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "svg"
+    );
+    mobileSvg.setAttribute("width", "20");
+    mobileSvg.setAttribute("height", "20");
+    mobileSvg.setAttribute("viewBox", "0 0 24 24");
+    mobileSvg.setAttribute("fill", "none");
+    mobileSvg.setAttribute("stroke", "currentColor");
+    mobileSvg.setAttribute("stroke-width", "2");
+    mobileSvg.setAttribute("stroke-linecap", "round");
+    mobileSvg.setAttribute("stroke-linejoin", "round");
+
+    const mobilePath = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "path"
+    );
+    mobilePath.setAttribute("d", "M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9");
+
+    const mobilePath2 = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "path"
+    );
+    mobilePath2.setAttribute("d", "M13.73 21a2 2 0 0 1-3.46 0");
+
+    mobileSvg.appendChild(mobilePath);
+    mobileSvg.appendChild(mobilePath2);
+    mobileNotificationButton.appendChild(mobileSvg);
+
+    const mobileBadge = document.createElement("span");
+    mobileBadge.className = "notification-badge";
+    mobileBadge.id = "mobileNotificationBadge";
+    mobileBadge.style.display = "none";
+    mobileNotificationButton.appendChild(mobileBadge);
+
+    // Create mobile dropdown
+    const mobileDropdown = document.createElement("div");
+    mobileDropdown.className =
+      "notification-dropdown mobile-notification-dropdown";
+    mobileDropdown.id = "mobileNotificationDropdown";
+    mobileDropdown.innerHTML = `
+      <div class="notification-dropdown-header">
+        <h3>Notifications</h3>
+        <button class="mark-all-read-btn" id="mobileMarkAllRead">Mark all as read</button>
+      </div>
+      <div class="notification-list" id="mobileNotificationList">
+        <div class="notification-loading">Loading...</div>
+      </div>
+      <div class="notification-dropdown-footer">
+        <a href="/backend/pages/notifications/all-notifications.php" class="view-all-btn">View all notifications</a>
+      </div>
+    `;
+
+    mobileNotificationContainer.appendChild(mobileNotificationButton);
+    mobileNotificationContainer.appendChild(mobileDropdown);
+
+    mobileHeaderActions.innerHTML = "";
+    mobileHeaderActions.appendChild(mobileNotificationContainer);
+
+    // Initialize mobile notification dropdown
+    initMobileNotificationDropdown();
+  }
+
+  function initNotificationDropdown() {
+    const btn = document.getElementById("navbarNotificationBtn");
+    const dropdown = document.getElementById("navbarNotificationDropdown");
+    const badge = document.getElementById("navbarNotificationBadge");
+    const mobileBadge = document.getElementById("mobileNotificationBadge");
+    const list = document.getElementById("navbarNotificationList");
+    const markAllReadBtn = document.getElementById("navbarMarkAllRead");
+
+    if (!btn || !dropdown) return;
+
+    let isOpen = false;
+
+    // Toggle dropdown
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (isOpen) {
+        dropdown.classList.remove("show");
+        isOpen = false;
+      } else {
+        dropdown.classList.add("show");
+        isOpen = true;
+        loadNotifications();
+      }
+    });
+
+    // Close on outside click
+    document.addEventListener("click", (e) => {
+      if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
+        dropdown.classList.remove("show");
+        isOpen = false;
+      }
+    });
+
+    // Mark all as read
+    markAllReadBtn.addEventListener("click", () => {
+      fetch(
+        "/backend/pages/admin-includes/notifications/notification.php?action=mark_all_as_read",
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      )
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            loadNotifications();
+            updateBadge(0);
+          }
+        })
+        .catch((error) => console.error("Error:", error));
+    });
+
+    // Load notifications
+    function loadNotifications() {
+      list.innerHTML = '<div class="notification-loading">Loading...</div>';
+
+      fetch(
+        "/backend/pages/admin-includes/notifications/notification.php?action=get_notifications&limit=10",
+        {
+          credentials: "include",
+        }
+      )
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success && data.notifications) {
+            renderNotifications(data.notifications);
+          } else {
+            list.innerHTML =
+              '<div class="notification-empty">No notifications</div>';
+          }
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          list.innerHTML =
+            '<div class="notification-empty">Error loading notifications</div>';
+        });
+    }
+
+    // Render notifications
+    function renderNotifications(notifications) {
+      if (notifications.length === 0) {
+        list.innerHTML =
+          '<div class="notification-empty">No notifications</div>';
+        return;
+      }
+
+      const html = notifications
+        .map((notif) => {
+          const icon = getNotificationIcon(notif.notif_type);
+          const timeAgo = formatTimeAgo(notif.created_at);
+
+          return `
+          <div class="notification-item ${notif.is_read ? "" : "unread"}" 
+               data-id="${notif.notif_id}" 
+               data-link="${notif.notif_link || ""}"
+               onclick="handleNotificationClick(${notif.notif_id}, '${
+            notif.notif_link || ""
+          }', ${notif.is_read})">
+            <div class="notification-content">
+              <div class="notification-title">${escapeHtml(
+                notif.notif_title
+              )}</div>
+              <div class="notification-message">${escapeHtml(
+                notif.notif_message
+              )}</div>
+              <div class="notification-time">${timeAgo}</div>
+            </div>
+          </div>
+        `;
+        })
+        .join("");
+
+      list.innerHTML = html;
+    }
+
+    // Update badge
+    function updateBadge(count) {
+      if (count > 0) {
+        badge.textContent = count > 99 ? "99+" : count;
+        badge.style.display = "block";
+        if (mobileBadge) {
+          mobileBadge.textContent = count > 99 ? "99+" : count;
+          mobileBadge.style.display = "block";
+        }
+      } else {
+        badge.style.display = "none";
+        if (mobileBadge) {
+          mobileBadge.style.display = "none";
+        }
+      }
+    }
+
+    // Get notification icon
+    function getNotificationIcon(type) {
+      // Return empty string - no icons
+      return "";
+    }
+
+    // Format time ago
+    function formatTimeAgo(timestamp) {
+      const time = new Date(timestamp).getTime();
+      const diff = Date.now() - time;
+      const seconds = Math.floor(diff / 1000);
+      const minutes = Math.floor(seconds / 60);
+      const hours = Math.floor(minutes / 60);
+      const days = Math.floor(hours / 24);
+
+      if (seconds < 60) return "Just now";
+      if (minutes < 60) return minutes + " min ago";
+      if (hours < 24) return hours + " hr ago";
+      if (days < 7) return days + " days ago";
+      return new Date(timestamp).toLocaleDateString();
+    }
+
+    // Escape HTML
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Load unread count initially and periodically
+    function loadUnreadCount() {
+      fetch(
+        "/backend/pages/admin-includes/notifications/notification.php?action=get_unread_count",
+        {
+          credentials: "include",
+        }
+      )
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            updateBadge(data.count);
+          }
+        })
+        .catch((error) => console.error("Error:", error));
+    }
+
+    loadUnreadCount();
+    setInterval(loadUnreadCount, 5000); // Update every 5 seconds for faster updates
+  }
+
+  // Mobile notification dropdown functionality
+  function initMobileNotificationDropdown() {
+    const btn = document.getElementById("mobileNotificationBtn");
+    const dropdown = document.getElementById("mobileNotificationDropdown");
+    const badge = document.getElementById("mobileNotificationBadge");
+    const list = document.getElementById("mobileNotificationList");
+    const markAllReadBtn = document.getElementById("mobileMarkAllRead");
+
+    if (!btn || !dropdown) return;
+
+    let isOpen = false;
+
+    // Toggle dropdown
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (isOpen) {
+        dropdown.classList.remove("show");
+        isOpen = false;
+      } else {
+        dropdown.classList.add("show");
+        isOpen = true;
+        loadMobileNotifications();
+      }
+    });
+
+    // Close on outside click
+    document.addEventListener("click", (e) => {
+      if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
+        dropdown.classList.remove("show");
+        isOpen = false;
+      }
+    });
+
+    // Mark all as read
+    markAllReadBtn.addEventListener("click", () => {
+      fetch(
+        "/backend/pages/admin-includes/notifications/notification.php?action=mark_all_as_read",
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      )
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            loadMobileNotifications();
+            updateMobileBadge(0);
+          }
+        })
+        .catch((error) => console.error("Error:", error));
+    });
+
+    // Load notifications
+    function loadMobileNotifications() {
+      list.innerHTML = '<div class="notification-loading">Loading...</div>';
+
+      fetch(
+        "/backend/pages/admin-includes/notifications/notification.php?action=get_notifications&limit=10",
+        {
+          credentials: "include",
+        }
+      )
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success && data.notifications) {
+            renderMobileNotifications(data.notifications);
+          } else {
+            list.innerHTML =
+              '<div class="notification-empty">No notifications</div>';
+          }
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          list.innerHTML =
+            '<div class="notification-empty">Error loading notifications</div>';
+        });
+    }
+
+    // Render notifications
+    function renderMobileNotifications(notifications) {
+      if (notifications.length === 0) {
+        list.innerHTML =
+          '<div class="notification-empty">No notifications</div>';
+        return;
+      }
+
+      const html = notifications
+        .map((notif) => {
+          const timeAgo = formatTimeAgo(notif.created_at);
+
+          return `
+          <div class="notification-item ${notif.is_read ? "" : "unread"}" 
+               data-id="${notif.notif_id}" 
+               data-link="${notif.notif_link || ""}"
+               onclick="handleNotificationClick(${notif.notif_id}, '${
+            notif.notif_link || ""
+          }', ${notif.is_read})">
+            <div class="notification-content">
+              <div class="notification-title">${escapeHtml(
+                notif.notif_title
+              )}</div>
+              <div class="notification-message">${escapeHtml(
+                notif.notif_message
+              )}</div>
+              <div class="notification-time">${timeAgo}</div>
+            </div>
+          </div>
+        `;
+        })
+        .join("");
+
+      list.innerHTML = html;
+    }
+
+    // Update badge
+    function updateMobileBadge(count) {
+      if (count > 0) {
+        badge.textContent = count > 99 ? "99+" : count;
+        badge.style.display = "block";
+      } else {
+        badge.style.display = "none";
+      }
+    }
+
+    // Format time ago
+    function formatTimeAgo(timestamp) {
+      const time = new Date(timestamp).getTime();
+      const diff = Date.now() - time;
+      const seconds = Math.floor(diff / 1000);
+      const minutes = Math.floor(seconds / 60);
+      const hours = Math.floor(minutes / 60);
+      const days = Math.floor(hours / 24);
+
+      if (seconds < 60) return "Just now";
+      if (minutes < 60) return minutes + " min ago";
+      if (hours < 24) return hours + " hr ago";
+      if (days < 7) return days + " days ago";
+      return new Date(timestamp).toLocaleDateString();
+    }
+
+    // Escape HTML
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Load unread count initially and periodically
+    function loadMobileUnreadCount() {
+      fetch(
+        "/backend/pages/admin-includes/notifications/notification.php?action=get_unread_count",
+        {
+          credentials: "include",
+        }
+      )
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            updateMobileBadge(data.count);
+          }
+        })
+        .catch((error) => console.error("Error:", error));
+    }
+
+    loadMobileUnreadCount();
+    setInterval(loadMobileUnreadCount, 5000); // Update every 5 seconds
+  }
+
+  // Global function to handle notification clicks
+  window.handleNotificationClick = function (notifId, link, isRead) {
+    // Mark as read if unread
+    if (!isRead) {
+      fetch(
+        "/backend/pages/admin-includes/notifications/notification.php?action=mark_as_read",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ids: [notifId] }),
+          credentials: "include",
+        }
+      )
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success && link) {
+            window.location.href = link;
+          }
+        })
+        .catch((error) => console.error("Error:", error));
+    } else if (link) {
+      window.location.href = link;
+    }
+  };
+
   function setActiveStates() {
     document
       .querySelectorAll(".nav-link, .footer-link, .dropdown-link")
@@ -526,6 +1076,7 @@ document.addEventListener("DOMContentLoaded", () => {
     updatePageTitle();
     addProductButton();
     addBlogPostButton();
+    addNotificationButton();
     setActiveStates();
     preventActiveClicks();
     handleResize();

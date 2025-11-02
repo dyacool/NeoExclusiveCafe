@@ -5,6 +5,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once "../../../backend/pages/admin-includes/database.php";
+require_once "../../../backend/pages/admin-includes/notifications/notification.php";
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -77,6 +78,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_proof'])) {
                     $_SESSION['flash_success'] = ucfirst($payment_type) . " payment proof uploaded successfully!";
                     // Refresh order data to show new proof
                     $order['proof_of_payment'] = $proofs_json;
+                    
+                    // Create admin notification for payment proof upload
+                    try {
+                        // Get order details for notification
+                        $order_info_sql = "SELECT b.id, b.name, u.username FROM bulk_orders b 
+                                          LEFT JOIN users u ON b.user_id = u.id 
+                                          WHERE b.unique_order_id = ? AND b.user_id = ?";
+                        $order_info_stmt = $conn->prepare($order_info_sql);
+                        $order_info_stmt->bind_param("si", $order_id, $user_id);
+                        $order_info_stmt->execute();
+                        $order_info_result = $order_info_stmt->get_result();
+                        
+                        if ($order_info_row = $order_info_result->fetch_assoc()) {
+                            $notificationHandler = new NotificationHandler($conn);
+                            $notificationHandler->createBulkOrderNotification(
+                                $order_info_row['id'],
+                                'bulk_payment',
+                                $order_info_row['name'],
+                                $order_info_row['username']
+                            );
+                            error_log("✓ Admin notification created for bulk order payment proof upload");
+                        }
+                    } catch (Exception $notif_error) {
+                        error_log("Failed to create payment proof notification: " . $notif_error->getMessage());
+                    }
+                    
                     // Redirect to prevent resubmission
                     header("Location: " . $_SERVER['REQUEST_URI']);
                     exit();

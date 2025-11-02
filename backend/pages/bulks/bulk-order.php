@@ -7,6 +7,7 @@ if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
 
 require_once __DIR__ . "/../admin-includes/database.php";
 require_once __DIR__ . "/../admin-includes/activity-logger.php";
+require_once __DIR__ . "/../admin-includes/notifications/notification.php";
 
 // Get the order ID from URL
 if (!isset($_GET['id']) || empty($_GET['id'])) {
@@ -115,6 +116,32 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'update_status') {
         // Log the activity
         if ($ok) {
             logAdminActivity($conn, 'UPDATE', "Changed bulk order #$target_id status to '$new_status'", 'bulk_orders', $target_id);
+            
+            // Create notification for status change
+            try {
+                // Get order details for notification
+                $order_info_sql = "SELECT b.name, u.username FROM bulk_orders b 
+                                  LEFT JOIN users u ON b.user_id = u.id 
+                                  WHERE b.id = ?";
+                $order_info_stmt = $conn->prepare($order_info_sql);
+                $order_info_stmt->bind_param("i", $target_id);
+                $order_info_stmt->execute();
+                $order_info_result = $order_info_stmt->get_result();
+                
+                if ($order_info_row = $order_info_result->fetch_assoc()) {
+                    $notificationHandler = new NotificationHandler($conn);
+                    $notificationHandler->createBulkOrderNotification(
+                        $target_id,
+                        'bulk_status',
+                        $order_info_row['name'],
+                        $order_info_row['username'],
+                        ucfirst(str_replace('_', ' ', $new_status))
+                    );
+                    error_log("✓ Admin notification created for bulk order #$target_id status update");
+                }
+            } catch (Exception $notif_error) {
+                error_log("Failed to create bulk status notification: " . $notif_error->getMessage());
+            }
         }
         
         if ($is_ajax) {
