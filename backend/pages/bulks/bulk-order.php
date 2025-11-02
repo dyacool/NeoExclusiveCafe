@@ -1,4 +1,9 @@
 <?php
+// Enable error reporting and logging for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 0); // Don't show errors on page (could break JSON)
+ini_set('log_errors', 1);
+
 session_start();
 if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
     header("Location: ../login/admin/admin-login.php");
@@ -9,45 +14,244 @@ require_once __DIR__ . "/../admin-includes/database.php";
 require_once __DIR__ . "/../admin-includes/activity-logger.php";
 require_once __DIR__ . "/../admin-includes/notifications/notification.php";
 
-// Get the order ID from URL
-if (!isset($_GET['id']) || empty($_GET['id'])) {
+// SIMPLE FORM-BASED DISCOUNT PRICE HANDLER (No AJAX!)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_discount_prices'])) {
+    $order_id = (int)$_POST['order_id'];
+    $success = true;
+    $error_message = '';
+    $discount_total = 0;
+    
+    try {
+        // Process each discount price
+        foreach ($_POST as $key => $value) {
+            if (strpos($key, 'discount_price_') === 0) {
+                $item_id = (int)str_replace('discount_price_', '', $key);
+                $discount_price = floatval($value);
+                $retail_price = floatval($_POST['retail_price_' . $item_id] ?? 0);
+                $quantity = intval($_POST['quantity_' . $item_id] ?? 0);
+                
+                // Validate discount price
+                if ($discount_price > 0 && $discount_price >= $retail_price) {
+                    throw new Exception("Discount price (₱" . number_format($discount_price, 2) . ") must be lower than retail price (₱" . number_format($retail_price, 2) . ") for item #$item_id");
+                }
+                
+                // Update the discount price
+                $discount_price_value = $discount_price > 0 ? $discount_price : null;
+                $update_sql = "UPDATE bulk_order_items SET discount_price = ? WHERE id = ? AND bulk_order_id = ?";
+                $stmt = mysqli_prepare($conn, $update_sql);
+                mysqli_stmt_bind_param($stmt, "dii", $discount_price_value, $item_id, $order_id);
+                
+                if (!mysqli_stmt_execute($stmt)) {
+                    throw new Exception("Failed to update item #$item_id: " . mysqli_error($conn));
+                }
+                
+                if ($discount_price > 0) {
+                    $discount_total += $discount_price * $quantity;
+                }
+                
+                mysqli_stmt_close($stmt);
+            }
+        }
+        
+        // Update the order total and auto-approve
+        $discount_total_value = $discount_total > 0 ? $discount_total : null;
+        $update_order_sql = "UPDATE bulk_orders SET discount_total = ?, status = 'approved', admin_updated = NOW() WHERE id = ?";
+        $order_stmt = mysqli_prepare($conn, $update_order_sql);
+        mysqli_stmt_bind_param($order_stmt, "di", $discount_total_value, $order_id);
+        
+        if (!mysqli_stmt_execute($order_stmt)) {
+            throw new Exception("Failed to update order: " . mysqli_error($conn));
+        }
+        
+        mysqli_stmt_close($order_stmt);
+        
+        // Log the activity
+        logAdminActivity($conn, 'UPDATE', "Updated discount pricing for bulk order #$order_id (Total: ₱" . number_format($discount_total, 2) . ") and auto-approved", 'bulk_orders', $order_id);
+        
+        $success_message = "Discount prices saved successfully! Order automatically approved.";
+        
+    } catch (Exception $e) {
+        $success = false;
+        $error_message = $e->getMessage();
+    }
+}
+
+// Check if this is an AJAX request
+$is_ajax_request = $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']);
+
+// Debug logging for all POST requests
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    error_log("=== POST REQUEST RECEIVED ===");
+    error_log("Action: " . ($_POST['action'] ?? 'none'));
+    error_log("Order ID from POST: " . ($_POST['order_id'] ?? 'none'));
+    error_log("Is AJAX request: " . ($is_ajax_request ? 'yes' : 'no'));
+}
+
+// HANDLE ALL AJAX REQUESTS FIRST (before any database operations that might produce output)
+if ($is_ajax_request) {
+    // Simple test endpoint for debugging AJAX
+    if ($_POST['action'] === 'test_ajax') {
+        error_log("TEST AJAX ENDPOINT REACHED!");
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'message' => 'AJAX is working!', 'timestamp' => date('Y-m-d H:i:s')]);
+        exit();
+    }
+    
+    // Get order ID for AJAX requests
+    $order_id = isset($_POST['order_id']) ? (int)$_POST['order_id'] : 0;
+    
+    // Handle status updates
+    if ($_POST['action'] === 'update_status') {
+        $new_status = $_POST['new_status'] ?? '';
+        $is_ajax = isset($_POST['is_ajax']) && $_POST['is_ajax'] === '1';
+        $target_id = $order_id;
+        $allowed_statuses = ['pending','approved','payment_received','payment_rejected','ready_for_delivery','cancelled','rejected','completed'];
+        if (in_array($new_status, $allowed_statuses)) {
+            $update_sql = "UPDATE bulk_orders SET status = ?, admin_updated = NOW() WHERE id = ?";
+            $update_stmt = mysqli_prepare($conn, $update_sql);
+            mysqli_stmt_bind_param($update_stmt, "si", $new_status, $target_id);
+            $ok = mysqli_stmt_execute($update_stmt);
+            $err = mysqli_error($conn);
+            mysqli_stmt_close($update_stmt);
+            if ($ok) {
+                logAdminActivity($conn, 'UPDATE', "Updated bulk order #$target_id status to $new_status", 'bulk_orders', $target_id);
+            }
+        } else {
+            $ok = false;
+            $err = 'Invalid status';
+        }
+        header('Content-Type: application/json');
+        echo json_encode(['success' => $ok, 'error' => $ok ? null : ($err ?: 'Update failed')]);
+        exit();
+    }
+    
+    // Handle discount price updates
+    if ($_POST['action'] === 'update_discount_prices') {
+        error_log("=== DISCOUNT PRICE UPDATE REQUEST ===");
+        error_log("POST data: " . print_r($_POST, true));
+        
+        $target_id = $order_id;
+        $items_data = isset($_POST['items']) ? json_decode($_POST['items'], true) : [];
+        
+        error_log("Target ID: $target_id");
+        error_log("Items data: " . print_r($items_data, true));
+        
+        $ok = true;
+        $err = '';
+        $discount_total = 0;
+        
+        if (empty($items_data)) {
+            $ok = false;
+            $err = 'No items data received';
+            error_log("ERROR: No items data");
+        } elseif ($target_id <= 0) {
+            $ok = false;
+            $err = 'Invalid order ID';
+            error_log("ERROR: Invalid order ID");
+        } else {
+            foreach ($items_data as $item_data) {
+                $item_id = (int)$item_data['id'];
+                $discount_price = floatval($item_data['discount_price'] ?? 0);
+                $quantity = intval($item_data['quantity']);
+                $retail_price = floatval($item_data['retail_price'] ?? 0);
+                
+                error_log("Processing item ID: $item_id, discount_price: $discount_price, retail_price: $retail_price, quantity: $quantity");
+                
+                // Backend validation: Ensure discount price is lower than retail price (cannot be equal or higher)
+                if ($discount_price > 0 && $discount_price >= $retail_price) {
+                    $ok = false;
+                    $err = "Item #$item_id: Discount price (₱" . number_format($discount_price, 2) . ") must be lower than retail price (₱" . number_format($retail_price, 2) . ")";
+                    error_log("ERROR: " . $err);
+                    break;
+                }
+                
+                // Allow NULL for discount_price if it's 0 or empty
+                $discount_price_value = $discount_price > 0 ? $discount_price : null;
+                
+                if ($discount_price > 0) {
+                    $discount_total += $discount_price * $quantity;
+                }
+                
+                $update_item_sql = "UPDATE bulk_order_items SET discount_price = ? WHERE id = ? AND bulk_order_id = ?";
+                $update_item_stmt = mysqli_prepare($conn, $update_item_sql);
+                
+                if (!$update_item_stmt) {
+                    $ok = false;
+                    $err = "Failed to prepare statement: " . mysqli_error($conn);
+                    error_log("ERROR: " . $err);
+                    break;
+                }
+                
+                mysqli_stmt_bind_param($update_item_stmt, "dii", $discount_price_value, $item_id, $target_id);
+                
+                if (!mysqli_stmt_execute($update_item_stmt)) {
+                    $ok = false;
+                    $err = "Failed to execute: " . mysqli_error($conn);
+                    error_log("ERROR: " . $err);
+                    mysqli_stmt_close($update_item_stmt);
+                    break;
+                }
+                
+                $affected_rows = mysqli_stmt_affected_rows($update_item_stmt);
+                error_log("Updated item $item_id, affected rows: $affected_rows");
+                mysqli_stmt_close($update_item_stmt);
+            }
+            
+            // Update discount total in bulk_orders table
+            if ($ok) {
+                $discount_total_value = $discount_total > 0 ? $discount_total : null;
+                error_log("Updating bulk_orders table with discount_total: $discount_total");
+                
+                // Update discount total and automatically approve the order when discount is applied
+                $update_discount_total_sql = "UPDATE bulk_orders SET discount_total = ?, status = 'approved', admin_updated = NOW() WHERE id = ?";
+                $update_discount_total_stmt = mysqli_prepare($conn, $update_discount_total_sql);
+                
+                if (!$update_discount_total_stmt) {
+                    $ok = false;
+                    $err = "Failed to prepare bulk_orders update: " . mysqli_error($conn);
+                    error_log("ERROR: " . $err);
+                } else {
+                    mysqli_stmt_bind_param($update_discount_total_stmt, "di", $discount_total_value, $target_id);
+                    $ok = mysqli_stmt_execute($update_discount_total_stmt);
+                    
+                    if (!$ok) { 
+                        $err = "Failed to update bulk_orders: " . mysqli_error($conn);
+                        error_log("ERROR: " . $err);
+                    } else {
+                        error_log("Successfully updated bulk_orders, affected rows: " . mysqli_stmt_affected_rows($update_discount_total_stmt));
+                    }
+                    
+                    mysqli_stmt_close($update_discount_total_stmt);
+                    
+                    // Log the activity
+                    if ($ok) {
+                        logAdminActivity($conn, 'UPDATE', "Updated discount pricing for bulk order #$target_id (Discount Total: ₱" . number_format($discount_total, 2) . ") and auto-approved order", 'bulk_orders', $target_id);
+                        error_log("Activity logged successfully");
+                    }
+                }
+            }
+        }
+        
+        header('Content-Type: application/json');
+        echo json_encode(['success' => $ok, 'error' => $ok ? null : ($err ?: 'Update failed'), 'discount_total' => $discount_total, 'new_status' => 'approved']);
+        exit();
+    }
+    
+    // If we get here, it's an unknown AJAX action
+    header('Content-Type: application/json');
+    echo json_encode(['success' => false, 'error' => 'Unknown action: ' . ($_POST['action'] ?? 'none')]);
+    exit();
+}
+
+// Get the order ID from URL (skip redirect for AJAX requests)
+if (!$is_ajax_request && (!isset($_GET['id']) || empty($_GET['id']))) {
     header("Location: bulk-order-lists.php");
     exit();
 }
 
-$order_id = (int)$_GET['id'];
+$order_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
-// Create bulk_orders table if it doesn't exist (match form structure)
-// Ensure table exists with id PK and all statuses
-$create_table_query = "
-    CREATE TABLE IF NOT EXISTS `bulk_orders` (
-        `id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-        `unique_order_id` varchar(20) UNIQUE,
-        `user_id` int(11) DEFAULT NULL,
-        `name` varchar(255) NOT NULL,
-        `contact` varchar(20) NOT NULL,
-        `email` varchar(255) NOT NULL,
-        `billing_address` text NOT NULL,
-        `order_type` enum('delivery','pickup') NOT NULL,
-        `delivery_address` text DEFAULT NULL,
-        `purpose` text NOT NULL,
-        `date_needed` date NOT NULL,
-        `time_needed` time NOT NULL,
-        `note` text DEFAULT NULL,
-        `total_amount` decimal(10,2) NOT NULL,
-        `total_items` int(11) NOT NULL DEFAULT 0,
-        `status` enum('pending','approved','payment_received','payment_rejected','ready_for_delivery','cancelled','rejected','completed') NOT NULL DEFAULT 'pending',
-        `proof_of_payment` varchar(500) DEFAULT NULL,
-        `admin_updated` timestamp NULL DEFAULT NULL,
-        `admin_notes` text DEFAULT NULL,
-        `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        KEY `user_id` (`user_id`),
-        KEY `status` (`status`),
-        KEY `created_at` (`created_at`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-";
-mysqli_query($conn, $create_table_query);
+
 
 // Check if columns exist and add them if they don't
 $check_columns = [
@@ -98,6 +302,14 @@ $create_items_table_query = "
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
 ";
 mysqli_query($conn, $create_items_table_query);
+
+// Simple test endpoint for debugging AJAX
+if ($_POST && isset($_POST['action']) && $_POST['action'] === 'test_ajax') {
+    error_log("TEST AJAX ENDPOINT REACHED!");
+    header('Content-Type: application/json');
+    echo json_encode(['success' => true, 'message' => 'AJAX is working!', 'timestamp' => date('Y-m-d H:i:s')]);
+    exit();
+}
 
 // Handle status updates
 if ($_POST && isset($_POST['action']) && $_POST['action'] === 'update_status') {
@@ -251,18 +463,43 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'save_all') {
 
 // Handle discount price updates
 if ($_POST && isset($_POST['action']) && $_POST['action'] === 'update_discount_prices') {
-    $target_id = isset($_POST['order_id']) ? (int)$_POST['order_id'] : $order_id;
+    error_log("=== DISCOUNT PRICE UPDATE REQUEST ===");
+    error_log("POST data: " . print_r($_POST, true));
+    
+    $target_id = isset($_POST['order_id']) ? (int)$_POST['order_id'] : (isset($order_id) ? $order_id : 0);
     $items_data = isset($_POST['items']) ? json_decode($_POST['items'], true) : [];
+    
+    error_log("Target ID: $target_id");
+    error_log("Items data: " . print_r($items_data, true));
     
     $ok = true;
     $err = '';
     $discount_total = 0;
     
-    if (!empty($items_data)) {
+    if (empty($items_data)) {
+        $ok = false;
+        $err = 'No items data received';
+        error_log("ERROR: No items data");
+    } elseif ($target_id <= 0) {
+        $ok = false;
+        $err = 'Invalid order ID';
+        error_log("ERROR: Invalid order ID");
+    } else {
         foreach ($items_data as $item_data) {
             $item_id = (int)$item_data['id'];
             $discount_price = floatval($item_data['discount_price'] ?? 0);
             $quantity = intval($item_data['quantity']);
+            $retail_price = floatval($item_data['retail_price'] ?? 0);
+            
+            error_log("Processing item ID: $item_id, discount_price: $discount_price, retail_price: $retail_price, quantity: $quantity");
+            
+            // Backend validation: Ensure discount price is lower than retail price (cannot be equal or higher)
+            if ($discount_price > 0 && $discount_price >= $retail_price) {
+                $ok = false;
+                $err = "Item #$item_id: Discount price (₱" . number_format($discount_price, 2) . ") must be lower than retail price (₱" . number_format($retail_price, 2) . ")";
+                error_log("ERROR: " . $err);
+                break;
+            }
             
             // Allow NULL for discount_price if it's 0 or empty
             $discount_price_value = $discount_price > 0 ? $discount_price : null;
@@ -273,29 +510,60 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'update_discount_p
             
             $update_item_sql = "UPDATE bulk_order_items SET discount_price = ? WHERE id = ? AND bulk_order_id = ?";
             $update_item_stmt = mysqli_prepare($conn, $update_item_sql);
-            mysqli_stmt_bind_param($update_item_stmt, "dii", $discount_price_value, $item_id, $target_id);
-            if (!mysqli_stmt_execute($update_item_stmt)) {
+            
+            if (!$update_item_stmt) {
                 $ok = false;
-                $err = mysqli_error($conn);
+                $err = "Failed to prepare statement: " . mysqli_error($conn);
+                error_log("ERROR: " . $err);
                 break;
             }
+            
+            mysqli_stmt_bind_param($update_item_stmt, "dii", $discount_price_value, $item_id, $target_id);
+            
+            if (!mysqli_stmt_execute($update_item_stmt)) {
+                $ok = false;
+                $err = "Failed to execute: " . mysqli_error($conn);
+                error_log("ERROR: " . $err);
+                mysqli_stmt_close($update_item_stmt);
+                break;
+            }
+            
+            $affected_rows = mysqli_stmt_affected_rows($update_item_stmt);
+            error_log("Updated item $item_id, affected rows: $affected_rows");
             mysqli_stmt_close($update_item_stmt);
         }
         
         // Update discount total in bulk_orders table
         if ($ok) {
             $discount_total_value = $discount_total > 0 ? $discount_total : null;
+            error_log("Updating bulk_orders table with discount_total: $discount_total");
+            
             // Update discount total and automatically approve the order when discount is applied
             $update_discount_total_sql = "UPDATE bulk_orders SET discount_total = ?, status = 'approved', admin_updated = NOW() WHERE id = ?";
             $update_discount_total_stmt = mysqli_prepare($conn, $update_discount_total_sql);
-            mysqli_stmt_bind_param($update_discount_total_stmt, "di", $discount_total_value, $target_id);
-            $ok = mysqli_stmt_execute($update_discount_total_stmt);
-            if (!$ok) { $err = mysqli_error($conn); }
-            mysqli_stmt_close($update_discount_total_stmt);
             
-            // Log the activity
-            if ($ok) {
-                logAdminActivity($conn, 'UPDATE', "Updated discount pricing for bulk order #$target_id (Discount Total: ₱" . number_format($discount_total, 2) . ") and auto-approved order", 'bulk_orders', $target_id);
+            if (!$update_discount_total_stmt) {
+                $ok = false;
+                $err = "Failed to prepare bulk_orders update: " . mysqli_error($conn);
+                error_log("ERROR: " . $err);
+            } else {
+                mysqli_stmt_bind_param($update_discount_total_stmt, "di", $discount_total_value, $target_id);
+                $ok = mysqli_stmt_execute($update_discount_total_stmt);
+                
+                if (!$ok) { 
+                    $err = "Failed to update bulk_orders: " . mysqli_error($conn);
+                    error_log("ERROR: " . $err);
+                } else {
+                    error_log("Successfully updated bulk_orders, affected rows: " . mysqli_stmt_affected_rows($update_discount_total_stmt));
+                }
+                
+                mysqli_stmt_close($update_discount_total_stmt);
+                
+                // Log the activity
+                if ($ok) {
+                    logAdminActivity($conn, 'UPDATE', "Updated discount pricing for bulk order #$target_id (Discount Total: ₱" . number_format($discount_total, 2) . ") and auto-approved order", 'bulk_orders', $target_id);
+                    error_log("Activity logged successfully");
+                }
             }
         }
     }
@@ -451,14 +719,15 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
             </div>
         </div>
 
+        <!-- Success/Error Notifications -->
         <?php if (isset($success_message)): ?>
-            <div class="alert alert-success">
+            <div class="alert alert-success" style="margin-bottom: 20px;">
                 <i class="fas fa-check-circle"></i> <?php echo htmlspecialchars($success_message); ?>
             </div>
         <?php endif; ?>
-
-        <?php if (isset($error_message)): ?>
-            <div class="alert alert-error">
+        
+        <?php if (isset($error_message) && !empty(trim($error_message))): ?>
+            <div class="alert alert-error" style="margin-bottom: 20px;">
                 <i class="fas fa-exclamation-circle"></i> <?php echo htmlspecialchars($error_message); ?>
             </div>
         <?php endif; ?>
@@ -496,15 +765,21 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
                 <div class="info-grid edit-mode hidden">
                     <div class="info-item">
                         <div class="info-label">Name</div>
-                        <div class="info-value"><input class="editable-input" id="cust_name" type="text" value="<?php echo htmlspecialchars($order['name']); ?>"></div>
+                        <div class="info-value">
+                            <input class="readonly-price-input" type="text" value="<?php echo htmlspecialchars($order['name']); ?>" readonly title="Customer name cannot be edited">
+                        </div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Contact Number</div>
-                        <div class="info-value"><input class="editable-input" id="cust_contact" type="text" value="<?php echo htmlspecialchars($order['contact']); ?>"></div>
+                        <div class="info-value">
+                            <input class="readonly-price-input" type="text" value="<?php echo htmlspecialchars($order['contact']); ?>" readonly title="Contact number cannot be edited">
+                        </div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Email Address</div>
-                        <div class="info-value"><input class="editable-input" id="cust_email" type="email" value="<?php echo htmlspecialchars($order['email']); ?>"></div>
+                        <div class="info-value">
+                            <input class="readonly-price-input" type="email" value="<?php echo htmlspecialchars($order['email']); ?>" readonly title="Email address cannot be edited">
+                        </div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Billing Address</div>
@@ -636,14 +911,16 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
 
         <!-- Order Items -->
         <div class="items-table-container">
-            <div class="card-header-flex">
-                <h3><i class="fas fa-shopping-cart"></i> Order Items</h3>
-                <div class="pricing-controls">
-                    <button type="button" class="btn btn-primary btn-xs" id="saveDiscountPricesBtn" style="margin-left: 10px;">
-                        <i class="fas fa-percentage"></i> Save Discount Prices
-                    </button>
+            <form method="POST" action="">
+                <input type="hidden" name="order_id" value="<?php echo (int)$order_id; ?>">
+                <div class="card-header-flex">
+                    <h3><i class="fas fa-shopping-cart"></i> Order Items</h3>
+                    <div class="pricing-controls">
+                        <button type="submit" name="save_discount_prices" class="btn btn-primary btn-xs">
+                            <i class="fas fa-percentage"></i> Save Discount Prices
+                        </button>
+                    </div>
                 </div>
-            </div>
             <table class="items-table" id="itemsTable">
                 <thead>
                     <tr>
@@ -669,13 +946,20 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
                             </td>
                             <td>
                                 <input type="number" 
+                                       name="discount_price_<?php echo $item['id']; ?>"
                                        class="editable-input discount-price-input" 
                                        data-item-id="<?php echo $item['id']; ?>"
+                                       data-retail-price="<?php echo number_format($item['product_price'], 2, '.', ''); ?>"
                                        value="<?php echo $item['discount_price'] ? number_format($item['discount_price'], 2, '.', '') : ''; ?>" 
                                        min="0" 
+                                       max="<?php echo number_format($item['product_price'], 2, '.', ''); ?>"
                                        step="0.01"
                                        placeholder="Enter discount price"
-                                       onchange="calculateDiscountSubtotal(<?php echo $item['id']; ?>)">
+                                       onchange="validateAndCalculateDiscountSubtotal(<?php echo $item['id']; ?>)"
+                                       oninput="validateDiscountPrice(this)">
+                                <!-- Hidden fields for form processing -->
+                                <input type="hidden" name="retail_price_<?php echo $item['id']; ?>" value="<?php echo number_format($item['product_price'], 2, '.', ''); ?>">
+                                <input type="hidden" name="quantity_<?php echo $item['id']; ?>" value="<?php echo $item['quantity']; ?>">
                             </td>
                             <td class="quantity-cell"><?php echo number_format($item['quantity']); ?></td>
                             <td class="regular-subtotal-cell" data-item-id="<?php echo $item['id']; ?>">
@@ -705,19 +989,25 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
                         <td><span class="text-muted">-</span></td>
                     </tr>
                     <tr class="discount-total-row">
-                        <td colspan="4"><strong>Discounted Total:</strong></td>
+                        <td colspan="4"><strong>Final Total (with discounts):</strong></td>
                         <td><span class="text-muted">-</span></td>
                         <td id="discountTotalCell">
                             <strong>
                                 <?php 
-                                $discount_total = 0;
+                                $final_total = 0;
+                                $has_any_discount = false;
                                 foreach ($items as $item) {
                                     if ($item['discount_price']) {
-                                        $discount_total += $item['discount_price'] * $item['quantity'];
+                                        // Use discount price for items with discount
+                                        $final_total += $item['discount_price'] * $item['quantity'];
+                                        $has_any_discount = true;
+                                    } else {
+                                        // Use regular price for items without discount
+                                        $final_total += $item['product_price'] * $item['quantity'];
                                     }
                                 }
-                                if ($discount_total > 0) {
-                                    echo '₱' . number_format($discount_total, 2);
+                                if ($has_any_discount && $final_total > 0) {
+                                    echo '₱' . number_format($final_total, 2);
                                 } else {
                                     echo '<span class="text-muted">No discounts applied</span>';
                                 }
@@ -727,6 +1017,7 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
                     </tr>
                 </tfoot>
             </table>
+            </form>
         </div>
 
         <!-- Payment Proofs -->
@@ -774,10 +1065,32 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
         <?php endif; ?>
     </div>
     <style>
+        /* Alert Styles */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 6px;
+            border: 1px solid;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+        .alert-success {
+            background-color: #f0fdf4;
+            border-color: #16a34a;
+            color: #166534;
+        }
+        .alert-error {
+            background-color: #fef2f2;
+            border-color: #dc2626;
+            color: #991b1b;
+        }
+        
         .editable-input { border: 1px solid #d1d5db; border-radius: 6px; padding: 8px; width: 100%; background: #fffdf7; }
         .readonly-price-input { border: 1px solid #e5e7eb; border-radius: 6px; padding: 8px; width: 100%; background: #f9fafb; color: #6b7280; cursor: not-allowed; }
-        .discount-price-input { border: 1px solid #059669; border-radius: 6px; padding: 8px; width: 100%; background: #ecfdf5; }
+        .discount-price-input { border: 1px solid #059669; border-radius: 6px; padding: 8px; width: 100%; background: #ecfdf5; transition: all 0.2s; }
         .discount-price-input:focus { border-color: #047857; box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.1); }
+        .discount-price-input:invalid { border-color: #dc2626; background-color: #fee2e2; }
         .edit-actions { margin-top: 10px; }
         .card-header-flex { display:flex; align-items:center; justify-content:space-between; gap: 10px; }
         .btn-xs { padding: 4px 8px; font-size: 12px; }
@@ -981,10 +1294,10 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
                     form.append('action', 'save_all');
                     form.append('is_ajax', '1');
                     form.append('order_id', '<?php echo (int)$order['id']; ?>');
-                    // Customer
-                    form.append('name', document.getElementById('cust_name').value);
-                    form.append('contact', document.getElementById('cust_contact').value);
-                    form.append('email', document.getElementById('cust_email').value);
+                    // Customer - use original values from PHP since these are readonly
+                    form.append('name', '<?php echo addslashes($order['name']); ?>');
+                    form.append('contact', '<?php echo addslashes($order['contact']); ?>');
+                    form.append('email', '<?php echo addslashes($order['email']); ?>');
                     form.append('billing_address', document.getElementById('cust_billing').value);
                     // Order
                     const deliveryEl = document.getElementById('order_delivery');
@@ -1007,13 +1320,14 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
                             const timeV = document.getElementById('view_time_needed');
                             const purposeV = document.getElementById('view_purpose');
                             if (nameV) {
-                                const nameVal = document.getElementById('cust_name').value;
-                                const existingUsername = nameV.querySelector('small');
-                                nameV.innerHTML = nameVal;
-                                if (existingUsername) nameV.appendChild(document.createElement('br')).after(existingUsername);
+                                // Name is readonly, no need to update
                             }
-                            if (contactV) contactV.textContent = document.getElementById('cust_contact').value;
-                            if (emailV) emailV.textContent = document.getElementById('cust_email').value;
+                            if (contactV) {
+                                // Contact is readonly, no need to update
+                            }
+                            if (emailV) {
+                                // Email is readonly, no need to update
+                            }
                             if (billingV) billingV.innerHTML = (document.getElementById('cust_billing').value || '').replace(/\n/g,'<br>');
                             if (deliveryV && deliveryEl) deliveryV.innerHTML = (deliveryEl.value || '').replace(/\n/g,'<br>');
                             // Format date/time for view
@@ -1076,7 +1390,23 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
             calculateGrandTotal();
         }
 
-        function calculateDiscountSubtotal(itemId) {
+        // Validate discount price on input
+        function validateDiscountPrice(input) {
+            const retailPrice = parseFloat(input.getAttribute('data-retail-price')) || 0;
+            const discountPrice = parseFloat(input.value) || 0;
+            
+            if (discountPrice > 0 && discountPrice >= retailPrice) {
+                input.style.borderColor = '#dc2626';
+                input.style.backgroundColor = '#fee2e2';
+                input.setCustomValidity('Discount price must be lower than retail price (₱' + retailPrice.toFixed(2) + ')');
+            } else {
+                input.style.borderColor = '#059669';
+                input.style.backgroundColor = '#ecfdf5';
+                input.setCustomValidity('');
+            }
+        }
+        
+        function validateAndCalculateDiscountSubtotal(itemId) {
             const row = document.querySelector(`tr[data-item-id="${itemId}"]`);
             if (!row) return;
             
@@ -1084,8 +1414,24 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
             const quantityCell = row.querySelector('.quantity-cell');
             const discountSubtotalCell = row.querySelector('.discount-subtotal-cell');
             
+            const retailPrice = parseFloat(discountPriceInput.getAttribute('data-retail-price')) || 0;
             const discountPrice = parseFloat(discountPriceInput.value) || 0;
             const quantity = parseInt(quantityCell.textContent.replace(/,/g, '')) || 0;
+            
+            // Validate discount price - must be lower than retail price (cannot be equal or higher)
+            if (discountPrice > 0 && discountPrice >= retailPrice) {
+                alert('Discount price (₱' + discountPrice.toFixed(2) + ') must be lower than retail price (₱' + retailPrice.toFixed(2) + ')');
+                discountPriceInput.value = '';
+                discountPriceInput.style.borderColor = '#dc2626';
+                discountPriceInput.style.backgroundColor = '#fee2e2';
+                discountSubtotalCell.innerHTML = '<span class="text-muted">-</span>';
+                calculateDiscountTotal();
+                return;
+            }
+            
+            // Reset validation styling
+            discountPriceInput.style.borderColor = '#059669';
+            discountPriceInput.style.backgroundColor = '#ecfdf5';
             
             if (discountPrice > 0) {
                 const discountSubtotal = discountPrice * quantity;
@@ -1095,6 +1441,10 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
             }
             
             calculateDiscountTotal();
+        }
+        
+        function calculateDiscountSubtotal(itemId) {
+            validateAndCalculateDiscountSubtotal(itemId);
         }
         
         function calculateGrandTotal() {
@@ -1112,21 +1462,35 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
 
         function calculateDiscountTotal() {
             const discountSubtotalCells = document.querySelectorAll('.discount-subtotal-cell');
-            let total = 0;
-            let hasDiscounts = false;
+            const regularSubtotalCells = document.querySelectorAll('.regular-subtotal-cell');
+            const rows = document.querySelectorAll('#itemsTable tbody tr[data-item-id]');
             
-            discountSubtotalCells.forEach(cell => {
-                const textContent = cell.textContent || cell.innerText;
-                if (textContent && textContent.includes('₱')) {
-                    const value = parseFloat(textContent.replace(/₱|,/g, '')) || 0;
-                    total += value;
-                    hasDiscounts = true;
+            let finalTotal = 0;
+            let hasAnyDiscount = false;
+            
+            rows.forEach((row, index) => {
+                const discountSubtotalCell = row.querySelector('.discount-subtotal-cell');
+                const regularSubtotalCell = row.querySelector('.regular-subtotal-cell');
+                
+                const discountText = discountSubtotalCell.textContent || discountSubtotalCell.innerText;
+                
+                // Check if this item has a discount applied
+                if (discountText && discountText.includes('₱')) {
+                    // Use discounted subtotal
+                    const discountValue = parseFloat(discountText.replace(/₱|,/g, '')) || 0;
+                    finalTotal += discountValue;
+                    hasAnyDiscount = true;
+                } else {
+                    // Use regular subtotal for items without discount
+                    const regularText = regularSubtotalCell.textContent || regularSubtotalCell.innerText;
+                    const regularValue = parseFloat(regularText.replace(/₱|,/g, '')) || 0;
+                    finalTotal += regularValue;
                 }
             });
             
             const discountTotalCell = document.getElementById('discountTotalCell');
-            if (hasDiscounts && total > 0) {
-                discountTotalCell.innerHTML = '<strong>₱' + total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</strong>';
+            if (hasAnyDiscount && finalTotal > 0) {
+                discountTotalCell.innerHTML = '<strong>₱' + finalTotal.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</strong>';
             } else {
                 discountTotalCell.innerHTML = '<strong><span class="text-muted">No discounts applied</span></strong>';
             }
@@ -1227,13 +1591,22 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
                         });
                         
                         if (itemId && discountPriceInput && quantityCell) {
+                            const retailPrice = parseFloat(discountPriceInput.getAttribute('data-retail-price')) || 0;
                             const discountPrice = parseFloat(discountPriceInput.value) || 0;
                             const quantity = parseInt(quantityCell.textContent.replace(/,/g, '')) || 0;
+                            
+                            // Validate discount price before adding to data - must be lower than retail price
+                            if (discountPrice > 0 && discountPrice >= retailPrice) {
+                                alert(`Item #${itemId}: Discount price (₱${discountPrice.toFixed(2)}) must be lower than retail price (₱${retailPrice.toFixed(2)})`);
+                                discountPriceInput.focus();
+                                throw new Error('Invalid discount price');
+                            }
                             
                             itemsData.push({
                                 id: parseInt(itemId),
                                 discount_price: discountPrice,
-                                quantity: quantity
+                                quantity: quantity,
+                                retail_price: retailPrice
                             });
                         }
                     });
@@ -1267,8 +1640,21 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
                         });
                         
                         console.log('Response status:', response.status);
-                        const data = await response.json();
-                        console.log('Response data:', data);
+                        const responseText = await response.text();
+                        console.log('Raw response:', responseText);
+                        
+                        let data;
+                        try {
+                            data = JSON.parse(responseText);
+                            console.log('Parsed response data:', data);
+                        } catch (parseError) {
+                            console.error('JSON parse error:', parseError);
+                            console.error('Response was not valid JSON:', responseText);
+                            alert('Server returned invalid response. Check console for details.');
+                            saveDiscountPricesBtn.innerHTML = '<i class="fas fa-percentage"></i> Save Discount Prices';
+                            saveDiscountPricesBtn.disabled = false;
+                            return;
+                        }
                         
                         if (data.success) {
                             saveDiscountPricesBtn.innerHTML = '<i class="fas fa-check"></i> Saved!';
@@ -1299,6 +1685,55 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
                 });
             } else {
                 console.error('Save discount prices button not found');
+            }
+        })();
+        
+        // Test AJAX button handler
+        (function() {
+            const testAjaxBtn = document.getElementById('testAjaxBtn');
+            if (testAjaxBtn) {
+                testAjaxBtn.addEventListener('click', async () => {
+                    console.log('Test AJAX button clicked');
+                    
+                    const formData = new FormData();
+                    formData.append('action', 'test_ajax');
+                    
+                    try {
+                        testAjaxBtn.disabled = true;
+                        testAjaxBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+                        
+                        const response = await fetch(window.location.href, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        console.log('Test response status:', response.status);
+                        const responseText = await response.text();
+                        console.log('Test raw response:', responseText);
+                        
+                        const data = JSON.parse(responseText);
+                        console.log('Test parsed data:', data);
+                        
+                        if (data.success) {
+                            alert('AJAX Test Successful! Message: ' + data.message);
+                            testAjaxBtn.innerHTML = '<i class="fas fa-check"></i> Success!';
+                        } else {
+                            alert('AJAX Test Failed: ' + (data.error || 'Unknown error'));
+                            testAjaxBtn.innerHTML = '<i class="fas fa-times"></i> Failed';
+                        }
+                        
+                        setTimeout(() => {
+                            testAjaxBtn.innerHTML = '<i class="fas fa-bug"></i> Test AJAX';
+                            testAjaxBtn.disabled = false;
+                        }, 2000);
+                        
+                    } catch (e) {
+                        console.error('Test AJAX failed:', e);
+                        alert('Test AJAX failed: ' + e.message);
+                        testAjaxBtn.innerHTML = '<i class="fas fa-bug"></i> Test AJAX';
+                        testAjaxBtn.disabled = false;
+                    }
+                });
             }
         })();
         
