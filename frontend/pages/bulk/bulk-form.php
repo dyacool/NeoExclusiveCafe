@@ -582,14 +582,14 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
                     <p><strong>What happens next?</strong></p>
                     <ul>
                         <li>Our team will review your order within <strong>24-72 hours</strong></li>
-                        <li>We'll contact you at <strong><?php echo htmlspecialchars($_POST['email'] ?? ''); ?></strong> with pricing and availability</li>
+                        <li>We'll contact you at <strong><?php echo htmlspecialchars($_POST['contact'] ?? ''); ?></strong> with the discount pricing and availability</li>
                         <li>You can track your request status in your profile</li>
                     </ul>
                 </div>
                 <p class="contact-note">For urgent inquiries, please contact us directly.</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="window.location.href='../products/user-products.php'">Back to Products</button>
+                <button type="button" class="btn btn-secondary" onclick="window.location.href='../products/product-dashboard.php'">Back to Products</button>
                 <button type="button" class="btn btn-primary" onclick="window.location.href='../profile/profile.php'">View in Profile</button>
             </div>
         </div>
