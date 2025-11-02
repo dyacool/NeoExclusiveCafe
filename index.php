@@ -23,7 +23,7 @@ if (isAdminDomain($current_domain)) {
     // Admin domain - redirect to admin login
     safeRedirect($config['admin_path']);
 } else {
-    // User/main domain - redirect to user dashboard
-    safeRedirect($config['user_path']);
+    // User/main domain - redirect to user dashboard (landing page)
+    safeRedirect($config['default_path']);
 }
 ?>

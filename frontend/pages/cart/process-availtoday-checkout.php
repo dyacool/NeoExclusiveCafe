@@ -387,7 +387,7 @@ try {
     
     error_log("Preparing to insert order: Name=$customer_full_name, Email=$email, Phone=$phone, Total=$final_total, Items=$total_items");
     
-    $order_stmt->bind_param("sssidsss", 
+    $order_stmt->bind_param("ssssidssss", 
         $customer_full_name,
         $phone,
         $email,

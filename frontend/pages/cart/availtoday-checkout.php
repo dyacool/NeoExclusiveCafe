@@ -300,7 +300,7 @@ $debug_info = [
 
 <div class="content-wrapper">
     <div class="checkout-container">
-        <form id="checkout-form" action="process-availtoday-checkout.php" method="POST">
+        <form id="checkout-form" method="POST">
             
             <!-- User Information Section -->
             <div class="section-card user-information">
@@ -1189,7 +1189,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Form submission handler with PayMongo integration - SAME AS checkout.php
-    const checkoutForm = document.getElementById('availtoday-checkout-form');
+    const checkoutForm = document.getElementById('checkout-form');
     if (checkoutForm) {
         checkoutForm.addEventListener('submit', async function(e) {
             e.preventDefault();
