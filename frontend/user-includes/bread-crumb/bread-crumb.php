@@ -22,8 +22,7 @@ $route_mappings = [
     'index' => ['Home', '/'],
     
     // Product routes  
-    'products-categories' => ['Products', '/frontend/pages/products/products-categories.php'],
-    'product-dashboard' => ['Same Day Order', '/frontend/pages/products/product-dashboard.php'],
+    'product-dashboard' => ['Products', '/frontend/pages/products/product-dashboard.php'],
     'weekly-product' => ['For Delivery', '/frontend/pages/products/weekly-product.php'],
     'user-products' => ['For Pick Up', '/frontend/pages/products/user-products.php'],
     'product' => ['Product Details', ''],
@@ -61,6 +60,8 @@ $route_mappings = [
     'shopping-cart-preorder' => ['Pre-Order Cart', '/frontend/pages/cart/shopping-cart-preorder.php'],
     'shopping-cart-sameday' => ['Same-Day Cart', '/frontend/pages/cart/shopping-cart-sameday.php'],
     'checkout' => ['Checkout', '/frontend/pages/cart/checkout.php'],
+    'availtoday-checkout' => ['Checkout', '/frontend/pages/cart/availtoday-checkout.php'],
+
     'order-confirmation' => ['Order Confirmation', ''],
     'order-details' => ['Order Details', ''],
     
@@ -81,7 +82,6 @@ $route_mappings = [
 $hierarchy = [
     // Product hierarchy
     'products-categories' => ['user-dashboard'],
-    'product-dashboard' => ['user-dashboard', 'products-categories'],
     'weekly-product' => ['user-dashboard', 'products-categories'],
     'user-products' => ['user-dashboard', 'products-categories'],
     'product' => ['user-dashboard', 'products-categories'],
@@ -119,6 +119,7 @@ $hierarchy = [
     'shopping-cart-preorder' => ['user-dashboard'],
     'shopping-cart-sameday' => ['user-dashboard'],
     'checkout' => ['user-dashboard', 'cart'],
+    'availtoday-checkout' => ['user-dashboard', 'cart'],
     'order-confirmation' => ['user-dashboard', 'cart'],
     'order-details' => ['user-dashboard', 'profile'],
     
@@ -191,7 +192,7 @@ function generateBreadcrumb($current_page, $route_mappings, $hierarchy, $context
         }
     } else {
         // Add contextual parents based on URL structure
-        if (in_array('products', $context) && $current_page !== 'products-categories') {
+        if (in_array('products', $context) && $current_page !== 'products-categories' && $current_page !== 'product-dashboard') {
             $breadcrumb[] = ['Products', '/frontend/pages/products/products-categories.php', false];
         }
         

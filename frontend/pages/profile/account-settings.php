@@ -115,6 +115,102 @@ echo "<!-- Current cloud public ID: " . ($row['cloud_public_id'] ?? 'null') . " 
     <link rel="stylesheet" href="account-settings.css">
     <link rel="stylesheet" href="../account/css/profile-picture-ajax.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Confirmation Popup - Success/Error Notification */
+        .confirmation-popup {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: white;
+            color: #333;
+            padding: 16px 24px;
+            border-radius: 12px;
+            z-index: 10000;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            font-weight: 600;
+            min-width: 300px;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            border: 2px solid transparent;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        /* Success State - Green Theme */
+        .confirmation-popup.success {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            color: #2e7d32;
+            border-color: #4caf50;
+            box-shadow: 0 10px 40px rgba(76, 175, 80, 0.3);
+        }
+
+        /* Error State - Red Theme */
+        .confirmation-popup.error {
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+            color: #c62828;
+            border-color: #f44336;
+            box-shadow: 0 10px 40px rgba(244, 67, 54, 0.3);
+        }
+
+        /* Show Animation */
+        .confirmation-popup.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Hide Animation */
+        .confirmation-popup.hide {
+            opacity: 0;
+            transform: translateX(-50%) translateY(-100px);
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .confirmation-popup {
+                top: 70px;
+                min-width: 280px;
+                max-width: 90%;
+                padding: 14px 20px;
+                font-size: 14px;
+            }
+            
+            .confirmation-popup.show {
+                transform: translateX(-50%) translateY(0);
+            }
+            
+            .confirmation-popup.hide {
+                transform: translateX(-50%) translateY(-100px);
+            }
+        }
+
+        /* Button Loader Styles */
+        .btn-loader {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.6s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .btn.loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+    </style>
 </head>
 <body>
     <?php include "../../user-includes/navbar/customer-navigation.php"; ?>
@@ -123,14 +219,6 @@ echo "<!-- Current cloud public ID: " . ($row['cloud_public_id'] ?? 'null') . " 
     
     <div class="container">
         <h1> Account Settings</h1>
-        
-        <?php if ($message): ?>
-            <div class="message success"><?php echo $message; ?></div>
-        <?php endif; ?>
-        
-        <?php if ($error): ?>
-            <div class="message error"><?php echo $error; ?></div>
-        <?php endif; ?>
         
         <div class="profile-section fade-in">
             
@@ -173,7 +261,6 @@ echo "<!-- Current cloud public ID: " . ($row['cloud_public_id'] ?? 'null') . " 
                     </div>
                     <?php if ($has_profile_image && !empty($profile_public_id)): ?>
                         <button type="button" class="remove-avatar-btn" id="remove-avatar-btn" data-public-id="<?php echo htmlspecialchars($profile_public_id); ?>" onclick="handleRemoveProfilePicture('<?php echo htmlspecialchars($profile_public_id); ?>')">
-                            <i class="fas fa-times"></i>
                         </button>
                     <?php endif; ?>
                 </div>
@@ -186,10 +273,10 @@ echo "<!-- Current cloud public ID: " . ($row['cloud_public_id'] ?? 'null') . " 
                 
                 <!-- Loading and success indicators -->
                 <div id="profileLoadingIndicator" class="loading-indicator" style="display: none;">
-                    <i class="fas fa-spinner fa-spin"></i> Uploading...
+                    Uploading...
                 </div>
                 <div id="profileSuccessIndicator" class="success-indicator" style="display: none;">
-                    <i class="fas fa-check-circle"></i> Upload successful!
+                    Upload successful!
                 </div>
             </div>
 
@@ -238,20 +325,83 @@ echo "<!-- Current cloud public ID: " . ($row['cloud_public_id'] ?? 'null') . " 
                     </div>
                     <div style="display: flex; gap: 15px; justify-content: center;">
                         <button type="button" class="btn cancel-btn" onclick="closePasswordModal()">Cancel</button>
-                        <button type="submit" name="change_password" class="btn update-btn">Update Password</button>
+                        <button type="submit" name="change_password" class="btn update-btn" id="updatePasswordBtn">Update Password</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
+    <!-- Confirmation Popup -->
+    <div id="confirmationPopup"></div>
     
     <script>
+        // Show confirmation on page load if there's a message
+        <?php if ($message): ?>
+            window.addEventListener('DOMContentLoaded', function() {
+                showConfirmation('<?php echo addslashes($message); ?>', 'success');
+            });
+        <?php endif; ?>
+        
+        <?php if ($error): ?>
+            window.addEventListener('DOMContentLoaded', function() {
+                showConfirmation('<?php echo addslashes($error); ?>', 'error');
+            });
+        <?php endif; ?>
+
+        // Confirmation popup function
+        function showConfirmation(message, type = 'success') {
+            const popup = document.getElementById('confirmationPopup');
+            
+            const icon = type === 'success' ? '✓' : '✕';
+            
+            popup.innerHTML = `${icon} ${message}`;
+            popup.className = `confirmation-popup ${type}`;
+            
+            // Trigger show animation
+            setTimeout(() => {
+                popup.classList.add('show');
+            }, 10);
+            
+            // Auto-hide after 3 seconds
+            setTimeout(() => {
+                popup.classList.remove('show');
+                popup.classList.add('hide');
+                setTimeout(() => {
+                    popup.className = '';
+                    popup.innerHTML = '';
+                }, 400);
+            }, 3000);
+        }
+
+        // Handle password form submission
+        document.querySelector('form[method="POST"]').addEventListener('submit', function(e) {
+            const btn = document.getElementById('updatePasswordBtn');
+            
+            // Add loader to button
+            if (!btn.querySelector('.btn-loader')) {
+                const loader = document.createElement('span');
+                loader.className = 'btn-loader';
+                btn.insertBefore(loader, btn.firstChild);
+                btn.classList.add('loading');
+            }
+        });
+
         function openPasswordModal() {
             document.getElementById('passwordModal').style.display = 'block';
         }
 
         function closePasswordModal() {
             document.getElementById('passwordModal').style.display = 'none';
+            // Reset form
+            document.querySelector('form[method="POST"]').reset();
+            // Remove loader if exists
+            const btn = document.getElementById('updatePasswordBtn');
+            const loader = btn.querySelector('.btn-loader');
+            if (loader) {
+                loader.remove();
+                btn.classList.remove('loading');
+            }
         }
 
         // Close modal when clicking outside of it

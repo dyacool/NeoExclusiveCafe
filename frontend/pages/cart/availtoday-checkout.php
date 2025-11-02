@@ -19,7 +19,7 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role']) || $_SESSION[
 
 $page_title = "Available Today Checkout";
 $additional_css = [
-    "checkout.css"
+    "availtoday-checkout.css"
 ];
 
 // Include database connection
@@ -290,359 +290,372 @@ $debug_info = [
 <head>
   <meta charset="UTF-8">
   <title>Available Today Checkout</title>
-  <link rel="stylesheet" href="checkout.css">
+  <link rel="stylesheet" href="availtoday-checkout.css">
+  <link rel="stylesheet" href="checkout-additional.css">
   <link rel="stylesheet" href="saved-info.css">
 </head>
 <body class="checkout-page">
 <?php include '../../user-includes/navbar/customer-navigation.php'; ?>
+<?php include __DIR__ . "/../../user-includes/bread-crumb/bread-crumb.php"; ?>
 
-<div class="checkout-container">
-    <form id="availtoday-checkout-form" action="process-availtoday-checkout.php" method="POST">
-        
-        <!-- User Information Section -->
-        <div class="section-card user-information">
-            <div class="section-header-with-button">
-                <h2>User Information</h2>
-                <button type="button" id="loadContactsBtn" class="btn-load-contacts">
-                    📋 Load Contacts and Address
-                </button>
-            </div>
+<div class="content-wrapper">
+    <div class="checkout-container">
+        <form id="checkout-form" action="process-availtoday-checkout.php" method="POST">
             
-            <div class="user-details">
-                <div class="detail-row">
-                    <span class="detail-label">Name:</span>
-                    <span class="detail-value" id="user-name">
-                        <?php 
-                            $fullname = trim($user['firstname'] . ' ' . $user['lastname']);
-                            echo htmlspecialchars($fullname); 
-                        ?>
-                    </span>
+            <!-- User Information Section -->
+            <div class="section-card user-information">
+                <div class="section-header-with-button">
+                    <h2>User Information</h2>
+                    <button type="button" id="loadContactsBtn" class="btn-load-contacts">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>                    
+                    </button>
                 </div>
-                <div class="detail-row">
-                    <span class="detail-label">Email:</span>
-                    <span class="detail-value" id="user-email">
-                        <?php 
-                            // Final attempt to get email - try direct query if still empty
-                            if (empty($user['email']) && isset($_SESSION['user_id'])) {
-                                try {
-                                    $direct_query = "SELECT email FROM users WHERE id = " . intval($_SESSION['user_id']);
-                                    $direct_result = $conn->query($direct_query);
-                                    if ($direct_result && $direct_result->num_rows > 0) {
-                                        $direct_row = $direct_result->fetch_assoc();
-                                        $user['email'] = $direct_row['email'];
-                                        error_log("Email retrieved via direct query: " . $user['email']);
+                
+                <div class="user-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Name:</span>
+                        <span class="detail-value" id="user-name">
+                            <?php 
+                                $fullname = trim($user['firstname'] . ' ' . $user['lastname']);
+                                echo htmlspecialchars($fullname); 
+                            ?>
+                        </span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Email:</span>
+                        <span class="detail-value" id="user-email">
+                            <?php 
+                                // Final attempt to get email - try direct query if still empty
+                                if (empty($user['email']) && isset($_SESSION['user_id'])) {
+                                    try {
+                                        $direct_query = "SELECT email FROM users WHERE id = " . intval($_SESSION['user_id']);
+                                        $direct_result = $conn->query($direct_query);
+                                        if ($direct_result && $direct_result->num_rows > 0) {
+                                            $direct_row = $direct_result->fetch_assoc();
+                                            $user['email'] = $direct_row['email'];
+                                            error_log("Email retrieved via direct query: " . $user['email']);
+                                        }
+                                    } catch (Exception $e) {
+                                        error_log("Direct query failed: " . $e->getMessage());
                                     }
-                                } catch (Exception $e) {
-                                    error_log("Direct query failed: " . $e->getMessage());
                                 }
-                            }
-                            
-                            if (!empty($user['email'])) {
-                                echo htmlspecialchars($user['email']);
-                            } else {
-                                echo '<span style="color: #f44336;">Email not found - please contact support</span>';
-                                error_log("FINAL EMAIL DISPLAY ISSUE:");
-                                error_log("- User data: " . print_r($user, true));
-                                error_log("- Session user_id: " . ($_SESSION['user_id'] ?? 'not set'));
-                                error_log("- Database connection: " . ($conn ? 'OK' : 'FAILED'));
-                            }
-                        ?>
-                    </span>
-                    <input type="hidden" id="email" name="email" value="<?php 
-                        echo !empty($user['email']) ? htmlspecialchars($user['email']) : '';
-                    ?>">
-                    <input type="hidden" id="first_name" name="first_name" value="<?php echo htmlspecialchars($user['firstname'] ?? ''); ?>">
-                    <input type="hidden" id="last_name" name="last_name" value="<?php echo htmlspecialchars($user['lastname'] ?? ''); ?>">
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Contact:</span>
-                    <input type="tel" id="phone" name="phone" 
-                           placeholder="Enter your contact number" required 
-                           pattern="(\+63|0)9\d{9}"
-                           title="Please enter a valid 11-digit phone number"
-                           maxlength="13"
-                           inputmode="numeric">
-                </div>
-            </div>
-        </div>
-
-        <!-- Available Today Notice -->
-        <?php if ($has_mixed_availtoday_status): ?>
-        <div class="section-card mixed-status-notice">
-            <h2>⚠️ Mixed Order Types</h2>
-            <p>Your cart contains both pickup and delivery items. Each item's delivery method is automatically assigned based on product availability.</p>
-        </div>
-        <?php endif; ?>
-
-        <!-- Shipping Options & Details -->
-        <div class="section-card shipping-details">
-            <h2>Shipping Options</h2>
-            
-            <?php 
-            // Determine what options should be enabled based on item restrictions
-            if ($has_pickup_only_items && $has_delivery_only_items) {
-                // Conflict: both types exist - force pickup only
-                $allow_pickup = true;
-                $allow_delivery = false;
-            } else {
-                $allow_pickup = !$has_delivery_only_items; // Pickup allowed if no delivery-only items
-                $allow_delivery = !$has_pickup_only_items; // Delivery allowed if no pickup-only items
-            }
-            
-            // Check same-day delivery order limit (only affects delivery, not pickup)
-            $delivery_limit_reached = false;
-            $delivery_limit_message = '';
-            
-            if ($allow_delivery) {
-                $today_date = date('Y-m-d');
-                
-                // Get the same-day delivery order limit from availtoday_order_limit table
-                $availtoday_limit_query = "SELECT limit_orders FROM availtoday_order_limit ORDER BY id DESC LIMIT 1";
-                $availtoday_limit_result = $conn->query($availtoday_limit_query);
-                
-                $availtoday_limit = 50; // Default limit
-                if ($availtoday_limit_result && $availtoday_limit_result->num_rows > 0) {
-                    $availtoday_limit_row = $availtoday_limit_result->fetch_assoc();
-                    $availtoday_limit = intval($availtoday_limit_row['limit_orders']);
-                }
-                
-                // Count current same-day DELIVERY orders for today
-                $current_orders_query = "SELECT COUNT(DISTINCT order_id) as current_orders 
-                    FROM orders 
-                    WHERE (pickup_date = ? OR delivery_date = ?) 
-                    AND delivery_method = 'Delivery'
-                    AND status NOT IN ('Completed', 'Delivered', 'Picked-up', 'Cancelled')";
-                
-                $current_orders_stmt = $conn->prepare($current_orders_query);
-                if ($current_orders_stmt) {
-                    $current_orders_stmt->bind_param("ss", $today_date, $today_date);
-                    $current_orders_stmt->execute();
-                    $current_orders_result = $current_orders_stmt->get_result();
-                    $current_orders_data = $current_orders_result->fetch_assoc();
-                    $current_orders = intval($current_orders_data['current_orders']);
-                    
-                    if ($current_orders >= $availtoday_limit) {
-                        $delivery_limit_reached = true;
-                        $allow_delivery = false;
-                        $delivery_limit_message = "Same-day delivery limit reached ($current_orders/$availtoday_limit orders). Pickup is still available!";
-                        error_log("Same-day delivery limit reached: $current_orders/$availtoday_limit - disabling delivery option");
-                    }
-                    
-                    $current_orders_stmt->close();
-                }
-            }
-            ?>
-            
-            <?php if ($delivery_limit_reached): ?>
-                <div class="shipping-method-notice" style="background: #fff3cd; border-color: #ffc107;">
-                    <p><strong>⚠️ Same-Day Delivery Limit Reached:</strong> <?= htmlspecialchars($delivery_limit_message) ?></p>
-                </div>
-            <?php elseif ($has_pickup_only_items && $has_delivery_only_items): ?>
-                <div class="shipping-method-notice">
-                    <p><strong>Mixed Cart:</strong> Your cart contains both pickup-only and delivery-only items. Only pickup is available.</p>
-                </div>
-            <?php elseif ($has_delivery_only_items): ?>
-                <div class="shipping-method-notice">
-                    <p><strong>Delivery Required:</strong> Your cart contains delivery-only products.</p>
-                    <p><strong>Delivery Areas:</strong> We deliver to Sta. Rosa, Cabuyao, Calamba, Binan (Laguna), Silang, and Tagaytay (Cavite) only.</p>
-                </div>
-            <?php elseif ($has_pickup_only_items): ?>
-                <div class="shipping-method-notice">
-                    <p><strong>Pickup Required:</strong> Your cart contains pickup-only products.</p>
-                </div>
-            <?php else: ?>
-                <div class="shipping-method-notice">
-                    <p><strong>Flexible Options:</strong> All items in your cart can be either picked up or delivered. Choose your preferred method.</p>
-                </div>
-            <?php endif; ?>
-            
-            <div class="delivery-type">
-                <label class="radio-option">
-                    <input type="radio" id="pickup" name="delivery_method" value="pickup" 
-                           <?= ($shipping_method === 'pickup' || !$allow_delivery) ? 'checked' : '' ?>
-                           <?= !$allow_pickup ? 'disabled' : '' ?>>
-                    <span>Pick Up <?= !$allow_pickup ? '(Not available - cart has delivery-only items)' : '' ?></span>
-                </label>
-                <label class="radio-option">
-                    <input type="radio" id="delivery" name="delivery_method" value="delivery"
-                           <?= $shipping_method === 'delivery' && $allow_delivery ? 'checked' : '' ?>
-                           <?= !$allow_delivery ? 'disabled' : '' ?>>
-                    <span>Delivery 
-                        <?php 
-                        if ($delivery_limit_reached) {
-                            echo '(Limit reached - pickup available)';
-                        } elseif (!$allow_delivery) {
-                            echo '(Not available - cart has pickup-only items)';
-                        }
-                        ?>
-                    </span>
-                </label>
-            </div>
-            
-            <!-- Pickup Details -->
-            <div id="pickup-details" class="delivery-content" style="display: none;">
-                <div class="method-notice">
-                    <p class="auto-assigned-note">Note: Available Today orders are prepared for same-day pickup. No calendar or time selection needed.</p>
-                </div>
-            </div>
-
-            <!-- Delivery Details -->
-            <div id="delivery-details" class="delivery-content" style="display: none;">
-                <div class="method-notice">
-                    <p class="auto-assigned-note">Note: Available Today orders are prepared for same-day delivery. No calendar or time selection needed.</p>
-                </div>
-                <div class="address-section">
-                    <input type="text" id="delivery_address" name="delivery_address" 
-                           placeholder="Enter delivery address" readonly>
-                    <button type="button" id="setLocationBtn" class="btn-secondary">Set Location</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Order Summary -->
-        <div class="section-card order-summary">
-            <h2>Order Summary</h2>
-            
-            <!-- Coupon Code Section -->
-            <div class="coupon-section">
-                <div class="coupon-input-group">
-                    <input type="text" id="coupon_code" name="coupon_code" 
-                           placeholder="Enter coupon code" 
-                           class="coupon-input">
-                    <button type="button" id="check_coupon_btn" class="btn-check-coupon">Check Coupon</button>
-                </div>
-                <div id="coupon_message" class="coupon-message"></div>
-                <div id="coupon_applied" class="coupon-applied" style="display: none;">
-                    <div class="applied-coupon-info">
-                        <span class="coupon-code-display"></span>
-                        <span class="coupon-discount"></span>
-                        <button type="button" id="remove_coupon_btn" class="btn-remove-coupon">Remove</button>
+                                
+                                if (!empty($user['email'])) {
+                                    echo htmlspecialchars($user['email']);
+                                } else {
+                                    echo '<span style="color: #f44336;">Email not found - please contact support</span>';
+                                    error_log("FINAL EMAIL DISPLAY ISSUE:");
+                                    error_log("- User data: " . print_r($user, true));
+                                    error_log("- Session user_id: " . ($_SESSION['user_id'] ?? 'not set'));
+                                    error_log("- Database connection: " . ($conn ? 'OK' : 'FAILED'));
+                                }
+                            ?>
+                        </span>
+                        <input type="hidden" id="email" name="email" value="<?php 
+                            echo !empty($user['email']) ? htmlspecialchars($user['email']) : '';
+                        ?>">
+                        <input type="hidden" id="first_name" name="first_name" value="<?php echo htmlspecialchars($user['firstname'] ?? ''); ?>">
+                        <input type="hidden" id="last_name" name="last_name" value="<?php echo htmlspecialchars($user['lastname'] ?? ''); ?>">
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Contact:</span>
+                        <input type="tel" id="phone" name="phone" 
+                            placeholder="Enter your contact number" required 
+                            pattern="(\+63|0)9\d{9}"
+                            title="Please enter a valid 11-digit phone number"
+                            maxlength="13"
+                            inputmode="numeric">
                     </div>
                 </div>
             </div>
-            
-            <div class="summary-items">
-                <?php foreach ($cart_items as $item): ?>
-                    <div class="item" data-status-id="<?= $item['status_id'] ?>" data-availtoday-status-id="<?= $item['availtoday_status_id'] ?? 'null' ?>">
-                        <div class="item-info">
-                            <h3>
-                                <?= htmlspecialchars($item['name']) ?>
-                                <?php if ($item['status_id'] == 3 || ($item['availtoday_status_id'] === null && $item['status_id'] == 3)): ?>
-                                    <span class="shipping-indicator" style="display: inline-block; margin-left: 8px; padding: 2px 8px; background: #f0f0f0; border-radius: 3px; font-size: 11px; color: #666; font-weight: normal;"></span>
-                                <?php endif; ?>
-                            </h3>
-                            <p class="quantity">Quantity: <?= $item['quantity'] ?></p>
-                            <p class="item-method">
+
+            <!-- Available Today Notice -->
+            <?php if ($has_mixed_availtoday_status): ?>
+            <div class="section-card mixed-status-notice">
+                <h2>Mixed Order Types</h2>
+                <p>Your cart contains both pickup and delivery items. Each item's delivery method is automatically assigned based on product availability.</p>
+            </div>
+            <?php endif; ?>
+
+            <!-- Shipping Options & Details -->
+            <div class="section-card shipping-details">
+                <h2>Shipping Options</h2>
+                
+                <?php 
+                // Determine what options should be enabled based on item restrictions
+                if ($has_pickup_only_items && $has_delivery_only_items) {
+                    // Conflict: both types exist - force pickup only
+                    $allow_pickup = true;
+                    $allow_delivery = false;
+                } else {
+                    $allow_pickup = !$has_delivery_only_items; // Pickup allowed if no delivery-only items
+                    $allow_delivery = !$has_pickup_only_items; // Delivery allowed if no pickup-only items
+                }
+                
+                // Check same-day delivery order limit (only affects delivery, not pickup)
+                $delivery_limit_reached = false;
+                $delivery_limit_message = '';
+                
+                if ($allow_delivery) {
+                    $today_date = date('Y-m-d');
+                    
+                    // Get the same-day delivery order limit from availtoday_order_limit table
+                    $availtoday_limit_query = "SELECT limit_orders FROM availtoday_order_limit ORDER BY id DESC LIMIT 1";
+                    $availtoday_limit_result = $conn->query($availtoday_limit_query);
+                    
+                    $availtoday_limit = 50; // Default limit
+                    if ($availtoday_limit_result && $availtoday_limit_result->num_rows > 0) {
+                        $availtoday_limit_row = $availtoday_limit_result->fetch_assoc();
+                        $availtoday_limit = intval($availtoday_limit_row['limit_orders']);
+                    }
+                    
+                    // Count current same-day DELIVERY orders for today
+                    $current_orders_query = "SELECT COUNT(DISTINCT order_id) as current_orders 
+                        FROM orders 
+                        WHERE (pickup_date = ? OR delivery_date = ?) 
+                        AND delivery_method = 'Delivery'
+                        AND status NOT IN ('Completed', 'Delivered', 'Picked-up', 'Cancelled')";
+                    
+                    $current_orders_stmt = $conn->prepare($current_orders_query);
+                    if ($current_orders_stmt) {
+                        $current_orders_stmt->bind_param("ss", $today_date, $today_date);
+                        $current_orders_stmt->execute();
+                        $current_orders_result = $current_orders_stmt->get_result();
+                        $current_orders_data = $current_orders_result->fetch_assoc();
+                        $current_orders = intval($current_orders_data['current_orders']);
+                        
+                        if ($current_orders >= $availtoday_limit) {
+                            $delivery_limit_reached = true;
+                            $allow_delivery = false;
+                            $delivery_limit_message = "Maximum delivery limit has been reached ($current_orders/$availtoday_limit orders). Pickup is still available!";
+                            error_log("Delivery limit reached: $current_orders/$availtoday_limit - disabling delivery option");
+                        }
+                        
+                        $current_orders_stmt->close();
+                    }
+                }
+                ?>
+                
+                <?php if ($delivery_limit_reached): ?>
+                    <div class="shipping-method-notice">
+                        <p><strong>Delivery Limit Reached:</strong> <?= htmlspecialchars($delivery_limit_message) ?></p>
+                    </div>
+                <?php elseif ($has_pickup_only_items && $has_delivery_only_items): ?>
+                    <div class="shipping-method-notice">
+                        <p><strong>Mixed Cart:</strong> Your cart contains both pickup-only and delivery-only items. Only pickup is available.</p>
+                    </div>
+                <?php elseif ($has_delivery_only_items): ?>
+                    <div class="shipping-method-notice">
+                        <p><strong>Delivery Required:</strong> Your cart contains delivery-only products.</p>
+                        <p><strong>Delivery Areas:</strong> We deliver to Sta. Rosa, Cabuyao, Calamba, Binan (Laguna), Silang, and Tagaytay (Cavite) only.</p>
+                    </div>
+                <?php elseif ($has_pickup_only_items): ?>
+                    <div class="shipping-method-notice">
+                        <p><strong>Pickup Required:</strong> Your cart contains pickup-only products.</p>
+                    </div>
+                <?php else: ?>
+                    <div class="shipping-method-notice">
+                        <p><strong>Flexible Options:</strong> All items in your cart can be either picked up or delivered. Choose your preferred method.</p>
+                    </div>
+                <?php endif; ?>
+                
+                <div class="delivery-modes">
+                    <div>
+                        <label class="section-subtitle">Select Delivery Method:</label>
+                    </div>
+                    <div class="delivery-type">
+                        <label class="radio-option">
+                            <input type="radio" id="pickup" name="delivery_method" value="pickup" 
+                                <?= ($shipping_method === 'pickup' || !$allow_delivery) ? 'checked' : '' ?>
+                                <?= !$allow_pickup ? 'disabled' : '' ?>>
+                            <span>Pick Up <?= !$allow_pickup ? '(Not available - cart has delivery-only items)' : '' ?></span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" id="delivery" name="delivery_method" value="delivery"
+                                <?= $shipping_method === 'delivery' && $allow_delivery ? 'checked' : '' ?>
+                                <?= !$allow_delivery ? 'disabled' : '' ?>>
+                            <span>Delivery 
+                                <?php 
+                                if ($delivery_limit_reached) {
+                                    echo '(Limit reached - pickup available)';
+                                } elseif (!$allow_delivery) {
+                                    echo '(Not available - cart has pickup-only items)';
+                                }
+                                ?>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Pickup Details -->
+                <div id="pickup-details" class="delivery-content" style="display: none;">
+                    <div class="method-notice">
+                        <p class="auto-assigned-note">No date and time selection needed for same-day pickup.</p>
+                    </div>
+                </div>
+
+                <!-- Delivery Details -->
+                <div id="delivery-details" class="delivery-content" style="display: none;">
+                    <div class="method-notice">
+                        <p class="auto-assigned-note">No date and time selection needed for same-day delivery.</p>
+                    </div>
+                    <div class="address-section">
+                        <div>
+                            <label for="delivery_address" class="section-subtitle">Delivery Address:</label>
+                        </div>
+                        <div class="address-input-group">
+                            <input type="text" id="delivery_address" name="delivery_address" 
+                                placeholder="Use set location button to enter delivery address" readonly>
+                            <button type="button" id="setLocationBtn" class="btn-secondary">Set Location</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="section-card order-summary">
+                <h2>Order Summary</h2>
+                
+                <div class="summary-items">
+                    <?php foreach ($cart_items as $item): ?>
+                        <div class="item" data-status-id="<?= $item['status_id'] ?>" data-availtoday-status-id="<?= $item['availtoday_status_id'] ?? 'null' ?>">
+                            <div class="item-info">
+                                <h3 class="item-name">
+                                    <?= htmlspecialchars($item['name']) ?>
+                                    <?php if ($item['status_id'] == 3 || ($item['availtoday_status_id'] === null && $item['status_id'] == 3)): ?>
+                                        <span class="shipping-indicator" style="display: inline-block; margin-left: 8px; padding: 2px 8px; background: #f0f0f0; border-radius: 3px; font-size: 11px; color: #666; font-weight: normal;"></span>
+                                    <?php endif; ?>
+                                </h3>
+                                <p class="quantity"><?= $item['quantity'] ?> x ₱<?= $item['price'] ?></p>
                                 <?php if ($item['availtoday_status_id']): ?>
                                     <?php if ($item['availtoday_status_id'] == 1): ?>
-                                        <strong style="color: #4CAF50;">Pick Up Only!</strong>
+                                        <p class="product-shipping-method" style="font-size: 12px; color: #4CAF50; font-weight: 600;">🚶 Pick Up Only</p>
                                     <?php elseif ($item['availtoday_status_id'] == 2): ?>
-                                        <strong style="color: #2196F3;">Delivery Only!</strong>
+                                        <p class="product-shipping-method" style="font-size: 12px; color: #2196F3; font-weight: 600;">🚚 Delivery Only</p>
                                     <?php else: ?>
-                                        <strong><?php echo htmlspecialchars($item['availtoday_status_name']); ?></strong>
+                                        <p class="product-shipping-method" style="font-size: 12px; color: #9C27B0; font-weight: 600;">✨ <?php echo htmlspecialchars($item['availtoday_status_name']); ?></p>
                                     <?php endif; ?>
                                 <?php else: ?>
                                     <?php if ($item['status_id'] == 1): ?>
-                                        <strong style="color: #4CAF50;">Pick Up Only!</strong>
+                                        <p class="product-shipping-method" style="font-size: 12px; color: #4CAF50; font-weight: 600;">🚶 Pick Up Only</p>
                                     <?php elseif ($item['status_id'] == 2): ?>
-                                        <strong style="color: #2196F3;">Delivery Only!</strong>
+                                        <p class="product-shipping-method" style="font-size: 12px; color: #2196F3; font-weight: 600;">🚚 Delivery Only</p>
                                     <?php else: ?>
-                                        <strong><?php echo $item['status_id'] == 1 ? 'Pick Up' : ($item['status_id'] == 2 ? 'Delivery' : 'Flexible'); ?></strong>
+                                        <p class="product-shipping-method" style="font-size: 12px; color: #9C27B0; font-weight: 600;">✨ Flexible (Delivery or Pick-Up)</p>
                                     <?php endif; ?>
-                                    <span class="auto-assigned">(Auto-assigned)</span>
                                 <?php endif; ?>
-                            </p>
-                            <?php if (!empty($item['available_days'])): ?>
-                                <p class="available-days">Available: <?php echo htmlspecialchars($item['available_days']); ?></p>
-                            <?php endif; ?>
+                                <?php if (!empty($item['available_days'])): ?>
+                                    <p class="available-days">Available: <?php echo htmlspecialchars($item['available_days']); ?></p>
+                                <?php endif; ?>
+                            </div>
+                            <div class="item-price">₱<?= number_format($item['price'] * $item['quantity'], 2) ?></div>
                         </div>
-                        <div class="item-price">₱<?= number_format($item['price'] * $item['quantity'], 2) ?></div>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-            
-            <div class="summary-totals">
-                <div class="total-row">
-                    <span>Subtotal:</span>
-                    <span id="subtotal">₱<?= number_format($cart_total, 2) ?></span>
+                    <?php endforeach; ?>
                 </div>
-                <div class="total-row" id="discount-row" style="display: none;">
-                    <span>Discount:</span>
-                    <span id="discount_amount" style="color: #28a745;">-₱0.00</span>
-                </div>
-                <div class="total-row" id="shipping-row">
-                    <span>Shipping Fee:</span>
-                    <span id="shipping_fee">₱0.00</span>
-                </div>
-                <div class="total-row total-final">
-                    <span>Total:</span>
-                    <span id="total">₱<?= number_format($cart_total, 2) ?></span>
-                </div>
-            </div>
-        </div>
 
-        <!-- Payment Mode -->
-        <div class="section-card payment-mode">
-            <h2>Mode of Payment</h2>
-            <div class="payment-options">
-                <label class="payment-option">
-                    <input type="radio" name="payment_method" value="gcash" id="gcash" checked>
-                    <div class="payment-option-content">
-                        <span class="payment-text">GCash</span>
-                        <small class="payment-desc">Pay with GCash e-wallet</small>
+                <div class="summary-totals">
+                    <div class="total-row">
+                        <span>Subtotal:</span>
+                        <span id="subtotal">₱<?= number_format($cart_total, 2) ?></span>
                     </div>
-                </label>
-                <label class="payment-option">
-                    <input type="radio" name="payment_method" value="paymaya" id="paymaya">
-                    <div class="payment-option-content">
-                        <span class="payment-text">Maya (PayMaya)</span>
-                        <small class="payment-desc">Pay with Maya e-wallet</small>
+                    <div class="total-row" id="discount-row" style="display: none;">
+                        <span>Discount:</span>
+                        <span id="discount_amount">-₱0.00</span>
                     </div>
-                </label>
-                <label class="payment-option">
-                    <input type="radio" name="payment_method" value="card" id="card">
-                    <div class="payment-option-content">
-                        <span class="payment-text">Credit/Debit Card</span>
-                        <small class="payment-desc">Pay with Visa, Mastercard</small>
+                    <div class="total-row" id="shipping-row">
+                        <span>Shipping Fee:</span>
+                        <span id="shipping_fee">₱0.00</span>
                     </div>
-                </label>
-            </div>
-            
-            <!-- Card Payment Form (hidden by default) -->
-            <div id="card-payment-form" class="card-payment-form" style="display: none;">
-                <h3>Card Details</h3>
-                <div id="card-element">
-                    <!-- PayMongo card element will be mounted here -->
+                    <div class="total-row total-final">
+                        <span>Total:</span>
+                        <span id="total">₱<?= number_format($cart_total, 2) ?></span>
+                    </div>
                 </div>
-                <div id="card-errors" class="card-errors"></div>
+
+                <div class="coupon-section">
+                    <div class="coupon-input-group">
+                        <input type="text" id="coupon_code" name="coupon_code" 
+                            placeholder="Enter coupon code" 
+                            class="coupon-input">
+                        <button type="button" id="apply_coupon_btn" class="btn-apply-coupon">Apply</button>
+                    </div>
+                    <div id="coupon_message" class="coupon-message"></div>
+                    <div id="coupon_applied" class="coupon-applied" style="display: none;">
+                        <div class="applied-coupon-info">
+                            <span class="coupon-code-display"></span>
+                            <span class="coupon-discount"></span>
+                            <button type="button" id="remove_coupon_btn" class="btn-remove-coupon">Remove</button>
+                        </div>
+                    </div>
+                </div>
             </div>
-            
-            <div class="payment-note">
-                <p><strong>Secure Payment:</strong> All payments are processed securely through PayMongo.</p>
-                <p><small>Test Mode: Use test card numbers for testing payments.</small></p>
+
+            <!-- Payment Mode -->
+            <div class="section-card payment-mode">
+                <h2>Mode of Payment</h2>
+                <div class="payment-options">
+                    <label class="payment-option">
+                        <input type="radio" name="payment_method" value="gcash" id="gcash" checked>
+                        <div class="payment-option-content">
+                            <span class="payment-text">GCash</span>
+                            <small class="payment-desc">Pay with GCash e-wallet</small>
+                        </div>
+                    </label>
+                    <label class="payment-option">
+                        <input type="radio" name="payment_method" value="maya" id="maya">
+                        <div class="payment-option-content">
+                            <span class="payment-text">Maya</span>
+                            <small class="payment-desc">Pay with Maya e-wallet</small>
+                        </div>
+                    </label>
+                    <label class="payment-option">
+                        <input type="radio" name="payment_method" value="card" id="card">
+                        <div class="payment-option-content">
+                            <span class="payment-text">Credit/Debit Card</span>
+                            <small class="payment-desc">Pay with Visa, Mastercard</small>
+                        </div>
+                    </label>
+                </div>
+                
+                <!-- Card Payment Form (hidden by default) -->
+                <div id="card-payment-form" class="card-payment-form" style="display: none;">
+                    <h3>Card Details</h3>
+                    <div id="card-element">
+                        <!-- PayMongo card element will be mounted here -->
+                    </div>
+                    <div id="card-errors" class="card-errors"></div>
+                </div>
+                
+                <div class="payment-note">
+                    <p><strong>Secure Payment:</strong> All payments are processed securely through PayMongo.</p>
+                    <p><small>Test Mode: Use test card numbers for testing payments.</small></p>
+                </div>
             </div>
-        </div>
 
-        <!-- Order Notes -->
-        <div class="section-card order-notes">
-            <h2>Order Notes</h2>
-            <textarea id="special_instructions" name="special_instructions" 
-                      placeholder="Add any special instructions or notes here (optional)"></textarea>
-        </div>
+            <!-- Order Notes -->
+            <div class="section-card order-notes">
+                <h2>Order Notes</h2>
+                <textarea id="special_instructions" name="special_instructions" 
+                        placeholder="Add any special instructions or notes here (optional)"></textarea>
+            </div>
 
-        <!-- Hidden fields for cart data -->
-        <input type="hidden" name="cart_items" value="<?php echo htmlspecialchars(json_encode($cart_items)); ?>">
-        <input type="hidden" name="cart_total" value="<?php echo $cart_total; ?>">
-        <input type="hidden" name="has_mixed_status" value="<?php echo $has_mixed_availtoday_status ? '1' : '0'; ?>">
-        <input type="hidden" id="hidden_shipping_fee" name="shipping_fee" value="0">
-        <input type="hidden" id="hidden_discount_amount" name="discount_amount" value="0">
-        <input type="hidden" id="hidden_final_total" name="final_total" value="<?php echo $cart_total; ?>">
+            <!-- Hidden fields for cart data -->
+            <input type="hidden" name="cart_items" value="<?php echo htmlspecialchars(json_encode($cart_items)); ?>">
+            <input type="hidden" name="cart_total" value="<?php echo $cart_total; ?>">
+            <input type="hidden" name="has_mixed_status" value="<?php echo $has_mixed_availtoday_status ? '1' : '0'; ?>">
+            <input type="hidden" id="hidden_shipping_fee" name="shipping_fee" value="0">
+            <input type="hidden" id="hidden_discount_amount" name="discount_amount" value="0">
+            <input type="hidden" id="hidden_final_total" name="final_total" value="<?php echo $cart_total; ?>">
 
-        <!-- Place Order Button -->
-        <button type="submit" class="btn-primary place-order-btn" style="background-color: #256035;" id="place-order-btn">
-            Place Order
-        </button>
-    </form>
+            <!-- Place Order Button -->
+            <button type="submit" class="btn-primary place-order-btn" style="background-color: #256035;" id="place-order-btn">
+                Place Order
+            </button>
+        </form>
+    </div>
 </div>
 
 <!-- Location Modal -->
@@ -672,7 +685,6 @@ $debug_info = [
 </div>
 
 <!-- Add Bootstrap CSS -->
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 <!-- Add jQuery -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
@@ -985,7 +997,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Coupon functions
 async function checkCoupon() {
     const couponInput = document.getElementById('coupon_code');
-    const checkBtn = document.getElementById('check_coupon_btn');
+    const applyBtn = document.getElementById('apply_coupon_btn');
     const couponCode = couponInput.value.trim().toUpperCase();
     
     console.log('[COUPON] Starting checkCoupon function');
@@ -998,8 +1010,8 @@ async function checkCoupon() {
     }
     
     // Disable button during request
-    checkBtn.disabled = true;
-    checkBtn.textContent = 'Checking...';
+    applyBtn.disabled = true;
+    applyBtn.textContent = 'Checking...';
     
     try {
         console.log('[COUPON] Sending request to validate-coupon.php');
@@ -1069,8 +1081,8 @@ async function checkCoupon() {
         console.error('[COUPON] Error checking coupon:', error);
         showCouponMessage('Error checking coupon. Please try again.');
     } finally {
-        checkBtn.disabled = false;
-        checkBtn.textContent = 'Check Coupon';
+        applyBtn.disabled = false;
+        applyBtn.textContent = 'Apply';
     }
 }
 
@@ -1117,12 +1129,12 @@ function removeCoupon() {
 
 // Initialize coupon event listeners
 document.addEventListener('DOMContentLoaded', function() {
-    const checkCouponBtn = document.getElementById('check_coupon_btn');
+    const applyCouponBtn = document.getElementById('apply_coupon_btn');
     const removeCouponBtn = document.getElementById('remove_coupon_btn');
     const couponInput = document.getElementById('coupon_code');
     
-    if (checkCouponBtn) {
-        checkCouponBtn.addEventListener('click', checkCoupon);
+    if (applyCouponBtn) {
+        applyCouponBtn.addEventListener('click', checkCoupon);
     }
     
     if (removeCouponBtn) {
@@ -1634,521 +1646,7 @@ function validateForm() {
     return isValid;
 }
 
-// Additional styles for Available Today specific elements
-const additionalStyles = `
-<style>
-/* Coupon Section Styles */
-.coupon-section {
-    margin-bottom: 20px;
-    padding: 15px;
-    background: #f8f9fa;
-    border-radius: 8px;
-    border: 1px solid #e9ecef;
-}
-
-.coupon-input-group {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-
-.coupon-input {
-    flex: 1;
-    padding: 10px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
-    transition: border-color 0.3s ease;
-}
-
-.coupon-input:focus {
-    outline: none;
-    border-color: #256035;
-    box-shadow: 0 0 0 2px rgba(37, 96, 53, 0.1);
-}
-
-.btn-check-coupon {
-    padding: 10px 20px;
-    background: #256035;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    white-space: nowrap;
-}
-
-.btn-check-coupon:hover {
-    background: #1a4a28;
-}
-
-.btn-check-coupon:disabled {
-    background: #6c757d;
-    cursor: not-allowed;
-}
-
-.coupon-message {
-    font-size: 14px;
-    margin-top: 8px;
-    padding: 8px 12px;
-    border-radius: 4px;
-    display: none;
-}
-
-.coupon-message.success {
-    background: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-    display: block;
-}
-
-.coupon-message.error {
-    background: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-    display: block;
-}
-
-.coupon-applied {
-    background: #e8f5e9;
-    border: 1px solid #c8e6c9;
-    border-radius: 4px;
-    padding: 12px;
-    margin-top: 10px;
-}
-
-.applied-coupon-info {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-}
-
-.coupon-code-display {
-    font-weight: 600;
-    color: #2e7d32;
-    font-size: 14px;
-}
-
-.coupon-discount {
-    font-weight: 600;
-    color: #2e7d32;
-    font-size: 14px;
-}
-
-.btn-remove-coupon {
-    padding: 6px 12px;
-    background: #dc3545;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-size: 12px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.btn-remove-coupon:hover {
-    background: #c82333;
-}
-
-/* Responsive Design for Coupon Section */
-@media (max-width: 768px) {
-    .coupon-input-group {
-        flex-direction: column;
-    }
-    
-    .btn-check-coupon {
-        width: 100%;
-    }
-    
-    .applied-coupon-info {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-    }
-    
-    .btn-remove-coupon {
-        align-self: flex-end;
-    }
-}
-
-/* Location Modal Styling */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.5);
-}
-
-.modal-content {
-    background-color: white;
-    margin: 15% auto;
-    padding: 0;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 500px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-}
-
-.modal-header {
-    background-color: #256035;
-    color: white;
-    padding: 15px 20px;
-    border-radius: 8px 8px 0 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.modal-header h2 {
-    margin: 0;
-    font-size: 1.2rem;
-}
-
-.close-btn {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 1.5rem;
-    cursor: pointer;
-    padding: 0;
-    line-height: 1;
-}
-
-.close-btn:hover {
-    opacity: 0.7;
-}
-
-.modal-body {
-    padding: 20px;
-}
-
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 500;
-    color: #333;
-}
-
-.form-control {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
-    box-sizing: border-box;
-}
-
-.form-control:focus {
-    outline: none;
-    border-color: #256035;
-    box-shadow: 0 0 0 2px rgba(37, 96, 53, 0.2);
-}
-
-optgroup {
-    font-weight: bold;
-    color: #256035;
-}
-
-option {
-    font-weight: normal;
-    color: #333;
-    padding: 5px;
-}
-
-.form-text {
-    font-size: 12px;
-    color: #6c757d;
-    margin-top: 5px;
-}
-
-#saveLocationBtn {
-    background-color: #256035;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    width: 100%;
-}
-
-#saveLocationBtn:hover {
-    background-color: #1e4a2a;
-}
-
-/* Shipping Method Notice */
-.shipping-method-notice {
-    background: #e8f5e9;
-    border: 1px solid #c8e6c9;
-    border-radius: 6px;
-    padding: 12px 16px;
-    margin: 15px 0;
-    color: #2e7d32;
-}
-
-.shipping-method-notice p {
-    margin: 0;
-    font-size: 14px;
-    line-height: 1.4;
-}
-
-.shipping-method-notice strong {
-    color: #1b5e20;
-}
-
-/* Delivery Type Radio Buttons */
-.delivery-type {
-    margin-bottom: 20px;
-}
-
-.radio-option {
-    display: inline-block;
-    margin-right: 20px;
-    cursor: pointer;
-}
-
-.radio-option input[type="radio"] {
-    margin-right: 8px;
-}
-
-.radio-option span {
-    font-weight: 500;
-    color: #333;
-}
-
-/* Disabled Radio Button Styles */
-.radio-option input[type="radio"]:disabled + span {
-    color: #999;
-    cursor: not-allowed;
-}
-
-.radio-option input[type="radio"]:disabled {
-    cursor: not-allowed;
-}
-
-.btn-secondary {
-    background: #6c757d;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-}
-
-.btn-secondary:hover {
-    background: #5a6268;
-}
-
-.address-section {
-    margin-bottom: 20px;
-}
-
-.address-section input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
-    margin-bottom: 10px;
-}
-
-.delivery-content {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.method-notice {
-    background: #e8f5e8;
-    padding: 15px;
-    border-radius: 8px;
-    border-left: 4px solid #4CAF50;
-    margin: 15px 0;
-}
-
-.auto-assigned-note {
-    font-style: italic;
-    color: #666;
-    font-size: 14px;
-    margin-top: 5px;
-}
-
-.auto-assigned {
-    color: #666;
-    font-size: 12px;
-    font-style: italic;
-}
-
-.item-method {
-    margin: 5px 0;
-    font-size: 14px;
-    color: #555;
-}
-
-.available-days {
-    margin: 5px 0 0 0;
-    font-size: 12px;
-    color: #666;
-}
-
-.mixed-status-notice {
-    background: #fff3cd;
-    border: 1px solid #ffeaa7;
-    border-radius: 8px;
-}
-
-.mixed-status-notice h2 {
-    color: #856404;
-    margin-bottom: 10px;
-}
-
-/* PayMongo Payment Styles */
-.payment-option-content {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.payment-desc {
-    color: #666;
-    font-size: 12px;
-}
-
-.card-payment-form {
-    margin-top: 20px;
-    padding: 20px;
-    background: #f8f9fa;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-}
-
-.card-field-group {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.card-field-row {
-    display: flex;
-    gap: 15px;
-}
-
-.card-field {
-    flex: 1;
-}
-
-.card-field label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 500;
-    color: #333;
-    font-size: 14px;
-}
-
-.card-field input {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 16px;
-    transition: border-color 0.3s ease;
-}
-
-.card-field input:focus {
-    outline: none;
-    border-color: #4CAF50;
-    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
-}
-
-.card-errors {
-    color: #f44336;
-    font-size: 14px;
-    margin-top: 10px;
-}
-
-.animate-spin {
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-#loading-spinner {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-
-/* Loading Spinner */
-.spinner {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    border: 2px solid #ffffff;
-    border-radius: 50%;
-    border-top-color: transparent;
-    animation: spin 1s ease-in-out infinite;
-    margin-right: 8px;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-/* Ensure no duplicate circles */
-.place-order-btn::after,
-.place-order-btn::before {
-    display: none !important;
-}
-
-.btn-processing {
-    position: relative;
-    pointer-events: none;
-}
-
-/* Place Order Button Disabled State */
-.btn-primary:disabled,
-.place-order-btn:disabled {
-    background-color: #6c757d !important;
-    cursor: not-allowed !important;
-    opacity: 0.7 !important;
-    transform: none !important;
-    box-shadow: none !important;
-    border-color: #6c757d !important;
-}
-
-.btn-primary:disabled:hover,
-.place-order-btn:disabled:hover {
-    background-color: #6c757d !important;
-    transform: none !important;
-    box-shadow: none !important;
-    border-color: #6c757d !important;
-}
-
-@media (max-width: 768px) {
-    .card-field-row {
-        flex-direction: column;
-    }
-}
-</style>
-`;
-
-document.head.insertAdjacentHTML('beforeend', additionalStyles);
+// Additional styles are now in external CSS file
 </script>
 
 <!-- Saved Information Modal -->
@@ -2167,7 +1665,7 @@ document.head.insertAdjacentHTML('beforeend', additionalStyles);
 </div>
 
 <?php
-include '../../user-includes/footer.php';
+include '../../user-includes/user-footer.php';
 ?>
 </body>
 </html>

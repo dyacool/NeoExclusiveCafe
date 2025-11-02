@@ -1,0 +1,16 @@
+@media (max-width: 768px) {
+  .payment-options {
+    flex-direction: row;
+    gap: 10px;
+  }
+
+  .detail-row {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .delivery-type {
+    flex-direction: row;
+    gap: 10px;
+  }
+}

@@ -229,7 +229,7 @@
                 <div class="charts-grid">
                     <div class="chart-card full-width">
                         <div class="chart-header">
-                            <span class="chart-title">Top Products by Sales</span>
+                            <span class="chart-title">Products Sales</span>
                             <span class="chart-subtitle">Best-selling products by quantity and revenue</span>
                         </div>
                         <canvas id="topProductsChart"></canvas>
@@ -981,7 +981,7 @@
                             backgroundColor: 'rgba(34, 197, 94, 0.8)',
                             borderColor: '#22c55e',
                             borderWidth: 1,
-                            yAxisID: 'y'
+                            xAxisID: 'x1'
                         },
                         {
                             label: 'Revenue (₱)',
@@ -989,11 +989,12 @@
                             backgroundColor: 'rgba(59, 130, 246, 0.8)',
                             borderColor: '#3b82f6',
                             borderWidth: 1,
-                            yAxisID: 'y1'
+                            xAxisID: 'x'
                         }
                     ]
                 },
                 options: {
+                    indexAxis: 'y', // This makes it horizontal
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
@@ -1005,9 +1006,9 @@
                             callbacks: {
                                 label: function(context) {
                                     if (context.datasetIndex === 0) {
-                                        return `Quantity: ${context.parsed.y} units`;
+                                        return `Quantity: ${context.parsed.x} units`;
                                     } else {
-                                        return `Revenue: ₱${context.parsed.y.toLocaleString()}`;
+                                        return `Revenue: ₱${context.parsed.x.toLocaleString()}`;
                                     }
                                 }
                             }
@@ -1015,45 +1016,45 @@
                     },
                     scales: {
                         x: {
-                            ticks: {
-                                maxRotation: 45,
-                                minRotation: 0
-                            }
-                        },
-                        y: {
                             type: 'linear',
                             display: true,
-                            position: 'left',
-                            title: {
-                                display: true,
-                                text: 'Quantity Sold'
-                            },
-                            ticks: {
-                                stepSize: 1
-                            }
-                        },
-                        y1: {
-                            type: 'linear',
-                            display: true,
-                            position: 'right',
+                            position: 'bottom',
                             title: {
                                 display: true,
                                 text: 'Revenue (₱)'
-                            },
-                            grid: {
-                                drawOnChartArea: false,
                             },
                             ticks: {
                                 callback: function(value) {
                                     return '₱' + value.toLocaleString();
                                 }
                             }
+                        },
+                        x1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'top',
+                            title: {
+                                display: true,
+                                text: 'Quantity Sold'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                            ticks: {
+                                stepSize: 1
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Products'
+                            }
                         }
                     }
                 }
             });
         }
-
+        
         // Initialize charts on page load
         // Export functionality
         function exportTransactions() {

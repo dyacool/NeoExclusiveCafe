@@ -487,7 +487,13 @@ try {
                                 <input type="time" id="closingTime" name="closingTime" value="04:42">
                             </div>
                         </div>
-                        <button class="btn-primary btn-full" onclick="updateBusinessHours()" id="saveHoursBtn">Save Hours</button>
+                        <button class="btn-primary btn-full" onclick="updateBusinessHours()" id="saveHoursBtn">
+                            <span class="button-text">Save Hours</span>
+                            <span class="loading-spinner" style="display: none;">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                Updating...
+                            </span>
+                        </button>
                     </div>
 
                     <div class="dashboard-sidebar">

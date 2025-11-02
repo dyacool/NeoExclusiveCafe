@@ -159,7 +159,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "order-list.php": "Order Management",
       "product-list.php": "Product Management",
       "add-product.php": "Add Product",
-      "transactions.php": "Transactions",
+      "transactions.php": "Sales Report",
       "admin-blog.php": "Blog",
       "admin-profile.php": "Profile",
       "archive.php": "Archive",

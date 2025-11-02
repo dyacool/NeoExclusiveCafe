@@ -345,7 +345,7 @@ if (!$navbar_conn) {
                                     
                                     $gradient = "linear-gradient(135deg, $color1 0%, $color2 100%)";
                                     
-                                    echo '<span class="profile-initial" style="background: ' . $gradient . ';">' . htmlspecialchars($initials) . '</span>';
+                                    echo '<span class="profile-initial">' . htmlspecialchars($initials) . '</span>';
                                 }
                                 ?>
                             </div>

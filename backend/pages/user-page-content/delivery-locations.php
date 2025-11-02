@@ -46,6 +46,9 @@
             </div>
         </div>
 
+        <!-- Notification Container -->
+        <div id="notification-container"></div>
+
         <!-- Sort Controls -->
         <div class="sort-controls">
             <div class="sort-group">
@@ -67,13 +70,6 @@
                     
                     <button class="sort-btn" id="sort-postal" onclick="sortLocations('postal', this)">
                         Postal Code
-                        <svg class="sort-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="6,9 12,15 18,9"></polyline>
-                        </svg>
-                    </button>
-                    
-                    <button class="sort-btn" id="sort-fee" onclick="sortLocations('fee', this)">
-                        Delivery Fee (Smallest to Highest)
                         <svg class="sort-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="6,9 12,15 18,9"></polyline>
                         </svg>
@@ -237,7 +233,7 @@
             </div>
             <div class="modal-actions">
                 <button type="button" class="btn btn-secondary" onclick="closeAddModal()">Cancel</button>
-                <button type="submit" class="btn btn-primary">Save</button>
+                <button type="submit" class="btn btn-primary">Add Location</button>
             </div>
         </form>
     </div>

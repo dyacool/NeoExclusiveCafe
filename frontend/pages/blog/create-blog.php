@@ -17,30 +17,72 @@ if (!isset($_SESSION['user_id'])) {
 
 // Check if user has completed orders (delivered or picked up)
 $user_id = $_SESSION['user_id'];
+
+// Get user email for orders query
+$email_query = "SELECT email FROM users WHERE id = ?";
+$email_stmt = mysqli_prepare($conn, $email_query);
+mysqli_stmt_bind_param($email_stmt, "i", $user_id);
+mysqli_stmt_execute($email_stmt);
+$email_result = mysqli_stmt_get_result($email_stmt);
+$user_email = '';
+if ($email_result && $email_row = mysqli_fetch_assoc($email_result)) {
+    $user_email = $email_row['email'];
+}
+mysqli_stmt_close($email_stmt);
+
 $order_check_query = "SELECT COUNT(*) as completed_orders FROM orders 
-                      WHERE user_id = ? AND (status = 'delivered' OR status = 'picked-up')";
+                      WHERE customer_email = ? AND (status = 'Delivered' OR status = 'Picked-up')";
 $order_stmt = mysqli_prepare($conn, $order_check_query);
 
-if ($order_stmt) {
-    mysqli_stmt_bind_param($order_stmt, "i", $user_id);
+$completed_orders_count = 0;
+$has_completed_orders = false;
+
+if ($order_stmt && !empty($user_email)) {
+    mysqli_stmt_bind_param($order_stmt, "s", $user_email);
     mysqli_stmt_execute($order_stmt);
     $order_result = mysqli_stmt_get_result($order_stmt);
     if ($order_result) {
         $order_row = mysqli_fetch_assoc($order_result);
-        $has_completed_orders = $order_row['completed_orders'] > 0;
-    } else {
-        $has_completed_orders = false;
+        $completed_orders_count = $order_row['completed_orders'];
+        $has_completed_orders = $completed_orders_count > 0;
     }
     mysqli_stmt_close($order_stmt);
 } else {
     // If orders table doesn't exist or query fails, allow testimonials for now
-    // You can change this to false if you want to restrict when table doesn't exist
     $has_completed_orders = true;
+    $completed_orders_count = 999;
 }
+
+// Get count of existing published posts by this user
+$existing_posts_count = 0;
+$posts_check_query = "SELECT COUNT(*) as post_count FROM user_blog_post 
+                      WHERE user_id = ? AND status = 'published'";
+$posts_stmt = mysqli_prepare($conn, $posts_check_query);
+
+if ($posts_stmt) {
+    mysqli_stmt_bind_param($posts_stmt, "i", $user_id);
+    mysqli_stmt_execute($posts_stmt);
+    $posts_result = mysqli_stmt_get_result($posts_stmt);
+    if ($posts_result) {
+        $posts_row = mysqli_fetch_assoc($posts_result);
+        $existing_posts_count = $posts_row['post_count'];
+    }
+    mysqli_stmt_close($posts_stmt);
+}
+
+// User can create a post if they have more completed orders than published posts
+$can_create_post = $completed_orders_count > $existing_posts_count;
 
 // If user doesn't have completed orders, redirect with message
 if (!$has_completed_orders) {
     $_SESSION['error_message'] = "You need to have at least one completed order (delivered or picked up) before submitting a testimonial.";
+    header("Location: user-blog.php");
+    exit();
+}
+
+// If user has reached their post limit, redirect with message
+if (!$can_create_post) {
+    $_SESSION['error_message'] = "You've reached your post limit. You have {$existing_posts_count} post(s) with {$completed_orders_count} completed order(s). Complete another order to create more testimonials.";
     header("Location: user-blog.php");
     exit();
 }
@@ -50,6 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $content = trim($_POST['content']);
     $user_id = $_SESSION['user_id'];
     $status = 'published';
+    $upload_error = '';
     
     // Handle image upload
     $image_path = '';
@@ -69,26 +112,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (move_uploaded_file($_FILES['image']['tmp_name'], $upload_path)) {
                 $image_path = 'assets/uploaded-images-users/' . $new_filename;
             } else {
-                echo "<script>alert('Error uploading image. Please check file permissions.');</script>";
+                $upload_error = 'Error uploading image. Please check file permissions.';
             }
         } else {
-            echo "<script>alert('Invalid file type. Only JPG, JPEG, PNG and GIF files are allowed.');</script>";
+            $upload_error = 'Invalid file type. Only JPG, JPEG, PNG and GIF files are allowed.';
         }
     }
     
-    // Insert blog post
-    $query = "INSERT INTO user_blog_post (user_id, title, content, image_path, status, created_at) 
-              VALUES (?, ?, ?, ?, ?, NOW())";
-    $stmt = mysqli_prepare($conn, $query);
-    mysqli_stmt_bind_param($stmt, "issss", $user_id, $title, $content, $image_path, $status);
-    
-    if (mysqli_stmt_execute($stmt)) {
-        header("Location: user-blog.php");
-        exit();
-        $_SESSION['error_message'] = 'Error creating blog post: ' . mysqli_error($conn);
-        header("Location: user-blog.php");
-        exit();
-        echo "<script>alert('Error creating blog post: " . mysqli_error($conn) . "');</script>";
+    // Insert blog post only if no upload errors
+    if (empty($upload_error)) {
+        $query = "INSERT INTO user_blog_post (user_id, title, content, image_path, status, created_at) 
+                  VALUES (?, ?, ?, ?, ?, NOW())";
+        $stmt = mysqli_prepare($conn, $query);
+        mysqli_stmt_bind_param($stmt, "issss", $user_id, $title, $content, $image_path, $status);
+        
+        if (mysqli_stmt_execute($stmt)) {
+            $_SESSION['success_message'] = 'Your testimonial has been published successfully!';
+            header("Location: user-blog.php");
+            exit();
+        } else {
+            $_SESSION['error_message'] = 'Error creating blog post: ' . mysqli_error($conn);
+            header("Location: user-blog.php");
+            exit();
+        }
     }
 }
 ?>
@@ -99,9 +145,78 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta charset="UTF-8">
   <title>Submit Testimonial - NeoExclusiveCafe</title>
   <link rel="icon" type="image/x-icon" href="/frontend/favicon.ico">
+  <style>
+    /* Confirmation Popup */
+    .confirmation-popup {
+        position: fixed;
+        top: 80px;
+        left: 50%;
+        transform: translateX(-50%) translateY(-100px);
+        background: white;
+        color: #333;
+        padding: 16px 24px;
+        border-radius: 12px;
+        z-index: 10000;
+        opacity: 0;
+        transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        font-weight: 600;
+        min-width: 300px;
+        max-width: 500px;
+        text-align: center;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        border: 2px solid transparent;
+        font-size: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    /* Success State - Green Theme */
+    .confirmation-popup.success {
+        background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+        color: #2e7d32;
+        border-color: #4caf50;
+        box-shadow: 0 10px 40px rgba(76, 175, 80, 0.3);
+    }
+
+    /* Error State - Red Theme */
+    .confirmation-popup.error {
+        background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+        color: #c62828;
+        border-color: #f44336;
+        box-shadow: 0 10px 40px rgba(244, 67, 54, 0.3);
+    }
+
+    /* Show Animation */
+    .confirmation-popup.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    /* Hide Animation */
+    .confirmation-popup.hide {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-100px);
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .confirmation-popup {
+            top: 70px;
+            min-width: 280px;
+            max-width: 90%;
+            padding: 14px 20px;
+            font-size: 14px;
+        }
+    }
+  </style>
 </head>
 <body>
         <?php include __DIR__ . "/../../user-includes/bread-crumb/bread-crumb.php"; ?>
+
+<!-- Confirmation Popup -->
+<div id="confirmationPopup"></div>
 
 <div class="content-wrapper">
 
@@ -157,7 +272,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </body>
 
 <script>
+    // Confirmation popup function
+    function showConfirmation(message, type = 'success') {
+        const popup = document.getElementById('confirmationPopup');
+        const icon = type === 'success' ? '✓' : '✕';
+        
+        popup.innerHTML = `${icon} ${message}`;
+        popup.className = `confirmation-popup ${type}`;
+        
+        setTimeout(() => {
+            popup.classList.add('show');
+        }, 10);
+        
+        setTimeout(() => {
+            popup.classList.remove('show');
+            popup.classList.add('hide');
+            setTimeout(() => {
+                popup.className = '';
+                popup.innerHTML = '';
+            }, 400);
+        }, 3000);
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
+        // Show upload error if exists
+        <?php if (!empty($upload_error)): ?>
+            showConfirmation('<?php echo addslashes($upload_error); ?>', 'error');
+        <?php endif; ?>
+
         // Elements
         const fileInput = document.getElementById('image');
         const mediaLabel = document.querySelector('label.media');

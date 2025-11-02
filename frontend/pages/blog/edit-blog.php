@@ -20,7 +20,6 @@ if (!isset($_GET['id'])) {
     exit();
 }
 
-// Include header after all possible redirects
 require_once "../../user-includes/user-header.php";
 
 $post_id = $_GET['id'];
@@ -95,19 +94,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         mysqli_stmt_bind_param($update_stmt, "sssii", $title, $content, $image_path, $post_id, $_SESSION['user_id']);
         
         if (mysqli_stmt_execute($update_stmt)) {
-            $_SESSION['success_message'] = "Post updated successfully.";
+            $_SESSION['success_message'] = "Post updated successfully!";
             // Determine which page to redirect to based on HTTP_REFERER
             $redirect_page = isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'user-blog-post.php') !== false ? 'user-blog-post.php' : 'user-blog.php';
             header("Location: $redirect_page");
             exit();
         } else {
-            $error = "Failed to update post.";
+            $error = "Failed to update post. Please try again.";
         }
     }
 }
 ?>
 
 <?php include __DIR__ . "/../../user-includes/bread-crumb/bread-crumb.php"; ?>
+
+<!-- Confirmation Popup -->
+<div id="confirmationPopup"></div>
 
 <div class="wrapper">
     <div class="create-blog-header">
@@ -117,9 +119,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <?php if (isset($error)): ?>
-        <div class="error-message" style="background: #f8d7da; color: #721c24; padding: 12px; border: 1px solid #f5c6cb; border-radius: 5px; margin-bottom: 20px; text-align: center;">
-            <?php echo htmlspecialchars($error); ?>
-        </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                showConfirmation('<?php echo addslashes($error); ?>', 'error');
+            });
+        </script>
     <?php endif; ?>
 
     <form class="post-cont" method="POST" enctype="multipart/form-data">
@@ -285,6 +289,97 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             });
         }
     });
+</script>
+
+<style>
+    /* Confirmation Popup */
+    .confirmation-popup {
+        position: fixed;
+        top: 80px;
+        left: 50%;
+        transform: translateX(-50%) translateY(-100px);
+        background: white;
+        color: #333;
+        padding: 16px 24px;
+        border-radius: 12px;
+        z-index: 10000;
+        opacity: 0;
+        transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        font-weight: 600;
+        min-width: 300px;
+        max-width: 500px;
+        text-align: center;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        border: 2px solid transparent;
+        font-size: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    /* Success State - Green Theme */
+    .confirmation-popup.success {
+        background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+        color: #2e7d32;
+        border-color: #4caf50;
+        box-shadow: 0 10px 40px rgba(76, 175, 80, 0.3);
+    }
+
+    /* Error State - Red Theme */
+    .confirmation-popup.error {
+        background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+        color: #c62828;
+        border-color: #f44336;
+        box-shadow: 0 10px 40px rgba(244, 67, 54, 0.3);
+    }
+
+    /* Show Animation */
+    .confirmation-popup.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    /* Hide Animation */
+    .confirmation-popup.hide {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-100px);
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .confirmation-popup {
+            top: 70px;
+            min-width: 280px;
+            max-width: 90%;
+            padding: 14px 20px;
+            font-size: 14px;
+        }
+    }
+</style>
+
+<script>
+    // Confirmation popup function
+    function showConfirmation(message, type = 'success') {
+        const popup = document.getElementById('confirmationPopup');
+        const icon = type === 'success' ? '✓' : '✕';
+        
+        popup.innerHTML = `${icon} ${message}`;
+        popup.className = `confirmation-popup ${type}`;
+        
+        setTimeout(() => {
+            popup.classList.add('show');
+        }, 10);
+        
+        setTimeout(() => {
+            popup.classList.remove('show');
+            popup.classList.add('hide');
+            setTimeout(() => {
+                popup.className = '';
+                popup.innerHTML = '';
+            }, 400);
+        }, 3000);
+    }
 </script>
 
 <?php require_once "../../user-includes/footer.php"; ?>

@@ -22,7 +22,6 @@ createCouponUsageTable($conn);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" />
-    <link rel="stylesheet" href="https://cdn.datatables.net/2.1.7/css/dataTables.dataTables.css">
     <link rel="stylesheet" href="/backend/pages/user-page-content/promotions-settings.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <title>Promotions Management</title>
@@ -33,7 +32,17 @@ createCouponUsageTable($conn);
 
 
 <div class="promotions-container">
+
+    <div class="page-header">
+        <div class="page-header-content">
+            <div class="page-title-section">
+                <p class="page-subtitle">Manage your website's coupon and promotions</p>
+            </div>
+        </div>
+    </div>
     <div class="main-container">
+
+
         <!-- Header Section -->
         <div class="header-supply-order">
             <div class="all-controls-supply-order">
@@ -180,20 +189,29 @@ createCouponUsageTable($conn);
             <table id="supply-order-table" class="display stripe" style="width:100%">
                     <thead>
                         <tr>
-                        <th>Id</th>
+                            <th>Id</th>
                             <th>Title</th>
-                        <th>Method</th>
+                            <th>Method</th>
                             <th>Code</th>
-                        <th>Discount</th>
+                            <th>Discount</th>
                             <th>Restrictions</th>
-                        <th>Usage</th>
-                        <th>Valid Period</th>
-                        <th>Sale Channel</th>
+                            <th>Usage</th>
+                            <th>Valid Period</th>
                             <th>Status</th>
                         </tr>
                     </thead>
                 <tbody></tbody>
                 </table>
+        </div>
+
+        <!-- Custom Pagination Container -->
+        <div class="pagination-container" style="display: none;" id="custom-pagination">
+            <div class="pagination-info" id="pagination-info">
+                Showing 0 of 0 promotions
+            </div>
+            <nav class="pagination" id="pagination-nav">
+                <!-- Pagination buttons will be inserted here -->
+            </nav>
         </div>
     </div>
 </div>
@@ -311,6 +329,88 @@ createCouponUsageTable($conn);
                     <button type="submit" class="btn btn-primary">Create Coupon</button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- View Coupon Modal -->
+<div id="viewModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="viewModalTitle">Coupon Details</h2>
+            <span class="close" onclick="closeModal('viewModal')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="form-section">
+                <h3>Basic Information</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Title</label>
+                        <div class="view-field" id="viewTitle">-</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Code</label>
+                        <div class="view-field" id="viewCode">-</div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Application Method</label>
+                        <div class="view-field" id="viewMethod">-</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Discount Type</label>
+                        <div class="view-field" id="viewDiscountType">-</div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Discount Value</label>
+                        <div class="view-field" id="viewDiscount">-</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Minimum Spend</label>
+                        <div class="view-field" id="viewMinSpend">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Applicable To</h3>
+                <div class="form-group">
+                    <label>Product Type</label>
+                    <div class="view-field" id="viewApplicableTo">-</div>
+                </div>
+                
+                <h4>Restrictions</h4>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Usage Limit</label>
+                        <div class="view-field" id="viewUsageLimit">-</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Limit Per User</label>
+                        <div class="view-field" id="viewPerUserLimit">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Validity & Status</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Valid Period</label>
+                        <div class="view-field" id="viewValidPeriod">-</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <div class="view-field" id="viewStatus">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('viewModal')">Close</button>
         </div>
     </div>
 </div>

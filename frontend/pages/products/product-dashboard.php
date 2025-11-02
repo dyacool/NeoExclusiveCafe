@@ -1646,6 +1646,15 @@ function closeProductModal() {
 </script>
 
 <style>
+    :root {
+        --green-50: #f0fdf4;
+        --green-200: #bbf7d0;
+        --green-800: #166534;
+        --red-50: #fef2f2;
+        --red-200: #fecaca;
+        --red-800: #991b1b;
+    }
+
     input[type="number"] {
         -moz-appearance: textfield;
     }
@@ -1744,6 +1753,51 @@ function closeProductModal() {
             transform: translateX(0);
             opacity: 1;
         }
+    }
+    
+    /* Confirmation Popup */
+    .confirmation-popup {
+        position: fixed;
+        top: 80px;
+        left: 50%;
+        transform: translateX(-50%) translateY(-100px);
+        color: white;
+        padding: 16px 24px;
+        border-radius: 12px;
+        z-index: 10000;
+        opacity: 0;
+        transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        font-weight: 500;
+        min-width: 280px;
+        text-align: center;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .confirmation-popup.success {
+        background-color: var(--green-50);
+        color: var(--green-800);
+        border: 1px solid var(--green-200);
+    }
+
+    .confirmation-popup.error {
+        background-color: var(--red-50);
+        color: var(--red-800);
+        border: 1px solid var(--red-200);
+    }
+
+    .confirmation-popup.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    .confirmation-popup.hide {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-100px);
     }
     
     @media (max-width: 768px) {
