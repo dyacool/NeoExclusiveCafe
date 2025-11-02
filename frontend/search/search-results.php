@@ -98,6 +98,69 @@ if (!empty($search_query)) {
     }
 }
 
+// Function to determine product availability (consistent with product-dashboard.php)
+function determineProductAvailability($product_row, $today_date) {
+    $result = [
+        'is_unavailable' => false,
+        'unavailable_reason' => '',
+        'should_display' => true
+    ];
+    
+    // Extract data
+    $status_id = $product_row['status_id'];
+    $preorder_stock = $product_row['quantity'] ?? 0;
+    $sameday_stock = $product_row['sameday_stock_today'] ?? 0;
+    $has_availtoday = !empty($product_row['availtoday_status_id']);
+    $todays_dates = $product_row['todays_product_dates'] ? explode(', ', $product_row['todays_product_dates']) : [];
+    $regular_dates = $product_row['regular_today_dates'] ? explode(', ', $product_row['regular_today_dates']) : [];
+    $show_when_unavailable = (bool)($product_row['show_when_unavailable'] ?? 0);
+    $hide_when_unavailable = (bool)($product_row['hide_when_unavailable'] ?? 0);
+    
+    // Step 1: Check stock based on product type
+    $stock_unavailable = false;
+    
+    if ($status_id == 4) {
+        // Same-day ONLY product
+        $stock_unavailable = ($sameday_stock == 0 || $sameday_stock === null);
+    } elseif (in_array($status_id, [1, 2, 3])) {
+        if ($has_availtoday) {
+            // DUAL capability: unavailable if BOTH stocks are 0
+            $stock_unavailable = ($preorder_stock == 0 && ($sameday_stock == 0 || $sameday_stock === null));
+        } else {
+            // Pre-order ONLY
+            $stock_unavailable = ($preorder_stock == 0);
+        }
+    }
+    
+    // Step 2: Check date availability
+    $date_unavailable = false;
+    
+    if ($status_id == 4) {
+        // Same-day ONLY: must have date in todays_products_dates
+        $date_unavailable = !in_array($today_date, $todays_dates);
+    } elseif (in_array($status_id, [1, 2, 3]) && $has_availtoday) {
+        // DUAL capability: check regular_products_today_dates for same-day option
+        if ($sameday_stock > 0) {
+            // Has same-day stock, so must have valid date
+            $date_unavailable = !in_array($today_date, $regular_dates);
+        } else {
+            // No same-day stock, date check not needed
+            $date_unavailable = false;
+        }
+    }
+    
+    // Step 3: Determine overall unavailability
+    $result['is_unavailable'] = $stock_unavailable || $date_unavailable;
+    
+    if ($stock_unavailable) {
+        $result['unavailable_reason'] = 'Out of Stock';
+    } elseif ($date_unavailable) {
+        $result['unavailable_reason'] = 'Not Available Today';
+    }
+    
+    return $result;
+}
+
 // Include the header/navigation
 require_once "../user-includes/navbar/customer-navigation.php";
 ?>
@@ -127,37 +190,12 @@ require_once "../user-includes/navbar/customer-navigation.php";
                 
                 // Custom sort: Priority hierarchy - Available > Featured > Unavailable
                 usort($products, function($a, $b) use ($today_date) {
-                    // Calculate unavailability for product A
-                    $a_preorder_stock = $a['quantity'] ?? 0;
-                    $a_sameday_stock = $a['sameday_stock_today'] ?? 0;
-                    $a_has_availtoday = !empty($a['availtoday_status_id']);
-                    $a_unavailable = false;
+                    // Use consistent availability determination
+                    $a_availability = determineProductAvailability($a, $today_date);
+                    $b_availability = determineProductAvailability($b, $today_date);
                     
-                    if ($a['status_id'] == 4) {
-                        $a_unavailable = ($a_sameday_stock == 0 || $a_sameday_stock === null);
-                    } elseif (in_array($a['status_id'], [1, 2, 3])) {
-                        if ($a_has_availtoday) {
-                            $a_unavailable = ($a_preorder_stock == 0 && ($a_sameday_stock == 0 || $a_sameday_stock === null));
-                        } else {
-                            $a_unavailable = ($a_preorder_stock == 0);
-                        }
-                    }
-                    
-                    // Calculate unavailability for product B
-                    $b_preorder_stock = $b['quantity'] ?? 0;
-                    $b_sameday_stock = $b['sameday_stock_today'] ?? 0;
-                    $b_has_availtoday = !empty($b['availtoday_status_id']);
-                    $b_unavailable = false;
-                    
-                    if ($b['status_id'] == 4) {
-                        $b_unavailable = ($b_sameday_stock == 0 || $b_sameday_stock === null);
-                    } elseif (in_array($b['status_id'], [1, 2, 3])) {
-                        if ($b_has_availtoday) {
-                            $b_unavailable = ($b_preorder_stock == 0 && ($b_sameday_stock == 0 || $b_sameday_stock === null));
-                        } else {
-                            $b_unavailable = ($b_preorder_stock == 0);
-                        }
-                    }
+                    $a_unavailable = $a_availability['is_unavailable'];
+                    $b_unavailable = $b_availability['is_unavailable'];
                     
                     // Check if product A is available today
                     $a_available_today = false;
@@ -235,35 +273,10 @@ require_once "../user-includes/navbar/customer-navigation.php";
                             
                             $productDataJson = htmlspecialchars(json_encode($productData), ENT_QUOTES, 'UTF-8');
                             
-                            // Check if product is UNAVAILABLE
-                            $is_unavailable = false;
-                            $unavailable_reason = '';
-                            
-                            $preorder_stock = $row['quantity'] ?? 0;
-                            $sameday_stock = $row['sameday_stock_today'] ?? 0;
-                            $has_availtoday = !empty($row['availtoday_status_id']);
-                            
-                            if ($row['status_id'] == 4) {
-                                // Status 4: Same Day ONLY product
-                                if ($sameday_stock == 0 || $sameday_stock === null) {
-                                    $is_unavailable = true;
-                                    $unavailable_reason = 'Out of Stock';
-                                }
-                            } elseif (in_array($row['status_id'], [1, 2, 3])) {
-                                if ($has_availtoday) {
-                                    // DUAL capability: Pre-order AND Same-day
-                                    if ($preorder_stock == 0 && ($sameday_stock == 0 || $sameday_stock === null)) {
-                                        $is_unavailable = true;
-                                        $unavailable_reason = 'Out of Stock';
-                                    }
-                                } else {
-                                    // Pre-order ONLY
-                                    if ($preorder_stock == 0) {
-                                        $is_unavailable = true;
-                                        $unavailable_reason = 'Out of Stock';
-                                    }
-                                }
-                            }
+                            // Determine product availability using consistent logic
+                            $availability = determineProductAvailability($row, $today_date);
+                            $is_unavailable = $availability['is_unavailable'];
+                            $unavailable_reason = $availability['unavailable_reason'];
                             
                             // Check if product is available TODAY
                             $is_available_today = false;
@@ -556,34 +569,57 @@ require_once "../user-includes/navbar/customer-navigation.php";
                 thumbnails.innerHTML = '';
             }
 
-            // Check if product is unavailable
+            // Check if product is unavailable using consistent logic
             let isUnavailable = false;
             let unavailableReason = '';
             
             const preorderStock = product.quantity || 0;
             const samedayStock = product.sameday_stock_today || 0;
             const hasAvailtoday = product.availtoday_status_id != null && product.availtoday_status_id != '';
+            const todaysProductDates = product.todays_product_dates || [];
+            const regularTodayDates = product.regular_today_dates || [];
+            const todayDate = new Date().toISOString().split('T')[0]; // Get today's date in Y-m-d format
+            
+            // Step 1: Check stock based on product type
+            let stockUnavailable = false;
             
             if (product.status_id == 4) {
-                // Status 4: Same Day ONLY product
-                if (samedayStock == 0 || samedayStock === null) {
-                    isUnavailable = true;
-                    unavailableReason = 'Out of Stock';
-                }
+                // Same-day ONLY product
+                stockUnavailable = (samedayStock == 0 || samedayStock === null);
             } else if ([1, 2, 3].includes(product.status_id)) {
                 if (hasAvailtoday) {
-                    // DUAL capability: Pre-order AND Same-day
-                    if (preorderStock == 0 && (samedayStock == 0 || samedayStock === null)) {
-                        isUnavailable = true;
-                        unavailableReason = 'Out of Stock';
-                    }
+                    // DUAL capability: unavailable if BOTH stocks are 0
+                    stockUnavailable = (preorderStock == 0 && (samedayStock == 0 || samedayStock === null));
                 } else {
                     // Pre-order ONLY
-                    if (preorderStock == 0) {
-                        isUnavailable = true;
-                        unavailableReason = 'Out of Stock';
-                    }
+                    stockUnavailable = (preorderStock == 0);
                 }
+            }
+            
+            // Step 2: Check date availability
+            let dateUnavailable = false;
+            
+            if (product.status_id == 4) {
+                // Same-day ONLY: must have date in todays_product_dates
+                dateUnavailable = !todaysProductDates.includes(todayDate);
+            } else if ([1, 2, 3].includes(product.status_id) && hasAvailtoday) {
+                // DUAL capability: check regular_products_today_dates for same-day option
+                if (samedayStock > 0) {
+                    // Has same-day stock, so must have valid date
+                    dateUnavailable = !regularTodayDates.includes(todayDate);
+                } else {
+                    // No same-day stock, date check not needed
+                    dateUnavailable = false;
+                }
+            }
+            
+            // Step 3: Determine overall unavailability
+            isUnavailable = stockUnavailable || dateUnavailable;
+            
+            if (stockUnavailable) {
+                unavailableReason = 'Out of Stock';
+            } else if (dateUnavailable) {
+                unavailableReason = 'Not Available Today';
             }
             
             // Set up Add to Cart button

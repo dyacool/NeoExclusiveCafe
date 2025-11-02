@@ -38,9 +38,13 @@ $items_sql = "SELECT oi.*, pi.cloud_url
               LEFT JOIN products p ON oi.product_name = p.name 
               LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1 AND pi.is_removed = 0
               WHERE oi.order_id = ?";
-$stmt = mysqli_stmt_bind_param($stmt, "i", $order_id);
-mysqli_stmt_execute($stmt);
-$items_result = mysqli_stmt_get_result($stmt);
+$items_stmt = mysqli_prepare($conn, $items_sql);
+if (!$items_stmt) {
+    die("SQL Error: " . mysqli_error($conn));
+}
+mysqli_stmt_bind_param($items_stmt, "i", $order_id);
+mysqli_stmt_execute($items_stmt);
+$items_result = mysqli_stmt_get_result($items_stmt);
 
 // Get proof of delivery if exists
 $pod_sql = "SELECT * FROM pod_orders WHERE order_id = ?";
@@ -54,6 +58,10 @@ if ($pod_stmt) {
 } else {
     $pod = null;
 }
+
+// Clean up statements
+mysqli_stmt_close($stmt);
+mysqli_stmt_close($items_stmt);
 ?>
 <!DOCTYPE html>
 <html lang="en">
