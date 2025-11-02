@@ -22,6 +22,7 @@ if (!isset($_SESSION["is_rider"]) && !isset($_SESSION["is_admin"])) {
 
 require_once __DIR__ . '/../backend/pages/admin-includes/database.php';
 require_once __DIR__ . '/../backend/pages/admin-includes/activity-logger.php';
+require_once __DIR__ . '/../backend/includes/cloudinary-helper.php';
 
 header('Content-Type: application/json');
 
@@ -86,37 +87,35 @@ try {
         throw new Exception('File upload error: ' . $proof_image['error']);
     }
     
-    // Generate unique filename
-    $file_extension = pathinfo($proof_image['name'], PATHINFO_EXTENSION);
-    $filename = 'order_' . $order_id . '_' . date('Ymd_His') . '.' . $file_extension;
-    $upload_dir = __DIR__ . '/../uploads/delivery-proofs/';
-    $file_path = $upload_dir . $filename;
-    $relative_path = 'uploads/delivery-proofs/' . $filename;
+    // Upload to Cloudinary
+    $public_id = 'order_' . $order_id . '_' . date('Ymd_His');
+    $cloudinary_result = uploadToCloudinary(
+        $proof_image['tmp_name'],
+        'neocafe/delivery-proofs',
+        $public_id
+    );
     
-    // Ensure upload directory exists
-    if (!file_exists($upload_dir)) {
-        mkdir($upload_dir, 0755, true);
+    if (!$cloudinary_result['success']) {
+        throw new Exception('Failed to upload proof image: ' . ($cloudinary_result['error'] ?? 'Unknown error'));
     }
     
-    // Move uploaded file
-    if (!move_uploaded_file($proof_image['tmp_name'], $file_path)) {
-        throw new Exception('Failed to save uploaded file');
-    }
+    $cloudinary_url = $cloudinary_result['url'];
+    $cloudinary_public_id = $cloudinary_result['public_id'];
     
     // Get rider identifier (use session or default)
     $submitted_by = isset($_SESSION['rider_name']) ? $_SESSION['rider_name'] : 
                    (isset($_SESSION['admin_name']) ? $_SESSION['admin_name'] : 'Rider');
     
-    // Insert into pod_orders table
-    $pod_sql = "INSERT INTO pod_orders (order_id, proof_image_path, submitted_by, image_size) 
-                VALUES (?, ?, ?, ?)";
+    // Insert into pod_orders table with Cloudinary URL
+    $pod_sql = "INSERT INTO pod_orders (order_id, proof_image_path, cloudinary_public_id, submitted_by, image_size) 
+                VALUES (?, ?, ?, ?, ?)";
     $pod_stmt = mysqli_prepare($conn, $pod_sql);
-    $image_size = filesize($file_path);
-    mysqli_stmt_bind_param($pod_stmt, "issi", $order_id, $relative_path, $submitted_by, $image_size);
+    $image_size = $cloudinary_result['bytes'] ?? 0;
+    mysqli_stmt_bind_param($pod_stmt, "isssi", $order_id, $cloudinary_url, $cloudinary_public_id, $submitted_by, $image_size);
     
     if (!mysqli_stmt_execute($pod_stmt)) {
-        // Delete uploaded file if database insert fails
-        unlink($file_path);
+        // Delete from Cloudinary if database insert fails
+        deleteFromCloudinary($cloudinary_public_id);
         throw new Exception('Failed to save proof record: ' . mysqli_stmt_error($pod_stmt));
     }
     
@@ -140,7 +139,8 @@ try {
         'success' => true,
         'message' => 'Delivery proof submitted successfully',
         'order_id' => $order_id,
-        'proof_path' => $relative_path,
+        'proof_url' => $cloudinary_url,
+        'cloudinary_public_id' => $cloudinary_public_id,
         'new_status' => 'Delivered'
     ]);
     

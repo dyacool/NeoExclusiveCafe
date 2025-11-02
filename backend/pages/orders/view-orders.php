@@ -38,13 +38,22 @@ $items_sql = "SELECT oi.*, pi.cloud_url
               LEFT JOIN products p ON oi.product_name = p.name 
               LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1 AND pi.is_removed = 0
               WHERE oi.order_id = ?";
-$stmt = mysqli_prepare($conn, $items_sql);
-if (!$stmt) {
-    die("SQL Error: " . mysqli_error($conn));
-}
-mysqli_stmt_bind_param($stmt, "i", $order_id);
+$stmt = mysqli_stmt_bind_param($stmt, "i", $order_id);
 mysqli_stmt_execute($stmt);
 $items_result = mysqli_stmt_get_result($stmt);
+
+// Get proof of delivery if exists
+$pod_sql = "SELECT * FROM pod_orders WHERE order_id = ?";
+$pod_stmt = mysqli_prepare($conn, $pod_sql);
+if ($pod_stmt) {
+    mysqli_stmt_bind_param($pod_stmt, "i", $order_id);
+    mysqli_stmt_execute($pod_stmt);
+    $pod_result = mysqli_stmt_get_result($pod_stmt);
+    $pod = mysqli_fetch_assoc($pod_result);
+    mysqli_stmt_close($pod_stmt);
+} else {
+    $pod = null;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -588,7 +597,34 @@ $items_result = mysqli_stmt_get_result($stmt);
                     </div>
                 </div>
                 
-                
+                <!-- Proof of Delivery -->
+                <?php if ($pod && !empty($pod['proof_image_path'])): 
+                    // Check if it's a Cloudinary URL or local path
+                    $proof_url = (strpos($pod['proof_image_path'], 'http') === 0) 
+                        ? $pod['proof_image_path'] 
+                        : '/' . $pod['proof_image_path'];
+                ?>
+                <div class="customer-details">
+                    <h3>Proof of Delivery</h3>
+                    <div class="detail-group">
+                        <p><strong>Submitted:</strong> <?php echo date('F d, Y \a\t h:i A', strtotime($pod['submitted_at'])); ?></p>
+                        <p><strong>Submitted By:</strong> <?php echo htmlspecialchars($pod['submitted_by'] ?? 'Rider'); ?></p>
+                        <div style="margin-top: 16px; text-align: center;">
+                            <a href="<?php echo htmlspecialchars($proof_url); ?>" target="_blank" style="display: inline-block;">
+                                <img src="<?php echo htmlspecialchars($proof_url); ?>" 
+                                     alt="Proof of Delivery" 
+                                     style="max-width: 100%; max-height: 400px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s;"
+                                     onmouseover="this.style.transform='scale(1.02)'"
+                                     onmouseout="this.style.transform='scale(1)'"
+                                     onerror="this.src='https://res.cloudinary.com/dvdccumbs/image/upload/c_fill,w_400,h_400,g_center/e_blur:1000,co_rgb:cccccc,b_rgb:f0f0f0/sample.jpg'">
+                            </a>
+                            <p style="margin-top: 8px; font-size: 13px; color: #666;">
+                                Click image to view full size
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>

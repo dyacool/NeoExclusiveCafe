@@ -17,44 +17,43 @@ if ($is_user_logged_in) {
         'profile_image' => $_SESSION['user_profile_image'] ?? ''
     ];
 
-    // Fallback: fetch from database if profile image (or names) missing
-    if (($user['profile_image'] ?? '') === '' || ($user['firstname'] ?? '') === '' || ($user['lastname'] ?? '') === '') {
-        $user_id = (int)($_SESSION['user_id'] ?? 0);
-        if ($user_id > 0) {
-            // Include database connection
-            $db_path = __DIR__ . '/../database.php';
-            if (file_exists($db_path)) {
-                require_once $db_path;
-                if (isset($conn) && $conn instanceof mysqli) {
-                    $stmt = mysqli_prepare($conn, "SELECT firstname, lastname, profile_image, cloud_url, cloud_public_id FROM users WHERE id = ?");
-                    if ($stmt) {
-                        mysqli_stmt_bind_param($stmt, "i", $user_id);
-                        mysqli_stmt_execute($stmt);
-                        $result = mysqli_stmt_get_result($stmt);
-                        if ($result && ($row = mysqli_fetch_assoc($result))) {
-                            $user['firstname'] = $user['firstname'] !== '' ? $user['firstname'] : ($row['firstname'] ?? '');
-                            $user['lastname'] = $user['lastname'] !== '' ? $user['lastname'] : ($row['lastname'] ?? '');
-                            
-                            // Prioritize Cloudinary URL over legacy profile_image
-                            if (!empty(trim($row['cloud_url'] ?? ''))) {
-                                $user['profile_image'] = trim($row['cloud_url']);
-                            } elseif ($user['profile_image'] === '' && !empty(trim($row['profile_image'] ?? ''))) {
-                                $user['profile_image'] = trim($row['profile_image']);
-                            }
-                            
-                            // Update session for future requests
-                            if (!empty($user['profile_image'])) {
-                                $_SESSION['user_profile_image'] = $user['profile_image'];
-                            }
-                            if (!empty($user['firstname'])) {
-                                $_SESSION['user_firstname'] = $user['firstname'];
-                            }
-                            if (!empty($user['lastname'])) {
-                                $_SESSION['user_lastname'] = $user['lastname'];
-                            }
+    // Always fetch from database to ensure we have the latest Cloudinary URL
+    $user_id = (int)($_SESSION['user_id'] ?? 0);
+    if ($user_id > 0) {
+        // Include database connection
+        $db_path = __DIR__ . '/../database.php';
+        if (file_exists($db_path)) {
+            require_once $db_path;
+            if (isset($conn) && $conn instanceof mysqli) {
+                $stmt = mysqli_prepare($conn, "SELECT firstname, lastname, profile_image, cloud_url, cloud_public_id FROM users WHERE id = ?");
+                if ($stmt) {
+                    mysqli_stmt_bind_param($stmt, "i", $user_id);
+                    mysqli_stmt_execute($stmt);
+                    $result = mysqli_stmt_get_result($stmt);
+                    if ($result && ($row = mysqli_fetch_assoc($result))) {
+                        // Update names if available
+                        $user['firstname'] = !empty($row['firstname']) ? $row['firstname'] : ($user['firstname'] ?? '');
+                        $user['lastname'] = !empty($row['lastname']) ? $row['lastname'] : ($user['lastname'] ?? '');
+                        
+                        // ALWAYS prioritize Cloudinary URL over legacy profile_image
+                        if (!empty(trim($row['cloud_url'] ?? ''))) {
+                            $user['profile_image'] = trim($row['cloud_url']);
+                        } elseif (!empty(trim($row['profile_image'] ?? ''))) {
+                            $user['profile_image'] = trim($row['profile_image']);
+                        } else {
+                            $user['profile_image'] = '';
                         }
-                        mysqli_stmt_close($stmt);
+                        
+                        // Update session for future requests
+                        $_SESSION['user_profile_image'] = $user['profile_image'];
+                        if (!empty($user['firstname'])) {
+                            $_SESSION['user_firstname'] = $user['firstname'];
+                        }
+                        if (!empty($user['lastname'])) {
+                            $_SESSION['user_lastname'] = $user['lastname'];
+                        }
                     }
+                    mysqli_stmt_close($stmt);
                 }
             }
         }
@@ -312,18 +311,21 @@ if (!$navbar_conn) {
                     <a href="<?php echo $is_admin_logged_in ? '/backend/pages/homepage/admin-homepage.php' : '/frontend/pages/profile/profile.php'; ?>"class="profile-link" id="profile-trigger">
                             <div class="profile-avatar">
                                 <?php 
-                                $sessionProfileImage = isset($user['profile_image']) ? trim($user['profile_image']) : '';
-                                if ($sessionProfileImage !== '') {
-                                    // Check if it's a Cloudinary URL (starts with http:// or https://)
-                                    if (strpos($sessionProfileImage, 'http://') === 0 || strpos($sessionProfileImage, 'https://') === 0) {
-                                        // It's already a full URL, use as-is
-                                        echo '<img src="' . htmlspecialchars($sessionProfileImage) . '" alt="Profile Image">';
-                                    } else {
-                                        // It's a relative path, add leading slash if needed
-                                        if ($sessionProfileImage[0] !== '/') { $sessionProfileImage = '/' . $sessionProfileImage; }
-                                        echo '<img src="' . htmlspecialchars($sessionProfileImage) . '" alt="Profile Image">';
-                                    }
-                                } else {
+                                // Define default profile image path
+                                $profile_default_image_path = '/assets/images/profile.svg';
+                                
+                                // Determine profile image url - prioritize Cloudinary
+                                $profile_image_url = $profile_default_image_path;
+                                if (isset($user['profile_image_url']) && !empty(trim($user['profile_image_url']))) {
+                                    $profile_image_url = trim($user['profile_image_url']);
+                                }
+                                
+                                // Check if user has a profile image (not the default SVG)
+                                $has_profile_image = ($profile_image_url !== $profile_default_image_path);
+                                
+                                if ($has_profile_image): ?>
+                                    <img src="<?= htmlspecialchars($profile_image_url) ?>" alt="Profile Image" />
+                                <?php else:
                                     // Show initials with randomized green color
                                     $initials = strtoupper(substr($user['firstname'], 0, 1) . substr($user['lastname'], 0, 1));
                                     
@@ -346,7 +348,7 @@ if (!$navbar_conn) {
                                     $gradient = "linear-gradient(135deg, $color1 0%, $color2 100%)";
                                     
                                     echo '<span class="profile-initial">' . htmlspecialchars($initials) . '</span>';
-                                }
+                                endif;
                                 ?>
                             </div>
                             <span class="profile-name"><?php echo htmlspecialchars($user['firstname']); ?></span>
