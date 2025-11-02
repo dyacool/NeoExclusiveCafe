@@ -122,6 +122,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $status_id = $_POST['status_id'];
     $quantity = $_POST['quantity'];
     
+    // Handle category_id - allow NULL if not selected
+    $category_id = isset($_POST['category_id']) && !empty($_POST['category_id']) ? intval($_POST['category_id']) : null;
+    
     // Auto-set quantity to 0 if status is Same Day Order (status_id 4)
     if ($status_id == 4) {
         $quantity = 0;
@@ -167,11 +170,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $available_today_dates = array_filter($available_today_dates);
     }
 
-    // Insert product with availtoday_status_id field
+    // Insert product with availtoday_status_id and category_id fields
     // Note: Explicitly excluding 'id' from INSERT to ensure AUTO_INCREMENT works
-    $stmt = $conn->prepare("INSERT INTO products (sku, name, description, price, status_id, quantity, is_featured, show_when_unavailable, hide_when_unavailable, availtoday_status_id) 
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("sssdiiiiii", $sku, $name, $description, $price, $status_id, $quantity, $is_featured, $show_when_unavailable, $hide_when_unavailable, $availtoday_status_id);
+    $stmt = $conn->prepare("INSERT INTO products (sku, name, description, price, status_id, quantity, is_featured, show_when_unavailable, hide_when_unavailable, availtoday_status_id, category_id) 
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("sssdiiiiiii", $sku, $name, $description, $price, $status_id, $quantity, $is_featured, $show_when_unavailable, $hide_when_unavailable, $availtoday_status_id, $category_id);
     
     // Debug: Check if the statement prepared correctly
     if (!$stmt) {
@@ -316,6 +319,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico">
     <link rel="stylesheet" href="/backend/pages/products/add-product.css">
     <link rel="stylesheet" href="/backend/pages/products/css/product-image-ajax.css">
+    <link rel="stylesheet" href="/backend/pages/products/css/moderation-overlay.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="components/date-calendar.js" defer></script>
     <script src="/backend/pages/products/js/product-image-ajax.js" defer></script>
@@ -404,6 +408,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                     <label>Product Name:</label>
                     <input class="pname" type="text" name="name" required>
+
+                    <label>Category:</label>
+                    <select name="category_id" id="productCategory">
+                        <option value="">No Category</option>
+                        <?php
+                        // Fetch active categories
+                        $cat_sql = "SELECT id, name FROM categories WHERE is_active = 1 ORDER BY display_order ASC, name ASC";
+                        $cat_result = mysqli_query($conn, $cat_sql);
+                        if ($cat_result) {
+                            while ($cat_row = mysqli_fetch_assoc($cat_result)) {
+                                echo "<option value='" . $cat_row['id'] . "'>" . htmlspecialchars($cat_row['name']) . "</option>";
+                            }
+                        }
+                        ?>
+                    </select>
 
                     <div class="price-stock-container">
                         <div class="price-field">

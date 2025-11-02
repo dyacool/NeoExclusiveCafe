@@ -9,10 +9,17 @@
 const MAX_ADDITIONAL_IMAGES = 3;
 const UPLOAD_ENDPOINT = "/backend/api/upload-product-image.php";
 const DELETE_ENDPOINT = "/backend/api/delete-product-image.php";
+const MODERATION_CHECK_ENDPOINT = "/backend/api/check-moderation-status.php";
+
+// Moderation configuration
+const MODERATION_POLL_INTERVAL = 2000; // 2 seconds
+const MODERATION_MAX_ATTEMPTS = 10; // 20 seconds total
+const MODERATION_TIMEOUT = 20000; // 20 seconds
 
 // State management
 let uploadingCount = 0;
 let additionalImagesCount = 0;
+let moderationPollers = {}; // Track active polling intervals
 
 /**
  * Get CSRF token from hidden field or meta tag
@@ -84,9 +91,23 @@ async function uploadImageToCloudinary(file, imageType) {
     }
 
     if (result.success) {
-      addImagePreview(result.url, result.public_id, imageType);
-      storeImageMetadata(result.url, result.public_id, imageType);
-      showSuccessIndicator(imageType);
+      // Check if moderation is enabled
+      if (result.moderation_enabled && result.moderation_status === 'pending') {
+        // Show moderation message
+        showModerationMessage(result.public_id, imageType, result.moderation_message || 'Analyzing image for safety...');
+        
+        // Add preview with pending state
+        addImagePreview(result.url, result.public_id, imageType, 'pending');
+        storeImageMetadata(result.url, result.public_id, imageType);
+        
+        // Start polling for moderation result
+        startModerationPolling(result.public_id, result.url, imageType);
+      } else {
+        // No moderation or already approved
+        addImagePreview(result.url, result.public_id, imageType);
+        storeImageMetadata(result.url, result.public_id, imageType);
+        showSuccessIndicator(imageType);
+      }
 
       if (imageType === "additional") {
         additionalImagesCount++;
@@ -105,6 +126,211 @@ async function uploadImageToCloudinary(file, imageType) {
   } finally {
     uploadingCount--;
     hideLoadingIndicator(imageType);
+  }
+}
+
+/**
+ * Start polling for moderation result
+ *
+ * @param {string} publicId - Cloudinary public ID
+ * @param {string} url - Image URL
+ * @param {string} imageType - 'primary' or 'additional'
+ */
+function startModerationPolling(publicId, url, imageType) {
+  let attempts = 0;
+  
+  const pollerId = `${publicId}_${imageType}`;
+  
+  // Clear any existing poller for this image
+  if (moderationPollers[pollerId]) {
+    clearInterval(moderationPollers[pollerId]);
+  }
+  
+  console.log(`Starting moderation polling for ${publicId}`);
+  
+  const poller = setInterval(async () => {
+    attempts++;
+    
+    try {
+      const response = await fetch(`${MODERATION_CHECK_ENDPOINT}?public_id=${encodeURIComponent(publicId)}`);
+      const result = await response.json();
+      
+      console.log(`Moderation check attempt ${attempts}:`, result);
+      
+      if (result.status === 'approved') {
+        // Image approved!
+        clearInterval(moderationPollers[pollerId]);
+        delete moderationPollers[pollerId];
+        
+        hideModerationMessage(publicId);
+        updateImagePreviewStatus(publicId, 'approved');
+        showSuccessIndicator(imageType);
+        showModerationSuccess(publicId, imageType);
+        
+        console.log(`Image ${publicId} approved by moderation`);
+        
+      } else if (result.status === 'rejected') {
+        // Image rejected!
+        clearInterval(moderationPollers[pollerId]);
+        delete moderationPollers[pollerId];
+        
+        hideModerationMessage(publicId);
+        
+        // Remove the image
+        await handleModerationRejection(publicId, imageType, result.rejection_reason || 'Inappropriate content detected');
+        
+        console.log(`Image ${publicId} rejected by moderation`);
+        
+      } else if (attempts >= MODERATION_MAX_ATTEMPTS) {
+        // Timeout
+        clearInterval(moderationPollers[pollerId]);
+        delete moderationPollers[pollerId];
+        
+        hideModerationMessage(publicId);
+        showModerationTimeout(publicId, imageType);
+        
+        console.warn(`Moderation check timed out for ${publicId}`);
+      }
+      // else status is still 'pending', continue polling
+      
+    } catch (error) {
+      console.error('Moderation check error:', error);
+      
+      if (attempts >= MODERATION_MAX_ATTEMPTS) {
+        clearInterval(moderationPollers[pollerId]);
+        delete moderationPollers[pollerId];
+        hideModerationMessage(publicId);
+        showModerationTimeout(publicId, imageType);
+      }
+    }
+  }, MODERATION_POLL_INTERVAL);
+  
+  moderationPollers[pollerId] = poller;
+  
+  // Set overall timeout
+  setTimeout(() => {
+    if (moderationPollers[pollerId]) {
+      clearInterval(moderationPollers[pollerId]);
+      delete moderationPollers[pollerId];
+      hideModerationMessage(publicId);
+      showModerationTimeout(publicId, imageType);
+    }
+  }, MODERATION_TIMEOUT);
+}
+
+/**
+ * Handle moderation rejection
+ *
+ * @param {string} publicId - Cloudinary public ID
+ * @param {string} imageType - 'primary' or 'additional'
+ * @param {string} reason - Rejection reason
+ */
+async function handleModerationRejection(publicId, imageType, reason) {
+  // Show error message
+  showErrorMessage(`Image rejected: ${reason}`, imageType);
+  
+  // Remove the image preview
+  removeImagePreview(publicId);
+  removeImageMetadata(publicId, imageType);
+  
+  if (imageType === "additional") {
+    additionalImagesCount--;
+    updateAdditionalImagesButton();
+  } else if (imageType === "primary") {
+    const uploadBtn = document.getElementById("primaryUploadBtn");
+    if (uploadBtn) {
+      uploadBtn.style.display = "flex";
+    }
+  }
+}
+
+/**
+ * Show moderation message
+ *
+ * @param {string} publicId - Cloudinary public ID
+ * @param {string} imageType - 'primary' or 'additional'
+ * @param {string} message - Message to display
+ */
+function showModerationMessage(publicId, imageType, message) {
+  const previewDiv = document.querySelector(`.image-preview[data-public-id="${publicId}"]`);
+  if (previewDiv) {
+    // Add moderation overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'moderation-overlay';
+    overlay.dataset.publicId = publicId;
+    overlay.innerHTML = `
+      <div class="moderation-spinner"></div>
+      <span class="moderation-text">${message}</span>
+    `;
+    previewDiv.appendChild(overlay);
+    previewDiv.classList.add('moderation-pending');
+  }
+}
+
+/**
+ * Hide moderation message
+ *
+ * @param {string} publicId - Cloudinary public ID
+ */
+function hideModerationMessage(publicId) {
+  const overlay = document.querySelector(`.moderation-overlay[data-public-id="${publicId}"]`);
+  if (overlay) {
+    overlay.remove();
+  }
+  
+  const previewDiv = document.querySelector(`.image-preview[data-public-id="${publicId}"]`);
+  if (previewDiv) {
+    previewDiv.classList.remove('moderation-pending');
+  }
+}
+
+/**
+ * Update image preview status
+ *
+ * @param {string} publicId - Cloudinary public ID
+ * @param {string} status - 'approved' or 'rejected'
+ */
+function updateImagePreviewStatus(publicId, status) {
+  const previewDiv = document.querySelector(`.image-preview[data-public-id="${publicId}"]`);
+  if (previewDiv) {
+    previewDiv.classList.remove('moderation-pending');
+    previewDiv.classList.add(`moderation-${status}`);
+  }
+}
+
+/**
+ * Show moderation success message
+ *
+ * @param {string} publicId - Cloudinary public ID
+ * @param {string} imageType - 'primary' or 'additional'
+ */
+function showModerationSuccess(publicId, imageType) {
+  const previewDiv = document.querySelector(`.image-preview[data-public-id="${publicId}"]`);
+  if (previewDiv) {
+    const successBadge = document.createElement('div');
+    successBadge.className = 'moderation-success-badge';
+    successBadge.innerHTML = '<i class="fas fa-check-circle"></i> Safe';
+    previewDiv.appendChild(successBadge);
+    
+    // Remove badge after 3 seconds
+    setTimeout(() => {
+      successBadge.remove();
+    }, 3000);
+  }
+}
+
+/**
+ * Show moderation timeout message
+ *
+ * @param {string} publicId - Cloudinary public ID
+ * @param {string} imageType - 'primary' or 'additional'
+ */
+function showModerationTimeout(publicId, imageType) {
+  showErrorMessage('Image safety check timed out. Image may be reviewed manually.', imageType);
+  
+  const previewDiv = document.querySelector(`.image-preview[data-public-id="${publicId}"]`);
+  if (previewDiv) {
+    previewDiv.classList.add('moderation-timeout');
   }
 }
 
@@ -231,8 +457,9 @@ function removeImageMetadata(publicId, imageType) {
  * @param {string} url - Cloudinary URL
  * @param {string} publicId - Cloudinary public ID
  * @param {string} imageType - 'primary' or 'additional'
+ * @param {string} moderationStatus - Optional moderation status ('pending', 'approved', 'rejected')
  */
-function addImagePreview(url, publicId, imageType) {
+function addImagePreview(url, publicId, imageType, moderationStatus = null) {
   if (imageType === "primary") {
     const previewContainer = document.getElementById("primaryPreviewContainer");
     const uploadBtn = document.getElementById("primaryUploadBtn");
