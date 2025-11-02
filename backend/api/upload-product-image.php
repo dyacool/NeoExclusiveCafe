@@ -54,17 +54,18 @@ require_once __DIR__ . '/../pages/admin-includes/database.php';
  * @param mysqli $conn Database connection
  * @param string $publicId Cloudinary public ID
  * @param string $url Cloudinary URL
+ * @param string $moderationStatus Initial moderation status (default: 'pending')
  * @return bool Success status
  */
-function logTempImageUpload($conn, $publicId, $url) {
+function logTempImageUpload($conn, $publicId, $url, $moderationStatus = 'pending') {
     try {
-        $stmt = $conn->prepare("INSERT INTO temp_uploaded_images (public_id, cloud_url, uploaded_at) VALUES (?, ?, NOW())");
+        $stmt = $conn->prepare("INSERT INTO temp_uploaded_images (public_id, cloud_url, uploaded_at, moderation_status) VALUES (?, ?, NOW(), ?)");
         if (!$stmt) {
             error_log("Failed to prepare statement for temp image logging: " . $conn->error);
             return false;
         }
         
-        $stmt->bind_param("ss", $publicId, $url);
+        $stmt->bind_param("sss", $publicId, $url, $moderationStatus);
         $success = $stmt->execute();
         
         if (!$success) {
@@ -193,14 +194,22 @@ try {
     );
     
     if ($result['success']) {
+        // Check if moderation is enabled
+        require_once __DIR__ . '/../includes/cloudinary-moderation-helper.php';
+        $moderationHelper = new CloudinaryModerationHelper($conn);
+        $moderationEnabled = $moderationHelper->isModerationEnabled();
+        
+        // Determine initial moderation status
+        $moderationStatus = 'pending'; // Default for async moderation
+        
         // Log the upload for orphan cleanup tracking
-        $logged = logTempImageUpload($conn, $result['public_id'], $result['url']);
+        $logged = logTempImageUpload($conn, $result['public_id'], $result['url'], $moderationStatus);
         
         if (!$logged) {
             error_log("Warning: Failed to log temp image upload for tracking. Public ID: " . $result['public_id']);
         }
         
-        // Return success response
+        // Return success response with moderation info
         echo json_encode([
             'success' => true,
             'url' => $result['url'],
@@ -209,10 +218,13 @@ try {
             'height' => $result['height'] ?? null,
             'format' => $result['format'] ?? null,
             'bytes' => $result['bytes'] ?? null,
-            'image_type' => $imageType
+            'image_type' => $imageType,
+            'moderation_enabled' => $moderationEnabled,
+            'moderation_status' => $moderationStatus,
+            'moderation_message' => $moderationEnabled ? 'Image uploaded. Safety check in progress...' : null
         ]);
         
-        error_log("AJAX upload successful: " . $result['public_id'] . " (Type: $imageType)");
+        error_log("AJAX upload successful: " . $result['public_id'] . " (Type: $imageType, Moderation: " . ($moderationEnabled ? 'enabled' : 'disabled') . ")");
     } else {
         // Upload failed
         http_response_code(500);

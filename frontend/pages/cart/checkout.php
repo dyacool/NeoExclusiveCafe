@@ -2028,12 +2028,48 @@ $debug_info = [
 
         if (pickupRadio) {
             pickupRadio.addEventListener('change', function() {
+                // Clear selected date when switching to pickup
+                if (this.checked) {
+                    const pickupDateInput = document.getElementById('pickup_date');
+                    const deliveryDateInput = document.getElementById('delivery_date');
+                    if (pickupDateInput) pickupDateInput.value = '';
+                    if (deliveryDateInput) deliveryDateInput.value = '';
+                    
+                    // Clear calendar selection
+                    if (pickupCalendar) {
+                        pickupCalendar.selectedDate = null;
+                        const prevSelected = pickupCalendar.container.querySelector('.calendar-day.selected');
+                        if (prevSelected) {
+                            prevSelected.classList.remove('selected');
+                        }
+                    }
+                    console.log('Switched to pickup - date cleared');
+                }
+                
                 updateVisibility();
                 updateShippingInheritance(); // Update flexible item indicators
             });
         }
         if (deliveryRadio) {
             deliveryRadio.addEventListener('change', function() {
+                // Clear selected date when switching to delivery
+                if (this.checked) {
+                    const pickupDateInput = document.getElementById('pickup_date');
+                    const deliveryDateInput = document.getElementById('delivery_date');
+                    if (pickupDateInput) pickupDateInput.value = '';
+                    if (deliveryDateInput) deliveryDateInput.value = '';
+                    
+                    // Clear calendar selection
+                    if (pickupCalendar) {
+                        pickupCalendar.selectedDate = null;
+                        const prevSelected = pickupCalendar.container.querySelector('.calendar-day.selected');
+                        if (prevSelected) {
+                            prevSelected.classList.remove('selected');
+                        }
+                    }
+                    console.log('Switched to delivery - date cleared');
+                }
+                
                 updateVisibility();
                 updateShippingInheritance(); // Update flexible item indicators
                 

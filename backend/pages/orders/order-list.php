@@ -224,6 +224,17 @@
                         </button>
                     </div>
                 </div>
+                
+                <!-- Auto-Status Toggle -->
+                <div class="auto-status-toggle-container">
+                    <label class="toggle-label">
+                        <span class="toggle-text">Toggle auto-status</span>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="auto-status-toggle" class="toggle-input">
+                            <span class="toggle-slider"></span>
+                        </div>
+                    </label>
+                </div>
             </div>
 
             <!-- Orders Table -->
@@ -657,7 +668,96 @@
             return value === null || value === undefined || value === '';
         }
         
-        // No need for DOMContentLoaded listener anymore since we removed addRowClickEvents
+        // Auto-Status Toggle Functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggle = document.getElementById('auto-status-toggle');
+            
+            if (!toggle) return;
+            
+            // Load current toggle state on page load
+            fetch('toggle-auto-status.php', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    toggle.checked = data.enabled;
+                }
+            })
+            .catch(error => {
+                console.error('Error loading toggle state:', error);
+            });
+            
+            // Handle toggle change
+            toggle.addEventListener('change', function() {
+                const enabled = this.checked;
+                
+                fetch('toggle-auto-status.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ enabled: enabled })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification(
+                            'Auto-status ' + (enabled ? 'enabled' : 'disabled'), 
+                            'success'
+                        );
+                    } else {
+                        // Revert toggle on error
+                        this.checked = !enabled;
+                        showNotification(
+                            'Error updating setting: ' + (data.error || 'Unknown error'), 
+                            'error'
+                        );
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Revert toggle on error
+                    this.checked = !enabled;
+                    showNotification('Connection error. Please try again.', 'error');
+                });
+            });
+        });
+        
+        // Show notification toast
+        function showNotification(message, type = 'success') {
+            // Remove existing notification if any
+            const existing = document.querySelector('.toggle-notification');
+            if (existing) {
+                existing.remove();
+            }
+            
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `toggle-notification ${type}`;
+            notification.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    ${type === 'success' 
+                        ? '<path d="M20 6L9 17l-5-5"></path>' 
+                        : '<path d="M18 6L6 18M6 6l12 12"></path>'}
+                </svg>
+                <span>${message}</span>
+            `;
+            
+            // Add to page
+            document.body.appendChild(notification);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 3000);
+        }
     </script>
 </body>
 </html>

@@ -259,7 +259,9 @@ foreach ($preorder_items as $item) {
                                 <td>
                                     <div class="quantity-controls">
                                         <button class="quantity-btn" onclick="updateQuantityInstant(<?= $item['cart_id'] ?>, <?= $item['quantity'] - 1 ?>, 'preorder', <?= $item['product_stock'] ?>, this)">-</button>
-                                        <span class="quantity-display"><?= $item['quantity'] ?></span>
+                                        <input type="number" class="quantity-input" value="<?= $item['quantity'] ?>" min="1" max="<?= $item['product_stock'] ?>" 
+                                               onchange="handleQuantityInput(<?= $item['cart_id'] ?>, this.value, 'preorder', <?= $item['product_stock'] ?>, this)"
+                                               onblur="handleQuantityInput(<?= $item['cart_id'] ?>, this.value, 'preorder', <?= $item['product_stock'] ?>, this)">
                                         <button class="quantity-btn" onclick="updateQuantityInstant(<?= $item['cart_id'] ?>, <?= $item['quantity'] + 1 ?>, 'preorder', <?= $item['product_stock'] ?>, this)">+</button>
                                     </div>
                                 </td>
@@ -350,7 +352,9 @@ foreach ($preorder_items as $item) {
                                 <td>
                                     <div class="quantity-controls">
                                         <button class="quantity-btn" onclick="updateQuantityInstant(<?= $item['cart_id'] ?>, <?= $item['quantity'] - 1 ?>, 'sameday', <?= $item['product_stock'] ?>, this)">-</button>
-                                        <span class="quantity-display"><?= $item['quantity'] ?></span>
+                                        <input type="number" class="quantity-input" value="<?= $item['quantity'] ?>" min="1" max="<?= $item['product_stock'] ?>" 
+                                               onchange="handleQuantityInput(<?= $item['cart_id'] ?>, this.value, 'sameday', <?= $item['product_stock'] ?>, this)"
+                                               onblur="handleQuantityInput(<?= $item['cart_id'] ?>, this.value, 'sameday', <?= $item['product_stock'] ?>, this)">
                                         <button class="quantity-btn" onclick="updateQuantityInstant(<?= $item['cart_id'] ?>, <?= $item['quantity'] + 1 ?>, 'sameday', <?= $item['product_stock'] ?>, this)">+</button>
                                     </div>
                                 </td>
@@ -618,6 +622,26 @@ function updateQuantity(cartId, newQuantity, type) {
     });
 }
 
+// Handle manual quantity input
+function handleQuantityInput(cartId, inputValue, type, maxStock, element) {
+    let newQuantity = parseInt(inputValue);
+    
+    // Validate input
+    if (isNaN(newQuantity) || newQuantity < 1) {
+        newQuantity = 1;
+        element.value = 1;
+    }
+    
+    // Cap at max stock silently
+    if (newQuantity > maxStock) {
+        newQuantity = maxStock;
+        element.value = maxStock;
+    }
+    
+    // Update the cart
+    updateQuantityInstant(cartId, newQuantity, type, maxStock, element);
+}
+
 // New instant update function without page refresh
 function updateQuantityInstant(cartId, newQuantity, type, maxStock, element) {
     // Validate quantity
@@ -636,9 +660,10 @@ function updateQuantityInstant(cartId, newQuantity, type, maxStock, element) {
     // Disable buttons during update
     const row = element.closest('tr');
     const buttons = row.querySelectorAll('.quantity-btn');
-    const quantityDisplay = row.querySelector('.quantity-display');
+    const quantityInput = row.querySelector('.quantity-input');
     
     buttons.forEach(btn => btn.disabled = true);
+    if (quantityInput) quantityInput.disabled = true;
     
     const url = type === 'preorder' ? 'update-cart.php' : 'update-cart-quantity-sameday.php';
     
@@ -650,8 +675,8 @@ function updateQuantityInstant(cartId, newQuantity, type, maxStock, element) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Update the quantity display and total without page refresh
-            quantityDisplay.textContent = newQuantity;
+            // Update the quantity input and total without page refresh
+            if (quantityInput) quantityInput.value = newQuantity;
             
             // Update the total price for this row
             const priceCell = row.cells[4]; // Price column
@@ -670,19 +695,22 @@ function updateQuantityInstant(cartId, newQuantity, type, maxStock, element) {
                 }
             }
             
-            // Re-enable buttons
+            // Re-enable buttons and input
             buttons.forEach(btn => btn.disabled = false);
+            if (quantityInput) quantityInput.disabled = false;
         } else {
             alert(data.message || 'Failed to update quantity');
-            // Re-enable buttons
+            // Re-enable buttons and input
             buttons.forEach(btn => btn.disabled = false);
+            if (quantityInput) quantityInput.disabled = false;
         }
     })
     .catch(error => {
         console.error('Error:', error);
         alert('Failed to update quantity');
-        // Re-enable buttons
+        // Re-enable buttons and input
         buttons.forEach(btn => btn.disabled = false);
+        if (quantityInput) quantityInput.disabled = false;
     });
 }
 

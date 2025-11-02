@@ -17,6 +17,74 @@ require_once '../../../backend/pages/admin-includes/database.php';
 require_once 'paymongo-config.php';
 require_once '../../../backend/pages/admin-includes/mailer.php';
 
+/**
+ * Fetch customer information from saved_customer_info table
+ * Retrieves email, complete_address, phone, and name for the given user
+ * Prioritizes primary records, falls back to most recent
+ * 
+ * @param mysqli $conn Database connection
+ * @param int $user_id User ID to fetch info for
+ * @return array|null Associative array with customer data or null if not found
+ */
+function fetchCustomerInfoFromSaved($conn, $user_id) {
+    try {
+        error_log("=== FETCHING SAVED CUSTOMER INFO (PAYMENT-RETURN) ===");
+        error_log("User ID: " . $user_id);
+        
+        $query = "SELECT 
+                    sci.email, 
+                    sci.complete_address, 
+                    sci.phone, 
+                    sci.first_name, 
+                    sci.last_name,
+                    CONCAT(dl.municipality, ', ', dl.city, ' ', dl.postal_code) as delivery_location
+                FROM saved_customer_info sci
+                LEFT JOIN delivery_locations dl ON sci.delivery_location_id = dl.delivery_id
+                WHERE sci.user_id = ? 
+                ORDER BY sci.is_primary DESC, sci.updated_at DESC 
+                LIMIT 1";
+        
+        $stmt = $conn->prepare($query);
+        if (!$stmt) {
+            error_log("Failed to prepare saved info query: " . $conn->error);
+            return null;
+        }
+        
+        $stmt->bind_param("i", $user_id);
+        
+        if (!$stmt->execute()) {
+            error_log("Failed to execute saved info query: " . $stmt->error);
+            $stmt->close();
+            return null;
+        }
+        
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows === 0) {
+            error_log("No saved customer info found for user_id: " . $user_id);
+            $stmt->close();
+            return null;
+        }
+        
+        $saved_info = $result->fetch_assoc();
+        $stmt->close();
+        
+        error_log("✓ Saved customer info retrieved successfully");
+        error_log("Email: " . ($saved_info['email'] ?? 'NULL'));
+        error_log("Complete Address: " . ($saved_info['complete_address'] ?? 'NULL'));
+        error_log("Phone: " . ($saved_info['phone'] ?? 'NULL'));
+        error_log("Name: " . ($saved_info['first_name'] ?? '') . ' ' . ($saved_info['last_name'] ?? ''));
+        error_log("=== END FETCHING SAVED CUSTOMER INFO (PAYMENT-RETURN) ===");
+        
+        return $saved_info;
+        
+    } catch (Exception $e) {
+        error_log("Error fetching saved customer info: " . $e->getMessage());
+        error_log("Stack trace: " . $e->getTraceAsString());
+        return null;
+    }
+}
+
 // Get parameters
 $status = $_GET['status'] ?? '';
 $type = $_GET['type'] ?? 'regular';
@@ -562,9 +630,18 @@ function sendOrderConfirmationEmail($order_id, $order_data, $order_type) {
     global $conn;
     
     try {
+        // Fetch saved customer info if user is logged in
+        error_log("=== CUSTOMER DATA MERGING START (PAYMENT-RETURN) ===");
+        $saved_info = null;
+        if (isset($_SESSION['user_id'])) {
+            $saved_info = fetchCustomerInfoFromSaved($conn, intval($_SESSION['user_id']));
+        }
+        
         // Normalize email/name and fields for reliability
         $normalized_email = $order_data['customer_email'] ?? ($order_data['email'] ?? ($order_data['user_email'] ?? ''));
         $normalized_name = $order_data['customer_name'] ?? ($order_data['user_name'] ?? trim(($order_data['first_name'] ?? '') . ' ' . ($order_data['last_name'] ?? '')));
+        $normalized_contact = $order_data['phone'] ?? ($order_data['contact_number'] ?? '');
+        $normalized_address = $order_data['customer_address'] ?? ($order_data['delivery_address'] ?? ($order_data['address'] ?? ''));
         $normalized_delivery_method = $order_data['delivery_method'] ?? ($order_data['shipping_method'] ?? 'pickup');
         $normalized_delivery_method = strtolower($normalized_delivery_method) === 'delivery' ? 'Delivery' : 'Pick-up';
         $normalized_items = $order_data['cart_items'] ?? [];
@@ -572,12 +649,56 @@ function sendOrderConfirmationEmail($order_id, $order_data, $order_type) {
             $decoded = json_decode($normalized_items, true);
             if (json_last_error() === JSON_ERROR_NONE) { $normalized_items = $decoded; }
         }
+        
+        error_log("POST/Order data - Email: " . ($normalized_email ?: 'EMPTY') . ", Contact: " . ($normalized_contact ?: 'EMPTY'));
+        error_log("POST/Order data - Name: " . ($normalized_name ?: 'EMPTY') . ", Address: " . ($normalized_address ?: 'EMPTY'));
+        
+        // Merge saved info with order data - saved info takes precedence
+        if ($saved_info !== null) {
+            error_log("Merging saved customer info with order data...");
+            
+            // Email: saved info takes precedence
+            if (!empty($saved_info['email'])) {
+                $normalized_email = $saved_info['email'];
+                error_log("Using email from saved info: " . $normalized_email);
+            }
+            
+            // Contact: saved info takes precedence
+            if (!empty($saved_info['phone'])) {
+                $normalized_contact = $saved_info['phone'];
+                error_log("Using contact from saved info: " . $normalized_contact);
+            }
+            
+            // Name: saved info takes precedence
+            if (!empty($saved_info['first_name']) && !empty($saved_info['last_name'])) {
+                $normalized_name = $saved_info['first_name'] . ' ' . $saved_info['last_name'];
+                error_log("Using name from saved info: " . $normalized_name);
+            }
+            
+            // Address: For delivery orders, use complete_address from saved info
+            if ($normalized_delivery_method === 'Delivery' && !empty($saved_info['complete_address'])) {
+                $normalized_address = $saved_info['complete_address'];
+                error_log("Using complete_address from saved info for delivery: " . $normalized_address);
+            }
+        } else {
+            error_log("No saved customer info found, using order data only");
+        }
+        
+        // Log final merged values
+        error_log("=== FINAL MERGED VALUES (PAYMENT-RETURN) ===");
+        error_log("Email: " . ($normalized_email ?: 'EMPTY'));
+        error_log("Contact: " . ($normalized_contact ?: 'EMPTY'));
+        error_log("Name: " . ($normalized_name ?: 'EMPTY'));
+        error_log("Address: " . ($normalized_address ?: 'EMPTY'));
+        error_log("Delivery Method: " . $normalized_delivery_method);
+        error_log("=== CUSTOMER DATA MERGING END (PAYMENT-RETURN) ===");
 
         $orderDetails = [
             'order_id' => $order_id,
             'customer_name' => $normalized_name,
-            'customer_email' => $normalized_email,
-            'customer_contact' => $order_data['phone'] ?? ($order_data['contact_number'] ?? 'N/A'),
+            'user_email' => $normalized_email,
+            'customer_contact' => $normalized_contact,
+            'customer_address' => $normalized_address,
             'payment_method' => $order_data['payment_method'] ?? '',
             'total_amount' => $order_data['cart_total'] ?? ($order_data['total_amount'] ?? '0'),
             'delivery_method' => $normalized_delivery_method,
@@ -585,9 +706,11 @@ function sendOrderConfirmationEmail($order_id, $order_data, $order_type) {
             'pickup_date' => $order_data['pickup_date'] ?? date('Y-m-d', strtotime('+1 day')),
             'delivery_date' => $order_data['delivery_date'] ?? date('Y-m-d', strtotime('+1 day')),
             'delivery_time' => $order_data['delivery_time'] ?? '10:00:00',
-            'notes' => $order_data['special_instructions'] ?? ($order_data['order_notes'] ?? ''),
+            'order_notes' => $order_data['special_instructions'] ?? ($order_data['order_notes'] ?? ''),
             'order_type' => $order_type,
-            'cart_items' => $normalized_items
+            'cart_items' => $normalized_items,
+            'cart_total' => $order_data['cart_total'] ?? '0',
+            'shipping_fee' => $order_data['shipping_fee'] ?? 0
         ];
         
         error_log("Order details prepared for email: " . json_encode($orderDetails));

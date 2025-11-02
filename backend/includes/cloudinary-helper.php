@@ -77,6 +77,22 @@ function uploadToCloudinary($filePath, $folder = 'neocafe', $publicId = null) {
             $options['public_id'] = $publicId;
         }
         
+        // Add content moderation (async with webhook)
+        try {
+            require_once __DIR__ . '/cloudinary-moderation-helper.php';
+            $moderationHelper = new CloudinaryModerationHelper($GLOBALS['conn'] ?? null);
+            
+            if ($moderationHelper->isModerationEnabled()) {
+                $options['moderation'] = $moderationHelper->getModerationProvider();
+                $options['notification_url'] = $moderationHelper->getWebhookUrl();
+                
+                error_log("Cloudinary upload with moderation enabled: " . $options['moderation']);
+            }
+        } catch (Exception $e) {
+            // If moderation setup fails, continue without it
+            error_log("Failed to enable moderation: " . $e->getMessage());
+        }
+        
         // Log upload attempt
         error_log("Attempting Cloudinary upload: " . basename($filePath) . " to folder: $folder" . ($publicId ? " with public_id: $publicId" : ""));
         
