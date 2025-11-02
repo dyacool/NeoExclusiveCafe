@@ -2,27 +2,27 @@
 RewriteEngine On
 
 # --- Domain-Based Routing ---
+# All domain routing now handled by index.php
 
-# Admin subdomain
+# Production domains
 RewriteCond %{HTTP_HOST} ^admin\.neocafe\.shop$ [NC]
-RewriteRule ^$ /backend/login/admin/admin-login.php [L,R=302]
+RewriteRule ^$ /index.php [L]
 
-# Main domain (user site)
+RewriteCond %{HTTP_HOST} ^rider\.neocafe\.shop$ [NC]
+RewriteRule ^$ /index.php [L]
+
 RewriteCond %{HTTP_HOST} ^(www\.)?neocafe\.shop$ [NC]
-RewriteRule ^$ /frontend/login/user/login-signup.php [L,R=302]
+RewriteRule ^$ /index.php [L]
 
 # --- Local Development Domains ---
-RewriteCond %{HTTP_HOST} ^admin\.localhost$ [NC]
-RewriteRule ^$ /backend/login/admin/admin-login.php [L,R=302]
+RewriteCond %{HTTP_HOST} ^admin\.(localhost|neocafe\.cafe|neocafe\.local)(:[0-9]+)?$ [NC]
+RewriteRule ^$ /index.php [L]
 
-RewriteCond %{HTTP_HOST} ^localhost$ [NC]
-RewriteRule ^$ /frontend/login/user/login-signup.php [L,R=302]
+RewriteCond %{HTTP_HOST} ^rider\.(localhost|neocafe\.cafe|neocafe\.local)(:[0-9]+)?$ [NC]
+RewriteRule ^$ /index.php [L]
 
-RewriteCond %{HTTP_HOST} ^admin\.neocafe\.local$ [NC]
-RewriteRule ^$ /backend/login/admin/admin-login.php [L,R=302]
-
-RewriteCond %{HTTP_HOST} ^neocafe\.local$ [NC]
-RewriteRule ^$ /frontend/login/user/login-signup.php [L,R=302]
+RewriteCond %{HTTP_HOST} ^(localhost|neocafe\.cafe|neocafe\.local)(:[0-9]+)?$ [NC]
+RewriteRule ^$ /index.php [L]
 
 # --- PHP Upload Limits ---
 <IfModule mod_php7.c>
