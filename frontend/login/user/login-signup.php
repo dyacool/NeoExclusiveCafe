@@ -25,6 +25,14 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 
 $_SESSION['last_activity'] = time(); // Update last activity time
 
+// Get carousel image with order value 1 for background
+$carousel_bg_image = '';
+$carousel_query = "SELECT COALESCE(cloud_url, image_url) as image_url FROM carousel_images WHERE display_order = 1 AND is_active = 1 LIMIT 1";
+$carousel_result = mysqli_query($conn, $carousel_query);
+if ($carousel_result && $carousel_row = mysqli_fetch_assoc($carousel_result)) {
+    $carousel_bg_image = $carousel_row['image_url'];
+}
+
 // Handle security error messages
 if (isset($_GET['error'])) {
     switch ($_GET['error']) {
@@ -357,6 +365,16 @@ if (isset($_POST["signin-submit"])) {
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Temporarily disable complex JavaScript for debugging -->
     <!-- <script src="/frontend/login/user/login-signup-redesigned.js" defer></script> -->
+    
+    <!-- Dynamic background image from carousel -->
+    <?php if (!empty($carousel_bg_image)): ?>
+    <style>
+        .left-side {
+            background-image: url("<?php echo htmlspecialchars($carousel_bg_image); ?>") !important;
+        }
+    </style>
+    <?php endif; ?>
+    
     <style>
         /* Alert styling for better error/success messages */
         .alert, .salert {
