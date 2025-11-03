@@ -97,7 +97,14 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         exit;
     }
     
+    error_log("BEFORE bind_param - Hash to bind: " . $password_hash);
+    error_log("BEFORE bind_param - Hash length: " . strlen($password_hash));
+    error_log("BEFORE bind_param - Hash hex (first 40): " . bin2hex(substr($password_hash, 0, 40)));
+    
     $stmt->bind_param("si", $password_hash, $user["id"]);
+    
+    error_log("AFTER bind_param - Hash variable: " . $password_hash);
+    error_log("AFTER bind_param - Hash length: " . strlen($password_hash));
     error_log("Executing password update...");
     
     if ($stmt->execute()) {
@@ -114,7 +121,15 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             
             error_log("Hash stored in DB: " . $stored_data['password']);
             error_log("Stored hash length: " . strlen($stored_data['password']));
+            error_log("Stored hash hex (first 40): " . bin2hex(substr($stored_data['password'], 0, 40)));
             error_log("Hash match: " . ($password_hash === $stored_data['password'] ? "YES" : "NO"));
+            
+            if ($password_hash !== $stored_data['password']) {
+                error_log("CRITICAL: Hash mismatch detected!");
+                error_log("Expected: " . $password_hash);
+                error_log("Got:      " . $stored_data['password']);
+                error_log("Difference at position: " . strspn($password_hash ^ $stored_data['password'], "\0"));
+            }
             
             // Test verification with stored hash
             $stored_verify = password_verify($password, $stored_data['password']);
@@ -122,8 +137,13 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             
             if (!$stored_verify) {
                 error_log("CRITICAL: Password verification fails with stored hash!");
-                error_log("Original hash: " . $password_hash);
-                error_log("Stored hash:   " . $stored_data['password']);
+                error_log("This means the hash in DB is corrupted or wrong!");
+                
+                // Try to generate the correct hash again
+                $correct_hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 10]);
+                error_log("Regenerated hash: " . $correct_hash);
+                $regen_verify = password_verify($password, $correct_hash);
+                error_log("Regenerated hash verifies: " . ($regen_verify ? "YES" : "NO"));
             }
             
             error_log("=== PASSWORD RESET DEBUG END ===");
