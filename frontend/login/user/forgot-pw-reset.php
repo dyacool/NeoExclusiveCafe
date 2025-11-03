@@ -21,12 +21,22 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 } elseif ($_SERVER["REQUEST_METHOD"] === "POST") {
     $token = $_POST["token"] ?? "";
     $token_hash = hash("sha256", $token);
-    $password = $_POST["password"] ?? "";
-    $confirm_password = $_POST["confirm-password"] ?? "";
     
-    // Debug logging with character analysis
-    error_log("Password reset form submitted - Token: " . substr($token, 0, 10) . "..., Password length: " . strlen($password));
-    error_log("Password characters: " . implode(',', array_map('ord', str_split($password))));
+    // Debug logging BEFORE any processing
+    $raw_password = $_POST["password"] ?? "";
+    $raw_confirm = $_POST["confirm-password"] ?? "";
+    error_log("Password reset form submitted - Token: " . substr($token, 0, 10) . "...");
+    error_log("RAW password length: " . strlen($raw_password));
+    error_log("RAW password hex: " . bin2hex($raw_password));
+    error_log("RAW password characters: " . implode(',', array_map('ord', str_split($raw_password))));
+    
+    // IMPORTANT: Trim passwords to remove any hidden whitespace
+    $password = trim($raw_password);
+    $confirm_password = trim($raw_confirm);
+    
+    error_log("TRIMMED password length: " . strlen($password));
+    error_log("TRIMMED password hex: " . bin2hex($password));
+    error_log("TRIMMED password characters: " . implode(',', array_map('ord', str_split($password))));
     
     if (strlen($password) < 8) {
         echo "<script>alert('Password must be at least 8 characters long.'); history.back();</script>";
