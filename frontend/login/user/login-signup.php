@@ -290,7 +290,8 @@ if (isset($_POST["signin-submit"])) {
     if (empty($username) || empty($password)) {
         $error[] = "Username and password are required.";
     } else {
-        $stmt = mysqli_prepare($conn, "SELECT * FROM users WHERE username = ? AND is_admin = 0");
+        // Use LOWER() for case-insensitive username comparison
+        $stmt = mysqli_prepare($conn, "SELECT * FROM users WHERE LOWER(username) = LOWER(?) AND is_admin = 0");
         if ($stmt === false) {
             $error[] = "Database error occurred: " . mysqli_error($conn);
             error_log("Database prepare error: " . mysqli_error($conn));
@@ -322,7 +323,15 @@ if (isset($_POST["signin-submit"])) {
                     error_log("Hash algorithm: " . password_get_info($user["password"])['algoName']);
                     
                     // Test password verification
+                    error_log("About to call password_verify()");
+                    error_log("Password param: '" . $password . "' (length: " . strlen($password) . ")");
+                    error_log("Hash param: '" . $user["password"] . "' (length: " . strlen($user["password"]) . ")");
+                    error_log("Password hex: " . bin2hex($password));
+                    error_log("Hash hex (first 40): " . bin2hex(substr($user["password"], 0, 40)));
+                    
                     $verify_result = password_verify($password, $user["password"]);
+                    
+                    error_log("password_verify() returned: " . var_export($verify_result, true));
                     error_log("Password verification result: " . ($verify_result ? "PASS" : "FAIL"));
                     
                     if (!$verify_result) {
