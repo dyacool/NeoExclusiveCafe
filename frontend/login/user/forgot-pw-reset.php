@@ -66,7 +66,26 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
     // Generate password hash using bcrypt with cost 10 (same as signup)
     $password_hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 10]);
-    error_log("Generated password hash for user ID " . $user["id"] . ": " . substr($password_hash, 0, 20) . "... (length: " . strlen($password_hash) . ")");
+    
+    // DEBUGGING: Log detailed hash information
+    error_log("=== PASSWORD RESET DEBUG START ===");
+    error_log("User ID: " . $user["id"]);
+    error_log("Username: " . $user["username"]);
+    error_log("Email: " . $user["email"]);
+    error_log("Password length: " . strlen($password));
+    error_log("Generated hash: " . $password_hash);
+    error_log("Hash length: " . strlen($password_hash));
+    error_log("Hash algorithm: " . password_get_info($password_hash)['algoName']);
+    
+    // Immediately test the hash
+    $immediate_verify = password_verify($password, $password_hash);
+    error_log("Immediate verification test: " . ($immediate_verify ? "PASS" : "FAIL"));
+    
+    if (!$immediate_verify) {
+        error_log("CRITICAL: Hash verification failed immediately after generation!");
+        echo "<script>alert('Password hashing error. Please contact support.'); history.back();</script>";
+        exit;
+    }
     
     // Update password and also set user as verified (in case they weren't)
     $sql = "UPDATE users SET password = ?, reset_token_hash = NULL, reset_token_expires_at = NULL, is_verified = 1 WHERE id = ?";
@@ -79,18 +98,45 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     }
     
     $stmt->bind_param("si", $password_hash, $user["id"]);
-    error_log("Executing password update for user ID: " . $user["id"] . " with hash length: " . strlen($password_hash));
+    error_log("Executing password update...");
     
     if ($stmt->execute()) {
         if ($stmt->affected_rows > 0) {
-            error_log("Password successfully updated for user ID: " . $user["id"]);
+            error_log("Password update executed, rows affected: " . $stmt->affected_rows);
+            
+            // DEBUGGING: Verify what was actually stored
+            $verify_sql = "SELECT password FROM users WHERE id = ?";
+            $verify_stmt = $conn->prepare($verify_sql);
+            $verify_stmt->bind_param("i", $user["id"]);
+            $verify_stmt->execute();
+            $verify_result = $verify_stmt->get_result();
+            $stored_data = $verify_result->fetch_assoc();
+            
+            error_log("Hash stored in DB: " . $stored_data['password']);
+            error_log("Stored hash length: " . strlen($stored_data['password']));
+            error_log("Hash match: " . ($password_hash === $stored_data['password'] ? "YES" : "NO"));
+            
+            // Test verification with stored hash
+            $stored_verify = password_verify($password, $stored_data['password']);
+            error_log("Verification with stored hash: " . ($stored_verify ? "PASS" : "FAIL"));
+            
+            if (!$stored_verify) {
+                error_log("CRITICAL: Password verification fails with stored hash!");
+                error_log("Original hash: " . $password_hash);
+                error_log("Stored hash:   " . $stored_data['password']);
+            }
+            
+            error_log("=== PASSWORD RESET DEBUG END ===");
+            
             echo "<script>alert('Password successfully updated! You can now login.'); window.location.href='/frontend/login/user/login-signup.php';</script>";
         } else {
             error_log("No rows affected during password update for user ID: " . $user["id"]);
+            error_log("=== PASSWORD RESET DEBUG END ===");
             echo "<script>alert('Failed to update password. Please try again.'); window.location.href='/frontend/login/user/login-signup.php';</script>";
         }
     } else {
         error_log("Database error during password update: " . $stmt->error);
+        error_log("=== PASSWORD RESET DEBUG END ===");
         echo "<script>alert('Database error occurred. Please try again.'); window.location.href='/frontend/login/user/login-signup.php';</script>";
     }
 }

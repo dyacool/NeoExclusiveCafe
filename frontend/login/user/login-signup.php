@@ -294,14 +294,33 @@ if (isset($_POST["signin-submit"])) {
                 // Debug: Check if user was found
                 if (!$user) {
                     $error[] = "User not found. Please check your username.";
-                    error_log("User not found: " . $username);
+                    error_log("=== LOGIN ATTEMPT: User not found ===");
+                    error_log("Username attempted: " . $username);
                 } else {
-                    error_log("User found: " . $username . ", is_verified: " . ($user["is_verified"] ? "yes" : "no"));
+                    // DEBUGGING: Log detailed login attempt
+                    error_log("=== LOGIN ATTEMPT DEBUG START ===");
+                    error_log("User ID: " . $user["id"]);
+                    error_log("Username: " . $username);
+                    error_log("Email: " . $user["email"]);
+                    error_log("Is verified: " . ($user["is_verified"] ? "yes" : "no"));
+                    error_log("Password length attempted: " . strlen($password));
+                    error_log("Stored hash: " . $user["password"]);
+                    error_log("Stored hash length: " . strlen($user["password"]));
+                    error_log("Hash algorithm: " . password_get_info($user["password"])['algoName']);
                     
-                    if (!password_verify($password, $user["password"])) {
+                    // Test password verification
+                    $verify_result = password_verify($password, $user["password"]);
+                    error_log("Password verification result: " . ($verify_result ? "PASS" : "FAIL"));
+                    
+                    if (!$verify_result) {
                         $error[] = "Invalid password. Please check your password.";
-                        error_log("Password verification failed for user: " . $username . " | Password hash: " . substr($user["password"], 0, 20) . "... | Attempted password length: " . strlen($password));
+                        error_log("Password verification FAILED");
+                        error_log("Password bytes (first 20): " . bin2hex(substr($password, 0, 20)));
+                        error_log("Hash format check: " . (preg_match('/^\$2y\$\d+\$/', $user["password"]) ? "Valid bcrypt" : "Invalid format"));
+                        error_log("=== LOGIN ATTEMPT DEBUG END ===");
                     } else {
+                        error_log("Password verification PASSED");
+                        error_log("=== LOGIN ATTEMPT DEBUG END ===");
                         // Password is correct
                         if (!$user["is_verified"]) {
                             $_SESSION['unverified_email'] = $user['email'];
