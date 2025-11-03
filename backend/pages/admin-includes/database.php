@@ -105,6 +105,9 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
+// Set character set to utf8mb4 for proper hash storage
+$conn->set_charset("utf8mb4");
+
 // Set MySQL timezone to Philippines
 $conn->query("SET time_zone = '+08:00'");
 

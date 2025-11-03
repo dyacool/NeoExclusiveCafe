@@ -64,26 +64,9 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         exit;
     }
 
-    // Generate password hash with additional validation
-    $password_hash = password_hash($password, PASSWORD_DEFAULT);
-    error_log("Generated password hash for user ID " . $user["id"] . ": " . substr($password_hash, 0, 20) . "...");
-    
-    // Verify the hash was generated correctly
-    if (!$password_hash || strlen($password_hash) < 50) {
-        error_log("Password hash generation failed for user ID: " . $user["id"]);
-        echo "<script>alert('Password hashing error. Please try again.'); history.back();</script>";
-        exit;
-    }
-    
-    // Test the hash immediately after generation
-    $test_verify = password_verify($password, $password_hash);
-    if (!$test_verify) {
-        error_log("Password hash verification failed immediately after generation for user ID: " . $user["id"]);
-        echo "<script>alert('Password verification error. Please try again.'); history.back();</script>";
-        exit;
-    }
-    
-    error_log("Password hash generated and verified successfully for user ID: " . $user["id"]);
+    // Generate password hash using bcrypt with cost 10 (same as signup)
+    $password_hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 10]);
+    error_log("Generated password hash for user ID " . $user["id"] . ": " . substr($password_hash, 0, 20) . "... (length: " . strlen($password_hash) . ")");
     
     // Update password and also set user as verified (in case they weren't)
     $sql = "UPDATE users SET password = ?, reset_token_hash = NULL, reset_token_expires_at = NULL, is_verified = 1 WHERE id = ?";
