@@ -20,8 +20,8 @@ if (!$conn) {
 
 echo "<p class='success'>✓ Database connected</p>";
 
-// Get user ID 16 (Allysa who reported the issue)
-$user_id = 16;
+// Get user ID 5 (Aine)
+$user_id = 5;
 $sql = "SELECT id, username, email, password, is_verified FROM users WHERE id = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $user_id);

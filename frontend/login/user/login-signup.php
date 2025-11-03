@@ -267,12 +267,25 @@ if (isset($_POST["reset-submit"])) {
 
 // Handle User Login
 if (isset($_POST["signin-submit"])) {
+    // DEBUGGING: Log raw POST data BEFORE any processing
+    error_log("=== RAW POST DATA ===");
+    error_log("Raw username from POST: '" . ($_POST["username"] ?? "NOT SET") . "'");
+    error_log("Raw password from POST: '" . ($_POST["password"] ?? "NOT SET") . "'");
+    error_log("Raw username length: " . strlen($_POST["username"] ?? ""));
+    error_log("Raw password length: " . strlen($_POST["password"] ?? ""));
+    error_log("Raw username hex: " . bin2hex($_POST["username"] ?? ""));
+    error_log("Raw password hex: " . bin2hex($_POST["password"] ?? ""));
+    
     $username = trim($_POST["username"] ?? "");
     $password = $_POST["password"] ?? "";
     $error = [];
 
-    // Debug: Log login attempt
-    error_log("Login attempt for username: " . $username . " with password length: " . strlen($password));
+    // Debug: Log login attempt AFTER processing
+    error_log("=== PROCESSED DATA ===");
+    error_log("Processed username: '$username'");
+    error_log("Processed password: '$password'");
+    error_log("Processed username length: " . strlen($username));
+    error_log("Processed password length: " . strlen($password));
 
     if (empty($username) || empty($password)) {
         $error[] = "Username and password are required.";

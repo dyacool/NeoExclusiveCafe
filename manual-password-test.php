@@ -236,7 +236,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <input type="hidden" name="action" value="set_password">
     <div class="form-group">
         <label>User ID:</label>
-        <input type="number" name="user_id" value="16" required>
+        <input type="number" name="user_id" value="5" required>
     </div>
     <div class="form-group">
         <label>New Password:</label>
@@ -252,7 +252,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <input type="hidden" name="action" value="test_login">
     <div class="form-group">
         <label>Username:</label>
-        <input type="text" name="username" value="Allysa123" required>
+        <input type="text" name="username" value="Dyayin" required>
     </div>
     <div class="form-group">
         <label>Password:</label>
