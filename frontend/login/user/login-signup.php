@@ -78,8 +78,8 @@ if (isset($_POST['signup-submit'])) {
     }
     mysqli_stmt_close($stmt);
 
-    // Hash password
-    $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+    // Hash password using bcrypt with cost 10 for consistency
+    $passwordHash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 10]);
     if (!$passwordHash) {
         $error[] = "Error hashing password.";
     }

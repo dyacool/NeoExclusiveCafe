@@ -73,6 +73,60 @@ function truncateCartIfBusinessClosed() {
             $truncated = true;
         }
         
+        // STEP 2: Remove today's dates if business hours have closed
+        $today = date('Y-m-d');
+        $current_time = date('H:i:s');
+        
+        // Get business hours
+        $business_hours_query = "SELECT opening_time, closing_time FROM business_hours ORDER BY id DESC LIMIT 1";
+        $business_hours_result = $conn->query($business_hours_query);
+        
+        if ($business_hours_result && $business_hours_result->num_rows > 0) {
+            $business_hours = $business_hours_result->fetch_assoc();
+            $closing_time = $business_hours['closing_time'];
+            
+            // Convert times to minutes for comparison
+            $current_minutes = (intval(substr($current_time, 0, 2)) * 60) + intval(substr($current_time, 3, 2));
+            $closing_minutes = (intval(substr($closing_time, 0, 2)) * 60) + intval(substr($closing_time, 3, 2));
+            
+            // Check if business is closed
+            $is_closed = false;
+            
+            // Handle midnight crossing
+            if ($closing_minutes > 1200 && $current_minutes < 600) {
+                $is_closed = true;
+            } else if ($current_minutes > $closing_minutes) {
+                $is_closed = true;
+            }
+            
+            if ($is_closed) {
+                // Business is closed, remove today's dates (but preserve dates with SDO quantities)
+                $remove_today_todays = "DELETE tpd FROM todays_products_dates tpd 
+                                        LEFT JOIN quantity_per_day_sdo qpd ON tpd.product_id = qpd.product_id AND qpd.date = tpd.available_date
+                                        WHERE tpd.available_date = ? AND qpd.id IS NULL";
+                $stmt1 = $conn->prepare($remove_today_todays);
+                $stmt1->bind_param("s", $today);
+                $stmt1->execute();
+                $removed_today_todays = $stmt1->affected_rows;
+                $stmt1->close();
+                
+                $remove_today_regular = "DELETE rptd FROM regular_products_today_dates rptd 
+                                         LEFT JOIN quantity_per_day_sdo qpd ON rptd.product_id = qpd.product_id AND qpd.date = rptd.available_date
+                                         WHERE rptd.available_date = ? AND qpd.id IS NULL";
+                $stmt2 = $conn->prepare($remove_today_regular);
+                $stmt2->bind_param("s", $today);
+                $stmt2->execute();
+                $removed_today_regular = $stmt2->affected_rows;
+                $stmt2->close();
+                
+                $total_removed_today = $removed_today_todays + $removed_today_regular;
+                if ($total_removed_today > 0) {
+                    error_log("Business hours closed - Removed today's dates: $removed_today_todays from todays_products_dates, $removed_today_regular from regular_products_today_dates");
+                    $truncated = true;
+                }
+            }
+        }
+        
         // STEP 1B: Clean up cart items for products that no longer have valid same-day dates
         $cleanup_cart = "DELETE FROM availtoday_cart WHERE DATE(created_at) < CURDATE()";
         $cleanup_result = $conn->query($cleanup_cart);

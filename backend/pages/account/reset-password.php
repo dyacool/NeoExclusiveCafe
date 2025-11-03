@@ -40,7 +40,7 @@ if (isset($_POST["reset_password"])) {
 
         if ($user && password_verify($current_password, $user["password"])) {
             // Hash new password and update it
-            $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
+            $hashed_password = password_hash($new_password, PASSWORD_BCRYPT, ['cost' => 10]);
             $update_sql = "UPDATE users SET password = ? WHERE id = ?";
             $update_stmt = mysqli_prepare($conn, $update_sql);
             mysqli_stmt_bind_param($update_stmt, "si", $hashed_password, $admin_id);

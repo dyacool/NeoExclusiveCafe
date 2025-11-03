@@ -79,30 +79,45 @@ if (!isset($suppress_db_debug) &&
     // echo $debug_info;
 }
 
-try {
-    // Use the parameters from the array to avoid duplication
-    $host = $db_params['hostname'];
-    $dbname = $db_params['database'];
-    $username = $db_params['username'];
-    $password = $db_params['password'];
+// Use the parameters from the array to avoid duplication
+$host = $db_params['hostname'];
+$dbname = $db_params['database'];
+$username = $db_params['username'];
+$password = $db_params['password'];
 
+try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     // Log the error but don't display it
-    error_log("Database Connection Error: " . $e->getMessage());
-    die(json_encode([
-        'success' => false,
-        'error' => 'Database connection failed'
-    ]));
+    error_log("PDO Database Connection Error: " . $e->getMessage());
+    // Don't die here - let mysqli connection attempt to work
+    $pdo = null;
 }
 
 // Create mysqli connection for legacy code
 $conn = new mysqli($host, $username, $password, $dbname);
 
 if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+    error_log("MySQLi Database Connection Error: " . $conn->connect_error);
+    
+    // Check if this is an API call that expects JSON
+    $is_api_call = (
+        strpos($_SERVER['SCRIPT_NAME'], '/admin/get-pending-orders.php') !== false ||
+        strpos($_SERVER['SCRIPT_NAME'], '/admin/accept-order.php') !== false ||
+        strpos($_SERVER['SCRIPT_NAME'], '/admin/decline-order.php') !== false ||
+        strpos($_SERVER['SCRIPT_NAME'], '/admin/minimal-orders.php') !== false ||
+        strpos($_SERVER['SCRIPT_NAME'], '/products/update-product.php') !== false ||
+        strpos($_SERVER['SCRIPT_NAME'], '/calendar/update-limit.php') !== false ||
+        strpos($_SERVER['SCRIPT_NAME'], '/cart/availtoday-cart-api.php') !== false
+    );
+    
+    if ($is_api_call) {
+        die(json_encode(['success' => false, 'error' => 'Database connection failed']));
+    } else {
+        die("Connection failed: " . $conn->connect_error);
+    }
 }
 
 // Set character set to utf8mb4 for proper hash storage

@@ -77,7 +77,7 @@ if (isset($_POST['change_password'])) {
         $user = mysqli_fetch_assoc($result);
         
         if (password_verify($current_password, $user['password'])) {
-            $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
+            $hashed_password = password_hash($new_password, PASSWORD_BCRYPT, ['cost' => 10]);
             $update_query = "UPDATE users SET password = ? WHERE id = ?";
             $stmt = mysqli_prepare($conn, $update_query);
             mysqli_stmt_bind_param($stmt, "si", $hashed_password, $user_id);
