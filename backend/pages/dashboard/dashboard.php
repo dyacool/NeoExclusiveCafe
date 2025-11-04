@@ -91,7 +91,7 @@ try {
     
     // Pending Orders
     $pending_query = "SELECT COUNT(*) as pending_orders FROM orders 
-                     WHERE status IN ('Pending', 'Processing', 'Preparing')";
+                     WHERE status NOT IN ('Delivered', 'Picked-up')";
     $result = mysqli_query($conn, $pending_query);
     $row = mysqli_fetch_assoc($result);
     $stats['pending_orders'] = $row['pending_orders'] ?? 0;
@@ -419,7 +419,7 @@ try {
                             <span class="card-title">Total Sales Today</span>
                             <i class="card-icon"></i>
                         </div>
-                        <div class="card-value fas fa-peso-sign"> <?php echo number_format($stats['today_income'], 0); ?></div>
+                        <div class="card-value fas fa-peso-sign"> <?php echo number_format((double)$stats['today_income'], 2, '.', ','); ?></div>
                         <div class="card-change positive"><?php echo $stats['today_change']; ?></div>
                     </div>
 
@@ -429,7 +429,7 @@ try {
                             <span class="card-title">Total Revenue (All Time)</span>
                             <i class="fas fa-chart-line card-icon"></i>
                         </div>
-                        <div class="card-value fas fa-peso-sign"> <?php echo number_format($stats['net_income'], 0); ?></div>
+                        <div class="card-value fas fa-peso-sign"> <?php echo number_format((double)$stats['net_income'], 2, '.', ','); ?></div>
                         <div class="card-change positive"><?php echo $stats['net_change']; ?></div>
                     </div>
 
@@ -466,7 +466,7 @@ try {
                     <!-- Bulk Orders -->
                     <div class="service-card">
                         <div class="card-header">
-                            <span class="card-title">Bulk Orders</span>
+                            <span class="card-title">Total Bulk Orders</span>
                             <i class="fas fa-layer-group card-icon"></i>
                         </div>
                         <div class="card-value"><?php echo number_format($stats['bulk_orders'], 0); ?></div>
@@ -516,8 +516,8 @@ try {
                                 <div class="calendar-days" id="calendar-days"></div>
                             </div>
                             <div class="calendar-footer">
-                                <a href="#" class="calendar-link">full calendar</a>
-                                <span class="calendar-note">note</span>
+                                 <a href="../calendar/calendar.php" class="calendar-link">full calendar</a>
+
                             </div>
                         </div>
                     </div>

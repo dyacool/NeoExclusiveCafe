@@ -89,7 +89,14 @@ function animateCounters() {
   const counters = document.querySelectorAll(".card-value");
 
   counters.forEach((counter) => {
-    const target = parseInt(counter.textContent.replace(/[^\d]/g, ""));
+    // Check if this is a currency value (has decimals)
+    const isCurrency = counter.textContent.includes("₱");
+    const hasDecimals = counter.textContent.includes(".");
+
+    // Extract the numeric value, preserving decimals if present
+    const cleanText = counter.textContent.replace(/[₱,\s]/g, "");
+    const target = parseFloat(cleanText) || 0;
+
     const duration = 2000;
     const step = target / (duration / 16);
     let current = 0;
@@ -101,10 +108,19 @@ function animateCounters() {
         clearInterval(timer);
       }
 
-      const prefix = counter.textContent.includes("₱") ? "₱" : "";
+      const prefix = isCurrency ? "₱" : "";
       const suffix = counter.textContent.includes("%") ? "%" : "";
-      counter.textContent =
-        prefix + Math.floor(current).toLocaleString() + suffix;
+
+      // Format with decimals for currency, without for counts
+      const formattedValue =
+        isCurrency || hasDecimals
+          ? current.toLocaleString("en-US", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })
+          : Math.floor(current).toLocaleString();
+
+      counter.textContent = prefix + formattedValue + suffix;
     }, 16);
   });
 }
