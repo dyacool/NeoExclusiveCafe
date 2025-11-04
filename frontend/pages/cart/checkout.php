@@ -1,4 +1,9 @@
 <?php
+// Prevent browser caching
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
+
 // Enable error reporting temporarily to see what's wrong
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -1217,6 +1222,7 @@ $debug_info = [
   
   <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Checkout Calendar Script - Version 2.0
         // Declare calendar variables in the outer scope
         let pickupCalendar;
         const pickupCalendarEl = document.getElementById('calendar');
@@ -1563,6 +1569,7 @@ $debug_info = [
         }
 
         function getFirstAvailableDate() {
+            // Get first available date from cart items
             const availableDays = calculateCombinedAvailableDays();
             console.log('[CHECKOUT] Available days for products:', availableDays);
             
@@ -2015,15 +2022,6 @@ $debug_info = [
             
             // Time selects are already validated by HTML5 required attribute
             // No additional validation needed since we're using select dropdowns with predefined hours
-            
-            // Placeholder for compatibility - no rounding needed for select dropdowns
-            const roundedMinutes = 0;
-                    const roundedHours = hours + Math.floor(roundedMinutes / 60);
-                    const finalMinutes = roundedMinutes % 60;
-                    
-                    this.value = `${roundedHours.toString().padStart(2, '0')}:${finalMinutes.toString().padStart(2, '0')}`;
-                });
-            });
         }
 
         if (pickupRadio) {

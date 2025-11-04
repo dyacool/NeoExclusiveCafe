@@ -259,3 +259,187 @@
   color: #999;
   cursor: not-allowed;
 }
+
+/* ========================================
+   COUPON UI STYLES - Single Coupon Application
+   ======================================== */
+
+/* Coupon Section Container */
+.coupon-section {
+  position: relative;
+  margin: 15px 0;
+}
+
+/* Coupon Input Wrapper */
+.coupon-input-wrapper {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.coupon-input-wrapper input[type="text"] {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.coupon-input-wrapper input[type="text"]:focus {
+  outline: none;
+  border-color: #256035;
+  box-shadow: 0 0 0 2px rgba(37, 96, 53, 0.1);
+}
+
+/* Disabled Input State */
+.coupon-input-wrapper input.disabled {
+  background-color: #f0f0f0;
+  cursor: not-allowed;
+  opacity: 0.6;
+  border-color: #ccc;
+}
+
+.coupon-input-wrapper button {
+  padding: 10px 20px;
+  background-color: #256035;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  white-space: nowrap;
+}
+
+.coupon-input-wrapper button:hover:not(:disabled) {
+  background-color: #1e4a2a;
+}
+
+.coupon-input-wrapper button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Applied Coupon Display */
+#applied-coupon-display {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 16px;
+  background-color: #e8f5e9;
+  border: 1px solid #c8e6c9;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+#applied-coupon-text {
+  color: #2e7d32;
+  font-weight: 500;
+  font-size: 14px;
+  flex: 1;
+}
+
+#remove-coupon-btn {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+  white-space: nowrap;
+}
+
+#remove-coupon-btn:hover {
+  background-color: #d32f2f;
+}
+
+/* Chat Bubble Tooltip */
+.coupon-chat-bubble {
+  position: absolute;
+  background-color: #333;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-top: 5px;
+  z-index: 1000;
+  animation: fadeInOut 2s ease-in-out;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  white-space: nowrap;
+  left: 0;
+  top: 100%;
+}
+
+.coupon-chat-bubble::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 20px;
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 5px solid #333;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateY(-5px); }
+  10% { opacity: 1; transform: translateY(0); }
+  90% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-5px); }
+}
+
+/* Responsive Adjustments for Coupon UI */
+@media (max-width: 480px) {
+  .coupon-input-wrapper {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .coupon-input-wrapper button {
+    width: 100%;
+  }
+  
+  #applied-coupon-display {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  #remove-coupon-btn {
+    width: 100%;
+  }
+  
+  .coupon-chat-bubble {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+}
+
+@media (max-width: 320px) {
+  .coupon-input-wrapper input[type="text"] {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+  
+  .coupon-input-wrapper button {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+  
+  #applied-coupon-text {
+    font-size: 13px;
+  }
+  
+  #remove-coupon-btn {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+}

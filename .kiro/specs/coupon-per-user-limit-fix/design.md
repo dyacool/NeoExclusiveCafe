@@ -14,6 +14,19 @@ User applies coupon → validate-coupon.php checks:
   2. Global usage limit not exceeded
   3. Per-user usage limit not exceeded (NEW)
   4. Minimum purchase met
+  5. No other coupon already applied (NEW)
+  ↓
+Coupon applied → UI updates:
+  1. Disable coupon input field (NEW)
+  2. Show remove button (NEW)
+  3. Display applied coupon info (NEW)
+  ↓
+User clicks disabled field → Show chat bubble "1 coupon already applied!" (NEW)
+  ↓
+User removes coupon → UI updates:
+  1. Re-enable coupon input field (NEW)
+  2. Hide remove button (NEW)
+  3. Clear applied coupon info (NEW)
   ↓
 Order completed → process-checkout.php records:
   1. Coupon usage in coupon_usage table (NEW)
@@ -23,10 +36,13 @@ Order completed → process-checkout.php records:
 ### Components Modified
 
 1. **Database Schema** - Add `coupon_usage` table
-2. **validate-coupon.php** - Add per-user limit checking
+2. **validate-coupon.php** - Add per-user limit checking and single coupon enforcement
 3. **process-checkout.php** - Record coupon usage
 4. **process-availtoday-checkout.php** - Record coupon usage
 5. **database-config.php** - Add table creation function
+6. **checkout.php / availtoday-checkout.php** - Add UI for single coupon enforcement (NEW)
+7. **checkout JavaScript** - Add client-side coupon management logic (NEW)
+8. **checkout CSS** - Add styling for disabled state and chat bubble (NEW)
 
 ## Components and Interfaces
 
@@ -94,6 +110,26 @@ function checkPerUserUsage($conn, $user_id, $coupon_id, $per_user_limit) {
 - Called after global usage limit check
 - Requires user to be logged in (check session)
 - Returns early if per-user limit not set
+
+**Single Coupon Enforcement:**
+
+Add check at the beginning of validation logic:
+
+```php
+// Check if a coupon is already applied
+if (isset($_SESSION['applied_coupon']) && $_SESSION['applied_coupon']['code'] !== $coupon_code) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Please remove the current coupon before applying a new one'
+    ]);
+    exit;
+}
+```
+
+**Design Decision:**
+- Check session for existing applied coupon
+- Allow re-validation of same coupon (for page refresh scenarios)
+- Reject different coupon codes when one is already applied
 
 ### 3. Usage Recording
 
@@ -321,13 +357,234 @@ If issues occur:
 - **Session Management**: User must be logged in for per-user limits
 - **Existing Tables**: `users`, `promotions`, `orders`
 
+### 4. UI/UX Components for Single Coupon Application
+
+#### Frontend Changes
+
+**HTML Structure Updates (checkout.php & availtoday-checkout.php):**
+
+```html
+<div class="coupon-section">
+    <div class="coupon-input-wrapper">
+        <input type="text" id="coupon-code" placeholder="Enter coupon code" />
+        <button id="apply-coupon-btn">Apply</button>
+    </div>
+    
+    <!-- Applied coupon display (hidden by default) -->
+    <div id="applied-coupon-display" style="display: none;">
+        <span id="applied-coupon-text"></span>
+        <button id="remove-coupon-btn">Remove</button>
+    </div>
+    
+    <!-- Chat bubble tooltip (hidden by default) -->
+    <div id="coupon-tooltip" class="coupon-chat-bubble" style="display: none;">
+        1 coupon already applied!
+    </div>
+</div>
+```
+
+**JavaScript Logic:**
+
+```javascript
+let couponApplied = false;
+
+// Apply coupon
+function applyCoupon() {
+    const couponCode = document.getElementById('coupon-code').value;
+    
+    fetch('validate-coupon.php', {
+        method: 'POST',
+        body: JSON.stringify({ code: couponCode }),
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Disable input and show applied state
+            disableCouponInput();
+            showAppliedCoupon(couponCode, data.discount_amount);
+            couponApplied = true;
+        } else {
+            alert(data.message);
+        }
+    });
+}
+
+// Disable coupon input
+function disableCouponInput() {
+    const input = document.getElementById('coupon-code');
+    const applyBtn = document.getElementById('apply-coupon-btn');
+    
+    input.disabled = true;
+    input.classList.add('disabled');
+    applyBtn.disabled = true;
+    
+    // Add click listener for tooltip
+    input.addEventListener('click', showCouponTooltip);
+}
+
+// Show tooltip when clicking disabled field
+function showCouponTooltip() {
+    const tooltip = document.getElementById('coupon-tooltip');
+    tooltip.style.display = 'block';
+    
+    // Hide after 2 seconds
+    setTimeout(() => {
+        tooltip.style.display = 'none';
+    }, 2000);
+}
+
+// Show applied coupon display
+function showAppliedCoupon(code, discount) {
+    const display = document.getElementById('applied-coupon-display');
+    const text = document.getElementById('applied-coupon-text');
+    
+    text.textContent = `Coupon "${code}" applied (-$${discount})`;
+    display.style.display = 'flex';
+}
+
+// Remove coupon
+function removeCoupon() {
+    fetch('remove-coupon.php', { method: 'POST' })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            enableCouponInput();
+            hideAppliedCoupon();
+            couponApplied = false;
+            // Recalculate totals
+            updateOrderTotal();
+        }
+    });
+}
+
+// Enable coupon input
+function enableCouponInput() {
+    const input = document.getElementById('coupon-code');
+    const applyBtn = document.getElementById('apply-coupon-btn');
+    
+    input.disabled = false;
+    input.classList.remove('disabled');
+    input.value = '';
+    applyBtn.disabled = false;
+    
+    // Remove click listener
+    input.removeEventListener('click', showCouponTooltip);
+}
+
+// Hide applied coupon display
+function hideAppliedCoupon() {
+    const display = document.getElementById('applied-coupon-display');
+    display.style.display = 'none';
+}
+```
+
+**CSS Styling:**
+
+```css
+/* Disabled input state */
+.coupon-input-wrapper input.disabled {
+    background-color: #f0f0f0;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Applied coupon display */
+#applied-coupon-display {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background-color: #e8f5e9;
+    border-radius: 4px;
+    margin-top: 10px;
+}
+
+#applied-coupon-text {
+    color: #2e7d32;
+    font-weight: 500;
+}
+
+#remove-coupon-btn {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#remove-coupon-btn:hover {
+    background-color: #d32f2f;
+}
+
+/* Chat bubble tooltip */
+.coupon-chat-bubble {
+    position: absolute;
+    background-color: #333;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-top: 5px;
+    z-index: 1000;
+    animation: fadeInOut 2s ease-in-out;
+}
+
+.coupon-chat-bubble::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 20px;
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 5px solid #333;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { opacity: 0; }
+}
+```
+
+#### Backend Support for Coupon Removal
+
+**New File: remove-coupon.php**
+
+```php
+<?php
+session_start();
+
+header('Content-Type: application/json');
+
+if (isset($_SESSION['applied_coupon'])) {
+    unset($_SESSION['applied_coupon']);
+    echo json_encode(['success' => true]);
+} else {
+    echo json_encode(['success' => false, 'message' => 'No coupon to remove']);
+}
+?>
+```
+
+**Design Decisions:**
+- Simple session clearing for coupon removal
+- Returns JSON for consistent API response
+- No database interaction needed (coupon not yet recorded)
+
 ## Files to Modify
 
 1. `backend/pages/user-page-content/database-config.php` - Add table creation
-2. `backend/pages/user-page-content/validate-coupon.php` - Add per-user check
+2. `backend/pages/user-page-content/validate-coupon.php` - Add per-user check and single coupon enforcement
 3. `frontend/pages/cart/process-checkout.php` - Record usage
 4. `frontend/pages/cart/process-availtoday-checkout.php` - Record usage
+5. `frontend/pages/cart/checkout.php` - Add UI for single coupon application
+6. `frontend/pages/cart/availtoday-checkout.php` - Add UI for single coupon application
+7. `frontend/pages/cart/checkout-additional.css` (or relevant CSS file) - Add styling for disabled state and chat bubble
 
 ## Files to Create
 
-None (all changes are modifications to existing files)
+1. `frontend/pages/cart/remove-coupon.php` - Handle coupon removal from session
