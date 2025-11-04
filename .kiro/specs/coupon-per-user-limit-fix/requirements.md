@@ -40,6 +40,19 @@ The NeoCafe coupon system currently has a per-user usage limit field (`usage_lim
 
 ### Requirement 3
 
+**User Story:** As a customer, I want to apply only one coupon at a time, so that I can clearly see which discount is being applied to my order
+
+#### Acceptance Criteria
+
+1. WHEN a user successfully applies a coupon, THE Coupon System SHALL disable the coupon input field
+2. WHEN a user successfully applies a coupon, THE Coupon System SHALL display a remove button next to the applied coupon
+3. WHEN a user clicks the remove button, THE Coupon System SHALL remove the applied coupon and re-enable the coupon input field
+4. WHEN a user clicks on the disabled coupon input field, THE Coupon System SHALL display a chat bubble with message "1 coupon already applied!"
+5. WHEN a user attempts to apply a second coupon while one is already applied, THE Coupon System SHALL reject the attempt with message "Please remove the current coupon before applying a new one"
+6. WHEN the coupon input field is disabled, THE Coupon System SHALL provide visual indication that the field is disabled
+
+### Requirement 4
+
 **User Story:** As a developer, I want the coupon tracking system to handle edge cases properly, so that the system remains reliable
 
 #### Acceptance Criteria

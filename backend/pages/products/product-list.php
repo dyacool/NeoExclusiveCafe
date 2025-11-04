@@ -789,31 +789,39 @@
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="editProductStatus">Shipping Method</label>
-                            <select id="editProductStatus">
-                                <option value="1">Pick Up</option>
-                                <option value="2">Delivery</option>
-                                <option value="3">Delivery or Pick Up</option>
-                                <option value="4">Same Day Order</option>
-                            </select>
+                            <label>Order Types</label>
                             
-                            <!-- isAvailableToday radio button - only shown when Pick Up or Delivery is selected -->
-                            <div id="isAvailableTodayContainer" style="display: none; margin-top: 10px;">
-                                <div class="radio-group">
-                                    <div class="radio-item">
-                                        <input type="radio" id="isAvailableToday" name="isAvailableToday" value="true">
-                                        <label for="isAvailableToday">Set to same day order too</label>
-                                    </div>
-                                </div>
+                            <!-- Pre-order Checkbox -->
+                            <div class="checkbox-item" style="margin-top: 8px;">
+                                <input type="checkbox" id="editPreOrderCheckbox" onchange="handlePreOrderCheckboxChange()">
+                                <label for="editPreOrderCheckbox">Pre-order</label>
                             </div>
-                        </div>
-                        <div class="form-group" id="editAvailtodayOptions" style="display: none;">
-                            <label for="editAvailtodayStatus">Same Day Order Shipping Method:</label>
-                            <select id="editAvailtodayStatus">
-                                <option value="1">Pick Up</option>
-                                <option value="2">Delivery</option>
-                                <option value="3">Delivery and Pick Up</option>
-                            </select>
+                            
+                            <!-- Pre-order Dropdown (conditional) -->
+                            <div id="editPreOrderOptions" style="display: none; margin-left: 24px; margin-top: 8px;">
+                                <label for="editPreOrderStatus" style="font-size: 0.75rem; margin-bottom: 4px;">Pre-order Shipping Method:</label>
+                                <select id="editPreOrderStatus">
+                                    <option value="1">Pick Up</option>
+                                    <option value="2">Delivery</option>
+                                    <option value="3">Delivery or Pick Up</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Same-day Order Checkbox -->
+                            <div class="checkbox-item" style="margin-top: 12px;">
+                                <input type="checkbox" id="editSameDayCheckbox" onchange="handleSameDayCheckboxChange()">
+                                <label for="editSameDayCheckbox">Same-day order</label>
+                            </div>
+                            
+                            <!-- Same-day Order Dropdown (conditional) -->
+                            <div id="editSameDayOptions" style="display: none; margin-left: 24px; margin-top: 8px;">
+                                <label for="editSameDayStatus" style="font-size: 0.75rem; margin-bottom: 4px;">Same-day Order Shipping Method:</label>
+                                <select id="editSameDayStatus">
+                                    <option value="1">Pick Up</option>
+                                    <option value="2">Delivery</option>
+                                    <option value="3">Delivery and Pick Up</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="form-group" id="availabilityContainer">
                             <label>Availability:</label>
@@ -850,7 +858,7 @@
                         </select>
                     </div>
 
-                    <!-- Calendar for Today's Products -->
+                    <!-- Calendar for Same-day Orders (shown when same-day checkbox is checked) -->
                     <div class="form-group" id="todaysProductCalendarContainer" style="display: none;">
                         <label>Select dates for same day order:</label>
                         <div style="display: flex; gap: 20px; align-items: flex-start;">
@@ -866,7 +874,7 @@
                         </div>
                         <input type="hidden" id="todaysProductDates" name="todays_product_dates">
                     </div>
-
+                    
                     <!-- Calendar for regular products that are also available today -->
                     <div class="form-group" id="availableTodayCalendarContainer" style="display: none;">
                         <label>Select dates for same day order:</label>

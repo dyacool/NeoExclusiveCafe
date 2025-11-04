@@ -368,85 +368,114 @@ if ($cart_truncated) {
                      * 
                      * @param array $product_row Product data from database query
                      * @param string $today_date Current date in Y-m-d format
-                     * @return array Availability information with keys: is_unavailable, unavailable_reason, should_display
+                     * @return array Availability information with keys: has_preorder, has_sameday, is_unavailable, unavailable_reason, should_display
                      */
                     function determineProductAvailability($product_row, $today_date) {
+                        // Initialize result structure with default values
+                        // All products start with no capabilities and are assumed available for display
                         $result = [
-                            'is_unavailable' => false,
-                            'unavailable_reason' => '',
-                            'should_display' => true
+                            'has_preorder' => false,      // Can customer pre-order this product?
+                            'has_sameday' => false,       // Can customer order for same-day delivery?
+                            'is_unavailable' => false,    // Is product completely unavailable?
+                            'unavailable_reason' => '',   // Why is it unavailable (if applicable)?
+                            'should_display' => true      // Should we show this product on the page?
                         ];
                         
-                        // Extract data
-                        $status_id = $product_row['status_id'];
-                        $preorder_stock = $product_row['quantity'] ?? 0;
-                        $sameday_stock = $product_row['sameday_stock_today'] ?? 0;
-                        $has_availtoday = !empty($product_row['availtoday_status_id']);
-                        $todays_dates = $product_row['todays_product_dates'] ? explode(', ', $product_row['todays_product_dates']) : [];
-                        $regular_dates = $product_row['regular_today_dates'] ? explode(', ', $product_row['regular_today_dates']) : [];
-                        $show_when_unavailable = (bool)($product_row['show_when_unavailable'] ?? 0);
-                        $hide_when_unavailable = (bool)($product_row['hide_when_unavailable'] ?? 0);
+                        // Extract and normalize product data from database row
+                        // Use null coalescing operator (??) to provide safe defaults for missing values
+                        $status_id = $product_row['status_id'];                                      // Product status: 1=Regular, 2=Featured, 3=Limited, 4=Same-Day Only
+                        $preorder_stock = $product_row['quantity'] ?? 0;                            // Stock available for pre-orders
+                        $sameday_stock = $product_row['sameday_stock_today'] ?? 0;                  // Stock available for same-day orders today
+                        $has_availtoday_config = !empty($product_row['availtoday_status_id']);      // Does product have same-day configuration?
+                        $todays_dates = $product_row['todays_product_dates'] ? explode(', ', $product_row['todays_product_dates']) : [];  // Dates for status 4 products
+                        $regular_dates = $product_row['regular_today_dates'] ? explode(', ', $product_row['regular_today_dates']) : [];   // Dates for status 1/2/3 products with same-day
+                        $show_when_unavailable = (bool)($product_row['show_when_unavailable'] ?? 0); // Force show even when unavailable?
+                        $hide_when_unavailable = (bool)($product_row['hide_when_unavailable'] ?? 0); // Force hide when unavailable?
                         
-                        // Step 1: Check stock based on product type
-                        $stock_unavailable = false;
+                        // ============================================================================
+                        // STEP 1: Determine product capabilities
+                        // ============================================================================
+                        // This section determines WHAT the product CAN do (pre-order, same-day, or both)
+                        // We check capabilities independently before determining overall availability
                         
+                        // Pre-order capability check:
+                        // Products with status 1/2/3 can be pre-ordered if they have stock
+                        // Status 4 products are same-day only and cannot be pre-ordered
+                        $result['has_preorder'] = in_array($status_id, [1, 2, 3]) && $preorder_stock > 0;
+                        
+                        // Same-day capability check for pure same-day products (status 4):
+                        // These products ONLY support same-day ordering
+                        // Requirements: stock available AND today's date must be in the configured dates list
                         if ($status_id == 4) {
-                            // Same-day ONLY product
-                            $stock_unavailable = ($sameday_stock == 0 || $sameday_stock === null);
-                        } elseif (in_array($status_id, [1, 2, 3])) {
-                            if ($has_availtoday) {
-                                // DUAL capability: unavailable if BOTH stocks are 0
-                                $stock_unavailable = ($preorder_stock == 0 && ($sameday_stock == 0 || $sameday_stock === null));
-                            } else {
-                                // Pre-order ONLY
-                                $stock_unavailable = ($preorder_stock == 0);
-                            }
+                            $has_valid_date = in_array($today_date, $todays_dates);  // Is today in the todays_products_dates table?
+                            $result['has_sameday'] = ($sameday_stock > 0) && $has_valid_date;
                         }
                         
-                        // Step 2: Check date availability
-                        $date_unavailable = false;
-                        
-                        if ($status_id == 4) {
-                            // Same-day ONLY: must have date in todays_products_dates
-                            $date_unavailable = !in_array($today_date, $todays_dates);
-                        } elseif (in_array($status_id, [1, 2, 3]) && $has_availtoday) {
-                            // DUAL capability: check regular_products_today_dates for same-day option
-                            // If product has same-day stock but no date, it's unavailable
-                            // If product has no same-day stock, date doesn't matter (can still pre-order)
-                            if ($sameday_stock > 0) {
-                                // Has same-day stock, so must have valid date
-                                $date_unavailable = !in_array($today_date, $regular_dates);
-                            } else {
-                                // No same-day stock, date check not needed
-                                $date_unavailable = false;
-                            }
+                        // Same-day capability check for dual-capability products (status 1/2/3 with availtoday config):
+                        // These products support BOTH pre-order AND same-day ordering
+                        // Requirements: has availtoday_status_id set, stock available, AND today's date in regular_products_today_dates
+                        if (in_array($status_id, [1, 2, 3]) && $has_availtoday_config) {
+                            $has_valid_date = in_array($today_date, $regular_dates);  // Is today in the regular_products_today_dates table?
+                            $result['has_sameday'] = ($sameday_stock > 0) && $has_valid_date;
                         }
                         
-                        // Step 3: Determine overall unavailability
-                        // Product is unavailable if stock is 0 OR date is not available (for same-day only products)
-                        $result['is_unavailable'] = $stock_unavailable || $date_unavailable;
+                        // ============================================================================
+                        // STEP 2: Determine availability
+                        // ============================================================================
+                        // Now that we know the product's capabilities, determine if it's available
+                        // A product is unavailable ONLY if it has NO capabilities at all
                         
-                        if ($stock_unavailable) {
-                            $result['unavailable_reason'] = 'Out of Stock';
-                        } elseif ($date_unavailable) {
-                            $result['unavailable_reason'] = 'Not Available Today';
-                        }
+                        // Unavailability logic:
+                        // If product has neither pre-order nor same-day capability, it's unavailable
+                        $result['is_unavailable'] = !$result['has_preorder'] && !$result['has_sameday'];
                         
-
-                        
-                        // Step 4: Apply visibility rules
                         if ($result['is_unavailable']) {
-                            // Priority: hide_when_unavailable takes precedence
+                            // Determine the specific reason for unavailability based on product type
+                            // This helps customers understand WHY they can't order the product
+                            
+                            if ($status_id == 4) {
+                                // Same-day only product (status 4) unavailability reasons:
+                                if ($sameday_stock <= 0) {
+                                    $result['unavailable_reason'] = 'Out of Stock';        // No stock available
+                                } else {
+                                    $result['unavailable_reason'] = 'Not Available Today'; // Has stock but not configured for today
+                                }
+                            } elseif (in_array($status_id, [1, 2, 3]) && $has_availtoday_config) {
+                                // Dual-capability product (status 1/2/3 with same-day config) unavailability:
+                                // If we reach here, both pre-order and same-day stock are depleted
+                                $result['unavailable_reason'] = 'Out of Stock';
+                            } else {
+                                // Pre-order only product (status 1/2/3 without same-day config) unavailability:
+                                // No pre-order stock available
+                                $result['unavailable_reason'] = 'Out of Stock';
+                            }
+                        }
+                        
+                        // ============================================================================
+                        // STEP 3: Apply visibility rules
+                        // ============================================================================
+                        // Determine if the product should be displayed on the page
+                        // Visibility rules only apply to unavailable products
+                        
+                        if ($result['is_unavailable']) {
+                            // Visibility priority hierarchy:
+                            // 1. hide_when_unavailable flag (highest priority - always hide)
+                            // 2. show_when_unavailable flag (medium priority - always show)
+                            // 3. Default behavior (lowest priority - hide)
+                            
                             if ($hide_when_unavailable) {
+                                // Explicit hide flag set - never show this product when unavailable
                                 $result['should_display'] = false;
                             } elseif ($show_when_unavailable) {
+                                // Explicit show flag set - always show this product even when unavailable
                                 $result['should_display'] = true;
                             } else {
-                                // Default: hide unavailable products
+                                // Default behavior: hide unavailable products to reduce clutter
                                 $result['should_display'] = false;
                             }
                             
-                            // Log visibility decisions for debugging
+                            // Log visibility decisions for debugging and troubleshooting
+                            // Only log when products are hidden to avoid log spam
                             if (!$result['should_display']) {
                                 error_log(sprintf(
                                     "[Product Visibility] Hidden - Product ID: %d, Name: %s, Reason: %s, hide_flag: %d, show_flag: %d",
@@ -458,7 +487,8 @@ if ($cart_truncated) {
                                 ));
                             }
                         } else {
-                            // Available products are always displayed
+                            // Available products are always displayed regardless of visibility flags
+                            // Visibility flags only control unavailable product display
                             $result['should_display'] = true;
                         }
                         
@@ -697,16 +727,24 @@ if ($cart_truncated) {
                                   data-unavailable='" . ($is_unavailable ? 'true' : 'false') . "'
                                   onclick='openProductModalFromData(this)'>";
                             
-                            // Display badges: Show both if product is Available Today AND Featured
+                            // Display badges: Show capabilities based on product configuration
                             if ($is_unavailable) {
                                 // Unavailable badge (highest priority, exclusive)
                                 echo "<div class='unavailable-badge-left'>" . htmlspecialchars($unavailable_reason) . "</div>";
                             } else {
-                                // Show today badge if available today
-                                if ($is_available_today) {
+                                // Determine product capabilities
+                                $has_preorder = in_array($row['status_id'], [1, 2, 3]) && $row['quantity'] > 0;
+                                $has_sameday = ($row['status_id'] == 4) || (!empty($row['availtoday_status_id']) && $is_available_today);
+                                
+                                // Show badges based on capabilities
+                                if ($has_sameday && $has_preorder) {
+                                    // Product has BOTH capabilities
+                                    echo "<div class='today-badge-left'>Same Day & Pre-Order</div>";
+                                } elseif ($has_sameday) {
+                                    // Same-day only
                                     echo "<div class='today-badge-left'>Same Day Order</div>";
-                                } else {
-                                    // Show pre-order badge if not available today and not unavailable
+                                } elseif ($has_preorder) {
+                                    // Pre-order only
                                     echo "<div class='preorder-badge-left'>Pre-Order</div>";
                                 }
                                 // Note: Featured badge is handled by CSS class 'featured-product' and image overlay
@@ -1382,33 +1420,24 @@ function closeProductModal() {
         
         if ((statusId == 1 || statusId == 2 || statusId == 3) && availtodayStatusId) {
             // Product has BOTH pre-order and same day order
+            // Always show both options, even if one has 0 stock
+            orderTypeSelector.style.display = 'block';
+            
             // Show loading state
             setQuantityModalLoading(true);
             
-            // Check if same-day is actually available today
-            const sameDayAvailable = await checkSameDayAvailability(pendingCartProduct.id);
+            // Fetch pre-order quantity (default selection)
+            document.getElementById('quantityModalStock').textContent = 'Loading...';
+            quantityInput.value = 1;
+            quantityInput.max = 1;
             
-            if (sameDayAvailable) {
-                // Show both options
-                orderTypeSelector.style.display = 'block';
-                document.getElementById('quantityModalStock').textContent = `Stock: ${productStock}`;
-                quantityInput.value = 1;
-                quantityInput.max = productStock;
-                selectOrderType('preorder'); // Default to pre-order
-            } else {
-                // Same-day not available - show pre-order only
-                orderTypeSelector.style.display = 'none';
-                dateDisplay.style.display = 'none';
-                pendingCartProduct.selectedOrderType = 'preorder';
-                document.getElementById('quantityModalStock').textContent = `Stock: ${productStock}`;
-                quantityInput.value = 1;
-                quantityInput.max = productStock;
-            }
+            await fetchPreOrderQuantity(pendingCartProduct.id);
+            selectOrderType('preorder'); // Default to pre-order
             
             // Remove loading state
             setQuantityModalLoading(false);
         } else if (statusId == 4) {
-            // Same Day Order ONLY - Fetch today's quantity
+            // Same Day Order ONLY - Fetch today's quantity from quantity_per_day_sdo
             orderTypeSelector.style.display = 'none';
             dateDisplay.style.display = 'block';
             dateDisplay.textContent = 'For: Today';
@@ -1417,7 +1446,7 @@ function closeProductModal() {
             // Show loading state
             setQuantityModalLoading(true);
             
-            // Fetch today's quantity before showing modal
+            // Fetch today's quantity from quantity_per_day_sdo table
             document.getElementById('quantityModalStock').textContent = 'Loading...';
             quantityInput.value = 1;
             quantityInput.max = 1;
@@ -1431,9 +1460,19 @@ function closeProductModal() {
             orderTypeSelector.style.display = 'none';
             dateDisplay.style.display = 'none';
             pendingCartProduct.selectedOrderType = 'preorder';
-            document.getElementById('quantityModalStock').textContent = `Stock: ${productStock}`;
+            
+            // Show loading state
+            setQuantityModalLoading(true);
+            
+            // Fetch pre-order quantity from products.quantity
+            document.getElementById('quantityModalStock').textContent = 'Loading...';
             quantityInput.value = 1;
-            quantityInput.max = productStock;
+            quantityInput.max = 1;
+            
+            await fetchPreOrderQuantity(pendingCartProduct.id);
+            
+            // Remove loading state
+            setQuantityModalLoading(false);
         }
     }
     
@@ -1489,7 +1528,7 @@ function closeProductModal() {
             dateDisplay.style.display = 'block';
             dateDisplay.textContent = 'For: Today';
             
-            // Fetch today's specific quantity from database
+            // Fetch today's specific quantity from quantity_per_day_sdo table
             if (pendingCartProduct) {
                 setQuantityModalLoading(true);
                 fetchTodayQuantity(pendingCartProduct.id).then(() => {
@@ -1499,12 +1538,12 @@ function closeProductModal() {
         } else {
             dateDisplay.style.display = 'none';
             
-            // Restore original stock quantity for pre-order
+            // Fetch pre-order stock quantity from products.quantity
             if (pendingCartProduct) {
-                stockDisplay.textContent = `Stock: ${pendingCartProduct.stock}`;
-                const quantityInput = document.getElementById('quantityModalInput');
-                quantityInput.max = pendingCartProduct.stock;
-                quantityInput.value = Math.min(parseInt(quantityInput.value) || 1, pendingCartProduct.stock);
+                setQuantityModalLoading(true);
+                fetchPreOrderQuantity(pendingCartProduct.id).then(() => {
+                    setQuantityModalLoading(false);
+                });
             }
         }
         
@@ -1513,9 +1552,56 @@ function closeProductModal() {
         }
     }
 
-    // Fetch today's specific quantity for same day orders
+    // Fetch pre-order quantity from products.quantity
+    async function fetchPreOrderQuantity(productId) {
+        const stockDisplay = document.getElementById('quantityModalStock');
+        const confirmBtn = document.querySelector('.btn-confirm');
+        stockDisplay.textContent = 'Loading...';
+        
+        try {
+            const response = await fetch(`get-preorder-quantity.php?product_id=${productId}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                const preorderQuantity = data.quantity || 0;
+                stockDisplay.textContent = `Stock: ${preorderQuantity}`;
+                
+                const quantityInput = document.getElementById('quantityModalInput');
+                quantityInput.max = preorderQuantity;
+                quantityInput.value = Math.min(parseInt(quantityInput.value) || 1, Math.max(preorderQuantity, 1));
+                
+                // Update pendingCartProduct with fresh stock value
+                if (pendingCartProduct) {
+                    pendingCartProduct.stock = preorderQuantity;
+                }
+                
+                // Disable/enable Add to Cart button based on stock
+                if (preorderQuantity === 0) {
+                    stockDisplay.textContent = 'Stock: 0 (Out of stock)';
+                    confirmBtn.disabled = true;
+                    quantityInput.disabled = true;
+                } else {
+                    confirmBtn.disabled = false;
+                    quantityInput.disabled = false;
+                }
+            } else {
+                console.error('Error fetching pre-order quantity:', data.error);
+                stockDisplay.textContent = 'Stock: 0';
+                confirmBtn.disabled = true;
+                quantityInput.disabled = true;
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            stockDisplay.textContent = 'Stock: 0';
+            confirmBtn.disabled = true;
+            quantityInput.disabled = true;
+        }
+    }
+
+    // Fetch today's specific quantity for same day orders from quantity_per_day_sdo
     async function fetchTodayQuantity(productId) {
         const stockDisplay = document.getElementById('quantityModalStock');
+        const confirmBtn = document.querySelector('.btn-confirm');
         stockDisplay.textContent = 'Loading...';
         
         try {
@@ -1528,18 +1614,28 @@ function closeProductModal() {
                 
                 const quantityInput = document.getElementById('quantityModalInput');
                 quantityInput.max = todayQuantity;
-                quantityInput.value = Math.min(parseInt(quantityInput.value) || 1, todayQuantity);
+                quantityInput.value = Math.min(parseInt(quantityInput.value) || 1, Math.max(todayQuantity, 1));
                 
+                // Disable/enable Add to Cart button based on stock
                 if (todayQuantity === 0) {
                     stockDisplay.textContent = 'Stock: 0 (Not available today)';
+                    confirmBtn.disabled = true;
+                    quantityInput.disabled = true;
+                } else {
+                    confirmBtn.disabled = false;
+                    quantityInput.disabled = false;
                 }
             } else {
                 console.error('Error fetching today quantity:', data.error);
                 stockDisplay.textContent = 'Stock: 0';
+                confirmBtn.disabled = true;
+                quantityInput.disabled = true;
             }
         } catch (error) {
             console.error('Error:', error);
             stockDisplay.textContent = 'Stock: 0';
+            confirmBtn.disabled = true;
+            quantityInput.disabled = true;
         }
     }
 

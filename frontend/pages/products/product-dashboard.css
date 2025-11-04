@@ -1935,3 +1935,195 @@
   margin: 5px 0;
   font-style: italic; */
 }
+
+/* Order Type Selector in Quantity Modal */
+.order-type-selector {
+  margin: 15px 0;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.order-type-selector label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.order-type-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.order-type-btn {
+  flex: 1;
+  padding: 10px 20px;
+  border: 2px solid #ddd;
+  background: white;
+  color: #666;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.order-type-btn:hover {
+  border-color: #256035;
+  color: #256035;
+  background: #f0f9f4;
+}
+
+.order-type-btn.active {
+  border-color: #256035;
+  background: #256035;
+  color: white;
+}
+
+.order-type-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Quantity Modal Stock Display */
+.quantity-modal-stock {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin: 10px 0;
+}
+
+.quantity-modal-date {
+  text-align: center;
+  font-size: 13px;
+  color: #666;
+  margin-top: 5px;
+}
+
+/* Quantity Modal Content */
+.quantity-modal-content {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  max-width: 450px;
+  width: 90%;
+  position: relative;
+}
+
+.quantity-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.quantity-modal-body h2 {
+  text-align: center;
+  font-size: 20px;
+  margin: 0 0 5px 0;
+  color: #333;
+}
+
+.quantity-modal-price {
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: #256035;
+  margin: 0 0 10px 0;
+}
+
+.quantity-modal-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.quantity-modal-controls label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+}
+
+.quantity-modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.btn-cancel,
+.btn-confirm {
+  flex: 1;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-cancel {
+  background: #f3f4f6;
+  color: #666;
+}
+
+.btn-cancel:hover {
+  background: #e5e7eb;
+}
+
+.btn-confirm {
+  background: #256035;
+  color: white;
+}
+
+.btn-confirm:hover {
+  background: #1a4a28;
+}
+
+.btn-confirm:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Modal Loading Overlay */
+.modal-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border-radius: 8px;
+}
+
+/* Responsive adjustments for quantity modal */
+@media (max-width: 480px) {
+  .quantity-modal-content {
+    width: 95%;
+    padding: 20px 15px;
+  }
+
+  .order-type-buttons {
+    flex-direction: column;
+  }
+
+  .order-type-btn {
+    width: 100%;
+  }
+
+  .quantity-modal-body h2 {
+    font-size: 18px;
+  }
+
+  .quantity-modal-price {
+    font-size: 16px;
+  }
+}

@@ -1,4 +1,11 @@
 <?php
+// Match session configuration from other checkout files
+session_set_cookie_params([
+    'lifetime' => 0,
+    'httponly' => true,
+    'samesite' => 'Strict',
+    'domain' => ''
+]);
 session_start();
 
 header('Content-Type: application/json');
@@ -74,6 +81,31 @@ if (empty($coupon_code)) {
 if ($subtotal <= 0) {
     echo json_encode(['success' => false, 'message' => 'Invalid order amount']);
     exit();
+}
+
+// Check if a different coupon is already applied
+error_log("=== SINGLE COUPON CHECK ===");
+error_log("Session ID: " . session_id());
+error_log("Applied coupon in session: " . (isset($_SESSION['applied_coupon']) ? json_encode($_SESSION['applied_coupon']) : 'NOT SET'));
+error_log("Requested coupon code: " . $coupon_code);
+
+if (isset($_SESSION['applied_coupon'])) {
+    $existing_code = $_SESSION['applied_coupon']['code'] ?? '';
+    
+    // Always clear any existing coupon before validating new one
+    // This ensures we don't have stale session data
+    error_log("Clearing existing coupon from session: $existing_code");
+    unset($_SESSION['applied_coupon']);
+    
+    // If it's a different coupon, we've cleared it but still want to inform the user
+    // However, we'll allow the validation to proceed
+    if ($existing_code !== $coupon_code) {
+        error_log("NOTE: Different coupon was in session (existing: $existing_code, requested: $coupon_code) - cleared and proceeding");
+    } else {
+        error_log("ALLOWED: Re-validating same coupon");
+    }
+} else {
+    error_log("PASSED: No coupon in session");
 }
 
 try {
@@ -252,6 +284,9 @@ try {
     } elseif ($discount_type === 'free_shipping') {
         $message .= "Free shipping applied!";
     }
+    
+    // Store applied coupon in session
+    $_SESSION['applied_coupon'] = $coupon_data;
     
     echo json_encode([
         'success' => true,

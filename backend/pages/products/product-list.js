@@ -436,6 +436,66 @@ function setupModal() {
   }
 }
 
+// Show/hide modal loading overlay
+function showModalLoading(show) {
+  let loadingOverlay = document.getElementById('modalLoadingOverlay');
+  
+  if (show) {
+    if (!loadingOverlay) {
+      // Create loading overlay if it doesn't exist
+      loadingOverlay = document.createElement('div');
+      loadingOverlay.id = 'modalLoadingOverlay';
+      loadingOverlay.className = 'modal-loading-overlay';
+      loadingOverlay.innerHTML = `
+        <div class="modal-loading-spinner">
+          <div class="spinner"></div>
+          <p>Loading product data...</p>
+        </div>
+      `;
+      
+      const modalContent = document.querySelector('#editModal .modal-content');
+      if (modalContent) {
+        modalContent.appendChild(loadingOverlay);
+      }
+    }
+    loadingOverlay.style.display = 'flex';
+  } else {
+    if (loadingOverlay) {
+      loadingOverlay.style.display = 'none';
+    }
+  }
+}
+
+// Show/hide modal saving overlay
+function showModalSaving(show) {
+  let savingOverlay = document.getElementById('modalSavingOverlay');
+  
+  if (show) {
+    if (!savingOverlay) {
+      // Create saving overlay if it doesn't exist
+      savingOverlay = document.createElement('div');
+      savingOverlay.id = 'modalSavingOverlay';
+      savingOverlay.className = 'modal-loading-overlay'; // Reuse same styling
+      savingOverlay.innerHTML = `
+        <div class="modal-loading-spinner">
+          <div class="spinner"></div>
+          <p>Saving product...</p>
+        </div>
+      `;
+      
+      const modalContent = document.querySelector('#editModal .modal-content');
+      if (modalContent) {
+        modalContent.appendChild(savingOverlay);
+      }
+    }
+    savingOverlay.style.display = 'flex';
+  } else {
+    if (savingOverlay) {
+      savingOverlay.style.display = 'none';
+    }
+  }
+}
+
 function openEditModal(
   id,
   name,
@@ -456,6 +516,14 @@ function openEditModal(
   regularTodayDates,
   categoryId
 ) {
+  // Show modal with loading state immediately
+  const modal = document.getElementById("editModal");
+  modal.style.display = "flex";
+  document.body.style.overflow = "hidden";
+  
+  // Show loading overlay
+  showModalLoading(true);
+  
   // Store original form data
   originalFormData = {
     id,
@@ -484,7 +552,6 @@ function openEditModal(
   document.getElementById("editProductDescription").value = description || "";
   document.getElementById("editProductPrice").value = price;
   document.getElementById("editProductQuantity").value = quantity;
-  document.getElementById("editProductStatus").value = status;
 
   // Set category
   const categorySelect = document.getElementById("editProductCategory");
@@ -493,37 +560,53 @@ function openEditModal(
       categoryId && categoryId !== "null" ? categoryId : "";
   }
 
-  // Update dynamic status name label
-  const dynamicStatusLabel = document.getElementById("dynamicStatusName");
-  if (dynamicStatusLabel) {
-    dynamicStatusLabel.textContent = statusName || "Product";
+  // Initialize checkbox states based on product data
+  const preOrderCheckbox = document.getElementById('editPreOrderCheckbox');
+  const sameDayCheckbox = document.getElementById('editSameDayCheckbox');
+  const preOrderOptions = document.getElementById('editPreOrderOptions');
+  const sameDayOptions = document.getElementById('editSameDayOptions');
+  const preOrderDropdown = document.getElementById('editPreOrderStatus');
+  const sameDayDropdown = document.getElementById('editSameDayStatus');
+  const todaysCalendarContainer = document.getElementById('todaysProductCalendarContainer');
+  const availableTodayCalendarContainer = document.getElementById('availableTodayCalendarContainer');
+  
+  // Determine checkbox states
+  const isPreOrder = (status == 1 || status == 2 || status == 3);
+  const isSameDay = (status == 4 || (availtodayStatusId && availtodayStatusId !== 'null'));
+  
+  // Set pre-order checkbox and dropdown
+  if (preOrderCheckbox) {
+    preOrderCheckbox.checked = isPreOrder;
+    if (isPreOrder && preOrderOptions && preOrderDropdown) {
+      preOrderOptions.style.display = 'block';
+      preOrderDropdown.value = status;
+    } else if (preOrderOptions) {
+      preOrderOptions.style.display = 'none';
+    }
   }
-
-  // Handle availtoday_status dropdown - set value first (always preserve it)
-  const availtodayOptions = document.getElementById("editAvailtodayOptions");
-  const availtodaySelect = document.getElementById("editAvailtodayStatus");
-
-  if (availtodayOptions && availtodaySelect) {
-    // Always set the value (preserve it even when hidden)
-    availtodaySelect.value =
-      availtodayStatusId && availtodayStatusId !== "null"
-        ? availtodayStatusId
-        : "";
-
-    // Show/hide dropdown based on status
-    if (status == 4) {
-      // Same Day Order (status_id 4) - always show dropdown
-      availtodayOptions.style.display = "block";
-    } else if (
-      (status == 1 || status == 2 || status == 3) &&
-      availtodayStatusId &&
-      availtodayStatusId !== "null"
-    ) {
-      // Pick Up, Delivery, or Delivery or Pick Up - show if they have availtoday_status_id set
-      availtodayOptions.style.display = "block";
+  
+  // Set same-day checkbox and dropdown
+  if (sameDayCheckbox) {
+    sameDayCheckbox.checked = isSameDay;
+    if (isSameDay && sameDayOptions && sameDayDropdown) {
+      sameDayOptions.style.display = 'block';
+      sameDayDropdown.value = availtodayStatusId && availtodayStatusId !== 'null' ? availtodayStatusId : '1';
+      
+      // Show appropriate calendar based on whether pre-order is also checked
+      if (isPreOrder) {
+        // Both pre-order and same-day: show availableTodayCalendar
+        if (availableTodayCalendarContainer) availableTodayCalendarContainer.style.display = 'block';
+        if (todaysCalendarContainer) todaysCalendarContainer.style.display = 'none';
+      } else {
+        // Only same-day: show todaysProductCalendar
+        if (todaysCalendarContainer) todaysCalendarContainer.style.display = 'block';
+        if (availableTodayCalendarContainer) availableTodayCalendarContainer.style.display = 'none';
+      }
     } else {
-      // Hide by default
-      availtodayOptions.style.display = "none";
+      // Same-day not checked: hide both calendars
+      if (sameDayOptions) sameDayOptions.style.display = 'none';
+      if (todaysCalendarContainer) todaysCalendarContainer.style.display = 'none';
+      if (availableTodayCalendarContainer) availableTodayCalendarContainer.style.display = 'none';
     }
   }
 
@@ -629,105 +712,49 @@ function openEditModal(
     }
   }
 
-  // Handle isAvailableToday radio button initial state
-  const isAvailableTodayContainer = document.getElementById(
-    "isAvailableTodayContainer"
-  );
-  const isAvailableTodayRadio = document.getElementById("isAvailableToday");
-  const availableTodayCalendarContainer = document.getElementById(
-    "availableTodayCalendarContainer"
-  );
-
-  if (isAvailableTodayContainer && isAvailableTodayRadio) {
-    if (
-      statusName === "Pick Up" ||
-      statusName === "Delivery" ||
-      statusName === "Delivery or Pick Up"
-    ) {
-      isAvailableTodayContainer.style.display = "block";
-
-      // Check if availtoday_status_id is not null to activate the radio button
-      if (
-        availtodayStatusId &&
-        availtodayStatusId !== "null" &&
-        availtodayStatusId !== ""
-      ) {
-        isAvailableTodayRadio.checked = true;
-
-        // Show the availtoday_status dropdown when radio is checked
-        if (availtodayOptions) {
-          availtodayOptions.style.display = "block";
-        }
-
-        // Show the Available Today calendar container when radio is checked
-        if (availableTodayCalendarContainer) {
-          availableTodayCalendarContainer.style.display = "block";
-        }
-
-        // Set the editAvailableTodayStatus dropdown value (for isAvailableToday radio)
-        const editAvailableTodayStatusSelect = document.getElementById(
-          "editAvailableTodayStatus"
-        );
-        if (editAvailableTodayStatusSelect) {
-          editAvailableTodayStatusSelect.value = availtodayStatusId;
-        }
-      } else {
-        // Reset the radio button state if no availtoday_status_id
-        isAvailableTodayRadio.checked = false;
-        if (availableTodayCalendarContainer) {
-          availableTodayCalendarContainer.style.display = "none";
-        }
-      }
-    } else {
-      isAvailableTodayContainer.style.display = "none";
-      isAvailableTodayRadio.checked = false;
-      if (availableTodayCalendarContainer) {
-        availableTodayCalendarContainer.style.display = "none";
-      }
-    }
-  }
-
-  setupStatusChangeListener();
+  // Update quantity field state based on checkbox states
+  updateQuantityFieldState();
+  
   setupAvailabilityRadioListeners();
-  setupIsAvailableTodayListener();
-  loadProductImages(id);
-
-  document.getElementById("editModal").style.display = "flex";
-  document.body.style.overflow = "hidden";
-
-  // Initialize calendars and apply status change after modal is shown
-  setTimeout(() => {
-    if (window.modalCalendarHandler) {
-      window.modalCalendarHandler.initializeEditModalCalendars();
-      window.modalCalendarHandler.handleEditStatusChange();
-
-      // Set selected dates in calendars
-      if (todaysProductDates && status == 4) {
-        const dates = todaysProductDates.split(",").filter((d) => d.trim());
-        window.modalCalendarHandler.setTodaysProductDates(dates);
-      }
-
-      if (regularTodayDates && (status == 1 || status == 2 || status == 3)) {
-        const dates = regularTodayDates.split(",").filter((d) => d.trim());
-        if (dates.length > 0) {
-          // Check the isAvailableToday radio button
-          const isAvailableTodayRadio =
-            document.getElementById("isAvailableToday");
-          if (isAvailableTodayRadio) {
-            isAvailableTodayRadio.checked = true;
-            // Trigger change event to show the calendar
-            isAvailableTodayRadio.dispatchEvent(new Event("change"));
+  
+  // Load images and wait for them to complete before hiding loading
+  loadProductImages(id).then(() => {
+    // Initialize calendars after images are loaded
+    setTimeout(() => {
+      if (window.modalCalendarHandler) {
+        window.modalCalendarHandler.initializeEditModalCalendars();
+        
+        // Set selected dates based on product type
+        if (isSameDay) {
+          if (isPreOrder) {
+            // Both pre-order and same-day: use availableTodayCalendar with regularTodayDates
+            if (regularTodayDates) {
+              const dates = regularTodayDates.split(",").filter((d) => d.trim());
+              if (dates.length > 0) {
+                window.modalCalendarHandler.setAvailableTodayDates(dates);
+              }
+            }
+          } else {
+            // Only same-day: use todaysProductCalendar with todaysProductDates
+            if (todaysProductDates) {
+              const dates = todaysProductDates.split(",").filter((d) => d.trim());
+              if (dates.length > 0) {
+                window.modalCalendarHandler.setTodaysProductDates(dates);
+              }
+            }
           }
-          window.modalCalendarHandler.setAvailableTodayDates(dates);
         }
       }
-    }
 
-    // Initialize SDO quantity manager
-    if (typeof initializeSDOQuantities === "function") {
-      initializeSDOQuantities(id);
-    }
-  }, 200); // Increased timeout to ensure calendars are fully initialized
+      // Initialize SDO quantity manager
+      if (typeof initializeSDOQuantities === "function") {
+        initializeSDOQuantities(id);
+      }
+      
+      // Hide loading overlay after everything is initialized (including Cloudinary images)
+      showModalLoading(false);
+    }, 200);
+  });
 }
 
 function setupStatusChangeListener() {
@@ -877,25 +904,24 @@ function setupAvailabilityRadioListeners() {
       if (this.checked) {
         unavailableTypeContainer.style.display = "none";
         unavailableTypeSelect.value = "";
-
-        const quantityField = document.getElementById("editProductQuantity");
-        if (quantityField) {
-          quantityField.disabled = false;
-          quantityField.style.opacity = "1";
-        }
+        // Update quantity field state based on checkbox states
+        updateQuantityFieldState();
       }
     });
 
     unavailableRadio.addEventListener("change", function () {
       if (this.checked) {
-        const statusSelect = document.getElementById("editProductStatus");
-        const currentStatus = statusSelect.value;
-
+        // Determine unavailable type based on checkbox states
+        const preOrderCheckbox = document.getElementById('editPreOrderCheckbox');
+        const sameDayCheckbox = document.getElementById('editSameDayCheckbox');
+        const preOrderDropdown = document.getElementById('editPreOrderStatus');
+        
         let unavailableTypeId = null;
-        if (currentStatus === "1") unavailableTypeId = "1";
-        else if (currentStatus === "2") unavailableTypeId = "2";
-        else if (currentStatus === "3") unavailableTypeId = "3";
-        else if (currentStatus === "4") unavailableTypeId = "4";
+        if (preOrderCheckbox && preOrderCheckbox.checked && preOrderDropdown) {
+          unavailableTypeId = preOrderDropdown.value;
+        } else if (sameDayCheckbox && sameDayCheckbox.checked) {
+          unavailableTypeId = "4";
+        }
 
         if (unavailableTypeId) {
           unavailableTypeSelect.value = unavailableTypeId;
@@ -905,66 +931,27 @@ function setupAvailabilityRadioListeners() {
         const messageElement = unavailableTypeContainer.querySelector("small");
         if (messageElement) {
           let statusText = "";
-          if (currentStatus === "1") statusText = "Pick Up";
-          else if (currentStatus === "2") statusText = "Delivery";
-          else if (currentStatus === "3") statusText = "Delivery or Pick Up";
-          else if (currentStatus === "4") statusText = "Same Day Order";
+          if (unavailableTypeId === "1") statusText = "Pick Up";
+          else if (unavailableTypeId === "2") statusText = "Delivery";
+          else if (unavailableTypeId === "3") statusText = "Delivery or Pick Up";
+          else if (unavailableTypeId === "4") statusText = "Same Day Order";
 
           messageElement.textContent = `Will be set to: Unavailable ${statusText}`;
         }
 
-        const quantityField = document.getElementById("editProductQuantity");
-        if (quantityField) {
-          quantityField.value = "0";
-          quantityField.disabled = true;
-          quantityField.style.opacity = "0.5";
-        }
+        // Update quantity field state
+        updateQuantityFieldState();
       }
     });
   }
 }
 
-function setupIsAvailableTodayListener() {
-  const isAvailableTodayRadio = document.getElementById("isAvailableToday");
-  const availtodayOptions = document.getElementById("editAvailtodayOptions");
-  const availableTodayDaysContainer = document.getElementById(
-    "availableTodayDaysContainer"
-  );
 
-  if (isAvailableTodayRadio) {
-    isAvailableTodayRadio.addEventListener("change", function () {
-      if (this.checked) {
-        // Show the availtoday select dropdown
-        if (availtodayOptions) {
-          availtodayOptions.style.display = "block";
-        }
-        // Show the checkbox-group2 for Available Today days
-        if (availableTodayDaysContainer) {
-          availableTodayDaysContainer.style.display = "block";
-        }
-      } else {
-        // Hide the availtoday select dropdown
-        if (availtodayOptions) {
-          availtodayOptions.style.display = "none";
-          // Don't clear the value - preserve it in case user switches back
-        }
-        // Hide the checkbox-group2 for Available Today days
-        if (availableTodayDaysContainer) {
-          availableTodayDaysContainer.style.display = "none";
-          // Reset all checkboxes in checkbox-group2
-          const todayCheckboxes = availableTodayDaysContainer.querySelectorAll(
-            'input[type="checkbox"]'
-          );
-          todayCheckboxes.forEach((checkbox) => {
-            checkbox.checked = false;
-          });
-        }
-      }
-    });
-  }
-}
 
 function closeModal() {
+  // Reset modal content to prevent showing stale data
+  resetModalContent();
+  
   document.getElementById("editModal").style.display = "none";
   document.body.style.overflow = "auto";
 
@@ -972,6 +959,96 @@ function closeModal() {
   // The modal has its own days container that's handled separately
 
   resetFormToOriginal();
+}
+
+// Reset modal content to default/empty state
+function resetModalContent() {
+  // Reset form fields to empty/default values
+  document.getElementById("editProductId").value = "";
+  document.getElementById("editProductName").value = "";
+  document.getElementById("editProductDescription").value = "";
+  document.getElementById("editProductPrice").value = "";
+  document.getElementById("editProductQuantity").value = "";
+  
+  // Reset checkboxes
+  const preOrderCheckbox = document.getElementById('editPreOrderCheckbox');
+  const sameDayCheckbox = document.getElementById('editSameDayCheckbox');
+  if (preOrderCheckbox) preOrderCheckbox.checked = false;
+  if (sameDayCheckbox) sameDayCheckbox.checked = false;
+  
+  // Hide option divs
+  const preOrderOptions = document.getElementById('editPreOrderOptions');
+  const sameDayOptions = document.getElementById('editSameDayOptions');
+  if (preOrderOptions) preOrderOptions.style.display = 'none';
+  if (sameDayOptions) sameDayOptions.style.display = 'none';
+  
+  // Reset dropdowns
+  const categorySelect = document.getElementById("editProductCategory");
+  const featuredSelect = document.getElementById("editIsFeature");
+  const visibilitySelect = document.getElementById("editVisibilityOption");
+  if (categorySelect) categorySelect.value = "";
+  if (featuredSelect) featuredSelect.value = "0";
+  if (visibilitySelect) visibilitySelect.value = "default";
+  
+  // Reset availability radio
+  const availableRadio = document.getElementById("editAvailable");
+  const unavailableRadio = document.getElementById("editUnavailable");
+  if (availableRadio) availableRadio.checked = true;
+  if (unavailableRadio) unavailableRadio.checked = false;
+  
+  // Hide unavailable type container
+  const unavailableTypeContainer = document.getElementById("editUnavailableTypeContainer");
+  if (unavailableTypeContainer) unavailableTypeContainer.style.display = "none";
+  
+  // Reset images
+  currentProductImages = { primary: null, additional: [] };
+  pendingImageChanges = {
+    primary: null,
+    additional: { toAdd: [], toRemove: [] },
+  };
+  tempImageInfo = { primary: null, additional: [] };
+  
+  // Clear image containers
+  const primaryContainer = document.getElementById("editPrimaryImageContainer");
+  const additionalContainer = document.getElementById("editAdditionalImagesContainer");
+  if (primaryContainer) {
+    primaryContainer.innerHTML = `
+      <button type="button" class="upload-btn-overlay" onclick="document.getElementById('editPrimaryImageInput').click()">
+        Click to Upload Image
+      </button>
+      <div class="image-placeholder" id="editPrimaryPlaceholder">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          <circle cx="8.5" cy="8.5" r="1.5"></circle>
+          <polyline points="21,15 16,10 5,21"></polyline>
+        </svg>
+        <span>No primary image</span>
+      </div>
+    `;
+    primaryContainer.classList.remove("has-image");
+  }
+  if (additionalContainer) {
+    additionalContainer.innerHTML = `
+      <button type="button" class="upload-btn-overlay" onclick="document.getElementById('editAdditionalImagesInput').click()">
+        Click to Upload Images
+      </button>
+      <div class="image-placeholder" id="editAdditionalPlaceholder">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          <circle cx="8.5" cy="8.5" r="1.5"></circle>
+          <polyline points="21,15 16,10 5,21"></polyline>
+        </svg>
+        <span>No additional images</span>
+      </div>
+    `;
+    additionalContainer.classList.remove("has-images");
+  }
+  
+  // Hide calendar containers
+  const todaysCalendarContainer = document.getElementById('todaysProductCalendarContainer');
+  const availableTodayCalendarContainer = document.getElementById('availableTodayCalendarContainer');
+  if (todaysCalendarContainer) todaysCalendarContainer.style.display = 'none';
+  if (availableTodayCalendarContainer) availableTodayCalendarContainer.style.display = 'none';
 }
 
 // Image management functions
@@ -983,20 +1060,23 @@ function loadProductImages(productId) {
   };
   tempImageInfo = { primary: null, additional: [] };
 
-  fetch(`get-product-images.php?product_id=${productId}`)
+  return fetch(`get-product-images.php?product_id=${productId}`)
     .then((response) => response.json())
     .then((data) => {
       if (data.success) {
         currentProductImages = data.images;
         displayProductImages();
+        return true;
       } else {
         console.error("Failed to load images:", data.error);
         showNotification("Failed to load product images", "error");
+        return false;
       }
     })
     .catch((error) => {
       console.error("Error loading images:", error);
       showNotification("Error loading product images", "error");
+      return false;
     });
 }
 
@@ -1484,44 +1564,171 @@ function removeAdditionalImage(imageId) {
   );
 }
 
+// Checkbox event handlers for new UI
+function handlePreOrderCheckboxChange() {
+  const checkbox = document.getElementById('editPreOrderCheckbox');
+  const optionsDiv = document.getElementById('editPreOrderOptions');
+  const dropdown = document.getElementById('editPreOrderStatus');
+  const sameDayCheckbox = document.getElementById('editSameDayCheckbox');
+  
+  if (checkbox.checked) {
+    optionsDiv.style.display = 'block';
+    // Set default value if not already set
+    if (!dropdown.value) {
+      dropdown.value = '1'; // Default to Pick Up
+    }
+    
+    // If same-day is also checked, switch to availableTodayCalendar
+    if (sameDayCheckbox && sameDayCheckbox.checked) {
+      const todaysCalendarContainer = document.getElementById('todaysProductCalendarContainer');
+      const availableTodayCalendarContainer = document.getElementById('availableTodayCalendarContainer');
+      if (todaysCalendarContainer) todaysCalendarContainer.style.display = 'none';
+      if (availableTodayCalendarContainer) availableTodayCalendarContainer.style.display = 'block';
+    }
+  } else {
+    optionsDiv.style.display = 'none';
+    
+    // If same-day is checked, switch to todaysProductCalendar
+    if (sameDayCheckbox && sameDayCheckbox.checked) {
+      const todaysCalendarContainer = document.getElementById('todaysProductCalendarContainer');
+      const availableTodayCalendarContainer = document.getElementById('availableTodayCalendarContainer');
+      if (todaysCalendarContainer) todaysCalendarContainer.style.display = 'block';
+      if (availableTodayCalendarContainer) availableTodayCalendarContainer.style.display = 'none';
+    }
+  }
+  
+  // Update quantity field state
+  updateQuantityFieldState();
+}
+
+function handleSameDayCheckboxChange() {
+  const checkbox = document.getElementById('editSameDayCheckbox');
+  const optionsDiv = document.getElementById('editSameDayOptions');
+  const dropdown = document.getElementById('editSameDayStatus');
+  const preOrderCheckbox = document.getElementById('editPreOrderCheckbox');
+  
+  // Determine which calendar to show based on whether pre-order is also checked
+  const todaysCalendarContainer = document.getElementById('todaysProductCalendarContainer');
+  const availableTodayCalendarContainer = document.getElementById('availableTodayCalendarContainer');
+  
+  if (checkbox.checked) {
+    optionsDiv.style.display = 'block';
+    
+    // Show appropriate calendar based on pre-order checkbox state
+    if (preOrderCheckbox && preOrderCheckbox.checked) {
+      // Both pre-order and same-day: use availableTodayCalendar
+      if (availableTodayCalendarContainer) availableTodayCalendarContainer.style.display = 'block';
+      if (todaysCalendarContainer) todaysCalendarContainer.style.display = 'none';
+    } else {
+      // Only same-day: use todaysProductCalendar
+      if (todaysCalendarContainer) todaysCalendarContainer.style.display = 'block';
+      if (availableTodayCalendarContainer) availableTodayCalendarContainer.style.display = 'none';
+    }
+    
+    // Set default value if not already set
+    if (!dropdown.value) {
+      dropdown.value = '1'; // Default to Pick Up
+    }
+    // Initialize calendar if needed
+    if (window.modalCalendarHandler) {
+      window.modalCalendarHandler.initializeEditModalCalendars();
+    }
+  } else {
+    optionsDiv.style.display = 'none';
+    if (todaysCalendarContainer) todaysCalendarContainer.style.display = 'none';
+    if (availableTodayCalendarContainer) availableTodayCalendarContainer.style.display = 'none';
+  }
+  
+  // Update quantity field state
+  updateQuantityFieldState();
+}
+
+function updateQuantityFieldState() {
+  const preOrderChecked = document.getElementById('editPreOrderCheckbox').checked;
+  const sameDayChecked = document.getElementById('editSameDayCheckbox').checked;
+  const quantityField = document.getElementById('editProductQuantity');
+  const unavailableRadio = document.getElementById('editUnavailable');
+  
+  // Disable quantity if:
+  // 1. Product is unavailable, OR
+  // 2. Only same-day is checked (not pre-order)
+  if (unavailableRadio && unavailableRadio.checked) {
+    quantityField.value = '0';
+    quantityField.disabled = true;
+    quantityField.style.opacity = '0.5';
+    quantityField.style.cursor = 'not-allowed';
+  } else if (sameDayChecked && !preOrderChecked) {
+    quantityField.value = '0';
+    quantityField.disabled = true;
+    quantityField.style.opacity = '0.5';
+    quantityField.style.cursor = 'not-allowed';
+  } else {
+    quantityField.disabled = false;
+    quantityField.style.opacity = '1';
+    quantityField.style.cursor = 'text';
+  }
+}
+
+function validateCheckboxSelection() {
+  const preOrderChecked = document.getElementById('editPreOrderCheckbox').checked;
+  const sameDayChecked = document.getElementById('editSameDayCheckbox').checked;
+  
+  if (!preOrderChecked && !sameDayChecked) {
+    showNotification('Please select at least one order type (Pre-order or Same-day order)', 'error');
+    return false;
+  }
+  return true;
+}
+
 function handleFormSubmit(event) {
   event.preventDefault();
 
-  const statusSelect = document.getElementById("editProductStatus");
-  
-  // Check if statusSelect exists and has a valid selection
-  if (!statusSelect || statusSelect.selectedIndex === -1) {
-    showNotification("Please select a product status.", "error");
+  // Validate checkbox selection first
+  if (!validateCheckboxSelection()) {
     return;
   }
   
-  const selectedOption = statusSelect.options[statusSelect.selectedIndex];
-  const selectedStatus = selectedOption ? selectedOption.text : "";
-  const selectedValue = statusSelect.value;
+  // Show saving overlay
+  showModalSaving(true);
+  
+  const preOrderChecked = document.getElementById('editPreOrderCheckbox').checked;
+  const sameDayChecked = document.getElementById('editSameDayCheckbox').checked;
+  
+  let statusId = null;
+  let availtodayStatusId = null;
+  
+  if (preOrderChecked && sameDayChecked) {
+    // Both checked: status_id = pre-order value, availtoday_status_id = same-day value
+    statusId = document.getElementById('editPreOrderStatus').value;
+    availtodayStatusId = document.getElementById('editSameDayStatus').value;
+  } else if (preOrderChecked) {
+    // Only pre-order: status_id = pre-order value, availtoday_status_id = NULL
+    statusId = document.getElementById('editPreOrderStatus').value;
+    availtodayStatusId = null;
+  } else if (sameDayChecked) {
+    // Only same-day: status_id = 4, availtoday_status_id = same-day value
+    statusId = 4;
+    availtodayStatusId = document.getElementById('editSameDayStatus').value;
+  }
+  
+  console.log("DEBUG: Checkbox-based status_id:", statusId);
+  console.log("DEBUG: Checkbox-based availtoday_status_id:", availtodayStatusId);
 
-  // Validate availtoday_status when Same Day Order is selected
-  if (selectedValue == 4) {
-    const availtodaySelect = document.getElementById("editAvailtodayStatus");
-    if (
-      !availtodaySelect ||
-      availtodaySelect.value === "" ||
-      availtodaySelect.value === "null"
-    ) {
+  // Validate same-day dropdown when same-day checkbox is checked
+  if (sameDayChecked) {
+    const sameDayDropdown = document.getElementById("editSameDayStatus");
+    if (!sameDayDropdown || !sameDayDropdown.value) {
       showNotification(
-        "Please select an option for 'Same Day Order'.",
+        "Please select a shipping method for same-day order.",
         "error"
       );
       return;
     }
   }
 
-  // Collect available days from GLOBAL checkboxes (not modal checkboxes)
+  // Collect available days from GLOBAL checkboxes (for pre-order products)
   const availableDays = [];
-  if (
-    selectedStatus === "Delivery" ||
-    selectedStatus === "Pick Up" ||
-    selectedStatus === "Delivery or Pick Up"
-  ) {
+  if (preOrderChecked) {
     const globalDayCheckboxes = {
       global_sunday: "Sunday",
       global_monday: "Monday",
@@ -1540,76 +1747,27 @@ function handleFormSubmit(event) {
     });
   }
 
-  // Collect Same Day Order days from checkbox-group2
-  const availableTodayDays = [];
-  const isAvailableTodayRadio = document.getElementById("isAvailableToday");
-  if (isAvailableTodayRadio && isAvailableTodayRadio.checked) {
-    const todayDayCheckboxes = {
-      edit_today_sunday: "Sunday",
-      edit_today_monday: "Monday",
-      edit_today_tuesday: "Tuesday",
-      edit_today_wednesday: "Wednesday",
-      edit_today_thursday: "Thursday",
-      edit_today_friday: "Friday",
-      edit_today_saturday: "Saturday",
-    };
-
-    Object.keys(todayDayCheckboxes).forEach((checkboxId) => {
-      const checkbox = document.getElementById(checkboxId);
-      if (checkbox && checkbox.checked) {
-        availableTodayDays.push(todayDayCheckboxes[checkboxId]);
-      }
-    });
-  }
-
   const isAvailable = document.getElementById("editAvailable").checked;
   const unavailableTypeId =
     document.getElementById("editUnavailableType").value || null;
 
-  // Get availtoday_status_id logic:
-  // - If status is "Same Day Order" (4), always use the dropdown value
-  // - If status is "Pick Up" (1), "Delivery" (2), or "Delivery or Pick Up" (3) AND "Set to same day order too" is checked, use the dropdown value
-  // - Otherwise, set to null
-  const selectedStatusId = document.getElementById("editProductStatus").value;
-  // Reuse isAvailableTodayRadio from line 1385
-  const isSetToSameDayToo = isAvailableTodayRadio
-    ? isAvailableTodayRadio.checked
-    : false;
-
-  let availtodayStatusId = null;
-  if (selectedStatusId == 4) {
-    // Same Day Order - always use dropdown value
-    availtodayStatusId =
-      document.getElementById("editAvailtodayStatus").value || null;
-  } else if (
-    (selectedStatusId == 1 || selectedStatusId == 2 || selectedStatusId == 3) &&
-    isSetToSameDayToo
-  ) {
-    // Pick Up, Delivery, or Delivery or Pick Up with "Set to same day order too" checked
-    availtodayStatusId =
-      document.getElementById("editAvailtodayStatus").value || null;
+  // Get calendar data based on checkbox states
+  let sameDayDates = [];
+  if (sameDayChecked) {
+    if (preOrderChecked) {
+      // Both checked: use availableTodayDates
+      const availableTodayDatesInput = document.getElementById("availableTodayDates");
+      sameDayDates = availableTodayDatesInput
+        ? availableTodayDatesInput.value.split(",").filter((d) => d.trim())
+        : [];
+    } else {
+      // Only same-day: use todaysProductDates
+      const todaysProductDatesInput = document.getElementById("todaysProductDates");
+      sameDayDates = todaysProductDatesInput
+        ? todaysProductDatesInput.value.split(",").filter((d) => d.trim())
+        : [];
+    }
   }
-
-  console.log("DEBUG: Selected status_id:", selectedStatusId);
-  console.log("DEBUG: Is set to same day too:", isSetToSameDayToo);
-  console.log("DEBUG: availtodayStatusId value:", availtodayStatusId);
-  console.log(
-    "DEBUG: editAvailtodayStatus dropdown value:",
-    document.getElementById("editAvailtodayStatus")?.value
-  );
-
-  // Get calendar data
-  const todaysProductDatesInput = document.getElementById("todaysProductDates");
-  const availableTodayDatesInput = document.getElementById(
-    "availableTodayDates"
-  );
-
-  const todaysProductDates = todaysProductDatesInput
-    ? todaysProductDatesInput.value.split(",").filter((d) => d.trim())
-    : [];
-  const availableTodayDates = availableTodayDatesInput
-    ? availableTodayDatesInput.value.split(",").filter((d) => d.trim())
-    : [];
 
   // Collect SDO quantities BEFORE creating formData (while modal is still open)
   const sdoQuantitiesData = {};
@@ -1627,7 +1785,7 @@ function handleFormSubmit(event) {
     description: document.getElementById("editProductDescription").value,
     price: document.getElementById("editProductPrice").value,
     quantity: document.getElementById("editProductQuantity").value,
-    status_id: document.getElementById("editProductStatus").value,
+    status_id: statusId,
     category_id: document.getElementById("editProductCategory").value || null,
     is_featured: document.getElementById("editIsFeature").value === "1",
     show_when_unavailable:
@@ -1638,12 +1796,9 @@ function handleFormSubmit(event) {
     is_available: isAvailable,
     unavailable_status_id: isAvailable ? null : unavailableTypeId,
     availtoday_status_id: availtodayStatusId,
-    is_available_today: isAvailableTodayRadio
-      ? isAvailableTodayRadio.checked
-      : false,
-    available_today_days: availableTodayDays,
-    todays_product_dates: JSON.stringify(todaysProductDates),
-    available_today_dates: JSON.stringify(availableTodayDates),
+    // Send dates in the appropriate field based on product type
+    todays_product_dates: (statusId == 4) ? JSON.stringify(sameDayDates) : JSON.stringify([]),
+    available_today_dates: (statusId != 4 && availtodayStatusId) ? JSON.stringify(sameDayDates) : JSON.stringify([]),
     pending_image_changes: pendingImageChanges,
   };
 
@@ -1757,6 +1912,9 @@ function handleFormSubmit(event) {
       );
     })
     .finally(() => {
+      // Hide saving overlay
+      showModalSaving(false);
+      
       if (submitBtn && originalText) {
         submitBtn.textContent = originalText;
         submitBtn.disabled = false;
@@ -1958,10 +2116,30 @@ function resetFormToOriginal() {
     originalFormData.price || "";
   document.getElementById("editProductQuantity").value =
     originalFormData.quantity || "";
-  document.getElementById("editProductStatus").value =
-    originalFormData.status || "";
 
-  // Reset availtoday_status dropdown
+  // Reset checkboxes
+  const preOrderCheckbox = document.getElementById("editPreOrderCheckbox");
+  const sameDayCheckbox = document.getElementById("editSameDayCheckbox");
+  const preOrderOptions = document.getElementById("editPreOrderOptions");
+  const sameDayOptions = document.getElementById("editSameDayOptions");
+  
+  if (preOrderCheckbox) {
+    preOrderCheckbox.checked = false;
+    if (preOrderOptions) preOrderOptions.style.display = "none";
+  }
+  
+  if (sameDayCheckbox) {
+    sameDayCheckbox.checked = false;
+    if (sameDayOptions) sameDayOptions.style.display = "none";
+  }
+  
+  // Hide calendars
+  const todaysCalendarContainer = document.getElementById("todaysProductCalendarContainer");
+  const availableTodayCalendarContainer = document.getElementById("availableTodayCalendarContainer");
+  if (todaysCalendarContainer) todaysCalendarContainer.style.display = "none";
+  if (availableTodayCalendarContainer) availableTodayCalendarContainer.style.display = "none";
+
+  // Reset availtoday_status dropdown (keeping for backward compatibility)
   const availtodayOptions = document.getElementById("editAvailtodayOptions");
   const availtodaySelect = document.getElementById("editAvailtodayStatus");
   if (availtodayOptions && availtodaySelect) {
