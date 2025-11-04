@@ -24,9 +24,9 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     $token = $_POST["token"] ?? "";
     $token_hash = hash("sha256", $token);
     
-    // Trim passwords to remove any hidden whitespace
-    $password = trim($_POST["password"] ?? "");
-    $confirm_password = trim($_POST["confirm-password"] ?? "");
+    // Get passwords (trimming handled by shared functions)
+    $password = $_POST["password"] ?? "";
+    $confirm_password = $_POST["confirm-password"] ?? "";
     
     if (strlen($password) < 8) {
         echo "<script>alert('Password must be at least 8 characters long.'); history.back();</script>";
