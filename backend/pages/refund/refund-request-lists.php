@@ -27,6 +27,43 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'update_status') {
         // Log the activity
         if ($ok) {
             logAdminActivity($conn, 'UPDATE', "Changed refund request #$refund_id status to '$new_status'", 'order_refunds', $refund_id);
+            
+            // Create notification for refund status update
+            try {
+                require_once __DIR__ . "/../admin-includes/notifications/notification.php";
+                $notificationHandler = new NotificationHandler($conn);
+                
+                // Get refund and customer details
+                $refund_query = "SELECT r.order_id, o.customer_name, u.username 
+                                FROM order_refunds r
+                                LEFT JOIN orders o ON r.order_id = o.order_id
+                                LEFT JOIN users u ON r.user_id = u.id
+                                WHERE r.refund_id = ?";
+                $refund_stmt = mysqli_prepare($conn, $refund_query);
+                mysqli_stmt_bind_param($refund_stmt, "i", $refund_id);
+                mysqli_stmt_execute($refund_stmt);
+                $refund_result = mysqli_stmt_get_result($refund_stmt);
+                $refund_data = mysqli_fetch_assoc($refund_result);
+                mysqli_stmt_close($refund_stmt);
+                
+                if ($refund_data) {
+                    $customer_name = $refund_data['customer_name'] ?? 'Unknown Customer';
+                    $username = $refund_data['username'] ?? null;
+                    $order_id = $refund_data['order_id'];
+                    
+                    $notificationHandler->createRefundNotification(
+                        $refund_id,
+                        $order_id,
+                        'refund_status',
+                        $customer_name,
+                        $username,
+                        $new_status
+                    );
+                }
+                
+            } catch (Exception $e) {
+                error_log("Failed to create refund status notification: " . $e->getMessage());
+            }
         }
         
         if ($is_ajax) {

@@ -127,10 +127,47 @@ $stmt = $conn->prepare($insert_sql);
 $stmt->bind_param('iissssd', $order_id, $user_id, $refund_reason, $refund_items, $refund_note, $proof_image, $refund_amount);
 
 if ($stmt->execute()) {
+    $refund_id = $stmt->insert_id;
+    
+    // Create admin notification for new refund request
+    try {
+        require_once '../admin-includes/notifications/notification.php';
+        $notificationHandler = new NotificationHandler($conn);
+        
+        // Get customer name and username
+        $customer_query = "SELECT o.customer_name, u.username 
+                          FROM orders o 
+                          LEFT JOIN users u ON o.customer_id = u.id 
+                          WHERE o.order_id = ?";
+        $customer_stmt = $conn->prepare($customer_query);
+        $customer_stmt->bind_param('i', $order_id);
+        $customer_stmt->execute();
+        $customer_result = $customer_stmt->get_result();
+        $customer_data = $customer_result->fetch_assoc();
+        $customer_stmt->close();
+        
+        $customer_name = $customer_data['customer_name'] ?? 'Unknown Customer';
+        $username = $customer_data['username'] ?? null;
+        
+        // Create notification for new refund request
+        $notificationHandler->createRefundNotification(
+            $refund_id,
+            $order_id,
+            'refund_new',
+            $customer_name,
+            $username,
+            null,
+            $refund_amount
+        );
+        
+    } catch (Exception $e) {
+        error_log("Failed to create refund notification: " . $e->getMessage());
+    }
+    
     echo json_encode([
         'success' => true, 
         'message' => 'Refund request submitted successfully',
-        'refund_id' => $stmt->insert_id
+        'refund_id' => $refund_id
     ]);
 } else {
     echo json_encode(['success' => false, 'message' => 'Failed to submit refund request']);

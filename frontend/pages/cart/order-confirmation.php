@@ -459,6 +459,48 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $conn->commit();
             logError("Transaction Committed Successfully");
             
+            // Create admin notification for new order
+            try {
+                require_once __DIR__ . '/../../backend/pages/admin-includes/notifications/notification.php';
+                $notificationHandler = new NotificationHandler($conn);
+                
+                // Get username if user is logged in
+                $username = null;
+                if (isset($_SESSION['username'])) {
+                    $username = $_SESSION['username'];
+                }
+                
+                // Create notification for new order
+                $notificationHandler->createOrderNotification(
+                    $order_id,
+                    'order_new',
+                    $customer_name,
+                    $username,
+                    null,
+                    $delivery_method,
+                    $delivery_date,
+                    $delivery_time
+                );
+                
+                // Check if order is for tomorrow and create warning notification
+                $order_date = $delivery_method === 'Delivery' ? $delivery_date : $pickup_date;
+                if ($order_date && $order_date === date('Y-m-d', strtotime('+1 day'))) {
+                    $notificationHandler->createOrderNotification(
+                        $order_id,
+                        'order_warning',
+                        $customer_name,
+                        $username,
+                        null,
+                        $delivery_method,
+                        $delivery_date,
+                        $delivery_time
+                    );
+                }
+                
+            } catch (Exception $e) {
+                error_log("Failed to create order notification: " . $e->getMessage());
+            }
+            
             // Send email notification to admin
             try {
                 // Get order details for email
