@@ -7,10 +7,29 @@ class Notification {
     }
 
     // Create a new notification
-    public function create($userId, $type, $message) {
-        $stmt = $this->db->prepare("INSERT INTO notifications (user_id, type, message, is_read, created_at) VALUES (?, ?, ?, 0, NOW())");
+    public function create($userId, $type, $message, $title = null) {
+        // If no title provided, generate one based on type
+        if ($title === null) {
+            switch ($type) {
+                case 'order_confirmation':
+                    $title = "Order Confirmed";
+                    break;
+                case 'order_ready':
+                    $title = "Order Ready";
+                    break;
+                case 'system_alert':
+                    $title = "System Alert";
+                    break;
+                default:
+                    $title = "Notification";
+                    break;
+            }
+        }
+        
+        $stmt = $this->db->prepare("INSERT INTO notifications (user_id, type, title, message, is_read, created_at) VALUES (?, ?, ?, ?, 0, NOW())");
         $safeMessage = htmlspecialchars($message);
-        $stmt->bind_param("iss", $userId, $type, $safeMessage);
+        $safeTitle = htmlspecialchars($title);
+        $stmt->bind_param("isss", $userId, $type, $safeTitle, $safeMessage);
         $stmt->execute();
         $stmt->close();
     }
@@ -42,8 +61,14 @@ class Notification {
 
     // Create a notification for system updates
     public function createWelcomeNotification($userId) {
+        $title = "Welcome to NeoExclusiveCafe!";
         $message = "Welcome to NeoExclusiveCafe! Your account has been verified.";
-        $this->create($userId, 'system_alert', $message);
+        $notifQuery = "INSERT INTO notifications (user_id, type, title, message, created_at, is_read) 
+                       VALUES (?, 'system_alert', ?, ?, NOW(), 0)";
+        $stmt = $this->db->prepare($notifQuery);
+        $stmt->bind_param("iss", $userId, $title, $message);
+        $stmt->execute();
+        $stmt->close();
     }
 
     // Create a notification for order status updates with image and order_id

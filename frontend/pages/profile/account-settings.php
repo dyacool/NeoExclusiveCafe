@@ -115,102 +115,6 @@ echo "<!-- Current cloud public ID: " . ($row['cloud_public_id'] ?? 'null') . " 
     <link rel="stylesheet" href="account-settings.css">
     <link rel="stylesheet" href="../account/css/profile-picture-ajax.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        /* Confirmation Popup - Success/Error Notification */
-        .confirmation-popup {
-            position: fixed;
-            top: 80px;
-            left: 50%;
-            transform: translateX(-50%) translateY(-100px);
-            background: white;
-            color: #333;
-            padding: 16px 24px;
-            border-radius: 12px;
-            z-index: 10000;
-            opacity: 0;
-            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            font-weight: 600;
-            min-width: 300px;
-            max-width: 500px;
-            text-align: center;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            border: 2px solid transparent;
-            font-size: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        /* Success State - Green Theme */
-        .confirmation-popup.success {
-            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-            color: #2e7d32;
-            border-color: #4caf50;
-            box-shadow: 0 10px 40px rgba(76, 175, 80, 0.3);
-        }
-
-        /* Error State - Red Theme */
-        .confirmation-popup.error {
-            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
-            color: #c62828;
-            border-color: #f44336;
-            box-shadow: 0 10px 40px rgba(244, 67, 54, 0.3);
-        }
-
-        /* Show Animation */
-        .confirmation-popup.show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
-
-        /* Hide Animation */
-        .confirmation-popup.hide {
-            opacity: 0;
-            transform: translateX(-50%) translateY(-100px);
-        }
-
-        /* Mobile Responsive */
-        @media (max-width: 768px) {
-            .confirmation-popup {
-                top: 70px;
-                min-width: 280px;
-                max-width: 90%;
-                padding: 14px 20px;
-                font-size: 14px;
-            }
-            
-            .confirmation-popup.show {
-                transform: translateX(-50%) translateY(0);
-            }
-            
-            .confirmation-popup.hide {
-                transform: translateX(-50%) translateY(-100px);
-            }
-        }
-
-        /* Button Loader Styles */
-        .btn-loader {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid #ffffff;
-            border-radius: 50%;
-            border-top-color: transparent;
-            animation: spin 0.6s linear infinite;
-            margin-right: 8px;
-            vertical-align: middle;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .btn.loading {
-            pointer-events: none;
-            opacity: 0.7;
-        }
-    </style>
 </head>
 <body>
     <?php include "../../user-includes/navbar/customer-navigation.php"; ?>
@@ -218,9 +122,10 @@ echo "<!-- Current cloud public ID: " . ($row['cloud_public_id'] ?? 'null') . " 
 
     
     <div class="container">
-        <h1> Account Settings</h1>
         
         <div class="profile-section fade-in">
+        <h1> Account Settings</h1>
+
             
             <!-- Profile Picture Section -->
             <div class="profile-picture-section">
@@ -229,28 +134,10 @@ echo "<!-- Current cloud public ID: " . ($row['cloud_public_id'] ?? 'null') . " 
                         <?php if ($has_profile_image): ?>
                             <img id="profile-image" src="<?php echo htmlspecialchars($profile_image_url); ?>" alt="Profile picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
                         <?php else: 
-                            // Show initials with randomized green color
+                            // Show initials with theme color
                             $initials = strtoupper(substr($firstname, 0, 1) . substr($lastname, 0, 1));
-                            
-                            // Generate consistent random green-toned color based on user's name
-                            $seed = crc32($firstname . $lastname);
-                            mt_srand($seed);
-                            
-                            // Green color ranges: hue 80-160 (yellow-green to blue-green)
-                            $hue = mt_rand(80, 160);
-                            $saturation = mt_rand(40, 70); // Medium saturation
-                            $lightness = mt_rand(35, 50); // Medium-dark for good contrast
-                            
-                            $color1 = "hsl($hue, {$saturation}%, $lightness%)";
-                            
-                            // Second color slightly different
-                            $hue2 = $hue + mt_rand(-15, 15);
-                            $lightness2 = $lightness + mt_rand(-5, 10);
-                            $color2 = "hsl($hue2, {$saturation}%, $lightness2%)";
-                            
-                            $gradient = "linear-gradient(135deg, $color1 0%, $color2 100%)";
                         ?>
-                            <span id="initials" style="background: <?php echo $gradient ?>;"><?php echo $initials; ?></span>
+                            <span id="initials" ><?php echo $initials; ?></span>
                         <?php endif; ?>
                     </div>
                     <div class="avatar-overlay">
@@ -260,7 +147,11 @@ echo "<!-- Current cloud public ID: " . ($row['cloud_public_id'] ?? 'null') . " 
                         </svg>
                     </div>
                     <?php if ($has_profile_image && !empty($profile_public_id)): ?>
-                        <button type="button" class="remove-avatar-btn" id="remove-avatar-btn" data-public-id="<?php echo htmlspecialchars($profile_public_id); ?>" onclick="handleRemoveProfilePicture('<?php echo htmlspecialchars($profile_public_id); ?>')">
+                        <button type="button" class="remove-avatar-btn" id="remove-avatar-btn" data-public-id="<?php echo htmlspecialchars($profile_public_id); ?>" onclick="openRemovePictureModal('<?php echo htmlspecialchars($profile_public_id); ?>')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
                         </button>
                     <?php endif; ?>
                 </div>
@@ -270,14 +161,6 @@ echo "<!-- Current cloud public ID: " . ($row['cloud_public_id'] ?? 'null') . " 
                 <!-- Hidden fields for CSRF token and user ID -->
                 <input type="hidden" id="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                 <input type="hidden" id="user_id" value="<?php echo $_SESSION['user_id']; ?>">
-                
-                <!-- Loading and success indicators -->
-                <div id="profileLoadingIndicator" class="loading-indicator" style="display: none;">
-                    Uploading...
-                </div>
-                <div id="profileSuccessIndicator" class="success-indicator" style="display: none;">
-                    Upload successful!
-                </div>
             </div>
 
             <div class="form-group">
@@ -306,9 +189,14 @@ echo "<!-- Current cloud public ID: " . ($row['cloud_public_id'] ?? 'null') . " 
             </div>     
         </div> 
 
-        <div id="passwordModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
+        <div id="passwordModal" class="modal">
             <div class="modal-content">
-                <span class="close" onclick="closePasswordModal()">&times;</span>
+                <span class="close" onclick="closePasswordModal()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </span>
                 <h2>Change Password</h2>
                 <form method="POST" action="">
                     <div class="form-group">
@@ -328,6 +216,26 @@ echo "<!-- Current cloud public ID: " . ($row['cloud_public_id'] ?? 'null') . " 
                         <button type="submit" name="change_password" class="btn update-btn" id="updatePasswordBtn">Update Password</button>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <!-- Remove Picture Confirmation Modal -->
+        <div id="removePictureModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeRemovePictureModal()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </span>
+                <h2>Remove Profile Picture</h2>
+                <p style="text-align: center; margin-bottom: 2rem; color: var(--text-muted);">
+                    Are you sure you want to remove your profile picture? This action cannot be undone.
+                </p>
+                <div style="display: flex; gap: 15px; justify-content: center;">
+                    <button type="button" class="btn cancel-btn" onclick="closeRemovePictureModal()">Cancel</button>
+                    <button type="button" class="btn update-btn" id="confirmRemoveBtn" onclick="confirmRemoveProfilePicture()" style="background: var(--error);">Remove Picture</button>
+                </div>
             </div>
         </div>
     </div>
@@ -388,11 +296,14 @@ echo "<!-- Current cloud public ID: " . ($row['cloud_public_id'] ?? 'null') . " 
         });
 
         function openPasswordModal() {
-            document.getElementById('passwordModal').style.display = 'block';
+            document.getElementById('passwordModal').classList.add('show');
         }
 
         function closePasswordModal() {
-            document.getElementById('passwordModal').style.display = 'none';
+            console.log('Close modal function called'); // Debug line
+            const modal = document.getElementById('passwordModal');
+            console.log('Modal element:', modal); // Debug line
+            modal.classList.remove('show');
             // Reset form
             document.querySelector('form[method="POST"]').reset();
             // Remove loader if exists
@@ -404,11 +315,100 @@ echo "<!-- Current cloud public ID: " . ($row['cloud_public_id'] ?? 'null') . " 
             }
         }
 
+        // Remove Picture Modal Functions
+        let currentPublicId = '';
+
+        function openRemovePictureModal(publicId) {
+            console.log('Opening remove modal with publicId:', publicId); // Debug
+            console.log('Type of publicId:', typeof publicId); // Debug
+            
+            if (!publicId || publicId.trim() === '') {
+                console.error('No valid public ID provided to modal');
+                showConfirmation('Error: No image ID found', 'error');
+                return;
+            }
+            
+            currentPublicId = publicId.trim();
+            console.log('Stored currentPublicId:', currentPublicId); // Debug
+            document.getElementById('removePictureModal').classList.add('show');
+        }
+
+        function closeRemovePictureModal() {
+            document.getElementById('removePictureModal').classList.remove('show');
+            currentPublicId = '';
+            
+            // Reset the confirm button state
+            const confirmBtn = document.getElementById('confirmRemoveBtn');
+            confirmBtn.innerHTML = 'Remove Picture';
+            confirmBtn.disabled = false;
+            confirmBtn.style.background = 'var(--error)';
+        }
+
+        function confirmRemoveProfilePicture() {
+            console.log('Confirm remove called with publicId:', currentPublicId); // Debug
+            
+            if (!currentPublicId) {
+                console.error('No public ID provided');
+                showConfirmation('Error: No image ID found', 'error');
+                closeRemovePictureModal();
+                return;
+            }
+            
+            // Add loading state to confirm button
+            const confirmBtn = document.getElementById('confirmRemoveBtn');
+            confirmBtn.innerHTML = '<span class="btn-loader"></span> Removing...';
+            confirmBtn.disabled = true;
+            
+            // Call the direct removal function
+            removeProfilePictureDirectly(currentPublicId);
+        }
+
+        // Direct removal function to bypass external confirmations
+        function removeProfilePictureDirectly(publicId) {
+            console.log('Direct removal called with publicId:', publicId); // Debug
+            
+            // Call the remove function from the external JS file but tell it to skip confirmation
+            if (typeof handleRemoveProfilePicture === 'function') {
+                // Temporarily override any confirm dialogs
+                const originalConfirm = window.confirm;
+                window.confirm = function() { return true; }; // Always return true to skip confirmation
+                
+                try {
+                    // Call the remove function
+                    handleRemoveProfilePicture(publicId);
+                    
+                    // Close modal after successful call
+                    setTimeout(() => {
+                        closeRemovePictureModal();
+                    }, 500);
+                    
+                } catch (error) {
+                    console.error('Error removing profile picture:', error);
+                    showConfirmation('Error removing profile picture', 'error');
+                    closeRemovePictureModal();
+                }
+                
+                // Restore original confirm function after a short delay
+                setTimeout(() => {
+                    window.confirm = originalConfirm;
+                }, 1000);
+            } else {
+                console.error('handleRemoveProfilePicture function not found');
+                showConfirmation('Error: Remove function not available', 'error');
+                closeRemovePictureModal();
+            }
+        }
+
         // Close modal when clicking outside of it
         window.onclick = function(event) {
-            var modal = document.getElementById('passwordModal');
-            if (event.target == modal) {
-                modal.style.display = 'none';
+            var passwordModal = document.getElementById('passwordModal');
+            var removePictureModal = document.getElementById('removePictureModal');
+            
+            if (event.target == passwordModal) {
+                passwordModal.classList.remove('show');
+            }
+            if (event.target == removePictureModal) {
+                removePictureModal.classList.remove('show');
             }
         }
 
@@ -416,6 +416,20 @@ echo "<!-- Current cloud public ID: " . ($row['cloud_public_id'] ?? 'null') . " 
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape') {
                 closePasswordModal();
+                closeRemovePictureModal();
+            }
+        });
+
+        // Add event listener for close button as backup
+        document.addEventListener('DOMContentLoaded', function() {
+            const closeBtn = document.querySelector('.close');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Close button clicked via event listener');
+                    closePasswordModal();
+                });
             }
         });
     </script>

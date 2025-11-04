@@ -23,6 +23,9 @@
   --white: #ffffff;
   --shadow: rgba(0, 0, 0, 0.1);
   --transition-speed: 0.3s;
+
+  /* Dynamic Navbar Height - Will be set by JavaScript */
+  --navbar-height: 105px; /* Fallback value */
 }
 
 a {
@@ -49,52 +52,155 @@ body {
   background-color: var(--white);
   color: var(--secondary);
   padding: 0;
+  padding-top: var(
+    --navbar-height
+  ); /* Automatic padding based on navbar height */
   margin: 0;
   width: 100%;
   overflow-x: hidden;
-  overflow-y: hidden;
+  overflow-y: hidden; /* Allow vertical scrolling */
 }
 
 .navbar-content-wrapper {
-  margin-top: 105px; /* Default desktop navbar height */
-  min-height: calc(100vh - 105px);
+  margin-top: var(
+    --navbar-height
+  ); /* Automatic margin based on navbar height */
+  min-height: calc(100vh - var(--navbar-height));
 }
 
-/* Responsive content wrapper margins */
-@media (max-width: 1024px) {
-  .navbar-content-wrapper {
-    margin-top: 140px; /* Mobile navbar height */
-    min-height: calc(100vh - 140px);
+.hide-on-login {
+  display: none !important;
+}
+
+/* Logout Modal Styles */
+.logout-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logout-modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
+}
+
+.logout-modal-content {
+  position: relative;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  max-width: 400px;
+  width: 90%;
+  overflow: hidden;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
-@media (max-width: 768px) {
-  .navbar-content-wrapper {
-    margin-top: 150px; /* Tablet navbar height */
-    min-height: calc(100vh - 150px);
+.logout-modal-header {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.logout-modal-header h3 {
+  text-align: center;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.logout-modal-body {
+  padding: 20px 24px;
+}
+
+.logout-modal-body p {
+  text-align: center;
+
+  margin: 0;
+  font-size: 16px;
+  color: #666;
+  line-height: 1.5;
+}
+
+.logout-modal-actions {
+  padding: 16px 24px 24px;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.logout-btn-cancel,
+.logout-btn-confirm {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 80px;
+}
+
+.logout-btn-cancel {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.logout-btn-cancel:hover {
+  background: #e8e8e8;
+  color: #333;
+}
+
+.logout-btn-confirm {
+  background: #dc3545;
+  color: white;
+}
+
+.logout-btn-confirm:hover {
+  background: #c82333;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+/* Mobile responsive */
+@media (max-width: 480px) {
+  .logout-modal-content {
+    width: 95%;
+  }
+
+  .logout-modal-actions {
+    flex-direction: row;
+  }
+
+  .logout-btn-cancel,
+  .logout-btn-confirm {
+    width: 100%;
   }
 }
 
-@media (max-width: 425px) {
-  .navbar-content-wrapper {
-    margin-top: 160px; /* Mobile L navbar height */
-    min-height: calc(100vh - 160px);
-  }
-}
-
-@media (max-width: 375px) {
-  .navbar-content-wrapper {
-    margin-top: 165px; /* Mobile M navbar height */
-    min-height: calc(100vh - 165px);
-  }
-}
-
-@media (max-width: 320px) {
-  .navbar-content-wrapper {
-    margin-top: 170px; /* Smallest mobile navbar height */
-    min-height: calc(100vh - 170px);
-  }
-}
+/* Responsive content wrapper margins - AUTOMATIC */
+/* Remove manual media queries - JavaScript will handle this */
 
 /* Prevent scroll indicators during page load */
 html.loading,
@@ -111,7 +217,7 @@ body.loading {
 
 /* Header Wrapper */
 .header-wrapper {
-  position: sticky;
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
@@ -629,15 +735,16 @@ html.homepage-animation .main-nav {
 /* Badge */
 .badge {
   position: absolute;
-  top: 0;
-  right: 0;
-  background-color: var(--warm-accent);
+  top: -8px;
+  right: -8px;
+  background-color: var(--warm-accent) !important;
   color: var(--white);
   font-size: 10px;
   font-weight: bold;
   width: 18px;
   height: 18px;
   border-radius: 50%;
+  border: 1px solid var(--warm-accent) !important;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1714,4 +1821,39 @@ html.homepage-animation .main-nav {
     right: -10px !important;
     width: 300px !important;
   }
+}
+
+/* Cart Badge Styling */
+.cart-badge {
+  top: -8px;
+  right: -8px;
+  animation: cartBadgePulse 0.3s ease;
+  position: absolute;
+  border: 1px solid var(--warm-accent) !important;
+  background-color: var(--warm-accent) !important;
+  color: var(--white);
+  font-size: 10px;
+  font-weight: bold;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes cartBadgePulse {
+  0% {
+    transform: scale(0.8);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.cart-badge.updated {
+  animation: cartBadgePulse 0.3s ease;
 }

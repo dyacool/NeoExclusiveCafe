@@ -44,49 +44,34 @@ $notifications = $notifications_data; // Use consistent variable name
     <?php include "../../user-includes/bread-crumb/bread-crumb.php"; ?>
 
     
-    <div class="notifications-page-container">
-
-        <!-- Page Header -->
-        <div class="notifications-header">
-            <div class="header-content">
-                <h1 class="page-title">My Notifications</h1>
+    <div class="main-notif-container">
+        <!-- Email-style Header -->
+        <div class="notif-email-header">
+            <div class="notif-header-left">
+                <h1 class="notif-page-title">My Notifications</h1>
             </div>
-            
-            <div class="header-actions">
-                <?php 
-                $unread_count = 0;
-                foreach ($notifications as $notif) {
-                    if (!$notif['is_read']) $unread_count++;
-                }
-                ?>
-                <button id="markAllRead" class="btn btn-primary" <?= $unread_count == 0 ? 'disabled' : '' ?>>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M9 12L11 14L15 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                        <path d="M21 12C21 16.97 16.97 21 12 21C7.03 21 3 16.97 3 12C3 7.03 7.03 3 12 3C16.97 3 21 7.03 21 12Z" stroke="currentColor" stroke-width="2"/>
-                    </svg>
-                    Mark All Read
-                </button>
-                <button id="refreshNotifications" class="btn btn-secondary">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <div class="notif-header-right">
+                <button id="refreshNotifications" class="notif-icon-btn" title="Refresh">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M21 10C21 10 18.995 7.26822 17.3662 5.63824C15.7373 4.00827 13.4864 3 11 3C6.02944 3 2 7.02944 2 12C2 16.9706 6.02944 21 11 21C15.1031 21 18.5649 18.2543 19.6482 14.5M21 10V4M21 10H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
-                    Refresh
+                </button>
+                <button id="markAllRead" class="notif-btn-mark-all" <?= count($notifications) == 0 ? 'disabled' : '' ?>>
+                    Mark All as Read
                 </button>
             </div>
         </div>
-
-        <!-- Unread Count Card -->
-        <div class="unread-count-card">
-            <div class="count-content">
-                <div class="count-number" id="unreadCount"><?= $unread_count ?></div>
-                <div class="count-label">Unread Notifications</div>
-            </div>
+        
+        <!-- Notification Count -->
+        <div class="notif-count-bar">
+            <span class="notif-total-count"><?= count($notifications) ?> Notifications</span>
         </div>
-        <!-- Notifications List -->
-        <div class="notifications-section">
+
+        <!-- Email-style Table -->
+        <div class="notif-email-table-container">
             <?php if (empty($notifications)): ?>
-                <div class="empty-state">
-                    <div class="empty-icon">
+                <div class="notif-empty-state">
+                    <div class="notif-empty-icon">
                         <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M18 8A6 6 0 0 0 6 8C6 15 3 17 3 17H21C21 17 18 15 18 8Z" fill="currentColor"/>
                         </svg>
@@ -95,79 +80,119 @@ $notifications = $notifications_data; // Use consistent variable name
                     <p>You're all caught up! Check back later for new updates.</p>
                 </div>
             <?php else: ?>
-                <div class="notifications-list">
-                    <?php foreach ($notifications as $notification): ?>
-                        <div class="notification-item <?= !$notification['is_read'] ? 'unread' : '' ?>" 
-                             data-notification-id="<?= $notification['id'] ?>"
-                             data-notification='<?= htmlspecialchars(json_encode($notification), ENT_QUOTES, 'UTF-8') ?>'>
-                            
-                            <?php if (!$notification['is_read']): ?>
-                                <div class="unread-indicator"></div>
-                            <?php endif; ?>
-                            
-                            <div class="notification-icons">
-                                <?php if ($notification['type'] === 'order_confirmation'): ?>
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M9 12L11 14L15 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                                    </svg>
-                                <?php elseif ($notification['type'] === 'order_ready'): ?>
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22Z" fill="currentColor"/>
-                                        <path d="M8 12L11 15L16 9" stroke="white" stroke-width="2" stroke-linecap="round"/>
-                                    </svg>
-                                <?php else: ?>
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                                        <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                    </svg>
-                                <?php endif; ?>
-                            </div>
-                            
-                            <div class="notification-content">
-                                <div class="notification-header">
-                                    <h4 class="notification-title"><?= htmlspecialchars($notification['title']) ?></h4>
-                                    <span class="notification-time"><?= date('M j, g:i A', strtotime($notification['created_at'])) ?></span>
-                                </div>
+                <table class="notif-email-table">
+                    <thead>
+                        <tr>
+                            <th class="notif-th-title">Subject</th>
+                            <th class="notif-th-date">Date & Time</th>
+                            <th class="notif-th-delete">Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($notifications as $notification): ?>
+                            <tr class="notif-email-row <?= !$notification['is_read'] ? 'notif-unread' : '' ?>" 
+                                data-notification-id="<?= $notification['id'] ?>"
+                                data-notification='<?= htmlspecialchars(json_encode($notification), ENT_QUOTES, 'UTF-8') ?>'>
                                 
-                                <div class="notification-actions">
-                                    <button class="btn btn-sm btn-primary view-details-btn" 
-                                            data-notification-id="<?= $notification['id'] ?>">
-                                        View Details
+                                <td class="notif-td-title">
+                                    <div class="notif-title-content">
+                                        <?php if (!$notification['is_read']): ?>
+                                            <div class="notif-unread-dot"></div>
+                                        <?php endif; ?>
+                                        <div class="notif-content-wrapper">
+                                            <span class="notif-subject">
+                                                <?php 
+                                                // Display title if available, otherwise use type-based fallback
+                                                $displayTitle = !empty($notification['title']) ? $notification['title'] : '';
+                                                if (empty($displayTitle)) {
+                                                    switch ($notification['type']) {
+                                                        case 'order_confirmation':
+                                                            $displayTitle = "Order Confirmed";
+                                                            break;
+                                                        case 'order_ready':
+                                                            $displayTitle = "Order Ready";
+                                                            break;
+                                                        case 'system_alert':
+                                                            $displayTitle = "Welcome to NeoExclusiveCafe!";
+                                                            break;
+                                                        default:
+                                                            $displayTitle = "Notification";
+                                                            break;
+                                                    }
+                                                }
+                                                echo htmlspecialchars($displayTitle);
+                                                ?>
+                                            </span>
+                                            <div class="notif-message-preview">
+                                                <?php 
+                                                // Display full message (no truncation, let CSS handle wrapping)
+                                                $messagePreview = !empty($notification['message']) ? $notification['message'] : '';
+                                                echo htmlspecialchars($messagePreview);
+                                                ?>
+                                            </div>
+                                            <!-- Inline date for mobile (425px and below) -->
+                                            <div class="notif-inline-date">
+                                                <?= date('M j, Y g:i A', strtotime($notification['created_at'])) ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                
+                                <td class="notif-td-date">
+                                    <?= date('M j, Y g:i A', strtotime($notification['created_at'])) ?>
+                                </td>
+                                
+                                <td class="notif-td-delete">
+                                    <button class="notif-delete-btn" 
+                                            data-notification-id="<?= $notification['id'] ?>"
+                                            title="Delete notification">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M3 6h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                            <line x1="10" y1="11" x2="10" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                            <line x1="14" y1="11" x2="14" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        </svg>
                                     </button>
-                                    
-                                    <?php if (!$notification['is_read']): ?>
-                                        <button class="btn btn-sm btn-secondary mark-read-btn" 
-                                                data-notification-id="<?= $notification['id'] ?>">
-                                            Mark as Read
-                                        </button>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
             <?php endif; ?>
         </div>
     </div>
     
-    <!-- Notification Details Modal -->
-    <div class="modal-overlay" id="notificationModal">
-        <div class="modal-container">
-            <div class="modal-header">
-                <h3 class="modal-title" id="notificationModalTitle">Notification Details</h3>
-                <button class="modal-close" onclick="closeNotificationModal()">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Delete Confirmation Modal -->
+    <div class="delete-modal-overlay" id="deleteModal" style="display: none;" role="dialog" aria-labelledby="deleteModalTitle" aria-describedby="deleteModalDesc" aria-modal="true">
+        <div class="delete-modal-container">
+            <div class="delete-modal-header">
+                <h3 class="delete-modal-title" id="deleteModalTitle">Confirm Delete</h3>
+                <button class="delete-modal-close" onclick="closeDeleteModal()" aria-label="Close dialog">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                         <path d="M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                         <path d="M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                     </svg>
                 </button>
             </div>
             
-            <div class="modal-body">
-                <h4 id="modalNotificationTitle" class="modal-notification-title"></h4>
-                <p id="modalNotificationMessage" class="modal-notification-message"></p>
-                <small id="modalNotificationTimestamp" class="modal-notification-time"></small>
+            <div class="delete-modal-body">
+                <div class="delete-modal-icon" aria-hidden="true">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 6h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="10" y1="11" x2="10" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="14" y1="11" x2="14" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <p class="delete-modal-message" id="deleteModalDesc">Are you sure you want to delete this notification?</p>
+                <p class="delete-modal-subtitle">This action cannot be undone.</p>
+            </div>
+            
+            <div class="delete-modal-actions">
+                <button class="delete-btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+                <button class="delete-btn-confirm" id="confirmDeleteBtn">Delete</button>
             </div>
         </div>
     </div>
@@ -180,21 +205,8 @@ $notifications = $notifications_data; // Use consistent variable name
          * NOTIFICATIONS PAGE - JAVASCRIPT (Simplified)
          */
         
-        // State management
-        let isModalAnimating = false;
-        let isModalOpen = false;
-        
-        // DOM elements
-        let modal, modalTitle, modalMessage, modalTimestamp;
-        
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
-            // Cache DOM elements
-            modal = document.getElementById('notificationModal');
-            modalTitle = document.getElementById('modalNotificationTitle');
-            modalMessage = document.getElementById('modalNotificationMessage');
-            modalTimestamp = document.getElementById('modalNotificationTimestamp');
-            
             // Setup event listeners
             setupEventListeners();
             
@@ -216,135 +228,207 @@ $notifications = $notifications_data; // Use consistent variable name
             
             // Event delegation for notification buttons
             document.addEventListener('click', function(e) {
-                // View Details button
-                const viewBtn = e.target.closest('.view-details-btn');
-                if (viewBtn) {
+                // Delete button - check this first and stop propagation
+                const deleteBtn = e.target.closest('.notif-delete-btn');
+                if (deleteBtn) {
                     e.preventDefault();
-                    const notificationId = viewBtn.getAttribute('data-notification-id');
-                    console.log('View button clicked, ID:', notificationId);
+                    e.stopPropagation();
+                    console.log('Delete button clicked');
+                    const notificationId = deleteBtn.getAttribute('data-notification-id');
+                    console.log('Delete notification ID:', notificationId);
+                    deleteNotification(notificationId);
+                    return;
+                }
+                
+                // Row click for redirect to order details (only if delete button wasn't clicked)
+                const row = e.target.closest('.notif-email-row');
+                if (row) {
+                    e.preventDefault();
+                    const notificationId = row.getAttribute('data-notification-id');
+                    console.log('Row clicked, ID:', notificationId);
                     
-                    // Find the parent notification item
-                    const notificationItem = viewBtn.closest('.notification-item');
-                    if (notificationItem) {
-                        openNotificationModal(notificationItem, notificationId);
+                    // Parse notification data to get order_id or other relevant info
+                    try {
+                        const notificationData = JSON.parse(row.dataset.notification);
+                        console.log('Notification data:', notificationData);
+                        console.log('Available fields:', Object.keys(notificationData));
+                        console.log('order_id value:', notificationData.order_id);
+                        console.log('link value:', notificationData.link);
+                        
+                        // Mark as read if unread
+                        if (!notificationData.is_read) {
+                            markAsRead(notificationId);
+                        }
+                        
+                        // Redirect based on notification type or order_id
+                        if (notificationData.order_id && notificationData.order_id !== null) {
+                            // Redirect to order details page with order ID
+                            console.log('Redirecting to order details with ID:', notificationData.order_id);
+                            window.location.href = `/frontend/pages/cart/order-details.php?order_id=${notificationData.order_id}`;
+                        } else if (notificationData.link && notificationData.link !== null) {
+                            // Use the notification's link if available
+                            console.log('Redirecting to notification link:', notificationData.link);
+                            window.location.href = notificationData.link;
+                        } else {
+                            // Fallback: redirect to general orders page or stay on notifications
+                            console.log('No order_id or link found, staying on notifications page');
+                            alert('This notification does not have an associated order or link.');
+                        }
+                    } catch (error) {
+                        console.error('Error parsing notification data:', error);
+                        console.log('Raw notification dataset:', row.dataset.notification);
+                        alert('Error processing notification data. Check console for details.');
                     }
-                    return;
-                }
-                
-                // Mark as Read button
-                const markBtn = e.target.closest('.mark-read-btn');
-                if (markBtn) {
-                    e.preventDefault();
-                    const notificationId = markBtn.getAttribute('data-notification-id');
-                    markAsRead(notificationId);
+                    
                     return;
                 }
             });
             
-            // Click outside to close modal
-            if (modal) {
-                modal.addEventListener('click', function(e) {
-                    if (e.target === modal) {
-                        closeNotificationModal();
-                    }
-                });
-            }
-            
-            // ESC key to close modal
+            // ESC key to close delete modal
             document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && isModalOpen) {
-                    closeNotificationModal();
+                if (e.key === 'Escape') {
+                    // Close delete modal if open
+                    const deleteModal = document.getElementById('deleteModal');
+                    if (deleteModal && deleteModal.style.display !== 'none') {
+                        closeDeleteModal();
+                    }
+                }
+            });
+            
+            // Click outside to close delete modal
+            document.addEventListener('click', function(e) {
+                const deleteModal = document.getElementById('deleteModal');
+                if (deleteModal && deleteModal.style.display !== 'none') {
+                    if (e.target === deleteModal) {
+                        closeDeleteModal();
+                    }
                 }
             });
         }
         
-        function openNotificationModal(notificationItem, notificationId) {
-            if (isModalAnimating) {
-                console.log('Modal is animating, please wait');
-                return;
-            }
+        
+        function deleteNotification(notificationId) {
+            console.log('Delete notification called with ID:', notificationId);
             
-            console.log('Opening notification:', notificationId);
-            
-            try {
-                // Parse notification data from the item's data attribute
-                const notificationData = JSON.parse(notificationItem.dataset.notification);
-                
-                console.log('Notification data:', {
-                    id: notificationData.id,
-                    title: notificationData.title,
-                    message: notificationData.message.substring(0, 50) + '...',
-                    is_read: notificationData.is_read
-                });
-                
-                // Populate modal
-                modalTitle.textContent = notificationData.title || 'Notification';
-                
-                // Build message with link if available
-                let messageHtml = notificationData.message || '';
-                if (notificationData.link) {
-                    messageHtml += `<br><br><a href="${notificationData.link}" class="notif-link btn btn-primary btn-sm" style="color: white; text-decoration: none; padding: 8px 16px; border-radius: 4px; display: inline-block; margin-top: 10px;">View Details</a>`;
-                }
-                modalMessage.innerHTML = messageHtml;
-                
-                const timestamp = new Date(notificationData.created_at);
-                modalTimestamp.textContent = timestamp.toLocaleString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric',
-                    hour: 'numeric',
-                    minute: '2-digit',
-                    hour12: true
-                });
-                
-                // Show modal
-                isModalAnimating = true;
-                modal.classList.add('show');
-                document.body.style.overflow = 'hidden';
-                
-                setTimeout(() => {
-                    isModalAnimating = false;
-                    isModalOpen = true;
-                    console.log('Modal opened successfully');
-                }, 300);
-                
-                // Mark as read if unread
-                if (!notificationData.is_read) {
-                    markAsRead(notificationId);
-                }
-                
-            } catch (error) {
-                console.error('Error opening notification:', error);
-                alert('Error opening notification details');
-                isModalAnimating = false;
-            }
+            // Show custom delete modal instead of browser confirm
+            showDeleteModal(notificationId);
         }
         
-        function closeNotificationModal() {
-            if (isModalAnimating) {
-                console.log('Modal is animating, please wait');
+        function showDeleteModal(notificationId) {
+            const deleteModal = document.getElementById('deleteModal');
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            
+            if (!deleteModal || !confirmBtn) {
+                console.error('Delete modal elements not found');
                 return;
             }
             
-            isModalAnimating = true;
-            modal.classList.remove('show');
+            // Store notification ID for confirmation
+            confirmBtn.setAttribute('data-notification-id', notificationId);
+            
+            // Show modal with animation
+            deleteModal.style.display = 'flex';
+            setTimeout(() => {
+                deleteModal.classList.add('show');
+            }, 10);
+            
+            // Prevent body scroll
+            document.body.style.overflow = 'hidden';
+            
+            // Set up confirm button click handler
+            confirmBtn.onclick = function() {
+                const notifId = this.getAttribute('data-notification-id');
+                proceedWithDelete(notifId);
+            };
+        }
+        
+        function closeDeleteModal() {
+            const deleteModal = document.getElementById('deleteModal');
+            if (!deleteModal) return;
+            
+            deleteModal.classList.remove('show');
             
             setTimeout(() => {
+                deleteModal.style.display = 'none';
                 document.body.style.overflow = '';
-                isModalAnimating = false;
-                isModalOpen = false;
-                console.log('Modal closed');
             }, 300);
         }
         
-        function markAsRead(notificationId) {
-            const notificationCard = document.querySelector(`[data-notification-id="${notificationId}"]`).closest('.notification-item');
-            const button = notificationCard?.querySelector('.mark-read-btn');
+        function proceedWithDelete(notificationId) {
+            console.log('Proceeding with delete for notification ID:', notificationId);
             
-            if (button) {
-                button.textContent = 'Marking...';
-                button.disabled = true;
+            // Close the modal first
+            closeDeleteModal();
+            
+            const row = document.querySelector(`[data-notification-id="${notificationId}"]`);
+            if (!row) {
+                console.error('Row not found for notification ID:', notificationId);
+                return;
             }
+            
+            console.log('Found row for deletion:', row);
+            
+            // Add loading state to delete button
+            const deleteBtn = row.querySelector('.notif-delete-btn');
+            if (deleteBtn) {
+                deleteBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/></svg>';
+                deleteBtn.disabled = true;
+                console.log('Delete button set to loading state');
+            }
+            
+            console.log('Making fetch request to delete-notification.php');
+            
+            fetch('delete-notification.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ notification_id: notificationId })
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                if (data.success) {
+                    console.log('Delete successful, removing row');
+                    // Remove row with animation
+                    row.style.opacity = '0';
+                    row.style.transform = 'translateX(100%)';
+                    
+                    setTimeout(() => {
+                        row.remove();
+                        updateNotificationCount();
+                        
+                        // Check if table is now empty
+                        const remainingRows = document.querySelectorAll('.notif-email-row');
+                        if (remainingRows.length === 0) {
+                            location.reload(); // Show empty state
+                        }
+                    }, 300);
+                } else {
+                    console.error('Delete failed:', data.message);
+                    alert('Failed to delete notification: ' + (data.message || 'Unknown error'));
+                    // Reset delete button
+                    if (deleteBtn) {
+                        deleteBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="10" y1="11" x2="10" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="14" y1="11" x2="14" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+                        deleteBtn.disabled = false;
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+                alert('Error deleting notification: ' + error.message);
+                // Reset delete button
+                if (deleteBtn) {
+                    deleteBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="10" y1="11" x2="10" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="14" y1="11" x2="14" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+                    deleteBtn.disabled = false;
+                }
+            });
+        }
+        
+        function markAsRead(notificationId) {
+            const row = document.querySelector(`[data-notification-id="${notificationId}"]`);
             
             fetch('mark-notification-read.php', {
                 method: 'POST',
@@ -356,24 +440,55 @@ $notifications = $notifications_data; // Use consistent variable name
                 if (data.success) {
                     updateNotificationVisually(notificationId);
                 } else {
-                    alert('Failed to mark notification as read');
-                    if (button) {
-                        button.textContent = 'Mark as Read';
-                        button.disabled = false;
-                    }
+                    console.error('Failed to mark notification as read:', data.message);
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Error marking notification as read');
-                if (button) {
-                    button.textContent = 'Mark as Read';
-                    button.disabled = false;
-                }
             });
         }
         
+        function updateNotificationVisually(notificationId) {
+            const row = document.querySelector(`[data-notification-id="${notificationId}"]`);
+            if (!row) return;
+            
+            // Remove unread styling
+            row.classList.remove('notif-unread');
+            
+            // Remove unread dot
+            const unreadDot = row.querySelector('.notif-unread-dot');
+            if (unreadDot) {
+                unreadDot.remove();
+            }
+            
+            // Update notification count
+            updateNotificationCount();
+        }
+        
+        function updateNotificationCount() {
+            const totalCountElement = document.querySelector('.notif-total-count');
+            const rows = document.querySelectorAll('.notif-email-row');
+            
+            if (totalCountElement) {
+                totalCountElement.textContent = `${rows.length} Notifications`;
+            }
+            
+            // Update mark all button state
+            const markAllBtn = document.getElementById('markAllRead');
+            const unreadRows = document.querySelectorAll('.notif-email-row.notif-unread');
+            
+            if (markAllBtn) {
+                markAllBtn.disabled = unreadRows.length === 0;
+            }
+        }
+        
         function handleMarkAllAsRead() {
+            const unreadRows = document.querySelectorAll('.notif-email-row.notif-unread');
+            
+            if (unreadRows.length === 0) {
+                return;
+            }
+            
             if (!confirm('Mark all notifications as read?')) {
                 return;
             }
@@ -390,7 +505,20 @@ $notifications = $notifications_data; // Use consistent variable name
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    location.reload();
+                    // Update all unread rows visually
+                    unreadRows.forEach(row => {
+                        row.classList.remove('notif-unread');
+                        const unreadDot = row.querySelector('.notif-unread-dot');
+                        if (unreadDot) {
+                            unreadDot.remove();
+                        }
+                    });
+                    
+                    markAllBtn.textContent = 'All Marked!';
+                    setTimeout(() => {
+                        markAllBtn.textContent = originalText;
+                        markAllBtn.disabled = true; // Keep disabled since all are now read
+                    }, 2000);
                 } else {
                     alert('Failed to mark all notifications as read');
                     markAllBtn.textContent = originalText;
@@ -403,33 +531,6 @@ $notifications = $notifications_data; // Use consistent variable name
                 markAllBtn.textContent = originalText;
                 markAllBtn.disabled = false;
             });
-        }
-        
-        function updateNotificationVisually(notificationId) {
-            const card = document.querySelector(`[data-notification-id="${notificationId}"]`).closest('.notification-item');
-            if (!card) return;
-            
-            // Update card appearance
-            card.classList.remove('unread');
-            
-            // Remove unread elements
-            const markReadBtn = card.querySelector('.mark-read-btn');
-            const indicator = card.querySelector('.unread-indicator');
-            
-            if (markReadBtn) markReadBtn.remove();
-            if (indicator) indicator.remove();
-            
-            // Update unread count
-            const unreadElement = document.getElementById('unreadCount');
-            const currentUnread = parseInt(unreadElement.textContent) || 0;
-            const newUnread = Math.max(0, currentUnread - 1);
-            unreadElement.textContent = newUnread;
-            
-            // Update mark all button
-            const markAllBtn = document.getElementById('markAllRead');
-            if (newUnread === 0 && markAllBtn) {
-                markAllBtn.disabled = true;
-            }
         }
     </script>
 </body>

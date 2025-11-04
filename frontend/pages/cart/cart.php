@@ -402,7 +402,7 @@ foreach ($preorder_items as $item) {
                         <div class="terms-section">
                             <label class="terms-label">
                                 <input type="checkbox" id="termsCheckbox" class="terms-checkbox">
-                                <span class="terms-text">I have read and agreed with the <a href="/frontend/pages/terms/terms-conditions.php" target="_blank" class="terms-link">Terms and Conditions</a></span>
+                                <span class="terms-text">I have read and agreed with the <a href="/frontend/pages/terms/terms-and-condition.php" target="_blank" class="terms-link">Terms and Conditions</a></span>
                             </label>
                         </div>
                         

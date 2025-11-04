@@ -596,10 +596,6 @@ if (isset($_POST["signin-submit"])) {
         .toggle-password.active .eye-slash {
             display: block;
         }
-        
-        .password-input-group .input-field {
-            padding-right: 45px;
-        }
 
         /* Confirmation Popup - Success/Error Notification */
         .confirmation-popup {
