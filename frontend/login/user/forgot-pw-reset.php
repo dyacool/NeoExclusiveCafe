@@ -1,8 +1,10 @@
 <?php
+require_once __DIR__ . "/../../../backend/pages/admin-includes/database.php";
+require_once __DIR__ . "/../../../backend/pages/admin-includes/auth-helpers.php";
+
 if ($_SERVER["REQUEST_METHOD"] === "GET") {
     $token = $_GET["token"] ?? "";
     $token_hash = hash("sha256", $token);
-    require_once __DIR__ . "/../../../backend/pages/admin-includes/database.php";
     // Use $conn directly instead of $mysqli alias
     $sql = "SELECT * FROM users WHERE reset_token_hash = ?";
     $stmt = $conn->prepare($sql);
@@ -22,21 +24,9 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     $token = $_POST["token"] ?? "";
     $token_hash = hash("sha256", $token);
     
-    // Debug logging BEFORE any processing
-    $raw_password = $_POST["password"] ?? "";
-    $raw_confirm = $_POST["confirm-password"] ?? "";
-    error_log("Password reset form submitted - Token: " . substr($token, 0, 10) . "...");
-    error_log("RAW password length: " . strlen($raw_password));
-    error_log("RAW password hex: " . bin2hex($raw_password));
-    error_log("RAW password characters: " . implode(',', array_map('ord', str_split($raw_password))));
-    
-    // IMPORTANT: Trim passwords to remove any hidden whitespace
-    $password = trim($raw_password);
-    $confirm_password = trim($raw_confirm);
-    
-    error_log("TRIMMED password length: " . strlen($password));
-    error_log("TRIMMED password hex: " . bin2hex($password));
-    error_log("TRIMMED password characters: " . implode(',', array_map('ord', str_split($password))));
+    // Trim passwords to remove any hidden whitespace
+    $password = trim($_POST["password"] ?? "");
+    $confirm_password = trim($_POST["confirm-password"] ?? "");
     
     if (strlen($password) < 8) {
         echo "<script>alert('Password must be at least 8 characters long.'); history.back();</script>";
@@ -74,28 +64,16 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         exit;
     }
 
-    // Generate password hash using bcrypt with cost 10 (same as signup)
-    $password_hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 10]);
+    // Generate password hash using shared function
+    $hashResult = hashPassword($password);
     
-    // DEBUGGING: Log detailed hash information
-    error_log("=== PASSWORD RESET DEBUG START ===");
-    error_log("User ID: " . $user["id"]);
-    error_log("Username: " . $user["username"]);
-    error_log("Email: " . $user["email"]);
-    error_log("Password length: " . strlen($password));
-    error_log("Generated hash: " . $password_hash);
-    error_log("Hash length: " . strlen($password_hash));
-    error_log("Hash algorithm: " . password_get_info($password_hash)['algoName']);
-    
-    // Immediately test the hash
-    $immediate_verify = password_verify($password, $password_hash);
-    error_log("Immediate verification test: " . ($immediate_verify ? "PASS" : "FAIL"));
-    
-    if (!$immediate_verify) {
-        error_log("CRITICAL: Hash verification failed immediately after generation!");
+    if (!$hashResult['success']) {
+        error_log("Password hashing failed: " . $hashResult['error']);
         echo "<script>alert('Password hashing error. Please contact support.'); history.back();</script>";
         exit;
     }
+    
+    $password_hash = $hashResult['hash'];
     
     // Update password and also set user as verified (in case they weren't)
     $sql = "UPDATE users SET password = ?, reset_token_hash = NULL, reset_token_expires_at = NULL, is_verified = 1 WHERE id = ?";
@@ -107,66 +85,16 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         exit;
     }
     
-    error_log("BEFORE bind_param - Hash to bind: " . $password_hash);
-    error_log("BEFORE bind_param - Hash length: " . strlen($password_hash));
-    error_log("BEFORE bind_param - Hash hex (first 40): " . bin2hex(substr($password_hash, 0, 40)));
-    
     $stmt->bind_param("si", $password_hash, $user["id"]);
-    
-    error_log("AFTER bind_param - Hash variable: " . $password_hash);
-    error_log("AFTER bind_param - Hash length: " . strlen($password_hash));
-    error_log("Executing password update...");
     
     if ($stmt->execute()) {
         if ($stmt->affected_rows > 0) {
-            error_log("Password update executed, rows affected: " . $stmt->affected_rows);
-            
-            // DEBUGGING: Verify what was actually stored
-            $verify_sql = "SELECT password FROM users WHERE id = ?";
-            $verify_stmt = $conn->prepare($verify_sql);
-            $verify_stmt->bind_param("i", $user["id"]);
-            $verify_stmt->execute();
-            $verify_result = $verify_stmt->get_result();
-            $stored_data = $verify_result->fetch_assoc();
-            
-            error_log("Hash stored in DB: " . $stored_data['password']);
-            error_log("Stored hash length: " . strlen($stored_data['password']));
-            error_log("Stored hash hex (first 40): " . bin2hex(substr($stored_data['password'], 0, 40)));
-            error_log("Hash match: " . ($password_hash === $stored_data['password'] ? "YES" : "NO"));
-            
-            if ($password_hash !== $stored_data['password']) {
-                error_log("CRITICAL: Hash mismatch detected!");
-                error_log("Expected: " . $password_hash);
-                error_log("Got:      " . $stored_data['password']);
-                error_log("Difference at position: " . strspn($password_hash ^ $stored_data['password'], "\0"));
-            }
-            
-            // Test verification with stored hash
-            $stored_verify = password_verify($password, $stored_data['password']);
-            error_log("Verification with stored hash: " . ($stored_verify ? "PASS" : "FAIL"));
-            
-            if (!$stored_verify) {
-                error_log("CRITICAL: Password verification fails with stored hash!");
-                error_log("This means the hash in DB is corrupted or wrong!");
-                
-                // Try to generate the correct hash again
-                $correct_hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 10]);
-                error_log("Regenerated hash: " . $correct_hash);
-                $regen_verify = password_verify($password, $correct_hash);
-                error_log("Regenerated hash verifies: " . ($regen_verify ? "YES" : "NO"));
-            }
-            
-            error_log("=== PASSWORD RESET DEBUG END ===");
-            
             echo "<script>alert('Password successfully updated! You can now login.'); window.location.href='/frontend/login/user/login-signup.php';</script>";
         } else {
-            error_log("No rows affected during password update for user ID: " . $user["id"]);
-            error_log("=== PASSWORD RESET DEBUG END ===");
             echo "<script>alert('Failed to update password. Please try again.'); window.location.href='/frontend/login/user/login-signup.php';</script>";
         }
     } else {
         error_log("Database error during password update: " . $stmt->error);
-        error_log("=== PASSWORD RESET DEBUG END ===");
         echo "<script>alert('Database error occurred. Please try again.'); window.location.href='/frontend/login/user/login-signup.php';</script>";
     }
 }
@@ -331,7 +259,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
                         <input type="hidden" name="token" value="<?= htmlspecialchars($token) ?>">
                         
                         <div class="input-group password-input-group">
-                            <input type="password" name="password" id="password" class="input-field" placeholder="New Password" required>
+                            <input type="password" name="password" id="password" class="input-field" placeholder="New Password" required autocomplete="new-password" maxlength="255">
                             <span class="toggle-password" onclick="togglePassword('password', this)">
                                 <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -341,7 +269,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
                         </div>
                         
                         <div class="input-group password-input-group">
-                            <input type="password" name="confirm-password" id="confirm-password" class="input-field" placeholder="Confirm Password" required>
+                            <input type="password" name="confirm-password" id="confirm-password" class="input-field" placeholder="Confirm Password" required autocomplete="new-password" maxlength="255">
                             <span class="toggle-password" onclick="togglePassword('confirm-password', this)">
                                 <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>

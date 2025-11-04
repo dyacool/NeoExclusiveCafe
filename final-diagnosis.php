@@ -19,7 +19,7 @@ echo "<style>
 </style>";
 
 $user_id = 5;
-$test_password = "qwertyasd";
+$test_password = "Bugoy2766!";
 
 // Get current user data
 $sql = "SELECT * FROM users WHERE id = ?";

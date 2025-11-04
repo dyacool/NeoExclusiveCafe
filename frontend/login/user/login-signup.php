@@ -5,6 +5,7 @@ ini_set('display_errors', 1);
 
 require_once __DIR__ . "/../../../backend/pages/admin-includes/database.php";
 require_once __DIR__ . "/../../../backend/pages/admin-includes/config.php";
+require_once __DIR__ . "/../../../backend/pages/admin-includes/auth-helpers.php";
 
 // Start session safely and set cookie params only if no session is active
 if (session_status() !== PHP_SESSION_ACTIVE) {
@@ -78,11 +79,12 @@ if (isset($_POST['signup-submit'])) {
     }
     mysqli_stmt_close($stmt);
 
-    // Hash password using bcrypt with cost 10 for consistency
-    $passwordHash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 10]);
-    if (!$passwordHash) {
+    // Hash password using shared function
+    $hashResult = hashPassword($password);
+    if (!$hashResult['success']) {
         $error[] = "Error hashing password.";
     }
+    $passwordHash = $hashResult['hash'];
 
     if (empty($error)) {
         // Set timezone
@@ -176,31 +178,22 @@ if (isset($_POST['signup-submit'])) {
     }
 }
 
-// Debug: Check if form was submitted
-if ($_POST) {
-    error_log("Form submitted with data: " . print_r($_POST, true));
-}
+
 
 // Handle Forgot Password
 if (isset($_POST["reset-submit"])) {
-    error_log("Password reset form submitted for email: " . ($_POST["email"] ?? "not provided"));
-    
     if (!isset($_POST["email"]) || empty($_POST["email"])) {
         $errorMessage = "Please enter your email.";
-        error_log("Password reset failed: No email provided");
     } else {
         $email = trim($_POST["email"]);
         
         // Validate email format
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $errorMessage = "Please enter a valid email address.";
-            error_log("Password reset failed: Invalid email format - " . $email);
         } else {
             $token = bin2hex(random_bytes(16));
             $token_hash = hash("sha256", $token);
             $expiry = date("Y-m-d H:i:s", time() + 60 * 30);
-            
-            error_log("Generated password reset token for email: " . $email);
         
             $sql = "UPDATE users
                     SET reset_token_hash = ?,
@@ -216,8 +209,6 @@ if (isset($_POST["reset-submit"])) {
                 
                 if ($stmt->execute()) {
                     if ($stmt->affected_rows > 0) {
-                        error_log("Database updated successfully for password reset");
-                        
                         $mail = require __DIR__ . "/../../../backend/config/mailer/mailer.php";
                         $mail->setFrom("noreplyneoexclusive@gmail.com", "NeoExclusive");
                         $mail->addAddress($email);
@@ -228,12 +219,9 @@ if (isset($_POST["reset-submit"])) {
                         to reset your password.</p>
                         <p>This link will expire in 30 minutes.</p>
                         END;
-
-                        error_log("Attempting to send password reset email to: " . $email);
                         
                         try {
                             $mail->send();
-                            error_log("Password reset email sent successfully to: " . $email);
                             $successMessage = "Password reset email sent. Please check your inbox.";
                             
                             // Add JavaScript to switch back to login form after showing message
@@ -249,14 +237,13 @@ if (isset($_POST["reset-submit"])) {
                             </script>";
                         } catch (Exception $e) {
                             $errorMessage = "Message could not be sent. Please try again later.";
-                            error_log("Email sending failed: " . $e->getMessage() . " | SMTP: " . $mail->ErrorInfo);
+                            error_log("Email sending failed: " . $mail->ErrorInfo);
                         }
                     } else {
-                        error_log("No database rows affected - email not found: " . $email);
                         $errorMessage = "No account found with this email.";
                     }
                 } else {
-                    error_log("Password reset query execution failed: " . $stmt->error);
+                    error_log("Database error: " . $stmt->error);
                     $errorMessage = "Database error occurred. Please try again.";
                 }
                 $stmt->close();
@@ -267,25 +254,9 @@ if (isset($_POST["reset-submit"])) {
 
 // Handle User Login
 if (isset($_POST["signin-submit"])) {
-    // DEBUGGING: Log raw POST data BEFORE any processing
-    error_log("=== RAW POST DATA ===");
-    error_log("Raw username from POST: '" . ($_POST["username"] ?? "NOT SET") . "'");
-    error_log("Raw password from POST: '" . ($_POST["password"] ?? "NOT SET") . "'");
-    error_log("Raw username length: " . strlen($_POST["username"] ?? ""));
-    error_log("Raw password length: " . strlen($_POST["password"] ?? ""));
-    error_log("Raw username hex: " . bin2hex($_POST["username"] ?? ""));
-    error_log("Raw password hex: " . bin2hex($_POST["password"] ?? ""));
-    
     $username = trim($_POST["username"] ?? "");
     $password = $_POST["password"] ?? "";
     $error = [];
-
-    // Debug: Log login attempt AFTER processing
-    error_log("=== PROCESSED DATA ===");
-    error_log("Processed username: '$username'");
-    error_log("Processed password: '$password'");
-    error_log("Processed username length: " . strlen($username));
-    error_log("Processed password length: " . strlen($password));
 
     if (empty($username) || empty($password)) {
         $error[] = "Username and password are required.";
@@ -305,48 +276,18 @@ if (isset($_POST["signin-submit"])) {
                 $result = mysqli_stmt_get_result($stmt);
                 $user = mysqli_fetch_assoc($result);
                 
-                // Debug: Check if user was found
                 if (!$user) {
                     $error[] = "User not found. Please check your username.";
-                    error_log("=== LOGIN ATTEMPT: User not found ===");
-                    error_log("Username attempted: " . $username);
                 } else {
-                    // DEBUGGING: Log detailed login attempt
-                    error_log("=== LOGIN ATTEMPT DEBUG START ===");
-                    error_log("User ID: " . $user["id"]);
-                    error_log("Username: " . $username);
-                    error_log("Email: " . $user["email"]);
-                    error_log("Is verified: " . ($user["is_verified"] ? "yes" : "no"));
-                    error_log("Password length attempted: " . strlen($password));
-                    error_log("Stored hash: " . $user["password"]);
-                    error_log("Stored hash length: " . strlen($user["password"]));
-                    error_log("Hash algorithm: " . password_get_info($user["password"])['algoName']);
-                    
-                    // Test password verification
-                    error_log("About to call password_verify()");
-                    error_log("Password param: '" . $password . "' (length: " . strlen($password) . ")");
-                    error_log("Hash param: '" . $user["password"] . "' (length: " . strlen($user["password"]) . ")");
-                    error_log("Password hex: " . bin2hex($password));
-                    error_log("Hash hex (first 40): " . bin2hex(substr($user["password"], 0, 40)));
-                    
-                    $verify_result = password_verify($password, $user["password"]);
-                    
-                    error_log("password_verify() returned: " . var_export($verify_result, true));
-                    error_log("Password verification result: " . ($verify_result ? "PASS" : "FAIL"));
+                    // Verify password using shared function
+                    $verify_result = verifyPassword($password, $user["password"]);
                     
                     if (!$verify_result) {
                         $error[] = "Invalid password. Please check your password.";
-                        error_log("Password verification FAILED");
-                        error_log("Password bytes (first 20): " . bin2hex(substr($password, 0, 20)));
-                        error_log("Hash format check: " . (preg_match('/^\$2y\$\d+\$/', $user["password"]) ? "Valid bcrypt" : "Invalid format"));
-                        error_log("=== LOGIN ATTEMPT DEBUG END ===");
                     } else {
-                        error_log("Password verification PASSED");
-                        error_log("=== LOGIN ATTEMPT DEBUG END ===");
                         // Password is correct
                         if (!$user["is_verified"]) {
                             $_SESSION['unverified_email'] = $user['email'];
-                            error_log("User not verified, redirecting to verification page: " . $username);
                             header("Location: verification-page.php");
                             exit();
                         } else {
@@ -362,8 +303,6 @@ if (isset($_POST["signin-submit"])) {
                             $_SESSION["user_firstname"] = $user["firstname"];
                             $_SESSION["user_lastname"] = $user["lastname"];
                             $_SESSION["user_role"] = "user";
-
-                            error_log("Login successful for user: " . $username . ", redirecting to dashboard");
 
                             // Set flag for navbar animation on next page load
                             echo "<script>
@@ -812,14 +751,7 @@ if (isset($_POST["signin-submit"])) {
                 });
             }
 
-            // Debug: Log form submissions
-            const forms = document.querySelectorAll('form');
-            forms.forEach(form => {
-                form.addEventListener('submit', function(e) {
-                    console.log('Form submitted:', this.action);
-                    console.log('Form data:', new FormData(this));
-                });
-            });
+
         });
 
         // Auto-fade alerts
