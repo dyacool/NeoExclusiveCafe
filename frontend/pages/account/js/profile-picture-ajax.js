@@ -44,6 +44,9 @@ async function uploadProfilePictureToCloudinary(file) {
   formData.append("csrf_token", getCsrfToken());
 
   console.log("Uploading profile picture:", file.name);
+  console.log("File size:", (file.size / 1024 / 1024).toFixed(2) + "MB");
+  console.log("CSRF token:", getCsrfToken().substring(0, 10) + "...");
+  console.log("Upload endpoint:", UPLOAD_ENDPOINT);
 
   try {
     showLoadingIndicator();
@@ -54,19 +57,22 @@ async function uploadProfilePictureToCloudinary(file) {
       body: formData,
     });
 
+    console.log("Upload response status:", response.status);
+    console.log("Upload response OK:", response.ok);
+
     const result = await response.json();
+    console.log("Upload result:", result);
 
     if (result.success) {
       updateAvatarDisplay(result.url, result.public_id);
       showSuccessMessage("Profile picture updated successfully!");
 
-      // Reload page after 1 second to update navbar and profile page
-      setTimeout(() => {
-        location.reload();
-      }, 1000);
+      // Remove the page reload - let real-time update handle it
+      console.log("Profile picture uploaded successfully, URL:", result.url);
 
       return result;
     } else {
+      console.error("Upload failed:", result.error);
       showErrorMessage(result.error || "Upload failed");
       return null;
     }
@@ -168,7 +174,12 @@ function updateAvatarDisplay(url, publicId) {
  */
 function updateNavbarAvatar(url) {
   const navbarAvatar = document.querySelector(".profile-avatar");
-  if (!navbarAvatar) return;
+  if (!navbarAvatar) {
+    console.log("Navbar avatar element not found");
+    return;
+  }
+
+  console.log("Updating navbar avatar with URL:", url);
 
   // Check if there's already an image or initials
   const existingImg = navbarAvatar.querySelector("img");
@@ -177,13 +188,30 @@ function updateNavbarAvatar(url) {
   if (existingImg) {
     // Update existing image
     existingImg.src = url + "?t=" + Date.now();
+    console.log("Updated existing navbar image");
   } else if (existingInitials) {
     // Replace initials with image
     navbarAvatar.innerHTML = "";
     const img = document.createElement("img");
     img.src = url + "?t=" + Date.now();
     img.alt = "Profile Image";
+    img.style.width = "100%";
+    img.style.height = "100%";
+    img.style.objectFit = "cover";
+    img.style.borderRadius = "50%";
     navbarAvatar.appendChild(img);
+    console.log("Replaced navbar initials with image");
+  } else {
+    // No existing content, add new image
+    const img = document.createElement("img");
+    img.src = url + "?t=" + Date.now();
+    img.alt = "Profile Image";
+    img.style.width = "100%";
+    img.style.height = "100%";
+    img.style.objectFit = "cover";
+    img.style.borderRadius = "50%";
+    navbarAvatar.appendChild(img);
+    console.log("Added new image to navbar");
   }
 
   console.log("Navbar avatar updated");

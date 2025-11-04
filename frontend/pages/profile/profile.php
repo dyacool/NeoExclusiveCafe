@@ -240,85 +240,6 @@ if ($bulk_orders_stmt === false) {
     <title>Profile - NeoExclusiveCafe</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="profile.css">
-    <style>
-        .refund-status-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-        .refund-status-pending {
-            background: #fff3cd;
-            color: #856404;
-        }
-        .refund-status-approved {
-            background: #d1e7dd;
-            color: #0f5132;
-        }
-        .refund-status-rejected {
-            background: #f8d7da;
-            color: #842029;
-        }
-        .refund-status-completed {
-            background: #d1e7dd;
-            color: #0a3622;
-        }
-        .refund-modal {
-            display: none;
-            position: fixed;
-            z-index: 10000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.6);
-            justify-content: center;
-            align-items: center;
-        }
-        .refund-modal.show {
-            display: flex !important;
-        }
-        .refund-modal-content {
-            background: white;
-            border-radius: 12px;
-            max-width: 700px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-        }
-        .refund-modal-header {
-            background: linear-gradient(135deg, #0f5132, #2d5a27);
-            color: white;
-            padding: 20px 24px;
-            border-radius: 12px 12px 0 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .refund-modal-header h2 {
-            margin: 0;
-            font-size: 20px;
-        }
-        .refund-modal-close {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 28px;
-            cursor: pointer;
-            padding: 0;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .refund-modal-body {
-            padding: 24px;
-        }
-    </style>
     <?php include "../../user-includes/navbar/customer-navigation.php"; ?>
 
 </head>
@@ -339,26 +260,8 @@ if ($bulk_orders_stmt === false) {
                     if ($has_profile_image): ?>
                         <img src="<?= htmlspecialchars($profile_image_url) ?>" alt="Profile Image" />
                     <?php else: 
-                        // Show initials if no profile image
                         $initials = strtoupper(substr($user['firstname'], 0, 1) . substr($user['lastname'], 0, 1));
-                        
-                        // Generate consistent random green-toned color based on user's name
-                        $seed = crc32($user['firstname'] . $user['lastname']);
-                        mt_srand($seed);
-                        
-                        // Green color ranges: hue 80-160 (yellow-green to blue-green)
-                        $hue = mt_rand(80, 160);
-                        $saturation = mt_rand(40, 70); // Medium saturation
-                        $lightness = mt_rand(35, 50); // Medium-dark for good contrast
-                        
-                        $color1 = "hsl($hue, {$saturation}%, $lightness%)";
-                        
-                        // Second color slightly different
-                        $hue2 = $hue + mt_rand(-15, 15);
-                        $lightness2 = $lightness + mt_rand(-5, 10);
-                        $color2 = "hsl($hue2, {$saturation}%, $lightness2%)";
-                        
-                        $gradient = "linear-gradient(135deg, $color1 0%, $color2 100%)";
+
                     ?>
                         <span class="profile-initial" style="background: <?= $gradient ?>;"><?= htmlspecialchars($initials) ?></span>
                     <?php endif; ?>
@@ -404,7 +307,7 @@ if ($bulk_orders_stmt === false) {
                     <svg viewBox="0 0 24 24" fill="currentColor">
                         <path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"/>
                     </svg>
-                    My Posts
+                    My Testimonials
                 </a>
                 <button onclick="showLogoutConfirmation()" class="neo-profile-link logout-link">
                     <svg viewBox="0 0 24 24" fill="currentColor">
@@ -419,7 +322,7 @@ if ($bulk_orders_stmt === false) {
             <div class="neo-stat-card">
                 <div class="neo-stat-content">
                     <div class="neo-stat-number"><?php echo $stats['total_posts']; ?></div>
-                    <div class="neo-stat-label">Total Posts</div>
+                    <div class="neo-stat-label">Total Testimonials</div>
                 </div>
             </div>
             <div class="neo-stat-card">
@@ -442,7 +345,6 @@ if ($bulk_orders_stmt === false) {
                 <thead>
                     <tr>
                         <th>Order Date</th>
-                        <th>Order ID</th>
                         <th>Total Items</th>
                         <th>Total Amount</th>
                         <th>Status</th>
@@ -460,7 +362,6 @@ if ($bulk_orders_stmt === false) {
                         ?>
                         <tr>
                             <td><?php echo htmlspecialchars(date("M j, Y", strtotime($order['order_date']))); ?></td>
-                            <td>#<?php echo htmlspecialchars($order['order_id']); ?></td>
                             <td><?php echo htmlspecialchars($order['total_items']); ?> items</td>
                             <td>₱<?php echo htmlspecialchars(number_format($order['total_amount'], 2)); ?></td>
                             <td><span class="status-badge status-<?php echo htmlspecialchars($status_lower); ?>"><?php echo htmlspecialchars(ucfirst($order['status'])); ?></span></td>

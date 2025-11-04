@@ -43,6 +43,19 @@ body {
   color: var(--secondary);
 }
 
+.profile-initial {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 48px;
+  font-weight: 600;
+  color: white;
+  border-radius: 50%;
+  user-select: none;
+}
+
 /* Profile Header */
 .neo-profile-header-card {
   background-color: #0f5132;
@@ -761,11 +774,6 @@ body {
     padding: 6px 10px;
   }
 
-  .neo-profile-stats {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-
   .neo-stat-card {
     padding: 20px;
     gap: 16px;
@@ -1161,7 +1169,7 @@ body {
 }
 
 .orders-table td:nth-child(2)::before {
-  content: "Order ID";
+  content: "Items";
 }
 
 /* Status - Row 1, Column 3 */
@@ -1173,7 +1181,7 @@ body {
 }
 
 .orders-table td:nth-child(5)::before {
-  content: "Status";
+  content: "Refund Status";
 }
 
 /* Total Items - Row 2, Column 1 */
@@ -1183,7 +1191,7 @@ body {
 }
 
 .orders-table td:nth-child(3)::before {
-  content: "Items";
+  content: "Total Amount";
 }
 
 /* Total Amount - Row 2, Column 2 */
@@ -1194,22 +1202,36 @@ body {
 }
 
 .orders-table td:nth-child(4)::before {
+  content: "Status";
+}
+
+/* bulk orders table */
+
+.orders-table td:nth-child(1) {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.bulk-orders-table td:nth-child(1)::before {
+  content: "Refund Ticket";
+}
+
+/* Order ID - Row 1, Column 2 */
+
+.bulk-orders-table td:nth-child(2)::before {
+  content: "Order Date";
+}
+
+.bulk-orders-table td:nth-child(5)::before {
+  content: "Status";
+}
+
+.bulk-orders-table td:nth-child(3)::before {
+  content: "Total Items";
+}
+
+.bulk-orders-table td:nth-child(4)::before {
   content: "Total Amount";
-}
-
-.orders-table td:nth-child(6)::before {
-  content: "Refund ";
-}
-
-.bulk-orders-table td:nth-child(6)::before {
-  content: none !important;
-}
-
-/* Actions - Row 2, Column 3 */
-.orders-table td:nth-child(6) {
-  grid-column: 3;
-  grid-row: 2;
-  height: 100%;
 }
 
 /* Button styling */
@@ -1688,37 +1710,137 @@ body {
   }
 }
 
-/* Order status indicators */
-.status-completed {
+/* Enhanced Order Status Styling */
+.order-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.875rem;
+  border-radius: 25px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Confirmed Status */
+.status-confirmed {
   color: #0f5132;
-  background-color: #c8e6d8;
-  padding: 0.3rem 0.75rem;
-  border-radius: 20px;
-  font-weight: 500;
+  background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%);
+  border-color: #28a745;
 }
 
-.status-processing {
+/* Preparing Status */
+.status-preparing {
   color: #0a5c36;
-  background-color: #c8e6d8;
-  padding: 0.3rem 0.75rem;
-  border-radius: 20px;
-  font-weight: 500;
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+  border-color: #ffc107;
 }
 
-.status-pending {
-  color: #155724;
-  background-color: #c8e6d8;
-  padding: 0.3rem 0.75rem;
-  border-radius: 20px;
-  font-weight: 500;
+/* Ready for Delivery Status */
+.status-ready-for-delivery {
+  color: #0f5132;
+  background: linear-gradient(135deg, #cce5ff 0%, #b3d9ff 100%);
+  border-color: #007bff;
 }
 
+/* Out for Delivery Status */
+.status-out-for-delivery {
+  color: #ffffff;
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  border-color: #0056b3;
+  animation: pulse-delivery 2s ease-in-out infinite;
+}
+
+@keyframes pulse-delivery {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* Delivered Status */
+.status-delivered {
+  color: #ffffff;
+  background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+  border-color: #1e7e34;
+}
+
+/* Ready for Pick-up Status */
+.status-ready-for-pickup,
+.status-ready.for.pick-up,
+.status-badge.status-ready.for.pick-up {
+  color: #0f5132;
+  background: linear-gradient(135deg, #e2f0ff 0%, #cce5ff 100%);
+  border-color: #17a2b8;
+}
+
+/* Picked-up Status */
+.status-picked-up {
+  color: #ffffff;
+  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+  border-color: #138496;
+}
+
+/* Cancelled Status */
 .status-cancelled {
-  color: #5a5a5a;
-  background-color: #e8e8e8;
-  padding: 0.3rem 0.75rem;
-  border-radius: 20px;
-  font-weight: 500;
+  color: #721c24;
+  background: linear-gradient(135deg, #f8d7da 0%, #f1b2b7 100%);
+  border-color: #dc3545;
+}
+
+/* Hover Effects */
+.order-status:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Status Progress Indicator */
+.status-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 12px;
+}
+
+.progress-step {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: #6c757d;
+  opacity: 0.5;
+}
+
+.progress-step.active {
+  color: #0f5132;
+  opacity: 1;
+  font-weight: 600;
+}
+
+.progress-step.completed {
+  color: #28a745;
+  opacity: 1;
+}
+
+.progress-line {
+  flex: 1;
+  height: 2px;
+  background: #e9ecef;
+  border-radius: 1px;
+}
+
+.progress-line.completed {
+  background: #28a745;
 }
 
 .status-approved {
@@ -1870,6 +1992,84 @@ button.pagination-btn {
   padding: 8px 16px;
   border-radius: 8px;
   border: 1px solid var(--border);
+}
+
+.refund-status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.refund-status-pending {
+  background: #fff3cd;
+  color: #856404;
+}
+.refund-status-approved {
+  background: #d1e7dd;
+  color: #0f5132;
+}
+.refund-status-rejected {
+  background: #f8d7da;
+  color: #842029;
+}
+.refund-status-completed {
+  background: #d1e7dd;
+  color: #0a3622;
+}
+.refund-modal {
+  display: none;
+  position: fixed;
+  z-index: 10000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  justify-content: center;
+  align-items: center;
+}
+.refund-modal.show {
+  display: flex !important;
+}
+.refund-modal-content {
+  background: white;
+  border-radius: 12px;
+  max-width: 700px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+.refund-modal-header {
+  background: linear-gradient(135deg, #0f5132, #2d5a27);
+  color: white;
+  padding: 20px 24px;
+  border-radius: 12px 12px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.refund-modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+.refund-modal-close {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 28px;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.refund-modal-body {
+  padding: 24px;
 }
 
 /* Responsive Pagination */
@@ -2034,7 +2234,7 @@ button.pagination-btn {
 
   /* Stats - single column, compact cards */
   .neo-profile-stats {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr !important;
     gap: 12px;
     margin-bottom: 16px;
   }
@@ -2112,7 +2312,7 @@ button.pagination-btn {
   }
 
   .orders-table td:nth-child(5) {
-    grid-row: 3;
+    grid-row: 5;
   }
 
   .orders-table td:nth-child(3) {
@@ -2120,7 +2320,7 @@ button.pagination-btn {
   }
 
   .orders-table td:nth-child(4) {
-    grid-row: 5;
+    grid-row: 3;
   }
 
   .orders-table td:nth-child(6) {
@@ -2440,7 +2640,7 @@ button.pagination-btn {
     height: 14px;
   }
 
-  /* Stats */
+  /**/
   .neo-profile-stats {
     gap: 10px;
     margin-bottom: 12px;
@@ -2745,424 +2945,6 @@ button.pagination-btn {
    FULL RESPONSIVE - 425PX AND BELOW
    =================================== */
 
-@media (max-width: 425px) {
-  /* Container adjustments */
-  .neo-profile-container {
-    padding: 16px 12px;
-    max-width: 100%;
-    overflow-x: hidden;
-  }
-
-  /* Header card - compact and centered */
-  .neo-profile-header-card {
-    padding: 20px 16px;
-    border-radius: 12px;
-    margin-bottom: 16px;
-    width: 100%;
-    box-sizing: border-box;
-  }
-
-  .neo-profile-header-content {
-    flex-direction: column;
-    gap: 1rem;
-    text-align: center;
-  }
-
-  /* Avatar - smaller size */
-  .neo-profile-avatar {
-    width: 80px;
-    height: 80px;
-    border-width: 3px;
-  }
-
-  .neo-avatar-status {
-    width: 16px;
-    height: 16px;
-    bottom: 4px;
-    right: 4px;
-    border-width: 2px;
-  }
-
-  /* Profile info - centered and compact */
-  .neo-profile-info {
-    text-align: center;
-  }
-
-  .neo-profile-info h1 {
-    font-size: 1.5rem;
-    margin-bottom: 8px;
-  }
-
-  .neo-profile-meta {
-    gap: 6px;
-  }
-
-  .neo-profile-meta p {
-    font-size: 0.875rem;
-    gap: 8px;
-  }
-
-  .neo-profile-meta svg {
-    width: 20px;
-    height: 20px;
-  }
-
-  /* Profile actions - side by side buttons */
-  .neo-profile-actions {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 12px;
-    width: 100%;
-    justify-content: center;
-  }
-
-  .neo-profile-link {
-    flex: 0 1 auto;
-    justify-content: center;
-    padding: 10px 12px;
-    font-size: 0.9rem;
-  }
-
-  .neo-profile-link:hover {
-    transform: translateX(0) scale(1.02);
-  }
-
-  .neo-profile-link svg {
-    width: 16px;
-    height: 16px;
-  }
-
-  /* Stats - single column, compact cards */
-  .neo-profile-stats {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    margin-bottom: 16px;
-  }
-
-  .neo-stat-card {
-    padding: 16px;
-    gap: 12px;
-    border-radius: 12px;
-  }
-
-  .neo-stat-content {
-    flex-direction: column;
-    gap: 0.5rem;
-    padding: 0;
-  }
-
-  .neo-stat-number {
-    font-size: 2rem;
-  }
-
-  .neo-stat-label {
-    font-size: 0.9rem;
-  }
-
-  /* Orders section - compact padding with overflow handling */
-  .neo-profile-orders {
-    padding: 16px;
-    border-radius: 12px;
-    margin-bottom: 16px;
-    overflow-x: hidden;
-    width: 100%;
-  }
-
-  .neo-profile-orders h2 {
-    font-size: 1.4rem;
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-  }
-
-  /* Ensure table stays within bounds */
-  .orders-table {
-    width: 100%;
-    table-layout: fixed;
-    overflow: hidden;
-  }
-
-  /* Order cards - single column layout */
-  .orders-table tbody tr {
-    grid-template-columns: 1fr;
-    grid-template-rows: repeat(6, auto);
-    padding: 16px;
-    gap: 12px;
-    margin-bottom: 12px;
-    border-radius: 10px;
-    width: 100%;
-    box-sizing: border-box;
-  }
-
-  /* All table cells - full width, stacked */
-  .orders-table td:nth-child(1),
-  .orders-table td:nth-child(2),
-  .orders-table td:nth-child(3),
-  .orders-table td:nth-child(4),
-  .orders-table td:nth-child(5),
-  .orders-table td:nth-child(6) {
-    grid-column: 1;
-  }
-
-  .orders-table td:nth-child(1) {
-    grid-row: 1;
-  }
-
-  .orders-table td:nth-child(2) {
-    grid-row: 2;
-  }
-
-  .orders-table td:nth-child(5) {
-    grid-row: 3;
-  }
-
-  .orders-table td:nth-child(3) {
-    grid-row: 4;
-  }
-
-  .orders-table td:nth-child(4) {
-    grid-row: 5;
-  }
-
-  .orders-table td:nth-child(6) {
-    grid-row: 6;
-  }
-
-  /* Table cell labels - smaller font */
-  .orders-table td::before {
-    font-size: 0.75rem;
-    margin-bottom: 0.25rem;
-  }
-
-  .orders-table td {
-    font-size: 0.875rem;
-    width: 100%;
-    box-sizing: border-box;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-  }
-
-  /* Buttons - side by side, responsive */
-  .orders-table td:nth-child(6) {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    gap: 30px;
-    align-items: center;
-    justify-content: flex-start;
-    margin-top: 4px;
-    width: 100%;
-  }
-
-  .btn-view,
-  .btn-refund,
-  .btn-upload,
-  .btn-proof {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-    flex: 0 1 calc(50% - 15px);
-    min-width: 0;
-    max-width: calc(50% - 15px);
-    margin: 0;
-    padding: 8px 6px;
-    font-size: 0.7rem;
-    text-align: center;
-    box-sizing: border-box;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    border-radius: 6px;
-  }
-
-  .btn-view:hover,
-  .btn-refund:hover,
-  .btn-upload:hover,
-  .btn-proof:hover {
-    transform: translateY(-1px);
-  }
-
-  /* Make the actions column always full width */
-  .orders-table td:nth-child(6)::before {
-    display: block;
-    width: 100%;
-  }
-
-  /* Status badges - smaller */
-  .status-badge,
-  .refund-status-badge {
-    padding: 4px 10px !important;
-    font-size: 0.75rem !important;
-    border-radius: 16px !important;
-  }
-
-  /* Refund status container */
-  .refund-status-container {
-    gap: 4px;
-    width: 100%;
-  }
-
-  .refund-date {
-    font-size: 0.7rem;
-  }
-
-  /* Modal - full width on small screens */
-  .neo-modal-content {
-    width: 95%;
-    max-width: 100%;
-    padding: 20px 16px;
-    margin: 5% auto;
-    border-radius: 10px;
-  }
-
-  .neo-modal-header {
-    padding: 16px 20px;
-    border-radius: 10px 10px 0 0;
-  }
-
-  .neo-modal-header h3 {
-    font-size: 1.2rem;
-  }
-
-  .neo-modal-header svg {
-    width: 20px;
-    height: 20px;
-  }
-
-  .neo-modal-body {
-    padding: 20px;
-  }
-
-  .neo-modal-body p {
-    font-size: 1rem;
-  }
-
-  .neo-modal-subtitle {
-    font-size: 0.85rem !important;
-  }
-
-  .neo-modal-actions {
-    padding: 0 20px 20px 20px;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .neo-modal-btn {
-    width: 100%;
-    padding: 12px 20px;
-    font-size: 0.9rem;
-  }
-
-  .neo-modal-close {
-    padding: 12px;
-    font-size: 1.5rem;
-  }
-
-  /* Order details modal */
-  #orderDetailsContent h2 {
-    font-size: 1.4rem;
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-  }
-
-  #orderDetailsContent h3 {
-    font-size: 1.15rem;
-    margin: 12px 0 8px;
-  }
-
-  .neo-order-info {
-    padding: 12px;
-    margin-bottom: 12px;
-  }
-
-  .neo-order-info p {
-    font-size: 0.9rem;
-    margin: 0.5rem 0;
-  }
-
-  .neo-order-info p strong {
-    display: block;
-    width: 100%;
-    margin-bottom: 0.25rem;
-  }
-
-  /* Modal table - responsive */
-  .neo-modal-table {
-    display: block;
-    overflow-x: auto;
-    font-size: 0.85rem;
-  }
-
-  .neo-modal-table th,
-  .neo-modal-table td {
-    padding: 8px 6px;
-    font-size: 0.8rem;
-  }
-
-  .neo-modal-table th {
-    font-size: 0.75rem;
-  }
-
-  /* Pagination - compact */
-  .pagination-container {
-    padding: 12px 0;
-    gap: 10px;
-  }
-
-  .pagination {
-    gap: 4px;
-    width: 100%;
-    justify-content: center;
-  }
-
-  .pagination-btn {
-    padding: 6px 8px;
-    font-size: 0.75rem;
-    min-width: 32px;
-    height: 32px;
-  }
-
-  .pagination-info {
-    font-size: 0.75rem;
-    padding: 6px 10px;
-    width: 100%;
-    text-align: center;
-  }
-
-  /* Loading states */
-  .neo-spinner {
-    width: 40px;
-    height: 40px;
-    border-width: 3px;
-  }
-
-  .neo-modal-loading {
-    padding: 2rem 1rem;
-  }
-
-  /* Empty states */
-  .orders-table td[colspan="4"] {
-    padding: 2rem 1rem;
-    font-size: 0.9rem;
-  }
-
-  /* Ensure proper box-sizing */
-  * {
-    box-sizing: border-box;
-  }
-
-  /* Remove hover transforms on touch devices */
-  .orders-table tbody tr:hover {
-    transform: none;
-  }
-
-  /* Confirmation modal adjustments */
-  .neo-confirmation-modal {
-    max-width: 95%;
-  }
-}
-
 /* ===================================
    EXTRA SMALL SCREENS - 320PX AND BELOW
    =================================== */
@@ -3347,14 +3129,7 @@ button.pagination-btn {
   }
 
   .orders-table td:nth-child(6) {
-    display: flex;
-    flex-direction: column;
-    flex-wrap: nowrap;
     gap: 8px;
-    align-items: flex-start;
-    justify-content: flex-start;
-    margin-top: 4px;
-    width: 100%;
   }
   /* Buttons - side by side, responsive sizing */
   .btn-view,
