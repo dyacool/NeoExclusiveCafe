@@ -28,7 +28,7 @@ if ($_POST) {
 
 // Pagination
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
-$per_page = 20;
+$per_page = 50;
 $offset = ($page - 1) * $per_page;
 
 // Get notifications
@@ -56,88 +56,113 @@ $unread_count = $notificationHandler->getUnreadCount();
 <body>
     <?php include __DIR__ . "/../admin-includes/navbar/navbar.php"; ?>
 
-    <div class="notifications-container">
-        <div class="page-header">
-            <div class="header-left">
-                <p class="subtitle">
-                    <?php echo $total_notifications; ?> total notifications
+    <div class="main-container">
+        <div class="notifications-container">
+            <!-- Email-style Header -->
+            <div class="notif-email-header">
+                <div class="notif-header-left">
+                <span class="notif-total-count">
+                    <?php echo $total_notifications; ?> Notifications
                     <?php if ($unread_count > 0): ?>
-                        <span class="unread-badge"><?php echo $unread_count; ?> unread</span>
-                    <?php endif; ?>
-                </p>
-            </div>
-            <div class="header-right">
-                <form method="POST" style="display: inline;">
-                    <button type="submit" name="mark_all_read" class="btn btn-secondary">
-                        <i class="fas fa-check-double"></i> Mark All as Read
+                        <span class="notif-unread-badge"><?php echo $unread_count; ?> unread</span>
+                    <?php endif; ?>                </div>
+                <div class="notif-header-right">
+                    <button onclick="location.reload()" class="notif-icon-btn" title="Refresh">
+                        <i class="fas fa-sync-alt"></i>
                     </button>
-                </form>
-            </div>
-        </div>
-
-        <?php if (isset($_GET['success'])): ?>
-            <div class="alert alert-success">
-                <i class="fas fa-check-circle"></i> <?php echo htmlspecialchars($_GET['success']); ?>
-            </div>
-        <?php endif; ?>
-
-        <form method="POST" id="notificationsForm">
-            <div class="notifications-actions">
-                <button type="button" id="selectAllBtn" class="btn btn-sm btn-secondary">
-                    <i class="far fa-square"></i> Select All
-                </button>
-                <button type="submit" name="delete_selected" class="btn btn-sm btn-danger" id="deleteBtn" disabled>
-                    <i class="fas fa-trash"></i> Delete Selected
-                </button>
+                    <form method="POST" style="display: inline;">
+                        <button type="submit" name="mark_all_read" class="notif-btn-mark-all" <?php echo $unread_count == 0 ? 'disabled' : ''; ?>>
+                            Mark All as Read
+                        </button>
+                    </form>
+                    <button type="button" id="deleteSelectedBtn" class="notif-icon-btn" disabled title="Delete Selected">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                        </svg>
+                    </button>
+                </div>
             </div>
 
-            <div class="notifications-list">
+            <?php if (isset($_GET['success'])): ?>
+                <div class="alert alert-success">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    <?php echo htmlspecialchars($_GET['success']); ?>
+                </div>
+            <?php endif; ?>
+
+            <!-- Email-style Table -->
+            <div class="notif-email-table-container">
                 <?php if (empty($notifications)): ?>
-                    <div class="empty-state">
-                        <i class="fas fa-bell-slash"></i>
+                    <div class="notif-empty-state">
+                        <div class="notif-empty-icon">
+                            <i class="fas fa-bell-slash"></i>
+                        </div>
                         <h3>No notifications yet</h3>
                         <p>You'll see notifications here when new orders or events occur.</p>
                     </div>
                 <?php else: ?>
-                    <?php foreach ($notifications as $notif): ?>
-                        <div class="notification-item <?php echo $notif['is_read'] ? '' : 'unread'; ?>" 
-                             data-notif-id="<?php echo $notif['notif_id']; ?>">
-                            <div class="notification-checkbox">
-                                <input type="checkbox" name="selected_ids[]" value="<?php echo $notif['notif_id']; ?>" class="notif-checkbox">
-                            </div>
-                            
-                            <div class="notification-content">
-                                <div class="notification-header">
-                                    <h3 class="notification-title"><?php echo htmlspecialchars($notif['notif_title']); ?></h3>
-                                    <span class="notification-time">
-                                        <?php echo $notificationHandler->timeAgo($notif['created_at']); ?>
-                                    </span>
-                                </div>
-                                <p class="notification-message"><?php echo htmlspecialchars($notif['notif_message']); ?></p>
-                                
-                                <div class="notification-actions">
-                                    <?php if ($notif['notif_link']): ?>
-                                        <a href="<?php echo htmlspecialchars($notif['notif_link']); ?>" class="view-details-link">
-                                            Click here to view details
-                                        </a>
-                                    <?php endif; ?>
-                                    
-                                    <?php if (!$notif['is_read']): ?>
-                                        <button type="button" class="btn btn-xs btn-secondary mark-read-btn" 
-                                                data-id="<?php echo $notif['notif_id']; ?>">
-                                            <i class="fas fa-check"></i> Mark as Read
-                                        </button>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                            
-                            <div class="notification-type">
-                                <span class="type-badge type-<?php echo $notif['notif_type']; ?>">
-                                    <?php echo ucfirst(str_replace('_', ' ', $notif['notif_type'])); ?>
-                                </span>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
+                    <form method="POST" id="notificationsForm">
+                        <table class="notif-email-table">
+                            <thead>
+                                <tr>
+                                    <th class="notif-th-checkbox">
+                                        <input type="checkbox" id="selectAllCheckbox" title="Select All">
+                                    </th>
+                                    <th class="notif-th-title">Subject</th>
+                                    <th class="notif-th-date">Date & Time</th>
+                                    <th class="notif-th-type">Type</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($notifications as $notif): ?>
+                                    <tr class="notif-email-row <?php echo !$notif['is_read'] ? 'notif-unread' : ''; ?>" 
+                                        data-notif-id="<?php echo $notif['notif_id']; ?>"
+                                        data-link="<?php echo htmlspecialchars($notif['notif_link'] ?? ''); ?>">
+                                        
+                                        <td class="notif-td-checkbox">
+                                            <input type="checkbox" name="selected_ids[]" value="<?php echo $notif['notif_id']; ?>" class="notif-checkbox">
+                                        </td>
+                                        
+                                        <td class="notif-td-title">
+                                            <div class="notif-title-content">
+                                                <?php if (!$notif['is_read']): ?>
+                                                    <div class="notif-unread-dot"></div>
+                                                <?php endif; ?>
+                                                <div class="notif-content-wrapper">
+                                                    <span class="notif-subject">
+                                                        <?php echo htmlspecialchars($notif['notif_title']); ?>
+                                                    </span>
+                                                    <div class="notif-message-preview">
+                                                        <?php echo htmlspecialchars($notif['notif_message']); ?>
+                                                    </div>
+                                                    <!-- Inline date for mobile (425px and below) -->
+                                                    <div class="notif-inline-date">
+                                                        <?php echo date('M j, Y g:i A', strtotime($notif['created_at'])); ?>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        
+                                        <td class="notif-td-date">
+                                            <?php echo date('M j, Y g:i A', strtotime($notif['created_at'])); ?>
+                                        </td>
+                                        
+                                        <td class="notif-td-type">
+                                            <span class="type-badge type-<?php echo $notif['notif_type']; ?>">
+                                                <?php echo ucfirst(str_replace('_', ' ', $notif['notif_type'])); ?>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </form>
                 <?php endif; ?>
             </div>
 
@@ -160,81 +185,129 @@ $unread_count = $notificationHandler->getUnreadCount();
                     <?php endif; ?>
                 </div>
             <?php endif; ?>
-        </form>
+        </div>
     </div>
 
     <script>
-        // Select all functionality
-        const selectAllBtn = document.getElementById('selectAllBtn');
-        const checkboxes = document.querySelectorAll('.notif-checkbox');
-        const deleteBtn = document.getElementById('deleteBtn');
-        let allSelected = false;
-
-        selectAllBtn.addEventListener('click', () => {
-            allSelected = !allSelected;
-            checkboxes.forEach(cb => cb.checked = allSelected);
-            selectAllBtn.innerHTML = allSelected 
-                ? '<i class="fas fa-check-square"></i> Deselect All' 
-                : '<i class="far fa-square"></i> Select All';
-            updateDeleteButton();
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
         });
 
-        // Update delete button state
-        checkboxes.forEach(cb => {
-            cb.addEventListener('change', updateDeleteButton);
-        });
+        function setupEventListeners() {
+            // Select all checkbox functionality
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            const checkboxes = document.querySelectorAll('.notif-checkbox');
+            const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+            const notificationsForm = document.getElementById('notificationsForm');
 
-        function updateDeleteButton() {
-            const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
-            deleteBtn.disabled = !anyChecked;
+            if (selectAllCheckbox) {
+                selectAllCheckbox.addEventListener('change', function() {
+                    checkboxes.forEach(cb => cb.checked = this.checked);
+                    updateDeleteButton();
+                });
+            }
+
+            // Update delete button state when individual checkboxes change
+            checkboxes.forEach(cb => {
+                cb.addEventListener('change', function(e) {
+                    e.stopPropagation(); // Prevent row click
+                    updateDeleteButton();
+                    
+                    // Update select all checkbox state
+                    if (selectAllCheckbox) {
+                        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+                        const someChecked = Array.from(checkboxes).some(cb => cb.checked);
+                        selectAllCheckbox.checked = allChecked;
+                        selectAllCheckbox.indeterminate = someChecked && !allChecked;
+                    }
+                });
+            });
+
+            // Delete selected button
+            if (deleteSelectedBtn) {
+                deleteSelectedBtn.addEventListener('click', function() {
+                    const selectedIds = Array.from(checkboxes)
+                        .filter(cb => cb.checked)
+                        .map(cb => cb.value);
+                    
+                    if (selectedIds.length === 0) return;
+                    
+                    if (confirm(`Are you sure you want to delete ${selectedIds.length} notification(s)? This action cannot be undone.`)) {
+                        notificationsForm.submit();
+                    }
+                });
+            }
+
+            // Row click to view details or mark as read
+            document.querySelectorAll('.notif-email-row').forEach(row => {
+                row.addEventListener('click', function(e) {
+                    // Don't trigger if clicking checkbox
+                    if (e.target.type === 'checkbox' || e.target.closest('.notif-td-checkbox')) {
+                        return;
+                    }
+                    
+                    const notifId = this.getAttribute('data-notif-id');
+                    const link = this.getAttribute('data-link');
+                    const isUnread = this.classList.contains('notif-unread');
+                    
+                    // Mark as read if unread
+                    if (isUnread) {
+                        markAsRead(notifId, this);
+                    }
+                    
+                    // Redirect if link exists
+                    if (link && link.trim() !== '') {
+                        setTimeout(() => {
+                            window.location.href = link;
+                        }, 300);
+                    }
+                });
+            });
         }
 
-        // Confirm delete
-        const form = document.getElementById('notificationsForm');
-        form.addEventListener('submit', (e) => {
-            if (e.submitter && e.submitter.name === 'delete_selected') {
-                const count = Array.from(checkboxes).filter(cb => cb.checked).length;
-                if (!confirm(`Are you sure you want to delete ${count} notification(s)?`)) {
-                    e.preventDefault();
-                }
+        function updateDeleteButton() {
+            const checkboxes = document.querySelectorAll('.notif-checkbox');
+            const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+            const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+            
+            if (deleteSelectedBtn) {
+                deleteSelectedBtn.disabled = !anyChecked;
             }
-        });
+        }
 
-        // Mark as read functionality
-        document.querySelectorAll('.mark-read-btn').forEach(btn => {
-            btn.addEventListener('click', async function() {
-                const notifId = this.getAttribute('data-id');
-                const notifItem = this.closest('.notification-item');
-                
-                try {
-                    const response = await fetch('../admin-includes/notifications/notification.php?action=mark_as_read', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ ids: [parseInt(notifId)] })
-                    });
+        function markAsRead(notifId, rowElement) {
+            fetch('../admin-includes/notifications/notification.php?action=mark_as_read', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ids: [parseInt(notifId)] })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && rowElement) {
+                    rowElement.classList.remove('notif-unread');
+                    const unreadDot = rowElement.querySelector('.notif-unread-dot');
+                    if (unreadDot) {
+                        unreadDot.remove();
+                    }
                     
-                    const data = await response.json();
-                    if (data.success) {
-                        notifItem.classList.remove('unread');
-                        this.remove();
-                        
-                        // Update unread count
-                        const unreadBadge = document.querySelector('.unread-badge');
-                        if (unreadBadge) {
-                            const currentCount = parseInt(unreadBadge.textContent);
-                            const newCount = currentCount - 1;
-                            if (newCount > 0) {
-                                unreadBadge.textContent = newCount + ' unread';
-                            } else {
-                                unreadBadge.remove();
-                            }
+                    // Update unread count
+                    const unreadBadge = document.querySelector('.notif-unread-badge');
+                    if (unreadBadge) {
+                        const currentCount = parseInt(unreadBadge.textContent);
+                        const newCount = currentCount - 1;
+                        if (newCount > 0) {
+                            unreadBadge.textContent = newCount + ' unread';
+                        } else {
+                            unreadBadge.remove();
                         }
                     }
-                } catch (error) {
-                    console.error('Error marking notification as read:', error);
                 }
+            })
+            .catch(error => {
+                console.error('Error marking notification as read:', error);
             });
-        });
+        }
     </script>
 </body>
 </html>
