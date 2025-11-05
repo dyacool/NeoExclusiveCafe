@@ -84,7 +84,7 @@ if ($count_result) {
 
                 <!-- Order Limit -->
                 <div class="control-card">
-                    <h3>Daily Delivery Transaction Limit (Pre-Order)</h3>
+                    <h3>Pre-Order Delivery Transaction Limit</h3>
                     <div class="control-row">
                         <label>No. of Orders:</label>
                         <input type="number" id="dailyLimit" min="0" placeholder="Loading..." disabled>
@@ -130,14 +130,14 @@ if ($count_result) {
     <div class="modal" id="dateLimitModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="modalTitle">Set Order Limit</h3>
+                <h3 id="modalTitle">Set Transaction Limit</h3>
                 <span class="close" onclick="closeDateLimitModal()">&times;</span>
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label for="dateLimitInput">Order Limit:</label>
-                    <input type="number" id="dateLimitInput" min="0" placeholder="Enter order limit">
-                    <div class="form-help">Set to 0 to stop accepting orders for this date</div>
+                    <label for="dateLimitInput">Transaction Limit:</label>
+                    <input type="number" id="dateLimitInput" min="0" placeholder="Enter transaction limit">
+                    <div class="form-help">Set to 0 to stop accepting transactions for this date</div>
                 </div>
                 <div class="form-group">
                     <label>

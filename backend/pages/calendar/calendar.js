@@ -2,6 +2,8 @@
 let currentDate = new Date();
 let dateLimits = {};
 let showCompletedOrders = false;
+let ordersCache = {}; // Cache for orders by month-year
+let isLoadingOrders = false; // Prevent duplicate API calls
 
 // Initialize calendar when DOM is loaded
 document.addEventListener("DOMContentLoaded", function () {
@@ -113,7 +115,7 @@ function renderCalendar(date) {
     today.setHours(0, 0, 0, 0);
 
     let dayClass = "day";
-    let dayContent = i;
+    let dayContent = `<span class="day-number">${i}</span>`;
     let clickHandler = "";
 
     // Check if it's today
@@ -151,6 +153,24 @@ function loadOrdersForMonth(date) {
   const startDate = new Date(date.getFullYear(), date.getMonth(), 1);
   const endDate = new Date(date.getFullYear(), date.getMonth() + 1, 0);
 
+  // Create cache key
+  const cacheKey = `${date.getFullYear()}-${date.getMonth()}`;
+
+  // Check if we're already loading or have cached data
+  if (isLoadingOrders) {
+    console.log("Already loading orders, skipping duplicate request");
+    return;
+  }
+
+  // Use cached data if available (unless completed orders toggle changed)
+  if (ordersCache[cacheKey]) {
+    console.log("Using cached orders for", cacheKey);
+    displayOrdersOnCalendar(ordersCache[cacheKey]);
+    return;
+  }
+
+  isLoadingOrders = true;
+
   console.log("Loading orders for month:", {
     start: startDate.toISOString().split("T")[0],
     end: endDate.toISOString().split("T")[0],
@@ -168,10 +188,15 @@ function loadOrdersForMonth(date) {
     })
     .then((orders) => {
       console.log("Orders received:", orders);
+      // Cache the orders
+      ordersCache[cacheKey] = orders;
       displayOrdersOnCalendar(orders);
     })
     .catch((error) => {
       console.error("Error loading orders:", error);
+    })
+    .finally(() => {
+      isLoadingOrders = false;
     });
 }
 
@@ -229,7 +254,10 @@ function displayOrdersOnCalendar(orders) {
         const status =
           (order.extendedProps && order.extendedProps.status) || "pending";
 
-        orderIndicator.className = `order-indicator ${status.toLowerCase()}`;
+        // Convert status to lowercase and replace spaces with hyphens for CSS class
+        const statusClass = status.toLowerCase().replace(/\s+/g, "-");
+
+        orderIndicator.className = `order-indicator ${statusClass}`;
         orderIndicator.innerHTML = `#${order.id}`;
         orderIndicator.onclick = (e) => {
           e.stopPropagation();
@@ -489,8 +517,6 @@ function updateBusinessHours() {
     });
 }
 
-
-
 function showOrderDetails(orderId) {
   fetch("get-order-details.php?id=" + orderId)
     .then((response) => response.json())
@@ -672,6 +698,9 @@ function toggleCompletedOrders() {
 
   console.log("showCompletedOrders is now:", showCompletedOrders);
 
+  // Clear orders cache since filter changed
+  ordersCache = {};
+
   // Refresh the calendar to show/hide completed orders and reload date limits
   renderCalendar(currentDate);
   loadDateLimitsForMonth(currentDate);
@@ -680,7 +709,7 @@ function toggleCompletedOrders() {
 // Order Limit Functions
 function loadOrderLimit() {
   const dailyLimitInput = document.getElementById("dailyLimit");
-  
+
   fetch("get-date-limits.php?get_default=true")
     .then((response) => response.text())
     .then((text) => {
@@ -710,9 +739,14 @@ function loadOrderLimit() {
 function updateDailyLimit() {
   const limit = document.getElementById("dailyLimit").value;
   const limitValue = parseInt(limit);
-  
-  console.log("updateDailyLimit called with value:", limit, "parsed:", limitValue);
-  
+
+  console.log(
+    "updateDailyLimit called with value:",
+    limit,
+    "parsed:",
+    limitValue
+  );
+
   if (!limit || isNaN(limitValue) || limitValue < 0) {
     alert("Please enter a valid limit (0 or greater)");
     return;
@@ -756,7 +790,7 @@ function updateDailyLimit() {
 // Available Today Order Limit Functions
 function loadAvailTodayOrderLimit() {
   const availtodayLimitInput = document.getElementById("availtodayOrderLimit");
-  
+
   fetch("availtoday-order-limit-api.php?action=get_limit")
     .then((response) => response.json())
     .then((data) => {
@@ -1070,14 +1104,17 @@ window.openDateLimitModal = openDateLimitModal;
 window.closeDateLimitModal = closeDateLimitModal;
 window.saveDateLimit = saveDateLimit;
 
-
 // Cleanup Past Dates Function
 function cleanupPastDates() {
   fetch("cleanup-past-dates.php")
     .then((response) => response.json())
     .then((data) => {
       if (data.success) {
-        console.log("Cleaned up past dates:", data.deleted_count, "date(s) removed");
+        console.log(
+          "Cleaned up past dates:",
+          data.deleted_count,
+          "date(s) removed"
+        );
       } else {
         console.warn("Failed to cleanup past dates:", data.error);
       }

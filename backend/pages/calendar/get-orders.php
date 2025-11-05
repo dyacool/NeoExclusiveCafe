@@ -78,11 +78,11 @@ try {
 
     // Add status filter based on showCompletedOrders parameter
     $showCompleted = isset($_GET['showCompleted']) && $_GET['showCompleted'] === 'true';
-    if ($showCompleted) {
-        $query .= " AND LOWER(o.status) IN (LOWER('pending'), LOWER('picked-up'), LOWER('delivered'))";
-    } else {
-        $query .= " AND LOWER(o.status) LIKE LOWER('pending')";
+    if (!$showCompleted) {
+        // When toggle is OFF, hide delivered and picked-up orders
+        $query .= " AND LOWER(o.status) NOT IN ('delivered', 'picked-up')";
     }
+    // When toggle is ON, show all orders (no filter needed)
 
     $query .= " ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC";
 
@@ -125,18 +125,36 @@ try {
             $displayTime = date('h:i A', strtotime($order['pickup_time']));
         }
 
-        // Set color based on order type and status
-        $backgroundColor = '#4CAF50'; // Default green for completed
-        $borderColor = '#388E3C';     // Darker green
-
-        if ($order['status'] === 'Pending') {
-            if ($order['order_type'] === 'Pick-up') {
-                $backgroundColor = '#2196F3'; // Blue for pickup
-                $borderColor = '#1976D2';     // Darker blue
-            } else {
-                $backgroundColor = '#FF9800'; // Orange for delivery
-                $borderColor = '#F57C00';     // Darker orange
-            }
+        // Set color based on order status
+        switch(strtolower($order['status'])) {
+            case 'pending':
+                $backgroundColor = '#FFA500'; // Orange
+                $borderColor = '#FF8C00';
+                break;
+            case 'processing':
+                $backgroundColor = '#2196F3'; // Blue
+                $borderColor = '#1976D2';
+                break;
+            case 'preparing':
+                $backgroundColor = '#FF9800'; // Light orange
+                $borderColor = '#F57C00';
+                break;
+            case 'ready for pickup':
+                $backgroundColor = '#9C27B0'; // Purple
+                $borderColor = '#7B1FA2';
+                break;
+            case 'delivered':
+            case 'picked-up':
+                $backgroundColor = '#4CAF50'; // Green
+                $borderColor = '#388E3C';
+                break;
+            case 'cancelled':
+                $backgroundColor = '#F44336'; // Red
+                $borderColor = '#D32F2F';
+                break;
+            default:
+                $backgroundColor = '#9E9E9E'; // Gray for unknown status
+                $borderColor = '#757575';
         }
 
         $events[] = [
