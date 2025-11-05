@@ -15,11 +15,76 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['order_id']) && isset($
     // Update the order status
     $sql = "UPDATE orders SET status = ? WHERE order_id = ?";
     $stmt = mysqli_prepare($conn, $sql);
+    
+    if (!$stmt) {
+        error_log("Prepare failed: " . mysqli_error($conn));
+        $redirect_to = isset($_POST['redirect_to']) ? $_POST['redirect_to'] : 'view-orders.php';
+        if ($redirect_to === 'order-list.php') {
+            header("Location: order-list.php?error=1");
+        } else {
+            header("Location: view-orders.php?order_id=$order_id&error=1");
+        }
+        exit();
+    }
+    
     mysqli_stmt_bind_param($stmt, "si", $status, $order_id);
     
 if (mysqli_stmt_execute($stmt)) {
     // Log the activity
     logAdminActivity($conn, 'UPDATE', "Changed order #$order_id status to '$status'", 'orders', $order_id);
+    
+    // Create admin notification for status update
+    try {
+        require_once '../admin-includes/notifications/notification.php';
+        $notificationHandler = new NotificationHandler($conn);
+        
+        // Get order and customer details
+        $order_query = "SELECT customer_name, delivery_method, delivery_date, pickup_date, delivery_time, pickup_time,
+                               u.username
+                        FROM orders o
+                        LEFT JOIN users u ON o.customer_id = u.id 
+                        WHERE o.order_id = ?";
+        $order_stmt = mysqli_prepare($conn, $order_query);
+        
+        if (!$order_stmt) {
+            error_log("Order query prepare failed: " . mysqli_error($conn));
+            throw new Exception("Failed to prepare order query");
+        }
+        
+        mysqli_stmt_bind_param($order_stmt, "i", $order_id);
+        mysqli_stmt_execute($order_stmt);
+        $order_result = mysqli_stmt_get_result($order_stmt);
+        $order_data = mysqli_fetch_assoc($order_result);
+        mysqli_stmt_close($order_stmt);
+        
+        if ($order_data) {
+            $customer_name = $order_data['customer_name'];
+            $username = $order_data['username'];
+            $delivery_method = $order_data['delivery_method'];
+            $delivery_date = $order_data['delivery_date'];
+            $pickup_date = $order_data['pickup_date'];
+            $delivery_time = $order_data['delivery_time'];
+            $pickup_time = $order_data['pickup_time'];
+            
+            // Use appropriate date and time based on delivery method
+            $order_date = $delivery_method === 'Delivery' ? $delivery_date : $pickup_date;
+            $order_time = $delivery_method === 'Delivery' ? $delivery_time : $pickup_time;
+            
+            $notificationHandler->createOrderNotification(
+                $order_id,
+                'order_status',
+                $customer_name,
+                $username,
+                $status,
+                $delivery_method,
+                $order_date,
+                $order_time
+            );
+        }
+        
+    } catch (Exception $e) {
+        error_log("Failed to create order status notification: " . $e->getMessage());
+    }
     
     // Revert to original in-app notification + email to customer
     require_once '../../../frontend/pages/notifications/class-notif.php';
@@ -32,6 +97,12 @@ if (mysqli_stmt_execute($stmt)) {
     // Send email to customer about the status change
     try {
         $emailStmt = mysqli_prepare($conn, "SELECT customer_email FROM orders WHERE order_id = ? LIMIT 1");
+        
+        if (!$emailStmt) {
+            error_log("Email query prepare failed: " . mysqli_error($conn));
+            throw new Exception("Failed to prepare email query");
+        }
+        
         mysqli_stmt_bind_param($emailStmt, "i", $order_id);
         mysqli_stmt_execute($emailStmt);
         mysqli_stmt_bind_result($emailStmt, $customer_email);

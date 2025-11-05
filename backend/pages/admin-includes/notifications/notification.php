@@ -18,7 +18,7 @@ class NotificationHandler {
     private function createTableIfNotExists() {
         $sql = "CREATE TABLE IF NOT EXISTS `admin_notifications` (
             `notif_id` int(11) NOT NULL AUTO_INCREMENT,
-            `notif_type` enum('order_new','order_status','order_warning','bulk_new','bulk_status','bulk_payment') NOT NULL,
+            `notif_type` enum('order_new','order_status','order_warning','order_due','order_overdue','bulk_new','bulk_status','bulk_payment','refund_new','refund_status') NOT NULL,
             `notif_title` varchar(255) NOT NULL,
             `notif_message` text NOT NULL,
             `notif_link` varchar(500) DEFAULT NULL,
@@ -81,8 +81,34 @@ class NotificationHandler {
                         $date_time .= ' at ' . date('g:i a', strtotime($delivery_time));
                     }
                 }
-                $title = "Order #{$order_id} - ⚠️ Delivery Alert";
-                $message = "⚠️ Heads up! User {$user_display} placed an order for {$delivery_info}{$date_time} — that's tomorrow. Make sure everything is ready in time.";
+                $title = "Order #{$order_id} - Delivery Alert";
+                $message = "Heads up! User {$user_display} placed an order for {$delivery_info}{$date_time} — that's tomorrow. Make sure everything is ready in time.";
+                break;
+                
+            case 'order_due':
+                $delivery_info = $delivery_method === 'Delivery' ? 'delivery' : 'pickup';
+                $date_time = '';
+                if ($delivery_date && $delivery_date !== '0000-00-00') {
+                    $date_time = ' on ' . date('m/d/y', strtotime($delivery_date));
+                    if ($delivery_time && $delivery_time !== '00:00:00') {
+                        $date_time .= ' at ' . date('g:i a', strtotime($delivery_time));
+                    }
+                }
+                $title = "Order #{$order_id} - Due Today";
+                $message = "Order from {$user_display} is due for {$delivery_info} today{$date_time}. Please ensure it's ready!";
+                break;
+                
+            case 'order_overdue':
+                $delivery_info = $delivery_method === 'Delivery' ? 'delivery' : 'pickup';
+                $date_time = '';
+                if ($delivery_date && $delivery_date !== '0000-00-00') {
+                    $date_time = ' on ' . date('m/d/y', strtotime($delivery_date));
+                    if ($delivery_time && $delivery_time !== '00:00:00') {
+                        $date_time .= ' at ' . date('g:i a', strtotime($delivery_time));
+                    }
+                }
+                $title = "Order #{$order_id} -  OVERDUE";
+                $message = "URGENT: Order from {$user_display} is overdue for {$delivery_info}{$date_time}. Please take immediate action!";
                 break;
                 
             default:
@@ -118,6 +144,104 @@ class NotificationHandler {
         }
         
         return $this->create($type, $title, $message, $base_link, $bulk_order_id);
+    }
+    
+    // Helper method to create refund notifications
+    public function createRefundNotification($refund_id, $order_id, $type, $customer_name, $username = null, $status = null, $refund_amount = null) {
+        $base_link = "/backend/pages/refund/refund-request-lists.php";
+        $user_display = $username ? "@{$username}" : $customer_name;
+        
+        switch ($type) {
+            case 'refund_new':
+                $amount_text = $refund_amount ? ' of ₱' . number_format($refund_amount, 2) : '';
+                $title = "Refund Request #{$refund_id} - New Request";
+                $message = "User {$user_display} submitted a refund request{$amount_text} for Order #{$order_id}. Please review and take action.";
+                break;
+                
+            case 'refund_status':
+                $title = "Refund Request #{$refund_id} - Status Updated";
+                $message = "Refund request from {$user_display} for Order #{$order_id} has been {$status}.";
+                break;
+                
+            default:
+                return false;
+        }
+        
+        return $this->create($type, $title, $message, $base_link, $refund_id);
+    }
+    
+    // Check for due and overdue orders and create notifications
+    public function checkDueAndOverdueOrders() {
+        $today = date('Y-m-d');
+        $yesterday = date('Y-m-d', strtotime('-1 day'));
+        
+        // Check for orders due today (that haven't been completed yet)
+        $due_sql = "SELECT order_id, customer_name, delivery_method, delivery_date, pickup_date, delivery_time, pickup_time 
+                    FROM orders 
+                    WHERE ((delivery_method = 'Delivery' AND delivery_date = ?) OR 
+                           (delivery_method = 'Pick-up' AND pickup_date = ?))
+                    AND status NOT IN ('Delivered', 'Picked-up', 'Completed', 'Cancelled')
+                    AND order_id NOT IN (
+                        SELECT notif_reference_id FROM admin_notifications 
+                        WHERE notif_type = 'order_due' 
+                        AND DATE(created_at) = ?
+                    )";
+        
+        $due_stmt = mysqli_prepare($this->conn, $due_sql);
+        mysqli_stmt_bind_param($due_stmt, "sss", $today, $today, $today);
+        mysqli_stmt_execute($due_stmt);
+        $due_result = mysqli_stmt_get_result($due_stmt);
+        
+        while ($order = mysqli_fetch_assoc($due_result)) {
+            $delivery_date = $order['delivery_method'] === 'Delivery' ? $order['delivery_date'] : $order['pickup_date'];
+            $delivery_time = $order['delivery_method'] === 'Delivery' ? $order['delivery_time'] : $order['pickup_time'];
+            
+            $this->createOrderNotification(
+                $order['order_id'], 
+                'order_due', 
+                $order['customer_name'], 
+                null, 
+                null, 
+                $order['delivery_method'], 
+                $delivery_date, 
+                $delivery_time
+            );
+        }
+        mysqli_stmt_close($due_stmt);
+        
+        // Check for overdue orders (past due date and not completed)
+        $overdue_sql = "SELECT order_id, customer_name, delivery_method, delivery_date, pickup_date, delivery_time, pickup_time 
+                        FROM orders 
+                        WHERE ((delivery_method = 'Delivery' AND delivery_date < ?) OR 
+                               (delivery_method = 'Pick-up' AND pickup_date < ?))
+                        AND status NOT IN ('Delivered', 'Picked-up', 'Completed', 'Cancelled')
+                        AND order_id NOT IN (
+                            SELECT notif_reference_id FROM admin_notifications 
+                            WHERE notif_type = 'order_overdue' 
+                            AND DATE(created_at) = ?
+                        )";
+        
+        $overdue_stmt = mysqli_prepare($this->conn, $overdue_sql);
+        mysqli_stmt_bind_param($overdue_stmt, "sss", $today, $today, $today);
+        mysqli_stmt_execute($overdue_stmt);
+        $overdue_result = mysqli_stmt_get_result($overdue_stmt);
+        
+        while ($order = mysqli_fetch_assoc($overdue_result)) {
+            $delivery_date = $order['delivery_method'] === 'Delivery' ? $order['delivery_date'] : $order['pickup_date'];
+            $delivery_time = $order['delivery_method'] === 'Delivery' ? $order['delivery_time'] : $order['pickup_time'];
+            
+            $this->createOrderNotification(
+                $order['order_id'], 
+                'order_overdue', 
+                $order['customer_name'], 
+                null, 
+                null, 
+                $order['delivery_method'], 
+                $delivery_date, 
+                $delivery_time
+            );
+        }
+        mysqli_stmt_close($overdue_stmt);
     }
     
     // Get recent notifications (limit 10 for dropdown)

@@ -443,7 +443,6 @@ select {
 }
 
 .product-price::before {
-  content: "₱";
   font-size: 1rem;
   opacity: 0.8;
   font-weight: 600;
@@ -608,7 +607,6 @@ select {
 }
 
 .item-subtotal::before {
-  content: "₱";
   font-size: 0.9rem;
   opacity: 0.8;
   margin-right: 2px;

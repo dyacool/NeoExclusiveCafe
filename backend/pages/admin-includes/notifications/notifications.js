@@ -398,6 +398,34 @@ class NotificationSystem {
   startAutoUpdate() {
     // Update unread count every 30 seconds
     this.updateInterval = setInterval(() => {
+      // Check for due orders first (only once per hour)
+      const now = new Date();
+      const lastDueCheck = localStorage.getItem("lastDueOrderCheck");
+      const hoursSinceLastCheck = lastDueCheck
+        ? (now.getTime() - parseInt(lastDueCheck)) / (1000 * 60 * 60)
+        : 999; // Force check if no previous check
+
+      if (hoursSinceLastCheck >= 1) {
+        // Check for due orders every hour
+        fetch("/backend/api/check-due-orders.php", {
+          credentials: "include",
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              localStorage.setItem(
+                "lastDueOrderCheck",
+                now.getTime().toString()
+              );
+              console.log("Due orders check completed");
+            }
+          })
+          .catch((error) => {
+            console.error("Error checking due orders:", error);
+          });
+      }
+
+      // Update notification count
       fetch(
         "/backend/pages/admin-includes/notifications/api.php?action=get_unread_count",
         { credentials: "include" }
