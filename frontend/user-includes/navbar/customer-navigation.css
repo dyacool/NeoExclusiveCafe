@@ -650,6 +650,205 @@ html.homepage-animation .main-nav {
   margin-top: 0;
 }
 
+/* Mobile Notification Dropdown - Modal Style */
+.mobile-notification-dropdown {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.9);
+  width: 90%;
+  max-width: 450px;
+  max-height: 80vh;
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease-in-out;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.mobile-notification-dropdown.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* Modal Overlay for Mobile Notifications */
+.mobile-notification-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease-in-out;
+  z-index: 9998;
+}
+
+.mobile-notification-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Mobile notification dropdown header */
+.mobile-notification-dropdown .dropdown-header {
+  padding: 20px 20px !important;
+  border-radius: 16px 16px 0 0;
+  flex-shrink: 0;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  position: relative !important;
+  z-index: 10000 !important;
+}
+
+/* Disable ::before on mobile dropdown to prevent blocking clicks */
+.mobile-notification-dropdown .dropdown-header::before {
+  pointer-events: none !important;
+  z-index: -1 !important;
+}
+
+.mobile-notification-dropdown .dropdown-header h3 {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  margin: 0 !important;
+  flex-shrink: 0;
+  position: relative !important;
+  z-index: 10001 !important;
+}
+
+.mobile-notification-dropdown .dropdown-header .header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  position: relative !important;
+  z-index: 10002 !important;
+  pointer-events: auto !important;
+}
+
+.mobile-notification-dropdown .dropdown-header .mark-read {
+  padding: 8px 12px !important;
+  font-size: 12px !important;
+  border-radius: 8px !important;
+  white-space: nowrap;
+  position: relative !important;
+  z-index: 10003 !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+.mobile-notification-dropdown .dropdown-header .close-modal {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer !important;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  padding: 0;
+  position: relative !important;
+  z-index: 10004 !important;
+  pointer-events: auto !important;
+}
+
+.mobile-notification-dropdown .dropdown-header .close-modal:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+.mobile-notification-dropdown .dropdown-header .close-modal:active {
+  background: rgba(255, 255, 255, 0.4);
+  transform: rotate(90deg) scale(0.95);
+}
+
+.mobile-notification-dropdown .dropdown-header .close-modal svg {
+  width: 18px;
+  height: 18px;
+  pointer-events: none !important;
+}
+
+/* Notification dropdown content scrollable area */
+.mobile-notification-dropdown .notification-list {
+  overflow-y: auto;
+  max-height: calc(80vh - 180px);
+  padding: 12px !important;
+  flex: 1;
+}
+
+/* Mobile notification items with better spacing */
+.mobile-notification-dropdown .notification-item {
+  padding: 16px 16px !important;
+  margin-bottom: 8px !important;
+  border-radius: 10px !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(203, 213, 192, 0.15) !important;
+}
+
+.mobile-notification-dropdown .notification-item:last-child {
+  border-bottom: none !important;
+  margin-bottom: 0 !important;
+}
+
+.mobile-notification-dropdown .notification-title {
+  font-size: 15px !important;
+  line-height: 1.5 !important;
+  margin-bottom: 6px !important;
+}
+
+.mobile-notification-dropdown .notification-time {
+  font-size: 13px !important;
+  margin-top: 6px !important;
+}
+
+/* Mobile notification loader */
+.mobile-notification-dropdown .notification-loader {
+  padding: 40px 20px !important;
+}
+
+.mobile-notification-dropdown .notification-loader p {
+  font-size: 15px !important;
+}
+
+/* Mobile no notifications message */
+.mobile-notification-dropdown .no-notifications {
+  padding: 40px 20px !important;
+  text-align: center;
+}
+
+.mobile-notification-dropdown .no-notifications p {
+  font-size: 15px !important;
+  color: #666;
+}
+
+/* Mobile dropdown footer */
+.mobile-notification-dropdown .dropdown-footer {
+  padding: 16px 20px !important;
+  border-top: 1px solid rgba(203, 213, 192, 0.2);
+  flex-shrink: 0;
+  background: #f8f9fa;
+  border-radius: 0 0 16px 16px;
+}
+
+.mobile-notification-dropdown .dropdown-footer .view-all-link {
+  font-size: 14px !important;
+  padding: 3px 10px !important;
+  display: block;
+  text-align: center;
+}
+
 .mobile-products-dropdown.active {
   padding: 0;
   max-height: 230px;

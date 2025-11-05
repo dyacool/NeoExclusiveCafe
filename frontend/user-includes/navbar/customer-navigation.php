@@ -497,6 +497,40 @@ if (!$navbar_conn) {
     </nav>
 </div>
 
+<!-- Mobile Notification Modal Overlay -->
+<?php if ($is_user_logged_in && isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'user'): ?>
+<div class="mobile-notification-overlay" id="mobileNotifOverlay" onclick="closeMobileNotifications();"></div>
+
+<!-- Mobile Notification Dropdown - Modal Style -->
+<div class="mobile-notification-dropdown" id="mobileNotifDropdown">
+    <div class="dropdown-header">
+        <h3>Notifications</h3>
+        <div class="header-actions">
+            <button id="mobileMarkAllRead" class="mark-read" title="Mark all as read" style="transition: all 0.3s ease;">Mark all as read</button>
+            <button class="close-modal" id="closeMobileNotif" aria-label="Close notifications" onclick="closeMobileNotifications(); return false;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+    </div>
+    <div class="notification-loader" id="mobileNotificationLoader" style="display: none;">
+        <div class="spinner"></div>
+        <p>Loading notifications...</p>
+    </div>
+    <ul id="mobileNotificationList" class="notification-list">
+        <!-- Notifications will appear dynamically -->
+    </ul>
+    <div class="no-notifications" id="mobileNoNotifications" style="display: none;">
+        <p>No new notifications.</p>
+    </div>
+    <div class="dropdown-footer">
+        <a href="/frontend/pages/notifications/notifications.php" class="view-all-link">View All</a>
+    </div>
+</div>
+<?php endif; ?>
+
 <!-- Logout Confirmation Modal -->
 <div id="logoutModal" class="logout-modal" style="display: none;">
     <div class="logout-modal-overlay"></div>
@@ -517,6 +551,16 @@ if (!$navbar_conn) {
 
 <div class="wrapper">
     <script>
+        // GLOBAL FUNCTION - Define IMMEDIATELY for inline onclick to work
+        function closeMobileNotifications() {
+            const dropdown = document.getElementById('mobileNotifDropdown');
+            const overlay = document.getElementById('mobileNotifOverlay');
+            
+            if (dropdown) dropdown.classList.remove('active');
+            if (overlay) overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
         // SIMPLE IMMEDIATE IMPLEMENTATION - Wait for DOM to be ready
         
         // Wait for elements to be ready, then attach handlers
@@ -597,40 +641,93 @@ if (!$navbar_conn) {
             // NOTIFICATION FUNCTIONALITY  
             const notifLink = document.querySelector('.notification-link');
             const notifDropdown = document.getElementById('notifDropdown');
+            const mobileNotifDropdown = document.getElementById('mobileNotifDropdown');
+            const mobileNotifOverlay = document.getElementById('mobileNotifOverlay');
+            const closeMobileNotif = document.getElementById('closeMobileNotif');
             
-            if (notifLink && notifDropdown) {
+            // Close button functionality - using addEventListener for better reliability
+            if (closeMobileNotif) {
+                closeMobileNotif.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    console.log('Close button clicked!'); // Debug log
+                    
+                    if (mobileNotifDropdown && mobileNotifOverlay) {
+                        mobileNotifDropdown.classList.remove('active');
+                        mobileNotifOverlay.classList.remove('active');
+                        document.body.style.overflow = '';
+                        console.log('Modal closed'); // Debug log
+                    }
+                });
+            }
+            
+            // Also add event delegation in case button is added dynamically
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('#closeMobileNotif')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    console.log('Close button clicked via delegation!'); // Debug log
+                    
+                    const dropdown = document.getElementById('mobileNotifDropdown');
+                    const overlay = document.getElementById('mobileNotifOverlay');
+                    
+                    if (dropdown && overlay) {
+                        dropdown.classList.remove('active');
+                        overlay.classList.remove('active');
+                        document.body.style.overflow = '';
+                        console.log('Modal closed via delegation'); // Debug log
+                    }
+                }
+            });
+            
+            if (notifLink) {
                 notifLink.onclick = function(e) {
                     e.preventDefault();
                     e.stopPropagation();
-
+                    
                     // Check if mobile device (1024px breakpoint)
-                    if (window.innerWidth <= 1024) {
-                        // Mobile: redirect to notifications page instead of dropdown
-                        window.location.href = '/frontend/pages/notifications/notifications.php';
-                        return;
-                    }
-                    
-                    // Desktop: show dropdown
-                    const isActive = notifDropdown.classList.toggle('active');
-                    
-                    // Fetch notifications when dropdown is opened
-                    if (isActive) {
-                        // Show loader immediately
-                        const loader = document.getElementById('notificationLoader');
-                        const notificationList = document.getElementById('notificationList');
-                        const noNotifications = document.getElementById('noNotifications');
+                    if (window.innerWidth <= 1024 && mobileNotifDropdown && mobileNotifOverlay) {
+                        // Mobile: toggle mobile modal and overlay
+                        const isActive = mobileNotifDropdown.classList.toggle('active');
+                        mobileNotifOverlay.classList.toggle('active', isActive);
                         
-                        if (loader) {
-                            loader.style.display = 'flex';
-                        }
-                        if (notificationList) {
-                            notificationList.style.display = 'none';
-                        }
-                        if (noNotifications) {
-                            noNotifications.style.display = 'none';
+                        // Prevent body scroll when modal is open
+                        if (isActive) {
+                            document.body.style.overflow = 'hidden';
+                        } else {
+                            document.body.style.overflow = '';
                         }
                         
-                        fetchNotifications();
+                        // Fetch notifications when dropdown is opened
+                        if (isActive) {
+                            const loader = document.getElementById('mobileNotificationLoader');
+                            const notificationList = document.getElementById('mobileNotificationList');
+                            const noNotifications = document.getElementById('mobileNoNotifications');
+                            
+                            if (loader) loader.style.display = 'flex';
+                            if (notificationList) notificationList.style.display = 'none';
+                            if (noNotifications) noNotifications.style.display = 'none';
+                            
+                            fetchNotifications('mobile');
+                        }
+                    } else if (notifDropdown) {
+                        // Desktop: toggle desktop dropdown
+                        const isActive = notifDropdown.classList.toggle('active');
+                        
+                        // Fetch notifications when dropdown is opened
+                        if (isActive) {
+                            const loader = document.getElementById('notificationLoader');
+                            const notificationList = document.getElementById('notificationList');
+                            const noNotifications = document.getElementById('noNotifications');
+                            
+                            if (loader) loader.style.display = 'flex';
+                            if (notificationList) notificationList.style.display = 'none';
+                            if (noNotifications) noNotifications.style.display = 'none';
+                            
+                            fetchNotifications('desktop');
+                        }
                     }
                 };
             }
@@ -893,11 +990,13 @@ if (!$navbar_conn) {
                     fetchNotificationsRealtime();
                 }
             });
-            function fetchNotifications() {
-                const notificationList = document.getElementById("notificationList");
-                const noNotifications = document.getElementById("noNotifications");
+            function fetchNotifications(type = 'desktop') {
+                const isMobile = type === 'mobile';
+                const prefix = isMobile ? 'mobile' : '';
+                const notificationList = document.getElementById(prefix + (prefix ? 'N' : 'n') + 'otificationList');
+                const noNotifications = document.getElementById(prefix + (prefix ? 'N' : 'n') + 'oNotifications');
                 const notifCount = document.getElementById("notifCount");
-                const loader = document.getElementById("notificationLoader");
+                const loader = document.getElementById(prefix + (prefix ? 'N' : 'n') + 'otificationLoader');
                 
                 if (!notificationList || !noNotifications) return;
                 
@@ -1042,13 +1141,47 @@ if (!$navbar_conn) {
                     mobileSearchBox.classList.remove('active');
                 }
                 
-                // Close notifications
+                // Close desktop notifications
                 if (notifDropdown && notifLink && !notifLink.contains(e.target) && !notifDropdown.contains(e.target)) {
                     notifDropdown.classList.remove('active');
+                }
+                
+                // Close mobile notification modal when clicking overlay or outside modal
+                const mobileNotifDropdownElement = document.getElementById('mobileNotifDropdown');
+                const mobileNotifOverlayElement = document.getElementById('mobileNotifOverlay');
+                
+                if (mobileNotifOverlayElement && mobileNotifDropdownElement) {
+                    // Close if clicking overlay OR if clicking outside both notification link and modal
+                    if (e.target === mobileNotifOverlayElement || 
+                        (mobileNotifDropdownElement.classList.contains('active') && 
+                         !notifLink.contains(e.target) && 
+                         !mobileNotifDropdownElement.contains(e.target))) {
+                        mobileNotifDropdownElement.classList.remove('active');
+                        mobileNotifOverlayElement.classList.remove('active');
+                        document.body.style.overflow = '';
+                    }
                 }
             };
             
         }, 500); // 500ms delay to ensure all HTML elements are parsed and ready
+        
+        // CRITICAL: Close button must work IMMEDIATELY - outside setTimeout
+        document.addEventListener('click', function(e) {
+            // Close mobile notification modal
+            if (e.target.closest('#closeMobileNotif') || e.target.closest('.close-modal')) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const dropdown = document.getElementById('mobileNotifDropdown');
+                const overlay = document.getElementById('mobileNotifOverlay');
+                
+                if (dropdown) dropdown.classList.remove('active');
+                if (overlay) overlay.classList.remove('active');
+                document.body.style.overflow = '';
+                
+                return false;
+            }
+        }, true); // Use capture phase to catch event early
         
         // LOGOUT CONFIRMATION FUNCTIONS
         let logoutType = '';
