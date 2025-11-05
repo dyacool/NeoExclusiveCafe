@@ -15,13 +15,14 @@
     function initAdminRealtimeNotifications() {
         const notifBadge = document.getElementById('notificationBadge');
         if (!notifBadge && !document.getElementById('notificationBellBtn')) {
-            console.log('[Admin Realtime] Not on dashboard, skipping');
-            return;
+            return; // Not on dashboard
         }
         
-        console.log('[Admin Realtime] Initializing...');
-        
-        const realtimeNotifications = new RealtimeNotifications(['new_order', 'order_status', 'notifications']);
+        // Delay connection to not block page load
+        setTimeout(function() {
+            console.log('[Admin Realtime] Connecting...');
+            
+            const realtimeNotifications = new RealtimeNotifications(['new_order', 'order_status', 'notifications']);
         
         realtimeNotifications.on('new_order', function(data) {
             console.log('[Admin Realtime] New order:', data);
@@ -37,8 +38,9 @@
             showRealtimeToast(`Order #${data.order_id} → ${data.status}`, 'info', 5000);
         });
         
-        realtimeNotifications.connect();
-        console.log('[Admin Realtime] Connected');
+            realtimeNotifications.connect();
+            console.log('[Admin Realtime] Connected');
+        }, 2000); // Wait 2 seconds
     }
     
     function showNewOrderAlert(data) {

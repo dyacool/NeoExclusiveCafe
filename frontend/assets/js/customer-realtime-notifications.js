@@ -18,14 +18,15 @@
         // Only initialize if user is logged in
         const notifCount = document.getElementById('notifCount');
         if (!notifCount) {
-            console.log('[Customer Realtime] Not logged in, skipping initialization');
-            return;
+            return; // Not logged in, skip
         }
         
-        console.log('[Customer Realtime] Initializing...');
-        
-        // Initialize realtime connection
-        const realtimeNotifications = new RealtimeNotifications(['order_status', 'notifications']);
+        // Delay connection by 2 seconds to not block page load
+        setTimeout(function() {
+            console.log('[Customer Realtime] Connecting...');
+            
+            // Initialize realtime connection
+            const realtimeNotifications = new RealtimeNotifications(['order_status', 'notifications']);
         
         // Handle order status updates
         realtimeNotifications.on('order_status', function(data) {
@@ -64,10 +65,11 @@
             }
         });
         
-        // Connect to SSE stream
-        realtimeNotifications.connect();
-        
-        console.log('[Customer Realtime] Connected to SSE stream');
+            // Connect to SSE stream
+            realtimeNotifications.connect();
+            
+            console.log('[Customer Realtime] Connected');
+        }, 2000); // Wait 2 seconds after page load
     }
     
     function incrementNotificationBadge() {

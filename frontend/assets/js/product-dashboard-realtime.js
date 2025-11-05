@@ -18,17 +18,20 @@
             return;
         }
         
-        console.log('[Product Dashboard] Initializing realtime updates...');
-        
-        const realtimeNotifications = new RealtimeNotifications(['product_inventory']);
+        // Delay connection to not block page load
+        setTimeout(function() {
+            console.log('[Product Dashboard] Connecting...');
+            
+            const realtimeNotifications = new RealtimeNotifications(['product_inventory']);
         
         realtimeNotifications.on('product_inventory', function(data) {
             console.log('[Product Dashboard] Inventory update:', data);
             updateProductInventory(data);
         });
         
-        realtimeNotifications.connect();
-        console.log('[Product Dashboard] Connected to realtime updates');
+            realtimeNotifications.connect();
+            console.log('[Product Dashboard] Connected');
+        }, 3000); // Wait 3 seconds for product page
     }
     
     function updateProductInventory(data) {
