@@ -513,6 +513,26 @@ try {
 
     error_log("Final order_id to be used: " . $order_id);
 
+    // Broadcast new order notification to admins via realtime system
+    try {
+        require_once '../../../backend/api/event-broadcaster.php';
+        EventBroadcaster::broadcastNewOrder(
+            $order_id,
+            $customer_name,
+            $delivery_method,
+            $total_amount,
+            [
+                'delivery_date' => $delivery_date,
+                'pickup_date' => $pickup_date,
+                'delivery_time' => $delivery_time,
+                'pickup_time' => $pickup_time
+            ]
+        );
+        error_log("Broadcasted new order notification for order ID: $order_id");
+    } catch (Exception $e) {
+        error_log("Failed to broadcast new order: " . $e->getMessage());
+    }
+
     // Create admin notification for new order
     try {
         $notificationHandler = new NotificationHandler($conn);
