@@ -18,3 +18,7 @@
 /assets/refund-proofs/
 /assets/uploaded-images-admin/
 frontend/pages/bulk/test_duplicate_checker.php
+
+# Realtime notification event queue files
+/backend/api/events/*.json
+/backend/api/events/*.lock

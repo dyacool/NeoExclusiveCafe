@@ -148,6 +148,49 @@ try {
     
     logMessage("Successfully saved $inserted_count quantities and $inserted_dates_count dates for product $product_id");
     
+    // Broadcast product inventory updates for each date
+    require_once __DIR__ . '/../../api/event-broadcaster.php';
+    
+    // Get product name for broadcasting
+    $product_name_sql = "SELECT name FROM products WHERE id = ?";
+    $product_name_stmt = mysqli_prepare($conn, $product_name_sql);
+    mysqli_stmt_bind_param($product_name_stmt, "i", $product_id);
+    mysqli_stmt_execute($product_name_stmt);
+    $product_name_result = mysqli_stmt_get_result($product_name_stmt);
+    $product_row = mysqli_fetch_assoc($product_name_result);
+    $product_name = $product_row['name'] ?? 'Unknown Product';
+    mysqli_stmt_close($product_name_stmt);
+    
+    // Broadcast inventory update for the most recent date (today or nearest future date)
+    if (!empty($quantities)) {
+        $today = date('Y-m-d');
+        $dates = array_keys($quantities);
+        sort($dates);
+        
+        // Find today's quantity or the nearest future date
+        $broadcast_date = null;
+        $broadcast_quantity = 0;
+        
+        foreach ($dates as $date) {
+            if ($date >= $today) {
+                $broadcast_date = $date;
+                $broadcast_quantity = intval($quantities[$date]);
+                break;
+            }
+        }
+        
+        // If we found a relevant date, broadcast it
+        if ($broadcast_date !== null) {
+            EventBroadcaster::broadcastProductInventory(
+                $product_id,
+                $broadcast_quantity,
+                $product_name,
+                ['date' => $broadcast_date]
+            );
+            logMessage("Broadcasted inventory update for product $product_id ($product_name): quantity=$broadcast_quantity on $broadcast_date");
+        }
+    }
+    
     echo json_encode([
         'success' => true,
         'message' => 'Quantities and dates updated successfully',

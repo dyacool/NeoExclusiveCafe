@@ -1,0 +1,273 @@
+/**
+ * Realtime Notifications Styles
+ * 
+ * Styles for connection status indicator and notification components
+ */
+
+/* Connection Status Indicator */
+.realtime-connection-status {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+.realtime-connection-status.connected {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.realtime-connection-status.connected::before {
+    content: "●";
+    margin-right: 5px;
+    color: #28a745;
+    animation: pulse 2s infinite;
+}
+
+.realtime-connection-status.disconnected {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.realtime-connection-status.disconnected::before {
+    content: "●";
+    margin-right: 5px;
+    color: #dc3545;
+}
+
+.realtime-connection-status.reconnecting {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.realtime-connection-status.reconnecting::before {
+    content: "●";
+    margin-right: 5px;
+    color: #ffc107;
+    animation: blink 1s infinite;
+}
+
+.realtime-connection-status.failed {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.realtime-connection-status.failed::before {
+    content: "✕";
+    margin-right: 5px;
+    color: #dc3545;
+}
+
+/* Animations */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+@keyframes blink {
+    0%, 50%, 100% {
+        opacity: 1;
+    }
+    25%, 75% {
+        opacity: 0.3;
+    }
+}
+
+/* Notification Badge */
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: #dc3545;
+    color: white;
+    border-radius: 10px;
+    padding: 2px 6px;
+    font-size: 11px;
+    font-weight: bold;
+    min-width: 18px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    animation: badgePop 0.3s ease;
+}
+
+@keyframes badgePop {
+    0% {
+        transform: scale(0);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Notification Toast */
+.realtime-notification-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    min-width: 300px;
+    max-width: 400px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 16px;
+    z-index: 9999;
+    animation: slideIn 0.3s ease;
+    border-left: 4px solid #007bff;
+}
+
+.realtime-notification-toast.success {
+    border-left-color: #28a745;
+}
+
+.realtime-notification-toast.error {
+    border-left-color: #dc3545;
+}
+
+.realtime-notification-toast.warning {
+    border-left-color: #ffc107;
+}
+
+.realtime-notification-toast.info {
+    border-left-color: #17a2b8;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.realtime-notification-toast.closing {
+    animation: slideOut 0.3s ease;
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+}
+
+.realtime-notification-toast-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.realtime-notification-toast-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+}
+
+.realtime-notification-toast-close {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #999;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.realtime-notification-toast-close:hover {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+.realtime-notification-toast-body {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.5;
+}
+
+/* Product Update Highlight */
+.product-updated {
+    animation: highlightProduct 2s ease;
+}
+
+@keyframes highlightProduct {
+    0%, 100% {
+        background-color: transparent;
+    }
+    50% {
+        background-color: #fff3cd;
+    }
+}
+
+/* Order Status Update Highlight */
+.order-status-updated {
+    animation: highlightOrder 1.5s ease;
+}
+
+@keyframes highlightOrder {
+    0%, 100% {
+        background-color: transparent;
+    }
+    50% {
+        background-color: #d4edda;
+    }
+}
+
+/* New Order Pulse */
+.new-order-indicator {
+    animation: newOrderPulse 1s ease infinite;
+}
+
+@keyframes newOrderPulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .realtime-notification-toast {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        min-width: auto;
+        max-width: none;
+    }
+    
+    .realtime-connection-status {
+        font-size: 10px;
+        padding: 3px 8px;
+    }
+}

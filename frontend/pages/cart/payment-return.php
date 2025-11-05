@@ -323,6 +323,22 @@ try {
                 }
             }
             if (!$order_id_created) { throw new Exception('Failed to get new order_id'); }
+            
+            // Broadcast new order notification to admins
+            require_once '../../../backend/api/event-broadcaster.php';
+            EventBroadcaster::broadcastNewOrder(
+                $order_id_created,
+                $customer_name,
+                $delivery_method,
+                $total_amount,
+                [
+                    'delivery_date' => $delivery_date,
+                    'pickup_date' => $pickup_date,
+                    'delivery_time' => $delivery_time,
+                    'pickup_time' => $pickup_time
+                ]
+            );
+            error_log("Broadcasted new order notification for order ID: $order_id_created");
 
             // Insert order_items and update inventory
             $item_sql = "INSERT INTO order_items (order_id, product_name, image_path, price, quantity) VALUES (?,?,?,?,?)";
