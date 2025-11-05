@@ -43,6 +43,10 @@ if (isset($_GET['error'])) {
     }
 }
 
+// Track which form had an error or success
+$showSignupForm = false;
+$showForgotForm = false;
+
 // Handle User Signup
 if (isset($_POST['signup-submit'])) {
     $firstname = trim($_POST["firstname"]);
@@ -175,6 +179,8 @@ if (isset($_POST['signup-submit'])) {
         }
     } else {
         $errorMessage = implode("<br>", $error);
+        // Keep signup form visible when there are errors
+        $showSignupForm = true;
     }
 }
 
@@ -184,12 +190,16 @@ if (isset($_POST['signup-submit'])) {
 if (isset($_POST["reset-submit"])) {
     if (!isset($_POST["email"]) || empty($_POST["email"])) {
         $errorMessage = "Please enter your email.";
+        // Keep forgot form visible on error
+        $showForgotForm = true;
     } else {
         $email = trim($_POST["email"]);
         
         // Validate email format
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $errorMessage = "Please enter a valid email address.";
+            // Keep forgot form visible on error
+            $showForgotForm = true;
         } else {
             $token = bin2hex(random_bytes(16));
             $token_hash = hash("sha256", $token);
@@ -204,6 +214,7 @@ if (isset($_POST["reset-submit"])) {
             if (!$stmt) {
                 error_log("Failed to prepare password reset statement: " . $conn->error);
                 $errorMessage = "Database error occurred. Please try again.";
+                $showForgotForm = true;
             } else {
                 $stmt->bind_param("sss", $token_hash, $expiry, $email);
                 
@@ -237,14 +248,17 @@ if (isset($_POST["reset-submit"])) {
                             </script>";
                         } catch (Exception $e) {
                             $errorMessage = "Message could not be sent. Please try again later.";
+                            $showForgotForm = true;
                             error_log("Email sending failed: " . $mail->ErrorInfo);
                         }
                     } else {
                         $errorMessage = "No account found with this email.";
+                        $showForgotForm = true;
                     }
                 } else {
                     error_log("Database error: " . $stmt->error);
                     $errorMessage = "Database error occurred. Please try again.";
+                    $showForgotForm = true;
                 }
                 $stmt->close();
             }
@@ -303,6 +317,12 @@ if (isset($_POST["signin-submit"])) {
                             $_SESSION["user_firstname"] = $user["firstname"];
                             $_SESSION["user_lastname"] = $user["lastname"];
                             $_SESSION["user_role"] = "user";
+                            
+                            // Store profile picture information in session for persistence
+                            if (!empty($user["cloud_url"])) {
+                                $_SESSION["user_profile_image"] = $user["cloud_url"];
+                                $_SESSION["user_profile_public_id"] = $user["cloud_public_id"] ?? '';
+                            }
 
                             // Set flag for navbar animation on next page load
                             echo "<script>
@@ -713,6 +733,17 @@ if (isset($_POST["signin-submit"])) {
                 // Show the requested form
                 if (formToShow) formToShow.classList.remove('hidden');
             }
+
+            // Initialize correct form based on PHP conditions
+            <?php if ($showSignupForm): ?>
+                showForm(signupForm);
+                if (signupForm) signupForm.classList.add('fade-in');
+            <?php elseif ($showForgotForm): ?>
+                showForm(forgotForm);
+                if (forgotForm) forgotForm.classList.add('fade-in');
+            <?php else: ?>
+                showForm(loginForm);
+            <?php endif; ?>
 
             // Form switching functionality
             if (showSignupLink) {

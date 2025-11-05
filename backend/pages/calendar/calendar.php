@@ -108,7 +108,7 @@ if ($count_result) {
                 <!-- Calendar Loader -->
                 <div id="calendarLoader" class="calendar-loader">
                     <div class="loader-spinner"></div>
-                    <p>Loading orders...</p>
+                    <p>Loading...</p>
                 </div>
                 
                 <div class="calendar-header">

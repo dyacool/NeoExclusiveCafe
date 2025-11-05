@@ -40,16 +40,27 @@ if (empty($username) && isset($row['username'])) {
     $username = $row['username'];
 }
 
-// Determine profile image url - prioritize Cloudinary
+// Determine profile image url - prioritize Cloudinary from session first, then database
 $profile_image_url = '';
 $profile_public_id = '';
 $has_profile_image = false;
 
-if (isset($row['cloud_url']) && !empty(trim($row['cloud_url']))) {
+// Check session first for profile image (set during login)
+if (isset($_SESSION['user_profile_image']) && !empty(trim($_SESSION['user_profile_image']))) {
+    $profile_image_url = trim($_SESSION['user_profile_image']);
+    $profile_public_id = $_SESSION['user_profile_public_id'] ?? '';
+    $has_profile_image = true;
+} elseif (isset($row['cloud_url']) && !empty(trim($row['cloud_url']))) {
+    // Fallback to database
     $profile_image_url = trim($row['cloud_url']);
     $profile_public_id = $row['cloud_public_id'] ?? '';
     $has_profile_image = true;
+    
+    // Also update session for consistency
+    $_SESSION['user_profile_image'] = $profile_image_url;
+    $_SESSION['user_profile_public_id'] = $profile_public_id;
 } elseif (isset($row['profile_image']) && !empty(trim($row['profile_image']))) {
+    // Fallback to old profile_image field
     $db_path = trim($row['profile_image']);
     if ($db_path[0] !== '/') {
         $db_path = '/' . $db_path;
