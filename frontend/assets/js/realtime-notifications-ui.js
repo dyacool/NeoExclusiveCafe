@@ -60,7 +60,10 @@ function showRealtimeToast(message, type = 'info', duration = 5000) {
  */
 function updateNotificationBadge(elementId, count) {
     const badge = document.getElementById(elementId);
-    if (!badge) return;
+    if (!badge) {
+        // Element doesn't exist on this page, silently return
+        return;
+    }
     
     if (count > 0) {
         badge.textContent = count > 99 ? '99+' : count;

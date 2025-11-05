@@ -377,11 +377,13 @@ if (!isset($NOTIFICATION_BELL_RENDERED) && $is_dashboard_page) {
     $handler = new NotificationHandler($conn);
     $unreadCount = $handler->getUnreadCount();
 ?>
-<!-- Include realtime notification system -->
+<!-- Realtime notification system (disabled for now - uncomment to enable) -->
+<!--
 <link rel="stylesheet" href="/frontend/assets/css/realtime-notifications.css">
 <script src="/frontend/assets/js/realtime-notifications.js"></script>
 <script src="/frontend/assets/js/realtime-notifications-ui.js"></script>
 <script src="/backend/assets/js/admin-realtime-notifications.js"></script>
+-->
 
 <!-- Notification Bell Icon -->
 <div class="notification-bell-container">

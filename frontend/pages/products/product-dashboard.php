@@ -1799,11 +1799,13 @@ function closeProductModal() {
     });
 </script>
 
-<!-- Include realtime notification system for product updates -->
+<!-- Realtime notification system (disabled for now - uncomment to enable) -->
+<!--
 <link rel="stylesheet" href="/frontend/assets/css/realtime-notifications.css">
 <script src="/frontend/assets/js/realtime-notifications.js"></script>
 <script src="/frontend/assets/js/realtime-notifications-ui.js"></script>
 <script src="/frontend/assets/js/product-dashboard-realtime.js"></script>
+-->
 
 <style>
     :root {

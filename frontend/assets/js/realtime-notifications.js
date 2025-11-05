@@ -284,6 +284,11 @@ class RealtimeNotifications {
             indicator.textContent = statusText[status] || status;
         }
         
+        // Only log important status changes
+        if (status === 'connected' || status === 'failed') {
+            console.log('[RealtimeNotifications] Status:', status);
+        }
+        
         // Trigger custom event for other components
         const event = new CustomEvent('realtimeConnectionStatus', {
             detail: { status }
