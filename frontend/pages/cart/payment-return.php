@@ -4,11 +4,14 @@
  * Handles payment success/failure redirects from PayMongo
  */
 
+// Determine domain based on environment
+$domain = (strpos($_SERVER['HTTP_HOST'], 'neocafe.shop') !== false) ? 'neocafe.shop' : 'neocafe.cafe';
+
 session_set_cookie_params([
     'lifetime' => 0,
     'httponly' => true,
     'samesite' => 'Strict',
-    'domain' => 'neocafe.cafe'
+    'domain' => $domain
 ]);
 session_start();
 
@@ -107,6 +110,28 @@ $paymongo = new PayMongoAPI();
 
 try {
     if ($status === 'success') {
+        // Check if this payment has already been processed to prevent duplicates
+        $payment_id = $pending_payment['source_id'] ?? ($pending_payment['payment_intent_id'] ?? null);
+        if ($payment_id) {
+            $check_sql = "SELECT order_id FROM orders WHERE payment_id = ? LIMIT 1";
+            $check_stmt = $conn->prepare($check_sql);
+            if ($check_stmt) {
+                $check_stmt->bind_param("s", $payment_id);
+                $check_stmt->execute();
+                $check_result = $check_stmt->get_result();
+                if ($existing_order = $check_result->fetch_assoc()) {
+                    error_log("Payment $payment_id already processed for order " . $existing_order['order_id'] . ". Skipping duplicate.");
+                    $check_stmt->close();
+                    
+                    // Clear pending payment and redirect to success
+                    unset($_SESSION['pending_payment']);
+                    header("Location: payment-success.php?type=$type&order_id=" . $existing_order['order_id']);
+                    exit();
+                }
+                $check_stmt->close();
+            }
+        }
+        
         // Treat as successful payment and persist the order + inventory updates
         error_log("Payment succeeded. Creating order and updating inventory.");
 
@@ -323,6 +348,22 @@ try {
                 }
             }
             if (!$order_id_created) { throw new Exception('Failed to get new order_id'); }
+            
+            // Broadcast new order notification to admins
+            require_once '../../../backend/api/event-broadcaster.php';
+            EventBroadcaster::broadcastNewOrder(
+                $order_id_created,
+                $customer_name,
+                $delivery_method,
+                $total_amount,
+                [
+                    'delivery_date' => $delivery_date,
+                    'pickup_date' => $pickup_date,
+                    'delivery_time' => $delivery_time,
+                    'pickup_time' => $pickup_time
+                ]
+            );
+            error_log("Broadcasted new order notification for order ID: $order_id_created");
 
             // Insert order_items and update inventory
             $item_sql = "INSERT INTO order_items (order_id, product_name, image_path, price, quantity) VALUES (?,?,?,?,?)";

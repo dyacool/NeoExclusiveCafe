@@ -33,6 +33,30 @@ try {
         
         if ($stmt->execute()) {
             if ($stmt->affected_rows > 0) {
+                // Broadcast order status update event
+                try {
+                    require_once __DIR__ . '/../../api/event-broadcaster.php';
+                    
+                    // Get customer_id for the order
+                    $customer_query = "SELECT customer_id FROM orders WHERE order_id = ?";
+                    $customer_stmt = $conn->prepare($customer_query);
+                    $customer_stmt->bind_param("i", $orderId);
+                    $customer_stmt->execute();
+                    $customer_result = $customer_stmt->get_result();
+                    $customer_data = $customer_result->fetch_assoc();
+                    $customer_stmt->close();
+                    
+                    if ($customer_data) {
+                        EventBroadcaster::broadcastOrderStatus(
+                            $orderId,
+                            'Completed',
+                            $customer_data['customer_id']
+                        );
+                    }
+                } catch (Exception $e) {
+                    error_log("Failed to broadcast order completion: " . $e->getMessage());
+                }
+                
                 // Send notification and email to customer (reuse flow in update-status.php)
                 require_once __DIR__ . '/../admin-includes/mailer.php';
                 require_once __DIR__ . '/../../frontend/pages/notifications/class-notif.php';

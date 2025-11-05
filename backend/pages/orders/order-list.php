@@ -759,5 +759,43 @@
             }, 3000);
         }
     </script>
+
+    <!-- Realtime notification system for order updates -->
+    <link rel="stylesheet" href="/frontend/assets/css/realtime-notifications.css">
+    <script src="/frontend/assets/js/realtime-notifications.js"></script>
+    <script src="/frontend/assets/js/realtime-notifications-ui.js"></script>
+    <script>
+        // Initialize realtime notifications for order list page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('[Order List] Initializing realtime notifications...');
+            
+            // Initialize realtime connection for new orders
+            const realtimeNotifications = new RealtimeNotifications(['new_order']);
+            
+            // Handle new order events
+            realtimeNotifications.on('new_order', function(data) {
+                console.log('[Order List] New order received:', data);
+                
+                // Show toast notification
+                showRealtimeToast(
+                    `New ${data.order_type} order #${data.order_id} from ${data.customer_name} - ₱${parseFloat(data.total).toFixed(2)}`,
+                    'success',
+                    5000
+                );
+                
+                // Play notification sound
+                playNotificationSound();
+                
+                // Refresh the order list to show the new order
+                console.log('[Order List] Refreshing order list...');
+                fetchOrders();
+            });
+            
+            // Connect to SSE stream
+            realtimeNotifications.connect();
+            
+            console.log('[Order List] Realtime notifications initialized');
+        });
+    </script>
 </body>
 </html>

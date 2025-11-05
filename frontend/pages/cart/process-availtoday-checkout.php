@@ -614,6 +614,17 @@ try {
     error_log("Order ID: $order_id created successfully");
     error_log("========================================");
     
+    // Broadcast new order notification to admins
+    require_once '../../../backend/api/event-broadcaster.php';
+    EventBroadcaster::broadcastNewOrder(
+        $order_id,
+        $customer_full_name,
+        $delivery_method_enum,
+        $final_total,
+        ['pickup_date' => $today_date, 'pickup_time' => $pickup_time]
+    );
+    error_log("Broadcasted new order notification for order ID: $order_id");
+    
     // Send email notification to admin
     $orderDetails = [
         'order_id' => $order_id,

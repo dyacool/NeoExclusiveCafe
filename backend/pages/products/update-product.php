@@ -359,6 +359,18 @@ try {
         // Log the activity
         logAdminActivity($conn, 'UPDATE', "Updated product: $name (ID: $id)", 'products', $id);
         
+        // Broadcast product inventory update if quantity changed
+        // Only broadcast for non-SDO products (status_id != 4) since SDO uses date-specific quantities
+        if ($status_id != 4) {
+            require_once '../../api/event-broadcaster.php';
+            EventBroadcaster::broadcastProductInventory(
+                $id,
+                $quantity,
+                $name
+            );
+            error_log("Broadcasted inventory update for product $id ($name): quantity=$quantity");
+        }
+        
         echo json_encode(['success' => true]);
     } else {
         throw new Exception('Failed to update product');
