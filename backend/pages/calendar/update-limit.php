@@ -93,6 +93,11 @@ try {
                 handleError("Cannot set limits for past dates. Input date: $date, Current date: $currentDate. Please select today or a future date.");
             }
             
+            // Get not_accepting_orders value - use checkbox value if provided, otherwise infer from limit
+            $notAcceptingOrders = isset($data['not_accepting_orders']) ? intval($data['not_accepting_orders']) : ($limit === 0 ? 1 : 0);
+            
+            error_log("Date: $date, Limit: $limit, Not Accepting: $notAcceptingOrders");
+            
             // Update or insert date limit
             $query = "INSERT INTO date_limits (date, limit_value, not_accepting_orders) 
                      VALUES (?, ?, ?) 
@@ -100,7 +105,6 @@ try {
                      limit_value = VALUES(limit_value), 
                      not_accepting_orders = VALUES(not_accepting_orders)";
             
-            $notAcceptingOrders = ($limit == 0);
             $stmt = $conn->prepare($query);
             if (!$stmt) {
                 throw new Exception("Failed to prepare statement: " . $conn->error);
@@ -111,8 +115,17 @@ try {
                 throw new Exception("Failed to update date limit: " . $stmt->error);
             }
             
+            $affectedRows = $stmt->affected_rows;
+            if ($affectedRows === 1) {
+                error_log("Date limit INSERTED for date: $date (new record created)");
+            } else if ($affectedRows === 2) {
+                error_log("Date limit UPDATED for date: $date (existing record modified)");
+            } else {
+                error_log("Date limit unchanged for date: $date (same values, affected rows: $affectedRows)");
+            }
+            
             // Update orderdate_status
-            $status = ($limit === 0) ? 'not_accepting' : 'accepting';
+            $status = ($notAcceptingOrders === 1) ? 'not_accepting' : 'accepting';
             $query = "INSERT INTO orderdate_status (date, status) 
                      VALUES (?, ?)
                      ON DUPLICATE KEY UPDATE status = VALUES(status)";
@@ -127,7 +140,7 @@ try {
                 throw new Exception("Failed to update date status: " . $stmt->error);
             }
             
-            error_log("Updated date $date: limit=$limit, status=$status");
+            error_log("Updated date $date: limit=$limit, not_accepting=$notAcceptingOrders, status=$status");
 
         } else {
             throw new Exception('Invalid update type');

@@ -55,7 +55,7 @@ try {
 
     error_log("Processing dates: start=$start, end=$end");
 
-    // Get all orders within the date range
+    // Get regular orders within the date range
     $query = "SELECT 
                 o.order_id,
                 o.order_date,
@@ -68,7 +68,8 @@ try {
                 o.delivery_time,
                 o.total_amount,
                 c.contact as customer_contact,
-                c.address as customer_address
+                c.address as customer_address,
+                'regular' as order_category
               FROM orders o
               LEFT JOIN customers c ON o.customer_id = c.customer_id
               WHERE (
@@ -82,9 +83,28 @@ try {
         // When toggle is OFF, hide delivered and picked-up orders
         $query .= " AND LOWER(o.status) NOT IN ('delivered', 'picked-up')";
     }
-    // When toggle is ON, show all orders (no filter needed)
-
-    $query .= " ORDER BY COALESCE(o.pickup_date, o.delivery_date) ASC, o.pickup_time ASC";
+    
+    // Union with bulk orders - only show approved, payment_received, ready_for_delivery, and completed
+    $query .= " UNION ALL
+              SELECT 
+                b.id as order_id,
+                b.created_at as order_date,
+                b.order_type,
+                b.name as customer_name,
+                b.status,
+                b.date_needed as pickup_date,
+                b.date_needed as delivery_date,
+                b.time_needed as pickup_time,
+                b.time_needed as delivery_time,
+                b.total_amount,
+                b.contact as customer_contact,
+                COALESCE(b.delivery_address, b.billing_address) as customer_address,
+                'bulk' as order_category
+              FROM bulk_orders b
+              WHERE b.date_needed BETWEEN ? AND ?
+              AND b.status IN ('approved', 'payment_received', 'ready_for_delivery', 'completed')";
+    
+    $query .= " ORDER BY COALESCE(pickup_date, delivery_date) ASC, pickup_time ASC";
 
     error_log("Executing query: " . $query);
     error_log("With parameters: start=$start, end=$end, showCompleted=" . ($showCompleted ? 'true' : 'false'));
@@ -96,7 +116,7 @@ try {
         ]);
     }
 
-    $stmt->bind_param("ssss", $start, $end, $start, $end);
+    $stmt->bind_param("ssssss", $start, $end, $start, $end, $start, $end);
     
     if (!$stmt->execute()) {
         handleError("Failed to execute query: " . $stmt->error, [
@@ -125,7 +145,9 @@ try {
             $displayTime = date('h:i A', strtotime($order['pickup_time']));
         }
 
-        // Set color based on order status
+        // Set color based on order status and type
+        $isBulk = $order['order_category'] === 'bulk';
+        
         switch(strtolower($order['status'])) {
             case 'pending':
                 $backgroundColor = '#FFA500'; // Orange
@@ -140,11 +162,21 @@ try {
                 $borderColor = '#F57C00';
                 break;
             case 'ready for pickup':
+            case 'ready_for_delivery':
                 $backgroundColor = '#9C27B0'; // Purple
                 $borderColor = '#7B1FA2';
                 break;
+            case 'approved':
+                $backgroundColor = '#00BCD4'; // Cyan for bulk approved
+                $borderColor = '#0097A7';
+                break;
+            case 'payment_received':
+                $backgroundColor = '#8BC34A'; // Light Green for payment received
+                $borderColor = '#689F38';
+                break;
             case 'delivered':
             case 'picked-up':
+            case 'completed':
                 $backgroundColor = '#4CAF50'; // Green
                 $borderColor = '#388E3C';
                 break;
@@ -157,11 +189,24 @@ try {
                 $borderColor = '#757575';
         }
 
+        // Format order ID display
+        if ($isBulk) {
+            // For bulk orders: "BULK" + last 4 digits
+            $orderIdStr = $order['order_id'];
+            $last4 = substr(str_pad($orderIdStr, 4, '0', STR_PAD_LEFT), -4);
+            $displayId = "BULK" . $last4;
+            $titlePrefix = "Bulk Order #" . $orderIdStr;
+        } else {
+            // For regular orders: just the number
+            $displayId = "#" . $order['order_id'];
+            $titlePrefix = "Order #" . str_pad($order['order_id'], 2, '0', STR_PAD_LEFT);
+        }
+
         $events[] = [
             'id' => $order['order_id'],
-            'date' => $eventDate, // Add the date field for our custom calendar
-            'start' => $eventDateTime, // Keep for compatibility
-            'title' => "Order #" . str_pad($order['order_id'], 2, '0', STR_PAD_LEFT) . " - " . $order['customer_name'],
+            'date' => $eventDate,
+            'start' => $eventDateTime,
+            'title' => $titlePrefix . " - " . $order['customer_name'],
             'backgroundColor' => $backgroundColor,
             'borderColor' => $borderColor,
             'className' => strtolower($order['order_type']) . ' ' . strtolower($order['status']),
@@ -172,7 +217,9 @@ try {
                 'address' => $order['customer_address'],
                 'time' => $displayTime,
                 'status' => $order['status'],
-                'total_amount' => $order['total_amount']
+                'total_amount' => $order['total_amount'],
+                'is_bulk' => $isBulk,
+                'display_id' => $displayId
             ]
         ];
     }

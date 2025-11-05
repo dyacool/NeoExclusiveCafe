@@ -105,10 +105,24 @@ if ($count_result) {
 
             <!-- Right Calendar Section -->
             <div class="calendar-section">
+                <!-- Calendar Loader -->
+                <div id="calendarLoader" class="calendar-loader">
+                    <div class="loader-spinner"></div>
+                    <p>Loading orders...</p>
+                </div>
+                
                 <div class="calendar-header">
-                    <button id="prev">&lt;</button>
+                    <button id="prev">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                    </button>
                     <span id="monthYear"></span>
-                    <button id="next">&gt;</button>
+                    <button id="next">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </button>
                 </div>
                 <div class="calendar-container">
                     <div id="calendar">

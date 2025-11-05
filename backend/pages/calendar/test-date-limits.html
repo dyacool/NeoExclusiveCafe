@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Test Date Limit Updates</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+      }
+      .test-section {
+        background: #f5f5f5;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 5px;
+      }
+      button {
+        background: #4caf50;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 5px;
+      }
+      button:hover {
+        background: #45a049;
+      }
+      .result {
+        background: white;
+        padding: 10px;
+        margin: 10px 0;
+        border-left: 4px solid #2196f3;
+      }
+      .error {
+        border-left-color: #f44336;
+      }
+      .success {
+        border-left-color: #4caf50;
+      }
+      pre {
+        background: #263238;
+        color: #aed581;
+        padding: 10px;
+        border-radius: 4px;
+        overflow-x: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Date Limit Update Test</h1>
+    <p>
+      This page tests if date limit updates are working correctly (no duplicates
+      should be created).
+    </p>
+
+    <div class="test-section">
+      <h3>Test 1: Update same date multiple times</h3>
+      <p>This should UPDATE the existing record, not create duplicates.</p>
+      <button onclick="testMultipleUpdates()">Run Test</button>
+      <div id="test1-result"></div>
+    </div>
+
+    <div class="test-section">
+      <h3>Test 2: Check for duplicates in database</h3>
+      <button onclick="checkDuplicates()">Check Database</button>
+      <div id="test2-result"></div>
+    </div>
+
+    <script>
+      async function testMultipleUpdates() {
+        const resultDiv = document.getElementById("test1-result");
+        resultDiv.innerHTML = "<p>Running test...</p>";
+
+        const testDate = "2025-11-22";
+        const updates = [
+          { limit: 5, not_accepting: 0 },
+          { limit: 10, not_accepting: 0 },
+          { limit: 2, not_accepting: 1 },
+          { limit: 0, not_accepting: 1 },
+        ];
+
+        let results = [];
+
+        for (let i = 0; i < updates.length; i++) {
+          const update = updates[i];
+          try {
+            const response = await fetch("update-limit.php", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                type: "date",
+                date: testDate,
+                limit: update.limit,
+                not_accepting_orders: update.not_accepting,
+              }),
+            });
+
+            const data = await response.json();
+            results.push(
+              `Update ${i + 1}: limit=${update.limit}, not_accepting=${
+                update.not_accepting
+              } - ${data.success ? "✓ SUCCESS" : "✗ FAILED"}`
+            );
+
+            if (!data.success) {
+              results.push(`  Error: ${data.error}`);
+            }
+          } catch (error) {
+            results.push(`Update ${i + 1}: ✗ ERROR - ${error.message}`);
+          }
+
+          // Small delay between updates
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+
+        resultDiv.innerHTML = `
+                <div class="result success">
+                    <h4>Test Results:</h4>
+                    <pre>${results.join("\n")}</pre>
+                    <p><strong>Expected:</strong> All 4 updates should succeed</p>
+                    <p><strong>Database should have:</strong> Only 1 row for date ${testDate}</p>
+                </div>
+            `;
+      }
+
+      async function checkDuplicates() {
+        const resultDiv = document.getElementById("test2-result");
+        resultDiv.innerHTML = "<p>Checking database...</p>";
+
+        try {
+          const response = await fetch("check-duplicates.php");
+          const data = await response.json();
+
+          if (data.success) {
+            const duplicates = data.duplicates;
+            const allDates = data.all_dates;
+
+            let html =
+              '<div class="result ' +
+              (duplicates.length === 0 ? "success" : "error") +
+              '">';
+            html += "<h4>Database Check Results:</h4>";
+
+            if (duplicates.length === 0) {
+              html += "<p>✓ No duplicate dates found! Database is clean.</p>";
+            } else {
+              html +=
+                "<p>✗ Found " + duplicates.length + " duplicate date(s):</p>";
+              html += "<pre>" + JSON.stringify(duplicates, null, 2) + "</pre>";
+            }
+
+            html += "<h4>All Date Limits:</h4>";
+            html += "<pre>" + JSON.stringify(allDates, null, 2) + "</pre>";
+            html += "</div>";
+
+            resultDiv.innerHTML = html;
+          } else {
+            resultDiv.innerHTML =
+              '<div class="result error">Error: ' + data.error + "</div>";
+          }
+        } catch (error) {
+          resultDiv.innerHTML =
+            '<div class="result error">Error: ' + error.message + "</div>";
+        }
+      }
+    </script>
+  </body>
+</html>
