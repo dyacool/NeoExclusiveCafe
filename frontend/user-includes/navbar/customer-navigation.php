@@ -401,12 +401,6 @@ if (!$navbar_conn) {
     </nav>
 </div>
 
-<<<<<<< HEAD
-
-<div class="wrapper">
-    <script>
-        // SIMPLE IMMEDIATE IMPLEMENTATION - NO DOMContentLoaded delays
-=======
 <!-- Mobile Notification Modal Overlay -->
 <?php if ($is_user_logged_in && isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'user'): ?>
 <div class="mobile-notification-overlay" id="mobileNotifOverlay" onclick="closeMobileNotifications();"></div>
@@ -419,7 +413,7 @@ if (!$navbar_conn) {
             <button id="mobileMarkAllRead" class="mark-read" title="Mark all as read" style="transition: all 0.3s ease;">Mark all as read</button>
             <button class="close-modal" id="closeMobileNotif" aria-label="Close notifications" onclick="closeMobileNotifications(); return false;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="18" y1="6" x2="6" x2="18" y2="18"></line>
                     <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
             </button>
@@ -472,7 +466,6 @@ if (!$navbar_conn) {
         }
         
         // SIMPLE IMMEDIATE IMPLEMENTATION - Wait for DOM to be ready
->>>>>>> 68b474bc7a0a72238f49dcb5e32b6edf4b2e9352
         
         // Wait just a moment for HTML to be ready, then attach handlers immediately
         setTimeout(() => {
@@ -599,20 +592,6 @@ if (!$navbar_conn) {
                     e.stopPropagation();
                     
                     // Check if mobile device (1024px breakpoint)
-<<<<<<< HEAD
-                    if (window.innerWidth <= 1024) {
-                        // Mobile: redirect to notifications page instead of dropdown
-                        window.location.href = '/frontend/pages/notifications/notifications.php';
-                        return;
-                    }
-                    
-                    // Desktop: show dropdown
-                    const isActive = notifDropdown.classList.toggle('active');
-                    
-                    // Fetch notifications when dropdown is opened
-                    if (isActive) {
-                        fetchNotifications();
-=======
                     if (window.innerWidth <= 1024 && mobileNotifDropdown && mobileNotifOverlay) {
                         // Mobile: toggle mobile modal and overlay
                         const isActive = mobileNotifDropdown.classList.toggle('active');
@@ -653,18 +632,10 @@ if (!$navbar_conn) {
                             
                             fetchNotifications('desktop');
                         }
->>>>>>> 68b474bc7a0a72238f49dcb5e32b6edf4b2e9352
                     }
                 };
             }
             
-<<<<<<< HEAD
-            // NOTIFICATION FETCHING FUNCTION
-            function fetchNotifications() {
-                const notificationList = document.getElementById("notificationList");
-                const noNotifications = document.getElementById("noNotifications");
-                const notifCount = document.getElementById("notifCount");
-=======
             // MARK ALL AS READ FUNCTIONALITY FOR DROPDOWN
             const markAllReadBtn = document.getElementById('markAllRead');
             if (markAllReadBtn) {
@@ -930,7 +901,6 @@ if (!$navbar_conn) {
                 const noNotifications = document.getElementById(prefix + (prefix ? 'N' : 'n') + 'oNotifications');
                 const notifCount = document.getElementById("notifCount");
                 const loader = document.getElementById(prefix + (prefix ? 'N' : 'n') + 'otificationLoader');
->>>>>>> 68b474bc7a0a72238f49dcb5e32b6edf4b2e9352
                 
                 if (!notificationList || !noNotifications) return;
                 
@@ -1075,9 +1045,6 @@ if (!$navbar_conn) {
                 }
             };
             
-<<<<<<< HEAD
-        }, 100); // Just 100ms delay to ensure HTML is parsed
-=======
         }, 500); // 500ms delay to ensure all HTML elements are parsed and ready
         
         // CRITICAL: Close button must work IMMEDIATELY - outside setTimeout
@@ -1162,7 +1129,6 @@ if (!$navbar_conn) {
         window.addEventListener('orientationchange', function() {
             setTimeout(setNavbarHeight, 100); // Small delay for orientation change
         });
->>>>>>> 68b474bc7a0a72238f49dcb5e32b6edf4b2e9352
         
     </script>
     
