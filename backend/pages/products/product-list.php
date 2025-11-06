@@ -516,17 +516,45 @@
                                                 <span class='price-text'>₱" . number_format($row['price'], 2) . "</span>
                                             </td>
                                             <td>
-                                                <div class='status-container'>
-                                                    <span class='status-badge status-" . $statusClass . "'>" . $statusBadgeText . "</span>";
+                                                <div class='status-container'>";
                                                     
-                                                    // Show badge for availtoday_status
-                                                    if (!empty($row['availtoday_status_name'])) {
-                                                        if ($row['status_id'] == 4) {
-                                                            // Same Day Order - show "For [status]" (blue)
-                                                            echo "<span class='availtoday-badge'>S.D.O.: " . htmlspecialchars($row['availtoday_status_name']) . "</span>";
-                                                        } else if ($row['status_id'] == 1 || $row['status_id'] == 2 || $row['status_id'] == 3) {
-                                                            // Pick Up, Delivery, or Delivery or Pick Up - show "Also for SDO: [status]" (green)
-                                                            echo "<span class='availtoday-badge-also'>S.D.O.: " . htmlspecialchars($row['availtoday_status_name']) . "</span>";
+                                                    // Determine if product has both Pre-Order and Same Day Order
+                                                    $hasPreOrder = in_array($row['status_id'], [1, 2, 3]);
+                                                    $hasSameDayOrder = !empty($row['availtoday_status_name']);
+                                                    
+                                                    // 1. Main Status Badge
+                                                    if ($hasPreOrder && $hasSameDayOrder) {
+                                                        echo "<span class='status-badge status-both'>Pre-Order & Same Day Order</span>";
+                                                    } else if ($row['status_id'] == 4) {
+                                                        echo "<span class='status-badge status-same-day-order'>Same Day Order</span>";
+                                                    } else {
+                                                        echo "<span class='status-badge status-pre-order'>Pre-Order</span>";
+                                                    }
+                                                    
+                                                    // 2. Delivery Type Badge(s)
+                                                    // Pre-Order Delivery Type
+                                                    if ($hasPreOrder) {
+                                                        $preOrderDeliveryType = $row['status_name'] ?? '';
+                                                        
+                                                        // If "Delivery or Pick-Up", show as "Delivery/Pick-Up"
+                                                        if (stripos($preOrderDeliveryType, 'Delivery or Pick-Up') !== false || 
+                                                            stripos($preOrderDeliveryType, 'Delivery or Pickup') !== false) {
+                                                            echo "<span class='delivery-badge delivery-preorder'>PO: Delivery/Pick-Up</span>";
+                                                        } else {
+                                                            echo "<span class='delivery-badge delivery-preorder'>PO: " . htmlspecialchars($preOrderDeliveryType) . "</span>";
+                                                        }
+                                                    }
+                                                    
+                                                    // Same Day Order Delivery Type
+                                                    if ($hasSameDayOrder) {
+                                                        $sameDayDeliveryType = $row['availtoday_status_name'] ?? '';
+                                                        
+                                                        // If "Delivery or Pick-Up", show as "Delivery/Pick-Up"
+                                                        if (stripos($sameDayDeliveryType, 'Delivery or Pick-Up') !== false || 
+                                                            stripos($sameDayDeliveryType, 'Delivery or Pickup') !== false) {
+                                                            echo "<span class='delivery-badge delivery-sameday'>SDO: Delivery/Pick-Up</span>";
+                                                        } else {
+                                                            echo "<span class='delivery-badge delivery-sameday'>SDO: " . htmlspecialchars($sameDayDeliveryType) . "</span>";
                                                         }
                                                     }
                                                     

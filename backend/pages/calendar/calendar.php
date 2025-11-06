@@ -84,7 +84,7 @@ if ($count_result) {
 
                 <!-- Order Limit -->
                 <div class="control-card">
-                    <h3>Daily Delivery Transaction Limit (Pre-Order)</h3>
+                    <h3>Pre-Order Delivery Transaction Limit</h3>
                     <div class="control-row">
                         <label>No. of Orders:</label>
                         <input type="number" id="dailyLimit" min="0" placeholder="Loading..." disabled>
@@ -105,10 +105,24 @@ if ($count_result) {
 
             <!-- Right Calendar Section -->
             <div class="calendar-section">
+                <!-- Calendar Loader -->
+                <div id="calendarLoader" class="calendar-loader">
+                    <div class="loader-spinner"></div>
+                    <p>Loading...</p>
+                </div>
+                
                 <div class="calendar-header">
-                    <button id="prev">&lt;</button>
+                    <button id="prev">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                    </button>
                     <span id="monthYear"></span>
-                    <button id="next">&gt;</button>
+                    <button id="next">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </button>
                 </div>
                 <div class="calendar-container">
                     <div id="calendar">
@@ -130,14 +144,14 @@ if ($count_result) {
     <div class="modal" id="dateLimitModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="modalTitle">Set Order Limit</h3>
+                <h3 id="modalTitle">Set Transaction Limit</h3>
                 <span class="close" onclick="closeDateLimitModal()">&times;</span>
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label for="dateLimitInput">Order Limit:</label>
-                    <input type="number" id="dateLimitInput" min="0" placeholder="Enter order limit">
-                    <div class="form-help">Set to 0 to stop accepting orders for this date</div>
+                    <label for="dateLimitInput">Transaction Limit:</label>
+                    <input type="number" id="dateLimitInput" min="0" placeholder="Enter transaction limit">
+                    <div class="form-help">Set to 0 to stop accepting transactions for this date</div>
                 </div>
                 <div class="form-group">
                     <label>

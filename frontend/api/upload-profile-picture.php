@@ -233,6 +233,7 @@ try {
             
             // Update session with new profile image
             $_SESSION['user_profile_image'] = $result['url'];
+            $_SESSION['user_profile_public_id'] = $result['public_id'];
             error_log("Session updated with new profile image: " . $result['url']);
             
             // Remove from temp_uploaded_images after successful save

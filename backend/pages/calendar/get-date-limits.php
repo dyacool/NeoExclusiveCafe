@@ -55,6 +55,7 @@ try {
         $query = "SELECT 
             dl.date,
             COALESCE(dl.limit_value, ?) as limit_value,
+            COALESCE(dl.not_accepting_orders, 0) as not_accepting_orders,
             COUNT(DISTINCT CASE WHEN o.status = 'Pending' THEN o.order_id END) as active_orders
         FROM (
             SELECT DATE_ADD(?, INTERVAL n DAY) as date
@@ -68,7 +69,7 @@ try {
         ) d
         LEFT JOIN date_limits dl ON d.date = dl.date
         LEFT JOIN orders o ON (d.date = o.pickup_date OR d.date = o.delivery_date)
-        GROUP BY d.date, dl.limit_value
+        GROUP BY d.date, dl.limit_value, dl.not_accepting_orders
         ORDER BY d.date";
 
         $stmt = $conn->prepare($query);
@@ -82,6 +83,7 @@ try {
         while ($row = $result->fetch_assoc()) {
             $limit = intval($row['limit_value']);
             $active_orders = intval($row['active_orders']);
+            $notAccepting = intval($row['not_accepting_orders']);
             
             $dates[] = [
                 'date' => $row['date'],
@@ -89,7 +91,7 @@ try {
                 'active_orders' => $active_orders,
                 'is_full' => $active_orders >= $limit,
                 'remaining_slots' => max(0, $limit - $active_orders),
-                'status' => $limit === 0 ? 'not_accepting' : 'accepting'
+                'status' => $notAccepting === 1 ? 'not_accepting' : 'accepting'
             ];
         }
         
@@ -104,11 +106,12 @@ try {
         
         $query = "SELECT 
             COALESCE(dl.limit_value, ?) as limit_value,
+            COALESCE(dl.not_accepting_orders, 0) as not_accepting_orders,
             COUNT(DISTINCT CASE WHEN o.status = 'Pending' THEN o.order_id END) as active_orders
         FROM (SELECT ? as date) d
         LEFT JOIN date_limits dl ON d.date = dl.date
         LEFT JOIN orders o ON (d.date = o.pickup_date OR d.date = o.delivery_date)
-        GROUP BY dl.limit_value";
+        GROUP BY dl.limit_value, dl.not_accepting_orders";
 
         $stmt = $conn->prepare($query);
         $stmt->bind_param("is", $default_limit, $date);
@@ -122,6 +125,7 @@ try {
         
         $limit = intval($row['limit_value']);
         $active_orders = intval($row['active_orders']);
+        $notAccepting = intval($row['not_accepting_orders']);
         
         echo json_encode([
             'success' => true,
@@ -131,7 +135,7 @@ try {
                 'active_orders' => $active_orders,
                 'is_full' => $active_orders >= $limit,
                 'remaining_slots' => max(0, $limit - $active_orders),
-                'status' => $limit === 0 ? 'not_accepting' : 'accepting'
+                'status' => $notAccepting === 1 ? 'not_accepting' : 'accepting'
             ]],
             'default_limit' => $default_limit
         ]);

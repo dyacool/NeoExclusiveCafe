@@ -2,15 +2,24 @@
 let currentDate = new Date();
 let dateLimits = {};
 let showCompletedOrders = false;
+let ordersCache = {}; // Cache for orders by month-year
+let isLoadingOrders = false; // Prevent duplicate API calls
+let bulkOrderDates = {}; // Store dates with bulk orders
 
 // Initialize calendar when DOM is loaded
 document.addEventListener("DOMContentLoaded", function () {
   cleanupPastDates(); // Clean up old dates first
   loadToggleState(); // Load saved toggle state first
-  renderCalendar(currentDate);
+
+  // Check bulk orders first, then load date limits, then render calendar
+  checkBulkOrderDates().then(() => {
+    loadDateLimitsForMonth(currentDate).then(() => {
+      renderCalendar(currentDate); // Render after limits are loaded
+    });
+  });
+
   loadOrderLimit();
   loadAvailTodayOrderLimit();
-  loadDateLimitsForMonth(currentDate); // Add this line to load date limits
   setupEventListeners();
   setupModalEventListeners(); // Add modal event listeners
 });
@@ -113,7 +122,7 @@ function renderCalendar(date) {
     today.setHours(0, 0, 0, 0);
 
     let dayClass = "day";
-    let dayContent = i;
+    let dayContent = `<span class="day-number">${i}</span>`;
     let clickHandler = "";
 
     // Check if it's today
@@ -151,6 +160,30 @@ function loadOrdersForMonth(date) {
   const startDate = new Date(date.getFullYear(), date.getMonth(), 1);
   const endDate = new Date(date.getFullYear(), date.getMonth() + 1, 0);
 
+  // Create cache key
+  const cacheKey = `${date.getFullYear()}-${date.getMonth()}`;
+
+  // Check if we're already loading or have cached data
+  if (isLoadingOrders) {
+    console.log("Already loading orders, skipping duplicate request");
+    return;
+  }
+
+  // Use cached data if available (unless completed orders toggle changed)
+  if (ordersCache[cacheKey]) {
+    console.log("Using cached orders for", cacheKey);
+    displayOrdersOnCalendar(ordersCache[cacheKey]);
+    return;
+  }
+
+  isLoadingOrders = true;
+
+  // Show loader
+  const loader = document.getElementById("calendarLoader");
+  if (loader) {
+    loader.classList.remove("hidden");
+  }
+
   console.log("Loading orders for month:", {
     start: startDate.toISOString().split("T")[0],
     end: endDate.toISOString().split("T")[0],
@@ -168,13 +201,21 @@ function loadOrdersForMonth(date) {
     })
     .then((orders) => {
       console.log("Orders received:", orders);
+      // Cache the orders
+      ordersCache[cacheKey] = orders;
       displayOrdersOnCalendar(orders);
     })
     .catch((error) => {
       console.error("Error loading orders:", error);
+    })
+    .finally(() => {
+      isLoadingOrders = false;
+      // Hide loader
+      if (loader) {
+        loader.classList.add("hidden");
+      }
     });
 }
-
 function displayOrdersOnCalendar(orders) {
   // Clear existing order indicators
   document.querySelectorAll(".day .order-indicator").forEach((indicator) => {
@@ -229,11 +270,24 @@ function displayOrdersOnCalendar(orders) {
         const status =
           (order.extendedProps && order.extendedProps.status) || "pending";
 
-        orderIndicator.className = `order-indicator ${status.toLowerCase()}`;
-        orderIndicator.innerHTML = `#${order.id}`;
+        // Convert status to lowercase and replace spaces/underscores with hyphens for CSS class
+        const statusClass = status.toLowerCase().replace(/[\s_]+/g, "-");
+
+        // Check if it's a bulk order
+        const isBulk = order.extendedProps && order.extendedProps.is_bulk;
+        const displayId =
+          order.extendedProps && order.extendedProps.display_id
+            ? order.extendedProps.display_id
+            : `#${order.id}`;
+
+        // Add bulk class if it's a bulk order
+        const bulkClass = isBulk ? "bulk-order" : "";
+
+        orderIndicator.className = `order-indicator ${statusClass} ${bulkClass}`;
+        orderIndicator.innerHTML = displayId;
         orderIndicator.onclick = (e) => {
           e.stopPropagation();
-          showOrderDetails(order.id);
+          showOrderDetails(order.id, isBulk);
         };
         dayElement.appendChild(orderIndicator);
       } else {
@@ -489,10 +543,14 @@ function updateBusinessHours() {
     });
 }
 
+function showOrderDetails(orderId, isBulk = false) {
+  // For now, bulk orders will use the same details view
+  // You can create a separate endpoint later if needed
+  const endpoint = isBulk
+    ? "get-bulk-order-details.php"
+    : "get-order-details.php";
 
-
-function showOrderDetails(orderId) {
-  fetch("get-order-details.php?id=" + orderId)
+  fetch(`${endpoint}?id=` + orderId)
     .then((response) => response.json())
     .then((order) => {
       const modal = document.getElementById("orderModal");
@@ -672,6 +730,9 @@ function toggleCompletedOrders() {
 
   console.log("showCompletedOrders is now:", showCompletedOrders);
 
+  // Clear orders cache since filter changed
+  ordersCache = {};
+
   // Refresh the calendar to show/hide completed orders and reload date limits
   renderCalendar(currentDate);
   loadDateLimitsForMonth(currentDate);
@@ -680,7 +741,7 @@ function toggleCompletedOrders() {
 // Order Limit Functions
 function loadOrderLimit() {
   const dailyLimitInput = document.getElementById("dailyLimit");
-  
+
   fetch("get-date-limits.php?get_default=true")
     .then((response) => response.text())
     .then((text) => {
@@ -710,9 +771,14 @@ function loadOrderLimit() {
 function updateDailyLimit() {
   const limit = document.getElementById("dailyLimit").value;
   const limitValue = parseInt(limit);
-  
-  console.log("updateDailyLimit called with value:", limit, "parsed:", limitValue);
-  
+
+  console.log(
+    "updateDailyLimit called with value:",
+    limit,
+    "parsed:",
+    limitValue
+  );
+
   if (!limit || isNaN(limitValue) || limitValue < 0) {
     alert("Please enter a valid limit (0 or greater)");
     return;
@@ -756,7 +822,7 @@ function updateDailyLimit() {
 // Available Today Order Limit Functions
 function loadAvailTodayOrderLimit() {
   const availtodayLimitInput = document.getElementById("availtodayOrderLimit");
-  
+
   fetch("availtoday-order-limit-api.php?action=get_limit")
     .then((response) => response.json())
     .then((data) => {
@@ -836,7 +902,7 @@ function loadDateLimitsForMonth(date) {
     end: endDate.toISOString().split("T")[0],
   });
 
-  fetch(
+  return fetch(
     `get-date-limits.php?start=${startDate.toISOString().split("T")[0]}&end=${
       endDate.toISOString().split("T")[0]
     }`
@@ -877,9 +943,6 @@ function loadDateLimitsForMonth(date) {
           });
 
           console.log("Date limits loaded:", dateLimits);
-
-          // Re-render calendar with updated date limits
-          renderCalendar(currentDate);
         } else {
           console.warn("No date limits data received or invalid format");
         }
@@ -950,19 +1013,48 @@ function openDateLimitModal(date) {
 
   console.log("Formatted date:", formattedDate); // Debug log
 
-  modalTitle.textContent = `Set Order Limit for ${formattedDate}`;
+  modalTitle.textContent = `Set Transaction Limit for ${formattedDate}`;
+
+  // Check if this date has bulk orders
+  const hasBulkOrder = bulkOrderDates[date] && bulkOrderDates[date].length > 0;
+
+  // Remove any existing bulk order info first
+  const modalBody = document.querySelector("#dateLimitModal .modal-body");
+  const existingInfo = modalBody.querySelector(".bulk-order-info");
+  if (existingInfo) {
+    existingInfo.remove();
+  }
 
   // Check if we have existing limit data for this date
   if (dateLimits[date]) {
+    // Use the saved values from database - don't override with bulk order logic
     dateLimitInput.value = dateLimits[date].limit;
     notAcceptingCheckbox.checked =
       dateLimits[date].status === "not_accepting" ||
       dateLimits[date].limit === 0;
   } else {
-    // Use default daily limit
+    // No saved data - use defaults and suggest bulk order settings
     const defaultLimit = document.getElementById("dailyLimit").value;
-    dateLimitInput.value = defaultLimit;
-    notAcceptingCheckbox.checked = false;
+    dateLimitInput.value = hasBulkOrder ? 0 : defaultLimit;
+    notAcceptingCheckbox.checked = hasBulkOrder; // Only auto-check for NEW dates
+  }
+
+  // ONLY if there's a bulk order on THIS specific date, show the warning message
+  if (hasBulkOrder) {
+    const bulkOrders = bulkOrderDates[date];
+    const bulkOrderInfo = document.createElement("div");
+    bulkOrderInfo.className = "bulk-order-info";
+    bulkOrderInfo.style.cssText =
+      "margin-top: 1rem; padding: 0.75rem; background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; color: #856404;";
+    bulkOrderInfo.innerHTML = `
+      This date has ${bulkOrders.length} active bulk order(s).<br>
+      <small>Order Ticket: ${bulkOrders
+        .map((o) => o.unique_order_id || o.id)
+        .join(", ")}</small><br>
+      <small style="color: #666; margin-top: 0.5rem; display: block;">You can uncheck "Not Accepting Orders" if you want to allow regular orders on this date.</small>
+    `;
+
+    modalBody.appendChild(bulkOrderInfo);
   }
 
   // Handle checkbox change to disable/enable input
@@ -971,10 +1063,20 @@ function openDateLimitModal(date) {
       dateLimitInput.value = 0;
       dateLimitInput.disabled = true;
     } else {
+      // Allow unchecking even with bulk orders
       dateLimitInput.disabled = false;
       // Restore default limit if available
       const defaultLimit = document.getElementById("dailyLimit").value;
-      dateLimitInput.value = defaultLimit;
+      dateLimitInput.value = defaultLimit || dateLimitInput.value;
+    }
+  };
+
+  // Handle input change - if user sets limit to 0, auto-check the checkbox
+  dateLimitInput.oninput = function () {
+    const limitValue = parseInt(this.value);
+    if (limitValue === 0 && !notAcceptingCheckbox.checked) {
+      notAcceptingCheckbox.checked = true;
+      this.disabled = true;
     }
   };
 
@@ -1003,7 +1105,14 @@ function saveDateLimit() {
     return;
   }
 
-  console.log("Saving date limit for:", selectedDate, "limit:", limit);
+  console.log(
+    "Saving date limit for:",
+    selectedDate,
+    "limit:",
+    limit,
+    "not_accepting:",
+    notAcceptingCheckbox.checked
+  );
 
   // Show loading state
   const saveBtn = document.querySelector(".modal-footer .btn-primary");
@@ -1020,6 +1129,7 @@ function saveDateLimit() {
       type: "date",
       date: selectedDate,
       limit: limit,
+      not_accepting_orders: notAcceptingCheckbox.checked ? 1 : 0,
     }),
   })
     .then((response) => response.text())
@@ -1070,19 +1180,47 @@ window.openDateLimitModal = openDateLimitModal;
 window.closeDateLimitModal = closeDateLimitModal;
 window.saveDateLimit = saveDateLimit;
 
-
 // Cleanup Past Dates Function
 function cleanupPastDates() {
   fetch("cleanup-past-dates.php")
     .then((response) => response.json())
     .then((data) => {
       if (data.success) {
-        console.log("Cleaned up past dates:", data.deleted_count, "date(s) removed");
+        console.log(
+          "Cleaned up past dates:",
+          data.deleted_count,
+          "date(s) removed"
+        );
       } else {
         console.warn("Failed to cleanup past dates:", data.error);
       }
     })
     .catch((error) => {
       console.error("Error cleaning up past dates:", error);
+    });
+}
+
+// Check Bulk Order Dates and Auto-Block Function
+function checkBulkOrderDates() {
+  return fetch("check-bulk-order-dates.php")
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.success) {
+        console.log(
+          "Bulk order dates checked:",
+          data.count,
+          "date(s) with bulk orders"
+        );
+        // Store bulk order dates globally
+        bulkOrderDates = data.bulk_order_dates || {};
+        if (data.count > 0) {
+          console.log("Dates with bulk orders:", data.dates);
+        }
+      } else {
+        console.warn("Failed to check bulk order dates:", data.error);
+      }
+    })
+    .catch((error) => {
+      console.error("Error checking bulk order dates:", error);
     });
 }

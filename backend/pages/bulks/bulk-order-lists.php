@@ -271,6 +271,7 @@ if ($result && mysqli_num_rows($result) > 0) {
                             <th>Order ID</th>
                             <th>Customer</th>
                             <th>Date Submitted</th>
+                            <th>Date Needed</th>
                             <th>Total Items</th>
                             <th>Regular Total</th>
                             <th>Discounted Total</th>
@@ -304,6 +305,14 @@ if ($result && mysqli_num_rows($result) > 0) {
                                         <div class="date-time"><?php echo date("g:i A", strtotime($order['created_at'])); ?></div>
                                     </div>
                                 </td>
+
+                                <td onclick="window.location.href='bulk-order.php?id=<?php echo $order['id']; ?>'" style="cursor:pointer;">
+                                    <div class="date-info">
+                                        <div class="date-main"><?php echo date("M j, Y", strtotime($order['date_needed'])); ?></div>
+                                        <div class="date-time"><?php echo date("g:i A", strtotime($order['time_needed'])); ?></div>
+                                    </div>
+                                </td>
+                                
                                 <td onclick="window.location.href='bulk-order.php?id=<?php echo $order['id']; ?>'" style="cursor:pointer;">
                                     <?php echo number_format($totals['total_items']); ?>
                                 </td>

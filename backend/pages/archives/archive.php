@@ -23,7 +23,7 @@
     $total_pages = ceil($total_archived / $items_per_page);
     
     // Get archived products with pagination
-    $sql = "SELECT p.id, p.sku, p.name, p.price, p.deleted_at, pi.image_url 
+    $sql = "SELECT p.id, p.sku, p.name, p.price, p.deleted_at, pi.cloud_url, pi.image_url 
             FROM products p
             LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
             WHERE p.deleted_at IS NOT NULL
@@ -97,10 +97,15 @@
                                 echo "<tr data-name='" . strtolower($row['name']) . "' data-sku='" . strtolower($row['sku']) . "'>
                                         <td>
                                             <div class='product-image-container'>";
-                                // Construct image path
+                                
+                                // Prioritize Cloudinary URL, fallback to legacy image_url, then no-image
                                 $imagePath = '/assets/images/no-image.jpg';
-                                if (!empty($row['image_url'])) {
-                                    // Split path into directory and filename
+                                
+                                if (!empty($row['cloud_url'])) {
+                                    // Use Cloudinary URL directly
+                                    $imagePath = $row['cloud_url'];
+                                } elseif (!empty($row['image_url'])) {
+                                    // Fallback to legacy image path
                                     $pathParts = pathinfo($row['image_url']);
                                     $dirPath = $pathParts['dirname'];
                                     $fileName = $pathParts['basename'];
@@ -118,7 +123,8 @@
                                         $imagePath = '/assets/images/no-image.jpg';
                                     }
                                 }
-                                echo "<img class='product-image' src='" . htmlspecialchars($imagePath) . "' alt='" . htmlspecialchars($row['name']) . "' loading='lazy' onerror=\"this.src='/assets/images/no-image.jpg'\">";
+                                
+                                echo "<img class='product-image' src='" . htmlspecialchars($imagePath) . "' alt='" . htmlspecialchars($row['name']) . "' loading='lazy' onerror=\"if(this.src!='/assets/images/no-image.jpg'){this.src='/assets/images/no-image.jpg';}\">";
                                 echo "</div>
                                         </td>
                                         <td>

@@ -159,8 +159,11 @@ try {
         // Clear session profile image
         if (isset($_SESSION['user_profile_image'])) {
             unset($_SESSION['user_profile_image']);
-            error_log("Session profile image cleared");
         }
+        if (isset($_SESSION['user_profile_public_id'])) {
+            unset($_SESSION['user_profile_public_id']);
+        }
+        error_log("Session profile image cleared");
         
         // Remove from temp tracking table
         $removed = removeTempImageLog($conn, $publicId);

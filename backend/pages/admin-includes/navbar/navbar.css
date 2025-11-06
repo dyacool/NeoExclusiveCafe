@@ -1078,7 +1078,7 @@
   }
 
   #mobile-page-title {
-    font-size: 1.0625rem;
+    font-size: 1.75rem;
     align-content: center;
   }
 
@@ -1162,7 +1162,7 @@
   }
 
   .action-button SVG {
-    height: 0.875rem !important;
+    height: 1rem !important;
   }
 
   /* Mobile footer styling - matches mobile nav-menu exactly */
@@ -1222,7 +1222,7 @@
 /* Mobile responsive modal */
 @media (max-width: 480px) {
   .content-wrapper {
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 0.5rem;
   }
   .mobile-header-bottom {
     padding: 0.75rem 1rem;
@@ -1232,7 +1232,7 @@
   }
 
   #mobile-page-title {
-    font-size: 1.05rem;
+    font-size: 1.5rem;
     padding: 0.4rem 0;
   }
 
@@ -1255,6 +1255,12 @@
     padding: 0.125rem 0.25rem;
     min-width: 1rem;
     height: 1rem;
+  }
+}
+
+@media (max-width: 375px) {
+  #mobile-page-title {
+    font-size: 1.375rem;
   }
 }
 

@@ -401,10 +401,78 @@ if (!$navbar_conn) {
     </nav>
 </div>
 
+<<<<<<< HEAD
 
 <div class="wrapper">
     <script>
         // SIMPLE IMMEDIATE IMPLEMENTATION - NO DOMContentLoaded delays
+=======
+<!-- Mobile Notification Modal Overlay -->
+<?php if ($is_user_logged_in && isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'user'): ?>
+<div class="mobile-notification-overlay" id="mobileNotifOverlay" onclick="closeMobileNotifications();"></div>
+
+<!-- Mobile Notification Dropdown - Modal Style -->
+<div class="mobile-notification-dropdown" id="mobileNotifDropdown">
+    <div class="dropdown-header">
+        <h3>Notifications</h3>
+        <div class="header-actions">
+            <button id="mobileMarkAllRead" class="mark-read" title="Mark all as read" style="transition: all 0.3s ease;">Mark all as read</button>
+            <button class="close-modal" id="closeMobileNotif" aria-label="Close notifications" onclick="closeMobileNotifications(); return false;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+    </div>
+    <div class="notification-loader" id="mobileNotificationLoader" style="display: none;">
+        <div class="spinner"></div>
+        <p>Loading notifications...</p>
+    </div>
+    <ul id="mobileNotificationList" class="notification-list">
+        <!-- Notifications will appear dynamically -->
+    </ul>
+    <div class="no-notifications" id="mobileNoNotifications" style="display: none;">
+        <p>No new notifications.</p>
+    </div>
+    <div class="dropdown-footer">
+        <a href="/frontend/pages/notifications/notifications.php" class="view-all-link">View All</a>
+    </div>
+</div>
+<?php endif; ?>
+
+<!-- Logout Confirmation Modal -->
+<div id="logoutModal" class="logout-modal" style="display: none;">
+    <div class="logout-modal-overlay"></div>
+    <div class="logout-modal-content">
+        <div class="logout-modal-header">
+            <h3>Confirm Logout</h3>
+        </div>
+        <div class="logout-modal-body">
+            <p>Are you sure you want to logout?</p>
+        </div>
+        <div class="logout-modal-actions">
+            <button class="logout-btn-cancel" onclick="closeLogoutModal()">Cancel</button>
+            <button class="logout-btn-confirm" onclick="proceedLogout()">Yes, Logout</button>
+        </div>
+    </div>
+</div>
+
+
+<div class="wrapper">
+    <script>
+        // GLOBAL FUNCTION - Define IMMEDIATELY for inline onclick to work
+        function closeMobileNotifications() {
+            const dropdown = document.getElementById('mobileNotifDropdown');
+            const overlay = document.getElementById('mobileNotifOverlay');
+            
+            if (dropdown) dropdown.classList.remove('active');
+            if (overlay) overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        // SIMPLE IMMEDIATE IMPLEMENTATION - Wait for DOM to be ready
+>>>>>>> 68b474bc7a0a72238f49dcb5e32b6edf4b2e9352
         
         // Wait just a moment for HTML to be ready, then attach handlers immediately
         setTimeout(() => {
@@ -484,13 +552,54 @@ if (!$navbar_conn) {
             // NOTIFICATION FUNCTIONALITY  
             const notifLink = document.querySelector('.notification-link');
             const notifDropdown = document.getElementById('notifDropdown');
+            const mobileNotifDropdown = document.getElementById('mobileNotifDropdown');
+            const mobileNotifOverlay = document.getElementById('mobileNotifOverlay');
+            const closeMobileNotif = document.getElementById('closeMobileNotif');
             
-            if (notifLink && notifDropdown) {
+            // Close button functionality - using addEventListener for better reliability
+            if (closeMobileNotif) {
+                closeMobileNotif.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    console.log('Close button clicked!'); // Debug log
+                    
+                    if (mobileNotifDropdown && mobileNotifOverlay) {
+                        mobileNotifDropdown.classList.remove('active');
+                        mobileNotifOverlay.classList.remove('active');
+                        document.body.style.overflow = '';
+                        console.log('Modal closed'); // Debug log
+                    }
+                });
+            }
+            
+            // Also add event delegation in case button is added dynamically
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('#closeMobileNotif')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    console.log('Close button clicked via delegation!'); // Debug log
+                    
+                    const dropdown = document.getElementById('mobileNotifDropdown');
+                    const overlay = document.getElementById('mobileNotifOverlay');
+                    
+                    if (dropdown && overlay) {
+                        dropdown.classList.remove('active');
+                        overlay.classList.remove('active');
+                        document.body.style.overflow = '';
+                        console.log('Modal closed via delegation'); // Debug log
+                    }
+                }
+            });
+            
+            if (notifLink) {
                 notifLink.onclick = function(e) {
                     e.preventDefault();
                     e.stopPropagation();
-
+                    
                     // Check if mobile device (1024px breakpoint)
+<<<<<<< HEAD
                     if (window.innerWidth <= 1024) {
                         // Mobile: redirect to notifications page instead of dropdown
                         window.location.href = '/frontend/pages/notifications/notifications.php';
@@ -503,15 +612,325 @@ if (!$navbar_conn) {
                     // Fetch notifications when dropdown is opened
                     if (isActive) {
                         fetchNotifications();
+=======
+                    if (window.innerWidth <= 1024 && mobileNotifDropdown && mobileNotifOverlay) {
+                        // Mobile: toggle mobile modal and overlay
+                        const isActive = mobileNotifDropdown.classList.toggle('active');
+                        mobileNotifOverlay.classList.toggle('active', isActive);
+                        
+                        // Prevent body scroll when modal is open
+                        if (isActive) {
+                            document.body.style.overflow = 'hidden';
+                        } else {
+                            document.body.style.overflow = '';
+                        }
+                        
+                        // Fetch notifications when dropdown is opened
+                        if (isActive) {
+                            const loader = document.getElementById('mobileNotificationLoader');
+                            const notificationList = document.getElementById('mobileNotificationList');
+                            const noNotifications = document.getElementById('mobileNoNotifications');
+                            
+                            if (loader) loader.style.display = 'flex';
+                            if (notificationList) notificationList.style.display = 'none';
+                            if (noNotifications) noNotifications.style.display = 'none';
+                            
+                            fetchNotifications('mobile');
+                        }
+                    } else if (notifDropdown) {
+                        // Desktop: toggle desktop dropdown
+                        const isActive = notifDropdown.classList.toggle('active');
+                        
+                        // Fetch notifications when dropdown is opened
+                        if (isActive) {
+                            const loader = document.getElementById('notificationLoader');
+                            const notificationList = document.getElementById('notificationList');
+                            const noNotifications = document.getElementById('noNotifications');
+                            
+                            if (loader) loader.style.display = 'flex';
+                            if (notificationList) notificationList.style.display = 'none';
+                            if (noNotifications) noNotifications.style.display = 'none';
+                            
+                            fetchNotifications('desktop');
+                        }
+>>>>>>> 68b474bc7a0a72238f49dcb5e32b6edf4b2e9352
                     }
                 };
             }
             
+<<<<<<< HEAD
             // NOTIFICATION FETCHING FUNCTION
             function fetchNotifications() {
                 const notificationList = document.getElementById("notificationList");
                 const noNotifications = document.getElementById("noNotifications");
                 const notifCount = document.getElementById("notifCount");
+=======
+            // MARK ALL AS READ FUNCTIONALITY FOR DROPDOWN
+            const markAllReadBtn = document.getElementById('markAllRead');
+            if (markAllReadBtn) {
+                markAllReadBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Check if there are any unread notifications first
+                    const unreadItems = document.querySelectorAll('#notificationList .notification-item.unread');
+                    if (unreadItems.length === 0) {
+                        // Show message if no unread notifications
+                        markAllReadBtn.textContent = 'All read!';
+                        markAllReadBtn.style.opacity = '0.7';
+                        
+                        setTimeout(() => {
+                            markAllReadBtn.textContent = 'Mark all as read';
+                            markAllReadBtn.style.opacity = '1';
+                        }, 2000);
+                        return;
+                    }
+                    
+                    // Change button state
+                    const originalText = markAllReadBtn.textContent;
+                    markAllReadBtn.textContent = 'Marking...';
+                    markAllReadBtn.disabled = true;
+                    markAllReadBtn.style.opacity = '0.7';
+                    
+                    // Make API call to mark all as read
+                    fetch('/frontend/pages/notifications/mark-all-notifications-read.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Success feedback
+                            markAllReadBtn.textContent = 'All marked!';
+                            markAllReadBtn.style.color = '#28a745';
+                            
+                            // Update UI - mark all items as read
+                            unreadItems.forEach(item => {
+                                item.classList.remove('unread');
+                                item.classList.add('read');
+                            });
+                            
+                            // Update notification count badge
+                            const notifCount = document.getElementById('notifCount');
+                            if (notifCount) {
+                                notifCount.style.display = 'none';
+                            }
+                            
+                            // Reset button after 2 seconds
+                            setTimeout(() => {
+                                markAllReadBtn.textContent = originalText;
+                                markAllReadBtn.disabled = false;
+                                markAllReadBtn.style.opacity = '1';
+                                markAllReadBtn.style.color = '';
+                                
+                                // Trigger notification update
+                                if (window.dispatchEvent) {
+                                    window.dispatchEvent(new CustomEvent('notificationUpdated'));
+                                }
+                            }, 2000);
+                            
+                        } else {
+                            // Error handling
+                            markAllReadBtn.textContent = 'Try again';
+                            markAllReadBtn.style.color = '#dc3545';
+                            console.error('Failed to mark notifications as read:', data.message);
+                            
+                            setTimeout(() => {
+                                markAllReadBtn.textContent = originalText;
+                                markAllReadBtn.disabled = false;
+                                markAllReadBtn.style.opacity = '1';
+                                markAllReadBtn.style.color = '';
+                            }, 2000);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error marking all notifications as read:', error);
+                        markAllReadBtn.textContent = 'Try again';
+                        markAllReadBtn.style.color = '#dc3545';
+                        
+                        setTimeout(() => {
+                            markAllReadBtn.textContent = originalText;
+                            markAllReadBtn.disabled = false;
+                            markAllReadBtn.style.opacity = '1';
+                            markAllReadBtn.style.color = '';
+                        }, 2000);
+                    });
+                });
+            }
+            
+            // CART COUNT FUNCTIONALITY - REAL-TIME
+            function updateCartCount() {
+                console.log('updateCartCount called at:', new Date().toLocaleTimeString());
+                const cartCount = document.getElementById('cartCount');
+                if (!cartCount) {
+                    console.error('Cart count element not found!');
+                    return;
+                }
+                
+                // Only fetch cart count for logged-in users
+                <?php if (isset($_SESSION['user_id'])): ?>
+                console.log('Fetching cart count for user ID:', <?php echo $_SESSION['user_id']; ?>);
+                fetch('/frontend/pages/cart/get-cart-count.php')
+                    .then(response => {
+                        console.log('Cart count response status:', response.status);
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Cart count data received:', data);
+                        if (data.status === 'success' && data.count > 0) {
+                            cartCount.textContent = data.count > 99 ? '99+' : data.count;
+                            cartCount.style.display = 'flex';
+                            cartCount.classList.add('updated');
+                            console.log('Cart count updated to:', data.count);
+                            
+                            // Remove animation class after animation completes
+                            setTimeout(() => {
+                                cartCount.classList.remove('updated');
+                            }, 300);
+                        } else {
+                            cartCount.style.display = 'none';
+                            console.log('Cart count hidden (empty cart)');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching cart count:', error);
+                        cartCount.style.display = 'none';
+                    });
+                <?php else: ?>
+                console.log('User not logged in, hiding cart count');
+                cartCount.style.display = 'none';
+                <?php endif; ?>
+            }
+            
+            // Update cart count on page load (with element check)
+            function waitForCartElement() {
+                const cartCount = document.getElementById('cartCount');
+                if (cartCount) {
+                    console.log('Cart element found, starting updates');
+                    updateCartCount();
+                    
+                    // Global function to update cart count (can be called from other pages)
+                    window.updateNavbarCartCount = updateCartCount;
+                    
+                    // Real-time cart count updates (every 3 seconds for more responsiveness)
+                    setInterval(updateCartCount, 3000);
+                } else {
+                    console.log('Cart element not found, retrying in 100ms');
+                    setTimeout(waitForCartElement, 100);
+                }
+            }
+            waitForCartElement();
+            
+            // Listen for storage events (when cart is updated in another tab)
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'cart_updated') {
+                    updateCartCount();
+                    // Also update notifications in case of order-related notifications
+                    if (window.fetchDropdownNotifications) {
+                        window.fetchDropdownNotifications().then(notifications => {
+                            updateNotificationCount(notifications);
+                        });
+                    }
+                }
+            });
+            
+            // Listen for custom cart events
+            window.addEventListener('cartUpdated', function() {
+                updateCartCount();
+                // Trigger storage event to sync with other tabs
+                localStorage.setItem('cart_updated', Date.now());
+                localStorage.removeItem('cart_updated');
+            });
+            
+            // NOTIFICATION FUNCTIONALITY - REAL-TIME
+            function updateNotificationCount(notifications) {
+                console.log('updateNotificationCount called with:', notifications);
+                const notifCount = document.getElementById("notifCount");
+                if (!notifCount) {
+                    console.error('Notification count element not found!');
+                    return;
+                }
+                
+                const unreadCount = notifications ? notifications.filter(n => !n.is_read).length : 0;
+                console.log('Unread notification count:', unreadCount);
+                if (unreadCount > 0) {
+                    notifCount.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                    notifCount.style.display = "block";
+                    notifCount.classList.add('updated');
+                    console.log('Notification count updated to:', unreadCount);
+                    
+                    // Remove animation class after animation completes
+                    setTimeout(() => {
+                        notifCount.classList.remove('updated');
+                    }, 300);
+                } else {
+                    notifCount.style.display = "none";
+                    console.log('Notification count hidden (no unread notifications)');
+                }
+            }
+            
+            // Real-time notification updates
+            function fetchNotificationsRealtime() {
+                console.log('fetchNotificationsRealtime called at:', new Date().toLocaleTimeString());
+                <?php if (isset($_SESSION['user_id'])): ?>
+                console.log('Fetching notifications for user ID:', <?php echo $_SESSION['user_id']; ?>);
+                fetch('/frontend/pages/notifications/fetch-notif.php?dropdown=true')
+                    .then(response => {
+                        console.log('Notification response status:', response.status);
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Notification data received:', data);
+                        if (data.status === "success") {
+                            updateNotificationCount(data.notifications || []);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching notification count:', error);
+                    });
+                <?php else: ?>
+                console.log('User not logged in, skipping notification fetch');
+                <?php endif; ?>
+            }
+            
+            // Initial notification count fetch (with element check)
+            function waitForNotificationElement() {
+                const notifCount = document.getElementById('notifCount');
+                if (notifCount) {
+                    console.log('Notification element found, starting updates');
+                    fetchNotificationsRealtime();
+                    
+                    // Real-time notification updates (every 5 seconds)
+                    setInterval(fetchNotificationsRealtime, 5000);
+                } else {
+                    console.log('Notification element not found, retrying in 100ms');
+                    setTimeout(waitForNotificationElement, 100);
+                }
+            }
+            waitForNotificationElement();
+            
+            // Listen for notification events
+            window.addEventListener('notificationUpdated', function() {
+                fetchNotificationsRealtime();
+                // Trigger storage event to sync with other tabs
+                localStorage.setItem('notification_updated', Date.now());
+                localStorage.removeItem('notification_updated');
+            });
+            
+            // Listen for storage events for notifications
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'notification_updated') {
+                    fetchNotificationsRealtime();
+                }
+            });
+            function fetchNotifications(type = 'desktop') {
+                const isMobile = type === 'mobile';
+                const prefix = isMobile ? 'mobile' : '';
+                const notificationList = document.getElementById(prefix + (prefix ? 'N' : 'n') + 'otificationList');
+                const noNotifications = document.getElementById(prefix + (prefix ? 'N' : 'n') + 'oNotifications');
+                const notifCount = document.getElementById("notifCount");
+                const loader = document.getElementById(prefix + (prefix ? 'N' : 'n') + 'otificationLoader');
+>>>>>>> 68b474bc7a0a72238f49dcb5e32b6edf4b2e9352
                 
                 if (!notificationList || !noNotifications) return;
                 
@@ -634,13 +1053,116 @@ if (!$navbar_conn) {
                     mobileSearchBox.classList.remove('active');
                 }
                 
-                // Close notifications
+                // Close desktop notifications
                 if (notifDropdown && notifLink && !notifLink.contains(e.target) && !notifDropdown.contains(e.target)) {
                     notifDropdown.classList.remove('active');
                 }
+                
+                // Close mobile notification modal when clicking overlay or outside modal
+                const mobileNotifDropdownElement = document.getElementById('mobileNotifDropdown');
+                const mobileNotifOverlayElement = document.getElementById('mobileNotifOverlay');
+                
+                if (mobileNotifOverlayElement && mobileNotifDropdownElement) {
+                    // Close if clicking overlay OR if clicking outside both notification link and modal
+                    if (e.target === mobileNotifOverlayElement || 
+                        (mobileNotifDropdownElement.classList.contains('active') && 
+                         !notifLink.contains(e.target) && 
+                         !mobileNotifDropdownElement.contains(e.target))) {
+                        mobileNotifDropdownElement.classList.remove('active');
+                        mobileNotifOverlayElement.classList.remove('active');
+                        document.body.style.overflow = '';
+                    }
+                }
             };
             
+<<<<<<< HEAD
         }, 100); // Just 100ms delay to ensure HTML is parsed
+=======
+        }, 500); // 500ms delay to ensure all HTML elements are parsed and ready
+        
+        // CRITICAL: Close button must work IMMEDIATELY - outside setTimeout
+        document.addEventListener('click', function(e) {
+            // Close mobile notification modal
+            if (e.target.closest('#closeMobileNotif') || e.target.closest('.close-modal')) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const dropdown = document.getElementById('mobileNotifDropdown');
+                const overlay = document.getElementById('mobileNotifOverlay');
+                
+                if (dropdown) dropdown.classList.remove('active');
+                if (overlay) overlay.classList.remove('active');
+                document.body.style.overflow = '';
+                
+                return false;
+            }
+        }, true); // Use capture phase to catch event early
+        
+        // LOGOUT CONFIRMATION FUNCTIONS
+        let logoutType = '';
+        
+        window.confirmLogout = function(type) {
+            logoutType = type;
+            const modal = document.getElementById('logoutModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden'; // Prevent background scrolling
+            }
+        };
+        
+        window.closeLogoutModal = function() {
+            const modal = document.getElementById('logoutModal');
+            if (modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = ''; // Restore scrolling
+            }
+            logoutType = '';
+        };
+        
+        window.proceedLogout = function() {
+            if (logoutType === 'admin') {
+                window.location.href = '/backend/login/admin/logout.php';
+            } else if (logoutType === 'user') {
+                window.location.href = '/frontend/login/user/logout.php';
+            }
+        };
+        
+        // Close modal when clicking overlay
+        document.addEventListener('click', function(e) {
+            const modal = document.getElementById('logoutModal');
+            const modalContent = document.querySelector('.logout-modal-content');
+            
+            if (modal && e.target === modal && !modalContent.contains(e.target)) {
+                closeLogoutModal();
+            }
+        });
+        
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeLogoutModal();
+            }
+        });
+        
+        // AUTOMATIC NAVBAR HEIGHT CALCULATION
+        function setNavbarHeight() {
+            const headerWrapper = document.querySelector('.header-wrapper');
+            if (headerWrapper) {
+                const actualHeight = headerWrapper.offsetHeight;
+                document.documentElement.style.setProperty('--navbar-height', actualHeight + 'px');
+                
+                // Debug log (remove in production)
+                console.log('Navbar height set to:', actualHeight + 'px');
+            }
+        }
+        
+        // Set navbar height on load and resize
+        setNavbarHeight();
+        window.addEventListener('resize', setNavbarHeight);
+        window.addEventListener('orientationchange', function() {
+            setTimeout(setNavbarHeight, 100); // Small delay for orientation change
+        });
+>>>>>>> 68b474bc7a0a72238f49dcb5e32b6edf4b2e9352
         
     </script>
     
