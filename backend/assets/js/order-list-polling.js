@@ -9,7 +9,7 @@ class OrderListPoller {
         this.maxRetries = options.maxRetries || 3;
         this.backoffMultiplier = 2;
         this.maxBackoff = 30000; // 30 seconds max
-        this.apiEndpoint = options.apiEndpoint || '/NeoCafe/backend/api/get-order-list.php';
+        this.apiEndpoint = options.apiEndpoint || '../api/get-order-list.php';
         
         // State
         this.currentBackoff = this.pollInterval;
@@ -490,7 +490,7 @@ class OrderListPoller {
      */
     async clearOldFlags() {
         try {
-            await fetch('/NeoCafe/backend/api/clear-order-flags.php', {
+            await fetch('../api/clear-order-flags.php', {
                 method: 'POST',
                 credentials: 'same-origin'
             });
