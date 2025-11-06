@@ -1,10 +1,20 @@
 <?php
 /**
- * PayMongo Configuration
- * Test API Integration for NeoCafe
+ * PayMongo Configuration - SANDBOX/TEST MODE ONLY
+ * ================================================
+ * This configuration uses PayMongo TEST keys for development and testing.
+ * DO NOT use live/production keys here.
+ * 
+ * Test Mode Features:
+ * - No real money transactions
+ * - Test card numbers work
+ * - Sandbox environment only
+ * 
+ * For production: Replace sk_test_* and pk_test_* with sk_live_* and pk_live_*
  */
 
-// PayMongo Test API Configuration
+// ⚠️ SANDBOX MODE - Test API Configuration
+define('PAYMONGO_MODE', 'sandbox'); // 'sandbox' or 'live'
 define('PAYMONGO_SECRET_KEY', 'sk_test_your_secret_key_here'); // Replace with your test secret key
 define('PAYMONGO_PUBLIC_KEY', 'pk_test_your_public_key_here'); // Replace with your test public key
 define('PAYMONGO_API_URL', 'https://api.paymongo.com/v1');
@@ -16,10 +26,15 @@ class PayMongoAPI {
     private $api_url;
     
     public function __construct() {
-        // Using PayMongo test keys - replace with your actual test keys
-        $this->secret_key = 'sk_test_yb8pkZvUA3WjHP6T4FKhgudU';
-        $this->public_key = 'pk_test_1XUMJ3yMs8QZugdq3uWr8vYU';
+        // ⚠️ SANDBOX MODE - Using PayMongo TEST keys
+        // These are test keys and will NOT process real payments
+        // For production, replace with sk_live_* and pk_live_* keys
+        $this->secret_key = 'sk_test_yb8pkZvUA3WjHP6T4FKhgudU'; // TEST SECRET KEY
+        $this->public_key = 'pk_test_1XUMJ3yMs8QZugdq3uWr8vYU'; // TEST PUBLIC KEY
         $this->api_url = 'https://api.paymongo.com/v1';
+        
+        // Log that we're in sandbox mode
+        error_log('[PAYMONGO] Running in SANDBOX/TEST mode - No real transactions');
     }
     
     /**
@@ -228,6 +243,20 @@ function getTestCardNumbers() {
 }
 
 /**
+ * Check if PayMongo is in sandbox mode
+ */
+function isPayMongoSandboxMode() {
+    return defined('PAYMONGO_MODE') && PAYMONGO_MODE === 'sandbox';
+}
+
+/**
+ * Get PayMongo mode display name
+ */
+function getPayMongoModeDisplay() {
+    return isPayMongoSandboxMode() ? '🧪 SANDBOX/TEST MODE' : '🔴 LIVE MODE';
+}
+
+/**
  * Generate return URL for payment
  */
 function generateReturnURL($order_type = 'regular') {
@@ -235,10 +264,15 @@ function generateReturnURL($order_type = 'regular') {
     $host = $_SERVER['HTTP_HOST'];
     $base_url = $protocol . '://' . $host;
     
+    // Log the mode for debugging
+    $mode = isPayMongoSandboxMode() ? 'SANDBOX' : 'LIVE';
+    error_log("[PAYMONGO-{$mode}] Generating return URL for {$order_type} order");
+    
+    // Add status=success parameter so payment-return.php knows payment succeeded
     if ($order_type === 'availtoday') {
-        return $base_url . '/frontend/pages/cart/payment-return.php?type=availtoday';
+        return $base_url . '/frontend/pages/cart/payment-return.php?type=availtoday&status=success';
     } else {
-        return $base_url . '/frontend/pages/cart/payment-return.php?type=regular';
+        return $base_url . '/frontend/pages/cart/payment-return.php?type=regular&status=success';
     }
 }
 ?>

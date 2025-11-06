@@ -3,6 +3,7 @@ $page_title = "Dashboard";
 
 // Include session management files first (before any HTML output)
 require_once __DIR__ . "/../../../backend/pages/admin-includes/database.php";
+require_once __DIR__ . "/../../../includes/session-manager.php";
 require_once __DIR__ . "/../../user-includes/user-header.php";
 
 // Include navigation after session is established
@@ -801,7 +802,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Check if user is logged in
-const isLoggedIn = <?= isset($_SESSION['user_id']) ? 'true' : 'false' ?>;
+const isLoggedIn = <?= SessionManager::isUserLoggedIn() ? 'true' : 'false' ?>;
 const loginUrl = '/frontend/login/user/login-signup.php';
 
 // Function to check login and redirect if needed

@@ -1,11 +1,10 @@
 <?php
-// Don't start session if it's already active
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+// Include database.php first - it handles session configuration
+require_once __DIR__ . '/../../../backend/pages/admin-includes/database.php';
+require_once __DIR__ . '/../../../includes/session-manager.php';
 
 // Check if user is logged in and has proper role
-if (!isset($_SESSION["user_id"]) || !isset($_SESSION["user_role"]) || $_SESSION["user_role"] !== "user") {
+if (!SessionManager::isUserLoggedIn()) {
     // Always return JSON for AJAX requests, even when not logged in
     header('Content-Type: application/json');
     http_response_code(401); // Unauthorized
@@ -13,16 +12,8 @@ if (!isset($_SESSION["user_id"]) || !isset($_SESSION["user_role"]) || $_SESSION[
     exit();
 }
 
-// Validate user_id is numeric and positive
-$userId = (int)$_SESSION['user_id'];
-if ($userId <= 0) {
-    header('Content-Type: application/json');
-    http_response_code(401);
-    echo json_encode(["status" => "error", "message" => "Invalid user session", "count" => 0]);
-    exit();
-}
-
-require_once __DIR__ . '/../../../backend/pages/admin-includes/database.php'; // Include the database connection
+// Get user ID
+$userId = SessionManager::getUserId();
 require_once __DIR__ . '/class-notif.php'; // Include the Notification class
 
 try {

@@ -13,6 +13,7 @@ if (!file_exists($databasePath)) {
 
 require_once $databasePath; // Include the database connection
 require_once $mailerPath; // Include the mailer for email functionality
+require_once __DIR__ . '/../../../includes/session-manager.php';
 require_once 'email-queue.php'; // Include the email queue system
 
 // Don't start session if it's already active
@@ -24,7 +25,7 @@ if (session_status() === PHP_SESSION_NONE) {
 if (isset($_GET['action']) && $_GET['action'] === 'details') {
     header('Content-Type: application/json');
     
-    if (!isset($_SESSION["user_id"])) {
+    if (!SessionManager::isUserLoggedIn()) {
         echo json_encode(["status" => "error", "message" => "User not logged in"]);
         exit();
     }
@@ -37,7 +38,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'details') {
     }
     
     try {
-        $userId = $_SESSION['user_id'];
+        $userId = SessionManager::getUserId();
         $notification = new Notification($conn);
         $notificationDetails = $notification->getNotificationDetails($notificationId, $userId);
         

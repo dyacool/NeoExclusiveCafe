@@ -4,10 +4,12 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Get user information if logged in - check for both user and admin sessions
+require_once __DIR__ . '/../../../includes/session-manager.php';
+
+// Get user information if logged in using SessionManager
 $user = null;
-$is_user_logged_in = isset($_SESSION['user_id']);
-$is_admin_logged_in = isset($_SESSION['admin_id']) && isset($_SESSION['admin_role']) && $_SESSION['admin_role'] === 'admin';
+$is_user_logged_in = SessionManager::isUserLoggedIn();
+$is_admin_logged_in = SessionManager::isAdminLoggedIn();
 
 if ($is_user_logged_in) {
     // Use session data for user
@@ -18,7 +20,7 @@ if ($is_user_logged_in) {
     ];
 
     // Always fetch from database to ensure we have the latest Cloudinary URL
-    $user_id = (int)($_SESSION['user_id'] ?? 0);
+    $user_id = SessionManager::getUserId();
     if ($user_id > 0) {
         // Include database connection
         $db_path = __DIR__ . '/../database.php';
@@ -152,101 +154,6 @@ if (!$navbar_conn) {
         <div class="announcement-text"> Products Available for same-day and pre-order purchases.</div>
     </div>
 
-    <!-- Real-time badge styling -->
-    <style>
-        /* Cart Badge Styling */
-        .cart-badge {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: #dc3545;
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
-            font-weight: 600;
-            border: 2px solid white;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            z-index: 10;
-            min-width: 20px;
-            padding: 0 2px;
-        }
-        
-        /* Notification Badge Styling */
-        .badge {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: #dc3545;
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
-            font-weight: 600;
-            border: 2px solid white;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            z-index: 10;
-            min-width: 20px;
-            padding: 0 2px;
-        }
-        
-        /* Animation for real-time updates */
-        @keyframes badgePulse {
-            0% { transform: scale(0.8); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
-        }
-        
-        .cart-badge.updated, .badge.updated {
-            animation: badgePulse 0.3s ease;
-            box-shadow: 0 0 15px rgba(220, 53, 69, 0.6);
-        }
-        
-        /* Notification Loader Styles */
-        .notification-loader {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 30px 20px;
-            text-align: center;
-        }
-        
-        .notification-loader .spinner {
-            width: 30px;
-            height: 30px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #8B4513;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 10px;
-        }
-        
-        .notification-loader p {
-            margin: 0;
-            color: #666;
-            font-size: 14px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        /* Ensure proper positioning for icon containers */
-        .nav-link {
-            position: relative;
-        }
-    </style>
-
     <nav class="main-nav">
         <!-- Hamburger menu for mobile/tablet -->
         <div class="nav-content">
@@ -256,6 +163,10 @@ if (!$navbar_conn) {
             <div class="nav-left">
                 <a href="../../../frontend/pages/home/user-dashboard.php" class="nav-link smooth-nav <?php echo $current_page === 'user-dashboard.php' ? 'active' : ''; ?>" data-target="../../../frontend/pages/home/user-dashboard.php">
                     <span class="link-text">Home</span>
+                    <span class="link-underline"></span>
+                </a>
+                <a href="/frontend/pages/bulk/bulk-form.php"class="nav-link smooth-nav <?php echo $current_page === 'bulk-forn.php' ? 'active' : ''; ?>" data-target="../../../frontend/pages/about/bulk-form.php">
+                    <span class="link-text">Bulk Order</span>
                     <span class="link-underline"></span>
                 </a>
 
@@ -290,8 +201,6 @@ if (!$navbar_conn) {
                         }
                         ?>
                     </div>
-
-
                     <!-- Mobile Products Dropdown - Inside nav-left for better visibility -->
                     <div class="mobile-products-dropdown">
                         <!-- All Products link for mobile -->
@@ -317,10 +226,6 @@ if (!$navbar_conn) {
                         ?>
                     </div>
                 </div>
-                <a href="/frontend/pages/bulk/bulk-form.php"class="nav-link smooth-nav <?php echo $current_page === 'bulk-forn.php' ? 'active' : ''; ?>" data-target="../../../frontend/pages/about/bulk-form.php">
-                    <span class="link-text">Bulk Order</span>
-                    <span class="link-underline"></span>
-                </a>
                 <a href="../../../frontend/pages/blog/blog-dashboard.php" class="nav-link smooth-nav <?php echo $current_page === 'blog-page.php' ? 'active' : ''; ?>" data-target="../../../frontend/pages/blog/blog-dashboard.php">
                     <span class="link-text">Blog</span>
                     <span class="link-underline"></span>
@@ -355,12 +260,11 @@ if (!$navbar_conn) {
                             <path d="M7 8V6a5 5 0 0110 0v2"></path>
                             <path d="M3 8h18"></path>
                         </svg>
-                        <span class="cart-badge" id="cartCount" style="display: none;"></span>
                         <span class="icon-effect"></span>
                     </div>
                 </a>
                 <div class="notification-container">
-                    <?php if ($is_user_logged_in && isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'user'): ?>
+                    <?php if ($is_user_logged_in): ?>
                     <a href="#" class="notification-link" aria-label="View notifications">
                         <div class="icon-wrapper">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="icon notification-icon">
@@ -374,16 +278,12 @@ if (!$navbar_conn) {
                     <div class="notification-dropdown" id="notifDropdown">
                         <div class="dropdown-header">
                             <h3>Notifications</h3>
-                            <button id="markAllRead" class="mark-read" title="Mark all as read" style="transition: all 0.3s ease;">Mark all as read</button>
-                        </div>
-                        <div class="notification-loader" id="notificationLoader" style="display: none;">
-                            <div class="spinner"></div>
-                            <p>Loading notifications...</p>
+                            <button id="markAllRead" class="mark-read" title="Mark all as read">Mark all as read</button>
                         </div>
                         <ul id="notificationList" class="notification-list">
                             <!-- Notifications will appear dynamically -->
                         </ul>
-                        <div class="no-notifications" id="noNotifications" style="display: none;">
+                        <div class="no-notifications" id="noNotifications">
                             <p>No new notifications.</p>
                         </div>
                         <div class="dropdown-footer">
@@ -403,7 +303,11 @@ if (!$navbar_conn) {
                     <?php endif; ?>
                 </div>
 
-
+                <style>
+                    .hide-on-login {
+                        display: none !important;
+                    }
+                </style>
                 <?php if ($user): ?>
                     <div class="profile-container auth-buttons">
                     <a href="<?php echo $is_admin_logged_in ? '/backend/pages/homepage/admin-homepage.php' : '/frontend/pages/profile/profile.php'; ?>"class="profile-link" id="profile-trigger">
@@ -414,8 +318,8 @@ if (!$navbar_conn) {
                                 
                                 // Determine profile image url - prioritize Cloudinary
                                 $profile_image_url = $profile_default_image_path;
-                                if (isset($user['profile_image']) && !empty(trim($user['profile_image']))) {
-                                    $profile_image_url = trim($user['profile_image']);
+                                if (isset($user['profile_image_url']) && !empty(trim($user['profile_image_url']))) {
+                                    $profile_image_url = trim($user['profile_image_urls']);
                                 }
                                 
                                 // Check if user has a profile image (not the default SVG)
@@ -454,12 +358,12 @@ if (!$navbar_conn) {
                         <div class="dropdown-menu">
                             <?php if ($is_admin_logged_in): ?>
                                 <a href="/backend/pages/homepage/admin-homepage.php">Admin Panel</a>
-                                <a href="#" onclick="confirmLogout('admin'); return false;">Logout</a>
+                                <a href="/backend/login/admin/logout.php">Logout</a>
                             <?php else: ?>
                                 <a href="/frontend/pages/profile/profile.php">Profile</a>
                                 <a href="/frontend/pages/profile/account-settings.php">Account Settings</a>
                                 <a href="/frontend/pages/blog/user-blog-post.php">View Post</a>
-                                <a href="#" onclick="confirmLogout('user'); return false;">Logout</a>
+                                <a href="/frontend/login/user/logout.php">Logout</a>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -509,7 +413,7 @@ if (!$navbar_conn) {
             <button id="mobileMarkAllRead" class="mark-read" title="Mark all as read" style="transition: all 0.3s ease;">Mark all as read</button>
             <button class="close-modal" id="closeMobileNotif" aria-label="Close notifications" onclick="closeMobileNotifications(); return false;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="18" y1="6" x2="6" x2="18" y2="18"></line>
                     <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
             </button>
@@ -563,7 +467,7 @@ if (!$navbar_conn) {
         
         // SIMPLE IMMEDIATE IMPLEMENTATION - Wait for DOM to be ready
         
-        // Wait for elements to be ready, then attach handlers
+        // Wait just a moment for HTML to be ready, then attach handlers immediately
         setTimeout(() => {
             // SEARCH FUNCTIONALITY
             const searchToggle = document.querySelector('.search-toggle');
@@ -1000,11 +904,6 @@ if (!$navbar_conn) {
                 
                 if (!notificationList || !noNotifications) return;
                 
-                // Initially hide all elements except loader
-                noNotifications.style.display = "none";
-                notificationList.style.display = "none";
-                notificationList.innerHTML = '';
-                
                 // Use global function if available, otherwise fetch directly
                 if (window.fetchDropdownNotifications) {
                     window.fetchDropdownNotifications()
@@ -1033,17 +932,10 @@ if (!$navbar_conn) {
                 }
                 
                 function updateNotificationDisplay(notifications) {
-                    // Hide loader first
-                    if (loader) {
-                        loader.style.display = 'none';
-                    }
-                    
-                    // Always clear the list first
                     notificationList.innerHTML = '';
                     
                     if (notifications && notifications.length > 0) {
-                        // Show notification list and hide "no notifications" message
-                        notificationList.style.display = 'block';
+                        // Hide "no notifications" message
                         noNotifications.style.display = "none";
                         
                         // Show notifications
@@ -1056,19 +948,18 @@ if (!$navbar_conn) {
                             title.className = "notification-title";
                             title.textContent = notif.title;
 
+                            const message = document.createElement("div");
+                            message.className = "notification-message";
+                            message.textContent = notif.message.substring(0, 50) + (notif.message.length > 50 ? '...' : '');
+
                             const time = document.createElement("div");
                             time.className = "notification-time";
-                            time.textContent = new Date(notif.created_at).toLocaleString('en-US', { 
-                                month: 'short',
-                                day: 'numeric',
-                                hour: 'numeric',
-                                minute: '2-digit',
-                                hour12: true
-                            });
+                            time.textContent = new Date(notif.created_at).toLocaleString([], { short: 'short' });
 
                             const contentDiv = document.createElement('div');
                             contentDiv.className = 'notification-content';
                             contentDiv.appendChild(title);
+                            contentDiv.appendChild(message);
                             contentDiv.appendChild(time);
 
                             listItem.appendChild(contentDiv);
@@ -1079,29 +970,20 @@ if (!$navbar_conn) {
                         const unreadCount = notifications.filter(n => !n.is_read).length;
                         if (notifCount) {
                             if (unreadCount > 0) {
-                                notifCount.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                                notifCount.textContent = unreadCount;
                                 notifCount.style.display = "block";
                             } else {
                                 notifCount.style.display = "none";
                             }
                         }
                     } else {
-                        // Show "no notifications" message when we have no notifications
                         showNoNotifications();
                     }
                 }
                 
                 function showNoNotifications() {
-                    // Hide loader
-                    if (loader) {
-                        loader.style.display = 'none';
-                    }
-                    // Clear the notification list and hide it
                     notificationList.innerHTML = '';
-                    notificationList.style.display = 'none';
-                    // Show the "no notifications" message
                     noNotifications.style.display = "block";
-                    // Hide the notification count badge
                     if (notifCount) {
                         notifCount.style.display = "none";
                     }

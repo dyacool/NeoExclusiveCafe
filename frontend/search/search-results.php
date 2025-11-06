@@ -3,6 +3,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+require_once "../includes/session-manager.php";
 require_once "../user-includes/preview-mode.php";
 
 // Direct database connection
@@ -471,7 +472,7 @@ require_once "../user-includes/navbar/customer-navigation.php";
 
 <script>
     // Check if user is logged in
-    const isLoggedIn = <?= isset($_SESSION['user_id']) ? 'true' : 'false' ?>;
+    const isLoggedIn = <?= SessionManager::isUserLoggedIn() ? 'true' : 'false' ?>;
     const loginUrl = '/frontend/login/user/login-signup.php';
     
     // Function to check login and redirect if needed

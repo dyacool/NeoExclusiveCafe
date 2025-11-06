@@ -1,13 +1,12 @@
 <?php
 session_start();
 require_once "../../../backend/pages/admin-includes/database.php";
+require_once "../../../includes/session-manager.php";
 
-if (!isset($_SESSION['user_id'])) {
-	header("Location: ../../login/user/login-signup.php");
-	exit();
-}
+// Require user login - redirect if not authenticated
+SessionManager::requireUserLogin('../../login/user/login-signup.php');
 
-$user_id = $_SESSION['user_id'];
+$user_id = SessionManager::getUserId();
 
 // Get user information including Cloudinary fields
 $user_query = "SELECT id, firstname, lastname, username, email, created_at, profile_image, cloud_url, cloud_public_id FROM users WHERE id = ?";

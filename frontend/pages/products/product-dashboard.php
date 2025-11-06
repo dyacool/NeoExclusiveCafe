@@ -1,16 +1,7 @@
 ﻿<?php
-session_set_cookie_params([
-    'lifetime' => 0,
-    'httponly' => true,
-    'samesite' => 'Strict',
-    'domain' => 'neocafe.cafe'
-]);
-session_start();
-
-// Debug session status
-error_log("[Session Debug] product-dashboard.php - Session Data: " . print_r($_SESSION, true));
-error_log("[Session Debug] product-dashboard.php - User ID: " . (isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 'Not set'));
-error_log("[Session Debug] product-dashboard.php - User Role: " . (isset($_SESSION['user_role']) ? $_SESSION['user_role'] : 'Not set'));
+// Include database first - it handles session configuration
+require_once __DIR__ . "/../../../backend/pages/admin-includes/database.php";
+require_once __DIR__ . "/../../../includes/session-manager.php";
 
 $page_title = "Products";
 $additional_css = [
@@ -20,7 +11,6 @@ $additional_css = [
 require_once __DIR__ . "/../../user-includes/navbar/customer-navigation.php";
 require_once __DIR__ . "/../../user-includes/user-header.php";
 require_once __DIR__ . "/../../user-includes/preview-mode.php";
-require_once __DIR__ . "/../../../backend/pages/admin-includes/database.php";
 require_once __DIR__ . "/../../../backend/pages/products/todays-products-handler.php";
 
 // Try to include Cloudinary image fetcher (may fail if vendor/autoload.php is missing)
@@ -915,7 +905,7 @@ if ($cart_truncated) {
 
 <script>
     // Check if user is logged in
-    const isLoggedIn = <?= isset($_SESSION['user_id']) ? 'true' : 'false' ?>;
+    const isLoggedIn = <?= SessionManager::isUserLoggedIn() ? 'true' : 'false' ?>;
     const loginUrl = 'http://neocafe.cafe:8080/frontend/login/user/login-signup.php';
     
     // Function to check login and redirect if needed
@@ -1798,14 +1788,6 @@ function closeProductModal() {
         }
     });
 </script>
-
-<!-- Realtime notification system (disabled for now - uncomment to enable) -->
-<!--
-<link rel="stylesheet" href="/frontend/assets/css/realtime-notifications.css">
-<script src="/frontend/assets/js/realtime-notifications.js"></script>
-<script src="/frontend/assets/js/realtime-notifications-ui.js"></script>
-<script src="/frontend/assets/js/product-dashboard-realtime.js"></script>
--->
 
 <style>
     :root {

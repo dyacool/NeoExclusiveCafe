@@ -6,9 +6,10 @@ session_set_cookie_params([
     'domain' => 'neocafe.cafe'
 ]);
 session_start();
+require_once __DIR__ . '/../../../includes/session-manager.php';
 
 // Define preview mode
-$is_preview_mode = !isset($_SESSION['user_id']) && !isset($_SESSION['admin_id']);
+$is_preview_mode = SessionManager::isPreviewMode();
 
 $page_title = "Weekly Products";
 $additional_css = [

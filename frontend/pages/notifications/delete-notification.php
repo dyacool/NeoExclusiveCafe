@@ -7,6 +7,7 @@ ini_set('display_errors', 1);
 error_log('Delete notification request started');
 
 require_once '../../../backend/pages/admin-includes/database.php';
+require_once '../../../includes/session-manager.php';
 
 // Don't start session if it's already active
 if (session_status() === PHP_SESSION_NONE) {
@@ -14,25 +15,18 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // Log session info
-error_log('Session user_id: ' . (isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 'not set'));
-error_log('Session user_role: ' . (isset($_SESSION['user_role']) ? $_SESSION['user_role'] : 'not set'));
+error_log('Session user logged in: ' . (SessionManager::isUserLoggedIn() ? 'yes' : 'no'));
 
 // Check if user is logged in and has proper role
-if (!isset($_SESSION["user_id"]) || !isset($_SESSION["user_role"]) || $_SESSION["user_role"] !== "user") {
+if (!SessionManager::isUserLoggedIn()) {
     error_log('Authorization failed');
     http_response_code(401);
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
     exit();
 }
 
-// Validate user_id is numeric and positive
-$user_id = (int)$_SESSION['user_id'];
-if ($user_id <= 0) {
-    error_log('Invalid user_id: ' . $user_id);
-    http_response_code(401);
-    echo json_encode(['success' => false, 'message' => 'Invalid user']);
-    exit();
-}
+// Get user ID
+$user_id = SessionManager::getUserId();
 
 // Check if request is POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

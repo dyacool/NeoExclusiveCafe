@@ -9,12 +9,6 @@ require_once __DIR__ . "/../../../backend/pages/admin-includes/auth-helpers.php"
 
 // Start session safely and set cookie params only if no session is active
 if (session_status() !== PHP_SESSION_ACTIVE) {
-    session_set_cookie_params([
-        'lifetime' => 0,
-        'httponly' => true,
-        'samesite' => 'Strict',
-        'domain' => 'neocafe.shop'
-    ]);
     session_start();
 } else {
     // Ensure session is active
@@ -305,12 +299,7 @@ if (isset($_POST["signin-submit"])) {
                             header("Location: verification-page.php");
                             exit();
                         } else {
-                            // Clear any existing session data to prevent conflicts
-                            session_unset();
-                            session_destroy();
-                            session_start();
-                            
-                            // Set session variables with separate user keys
+                            // Set session variables with user keys
                             $_SESSION["user_id"] = $user["id"];
                             $_SESSION["user_username"] = $user["username"];
                             $_SESSION["is_verified"] = true;

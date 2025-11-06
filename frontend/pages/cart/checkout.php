@@ -13,37 +13,12 @@ if (ob_get_level()) {
     ob_end_clean();
 }
 
-// Set session cookie parameters based on environment
-$session_domain = '';
-if (isset($_SERVER['HTTP_HOST'])) {
-    $host = $_SERVER['HTTP_HOST'];
-    // Only set domain for production environment
-    if (strpos($host, 'neocafe.cafe') !== false) {
-        $session_domain = 'neocafe.cafe';
-    }
-    // For localhost/local development, leave domain empty
-}
-
-session_set_cookie_params([
-    'lifetime' => 0,
-    'httponly' => true,
-    'samesite' => 'Strict',
-    'domain' => $session_domain
-]);
-session_start();
-
-// Require login for checkout - check for user role
-if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'user') {
-    error_log("Checkout access denied - Session check failed:");
-    error_log("user_id: " . (isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 'NOT SET'));
-    error_log("user_role: " . (isset($_SESSION['user_role']) ? $_SESSION['user_role'] : 'NOT SET'));
-    error_log("Redirecting to login page");
-    header("Location: ../../login/user/login-signup.php");
-    exit();
-}
-
-// Include database connection first (before any output)
+// Include database connection FIRST - it handles session configuration
 require_once '../../../backend/pages/admin-includes/database.php';
+require_once '../../../includes/session-manager.php';
+
+// Require user login for checkout
+SessionManager::requireUserLogin('../../login/user/login-signup.php');
 
 // Validate cart items BEFORE any output
 $selected_cart_ids = [];
@@ -2232,6 +2207,7 @@ $debug_info = [
                     }
                     
                     // Add cart information
+                    // Note: For PayMongo, we'll add cart_items as array later, not JSON string
                     formData.append('cart_items', JSON.stringify(cartItems));
                     formData.append('selected_cart_ids', cartItems.map(item => item.cart_id).join(','));
                     formData.append('cart_total', cartTotal);
@@ -2299,7 +2275,12 @@ $debug_info = [
                     // Convert FormData to regular object for PayMongo integration
                     const orderData = {};
                     for (let [key, value] of formData.entries()) {
-                        orderData[key] = value;
+                        // Parse cart_items back to array for PayMongo (payment-return.php expects array, not string)
+                        if (key === 'cart_items') {
+                            orderData[key] = JSON.parse(value);
+                        } else {
+                            orderData[key] = value;
+                        }
                     }
                     
                     // Add customer name and email
@@ -2726,7 +2707,6 @@ $debug_info = [
     </div>
 </div>
 
-<!-- Add Bootstrap CSS -->
 <!-- Add jQuery -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 

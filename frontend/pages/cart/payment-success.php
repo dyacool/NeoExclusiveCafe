@@ -1,11 +1,7 @@
 <?php
-session_set_cookie_params([
-    'lifetime' => 0,
-    'httponly' => true,
-    'samesite' => 'Strict',
-    'domain' => 'neocafe.cafe'
-]);
-session_start();
+// Include database first - it handles session configuration
+require_once '../../../backend/pages/admin-includes/database.php';
+require_once '../../../includes/session-manager.php';
 
 // Check if payment success data exists
 if (!isset($_SESSION['payment_success'])) {
@@ -15,9 +11,6 @@ if (!isset($_SESSION['payment_success'])) {
 
 $payment_data = $_SESSION['payment_success'];
 $order_type = $_GET['type'] ?? 'regular';
-
-// Include database connection and coupon functions
-require_once '../../../backend/pages/admin-includes/database.php';
 require_once '../../../backend/pages/user-page-content/database-config.php';
 
 // Record coupon usage if a coupon was applied

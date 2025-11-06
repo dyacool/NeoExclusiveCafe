@@ -66,14 +66,10 @@ try {
     if ($stmt->execute()) {
         $notificationId = $conn->insert_id;
         
-        // Broadcast notification via realtime system
-        require_once 'event-broadcaster.php';
-        EventBroadcaster::sendNotification($userId, $message, $type, $notificationId);
-        
         echo json_encode([
             'success' => true,
             'notification_id' => $notificationId,
-            'message' => 'Notification created and broadcasted successfully'
+            'message' => 'Notification created successfully'
         ]);
         
         error_log("[CreateNotification] Created notification ID $notificationId for user $userId");

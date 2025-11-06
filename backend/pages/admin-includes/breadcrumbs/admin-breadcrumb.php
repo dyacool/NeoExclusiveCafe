@@ -116,7 +116,7 @@ function generateAdminBreadcrumb($current_file, $route_mappings, $hierarchy) {
         'Blog' => '../blog/admin-blog.php',
         'Orders' => '../orders/order-list.php',
         'Bulk Orders' => '../bulks/bulk-order-lists.php',
-        'Product Management' => '..products/product-list.php',
+        'Product Management' => '../products/view-products.php',
         'Refund Requests' => '../refund/refund-request-lists.php',
         'Profile' => '../account/admin-profile.php'
     ];

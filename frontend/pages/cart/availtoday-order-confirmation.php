@@ -6,12 +6,10 @@ session_set_cookie_params([
     'domain' => 'neocafe.cafe'
 ]);
 session_start();
+require_once '../../../includes/session-manager.php';
 
-// Require login
-if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'user') {
-    header("Location: ../../login/user/login-signup.php");
-    exit();
-}
+// Require user login
+SessionManager::requireUserLogin('../../login/user/login-signup.php');
 
 // Check if order confirmation data exists
 if (!isset($_SESSION['order_confirmation'])) {

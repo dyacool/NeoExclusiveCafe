@@ -15,10 +15,11 @@ $additional_css = [
 // Include session management files first (before any HTML output)
 // Order matters: database.php must come before user-header.php to avoid session conflicts
 require_once "../../../backend/pages/admin-includes/database.php";
+require_once "../../../includes/session-manager.php";
 require_once __DIR__ . "/../../user-includes/user-header.php";
 
 // Define preview mode (after session is started)
-$is_preview_mode = !isset($_SESSION['user_id']) && !isset($_SESSION['admin_id']);
+$is_preview_mode = SessionManager::isPreviewMode();
 
 // Include navigation after session is established
 require_once "../../user-includes/navbar/customer-navigation.php";

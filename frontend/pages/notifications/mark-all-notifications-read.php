@@ -1,19 +1,16 @@
 <?php
 header('Content-Type: application/json');
+// Include database.php first - it handles session configuration
 require_once '../../../backend/pages/admin-includes/database.php';
-
-// Start session if not already started
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once '../../../includes/session-manager.php';
 
 // Check if user is logged in
-if (!isset($_SESSION["user_id"]) || !isset($_SESSION["user_role"]) || $_SESSION["user_role"] !== "user") {
+if (!SessionManager::isUserLoggedIn()) {
     echo json_encode(['success' => false, 'error' => 'Unauthorized']);
     exit();
 }
 
-$user_id = (int)$_SESSION['user_id'];
+$user_id = SessionManager::getUserId();
 
 try {
     // Mark all notifications as read for this user

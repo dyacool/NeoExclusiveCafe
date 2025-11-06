@@ -1,11 +1,7 @@
 <?php
-session_set_cookie_params([
-    'lifetime' => 0,
-    'httponly' => true,
-    'samesite' => 'Strict',
-    'domain' => 'neocafe.cafe'
-]);
-session_start();
+// Include database first - it handles session configuration
+require_once '../../../backend/pages/admin-includes/database.php';
+require_once '../../../includes/session-manager.php';
 
 $error_message = $_SESSION['payment_error'] ?? 'Payment was unsuccessful. Please try again.';
 $order_type = $_GET['type'] ?? 'regular';

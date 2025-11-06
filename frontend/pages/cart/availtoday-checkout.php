@@ -3,27 +3,17 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-session_set_cookie_params([
-    'lifetime' => 0,
-    'httponly' => true,
-    'samesite' => 'Strict',
-    'domain' => 'neocafe.cafe'
-]);
-session_start();
+// Include database connection FIRST - it handles session configuration
+require_once '../../../backend/pages/admin-includes/database.php';
+require_once '../../../includes/session-manager.php';
 
-// Require login for checkout - check for user role
-if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'user') {
-    header("Location: ../../login/user/login-signup.php");
-    exit();
-}
+// Require user login for checkout
+SessionManager::requireUserLogin('../../login/user/login-signup.php');
 
 $page_title = "Available Today Checkout";
 $additional_css = [
     "availtoday-checkout.css"
 ];
-
-// Include database connection
-require_once '../../../backend/pages/admin-includes/database.php';
 
 // Test database connection
 if ($conn->connect_error) {
@@ -743,7 +733,6 @@ $debug_info = [
     </div>
 </div>
 
-<!-- Add Bootstrap CSS -->
 <!-- Add jQuery -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 

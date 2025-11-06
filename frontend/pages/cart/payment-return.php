@@ -4,21 +4,141 @@
  * Handles payment success/failure redirects from PayMongo
  */
 
-// Determine domain based on environment
-$domain = (strpos($_SERVER['HTTP_HOST'], 'neocafe.shop') !== false) ? 'neocafe.shop' : 'neocafe.cafe';
+// Enable comprehensive error logging
+error_reporting(E_ALL);
+ini_set('display_errors', 1); // Temporarily show errors to debug white screen
+ini_set('log_errors', 1);
 
-session_set_cookie_params([
-    'lifetime' => 0,
-    'httponly' => true,
-    'samesite' => 'Strict',
-    'domain' => $domain
-]);
-session_start();
+// Create logs directory if it doesn't exist
+$log_dir = __DIR__ . '/../../../logs';
+if (!file_exists($log_dir)) {
+    @mkdir($log_dir, 0755, true);
+}
+ini_set('error_log', $log_dir . '/payment_errors.log');
 
-// Include required files
+// Log request start
+error_log("[PAYMENT-RETURN] ========================================");
+error_log("[PAYMENT-RETURN] === PAYMENT RETURN REQUEST START ===");
+error_log("[PAYMENT-RETURN] Timestamp: " . date('Y-m-d H:i:s'));
+error_log("[PAYMENT-RETURN] Request URI: " . ($_SERVER['REQUEST_URI'] ?? 'N/A'));
+error_log("[PAYMENT-RETURN] Remote IP: " . ($_SERVER['REMOTE_ADDR'] ?? 'N/A'));
+
+// Include database connection FIRST - it handles session configuration
 require_once '../../../backend/pages/admin-includes/database.php';
 require_once 'paymongo-config.php';
 require_once '../../../backend/pages/admin-includes/mailer.php';
+
+/**
+ * Display user-friendly error page
+ */
+function displayErrorPage($message, $details = '') {
+    $safe_message = htmlspecialchars($message);
+    $error_id = 'ERR-' . date('YmdHis') . '-' . substr(md5($message), 0, 8);
+    
+    error_log("[PAYMENT-RETURN] Displaying error page. Error ID: $error_id");
+    
+    echo '<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Processing Error - Neo Cafe</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .error-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+            text-align: center;
+        }
+        .error-icon {
+            width: 80px;
+            height: 80px;
+            background: #fee;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 40px;
+        }
+        h1 { color: #d32f2f; margin-bottom: 10px; font-size: 24px; }
+        .error-message { color: #666; margin-bottom: 20px; line-height: 1.6; }
+        .error-id { 
+            background: #f5f5f5; 
+            padding: 10px; 
+            border-radius: 6px; 
+            font-family: monospace; 
+            font-size: 12px; 
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .actions { margin-top: 30px; }
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            margin: 5px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #666;
+        }
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+        .support-info {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 14px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-icon">⚠️</div>
+        <h1>Payment Processing Error</h1>
+        <p class="error-message">' . $safe_message . '</p>
+        <div class="error-id">Error ID: ' . $error_id . '</div>
+        <div class="actions">
+            <a href="../products/product-dashboard.php" class="btn btn-primary">Return to Shop</a>
+            <a href="checkout.php" class="btn btn-secondary">Try Again</a>
+        </div>
+        <div class="support-info">
+            <p>If you continue to experience issues, please contact support.</p>
+            <p>Email: support@neocafe.cafe</p>
+            <p>Please reference Error ID: ' . $error_id . '</p>
+        </div>
+    </div>
+</body>
+</html>';
+}
 
 /**
  * Fetch customer information from saved_customer_info table
@@ -88,27 +208,129 @@ function fetchCustomerInfoFromSaved($conn, $user_id) {
     }
 }
 
-// Get parameters
-$status = $_GET['status'] ?? '';
-$type = $_GET['type'] ?? 'regular';
-$source_id = $_GET['source_id'] ?? '';
-
-// Debug logging
-error_log("Payment return - Status: $status, Type: $type, Source ID: $source_id");
-error_log("GET parameters: " . json_encode($_GET));
-error_log("Session pending payment: " . json_encode($_SESSION['pending_payment'] ?? 'NOT SET'));
-
-// Check if user has pending payment
-if (!isset($_SESSION['pending_payment'])) {
-    error_log("No pending payment found in session");
-    header("Location: ../products/product-dashboard.php");
-    exit();
-}
-
-$pending_payment = $_SESSION['pending_payment'];
-$paymongo = new PayMongoAPI();
-
+// Wrap entire payment processing in try-catch for comprehensive error handling
 try {
+    // Get parameters
+    $status = $_GET['status'] ?? '';
+    $type = $_GET['type'] ?? 'regular';
+    $source_id = $_GET['source_id'] ?? '';
+
+    // Log all incoming parameters
+    error_log("[PAYMENT-RETURN] GET Parameters:");
+    error_log("[PAYMENT-RETURN]   - status: " . ($status ?: 'EMPTY'));
+    error_log("[PAYMENT-RETURN]   - type: " . ($type ?: 'EMPTY'));
+    error_log("[PAYMENT-RETURN]   - source_id: " . ($source_id ?: 'EMPTY'));
+    error_log("[PAYMENT-RETURN]   - Full GET: " . json_encode($_GET));
+
+    // Log session data
+    error_log("[PAYMENT-RETURN] Session Data:");
+    error_log("[PAYMENT-RETURN]   - user_id: " . ($_SESSION['user_id'] ?? 'NOT SET'));
+    error_log("[PAYMENT-RETURN]   - username: " . ($_SESSION['username'] ?? 'NOT SET'));
+    error_log("[PAYMENT-RETURN]   - pending_payment exists: " . (isset($_SESSION['pending_payment']) ? 'YES' : 'NO'));
+    
+    if (isset($_SESSION['pending_payment'])) {
+        $pp_keys = array_keys($_SESSION['pending_payment']);
+        error_log("[PAYMENT-RETURN]   - pending_payment keys: " . implode(', ', $pp_keys));
+    }
+
+    // Validate database connection
+    if (!isset($conn)) {
+        throw new Exception('Database connection not initialized');
+    }
+    
+    if ($conn->connect_error) {
+        throw new Exception('Database connection failed: ' . $conn->connect_error);
+    }
+    
+    error_log("[PAYMENT-RETURN] ✓ Database connection validated");
+
+    // Check if user has pending payment
+    if (!isset($_SESSION['pending_payment'])) {
+        error_log("[PAYMENT-RETURN] ⚠ No pending payment in session, attempting database recovery...");
+        
+        // CRITICAL FIX: Try to recover from database if session was lost
+        $recovered = false;
+        if (isset($_SESSION['user_id'])) {
+            try {
+                // Try to recover by source_id if provided, otherwise get most recent pending payment for user
+                if (!empty($source_id)) {
+                    $recover_sql = "SELECT * FROM pending_payments 
+                                    WHERE payment_id = ? 
+                                    AND user_id = ? 
+                                    AND expires_at > NOW()
+                                    LIMIT 1";
+                    $recover_stmt = $conn->prepare($recover_sql);
+                    $recover_stmt->bind_param("si", $source_id, $_SESSION['user_id']);
+                } else {
+                    // No source_id provided, get most recent pending payment for this user
+                    error_log("[PAYMENT-RETURN] No source_id, trying to recover most recent pending payment for user");
+                    $recover_sql = "SELECT * FROM pending_payments 
+                                    WHERE user_id = ? 
+                                    AND expires_at > NOW()
+                                    ORDER BY created_at DESC
+                                    LIMIT 1";
+                    $recover_stmt = $conn->prepare($recover_sql);
+                    $recover_stmt->bind_param("i", $_SESSION['user_id']);
+                }
+                
+                if ($recover_stmt) {
+                    $recover_stmt->execute();
+                    $recover_result = $recover_stmt->get_result();
+                    
+                    if ($recover_row = $recover_result->fetch_assoc()) {
+                        // Reconstruct pending_payment from database
+                        $pending_payment = [
+                            'source_id' => $recover_row['payment_id'],
+                            'order_type' => $recover_row['order_type'],
+                            'amount' => floatval($recover_row['amount']),
+                            'payment_method' => $recover_row['payment_method'],
+                            'order_data' => json_decode($recover_row['order_data'], true)
+                        ];
+                        
+                        // If it's a payment_intent, add those fields
+                        if ($recover_row['payment_type'] === 'payment_intent') {
+                            $pending_payment['payment_intent_id'] = $recover_row['payment_id'];
+                            unset($pending_payment['source_id']);
+                        }
+                        
+                        // Restore to session for processing
+                        $_SESSION['pending_payment'] = $pending_payment;
+                        $recovered = true;
+                        
+                        error_log("[PAYMENT-RETURN] ✓ Successfully recovered pending payment from database!");
+                        error_log("[PAYMENT-RETURN] Recovered data: " . json_encode($pending_payment));
+                    }
+                    $recover_stmt->close();
+                }
+            } catch (Exception $recover_error) {
+                error_log("[PAYMENT-RETURN] Database recovery failed: " . $recover_error->getMessage());
+            }
+        }
+        
+        if (!$recovered) {
+            error_log("[PAYMENT-RETURN] ✗ ERROR: Could not recover pending payment from database");
+            throw new Exception('No pending payment session found. Your session may have expired. Please try placing your order again.');
+        }
+    }
+
+    $pending_payment = $_SESSION['pending_payment'];
+    error_log("[PAYMENT-RETURN] ✓ Pending payment retrieved" . (isset($recovered) && $recovered ? " (from database backup)" : " (from session)"));
+    
+    // Validate pending payment structure
+    if (!is_array($pending_payment)) {
+        throw new Exception('Invalid pending payment data structure');
+    }
+    
+    if (empty($pending_payment['order_data'])) {
+        throw new Exception('Missing order data in pending payment');
+    }
+    
+    error_log("[PAYMENT-RETURN] ✓ Pending payment structure validated");
+
+    $paymongo = new PayMongoAPI();
+    error_log("[PAYMENT-RETURN] ✓ PayMongo API initialized");
+
+    // Process payment based on status
     if ($status === 'success') {
         // Check if this payment has already been processed to prevent duplicates
         $payment_id = $pending_payment['source_id'] ?? ($pending_payment['payment_intent_id'] ?? null);
@@ -125,6 +347,22 @@ try {
                     
                     // Clear pending payment and redirect to success
                     unset($_SESSION['pending_payment']);
+                    
+                    // Clean up database backup
+                    try {
+                        if ($payment_id && isset($_SESSION['user_id'])) {
+                            $cleanup_sql = "DELETE FROM pending_payments WHERE payment_id = ? AND user_id = ?";
+                            $cleanup_stmt = $conn->prepare($cleanup_sql);
+                            if ($cleanup_stmt) {
+                                $cleanup_stmt->bind_param("si", $payment_id, $_SESSION['user_id']);
+                                $cleanup_stmt->execute();
+                                $cleanup_stmt->close();
+                            }
+                        }
+                    } catch (Exception $e) {
+                        error_log("[PAYMENT-RETURN] Cleanup error: " . $e->getMessage());
+                    }
+                    
                     header("Location: payment-success.php?type=$type&order_id=" . $existing_order['order_id']);
                     exit();
                 }
@@ -349,22 +587,10 @@ try {
             }
             if (!$order_id_created) { throw new Exception('Failed to get new order_id'); }
             
-            // Broadcast new order notification to admins
-            require_once '../../../backend/api/event-broadcaster.php';
-            EventBroadcaster::broadcastNewOrder(
-                $order_id_created,
-                $customer_name,
-                $delivery_method,
-                $total_amount,
-                [
-                    'delivery_date' => $delivery_date,
-                    'pickup_date' => $pickup_date,
-                    'delivery_time' => $delivery_time,
-                    'pickup_time' => $pickup_time
-                ]
-            );
-            error_log("Broadcasted new order notification for order ID: $order_id_created");
-
+            // Set flag for instant order list refresh
+            $flag_sql = "INSERT INTO order_update_flags (flag_type) VALUES ('new_order')";
+            mysqli_query($conn, $flag_sql);
+            
             // Insert order_items and update inventory
             $item_sql = "INSERT INTO order_items (order_id, product_name, image_path, price, quantity) VALUES (?,?,?,?,?)";
             $item_stmt = $conn->prepare($item_sql);
@@ -579,7 +805,7 @@ try {
         
         // Create admin notification for new order
         try {
-            require_once '../../backend/pages/admin-includes/notifications/notification.php';
+            require_once '../../../backend/pages/admin-includes/notifications/notification.php';
             $notificationHandler = new NotificationHandler($conn);
             
             // Get username if user is logged in
@@ -673,8 +899,26 @@ try {
                     'order_type' => $type
                 ];
                 
-        // Clear pending
+        // Clear pending payment from session
                 unset($_SESSION['pending_payment']);
+                
+                // CRITICAL FIX: Clean up database backup
+                try {
+                    $payment_id = $pending_payment['source_id'] ?? ($pending_payment['payment_intent_id'] ?? null);
+                    if ($payment_id && isset($_SESSION['user_id'])) {
+                        $cleanup_sql = "DELETE FROM pending_payments WHERE payment_id = ? AND user_id = ?";
+                        $cleanup_stmt = $conn->prepare($cleanup_sql);
+                        if ($cleanup_stmt) {
+                            $cleanup_stmt->bind_param("si", $payment_id, $_SESSION['user_id']);
+                            $cleanup_stmt->execute();
+                            $cleanup_stmt->close();
+                            error_log("[PAYMENT-RETURN] ✓ Cleaned up pending payment from database");
+                        }
+                    }
+                } catch (Exception $cleanup_error) {
+                    error_log("[PAYMENT-RETURN] Warning: Could not cleanup pending payment: " . $cleanup_error->getMessage());
+                    // Don't fail the success flow if cleanup fails
+                }
                 
                 // Redirect to success page
                 header("Location: payment-success.php?type=$type");
@@ -682,26 +926,54 @@ try {
         
     } else {
         // Payment failed or cancelled
+        error_log("[PAYMENT-RETURN] Payment status is not 'success': $status");
         throw new Exception('Payment was cancelled or failed');
     }
     
 } catch (Exception $e) {
-    error_log("Payment return error: " . $e->getMessage());
+    // Comprehensive error logging
+    error_log("[PAYMENT-RETURN] ========================================");
+    error_log("[PAYMENT-RETURN] === CRITICAL ERROR ===");
+    error_log("[PAYMENT-RETURN] Error Message: " . $e->getMessage());
+    error_log("[PAYMENT-RETURN] Error File: " . $e->getFile());
+    error_log("[PAYMENT-RETURN] Error Line: " . $e->getLine());
+    error_log("[PAYMENT-RETURN] Stack Trace:");
+    error_log($e->getTraceAsString());
+    error_log("[PAYMENT-RETURN] ========================================");
+    
+    // Log context information
+    error_log("[PAYMENT-RETURN] Context at time of error:");
+    error_log("[PAYMENT-RETURN]   - GET params: " . json_encode($_GET));
+    error_log("[PAYMENT-RETURN]   - Session user_id: " . ($_SESSION['user_id'] ?? 'NOT SET'));
+    error_log("[PAYMENT-RETURN]   - Pending payment exists: " . (isset($pending_payment) ? 'YES' : 'NO'));
     
     // Store error for display
     $_SESSION['payment_error'] = $e->getMessage();
     
     // Update order status to failed if exists
     if (isset($pending_payment['order_id'])) {
+        error_log("[PAYMENT-RETURN] Updating order status to failed for order: " . $pending_payment['order_id']);
         updateOrderStatus($pending_payment['order_id'], 'failed', 'failed');
     }
     
     // Clear pending payment
     unset($_SESSION['pending_payment']);
+    error_log("[PAYMENT-RETURN] Pending payment cleared from session");
     
-    // Redirect to failure page
-    header("Location: payment-failed.php?type=$type");
-    exit();
+    // Check if payment-failed.php exists, otherwise show error page
+    $failed_page = __DIR__ . '/payment-failed.php';
+    if (file_exists($failed_page)) {
+        error_log("[PAYMENT-RETURN] Redirecting to payment-failed.php");
+        header("Location: payment-failed.php?type=$type");
+        exit();
+    } else {
+        error_log("[PAYMENT-RETURN] payment-failed.php not found, displaying error page");
+        displayErrorPage(
+            'We encountered an error processing your payment.',
+            'Please contact support if the issue persists.'
+        );
+        exit();
+    }
 }
 
 /**

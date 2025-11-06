@@ -1,0 +1,90 @@
+/* Polling Loading Indicator */
+#polling-loading-indicator {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 8px 12px;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    font-size: 13px;
+    color: #666;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+#polling-loading-indicator .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #667eea;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Last Update Timestamp */
+#last-update-time {
+    font-size: 12px;
+    color: #888;
+    margin-top: 8px;
+    text-align: right;
+    font-style: italic;
+}
+
+/* New Order Row Highlighting */
+.order-row-new {
+    animation: highlightFade 3s ease-in-out;
+}
+
+@keyframes highlightFade {
+    0% {
+        background-color: #fff9c4;
+    }
+    100% {
+        background-color: transparent;
+    }
+}
+
+/* Ensure orders-container has relative positioning for absolute loading indicator */
+.orders-container {
+    position: relative;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    #polling-loading-indicator {
+        top: 5px;
+        right: 5px;
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+    
+    #polling-loading-indicator .spinner {
+        width: 14px;
+        height: 14px;
+    }
+    
+    #last-update-time {
+        font-size: 11px;
+        text-align: center;
+    }
+}

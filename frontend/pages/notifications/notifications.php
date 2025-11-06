@@ -1,5 +1,6 @@
 <?php
 require_once '../../../backend/pages/admin-includes/database.php';
+require_once '../../../includes/session-manager.php';
 require_once 'class-notif.php'; 
 
 // Don't start session if it's already active
@@ -7,18 +8,11 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Check if user is logged in and has proper role
-if (!isset($_SESSION["user_id"]) || !isset($_SESSION["user_role"]) || $_SESSION["user_role"] !== "user") {
-    header('Location: ../../login/user/login-signup.php');
-    exit();
-}
+// Require user login
+SessionManager::requireUserLogin('../../login/user/login-signup.php');
 
-// Validate user_id is numeric and positive
-$user_id = (int)$_SESSION['user_id'];
-if ($user_id <= 0) {
-    header('Location: ../../login/user/login-signup.php');
-    exit();
-}
+// Get user ID
+$user_id = SessionManager::getUserId();
 
 // Initialize Notification class
 $notification = new Notification($conn); 

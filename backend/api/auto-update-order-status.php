@@ -16,7 +16,6 @@ ini_set('error_log', __DIR__ . '/../../logs/auto-status-updates.log');
 ob_start();
 
 require_once '../pages/admin-includes/database.php';
-require_once __DIR__ . '/event-broadcaster.php';
 
 header('Content-Type: application/json');
 
@@ -71,8 +70,8 @@ try {
             error_log("[AUTO-STATUS] Updated $affected same-day pickup orders to 'Ready for Pick-up'");
             $response['updated_count'] += $affected;
             
-            // Get the order IDs that were updated and broadcast events
-            $get_orders_sql = "SELECT order_id, user_id FROM orders 
+            // Get the order IDs that were updated
+            $get_orders_sql = "SELECT order_id FROM orders 
                               WHERE delivery_method = 'Pick-up' 
                               AND pickup_date = ?
                               AND status = 'Ready for Pick-up'
@@ -85,13 +84,6 @@ try {
             
             while ($row = mysqli_fetch_assoc($result)) {
                 $updated_orders[] = $row['order_id'];
-                
-                // Broadcast order status update
-                EventBroadcaster::broadcastOrderStatus(
-                    $row['order_id'],
-                    'Ready for Pick-up',
-                    $row['user_id']
-                );
             }
             mysqli_stmt_close($get_stmt);
         }
@@ -115,8 +107,8 @@ try {
             error_log("[AUTO-STATUS] Updated $affected same-day delivery orders to 'Ready for Delivery'");
             $response['updated_count'] += $affected;
             
-            // Get the order IDs that were updated and broadcast events
-            $get_orders_sql = "SELECT order_id, user_id FROM orders 
+            // Get the order IDs that were updated
+            $get_orders_sql = "SELECT order_id FROM orders 
                               WHERE delivery_method = 'Delivery' 
                               AND delivery_date = ?
                               AND status = 'Ready for Delivery'
@@ -129,13 +121,6 @@ try {
             
             while ($row = mysqli_fetch_assoc($result)) {
                 $updated_orders[] = $row['order_id'];
-                
-                // Broadcast order status update
-                EventBroadcaster::broadcastOrderStatus(
-                    $row['order_id'],
-                    'Ready for Delivery',
-                    $row['user_id']
-                );
             }
             mysqli_stmt_close($get_stmt);
         }
@@ -158,8 +143,8 @@ try {
             error_log("[AUTO-STATUS] Updated $affected pickup orders due tomorrow to 'Preparing'");
             $response['updated_count'] += $affected;
             
-            // Get the order IDs and broadcast events
-            $get_orders_sql = "SELECT order_id, user_id FROM orders 
+            // Get the order IDs
+            $get_orders_sql = "SELECT order_id FROM orders 
                               WHERE delivery_method = 'Pick-up' 
                               AND pickup_date = ?
                               AND status = 'Preparing'
@@ -171,13 +156,6 @@ try {
             
             while ($row = mysqli_fetch_assoc($result)) {
                 $updated_orders[] = $row['order_id'];
-                
-                // Broadcast order status update
-                EventBroadcaster::broadcastOrderStatus(
-                    $row['order_id'],
-                    'Preparing',
-                    $row['user_id']
-                );
             }
             mysqli_stmt_close($get_stmt);
         }
@@ -200,8 +178,8 @@ try {
             error_log("[AUTO-STATUS] Updated $affected pickup orders due today to 'Ready for Pick-up'");
             $response['updated_count'] += $affected;
             
-            // Get the order IDs and broadcast events
-            $get_orders_sql = "SELECT order_id, user_id FROM orders 
+            // Get the order IDs
+            $get_orders_sql = "SELECT order_id FROM orders 
                               WHERE delivery_method = 'Pick-up' 
                               AND pickup_date = ?
                               AND status = 'Ready for Pick-up'
@@ -213,13 +191,6 @@ try {
             
             while ($row = mysqli_fetch_assoc($result)) {
                 $updated_orders[] = $row['order_id'];
-                
-                // Broadcast order status update
-                EventBroadcaster::broadcastOrderStatus(
-                    $row['order_id'],
-                    'Ready for Pick-up',
-                    $row['user_id']
-                );
             }
             mysqli_stmt_close($get_stmt);
         }
@@ -242,8 +213,8 @@ try {
             error_log("[AUTO-STATUS] Updated $affected delivery orders due tomorrow to 'Preparing'");
             $response['updated_count'] += $affected;
             
-            // Get the order IDs and broadcast events
-            $get_orders_sql = "SELECT order_id, user_id FROM orders 
+            // Get the order IDs
+            $get_orders_sql = "SELECT order_id FROM orders 
                               WHERE delivery_method = 'Delivery' 
                               AND delivery_date = ?
                               AND status = 'Preparing'
@@ -255,13 +226,6 @@ try {
             
             while ($row = mysqli_fetch_assoc($result)) {
                 $updated_orders[] = $row['order_id'];
-                
-                // Broadcast order status update
-                EventBroadcaster::broadcastOrderStatus(
-                    $row['order_id'],
-                    'Preparing',
-                    $row['user_id']
-                );
             }
             mysqli_stmt_close($get_stmt);
         }
@@ -284,8 +248,8 @@ try {
             error_log("[AUTO-STATUS] Updated $affected delivery orders due today to 'Ready for Delivery'");
             $response['updated_count'] += $affected;
             
-            // Get the order IDs and broadcast events
-            $get_orders_sql = "SELECT order_id, user_id FROM orders 
+            // Get the order IDs
+            $get_orders_sql = "SELECT order_id FROM orders 
                               WHERE delivery_method = 'Delivery' 
                               AND delivery_date = ?
                               AND status = 'Ready for Delivery'
@@ -297,13 +261,6 @@ try {
             
             while ($row = mysqli_fetch_assoc($result)) {
                 $updated_orders[] = $row['order_id'];
-                
-                // Broadcast order status update
-                EventBroadcaster::broadcastOrderStatus(
-                    $row['order_id'],
-                    'Ready for Delivery',
-                    $row['user_id']
-                );
             }
             mysqli_stmt_close($get_stmt);
         }
