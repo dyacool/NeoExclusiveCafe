@@ -588,7 +588,7 @@ $debug_info = [
     
     .calendar-day.not-accepting {
       background: #f8f9fa;
-      color: #c62828;
+      color: #ccc;
       cursor: not-allowed;
     }
     
@@ -707,7 +707,6 @@ $debug_info = [
       border-radius: 4px;
       cursor: pointer;
       flex: 0 0 auto;
-      min-width: 250px;
       font-size: 14px;
       font-weight: 500;
       white-space: nowrap;
@@ -1344,6 +1343,10 @@ $debug_info = [
                     let dayCount = 0;
                     const maxDays = 35; // 6 weeks * 7 days
                     
+                    // Calculate the minimum selectable date (today + 2 days)
+                    const minSelectableDate = new Date(today);
+                    minSelectableDate.setDate(minSelectableDate.getDate() + 2);
+                    
                     while ((currentDate <= lastDay || currentDate.getDay() !== 0) && dayCount < maxDays) {
                         // Use local timezone instead of UTC to avoid date offset issues
                         const dateStr = currentDate.getFullYear() + '-' + 
@@ -1351,7 +1354,9 @@ $debug_info = [
                                       String(currentDate.getDate()).padStart(2, '0');
                         const isCurrentMonth = currentDate.getMonth() === this.currentDate.getMonth();
                         const isToday = currentDate.getTime() === today.getTime();
+                        const isTomorrow = new Date(currentDate.getTime() - 24 * 60 * 60 * 1000).getTime() === today.getTime();
                         const isPast = currentDate < today;
+                        const isBeforeMinSelectable = currentDate < minSelectableDate;
                         const isSelected = this.selectedDate && this.selectedDate.toDateString() === currentDate.toDateString();
                         
                         // Check if this date falls on an available day
@@ -1363,6 +1368,11 @@ $debug_info = [
                         if (isToday) dayClass += ' today';
                         if (isPast) dayClass += ' disabled';
                         if (isSelected) dayClass += ' selected';
+                        
+                        // Disable dates within 2-day advance notice requirement
+                        if (isBeforeMinSelectable) {
+                            dayClass += ' disabled';
+                        }
                         
                         // Check date limits
                         if (this.dateLimits[dateStr]) {
@@ -1383,7 +1393,7 @@ $debug_info = [
                         const dayNumber = currentDate.getDate();
                         
                         html += `
-                            <div class="${dayClass}" data-date="${dateStr}" ${isPast ? 'data-disabled="true"' : ''} ${!isAvailableDay ? 'data-unavailable="true"' : ''}>
+                            <div class="${dayClass}" data-date="${dateStr}" ${isPast || isBeforeMinSelectable ? 'data-disabled="true"' : ''} ${!isAvailableDay ? 'data-unavailable="true"' : ''}>
                                 ${dayNumber}
                             </div>
                         `;
@@ -2435,7 +2445,6 @@ $debug_info = [
                 <?php elseif ($has_delivery_only && $has_flexible): ?>
                     <div class="shipping-method-notice">
                         <p>The selected items for checkout are Delivery Only products.</p>
-                        <p><strong>Delivery Areas:</strong> We deliver to Sta. Rosa, Cabuyao, Calamba, Binan (Laguna), Silang, and Tagaytay (Cavite) only.</p>
                     </div>
                 <?php elseif ($has_pickup_only): ?>
                     <div class="shipping-method-notice">
@@ -2444,7 +2453,6 @@ $debug_info = [
                 <?php elseif ($has_delivery_only): ?>
                     <div class="shipping-method-notice">
                         <p>The selected items for checkout are Delivery Only products.</p>
-                        <p><strong>Delivery Areas:</strong> We deliver to Sta. Rosa, Cabuyao, Calamba, Binan (Laguna), Silang, and Tagaytay (Cavite) only.</p>
                     </div>
                 <?php elseif ($has_flexible): ?>
                     <div class="shipping-method-notice" style="background: #e3f2fd; border-color: #90caf9;">
@@ -2539,7 +2547,6 @@ $debug_info = [
                                 <option value="17:00:00">5:00 PM</option>
                                 <option value="18:00:00">6:00 PM</option>
                             </select>
-                            <small class="time-note">Available time: 6:00 AM - 6:00 PM</small>
                         </div>
                     </div>
                 </div>
@@ -2652,7 +2659,6 @@ $debug_info = [
                 
                 <div class="payment-note">
                     <p><strong>Secure Payment:</strong> All payments are processed securely through PayMongo.</p>
-                    <p><small>Test Mode: Use test card numbers for testing payments.</small></p>
                 </div>
             </div>
 
