@@ -54,12 +54,9 @@ try {
         $types .= "ss";
     }
     
-    // Add since timestamp filter for incremental updates
-    if (!empty($since_timestamp)) {
-        $where_clauses[] = "order_date > ?";
-        $params[] = $since_timestamp;
-        $types .= "s";
-    }
+    // NOTE: We don't filter by since_timestamp in the WHERE clause
+    // Instead, we use it only to mark which orders are "new" in the response
+    // This ensures we always return all orders matching the current filters
     
     // Combine where clauses if any
     if (!empty($where_clauses)) {
@@ -97,9 +94,8 @@ try {
         // Determine if this is a new order (created after since timestamp)
         $is_new = false;
         if (!empty($since_timestamp)) {
-            $order_time = strtotime($row['order_date']);
-            $since_time = strtotime($since_timestamp);
-            $is_new = ($order_time > $since_time);
+            // Use string comparison for more reliable timestamp comparison
+            $is_new = ($row['order_date'] > $since_timestamp);
         }
         
         // Map database status to display status

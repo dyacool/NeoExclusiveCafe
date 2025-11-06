@@ -399,6 +399,7 @@ try {
     
     <link rel="stylesheet" href="dashboard.css">
     <link rel="stylesheet" href="../counts.css">
+    <link rel="stylesheet" href="../../assets/css/dashboard-polling.css">
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -409,25 +410,31 @@ try {
 <body>
     <?php include "../admin-includes/navbar/navbar.php"; ?>
 
+    <!-- Dashboard Polling Loading Indicator -->
+    <div id="dashboard-loading-indicator">
+        <div class="spinner"></div>
+        <span>Updating...</span>
+    </div>
+
     <div class="main-container">
         <div class="dashboard-container">
             <div class="dashboard-section-1">
                 <div class="service-cards-grid">
                     <!-- Today Income -->
-                    <div class="service-card">
+                    <div class="service-card" data-stat="today_income">
                         <div class="card-header">
                             <span class="card-title">Total Sales Today</span>
-                            <i class="card-icon"></i>
+                            <div class="card-loading-spinner"></div>
                         </div>
                         <div class="card-value fas fa-peso-sign"> <?php echo number_format((double)$stats['today_income'], 2, '.', ','); ?></div>
                         <div class="card-change positive"><?php echo $stats['today_change']; ?></div>
                     </div>
 
                     <!-- Net Income -->
-                    <div class="service-card">
+                    <div class="service-card" data-stat="net_income">
                         <div class="card-header">
                             <span class="card-title">Total Revenue (All Time)</span>
-                            <i class="fas fa-chart-line card-icon"></i>
+                            <div class="card-loading-spinner"></div>
                         </div>
                         <div class="card-value fas fa-peso-sign"> <?php echo number_format((double)$stats['net_income'], 2, '.', ','); ?></div>
                         <div class="card-change positive"><?php echo $stats['net_change']; ?></div>
@@ -444,30 +451,30 @@ try {
                     </div>
 
                     <!-- Pending Orders -->
-                    <div class="service-card">
+                    <div class="service-card" data-stat="pending_orders">
                         <div class="card-header">
                             <span class="card-title">Pending Orders</span>
-                            <i class="fas fa-clock card-icon"></i>
+                            <div class="card-loading-spinner"></div>
                         </div>
                         <div class="card-value"><?php echo number_format($stats['pending_orders'], 0); ?></div>
                         <div class="card-change positive"><?php echo $stats['pending_change']; ?></div>
                     </div>
 
                     <!-- Total Orders -->
-                    <div class="service-card">
+                    <div class="service-card" data-stat="total_orders">
                         <div class="card-header">
                             <span class="card-title">Total Orders</span>
-                            <i class="fas fa-shopping-cart card-icon"></i>
+                            <div class="card-loading-spinner"></div>
                         </div>
                         <div class="card-value"><?php echo number_format($stats['total_orders'], 0); ?></div>
                         <div class="card-change positive"><?php echo $stats['orders_change']; ?></div>
                     </div>
 
                     <!-- Bulk Orders -->
-                    <div class="service-card">
+                    <div class="service-card" data-stat="bulk_orders">
                         <div class="card-header">
                             <span class="card-title">Total Bulk Orders</span>
-                            <i class="fas fa-layer-group card-icon"></i>
+                            <div class="card-loading-spinner"></div>
                         </div>
                         <div class="card-value"><?php echo number_format($stats['bulk_orders'], 0); ?></div>
                         <div class="card-change"><?php echo $stats['bulk_change']; ?></div>
@@ -527,9 +534,10 @@ try {
             <!-- Div 2: Charts Section -->
             <div class="dashboard-section-2">
                 <!-- Top 10 Products Chart -->
-                <div class="chart-card">
+                <div class="chart-card" data-container="top-products">
                     <div class="chart-header">
                         <h3>Top 10 Products</h3>
+                        <div class="card-loading-spinner"></div>
                         <span class="chart-subtitle">Best selling products this month</span>
                     </div>
                     <div class="chart-container">
@@ -538,9 +546,10 @@ try {
                 </div>
 
                 <!-- Sales Per Product Chart -->
-                <div class="chart-card">
+                <div class="chart-card" data-container="sales-per-product">
                     <div class="chart-header">
                         <h3>Sales Per Product</h3>
+                        <div class="card-loading-spinner"></div>
                         <span class="chart-subtitle">Total sales revenue and units sold by product</span>
                     </div>
                     <div class="chart-container">
@@ -552,9 +561,10 @@ try {
             <!-- Div 3: Tables Section -->
             <div class="dashboard-section-3">
                 <!-- Latest Transactions -->
-                <div class="table-card">
+                <div class="table-card" data-container="latest-transactions">
                     <div class="table-header">
                         <h3>Latest Transactions</h3>
+                        <div class="card-loading-spinner"></div>
                         <span class="table-subtitle">Recent payment transactions</span>
                     </div>
                     <div class="table-container">
@@ -587,9 +597,10 @@ try {
                 </div>
 
                 <!-- Latest Orders -->
-                <div class="table-card">
+                <div class="table-card" data-container="latest-orders">
                     <div class="table-header">
                         <h3>Latest Orders</h3>
+                        <div class="card-loading-spinner"></div>
                         <span class="table-subtitle">Recent customer orders</span>
                     </div>
                     <div class="table-container">
@@ -624,9 +635,10 @@ try {
                 </div>
 
                 <!-- Products with Today Availability -->
-                <div class="table-card">
+                <div class="table-card" data-container="availtoday-products">
                     <div class="table-header">
                         <h3>Same Day Order Products</h3>
+                        <div class="card-loading-spinner"></div>
                         <span class="table-subtitle">Products available for pickup/delivery with specific dates</span>
                     </div>
                     <div class="table-container">
@@ -685,12 +697,22 @@ try {
         const topProductsData = <?php echo json_encode($top_products); ?>;
     </script>
     <script src="dashboard.js?v=<?php echo time(); ?>"></script>
+    <script src="../../assets/js/dashboard-polling.js?v=<?php echo time(); ?>"></script>
     <script>
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function() {
             initializeDashboard();
             generateCalendar();
             createCharts();
+            
+            // Initialize polling system
+            console.log('[Dashboard] Initializing AJAX polling system');
+            const dashboardPoller = new DashboardPoller({
+                pollInterval: 5000, // Poll every 5 seconds
+                apiEndpoint: '../../api/get-dashboard-stats.php'
+            });
+            dashboardPoller.start();
+            console.log('[Dashboard] Polling system initialized');
         });
     </script>
 </body>
