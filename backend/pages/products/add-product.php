@@ -119,15 +119,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $name = $_POST['name'];
     $description = $_POST['description'];
     $price = $_POST['price'];
-    $status_id = $_POST['status_id'];
     $quantity = $_POST['quantity'];
     
     // Handle category_id - allow NULL if not selected
     $category_id = isset($_POST['category_id']) && !empty($_POST['category_id']) ? intval($_POST['category_id']) : null;
     
-    // Auto-set quantity to 0 if status is Same Day Order (status_id 4)
-    if ($status_id == 4) {
-        $quantity = 0;
+    // Determine status_id based on checkbox selections
+    $preOrderChecked = isset($_POST['preOrderCheckbox']) && $_POST['preOrderCheckbox'] === 'on';
+    $sameDayChecked = isset($_POST['sameDayCheckbox']) && $_POST['sameDayCheckbox'] === 'on';
+    
+    $status_id = null;
+    $availtoday_status_id = null;
+    
+    if ($preOrderChecked && $sameDayChecked) {
+        // Both pre-order and same-day: use pre-order status_id, set availtoday_status_id
+        $status_id = isset($_POST['status_id']) ? intval($_POST['status_id']) : 1;
+        $availtoday_status_id = isset($_POST['availtoday_status_id']) ? intval($_POST['availtoday_status_id']) : null;
+    } elseif ($preOrderChecked) {
+        // Only pre-order: use pre-order status_id
+        $status_id = isset($_POST['status_id']) ? intval($_POST['status_id']) : 1;
+    } elseif ($sameDayChecked) {
+        // Only same-day: use status_id 4 (Same Day Order)
+        $status_id = 4;
+        $availtoday_status_id = isset($_POST['availtoday_status_id']) ? intval($_POST['availtoday_status_id']) : null;
+        $quantity = 0; // Auto-set quantity to 0 for Same Day Order only
+    } else {
+        // Neither checked - validation should have caught this, but default to pre-order
+        $status_id = 1;
     }
     
     // Handle is_featured - now a select dropdown
@@ -151,21 +169,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $todays_product_dates = array_filter($todays_product_dates); // Remove empty values
     }
 
-    // Handle availtoday_status_id for Same Day Order products and regular products set as available today
-    $availtoday_status_id = null;
-    $isAvailableToday = isset($_POST['isAvailableToday']) && $_POST['isAvailableToday'] === 'true';
-    
-    if ($status_id == 4 && isset($_POST['availtoday_status_id']) && !empty($_POST['availtoday_status_id'])) {
-        // Same Day Order product
-        $availtoday_status_id = $_POST['availtoday_status_id'];
-    } elseif (($status_id == 1 || $status_id == 2 || $status_id == 3) && $isAvailableToday && isset($_POST['availtoday_status_id']) && !empty($_POST['availtoday_status_id'])) {
-        // Regular product (Pick Up/Delivery/Delivery or Pick Up) also set as available today
-        $availtoday_status_id = $_POST['availtoday_status_id'];
-    }
-    
-    // Handle available today dates for regular products
+    // Handle available today dates for regular products (when both checkboxes are checked)
     $available_today_dates = [];
-    if (($status_id == 1 || $status_id == 2 || $status_id == 3) && $isAvailableToday && isset($_POST['available_today_dates']) && !empty($_POST['available_today_dates'])) {
+    if ($preOrderChecked && $sameDayChecked && isset($_POST['available_today_dates']) && !empty($_POST['available_today_dates'])) {
         $available_today_dates = explode(',', $_POST['available_today_dates']);
         $available_today_dates = array_filter($available_today_dates);
     }
@@ -257,8 +263,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $day_stmt->close();
         }
         
-        // Insert Today's product dates into todays_products_dates table (for Same Day Order - status_id 4)
-        if ($status_id == 4 && !empty($todays_product_dates)) {
+        // Insert Today's product dates based on checkbox selections
+        if ($sameDayChecked && !$preOrderChecked && !empty($todays_product_dates)) {
+            // Only same-day checked: insert into todays_products_dates table
             $date_stmt = $conn->prepare("INSERT INTO todays_products_dates (product_id, available_date, availtoday_status_id) VALUES (?, ?, ?)");
             
             foreach ($todays_product_dates as $date) {
@@ -274,8 +281,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $date_stmt->close();
         }
 
-        // Insert available today dates for regular products into regular_products_today_dates table
-        if (($status_id == 1 || $status_id == 2 || $status_id == 3) && !empty($available_today_dates)) {
+        // Insert available today dates for products with both pre-order and same-day
+        if ($preOrderChecked && $sameDayChecked && !empty($available_today_dates)) {
+            // Both checkboxes checked: insert into regular_products_today_dates table
             $regular_date_stmt = $conn->prepare("INSERT INTO regular_products_today_dates (product_id, available_date, availtoday_status_id) VALUES (?, ?, ?)");
             
             foreach ($available_today_dates as $date) {
@@ -481,34 +489,42 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </div>
 
                 <div class="grp2">
-                    <label>Shipping Method:</label>
-                     <select class="statusGrp" name="status_id" id="statusSelect">
-                         <option value="1">Pick Up</option>
-                         <option value="2">Delivery</option>
-                         <option value="3">Delivery or Pick Up</option>
-                         <option value="4">Same Day Order</option>
-                     </select>
-                     
-
-                     <!-- isAvailableToday checkbox - only shown when Pick Up or Delivery is selected -->
-                     <div id="isAvailableTodayContainer" style="display: none; margin-top: 10px;">
-                         <div class="checkbox-group">
-                             <div class="checkbox-item">
-                                 <input type="checkbox" id="isAvailableToday" name="isAvailableToday" value="true">
-                                 <label for="isAvailableToday">Set to same day order too</label>
-                             </div>
-                         </div>
-                     </div>
-
-                     <!-- Same Day Order Shipping Method dropdown -->
-                     <div id="availtodayOptions" style="display: none; margin-top: 10px;">
-                         <label>Same Day Order Shipping Method:</label>
-                         <select class="availtoday-status" name="availtoday_status_id" id="availtodayStatusSelect">
-                             <option value="1">Pick Up</option>
-                             <option value="2">Delivery</option>
-                             <option value="3">Delivery and Pick Up</option>
-                         </select>
-                     </div>
+                    <label>Order Types:</label>
+                    
+                    <!-- Pre-order Checkbox -->
+                    <div class="checkbox-item" style="margin-top: 8px;">
+                        <input type="checkbox" id="preOrderCheckbox" name="preOrderCheckbox">
+                        <label for="preOrderCheckbox">Pre-order</label>
+                    </div>
+                    
+                    <!-- Pre-order Dropdown (conditional) -->
+                    <div id="preOrderOptions" style="display: none; margin-left: 24px; margin-top: 8px;">
+                        <label for="preOrderStatus" style="font-size: 0.75rem; margin-bottom: 4px;">Pre-order Shipping Method:</label>
+                        <select id="preOrderStatus" name="status_id">
+                            <option value="1">Pick Up</option>
+                            <option value="2">Delivery</option>
+                            <option value="3">Delivery or Pick Up</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Same-day Order Checkbox -->
+                    <div class="checkbox-item" style="margin-top: 12px;">
+                        <input type="checkbox" id="sameDayCheckbox" name="sameDayCheckbox">
+                        <label for="sameDayCheckbox">Same-day order</label>
+                    </div>
+                    
+                    <!-- Same-day Order Dropdown (conditional) -->
+                    <div id="sameDayOptions" style="display: none; margin-left: 24px; margin-top: 8px;">
+                        <label for="sameDayStatus" style="font-size: 0.75rem; margin-bottom: 4px;">Same-day Order Shipping Method:</label>
+                        <select id="sameDayStatus" name="availtoday_status_id">
+                            <option value="1">Pick Up</option>
+                            <option value="2">Delivery</option>
+                            <option value="3">Delivery and Pick Up</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Hidden field to track isAvailableToday for backend compatibility -->
+                    <input type="hidden" id="isAvailableToday" name="isAvailableToday" value="false">
 
                     <!-- Calendar for Same Day Order Products -->
                     <div id="todaysProductCalendarContainer" style="display: none;">
@@ -603,7 +619,161 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Global variables to track uploaded files
         let additionalImagesArray = [];
 
-        // Function to toggle calendar visibility and quantity field based on status
+        // Checkbox event handlers for new UI
+        function handlePreOrderCheckboxChange() {
+            const checkbox = document.getElementById('preOrderCheckbox');
+            const optionsDiv = document.getElementById('preOrderOptions');
+            const dropdown = document.getElementById('preOrderStatus');
+            const sameDayCheckbox = document.getElementById('sameDayCheckbox');
+            
+            if (checkbox.checked) {
+                optionsDiv.style.display = 'block';
+                // Set default value if not already set
+                if (!dropdown.value) {
+                    dropdown.value = '1'; // Default to Pick Up
+                }
+                
+                // If same-day is also checked, switch to availableTodayCalendar
+                if (sameDayCheckbox && sameDayCheckbox.checked) {
+                    const todaysCalendarContainer = document.getElementById('todaysProductCalendarContainer');
+                    const availableTodayCalendarContainer = document.getElementById('availableTodayCalendarContainer');
+                    if (todaysCalendarContainer) todaysCalendarContainer.style.display = 'none';
+                    if (availableTodayCalendarContainer) availableTodayCalendarContainer.style.display = 'block';
+                    // Reinitialize calendar for the new state
+                    initializeCalendars();
+                }
+            } else {
+                optionsDiv.style.display = 'none';
+                
+                // If same-day is checked, switch to todaysProductCalendar
+                if (sameDayCheckbox && sameDayCheckbox.checked) {
+                    const todaysCalendarContainer = document.getElementById('todaysProductCalendarContainer');
+                    const availableTodayCalendarContainer = document.getElementById('availableTodayCalendarContainer');
+                    if (todaysCalendarContainer) todaysCalendarContainer.style.display = 'block';
+                    if (availableTodayCalendarContainer) availableTodayCalendarContainer.style.display = 'none';
+                    // Reinitialize calendar for the new state
+                    initializeCalendars();
+                }
+            }
+            
+            // Update quantity field state and hidden isAvailableToday field
+            updateQuantityFieldState();
+        }
+
+        function handleSameDayCheckboxChange() {
+            const checkbox = document.getElementById('sameDayCheckbox');
+            const optionsDiv = document.getElementById('sameDayOptions');
+            const dropdown = document.getElementById('sameDayStatus');
+            const preOrderCheckbox = document.getElementById('preOrderCheckbox');
+            
+            // Determine which calendar to show based on whether pre-order is also checked
+            const todaysCalendarContainer = document.getElementById('todaysProductCalendarContainer');
+            const availableTodayCalendarContainer = document.getElementById('availableTodayCalendarContainer');
+            
+            if (checkbox.checked) {
+                optionsDiv.style.display = 'block';
+                
+                // Show appropriate calendar based on pre-order checkbox state
+                if (preOrderCheckbox && preOrderCheckbox.checked) {
+                    // Both pre-order and same-day: use availableTodayCalendar
+                    if (availableTodayCalendarContainer) availableTodayCalendarContainer.style.display = 'block';
+                    if (todaysCalendarContainer) todaysCalendarContainer.style.display = 'none';
+                } else {
+                    // Only same-day: use todaysProductCalendar
+                    if (todaysCalendarContainer) todaysCalendarContainer.style.display = 'block';
+                    if (availableTodayCalendarContainer) availableTodayCalendarContainer.style.display = 'none';
+                }
+                
+                // Set default value if not already set
+                if (!dropdown.value) {
+                    dropdown.value = '1'; // Default to Pick Up
+                }
+                
+                // Initialize calendar if needed
+                initializeCalendars();
+            } else {
+                optionsDiv.style.display = 'none';
+                if (todaysCalendarContainer) todaysCalendarContainer.style.display = 'none';
+                if (availableTodayCalendarContainer) availableTodayCalendarContainer.style.display = 'none';
+            }
+            
+            // Update quantity field state and hidden isAvailableToday field
+            updateQuantityFieldState();
+        }
+
+        function updateQuantityFieldState() {
+            const preOrderChecked = document.getElementById('preOrderCheckbox').checked;
+            const sameDayChecked = document.getElementById('sameDayCheckbox').checked;
+            const quantityField = document.querySelector('input[name="quantity"]');
+            const isAvailableTodayHidden = document.getElementById('isAvailableToday');
+            
+            // Update hidden field for backend compatibility
+            if (isAvailableTodayHidden) {
+                isAvailableTodayHidden.value = (preOrderChecked && sameDayChecked) ? 'true' : 'false';
+            }
+            
+            // Disable quantity if only same-day is checked (not pre-order)
+            if (sameDayChecked && !preOrderChecked) {
+                quantityField.value = '0';
+                quantityField.disabled = true;
+                quantityField.style.opacity = '0.5';
+                quantityField.style.cursor = 'not-allowed';
+            } else {
+                quantityField.disabled = false;
+                quantityField.style.opacity = '1';
+                quantityField.style.cursor = 'text';
+            }
+        }
+
+        function initializeCalendars() {
+            const preOrderChecked = document.getElementById('preOrderCheckbox').checked;
+            const sameDayChecked = document.getElementById('sameDayCheckbox').checked;
+            
+            // Add a small delay to ensure DOM is ready
+            setTimeout(() => {
+                try {
+                    if (sameDayChecked) {
+                        if (preOrderChecked) {
+                            // Both checked: initialize availableTodayCalendar
+                            if (typeof DateCalendar !== 'undefined') {
+                                // Destroy existing calendar if it exists
+                                if (window.availableTodayCalendar && typeof window.availableTodayCalendar.destroy === 'function') {
+                                    window.availableTodayCalendar.destroy();
+                                }
+                                window.availableTodayCalendar = new DateCalendar('availableTodayCalendar', {
+                                    onSelectionChange: function(selectedDates) {
+                                        const hiddenInput = document.getElementById('availableTodayDates');
+                                        if (hiddenInput) {
+                                            hiddenInput.value = selectedDates.join(',');
+                                        }
+                                    }
+                                });
+                            }
+                        } else {
+                            // Only same-day: initialize todaysProductCalendar
+                            if (typeof DateCalendar !== 'undefined') {
+                                // Destroy existing calendar if it exists
+                                if (window.todaysProductCalendar && typeof window.todaysProductCalendar.destroy === 'function') {
+                                    window.todaysProductCalendar.destroy();
+                                }
+                                window.todaysProductCalendar = new DateCalendar('todaysProductCalendar', {
+                                    onSelectionChange: function(selectedDates) {
+                                        const hiddenInput = document.getElementById('todaysProductDates');
+                                        if (hiddenInput) {
+                                            hiddenInput.value = selectedDates.join(',');
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error initializing calendar:', error);
+                }
+            }, 100);
+        }
+
+        // Function to toggle calendar visibility and quantity field based on status (LEGACY - kept for compatibility)
         function toggleAvailableDaysVisibility() {
             const statusSelect = document.querySelector('select[name="status_id"]');
             const todaysCalendarContainer = document.getElementById('todaysProductCalendarContainer');
@@ -752,19 +922,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         }
 
-        // Initialize available days visibility based on initial status
-        toggleAvailableDaysVisibility();
-
-        // Add event listener to status dropdown
-        const statusSelect = document.querySelector('select[name="status_id"]');
-        if (statusSelect) {
-            statusSelect.addEventListener('change', toggleAvailableDaysVisibility);
+        // Initialize quantity field state on page load
+        updateQuantityFieldState();
+        
+        // Add event listeners to checkboxes
+        const preOrderCheckbox = document.getElementById('preOrderCheckbox');
+        if (preOrderCheckbox) {
+            preOrderCheckbox.addEventListener('change', handlePreOrderCheckboxChange);
         }
-
-        // Add event listener to "Set to same day order too" checkbox
-        const isAvailableTodayCheckbox = document.getElementById('isAvailableToday');
-        if (isAvailableTodayCheckbox) {
-            isAvailableTodayCheckbox.addEventListener('change', toggleAvailableDaysVisibility);
+        
+        const sameDayCheckbox = document.getElementById('sameDayCheckbox');
+        if (sameDayCheckbox) {
+            sameDayCheckbox.addEventListener('change', handleSameDayCheckboxChange);
         }
 
         // Primary image handling
@@ -897,33 +1066,38 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         function validateForm() {
-            const statusSelect = document.getElementById('statusSelect');
+            const preOrderChecked = document.getElementById('preOrderCheckbox').checked;
+            const sameDayChecked = document.getElementById('sameDayCheckbox').checked;
             const todaysProductDates = document.getElementById('todaysProductDates');
-            const availtodaySelect = document.querySelector('select[name="availtoday_status_id"]');
-            const isAvailableTodayCheckbox = document.getElementById('isAvailableToday');
             const availableTodayDates = document.getElementById('availableTodayDates');
+            const sameDaySelect = document.getElementById('sameDayStatus');
 
-            // For Same Day Order products (status_id 4), ensure both date and availtoday status are selected
-            if (statusSelect.value === '4') {
-                if (!availtodaySelect || !availtodaySelect.value) {
-                    alert('Please select a "Same Day Order Options".');
-                    return false;
-                }
-                if (!todaysProductDates || !todaysProductDates.value.trim()) {
-                    alert('Please select at least one date for Same Day Order.');
-                    return false;
-                }
+            // Validate that at least one order type is selected
+            if (!preOrderChecked && !sameDayChecked) {
+                alert('Please select at least one order type (Pre-order or Same-day order).');
+                return false;
             }
 
-            // For regular products (Pick Up/Delivery/Delivery or Pick Up) set as available today
-            if ((statusSelect.value === '1' || statusSelect.value === '2' || statusSelect.value === '3') && isAvailableTodayCheckbox && isAvailableTodayCheckbox.checked) {
-                if (!availtodaySelect || !availtodaySelect.value) {
-                    alert('Please select a "Same Day Order Options".');
+            // If same-day is checked, validate same-day specific fields
+            if (sameDayChecked) {
+                if (!sameDaySelect || !sameDaySelect.value) {
+                    alert('Please select a "Same-day Order Shipping Method".');
                     return false;
                 }
-                if (!availableTodayDates || !availableTodayDates.value.trim()) {
-                    alert('Please select at least one date for Same Day Order.');
-                    return false;
+                
+                // Check which calendar should have dates based on pre-order checkbox
+                if (preOrderChecked) {
+                    // Both pre-order and same-day: check availableTodayDates
+                    if (!availableTodayDates || !availableTodayDates.value.trim()) {
+                        alert('Please select at least one date for Same-day Order.');
+                        return false;
+                    }
+                } else {
+                    // Only same-day: check todaysProductDates
+                    if (!todaysProductDates || !todaysProductDates.value.trim()) {
+                        alert('Please select at least one date for Same-day Order.');
+                        return false;
+                    }
                 }
             }
 
