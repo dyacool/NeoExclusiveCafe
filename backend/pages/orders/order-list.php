@@ -766,8 +766,8 @@
     </script>
 
     <!-- AJAX Polling System for Order Updates -->
-    <link rel="stylesheet" href="../assets/css/order-list-polling.css">
-    <script src="../assets/js/order-list-polling.js"></script>
+    <link rel="stylesheet" href="../../assets/css/order-list-polling.css">
+    <script src="../../assets/js/order-list-polling.js"></script>
     <script>
         // Initialize AJAX polling for order list updates
         document.addEventListener('DOMContentLoaded', function() {
