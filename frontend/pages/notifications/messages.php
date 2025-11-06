@@ -3,15 +3,13 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-require_once '../../../backend/pages/admin-includes/database.php'; // Adjust path as needed
+require_once '../../../backend/pages/admin-includes/database.php';
+require_once '../../../includes/session-manager.php';
 
-// Check if user is logged in
-if (!isset($_SESSION['user_id'])) {
-    header('Location: ../../login/user/login-signup.php');
-    exit;
-}
+// Require user login
+SessionManager::requireUserLogin('../../login/user/login-signup.php');
 
-$user_id = $_SESSION['user_id'];
+$user_id = SessionManager::getUserId();
 
 // Fetch order notifications
 $order_notifs_query = "

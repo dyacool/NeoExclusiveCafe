@@ -239,6 +239,11 @@
 
             <!-- Orders Table -->
             <div class="orders-container">
+                <!-- Polling Loading Indicator -->
+                <div id="polling-loading-indicator">
+                    <div class="spinner"></div>
+                    <span>Updating...</span>
+                </div>
                 <div class="table-wrapper">
                     <table class="orders-table">
                         <thead>
@@ -760,41 +765,37 @@
         }
     </script>
 
-    <!-- Realtime notification system for order updates -->
-    <link rel="stylesheet" href="/frontend/assets/css/realtime-notifications.css">
-    <script src="/frontend/assets/js/realtime-notifications.js"></script>
-    <script src="/frontend/assets/js/realtime-notifications-ui.js"></script>
+    <!-- AJAX Polling System for Order Updates -->
+    <link rel="stylesheet" href="../assets/css/order-list-polling.css">
+    <script src="../assets/js/order-list-polling.js"></script>
     <script>
-        // Initialize realtime notifications for order list page
+        // Initialize AJAX polling for order list updates
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('[Order List] Initializing realtime notifications...');
+            console.log('[Order List] Initializing AJAX polling system');
             
-            // Initialize realtime connection for new orders
-            const realtimeNotifications = new RealtimeNotifications(['new_order']);
+            // Get current filter state from URL/page
+            const urlParams = new URLSearchParams(window.location.search);
+            const currentStatus = urlParams.get('status') || '<?php echo $status_filter; ?>';
+            const currentSearch = urlParams.get('search') || '<?php echo $search; ?>';
+            const currentPage = parseInt(urlParams.get('page') || '<?php echo $current_page; ?>');
             
-            // Handle new order events
-            realtimeNotifications.on('new_order', function(data) {
-                console.log('[Order List] New order received:', data);
-                
-                // Show toast notification
-                showRealtimeToast(
-                    `New ${data.order_type} order #${data.order_id} from ${data.customer_name} - ₱${parseFloat(data.total).toFixed(2)}`,
-                    'success',
-                    5000
-                );
-                
-                // Play notification sound
-                playNotificationSound();
-                
-                // Refresh the order list to show the new order
-                console.log('[Order List] Refreshing order list...');
-                fetchOrders();
+            // Initialize poller
+            const poller = new OrderListPoller({
+                pollInterval: 5000, // 5 seconds
+                initialStatus: currentStatus,
+                initialSearch: currentSearch,
+                initialPage: currentPage
             });
             
-            // Connect to SSE stream
-            realtimeNotifications.connect();
+            // Start polling
+            poller.start();
             
-            console.log('[Order List] Realtime notifications initialized');
+            // Update poller when filters change
+            window.updatePollerFilters = function(filters) {
+                poller.updateFilters(filters);
+            };
+            
+            console.log('[Order List] Polling system initialized');
         });
     </script>
 </body>

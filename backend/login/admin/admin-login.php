@@ -6,10 +6,7 @@ ini_set('display_errors', 1);
 require_once __DIR__ . "/../../pages/admin-includes/database.php";
 require_once __DIR__ . "/../../pages/admin-includes/config.php";
 
-// Start session if not already active
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+// Session is already started by database.php
 
 // If already logged in as admin, redirect to admin dashboard
 if (isset($_SESSION["admin_id"]) && isset($_SESSION["is_admin"]) && $_SESSION["is_admin"] === true) {
@@ -38,14 +35,7 @@ if (isset($_POST["admin-login-submit"])) {
             $admin = mysqli_fetch_assoc($result);
 
             if ($admin && password_verify($password, $admin["password"])) {
-                // Clear any existing session data to prevent conflicts
-                if (session_status() === PHP_SESSION_ACTIVE) {
-                    session_unset();
-                    session_destroy();
-                }
-                session_start();
-                
-                // Set session variables with separate admin keys
+                // Set session variables with admin keys
                 session_regenerate_id(true); // Prevent session fixation
                 $_SESSION["admin_id"] = $admin["id"];
                 $_SESSION["admin_username"] = $admin["username"];

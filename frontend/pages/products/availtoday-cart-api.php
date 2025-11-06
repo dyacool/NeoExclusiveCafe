@@ -9,6 +9,7 @@ session_start();
 
 // Include database connection
 require_once __DIR__ . '/../../../backend/pages/admin-includes/database.php';
+require_once __DIR__ . '/../../../includes/session-manager.php';
 
 // Set JSON content type
 header('Content-Type: application/json');
@@ -17,17 +18,16 @@ header('Content-Type: application/json');
 $action = isset($_POST['action']) ? $_POST['action'] : (isset($_GET['action']) ? $_GET['action'] : '');
 
 error_log("[frontend availtoday-cart-api.php] API called with action: $action");
-error_log("[frontend availtoday-cart-api.php] Session user_id: " . (isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 'NOT SET'));
-error_log("[frontend availtoday-cart-api.php] Session data: " . print_r($_SESSION, true));
+error_log("[frontend availtoday-cart-api.php] User logged in: " . (SessionManager::isUserLoggedIn() ? 'yes' : 'no'));
 
 // Check if user is logged in
-if (!isset($_SESSION['user_id'])) {
-    error_log("[frontend availtoday-cart-api.php] AUTHENTICATION FAILED - No user_id in session");
-    echo json_encode(['success' => false, 'error' => 'User not authenticated', 'debug' => 'Session user_id not found']);
+if (!SessionManager::isUserLoggedIn()) {
+    error_log("[frontend availtoday-cart-api.php] AUTHENTICATION FAILED - User not logged in");
+    echo json_encode(['success' => false, 'error' => 'User not authenticated', 'debug' => 'User not logged in']);
     exit;
 }
 
-$user_id = $_SESSION['user_id'];
+$user_id = SessionManager::getUserId();
 error_log("[frontend availtoday-cart-api.php] User authenticated - proceeding with action: $action");
 
 // Handle different actions

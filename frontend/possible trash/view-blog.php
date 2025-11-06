@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once "../../php/includes/database.php";
+require_once "../../includes/session-manager.php";
 
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     header("Location: blog-list.php");
@@ -28,9 +29,10 @@ $post = mysqli_fetch_assoc($result);
 
 // Check if the post is saved by the current user
 $is_saved = false;
-if (isset($_SESSION['user_id'])) {
+if (SessionManager::isUserLoggedIn()) {
+    $user_id = SessionManager::getUserId();
     $save_check = mysqli_prepare($conn, "SELECT id FROM saved_posts WHERE user_id = ? AND post_id = ?");
-    mysqli_stmt_bind_param($save_check, "ii", $_SESSION['user_id'], $post_id);
+    mysqli_stmt_bind_param($save_check, "ii", $user_id, $post_id);
     mysqli_stmt_execute($save_check);
     $save_result = mysqli_stmt_get_result($save_check);
     $is_saved = mysqli_num_rows($save_result) > 0;
@@ -54,7 +56,7 @@ if (isset($_SESSION['user_id'])) {
         <div class="blog-actions">
             <a href="blog-list.php" class="back-btn">Back to Blog List</a>
             
-            <?php if (isset($_SESSION['user_id'])): ?>
+            <?php if (SessionManager::isUserLoggedIn()): ?>
                 <button class="save-btn <?php echo $is_saved ? 'saved' : ''; ?>" 
                         onclick="toggleSave(<?php echo $post_id; ?>)" 
                         id="saveBtn">
@@ -62,7 +64,7 @@ if (isset($_SESSION['user_id'])) {
                     <span><?php echo $is_saved ? 'Saved' : 'Save'; ?></span>
                 </button>
                 
-                <?php if ($_SESSION['user_id'] == $post['user_id']): ?>
+                <?php if (SessionManager::getUserId() == $post['user_id']): ?>
                     <a href="edit-blog.php?id=<?php echo $post['id']; ?>" class="edit-btn">Edit Post</a>
                 <?php endif; ?>
             <?php endif; ?>

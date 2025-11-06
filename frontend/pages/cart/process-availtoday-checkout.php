@@ -11,27 +11,19 @@ if (!file_exists($log_dir)) {
     mkdir($log_dir, 0777, true);
 }
 
-session_set_cookie_params([
-    'lifetime' => 0,
-    'httponly' => true,
-    'samesite' => 'Strict',
-    'domain' => 'neocafe.cafe'
-]);
-session_start();
+// Include database connection FIRST - it handles session configuration
+require_once '../../../backend/pages/admin-includes/database.php';
+require_once '../../../includes/session-manager.php';
 
 // Log that the file is being executed
 error_log("========================================");
 error_log("process-availtoday-checkout.php STARTED at " . date('Y-m-d H:i:s'));
 error_log("========================================");
 
-// Require login
-if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'user') {
-    header("Location: ../../login/user/login-signup.php");
-    exit();
-}
+// Require user login
+SessionManager::requireUserLogin('../../login/user/login-signup.php');
 
-// Include database connection
-require_once '../../../backend/pages/admin-includes/database.php';
+// Include mailer
 require_once '../../../backend/pages/admin-includes/mailer.php';
 
 /**
@@ -129,8 +121,9 @@ error_log("POST data - First Name: " . ($first_name ?: 'EMPTY') . ", Last Name: 
 error_log("POST data - Address: " . ($address ?: 'EMPTY') . ", City: " . ($city ?: 'EMPTY'));
 
 $saved_info = null;
-if (isset($_SESSION['user_id'])) {
-    $saved_info = fetchCustomerInfoFromSaved($conn, intval($_SESSION['user_id']));
+$user_id = SessionManager::getUserId();
+if ($user_id !== null) {
+    $saved_info = fetchCustomerInfoFromSaved($conn, $user_id);
 }
 
 // Merge saved info with POST data - saved info takes precedence
@@ -204,7 +197,7 @@ if (empty($first_name)) $errors[] = 'First name is required';
 if (empty($last_name)) $errors[] = 'Last name is required';
 if (empty($email)) {
     $errors[] = 'Email is required';
-    error_log("CRITICAL: Email is empty after merging, user_id: " . ($_SESSION['user_id'] ?? 'UNKNOWN'));
+    error_log("CRITICAL: Email is empty after merging, user_id: " . ($user_id ?? 'UNKNOWN'));
 }
 if (empty($phone)) $errors[] = 'Phone number is required';
 if (empty($cart_items)) $errors[] = 'No cart items found';
@@ -223,7 +216,7 @@ foreach ($cart_items as $item) {
 if ($has_delivery_items) {
     if (empty($address)) {
         $errors[] = 'Delivery address is required';
-        error_log("CRITICAL: Delivery address is empty for delivery order, user_id: " . ($_SESSION['user_id'] ?? 'UNKNOWN'));
+        error_log("CRITICAL: Delivery address is empty for delivery order, user_id: " . ($user_id ?? 'UNKNOWN'));
     }
     // City is only required if we're not using saved info (saved info has complete address)
     if (empty($city) && $saved_info === null) {
@@ -534,12 +527,12 @@ try {
         throw new Exception("Failed to prepare clear cart statement: " . $conn->error);
     }
     
-    $clear_cart_stmt->bind_param("i", $_SESSION['user_id']);
+    $clear_cart_stmt->bind_param("i", $user_id);
     if (!$clear_cart_stmt->execute()) {
         throw new Exception("Failed to clear cart: " . $clear_cart_stmt->error);
     }
     
-    error_log("Cleared availtoday cart for user: " . $_SESSION['user_id']);
+    error_log("Cleared availtoday cart for user: " . $user_id);
     
     // Update coupon/voucher usage count if applied
     error_log("=== AVAILTODAY COUPON RECORDING CHECK ===");
@@ -573,7 +566,7 @@ try {
             error_log("=== RECORDING COUPON USAGE (AVAILTODAY) ===");
             // Record per-user coupon usage
             require_once '../../../backend/pages/user-page-content/database-config.php';
-            $user_id = $_SESSION['user_id'];
+            // $user_id already set from SessionManager
             $coupon_id = intval($applied_coupon['id']);
             
             error_log("User ID: $user_id, Coupon ID: $coupon_id, Order ID: $order_id");
@@ -614,16 +607,9 @@ try {
     error_log("Order ID: $order_id created successfully");
     error_log("========================================");
     
-    // Broadcast new order notification to admins
-    require_once '../../../backend/api/event-broadcaster.php';
-    EventBroadcaster::broadcastNewOrder(
-        $order_id,
-        $customer_full_name,
-        $delivery_method_enum,
-        $final_total,
-        ['pickup_date' => $today_date, 'pickup_time' => $pickup_time]
-    );
-    error_log("Broadcasted new order notification for order ID: $order_id");
+    // Set flag for instant order list refresh
+    $flag_sql = "INSERT INTO order_update_flags (flag_type) VALUES ('new_order')";
+    mysqli_query($conn, $flag_sql);
     
     // Send email notification to admin
     $orderDetails = [

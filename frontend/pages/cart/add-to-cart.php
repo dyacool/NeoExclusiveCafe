@@ -1,18 +1,14 @@
 <?php
-session_set_cookie_params([
-    'lifetime' => 0,
-    'httponly' => true,
-    'samesite' => 'Strict',
-    'domain' => 'neocafe.cafe'
-]);
-session_start();
+header('Content-Type: application/json');
 
-if (!isset($_SESSION["user_id"])) {
-    header("Location: ../../login/user/login-signup.php");
+// Include database connection first - it handles session configuration
+require_once "../../../backend/pages/admin-includes/database.php";
+
+// Check if user is logged in with proper role
+if (!isset($_SESSION["user_id"]) || !isset($_SESSION["user_role"]) || $_SESSION["user_role"] !== "user") {
+    echo json_encode(["success" => false, "message" => "User not logged in"]);
     exit();
 }
-
-header('Content-Type: application/json');
 
 if (!isset($_POST["product_id"])) {
     echo json_encode(["success" => false, "message" => "Product ID not provided"]);
@@ -27,9 +23,6 @@ if ($quantity < 1) {
     echo json_encode(["success" => false, "message" => "Invalid quantity"]);
     exit();
 }
-
-// Include database connection
-require_once "../../../backend/pages/admin-includes/database.php";
 
 // Check if product exists, is available, and has sufficient stock
 // Status 1, 2, 3 = Pre-order products (Pick Up, Delivery, Flexible)

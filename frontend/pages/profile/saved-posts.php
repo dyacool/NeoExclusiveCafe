@@ -1,12 +1,10 @@
 <?php
 session_start();
 require_once "../../php/includes/database.php";
+require_once "../../../includes/session-manager.php";
 
-// Redirect if not logged in
-if (!isset($_SESSION['user_id'])) {
-    header("Location: ../../pages/auth/login-signup.php");
-    exit();
-}
+// Require user login - redirect if not authenticated
+SessionManager::requireUserLogin('../../pages/auth/login-signup.php');
 
 // Pagination settings
 $posts_per_page = 6;
@@ -14,11 +12,12 @@ $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $posts_per_page;
 
 // Get total number of saved posts
+$user_id = SessionManager::getUserId();
 $count_query = "SELECT COUNT(*) as total FROM saved_posts sp 
                 JOIN user_blog_post p ON sp.post_id = p.id 
                 WHERE sp.user_id = ? AND p.status = 'published'";
 $count_stmt = mysqli_prepare($conn, $count_query);
-mysqli_stmt_bind_param($count_stmt, "i", $_SESSION['user_id']);
+mysqli_stmt_bind_param($count_stmt, "i", $user_id);
 mysqli_stmt_execute($count_stmt);
 $total_result = mysqli_stmt_get_result($count_stmt);
 $total_row = mysqli_fetch_assoc($total_result);
@@ -34,7 +33,7 @@ $query = "SELECT p.*, u.firstname, u.lastname, sp.saved_at
           ORDER BY sp.saved_at DESC 
           LIMIT ? OFFSET ?";
 $stmt = mysqli_prepare($conn, $query);
-mysqli_stmt_bind_param($stmt, "iii", $_SESSION['user_id'], $posts_per_page, $offset);
+mysqli_stmt_bind_param($stmt, "iii", $user_id, $posts_per_page, $offset);
 mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
 ?>

@@ -5,24 +5,19 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+require_once '../../../backend/pages/admin-includes/database.php';
+require_once '../../../includes/session-manager.php';
+
 // Check if user is logged in and has proper role
-if (!isset($_SESSION["user_id"]) || !isset($_SESSION["user_role"]) || $_SESSION["user_role"] !== "user") {
+if (!SessionManager::isUserLoggedIn()) {
     header('Content-Type: application/json');
     http_response_code(401);
     echo json_encode(["status" => "error", "message" => "User not logged in"]);
     exit();
 }
 
-// Validate user_id is numeric and positive
-$userId = (int)$_SESSION['user_id'];
-if ($userId <= 0) {
-    header('Content-Type: application/json');
-    http_response_code(401);
-    echo json_encode(["status" => "error", "message" => "Invalid user session"]);
-    exit();
-}
-
-require_once '../../../backend/pages/admin-includes/database.php'; // Include the database connection
+// Get user ID
+$userId = SessionManager::getUserId();
 require_once 'class-notif.php'; // Include the Notification class
 
 header('Content-Type: application/json');

@@ -33,30 +33,6 @@ if (mysqli_stmt_execute($stmt)) {
     // Log the activity
     logAdminActivity($conn, 'UPDATE', "Changed order #$order_id status to '$status'", 'orders', $order_id);
     
-    // Broadcast order status update event
-    try {
-        require_once '../../api/event-broadcaster.php';
-        
-        // Get customer_id for the order
-        $customer_query = "SELECT customer_id FROM orders WHERE order_id = ?";
-        $customer_stmt = mysqli_prepare($conn, $customer_query);
-        mysqli_stmt_bind_param($customer_stmt, "i", $order_id);
-        mysqli_stmt_execute($customer_stmt);
-        $customer_result = mysqli_stmt_get_result($customer_stmt);
-        $customer_data = mysqli_fetch_assoc($customer_result);
-        mysqli_stmt_close($customer_stmt);
-        
-        if ($customer_data) {
-            EventBroadcaster::broadcastOrderStatus(
-                $order_id,
-                $status,
-                $customer_data['customer_id']
-            );
-        }
-    } catch (Exception $e) {
-        error_log("Failed to broadcast order status update: " . $e->getMessage());
-    }
-    
     // Create admin notification for status update
     try {
         require_once '../admin-includes/notifications/notification.php';

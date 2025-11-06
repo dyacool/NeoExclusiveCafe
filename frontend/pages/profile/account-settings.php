@@ -3,14 +3,13 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 require_once "../../../backend/pages/admin-includes/database.php";
+require_once "../../../includes/session-manager.php";
 
-if (!isset($_SESSION['user_id'])) {
-    header("Location: /frontend/pages/home/user-dashboard.php");
-    exit();
-}
+// Require user login - redirect if not authenticated
+SessionManager::requireUserLogin('/frontend/pages/home/user-dashboard.php');
 
 // Get the values directly from the session and database
-$user_id = $_SESSION['user_id'];
+$user_id = SessionManager::getUserId();
 
 // Check if username exists in session, otherwise get it from database
 $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';

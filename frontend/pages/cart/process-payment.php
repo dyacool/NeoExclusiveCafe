@@ -28,6 +28,7 @@ header('Content-Type: application/json');
 // Test if includes work
 try {
     require_once '../../../backend/pages/admin-includes/database.php';
+    require_once '../../../includes/session-manager.php';
     error_log("Database include successful");
     
     // Test database connection
@@ -186,6 +187,54 @@ try {
             'order_data' => $order_data
         ];
         
+        // CRITICAL FIX: Save to database as backup in case session is lost during redirect
+        try {
+            $payment_id = $result['data']['id'];
+            $user_id = SessionManager::getUserId();
+            $order_data_json = json_encode($order_data);
+            $payment_type = 'source';
+            
+            error_log("[PROCESS-PAYMENT] Attempting to save pending payment to database:");
+            error_log("[PROCESS-PAYMENT]   - user_id: $user_id");
+            error_log("[PROCESS-PAYMENT]   - payment_id: $payment_id");
+            error_log("[PROCESS-PAYMENT]   - payment_type: $payment_type");
+            error_log("[PROCESS-PAYMENT]   - order_type: $order_type");
+            error_log("[PROCESS-PAYMENT]   - amount: $amount");
+            
+            $save_sql = "INSERT INTO pending_payments 
+                         (user_id, payment_id, payment_type, order_type, amount, payment_method, order_data)
+                         VALUES (?, ?, ?, ?, ?, ?, ?)
+                         ON DUPLICATE KEY UPDATE 
+                         order_data = VALUES(order_data),
+                         created_at = CURRENT_TIMESTAMP";
+            
+            $save_stmt = $conn->prepare($save_sql);
+            if ($save_stmt) {
+                $save_stmt->bind_param("isssdss", 
+                    $user_id,
+                    $payment_id,
+                    $payment_type,
+                    $order_type,
+                    $amount,
+                    $payment_method,
+                    $order_data_json
+                );
+                
+                if ($save_stmt->execute()) {
+                    error_log("[PROCESS-PAYMENT] ✓ Pending payment saved to database successfully!");
+                    error_log("[PROCESS-PAYMENT] Affected rows: " . $save_stmt->affected_rows);
+                } else {
+                    error_log("[PROCESS-PAYMENT] ✗ Execute failed: " . $save_stmt->error);
+                }
+                $save_stmt->close();
+            } else {
+                error_log("[PROCESS-PAYMENT] ✗ Prepare failed: " . $conn->error);
+            }
+        } catch (Exception $db_error) {
+            error_log("[PROCESS-PAYMENT] ✗ Exception saving to database: " . $db_error->getMessage());
+            // Don't fail the payment if database backup fails
+        }
+        
         $response = [
             'success' => true,
             'payment_type' => 'source',
@@ -227,6 +276,58 @@ try {
             'payment_method' => $payment_method,
             'order_data' => $order_data
         ];
+        
+        // CRITICAL FIX: Save to database as backup in case session is lost during redirect
+        try {
+            $payment_id = $result['data']['id'];
+            $user_id = SessionManager::getUserId();
+            $order_data_json = json_encode($order_data);
+            $payment_type = 'payment_intent';
+            
+            error_log("[PROCESS-PAYMENT] Attempting to save pending payment_intent to database:");
+            error_log("[PROCESS-PAYMENT]   - user_id: $user_id");
+            error_log("[PROCESS-PAYMENT]   - payment_id: $payment_id");
+            error_log("[PROCESS-PAYMENT]   - payment_type: $payment_type");
+            error_log("[PROCESS-PAYMENT]   - order_type: $order_type");
+            error_log("[PROCESS-PAYMENT]   - amount: $amount");
+            
+            $save_sql = "INSERT INTO pending_payments 
+                         (user_id, payment_id, payment_type, order_type, amount, payment_method, order_data)
+                         VALUES (?, ?, ?, ?, ?, ?, ?)
+                         ON DUPLICATE KEY UPDATE 
+                         order_data = VALUES(order_data),
+                         created_at = CURRENT_TIMESTAMP";
+            
+            $save_stmt = $conn->prepare($save_sql);
+            if ($save_stmt) {
+                $save_stmt->bind_param("isssdss", 
+                    $user_id,
+                    $payment_id,
+                    $payment_type,
+                    $order_type,
+                    $amount,
+                    $payment_method,
+                    $order_data_json
+                );
+                
+                if ($save_stmt->execute()) {
+                    error_log("[PROCESS-PAYMENT] ✓ Pending payment_intent saved to database successfully!");
+                    error_log("[PROCESS-PAYMENT] Affected rows: " . $save_stmt->affected_rows);
+                } else {
+                    error_log("[PROCESS-PAYMENT] ✗ Execute failed: " . $save_stmt->error);
+                }
+                $save_stmt->close();
+            } else {
+                error_log("[PROCESS-PAYMENT] ✗ Prepare failed: " . $conn->error);
+            }
+        } catch (Exception $db_error) {
+            error_log("Warning: Could not save pending payment to database: " . $db_error->getMessage());
+            // Don't fail the payment if database backup fails
+        }
+        
+        // CRITICAL: Force session write before redirect
+        session_write_close();
+        error_log("✓ Session closed and saved before redirect");
         
         $response = [
             'success' => true,

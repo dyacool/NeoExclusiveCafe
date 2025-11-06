@@ -5,7 +5,12 @@ date_default_timezone_set('Asia/Manila');
 
 // Start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+    // Fix Windows session path permission issues
+    $session_path = sys_get_temp_dir();
+    if (is_writable($session_path)) {
+        session_save_path($session_path);
+    }
+    @session_start(); // Suppress warnings for permission issues
 }
 
 // Check if headers have already been sent

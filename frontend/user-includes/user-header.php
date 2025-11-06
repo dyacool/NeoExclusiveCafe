@@ -7,33 +7,17 @@ ini_set('error_log', __DIR__ . '/../../logs/php_errors.log');
 
 // Only set session parameters if session hasn't been started yet
 if (session_status() === PHP_SESSION_NONE) {
-    // Set session cookie parameters based on environment
-    $session_domain = '';
-    if (isset($_SERVER['HTTP_HOST'])) {
-        $host = $_SERVER['HTTP_HOST'];
-        // Only set domain for production environment
-        if (strpos($host, 'neocafe.cafe') !== false) {
-            $session_domain = 'neocafe.cafe';
-        }
-    }
-    
-    session_set_cookie_params([
-        'lifetime' => 0,
-        'httponly' => true,
-        'samesite' => 'Strict',
-        'domain' => $session_domain
-    ]);
-    
     session_start();
 }
 
 require_once __DIR__ . "/../../backend/pages/admin-includes/config.php";
 require_once __DIR__ . "/../../backend/pages/admin-includes/database.php";
+require_once __DIR__ . "/../../includes/session-manager.php";
 
-// Define preview mode - check for both user and admin sessions
-$is_preview_mode = !isset($_SESSION['user_id']) && !isset($_SESSION['admin_id']);
-$is_user_logged_in = isset($_SESSION['user_id']) && isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'user';
-$is_admin_logged_in = isset($_SESSION['admin_id']) && isset($_SESSION['admin_role']) && $_SESSION['admin_role'] === 'admin';
+// Define preview mode and authentication states using SessionManager
+$is_preview_mode = SessionManager::isPreviewMode();
+$is_user_logged_in = SessionManager::isUserLoggedIn();
+$is_admin_logged_in = SessionManager::isAdminLoggedIn();
 ?>
 <!DOCTYPE html>
 <html lang="en">

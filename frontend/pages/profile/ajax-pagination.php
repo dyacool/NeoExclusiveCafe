@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once "../../../backend/pages/admin-includes/database.php";
+require_once "../../../includes/session-manager.php";
 
 // Set content type for JSON response
 header('Content-Type: application/json');
@@ -10,13 +11,13 @@ error_reporting(E_ALL);
 ini_set('display_errors', 0); // Don't display errors directly
 ini_set('log_errors', 1); // Log errors instead
 
-if (!isset($_SESSION['user_id'])) {
+if (!SessionManager::isUserLoggedIn()) {
     http_response_code(401);
     echo json_encode(['error' => 'Unauthorized - Please log in again']);
     exit();
 }
 
-$user_id = $_SESSION['user_id'];
+$user_id = SessionManager::getUserId();
 
 // Get user information
 $user_query = "SELECT email FROM users WHERE id = ?";

@@ -1,13 +1,5 @@
 <?php
-// Start session with dynamic domain
-$session_domain = $_SERVER['HTTP_HOST'] ?? 'localhost';
-session_set_cookie_params([
-    'lifetime' => 0,
-    'httponly' => true,
-    'samesite' => 'Strict',
-    'domain' => $session_domain
-]);
-session_start();
+// Include database connection FIRST - it handles session configuration
 require_once '../../../backend/pages/admin-includes/database.php';
 require_once '../../../backend/pages/admin-includes/mailer.php';
 require_once '../../../backend/pages/admin-includes/notifications/notification.php';
@@ -513,25 +505,9 @@ try {
 
     error_log("Final order_id to be used: " . $order_id);
 
-    // Broadcast new order notification to admins via realtime system
-    try {
-        require_once '../../../backend/api/event-broadcaster.php';
-        EventBroadcaster::broadcastNewOrder(
-            $order_id,
-            $customer_name,
-            $delivery_method,
-            $total_amount,
-            [
-                'delivery_date' => $delivery_date,
-                'pickup_date' => $pickup_date,
-                'delivery_time' => $delivery_time,
-                'pickup_time' => $pickup_time
-            ]
-        );
-        error_log("Broadcasted new order notification for order ID: $order_id");
-    } catch (Exception $e) {
-        error_log("Failed to broadcast new order: " . $e->getMessage());
-    }
+    // Set flag for instant order list refresh
+    $flag_sql = "INSERT INTO order_update_flags (flag_type) VALUES ('new_order')";
+    mysqli_query($conn, $flag_sql);
 
     // Create admin notification for new order
     try {

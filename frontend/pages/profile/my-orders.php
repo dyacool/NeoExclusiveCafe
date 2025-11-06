@@ -1,13 +1,12 @@
 <?php
 session_start();
-if (!isset($_SESSION['user_id'])) {
-    header("Location: ../../pages/auth/login-signup.php");
-    exit();
-}
-
 require_once '../../../backend/pages/admin-includes/database.php';
+require_once '../../../includes/session-manager.php';
 
-$user_id = $_SESSION['user_id'];
+// Require user login - redirect if not authenticated
+SessionManager::requireUserLogin('../../pages/auth/login-signup.php');
+
+$user_id = SessionManager::getUserId();
 
 // Fetch user email from users table
 $sql_email = "SELECT email FROM users WHERE id = ?";

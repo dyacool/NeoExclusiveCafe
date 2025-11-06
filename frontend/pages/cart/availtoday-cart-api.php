@@ -4,23 +4,14 @@
  * Handles cart operations for same-day products
  */
 
-// Set session cookie parameters
-session_set_cookie_params([
-    'lifetime' => 0,
-    'httponly' => true,
-    'samesite' => 'Strict',
-    'domain' => 'neocafe.cafe'
-]);
-session_start();
-
-// Include database connection
-require_once '../../../backend/pages/admin-includes/database.php';
-
 // Set JSON content type
 header('Content-Type: application/json');
 
-// Check if user is logged in
-if (!isset($_SESSION['user_id'])) {
+// Include database connection first - it handles session configuration
+require_once '../../../backend/pages/admin-includes/database.php';
+
+// Check if user is logged in with proper role
+if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'user') {
     echo json_encode(['success' => false, 'error' => 'User not authenticated']);
     exit;
 }

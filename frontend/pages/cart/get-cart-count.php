@@ -1,14 +1,13 @@
 <?php
-// Start session
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
 // Set content type to JSON
 header('Content-Type: application/json');
 
-// Check if user is logged in
-if (!isset($_SESSION['user_id'])) {
+// Include database connection first - it handles session configuration
+require_once '../../../backend/pages/admin-includes/database.php';
+require_once '../../../includes/session-manager.php';
+
+// Check if user is logged in with proper role
+if (!SessionManager::isUserLoggedIn()) {
     echo json_encode([
         'status' => 'error',
         'message' => 'User not logged in',
@@ -17,11 +16,8 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Include database connection
-require_once '../../../backend/pages/admin-includes/database.php';
-
 try {
-    $user_id = (int)$_SESSION['user_id'];
+    $user_id = SessionManager::getUserId();
     
     // Get cart count from database
     $query = "SELECT SUM(quantity) as total_count FROM cart WHERE user_id = ?";
