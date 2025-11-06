@@ -129,7 +129,7 @@ function renderNewEntryForm() {
                 </div>
             </div>
             <div class="entry-actions">
-                <button id="saveNewEntryBtn" class="btn-save-new">Save Entry</button>
+                <button id="saveNewEntryBtn" class="btn-save-new">Save</button>
             </div>
         </div>
     `;
@@ -199,17 +199,36 @@ function renderEntryCard(entry) {
             <div class="entry-actions">
                 <button class="btn-load" data-entry-id="${
                   entry.id
-                }">Use</button>
+                }" title="Use this address">
+                    Use
+                </button>
                 <button class="btn-save-changes" data-entry-id="${
                   entry.id
-                }">Save </button>
+                }" title="Save changes">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                </button>
                 <button class="btn-delete" data-entry-id="${
                   entry.id
-                }">Delete</button>
+                }" title="Delete">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        <line x1="10" y1="11" x2="10" y2="17"></line>
+                        <line x1="14" y1="11" x2="14" y2="17"></line>
+                    </svg>
+                </button>
                 <button class="btn-set-primary" data-entry-id="${entry.id}" ${
     isPrimary ? "disabled" : ""
-  }>
-                    ${isPrimary ? "Primary" : "Set as Primary"}
+  } title="${isPrimary ? "Primary" : "Set as primary"}">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="${
+                      isPrimary ? "currentColor" : "none"
+                    }" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 15.09 10.26 24 10.35 17.77 16.88 20.16 25.08 12 19.77 3.84 25.08 6.23 16.88 0 10.35 8.91 10.26"></polygon>
+                    </svg>
                 </button>
             </div>
         </div>
@@ -324,72 +343,98 @@ function attachModalEventListeners() {
   }
 
   document.querySelectorAll(".btn-load").forEach((btn) => {
-    btn.addEventListener("click", function () {
-      const entryId = parseInt(this.dataset.entryId);
-      const entry = window.savedInfoManager.getEntryById(entryId);
-      console.log("Load button clicked for entry:", entry);
+    btn.addEventListener("click", async function () {
+      const icon = this.querySelector(".btn-icon");
+      const originalSVG = icon.innerHTML;
+      icon.innerHTML =
+        '<circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2" style="animation: spin 1s linear infinite;"></circle>';
+      icon.style.display = "inline";
 
-      if (entry) {
-        window.savedInfoManager.fillForm(entry);
+      try {
+        const entryId = parseInt(this.dataset.entryId);
+        const entry = window.savedInfoManager.getEntryById(entryId);
+        console.log("Load button clicked for entry:", entry);
 
-        const fullAddress = `${entry.complete_address}, ${entry.delivery_location}`;
-        const deliveryAddressInput =
-          document.getElementById("delivery_address");
-        if (deliveryAddressInput) {
-          deliveryAddressInput.value = fullAddress;
-          console.log("Set delivery_address to:", fullAddress);
+        if (entry) {
+          window.savedInfoManager.fillForm(entry);
+
+          const fullAddress = `${entry.complete_address}, ${entry.delivery_location}`;
+          const deliveryAddressInput =
+            document.getElementById("delivery_address");
+          if (deliveryAddressInput) {
+            deliveryAddressInput.value = fullAddress;
+            console.log("Set delivery_address to:", fullAddress);
+          }
+
+          const shippingFeeElement = document.getElementById("shipping_fee");
+          if (shippingFeeElement) {
+            shippingFeeElement.textContent =
+              "₱" + parseFloat(entry.delivery_fee).toFixed(2);
+            console.log("Set shipping fee to:", entry.delivery_fee);
+          }
+
+          closeSavedInfoModal();
+          alert("✅ Information loaded successfully!");
+        } else {
+          console.error("Entry not found for ID:", entryId);
         }
-
-        const shippingFeeElement = document.getElementById("shipping_fee");
-        if (shippingFeeElement) {
-          shippingFeeElement.textContent =
-            "₱" + parseFloat(entry.delivery_fee).toFixed(2);
-          console.log("Set shipping fee to:", entry.delivery_fee);
-        }
-
-        closeSavedInfoModal();
-        alert("✅ Information loaded successfully!");
-      } else {
-        console.error("Entry not found for ID:", entryId);
+      } finally {
+        icon.innerHTML = originalSVG;
       }
     });
   });
 
   document.querySelectorAll(".btn-save-changes").forEach((btn) => {
     btn.addEventListener("click", async function () {
-      const entryId = parseInt(this.dataset.entryId);
-      const card = this.closest(".saved-entry-card");
-
-      const updatedData = {
-        id: entryId,
-        label: card.querySelector('[data-field="label"]').value.trim() || null,
-        first_name: card
-          .querySelector('[data-field="first_name"]')
-          .value.trim(),
-        last_name: card.querySelector('[data-field="last_name"]').value.trim(),
-        email: card.querySelector('[data-field="email"]').value.trim(),
-        phone: card.querySelector('[data-field="phone"]').value.trim(),
-        delivery_location_id: parseInt(
-          card.querySelector('[data-field="delivery_location_id"]').value
-        ),
-        complete_address: card
-          .querySelector('[data-field="complete_address"]')
-          .value.trim(),
-      };
-
-      if (
-        !updatedData.first_name ||
-        !updatedData.last_name ||
-        !updatedData.email ||
-        !updatedData.phone ||
-        !updatedData.delivery_location_id ||
-        !updatedData.complete_address
-      ) {
-        alert("Please fill in all required fields");
-        return;
-      }
+      const icon = this.querySelector(".btn-icon");
+      const originalSVG = icon.innerHTML;
+      icon.innerHTML =
+        '<circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2" style="animation: spin 1s linear infinite;"></circle>';
 
       try {
+        const entryId = parseInt(this.dataset.entryId);
+        const card = this.closest(".saved-entry-card");
+
+        const locationSelect = card.querySelector(
+          '[data-field="delivery_location_id"]'
+        );
+        const selectedOption =
+          locationSelect.options[locationSelect.selectedIndex];
+        const locationId = selectedOption
+          ? parseInt(selectedOption.dataset.locationId)
+          : null;
+
+        const updatedData = {
+          id: entryId,
+          label:
+            card.querySelector('[data-field="label"]').value.trim() || null,
+          first_name: card
+            .querySelector('[data-field="first_name"]')
+            .value.trim(),
+          last_name: card
+            .querySelector('[data-field="last_name"]')
+            .value.trim(),
+          email: card.querySelector('[data-field="email"]').value.trim(),
+          phone: card.querySelector('[data-field="phone"]').value.trim(),
+          delivery_location_id: locationId,
+          complete_address: card
+            .querySelector('[data-field="complete_address"]')
+            .value.trim(),
+        };
+
+        if (
+          !updatedData.first_name ||
+          !updatedData.last_name ||
+          !updatedData.email ||
+          !updatedData.phone ||
+          !updatedData.delivery_location_id ||
+          isNaN(updatedData.delivery_location_id) ||
+          !updatedData.complete_address
+        ) {
+          alert("Please fill in all required fields");
+          return;
+        }
+
         const response = await fetch(
           window.savedInfoManager.apiBasePath + "save-customer-info.php",
           {
@@ -411,16 +456,27 @@ function attachModalEventListeners() {
       } catch (error) {
         console.error("Error saving changes:", error);
         alert("❌ An error occurred while saving");
+      } finally {
+        icon.innerHTML = originalSVG;
       }
     });
   });
 
   document.querySelectorAll(".btn-delete").forEach((btn) => {
     btn.addEventListener("click", async function () {
-      const entryId = parseInt(this.dataset.entryId);
-      const success = await window.savedInfoManager.deleteEntry(entryId);
-      if (success) {
-        renderSavedEntries();
+      const icon = this.querySelector(".btn-icon");
+      const originalSVG = icon.innerHTML;
+      icon.innerHTML =
+        '<circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2" style="animation: spin 1s linear infinite;"></circle>';
+
+      try {
+        const entryId = parseInt(this.dataset.entryId);
+        const success = await window.savedInfoManager.deleteEntry(entryId);
+        if (success) {
+          renderSavedEntries();
+        }
+      } finally {
+        icon.innerHTML = originalSVG;
       }
     });
   });
@@ -429,10 +485,19 @@ function attachModalEventListeners() {
     btn.addEventListener("click", async function () {
       if (this.disabled) return;
 
-      const entryId = parseInt(this.dataset.entryId);
-      const success = await window.savedInfoManager.setPrimary(entryId);
-      if (success) {
-        renderSavedEntries();
+      const icon = this.querySelector(".btn-icon");
+      const originalSVG = icon.innerHTML;
+      icon.innerHTML =
+        '<circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2" style="animation: spin 1s linear infinite;"></circle>';
+
+      try {
+        const entryId = parseInt(this.dataset.entryId);
+        const success = await window.savedInfoManager.setPrimary(entryId);
+        if (success) {
+          renderSavedEntries();
+        }
+      } finally {
+        icon.innerHTML = originalSVG;
       }
     });
   });

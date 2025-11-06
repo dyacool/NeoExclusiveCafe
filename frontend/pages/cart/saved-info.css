@@ -257,7 +257,6 @@
 }
 
 .new-entry-form {
-  background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f4 100%);
   border: 2px dashed #256035;
   border-radius: 10px;
   padding: 20px;
@@ -433,6 +432,28 @@
   cursor: pointer;
   transition: all 0.3s;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 40px;
+  padding: 0;
+}
+
+.btn-icon {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .btn-load {

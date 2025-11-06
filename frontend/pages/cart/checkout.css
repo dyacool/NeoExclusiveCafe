@@ -160,7 +160,6 @@ body.checkout-page {
 .calendar-section {
   margin-bottom: 20px;
   /* Make calendar smaller - 250px height */
-  max-height: 350px !important;
   overflow: hidden;
   width: 350px !important;
   display: flex;
@@ -173,7 +172,6 @@ body.checkout-page {
 /* Make the calendar container smaller */
 #calendar,
 #delivery-calendar {
-  height: 350px !important;
   width: 100% !important;
   font-size: 0.75rem !important;
 }
@@ -391,7 +389,7 @@ select:user-valid {
 
 /* Place Order Button */
 .place-order-btn {
-  width: 100%;
+  width: 90%;
   padding: 10px;
   font-size: 1rem;
   font-weight: 600;
@@ -403,6 +401,8 @@ select:user-valid {
   transition: background-color 0.3s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   letter-spacing: 0.5px;
+  margin: 0 auto;
+  display: block;
 }
 
 .place-order-btn:hover {
@@ -1290,4 +1290,40 @@ input[type="time"]:invalid {
   width: 35px;
   height: 35px;
   border-radius: 50%;
+}
+
+/* Mobile: Extra small screens (425px and below) */
+@media (max-width: 425px) {
+  .delivery-type {
+    flex-direction: column !important;
+    gap: 10px;
+  }
+  .place-order-btn {
+    width: 90%;
+  }
+  .content-wrapper {
+    padding: 0;
+  }
+
+  .section-card {
+    border-radius: 0;
+  }
+  .summary-items .item-info h3 {
+    font-size: 1rem;
+    max-width: 200px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+    display: block;
+    line-height: 1.3;
+  }
+
+  .item {
+    padding: 0 1rem 1rem 1rem;
+  }
+
+  .item-info {
+    flex: 1;
+    min-width: 0;
+  }
 }
