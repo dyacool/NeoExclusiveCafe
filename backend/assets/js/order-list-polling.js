@@ -9,7 +9,7 @@ class OrderListPoller {
         this.maxRetries = options.maxRetries || 3;
         this.backoffMultiplier = 2;
         this.maxBackoff = 30000; // 30 seconds max
-        this.apiEndpoint = options.apiEndpoint || '../api/get-order-list.php';
+        this.apiEndpoint = options.apiEndpoint || '../../api/get-order-list.php';
         
         // State
         this.currentBackoff = this.pollInterval;
@@ -117,8 +117,7 @@ class OrderListPoller {
             return;
         }
         
-        // Show loading indicator
-        this.showLoading();
+        // Don't show loading indicator on regular polls (only when new orders detected)
         
         try {
             // Build query parameters
@@ -160,6 +159,16 @@ class OrderListPoller {
             
             console.log('[OrderListPoller] Received data:', data);
             
+            // Check if there are any new orders
+            const hasNewOrders = data.orders.some(order => order.is_new);
+            const newOrderCount = data.orders.filter(order => order.is_new).length;
+            
+            // Show loading indicator only if new orders detected
+            if (hasNewOrders) {
+                const message = newOrderCount === 1 ? 'New order received!' : `${newOrderCount} new orders received!`;
+                this.showLoading(message);
+            }
+            
             // Update timestamp for next poll
             this.lastUpdateTimestamp = data.timestamp;
             
@@ -169,8 +178,10 @@ class OrderListPoller {
             // Reset backoff on success
             this.resetBackoff();
             
-            // Hide loading indicator
-            this.hideLoading();
+            // Hide loading indicator after a brief moment if it was shown
+            if (hasNewOrders) {
+                setTimeout(() => this.hideLoading(), 3000); // Show for 3 seconds
+            }
             
             // Check for new order flag - if present, poll immediately
             if (data.has_new_order_flag) {
@@ -203,9 +214,6 @@ class OrderListPoller {
         // Save current scroll position
         const scrollTop = this.ordersContainer.scrollTop;
         
-        // Update status count badges
-        this.updateStatusCounts(data.status_counts);
-        
         // Get the table body
         const tbody = document.getElementById('orders-tbody');
         if (!tbody) {
@@ -224,6 +232,9 @@ class OrderListPoller {
         
         // Update pagination if needed
         this.updatePagination(data.total_pages, data.current_page);
+        
+        // Always update status count badges
+        this.updateStatusCounts(data.status_counts);
         
         console.log('[OrderListPoller] Updated orders container with', data.orders.length, 'orders');
     }
@@ -251,6 +262,9 @@ class OrderListPoller {
         
         return orders.map(order => {
             const rowClass = order.is_new ? 'order-row-new' : '';
+            if (order.is_new) {
+                console.log('[OrderListPoller] New order detected:', order.order_id, 'is_new:', order.is_new);
+            }
             const date = order.delivery_date || order.pickup_date;
             const time = order.delivery_time || order.pickup_time || '00:00:00';
             
@@ -470,8 +484,12 @@ class OrderListPoller {
     /**
      * Show loading indicator
      */
-    showLoading() {
+    showLoading(message = 'Updating...') {
         if (this.loadingIndicator) {
+            const textSpan = this.loadingIndicator.querySelector('span');
+            if (textSpan) {
+                textSpan.textContent = message;
+            }
             this.loadingIndicator.style.display = 'flex';
         }
     }
@@ -490,7 +508,7 @@ class OrderListPoller {
      */
     async clearOldFlags() {
         try {
-            await fetch('../api/clear-order-flags.php', {
+            await fetch('../../api/clear-order-flags.php', {
                 method: 'POST',
                 credentials: 'same-origin'
             });
