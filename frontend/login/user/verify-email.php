@@ -1,4 +1,8 @@
 <?php
+// Include SessionManager for proper session handling
+require_once __DIR__ . "/../../../includes/session-manager.php";
+require_once __DIR__ . "/../../../backend/pages/admin-includes/database.php";
+
 if ($_SERVER["REQUEST_METHOD"] === "GET") {
     if (!isset($_GET["token"]) || empty($_GET["token"])) {
         die("<script>alert('No verification token provided.'); window.location.href='/frontend/login/user/login-signup.php';</script>");
@@ -7,7 +11,6 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     $token = $_GET["token"];
     $token_hash = hash("sha256", $token);
     
-    require_once __DIR__ . "/../../../backend/pages/admin-includes/database.php";
     if (!$conn || !($conn instanceof mysqli)) {
         die("<script>alert('Database connection failed.'); window.location.href='/frontend/login/user/login-signup.php';</script>");
     }
@@ -52,7 +55,10 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     
     if ($current_time > $expiry_time) {
         // Token is expired - redirect to verification page with email
-        session_start();
+        // Use proper session handling
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
         $_SESSION['unverified_email'] = $user['email'];
         die("<script>alert('Verification token has expired. Please request a new verification link.'); window.location.href='/frontend/login/user/verification-page.php';</script>");
     }

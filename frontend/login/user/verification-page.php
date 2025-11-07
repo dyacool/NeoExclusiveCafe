@@ -1,12 +1,18 @@
 <?php
-session_start();
+// Include SessionManager for proper session handling
+require_once __DIR__ . "/../../../includes/session-manager.php";
 require_once __DIR__ . "/../../../backend/pages/admin-includes/database.php";
+
+// Ensure session is started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Set timezone
 date_default_timezone_set('Asia/Manila');
 
-// Check if user is already logged in
-if (isset($_SESSION['user_id'])) {
+// Check if user is already logged in using SessionManager
+if (SessionManager::isUserLoggedIn()) {
     header("Location: /frontend/pages/home/user-dashboard.php");
     exit();
 }

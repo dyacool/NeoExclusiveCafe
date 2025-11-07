@@ -711,7 +711,9 @@ if ($cart_truncated) {
                             // Add unavailable class if product is unavailable
                             $unavailableClass = $is_unavailable ? 'unavailable-product' : '';
                             
-                            echo "<div class='product-card {$featuredClass} {$unavailableClass}' data-status='" . htmlspecialchars($row['status_name']) . "' 
+                            echo "<div class='product-card {$featuredClass} {$unavailableClass}' 
+                                  data-product-id='" . $row['id'] . "'
+                                  data-status='" . htmlspecialchars($row['status_name']) . "' 
                                   data-available-dates='" . htmlspecialchars($available_dates ?? '') . "'
                                   data-product='" . $productDataJson . "' 
                                   data-unavailable='" . ($is_unavailable ? 'true' : 'false') . "'
@@ -2023,6 +2025,45 @@ function closeProductModal() {
 
     </div>
 </div>
+
+<!-- Product Dashboard Polling Script -->
+<script src="/NeoCafe/frontend/assets/js/product-dashboard-polling.js"></script>
+<script>
+    // Initialize product dashboard polling
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get current category from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentCategory = urlParams.get('category');
+        
+        // Initialize poller
+        const poller = new ProductDashboardPoller({
+            pollInterval: 5000, // 5 seconds
+            initialCategory: currentCategory,
+            apiEndpoint: '/NeoCafe/frontend/api/get-product-list.php'
+        });
+        
+        // Start polling
+        poller.start();
+        
+        console.log('[Product Dashboard] Polling initialized for category:', currentCategory || 'all');
+        
+        // Update category when user clicks category tabs
+        const categoryTabs = document.querySelectorAll('.category-tab');
+        categoryTabs.forEach(tab => {
+            tab.addEventListener('click', function(e) {
+                // Extract category from href
+                const href = this.getAttribute('href');
+                const match = href.match(/category=([^&]+)/);
+                const newCategory = match ? match[1] : null;
+                
+                // Update poller category
+                poller.updateCategory(newCategory);
+                
+                console.log('[Product Dashboard] Category changed to:', newCategory || 'all');
+            });
+        });
+    });
+</script>
 
 </body>
 </html>

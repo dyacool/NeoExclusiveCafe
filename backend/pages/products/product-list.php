@@ -262,9 +262,21 @@
 
         <!-- Products Grid/Table -->
         <div class="products-container">
+            <!-- Polling Loading Indicator -->
+            <div id="polling-loading-indicator" style="display: none;">
+                <div class="spinner"></div>
+                <span>Updating...</span>
+            </div>
+            
+            <!-- Last Update Timestamp -->
+            <div class="last-update-container">
+                <span class="last-update-label">Last updated:</span>
+                <span id="last-update-time">Just now</span>
+            </div>
+            
             <div class="table-wrapper">
                 <table class="products-table">
-                    <tbody id="productTableBody">
+                    <tbody id="products-tbody">
                         <?php
                             // Count total products for pagination
                             $count_sql = "SELECT COUNT(*) as total FROM products WHERE deleted_at IS NULL";
@@ -446,6 +458,10 @@
                                     $stockDisplay = '';
                                     $quantityClass = '';
                                     
+                                    // Determine stock display and classes for both preorder and same-day
+                                    $preorderStock = $quantity;
+                                    $samedayStock = isset($row['sameday_stock_today']) ? intval($row['sameday_stock_today']) : 0;
+                                    
                                     if ($status_id == 4) {
                                         // Status 4: Same Day Order - check if today is available
                                         $today_date = date('Y-m-d');
@@ -455,7 +471,7 @@
                                         if ($is_available_today && isset($row['sameday_stock_today'])) {
                                             // Today is available, show same-day stock
                                             $sameday_stock = intval($row['sameday_stock_today']);
-                                            $stockDisplay = $sameday_stock . ' in stock';
+                                            $stockDisplay = '<span class="sameday-stock">' . $sameday_stock . '</span> in stock';
                                             $quantityClass = $sameday_stock <= 5 ? 'low-stock' : ($sameday_stock <= 10 ? 'medium-stock' : 'good-stock');
                                         } else {
                                             // Today is not available
@@ -464,7 +480,7 @@
                                         }
                                     } else {
                                         // Status 1, 2, 3: Pre-order - show products.quantity
-                                        $stockDisplay = $quantity . ' in stock';
+                                        $stockDisplay = '<span class="preorder-stock">' . $quantity . '</span> in stock';
                                         $quantityClass = $quantity <= 5 ? 'low-stock' : ($quantity <= 10 ? 'medium-stock' : 'good-stock');
                                     }
 
@@ -494,7 +510,7 @@
                                         $statusBadgeText = "P. Order: " . $displayStatus;
                                     }
                                     
-                                    echo "<tr data-status='" . $displayStatus . "' data-name='" . strtolower($row['name']) . "' data-sku='" . strtolower($row['sku']) . "'>
+                                    echo "<tr data-product-id='" . $row['id'] . "' data-status='" . $displayStatus . "' data-name='" . strtolower($row['name']) . "' data-sku='" . strtolower($row['sku']) . "'>
                                             <td>
                                                 <div class='product-image-container'>
                                                     <img class='product-image' src='" . htmlspecialchars($imagePath) . "' alt='" . htmlspecialchars($row['name']) . "' loading='lazy' onerror=\"this.src='https://res.cloudinary.com/dvdccumbs/image/upload/c_fill,w_400,h_400,g_center/e_blur:1000,co_rgb:cccccc,b_rgb:f0f0f0/sample.jpg'\">
@@ -955,6 +971,46 @@
 <!-- Hidden container for all products data -->
 <script id="allProductsData" type="application/json">
 <?php echo json_encode($all_products_data); ?>
+</script>
+
+<!-- Product List Polling CSS -->
+<link rel="stylesheet" href="../assets/css/product-list-polling.css">
+
+<!-- Product List Polling Script -->
+<script src="../assets/js/product-list-polling.js"></script>
+<script>
+    // Initialize product list polling
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get current filter state from URL or form
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentSearch = urlParams.get('search') || '';
+        const currentCategory = urlParams.get('category') || null;
+        const currentStatus = urlParams.get('status') || null;
+        const currentPage = urlParams.get('page') || 1;
+        
+        // Initialize poller
+        const poller = new ProductListPoller({
+            pollInterval: 5000, // 5 seconds
+            initialSearch: currentSearch,
+            initialCategory: currentCategory,
+            initialStatus: currentStatus,
+            initialPage: currentPage,
+            apiEndpoint: '../api/get-product-list-admin.php'
+        });
+        
+        // Start polling
+        poller.start();
+        
+        console.log('[Product List] Polling initialized');
+        
+        // Update filters when search/filter changes
+        const searchInput = document.querySelector('input[name="search"]');
+        if (searchInput) {
+            searchInput.addEventListener('change', function() {
+                poller.updateFilters({ search: this.value });
+            });
+        }
+    });
 </script>
 
 </body>
