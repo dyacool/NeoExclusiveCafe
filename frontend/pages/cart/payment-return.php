@@ -330,6 +330,12 @@ try {
     $paymongo = new PayMongoAPI();
     error_log("[PAYMENT-RETURN] ✓ PayMongo API initialized");
 
+    // CRITICAL: Validate status before ANY order processing
+    if ($status !== 'success') {
+        error_log("[PAYMENT-RETURN] ⚠ Payment status is NOT success: '$status' - Aborting order creation");
+        throw new Exception('Payment was not successful. Status: ' . ($status ?: 'empty'));
+    }
+    
     // Process payment based on status
     if ($status === 'success') {
         // Check if this payment has already been processed to prevent duplicates
