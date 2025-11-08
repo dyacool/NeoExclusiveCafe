@@ -377,7 +377,7 @@ try {
         }
         
         // Treat as successful payment and persist the order + inventory updates
-        error_log("Payment succeeded. Creating order and updating inventory.");
+        error_log("Payment succeeded. Validating stock availability before creating order.");
 
         $order_id_created = null;
         try {
@@ -404,6 +404,86 @@ try {
             if (empty($cart_items) || !is_array($cart_items)) {
                 throw new Exception('No cart items provided for order creation');
             }
+
+            // CRITICAL VALIDATION: Check stock availability for all products before creating order
+            error_log("[PAYMENT-RETURN] === STOCK VALIDATION START ===");
+            $today_date = date('Y-m-d');
+            $stock_validation_errors = [];
+            
+            foreach ($cart_items as $item) {
+                $product_id = intval($item['product_id'] ?? 0);
+                $requested_qty = intval($item['quantity'] ?? 0);
+                $is_availtoday = isset($item['is_availtoday']) && $item['is_availtoday'];
+                
+                if ($product_id <= 0 || $requested_qty <= 0) {
+                    continue; // Skip invalid items
+                }
+                
+                // Get current stock levels
+                $stock_check_sql = "SELECT 
+                                        p.id,
+                                        p.name,
+                                        p.quantity as preorder_stock,
+                                        p.status_id,
+                                        COALESCE(qpd.quantity, 0) as sameday_stock
+                                    FROM products p
+                                    LEFT JOIN quantity_per_day_sdo qpd ON p.id = qpd.product_id AND qpd.date = ?
+                                    WHERE p.id = ?";
+                
+                $stock_stmt = $conn->prepare($stock_check_sql);
+                $stock_stmt->bind_param("si", $today_date, $product_id);
+                $stock_stmt->execute();
+                $stock_result = $stock_stmt->get_result();
+                
+                if ($stock_row = $stock_result->fetch_assoc()) {
+                    $product_name = $stock_row['name'];
+                    $preorder_stock = intval($stock_row['preorder_stock']);
+                    $sameday_stock = intval($stock_row['sameday_stock']);
+                    $status_id = intval($stock_row['status_id']);
+                    
+                    // Determine which stock to check based on order type
+                    if ($is_availtoday || $status_id == 4) {
+                        // Same-day order - check same-day stock
+                        if ($sameday_stock <= 0) {
+                            $stock_validation_errors[] = "Product '$product_name' (ID: $product_id) has no same-day stock available (requested: $requested_qty, available: $sameday_stock)";
+                            error_log("[PAYMENT-RETURN] ✗ STOCK VALIDATION FAILED: Product $product_id - Same-day stock insufficient");
+                        } elseif ($sameday_stock < $requested_qty) {
+                            $stock_validation_errors[] = "Product '$product_name' (ID: $product_id) has insufficient same-day stock (requested: $requested_qty, available: $sameday_stock)";
+                            error_log("[PAYMENT-RETURN] ✗ STOCK VALIDATION FAILED: Product $product_id - Same-day stock insufficient");
+                        } else {
+                            error_log("[PAYMENT-RETURN] ✓ Product $product_id - Same-day stock OK (requested: $requested_qty, available: $sameday_stock)");
+                        }
+                    } else {
+                        // Pre-order - check regular stock
+                        if ($preorder_stock <= 0) {
+                            $stock_validation_errors[] = "Product '$product_name' (ID: $product_id) is out of stock (requested: $requested_qty, available: $preorder_stock)";
+                            error_log("[PAYMENT-RETURN] ✗ STOCK VALIDATION FAILED: Product $product_id - Preorder stock insufficient");
+                        } elseif ($preorder_stock < $requested_qty) {
+                            $stock_validation_errors[] = "Product '$product_name' (ID: $product_id) has insufficient stock (requested: $requested_qty, available: $preorder_stock)";
+                            error_log("[PAYMENT-RETURN] ✗ STOCK VALIDATION FAILED: Product $product_id - Preorder stock insufficient");
+                        } else {
+                            error_log("[PAYMENT-RETURN] ✓ Product $product_id - Preorder stock OK (requested: $requested_qty, available: $preorder_stock)");
+                        }
+                    }
+                } else {
+                    $stock_validation_errors[] = "Product ID $product_id not found in database";
+                    error_log("[PAYMENT-RETURN] ✗ STOCK VALIDATION FAILED: Product $product_id not found");
+                }
+                
+                $stock_stmt->close();
+            }
+            
+            // If any stock validation errors, abort order creation
+            if (!empty($stock_validation_errors)) {
+                error_log("[PAYMENT-RETURN] === STOCK VALIDATION FAILED ===");
+                error_log("[PAYMENT-RETURN] Errors: " . implode("; ", $stock_validation_errors));
+                
+                $error_message = "Order cannot be completed due to stock availability issues:\n" . implode("\n", $stock_validation_errors);
+                throw new Exception($error_message);
+            }
+            
+            error_log("[PAYMENT-RETURN] === STOCK VALIDATION PASSED ===");
+            error_log("[PAYMENT-RETURN] All products have sufficient stock. Proceeding with order creation.");
 
             // Derive fields
             $total_items = 0;
