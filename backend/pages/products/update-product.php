@@ -3,13 +3,13 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Start session and check admin authentication
-session_start();
+// Use admin-auth for authentication
+require_once __DIR__ . '/../../login/admin/admin-auth.php';
 
 // Debug: Log that the script was called
 error_log("=== UPDATE-PRODUCT.PHP CALLED ===");
 
-if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
+if (!SessionManager::isAdminLoggedIn()) {
     header('Content-Type: application/json');
     echo json_encode(['success' => false, 'error' => 'Unauthorized access']);
     exit();

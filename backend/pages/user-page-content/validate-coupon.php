@@ -1,12 +1,9 @@
 <?php
-// Match session configuration from other checkout files
-session_set_cookie_params([
-    'lifetime' => 0,
-    'httponly' => true,
-    'samesite' => 'Strict',
-    'domain' => ''
-]);
-session_start();
+// Load database first (it starts session)
+require_once __DIR__ . '/../admin-includes/database.php';
+
+// Then load SessionManager
+require_once __DIR__ . '/../../../includes/session-manager.php';
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');

@@ -253,7 +253,7 @@ if (!$navbar_conn) {
                         <button type="submit" class="search-btn">Search</button>
                     </form>
                 </div>
-                <a href="<?php echo isset($_SESSION['user_id']) ? '../../../frontend/pages/cart/cart.php' : '../../../frontend/login/user/login-signup.php'; ?>" class="cart-link">
+                <a href="<?php echo isset($_SESSION['user_id']) ? '../../../frontend/pages/cart/cart.php' : '../../../frontend/login/user/login-signup.php'; ?>" class="cart-link" style="position: relative;">
                     <div class="icon-wrapper">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="icon cart-icon">
                             <path d="M5 8h14l1 13H4L5 8z"></path>
@@ -261,6 +261,8 @@ if (!$navbar_conn) {
                             <path d="M3 8h18"></path>
                         </svg>
                         <span class="icon-effect"></span>
+                        <!-- Cart notification dot -->
+                        <span id="cart-notification-dot" class="notification-dot" style="display: none;"></span>
                     </div>
                 </a>
                 <div class="notification-container">
@@ -729,90 +731,7 @@ if (!$navbar_conn) {
                 });
             }
             
-            // CART COUNT FUNCTIONALITY - REAL-TIME
-            function updateCartCount() {
-                console.log('updateCartCount called at:', new Date().toLocaleTimeString());
-                const cartCount = document.getElementById('cartCount');
-                if (!cartCount) {
-                    console.error('Cart count element not found!');
-                    return;
-                }
-                
-                // Only fetch cart count for logged-in users
-                <?php if (isset($_SESSION['user_id'])): ?>
-                console.log('Fetching cart count for user ID:', <?php echo $_SESSION['user_id']; ?>);
-                fetch('/frontend/pages/cart/get-cart-count.php')
-                    .then(response => {
-                        console.log('Cart count response status:', response.status);
-                        return response.json();
-                    })
-                    .then(data => {
-                        console.log('Cart count data received:', data);
-                        if (data.status === 'success' && data.count > 0) {
-                            cartCount.textContent = data.count > 99 ? '99+' : data.count;
-                            cartCount.style.display = 'flex';
-                            cartCount.classList.add('updated');
-                            console.log('Cart count updated to:', data.count);
-                            
-                            // Remove animation class after animation completes
-                            setTimeout(() => {
-                                cartCount.classList.remove('updated');
-                            }, 300);
-                        } else {
-                            cartCount.style.display = 'none';
-                            console.log('Cart count hidden (empty cart)');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error fetching cart count:', error);
-                        cartCount.style.display = 'none';
-                    });
-                <?php else: ?>
-                console.log('User not logged in, hiding cart count');
-                cartCount.style.display = 'none';
-                <?php endif; ?>
-            }
-            
-            // Update cart count on page load (with element check)
-            function waitForCartElement() {
-                const cartCount = document.getElementById('cartCount');
-                if (cartCount) {
-                    console.log('Cart element found, starting updates');
-                    updateCartCount();
-                    
-                    // Global function to update cart count (can be called from other pages)
-                    window.updateNavbarCartCount = updateCartCount;
-                    
-                    // Real-time cart count updates (every 3 seconds for more responsiveness)
-                    setInterval(updateCartCount, 3000);
-                } else {
-                    console.log('Cart element not found, retrying in 100ms');
-                    setTimeout(waitForCartElement, 100);
-                }
-            }
-            waitForCartElement();
-            
-            // Listen for storage events (when cart is updated in another tab)
-            window.addEventListener('storage', function(e) {
-                if (e.key === 'cart_updated') {
-                    updateCartCount();
-                    // Also update notifications in case of order-related notifications
-                    if (window.fetchDropdownNotifications) {
-                        window.fetchDropdownNotifications().then(notifications => {
-                            updateNotificationCount(notifications);
-                        });
-                    }
-                }
-            });
-            
-            // Listen for custom cart events
-            window.addEventListener('cartUpdated', function() {
-                updateCartCount();
-                // Trigger storage event to sync with other tabs
-                localStorage.setItem('cart_updated', Date.now());
-                localStorage.removeItem('cart_updated');
-            });
-            
+
             // NOTIFICATION FUNCTIONALITY - REAL-TIME
             function updateNotificationCount(notifications) {
                 console.log('updateNotificationCount called with:', notifications);
@@ -1129,6 +1048,34 @@ if (!$navbar_conn) {
         window.addEventListener('orientationchange', function() {
             setTimeout(setNavbarHeight, 100); // Small delay for orientation change
         });
+
+        // Cart notification functionality
+        function updateCartNotification() {
+            fetch('/backend/api/get-cart-count.php')
+                .then(response => response.json())
+                .then(data => {
+                    const cartDot = document.getElementById('cart-notification-dot');
+                    if (cartDot) {
+                        if (data.hasItems && data.count > 0) {
+                            cartDot.style.display = 'block';
+                        } else {
+                            cartDot.style.display = 'none';
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.log('Cart notification update failed:', error);
+                });
+        }
+
+        // Update cart notification on page load
+        document.addEventListener('DOMContentLoaded', updateCartNotification);
+
+        // Update cart notification every 30 seconds
+        setInterval(updateCartNotification, 30000);
+
+        // Listen for custom cart update events
+        window.addEventListener('cartUpdated', updateCartNotification);
         
     </script>
     

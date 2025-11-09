@@ -4,13 +4,13 @@
  * Access this file via browser to test the notification system
  */
 
-session_start();
-if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
+require_once __DIR__ . "/../../../includes/session-manager.php";
+require_once __DIR__ . "/../admin-includes/database.php";
+
+if (!SessionManager::isAdminLoggedIn()) {
     header("Location: ../login/admin/admin-login.php");
     exit();
 }
-
-require_once __DIR__ . "/../admin-includes/database.php";
 require_once __DIR__ . "/../admin-includes/notifications/notification.php";
 
 // Force run the due orders check

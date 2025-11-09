@@ -3,12 +3,13 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
 
-session_start();
+// Use admin-auth for authentication
+require_once __DIR__ . '/../../login/admin/admin-auth.php';
 
 // Set JSON header first
 header('Content-Type: application/json');
 
-if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
+if (!SessionManager::isAdminLoggedIn()) {
     echo json_encode(['success' => false, 'error' => 'Unauthorized access']);
     exit();
 }

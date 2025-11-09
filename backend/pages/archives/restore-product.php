@@ -3,16 +3,15 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Start session and check admin authentication
-session_start();
-if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
+// Include SessionManager and check admin authentication
+require_once __DIR__ . "/../../../includes/session-manager.php";
+require_once __DIR__ . "/../admin-includes/database.php";
+
+if (!SessionManager::isAdminLoggedIn()) {
     header('Content-Type: application/json');
     echo json_encode(['success' => false, 'error' => 'Unauthorized access']);
     exit();
 }
-
-// Include database connection
-require_once __DIR__ . "/../admin-includes/database.php";
 require_once __DIR__ . "/../admin-includes/activity-logger.php";
 
 // Set JSON response header

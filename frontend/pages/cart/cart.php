@@ -3,14 +3,12 @@
 // No need to start session here as it's already started by the included files
 
 require_once '../../../backend/pages/admin-includes/database.php';
+require_once '../../../includes/session-manager.php';
 
-if (!isset($_SESSION["user_id"])) {
-    header("Location: ../../login/user/login-signup.php");
-    exit();
-}
+SessionManager::requireUserLogin('../../login/user/login-signup.php');
 
 require_once '../../user-includes/navbar/customer-navigation.php';
-$user_id = $_SESSION['user_id'];
+$user_id = SessionManager::getUserId();
 $today = date('Y-m-d');
 
 // Auto-truncate same-day cart if business is closed OR items are from previous days
@@ -738,6 +736,9 @@ function removeItem(cartId, type) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
+            // Trigger cart notification update
+            window.dispatchEvent(new CustomEvent('cartUpdated'));
+            
             // Remove the row with animation
             row.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
             row.style.opacity = '0';
@@ -837,7 +838,7 @@ setTimeout(() => {
     }
 }, 100);
 
-function proceedToCheckout() {
+async function proceedToCheckout() {
     console.log('proceedToCheckout called, selectedItems:', selectedItems);
     
     // Determine which button was clicked based on screen size or button availability
@@ -902,9 +903,70 @@ function proceedToCheckout() {
     if (preorderIds.length > 0 && samedayIds.length > 0) {
         alert('Please checkout Pre-Order and Same Day Order items separately. Select only one type at a time.');
         // Reset button state
-        checkoutBtn.disabled = false;
-        checkoutBtn.classList.remove('loading');
-        checkoutBtn.textContent = originalText;
+        activeButton.disabled = false;
+        activeButton.classList.remove('loading');
+        activeButton.textContent = originalText;
+        return;
+    }
+    
+    // Determine order type and cart IDs for validation
+    const orderType = samedayIds.length > 0 ? 'sameday' : 'preorder';
+    const cartIds = orderType === 'sameday' ? samedayIds : preorderIds;
+    
+    // VALIDATE STOCK BEFORE PROCEEDING
+    activeButton.innerHTML = '<span class="loading-spinner-small"></span>Validating stock...';
+    
+    try {
+        const formData = new FormData();
+        cartIds.forEach(id => formData.append('cart_ids[]', id));
+        formData.append('order_type', orderType);
+        
+        const response = await fetch('validate-cart-stock.php', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const validation = await response.json();
+        
+        if (!validation.success) {
+            // Stock validation failed - show detailed error message
+            let errorMessage = 'Stock validation failed:\n\n';
+            
+            if (validation.errors && validation.errors.length > 0) {
+                validation.errors.forEach(error => {
+                    errorMessage += `• ${error.message}\n`;
+                });
+                errorMessage += '\nPlease update your cart quantities or remove unavailable items.';
+            } else {
+                errorMessage += validation.message || 'Some items are no longer available.';
+            }
+            
+            alert(errorMessage);
+            
+            // Reset button state
+            activeButton.disabled = false;
+            activeButton.classList.remove('loading');
+            activeButton.textContent = originalText;
+            
+            // Reload page to show updated stock
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+            
+            return;
+        }
+        
+        // Stock validation passed - proceed to checkout
+        activeButton.innerHTML = '<span class="loading-spinner-small"></span>Proceeding to checkout...';
+        
+    } catch (error) {
+        console.error('Stock validation error:', error);
+        alert('Failed to validate stock. Please try again.');
+        
+        // Reset button state
+        activeButton.disabled = false;
+        activeButton.classList.remove('loading');
+        activeButton.textContent = originalText;
         return;
     }
     
@@ -940,9 +1002,9 @@ function proceedToCheckout() {
     } else {
         alert('No items selected for checkout. Please check the boxes next to items you want to purchase.');
         // Reset button state
-        checkoutBtn.disabled = false;
-        checkoutBtn.classList.remove('loading');
-        checkoutBtn.textContent = originalText;
+        activeButton.disabled = false;
+        activeButton.classList.remove('loading');
+        activeButton.textContent = originalText;
         return;
     }
     

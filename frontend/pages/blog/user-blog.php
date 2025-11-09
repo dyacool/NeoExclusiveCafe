@@ -1,11 +1,5 @@
 <?php
-// Redirect if not logged in
-// Don't start session if it's already active
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-// Database connection
+// Load database connection first (it starts session)
 require_once __DIR__ . "/../../../config/database-config.php";
 $conn = getDatabaseConnection();
 

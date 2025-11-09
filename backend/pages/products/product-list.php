@@ -1,18 +1,14 @@
 <?php
-    session_start();
-    if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
-        header("Location: ../auth/login-signup.php");
-        exit();
-    }
+    // Use admin-auth for authentication (it loads database.php and SessionManager in correct order)
+    require_once __DIR__ . '/../../login/admin/admin-auth.php';
 
     // Generate CSRF token if not exists
     if (!isset($_SESSION['csrf_token'])) {
         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
     }
 
-    // Include config file for base URL
+    // Include config file for base URL (database.php already loaded by admin-auth.php)
     require_once __DIR__ . "/../admin-includes/config.php";
-    include __DIR__ . "/../admin-includes/database.php";
     require_once __DIR__ . "/../admin-includes/settings-helper.php";
     require_once __DIR__ . "/todays-products-handler.php";
     

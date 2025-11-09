@@ -1,21 +1,14 @@
 <?php
-// Start session immediately to prevent headers already sent errors
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+// Load database connection first (it starts session)
+require_once "../../../backend/pages/admin-includes/database.php";
 
-// Session management is handled by included files
-// No need to start session here as it's already started by the included files
+// Then load SessionManager (it will use existing session)
+require_once "../../../includes/session-manager.php";
 
 $page_title = "Blog";
 $additional_css = [
     "../blog/blog-dashboard.css"
 ];
-
-// Include session management files first (before any HTML output)
-// Order matters: database.php must come before user-header.php to avoid session conflicts
-require_once "../../../backend/pages/admin-includes/database.php";
-require_once "../../../includes/session-manager.php";
 require_once __DIR__ . "/../../user-includes/user-header.php";
 
 // Define preview mode (after session is started)

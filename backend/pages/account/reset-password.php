@@ -1,16 +1,12 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . "/../../../includes/session-manager.php";
+require_once __DIR__ . "/../admin-includes/database.php";
 
 // Check if user is logged in as admin
-if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
+if (!SessionManager::isAdminLoggedIn()) {
     header("Location: /login/admin/admin-login.php");
     exit();
 }
-
-// Include database and navbar
-require_once __DIR__ . "/../admin-includes/database.php";
 require_once __DIR__ . "/../admin-includes/navbar/navbar.php";
 require_once __DIR__ . "/../admin-includes/activity-logger.php";
 
@@ -18,7 +14,8 @@ $errorMessage = "";
 $successMessage = "";
 
 if (isset($_POST["reset_password"])) {
-    $admin_id = $_SESSION['admin_id'];
+    $adminData = SessionManager::getAdminData();
+    $admin_id = $adminData['id'];
     $current_password = $_POST["current_password"];
     $new_password = $_POST["new_password"];
     $confirm_password = $_POST["confirm_password"];

@@ -7,11 +7,12 @@
  * Old profile pictures are automatically deleted from Cloudinary before uploading new ones.
  */
 
-session_start();
+require_once __DIR__ . '/../../includes/session-manager.php';
+
 header('Content-Type: application/json');
 
 // Verify admin authentication
-if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
+if (!SessionManager::isAdminLoggedIn()) {
     http_response_code(401);
     echo json_encode([
         'success' => false,
@@ -114,7 +115,8 @@ function deleteOldProfilePicture($conn, $userId) {
 }
 
 // Get user ID from session
-$userId = $_SESSION['admin_id'];
+$adminData = SessionManager::getAdminData();
+$userId = $adminData['id'];
 
 // Validate uploaded file
 if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {

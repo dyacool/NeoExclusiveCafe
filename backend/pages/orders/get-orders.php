@@ -1,12 +1,12 @@
 <?php
-session_start();
-if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
+require_once __DIR__ . "/../../../includes/session-manager.php";
+require_once __DIR__ . "/../admin-includes/database.php";
+
+if (!SessionManager::isAdminLoggedIn()) {
     http_response_code(403);
     echo json_encode(['error' => 'Unauthorized']);
     exit();
 }
-
-require_once __DIR__ . "/../admin-includes/database.php";
 
 // Set content type to JSON
 header('Content-Type: application/json');

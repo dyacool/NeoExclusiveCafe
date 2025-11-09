@@ -1454,3 +1454,28 @@ body {
     font-size: 9px;
   }
 }
+
+/* Loading spinner for checkout button */
+.loading-spinner-small {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Button loading state */
+.checkout-btn.loading,
+.mobile-checkout-btn.loading {
+    cursor: wait;
+    opacity: 0.8;
+}

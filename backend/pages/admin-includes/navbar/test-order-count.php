@@ -1,11 +1,9 @@
 <?php
 // Test script to create sample orders for testing the count badge
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/../../../../includes/session-manager.php';
 
 // Check if user is admin
-if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
+if (!SessionManager::isAdminLoggedIn()) {
     die("Admin access required");
 }
 

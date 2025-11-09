@@ -2,10 +2,11 @@
 // Suppress database debug output for API responses
 $suppress_db_debug = true;
 
-session_start();
+require_once __DIR__ . '/../pages/admin-includes/database.php';
+require_once __DIR__ . '/../../includes/session-manager.php';
 
 // Authentication check
-if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
+if (!SessionManager::isAdminLoggedIn()) {
     http_response_code(401);
     header('Content-Type: application/json');
     echo json_encode([
@@ -14,8 +15,6 @@ if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
     ]);
     exit();
 }
-
-require_once __DIR__ . '/../pages/admin-includes/database.php';
 
 // Set JSON header
 header('Content-Type: application/json');

@@ -1,9 +1,11 @@
 <?php
-session_start();
+// Use admin-auth for authentication
+require_once __DIR__ . '/../../login/admin/admin-auth.php';
+
 header('Content-Type: application/json');
 
 // Check admin authentication
-if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
+if (!SessionManager::isAdminLoggedIn()) {
     echo json_encode(['success' => false, 'message' => 'Unauthorized access']);
     exit();
 }

@@ -1,7 +1,8 @@
 <?php
 // Simple test version
 ob_start();
-session_start();
+// Use admin-auth for authentication
+require_once __DIR__ . '/../../login/admin/admin-auth.php';
 ob_clean();
 
 header('Content-Type: application/json');
@@ -13,7 +14,7 @@ try {
     }
     
     // Check session
-    if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
+    if (!SessionManager::isAdminLoggedIn()) {
         throw new Exception('Not logged in as admin');
     }
     

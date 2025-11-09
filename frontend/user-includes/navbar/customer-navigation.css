@@ -1571,6 +1571,20 @@ html.homepage-animation .main-nav {
   transform: scale(1.05);
 }
 
+/* Cart Notification Dot */
+#cart-notification-dot {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 8px;
+  background-color: #ef4444;
+  border-radius: 50%;
+  border: 2px solid white;
+  z-index: 10;
+  pointer-events: none;
+}
+
 /* Mobile Menu Toggle */
 .mobile-menu-toggle {
   display: none;

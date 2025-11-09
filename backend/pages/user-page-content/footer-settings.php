@@ -1,12 +1,6 @@
 <?php
-// Start session for potential authentication
-session_start();
-
-// Check if user is logged in as admin (implement your authentication logic)
-if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
-    header("Location: /login/admin/admin-login.php");
-    exit();
-}
+// Use admin-auth for authentication
+require_once __DIR__ . '/../../login/admin/admin-auth.php';
 
 // Include the navbar
 include __DIR__ . "/../admin-includes/navbar/navbar.php";

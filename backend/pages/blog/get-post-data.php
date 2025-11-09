@@ -1,12 +1,11 @@
 <?php
-session_start();
-if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
+require_once __DIR__ . "/../../../includes/session-manager.php";
+require_once __DIR__ . "/../admin-includes/database.php";
+
+if (!SessionManager::isAdminLoggedIn()) {
     http_response_code(403);
     exit();
 }
-
-// Include database configuration - same as view-blog-admin.php  
-require_once __DIR__ . "/../admin-includes/database.php";
 
 if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["id"])) {
     $id = intval($_GET["id"]);

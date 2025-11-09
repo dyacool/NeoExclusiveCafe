@@ -7,11 +7,12 @@
  * table until they are associated with a saved carousel entry.
  */
 
-session_start();
+require_once __DIR__ . '/../../includes/session-manager.php';
+
 header('Content-Type: application/json');
 
 // Verify admin authentication
-if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
+if (!SessionManager::isAdminLoggedIn()) {
     http_response_code(401);
     echo json_encode([
         'success' => false,

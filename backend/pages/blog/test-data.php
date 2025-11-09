@@ -1,12 +1,11 @@
 <?php
 // Test script to check blog post data
-session_start();
-if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
+require_once __DIR__ . "/../../../includes/session-manager.php";
+require_once __DIR__ . "/../../../config/database-config.php";
+
+if (!SessionManager::isAdminLoggedIn()) {
     die("Access denied");
 }
-
-// Include database configuration
-require_once __DIR__ . "/../../../config/database-config.php";
 
 // Get database connection
 $conn = getDatabaseConnection();

@@ -1,19 +1,14 @@
 <?php
-session_start();
-if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
-    header("Location: /login/admin/admin-login.php");
-    exit();
-}
+// Use admin-auth for authentication (it loads database.php and SessionManager in correct order)
+require_once __DIR__ . '/../../login/admin/admin-auth.php';
 
 // Generate CSRF token if not exists
 if (!isset($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
-// Include config file for base URL
+// Include config file for base URL (database.php already loaded by admin-auth.php)
 require_once __DIR__ . "/../admin-includes/config.php";
-
-include __DIR__ . "/../admin-includes/database.php";
 require_once __DIR__ . "/../admin-includes/activity-logger.php";
 
 /**
@@ -383,7 +378,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
     <?php endif; ?>
     
-    <?php if(isset($_SESSION['error_message'])): ?>
+    <?php if(isset($sessionData['error_message'])): ?>
     <div class="error-popup" id="errorPopup" style="background-color: #ef4444;">
         <?php 
         echo $_SESSION['error_message'];
@@ -392,7 +387,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
     <?php endif; ?>
     
-    <?php if(isset($_SESSION['warning_message'])): ?>
+    <?php if(isset($sessionData['warning_message'])): ?>
     <div class="warning-popup" id="warningPopup" style="background-color: #f59e0b;">
         <?php 
         echo $_SESSION['warning_message'];

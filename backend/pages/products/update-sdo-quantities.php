@@ -1,5 +1,7 @@
 <?php
-session_start();
+// Use admin-auth for authentication
+require_once __DIR__ . '/../../login/admin/admin-auth.php';
+
 header('Content-Type: application/json');
 
 // Enable error logging
@@ -13,7 +15,7 @@ function logMessage($message) {
     error_log("[$timestamp] $message\n", 3, $log_file);
 }
 
-if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
+if (!SessionManager::isAdminLoggedIn()) {
     logMessage("Unauthorized access attempt");
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
     exit();

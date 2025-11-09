@@ -31,188 +31,6 @@ try {
     error_log("Error cleaning up dates: " . $e->getMessage());
 }
 
-// DISABLED: Function to truncate cart_availtoday when business hours are closed OR items are from previous days
-// This functionality is commented out for now
-/*
-function truncateCartIfBusinessClosed() {
-    global $conn;
-    
-    try {
-        $truncated = false;
-        
-        // STEP 1: Remove old date assignments from products (date-based cleanup)
-        // Remove dates from previous days so products are no longer marked for same-day delivery
-        
-        // Remove old dates from Today's products table (but preserve dates with SDO quantities)
-        $old_todays_dates = "DELETE tpd FROM todays_products_dates tpd 
-                             LEFT JOIN quantity_per_day_sdo qpd ON tpd.product_id = qpd.product_id AND qpd.date = tpd.available_date
-                             WHERE tpd.available_date < CURDATE() AND qpd.id IS NULL";
-        $result1 = $conn->query($old_todays_dates);
-        $removed_todays = ($result1 && $conn->affected_rows > 0) ? $conn->affected_rows : 0;
-        
-        // Remove old dates from regular products' today dates table (but preserve dates with SDO quantities)
-        $old_regular_dates = "DELETE rptd FROM regular_products_today_dates rptd 
-                              LEFT JOIN quantity_per_day_sdo qpd ON rptd.product_id = qpd.product_id AND qpd.date = rptd.available_date
-                              WHERE rptd.available_date < CURDATE() AND qpd.id IS NULL";
-        $result2 = $conn->query($old_regular_dates);
-        $removed_regular = ($result2 && $conn->affected_rows > 0) ? $conn->affected_rows : 0;
-        
-        $total_removed = $removed_todays + $removed_regular;
-        if ($total_removed > 0) {
-            error_log("Auto-cleanup (product-dashboard): Removed $removed_todays old dates from todays_products_dates, $removed_regular from regular_products_today_dates");
-            $truncated = true;
-        }
-        
-        // STEP 2: Remove today's dates if business hours have closed
-        $today = date('Y-m-d');
-        $current_time = date('H:i:s');
-        
-        // Get business hours
-        $business_hours_query = "SELECT opening_time, closing_time FROM business_hours ORDER BY id DESC LIMIT 1";
-        $business_hours_result = $conn->query($business_hours_query);
-        
-        if ($business_hours_result && $business_hours_result->num_rows > 0) {
-            $business_hours = $business_hours_result->fetch_assoc();
-            $closing_time = $business_hours['closing_time'];
-            
-            // Convert times to minutes for comparison
-            $current_minutes = (intval(substr($current_time, 0, 2)) * 60) + intval(substr($current_time, 3, 2));
-            $closing_minutes = (intval(substr($closing_time, 0, 2)) * 60) + intval(substr($closing_time, 3, 2));
-            
-            // Check if business is closed
-            $is_closed = false;
-            
-            // Handle midnight crossing
-            if ($closing_minutes > 1200 && $current_minutes < 600) {
-                $is_closed = true;
-            } else if ($current_minutes > $closing_minutes) {
-                $is_closed = true;
-            }
-            
-            if ($is_closed) {
-                // Business is closed, remove today's dates (but preserve dates with SDO quantities)
-                $remove_today_todays = "DELETE tpd FROM todays_products_dates tpd 
-                                        LEFT JOIN quantity_per_day_sdo qpd ON tpd.product_id = qpd.product_id AND qpd.date = tpd.available_date
-                                        WHERE tpd.available_date = ? AND qpd.id IS NULL";
-                $stmt1 = $conn->prepare($remove_today_todays);
-                $stmt1->bind_param("s", $today);
-                $stmt1->execute();
-                $removed_today_todays = $stmt1->affected_rows;
-                $stmt1->close();
-                
-                $remove_today_regular = "DELETE rptd FROM regular_products_today_dates rptd 
-                                         LEFT JOIN quantity_per_day_sdo qpd ON rptd.product_id = qpd.product_id AND qpd.date = rptd.available_date
-                                         WHERE rptd.available_date = ? AND qpd.id IS NULL";
-                $stmt2 = $conn->prepare($remove_today_regular);
-                $stmt2->bind_param("s", $today);
-                $stmt2->execute();
-                $removed_today_regular = $stmt2->affected_rows;
-                $stmt2->close();
-                
-                $total_removed_today = $removed_today_todays + $removed_today_regular;
-                if ($total_removed_today > 0) {
-                    error_log("Business hours closed - Removed today's dates: $removed_today_todays from todays_products_dates, $removed_today_regular from regular_products_today_dates");
-                    $truncated = true;
-                }
-            }
-        }
-        
-        // STEP 1B: Clean up cart items for products that no longer have valid same-day dates
-        $cleanup_cart = "DELETE FROM availtoday_cart WHERE DATE(created_at) < CURDATE()";
-        $cleanup_result = $conn->query($cleanup_cart);
-        if ($cleanup_result && $conn->affected_rows > 0) {
-            error_log("Auto-cleanup (product-dashboard): Removed {$conn->affected_rows} old cart items from previous days");
-            $truncated = true;
-        }
-        
-        // STEP 2: Check if business is closed (time-based truncation)
-        // Get current time
-        $current_time = date('H:i:s');
-        
-        // Get business hours
-        $business_hours_query = "SELECT opening_time, closing_time FROM business_hours ORDER BY id DESC LIMIT 1";
-        $business_hours_result = $conn->query($business_hours_query);
-        
-        if (!$business_hours_result) {
-            error_log("Failed to get business hours: " . $conn->error);
-            return $truncated;
-        }
-        
-        if ($business_hours_result->num_rows === 0) {
-            // No business hours set, show loading state
-            $opening_time = 'Loading...';
-            $closing_time = 'Loading...';
-            error_log("No business hours set, showing loading state");
-        } else {
-            $business_hours = $business_hours_result->fetch_assoc();
-            $opening_time = $business_hours['opening_time'];
-            $closing_time = $business_hours['closing_time'];
-            error_log("Business hours: $opening_time - $closing_time");
-        }
-        
-        // Check if current time is after closing time
-        // Convert times to minutes for proper comparison (handles midnight crossing)
-        $current_minutes = (intval(substr($current_time, 0, 2)) * 60) + intval(substr($current_time, 3, 2));
-        $closing_minutes = (intval(substr($closing_time, 0, 2)) * 60) + intval(substr($closing_time, 3, 2));
-        $opening_minutes = (intval(substr($opening_time, 0, 2)) * 60) + intval(substr($opening_time, 3, 2));
-        
-        // Handle midnight crossing - if current time is much earlier than closing time, we're past midnight
-        $is_closed = false;
-        
-        // Check if we're past midnight (current time is much earlier than closing time)
-        if ($closing_minutes > 1200 && $current_minutes < 600) { // If closing time is after 8 PM and current time is before 10 AM
-            // We're past midnight, so business is closed
-            $is_closed = true;
-            error_log("Business closed - past midnight (current: $current_minutes, closing: $closing_minutes)");
-        } else if ($current_minutes > $closing_minutes) {
-            // Normal case - current time is after closing time
-            $is_closed = true;
-            error_log("Business closed - after closing time (current: $current_minutes, closing: $closing_minutes)");
-        }
-        
-        error_log("Time analysis: current=$current_time ($current_minutes min), opening=$opening_time ($opening_minutes min), closing=$closing_time ($closing_minutes min), is_closed=" . ($is_closed ? 'Yes' : 'No'));
-        
-        if ($is_closed) {
-            // Check if cart has items before truncating
-            $count_query = "SELECT COUNT(*) as cart_count FROM availtoday_cart";
-            $count_result = $conn->query($count_query);
-            
-            if ($count_result) {
-                $count_data = $count_result->fetch_assoc();
-                $cart_count = $count_data['cart_count'];
-                error_log("Cart currently has $cart_count items");
-                
-                if ($cart_count > 0) {
-                    // Business is closed, truncate the availtoday_cart table
-                    $truncate_query = "TRUNCATE TABLE availtoday_cart";
-                    $truncate_result = $conn->query($truncate_query);
-                    
-                    if ($truncate_result) {
-                        error_log("SUCCESS: Cart truncated successfully - $cart_count items removed");
-                        $truncated = true;
-                    } else {
-                        error_log("ERROR: Failed to truncate cart: " . $conn->error);
-                        return $truncated;
-                    }
-                } else {
-                    error_log("Cart is already empty - no action needed");
-                    return $truncated;
-                }
-            } else {
-                error_log("ERROR: Failed to count cart items: " . $conn->error);
-                return false;
-            }
-        }
-        
-        return false; // No action taken
-    } catch (Exception $e) {
-        error_log("Error truncating cart: " . $e->getMessage());
-        return false;
-    }
-}
-*/
-
-// DISABLED: Check and truncate cart if business is closed
 // $cart_truncated = truncateCartIfBusinessClosed();
 $cart_truncated = false; // Disabled for now
 
@@ -362,7 +180,6 @@ if ($cart_truncated) {
                      */
                     function determineProductAvailability($product_row, $today_date) {
                         // Initialize result structure with default values
-                        // All products start with no capabilities and are assumed available for display
                         $result = [
                             'has_preorder' => false,      // Can customer pre-order this product?
                             'has_sameday' => false,       // Can customer order for same-day delivery?
@@ -372,7 +189,6 @@ if ($cart_truncated) {
                         ];
                         
                         // Extract and normalize product data from database row
-                        // Use null coalescing operator (??) to provide safe defaults for missing values
                         $status_id = $product_row['status_id'];                                      // Product status: 1=Regular, 2=Featured, 3=Limited, 4=Same-Day Only
                         $preorder_stock = $product_row['quantity'] ?? 0;                            // Stock available for pre-orders
                         $sameday_stock = $product_row['sameday_stock_today'] ?? 0;                  // Stock available for same-day orders today
@@ -385,8 +201,6 @@ if ($cart_truncated) {
                         // ============================================================================
                         // STEP 1: Determine product capabilities
                         // ============================================================================
-                        // This section determines WHAT the product CAN do (pre-order, same-day, or both)
-                        // We check capabilities independently before determining overall availability
                         
                         // Pre-order capability check:
                         // Products with status 1/2/3 can be pre-ordered if they have stock
@@ -394,49 +208,40 @@ if ($cart_truncated) {
                         $result['has_preorder'] = in_array($status_id, [1, 2, 3]) && $preorder_stock > 0;
                         
                         // Same-day capability check for pure same-day products (status 4):
-                        // These products ONLY support same-day ordering
                         // Requirements: stock available AND today's date must be in the configured dates list
                         if ($status_id == 4) {
-                            $has_valid_date = in_array($today_date, $todays_dates);  // Is today in the todays_products_dates table?
+                            $has_valid_date = in_array($today_date, $todays_dates);
                             $result['has_sameday'] = ($sameday_stock > 0) && $has_valid_date;
                         }
                         
                         // Same-day capability check for dual-capability products (status 1/2/3 with availtoday config):
-                        // These products support BOTH pre-order AND same-day ordering
                         // Requirements: has availtoday_status_id set, stock available, AND today's date in regular_products_today_dates
                         if (in_array($status_id, [1, 2, 3]) && $has_availtoday_config) {
-                            $has_valid_date = in_array($today_date, $regular_dates);  // Is today in the regular_products_today_dates table?
+                            $has_valid_date = in_array($today_date, $regular_dates);
                             $result['has_sameday'] = ($sameday_stock > 0) && $has_valid_date;
                         }
                         
                         // ============================================================================
                         // STEP 2: Determine availability
                         // ============================================================================
-                        // Now that we know the product's capabilities, determine if it's available
-                        // A product is unavailable ONLY if it has NO capabilities at all
                         
-                        // Unavailability logic:
-                        // If product has neither pre-order nor same-day capability, it's unavailable
+                        // A product is unavailable ONLY if it has NO capabilities at all
                         $result['is_unavailable'] = !$result['has_preorder'] && !$result['has_sameday'];
                         
                         if ($result['is_unavailable']) {
                             // Determine the specific reason for unavailability based on product type
-                            // This helps customers understand WHY they can't order the product
-                            
                             if ($status_id == 4) {
                                 // Same-day only product (status 4) unavailability reasons:
-                                if ($sameday_stock <= 0) {
-                                    $result['unavailable_reason'] = 'Out of Stock';        // No stock available
+                                if ($sameday_stock <= 0 || $sameday_stock === null) {
+                                    $result['unavailable_reason'] = 'Out of Stock';
                                 } else {
-                                    $result['unavailable_reason'] = 'Not Available Today'; // Has stock but not configured for today
+                                    $result['unavailable_reason'] = 'Not Available Today';
                                 }
                             } elseif (in_array($status_id, [1, 2, 3]) && $has_availtoday_config) {
-                                // Dual-capability product (status 1/2/3 with same-day config) unavailability:
-                                // If we reach here, both pre-order and same-day stock are depleted
+                                // Dual-capability product: both stocks are depleted
                                 $result['unavailable_reason'] = 'Out of Stock';
                             } else {
-                                // Pre-order only product (status 1/2/3 without same-day config) unavailability:
-                                // No pre-order stock available
+                                // Pre-order only product: no pre-order stock available
                                 $result['unavailable_reason'] = 'Out of Stock';
                             }
                         }
@@ -444,41 +249,22 @@ if ($cart_truncated) {
                         // ============================================================================
                         // STEP 3: Apply visibility rules
                         // ============================================================================
-                        // Determine if the product should be displayed on the page
-                        // Visibility rules only apply to unavailable products
                         
                         if ($result['is_unavailable']) {
                             // Visibility priority hierarchy:
-                            // 1. hide_when_unavailable flag (highest priority - always hide)
-                            // 2. show_when_unavailable flag (medium priority - always show)
-                            // 3. Default behavior (lowest priority - hide)
+                            // 1. hide_when_unavailable = 1: ALWAYS hide when unavailable (highest priority)
+                            // 2. show_when_unavailable = 1: ALWAYS show even when unavailable (medium priority)
+                            // 3. Default: hide unavailable products (lowest priority)
                             
                             if ($hide_when_unavailable) {
-                                // Explicit hide flag set - never show this product when unavailable
                                 $result['should_display'] = false;
                             } elseif ($show_when_unavailable) {
-                                // Explicit show flag set - always show this product even when unavailable
                                 $result['should_display'] = true;
                             } else {
-                                // Default behavior: hide unavailable products to reduce clutter
                                 $result['should_display'] = false;
-                            }
-                            
-                            // Log visibility decisions for debugging and troubleshooting
-                            // Only log when products are hidden to avoid log spam
-                            if (!$result['should_display']) {
-                                error_log(sprintf(
-                                    "[Product Visibility] Hidden - Product ID: %d, Name: %s, Reason: %s, hide_flag: %d, show_flag: %d",
-                                    $product_row['id'],
-                                    $product_row['name'],
-                                    $result['unavailable_reason'],
-                                    $hide_when_unavailable ? 1 : 0,
-                                    $show_when_unavailable ? 1 : 0
-                                ));
                             }
                         } else {
                             // Available products are always displayed regardless of visibility flags
-                            // Visibility flags only control unavailable product display
                             $result['should_display'] = true;
                         }
                         
@@ -719,24 +505,35 @@ if ($cart_truncated) {
                                   data-unavailable='" . ($is_unavailable ? 'true' : 'false') . "'
                                   onclick='openProductModalFromData(this)'>";
                             
-                            // Display badges: Show capabilities based on product configuration
+                            // Display badges: Show capabilities based on product configuration AND stock availability
                             if ($is_unavailable) {
                                 // Unavailable badge (highest priority, exclusive)
                                 echo "<div class='unavailable-badge-left'>" . htmlspecialchars($unavailable_reason) . "</div>";
                             } else {
-                                // Determine product capabilities
+                                // Determine product capabilities with actual stock checks
                                 $has_preorder = in_array($row['status_id'], [1, 2, 3]) && $row['quantity'] > 0;
-                                $has_sameday = ($row['status_id'] == 4) || (!empty($row['availtoday_status_id']) && $is_available_today);
+                                
+                                // Check same-day capability: must have stock AND be available today
+                                $sameday_stock = $row['sameday_stock_today'] ?? 0;
+                                $has_sameday = false;
+                                
+                                if ($row['status_id'] == 4) {
+                                    // Status 4: Same-day only product - check stock and date
+                                    $has_sameday = ($sameday_stock > 0) && $is_available_today;
+                                } elseif (!empty($row['availtoday_status_id'])) {
+                                    // Status 1/2/3 with same-day capability - check stock and date
+                                    $has_sameday = ($sameday_stock > 0) && $is_available_today;
+                                }
                                 
                                 // Show badges based on capabilities
                                 if ($has_sameday && $has_preorder) {
-                                    // Product has BOTH capabilities
+                                    // Product has BOTH capabilities with stock
                                     echo "<div class='today-badge-left'>Same Day & Pre-Order</div>";
                                 } elseif ($has_sameday) {
-                                    // Same-day only
+                                    // Same-day only with stock
                                     echo "<div class='today-badge-left'>Same Day Order</div>";
                                 } elseif ($has_preorder) {
-                                    // Pre-order only
+                                    // Pre-order only with stock
                                     echo "<div class='preorder-badge-left'>Pre-Order</div>";
                                 }
                                 // Note: Featured badge is handled by CSS class 'featured-product' and image overlay
@@ -1405,29 +1202,56 @@ function closeProductModal() {
         // Show modal first
         modal.style.display = 'flex';
         
-        // Determine which order types to show
+        // Show loading state
+        setQuantityModalLoading(true);
+        
+        // Determine which order types to show based on product configuration and stock availability
         // Status 1, 2, 3 = Pre-order products
         // Status 4 = Same Day Order products
-        // If product has both status (1,2,3) AND availtoday_status_id, show both options
         
         if ((statusId == 1 || statusId == 2 || statusId == 3) && availtodayStatusId) {
-            // Product has BOTH pre-order and same day order
-            // Always show both options, even if one has 0 stock
-            orderTypeSelector.style.display = 'block';
+            // Product has BOTH pre-order and same day order capability
+            // Fetch both stock quantities to determine what to show
             
-            // Show loading state
-            setQuantityModalLoading(true);
+            const preorderQty = await fetchPreOrderQuantityValue(pendingCartProduct.id);
+            const samedayQty = await fetchTodayQuantityValue(pendingCartProduct.id);
             
-            // Fetch pre-order quantity (default selection)
-            document.getElementById('quantityModalStock').textContent = 'Loading...';
-            quantityInput.value = 1;
-            quantityInput.max = 1;
+            // Determine which options are available based on stock
+            const hasPreorderStock = preorderQty > 0;
+            const hasSamedayStock = samedayQty > 0;
             
-            await fetchPreOrderQuantity(pendingCartProduct.id);
-            selectOrderType('preorder'); // Default to pre-order
-            
-            // Remove loading state
-            setQuantityModalLoading(false);
+            if (hasPreorderStock && hasSamedayStock) {
+                // BOTH have stock: Show order type selector
+                orderTypeSelector.style.display = 'block';
+                dateDisplay.style.display = 'none';
+                
+                // Default to pre-order
+                await fetchPreOrderQuantity(pendingCartProduct.id);
+                selectOrderType('preorder');
+            } else if (hasSamedayStock && !hasPreorderStock) {
+                // ONLY same-day has stock: Show same-day only
+                orderTypeSelector.style.display = 'none';
+                dateDisplay.style.display = 'block';
+                dateDisplay.textContent = 'For: Today';
+                pendingCartProduct.selectedOrderType = 'sameday';
+                
+                await fetchTodayQuantity(pendingCartProduct.id);
+            } else if (hasPreorderStock && !hasSamedayStock) {
+                // ONLY pre-order has stock: Show pre-order only
+                orderTypeSelector.style.display = 'none';
+                dateDisplay.style.display = 'none';
+                pendingCartProduct.selectedOrderType = 'preorder';
+                
+                await fetchPreOrderQuantity(pendingCartProduct.id);
+            } else {
+                // NEITHER has stock: This shouldn't happen (product should be unavailable)
+                // Default to pre-order view
+                orderTypeSelector.style.display = 'none';
+                dateDisplay.style.display = 'none';
+                pendingCartProduct.selectedOrderType = 'preorder';
+                
+                await fetchPreOrderQuantity(pendingCartProduct.id);
+            }
         } else if (statusId == 4) {
             // Same Day Order ONLY - Fetch today's quantity from quantity_per_day_sdo
             orderTypeSelector.style.display = 'none';
@@ -1435,37 +1259,18 @@ function closeProductModal() {
             dateDisplay.textContent = 'For: Today';
             pendingCartProduct.selectedOrderType = 'sameday';
             
-            // Show loading state
-            setQuantityModalLoading(true);
-            
-            // Fetch today's quantity from quantity_per_day_sdo table
-            document.getElementById('quantityModalStock').textContent = 'Loading...';
-            quantityInput.value = 1;
-            quantityInput.max = 1;
-            
             await fetchTodayQuantity(pendingCartProduct.id);
-            
-            // Remove loading state
-            setQuantityModalLoading(false);
         } else {
             // Pre-order ONLY (status 1, 2, or 3 without availtoday_status_id)
             orderTypeSelector.style.display = 'none';
             dateDisplay.style.display = 'none';
             pendingCartProduct.selectedOrderType = 'preorder';
             
-            // Show loading state
-            setQuantityModalLoading(true);
-            
-            // Fetch pre-order quantity from products.quantity
-            document.getElementById('quantityModalStock').textContent = 'Loading...';
-            quantityInput.value = 1;
-            quantityInput.max = 1;
-            
             await fetchPreOrderQuantity(pendingCartProduct.id);
-            
-            // Remove loading state
-            setQuantityModalLoading(false);
         }
+        
+        // Remove loading state
+        setQuantityModalLoading(false);
     }
     
     // Set loading state for quantity modal
@@ -1544,7 +1349,43 @@ function closeProductModal() {
         }
     }
 
-    // Fetch pre-order quantity from products.quantity
+    // Fetch pre-order quantity value only (no UI update) - for checking availability
+    async function fetchPreOrderQuantityValue(productId) {
+        try {
+            const response = await fetch(`get-preorder-quantity.php?product_id=${productId}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                return data.quantity || 0;
+            }
+            return 0;
+        } catch (error) {
+            console.error('Error fetching pre-order quantity:', error);
+            return 0;
+        }
+    }
+    
+    // Fetch today's quantity value only (no UI update) - for checking availability
+    async function fetchTodayQuantityValue(productId) {
+        try {
+            const response = await fetch(`get-sdo-quantity.php?product_id=${productId}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                const todayQuantity = data.quantity || 0;
+                const hasDateToday = data.has_date_today || false;
+                
+                // Only return quantity if date is configured for today
+                return hasDateToday ? todayQuantity : 0;
+            }
+            return 0;
+        } catch (error) {
+            console.error('Error fetching today quantity:', error);
+            return 0;
+        }
+    }
+    
+    // Fetch pre-order quantity from products.quantity (with UI update)
     async function fetchPreOrderQuantity(productId) {
         const stockDisplay = document.getElementById('quantityModalStock');
         const confirmBtn = document.querySelector('.btn-confirm');
@@ -1709,6 +1550,9 @@ function closeProductModal() {
                 .then(data => {
                     if (data.success) {
                         addSuccess = true;
+                        
+                        // Trigger cart notification update
+                        window.dispatchEvent(new CustomEvent('cartUpdated'));
                         
                         // Show success state
                         confirmBtn.innerHTML = '<span class="success-icon">✓</span> Product added!';
@@ -2026,44 +1870,7 @@ function closeProductModal() {
     </div>
 </div>
 
-<!-- Product Dashboard Polling Script -->
-<script src="/NeoCafe/frontend/assets/js/product-dashboard-polling.js"></script>
-<script>
-    // Initialize product dashboard polling
-    document.addEventListener('DOMContentLoaded', function() {
-        // Get current category from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const currentCategory = urlParams.get('category');
-        
-        // Initialize poller
-        const poller = new ProductDashboardPoller({
-            pollInterval: 5000, // 5 seconds
-            initialCategory: currentCategory,
-            apiEndpoint: '/NeoCafe/frontend/api/get-product-list.php'
-        });
-        
-        // Start polling
-        poller.start();
-        
-        console.log('[Product Dashboard] Polling initialized for category:', currentCategory || 'all');
-        
-        // Update category when user clicks category tabs
-        const categoryTabs = document.querySelectorAll('.category-tab');
-        categoryTabs.forEach(tab => {
-            tab.addEventListener('click', function(e) {
-                // Extract category from href
-                const href = this.getAttribute('href');
-                const match = href.match(/category=([^&]+)/);
-                const newCategory = match ? match[1] : null;
-                
-                // Update poller category
-                poller.updateCategory(newCategory);
-                
-                console.log('[Product Dashboard] Category changed to:', newCategory || 'all');
-            });
-        });
-    });
-</script>
+
 
 </body>
 </html>

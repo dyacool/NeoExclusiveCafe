@@ -1,11 +1,6 @@
 <?php
-session_start();
-
-// Admin authentication check
-if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
-    header("Location: ../auth/login-signup.php");
-    exit();
-}
+// Use admin-auth for authentication
+require_once __DIR__ . '/../../login/admin/admin-auth.php';
 
 // Include database configuration
 require_once __DIR__ . '/database-config.php';

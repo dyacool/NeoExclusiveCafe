@@ -1,12 +1,11 @@
 <?php
-    session_start();
-    if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
+    require_once __DIR__ . "/../../../includes/session-manager.php";
+    require_once __DIR__ . "/../../../config/database-config.php";
+    
+    if (!SessionManager::isAdminLoggedIn()) {
         header("Location: /login/admin/admin-login.php");
         exit();
     }
-
-    // Include database configuration
-    require_once __DIR__ . "/../../../config/database-config.php";
     
     // Get database connection
     $conn = getDatabaseConnection();

@@ -1,21 +1,18 @@
 <?php
-session_set_cookie_params([
-    'lifetime' => 0,
-    'httponly' => true,
-    'samesite' => 'Strict',
-    'domain' => 'neocafe.cafe'
-]);
-session_start();
+// Load database first (it starts session)
 require_once '../admin-includes/database.php';
+
+// Then load SessionManager
+require_once __DIR__ . '/../../../includes/session-manager.php';
 
 header('Content-Type: application/json');
 
-if (!isset($_SESSION['user_id'])) {
+if (!SessionManager::isUserLoggedIn()) {
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
     exit();
 }
 
-$user_id = $_SESSION['user_id'];
+$user_id = SessionManager::getUserId();
 $order_id = isset($_POST['order_id']) ? intval($_POST['order_id']) : 0;
 $refund_reason = isset($_POST['refund_reason']) ? trim($_POST['refund_reason']) : '';
 $refund_items = isset($_POST['refund_items']) ? $_POST['refund_items'] : '';

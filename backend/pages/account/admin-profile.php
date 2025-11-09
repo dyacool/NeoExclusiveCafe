@@ -1,21 +1,14 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+// Use admin-auth for authentication
+require_once __DIR__ . '/../../login/admin/admin-auth.php';
 
-// Check if user is logged in as admin using new session keys
-if (!isset($_SESSION["admin_id"]) || !isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true || $_SESSION["admin_role"] !== "admin") {
-    header("Location: /login/admin/admin-login.php");
-    exit();
-}
-
-// Include database and navbar
-require_once __DIR__ . "/../admin-includes/database.php";
+// Include navbar (database already loaded by admin-auth)
 require_once __DIR__ . "/../admin-includes/navbar/navbar.php";
 
 // Fetch admin information including profile_image and Cloudinary fields
+$adminData = SessionManager::getAdminData();
 $stmt = $conn->prepare("SELECT username, firstname, lastname, email, profile_image, cloud_url, cloud_public_id FROM users WHERE id = ? AND is_admin = TRUE");
-$stmt->bind_param("i", $_SESSION["admin_id"]);
+$stmt->bind_param("i", $adminData['id']);
 $stmt->execute();
 $result = $stmt->get_result();
 $admin = $result->fetch_assoc();

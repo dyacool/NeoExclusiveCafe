@@ -1,14 +1,13 @@
 <?php
-session_start();
+// Use admin-auth for authentication
+require_once __DIR__ . '/../../login/admin/admin-auth.php';
 
-// Check if user is admin
-if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
+// Additional check for API endpoint
+if (!SessionManager::isAdminLoggedIn()) {
     http_response_code(403);
     echo json_encode(['success' => false, 'error' => 'Unauthorized']);
     exit();
 }
-
-require_once '../admin-includes/database.php';
 
 header('Content-Type: application/json');
 

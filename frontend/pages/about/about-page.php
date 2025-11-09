@@ -1,7 +1,5 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+// Load database connection first (it starts session)
 require_once "../../../backend/pages/admin-includes/database.php";
 
 // Database connection is already established in database.php as $conn

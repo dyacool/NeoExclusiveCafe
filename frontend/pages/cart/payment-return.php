@@ -25,6 +25,7 @@ error_log("[PAYMENT-RETURN] Remote IP: " . ($_SERVER['REMOTE_ADDR'] ?? 'N/A'));
 
 // Include database connection FIRST - it handles session configuration
 require_once '../../../backend/pages/admin-includes/database.php';
+require_once '../../../includes/session-manager.php';
 require_once 'paymongo-config.php';
 require_once '../../../backend/pages/admin-includes/mailer.php';
 
@@ -224,8 +225,8 @@ try {
 
     // Log session data
     error_log("[PAYMENT-RETURN] Session Data:");
-    error_log("[PAYMENT-RETURN]   - user_id: " . ($_SESSION['user_id'] ?? 'NOT SET'));
-    error_log("[PAYMENT-RETURN]   - username: " . ($_SESSION['username'] ?? 'NOT SET'));
+    error_log("[PAYMENT-RETURN]   - user_id: " . (SessionManager::getUserId() ?? 'NOT SET'));
+    error_log("[PAYMENT-RETURN]   - username: " . (SessionManager::isUserLoggedIn() ? SessionManager::getUserData()['username'] : 'NOT SET'));
     error_log("[PAYMENT-RETURN]   - pending_payment exists: " . (isset($_SESSION['pending_payment']) ? 'YES' : 'NO'));
     
     if (isset($_SESSION['pending_payment'])) {
@@ -250,7 +251,8 @@ try {
         
         // CRITICAL FIX: Try to recover from database if session was lost
         $recovered = false;
-        if (isset($_SESSION['user_id'])) {
+        $user_id = SessionManager::getUserId();
+        if ($user_id !== null) {
             try {
                 // Try to recover by source_id if provided, otherwise get most recent pending payment for user
                 if (!empty($source_id)) {
@@ -260,7 +262,7 @@ try {
                                     AND expires_at > NOW()
                                     LIMIT 1";
                     $recover_stmt = $conn->prepare($recover_sql);
-                    $recover_stmt->bind_param("si", $source_id, $_SESSION['user_id']);
+                    $recover_stmt->bind_param("si", $source_id, $user_id);
                 } else {
                     // No source_id provided, get most recent pending payment for this user
                     error_log("[PAYMENT-RETURN] No source_id, trying to recover most recent pending payment for user");
@@ -270,7 +272,7 @@ try {
                                     ORDER BY created_at DESC
                                     LIMIT 1";
                     $recover_stmt = $conn->prepare($recover_sql);
-                    $recover_stmt->bind_param("i", $_SESSION['user_id']);
+                    $recover_stmt->bind_param("i", $user_id);
                 }
                 
                 if ($recover_stmt) {
@@ -356,11 +358,12 @@ try {
                     
                     // Clean up database backup
                     try {
-                        if ($payment_id && isset($_SESSION['user_id'])) {
+                        $cleanup_user_id = SessionManager::getUserId();
+                        if ($payment_id && $cleanup_user_id !== null) {
                             $cleanup_sql = "DELETE FROM pending_payments WHERE payment_id = ? AND user_id = ?";
                             $cleanup_stmt = $conn->prepare($cleanup_sql);
                             if ($cleanup_stmt) {
-                                $cleanup_stmt->bind_param("si", $payment_id, $_SESSION['user_id']);
+                                $cleanup_stmt->bind_param("si", $payment_id, $cleanup_user_id);
                                 $cleanup_stmt->execute();
                                 $cleanup_stmt->close();
                             }
@@ -498,8 +501,9 @@ try {
             $customer_address = null;
             
             // Check if user has primary saved customer info
-            if (isset($_SESSION['user_id'])) {
-                $user_id = intval($_SESSION['user_id']);
+            $user_id = SessionManager::getUserId();
+            if ($user_id !== null) {
+                $user_id = intval($user_id);
                 
                 // First, check if user has any saved info but no primary set
                 $check_primary_sql = "SELECT COUNT(*) as total, SUM(is_primary) as primary_count 
@@ -841,7 +845,7 @@ try {
         if ($applied_coupon && isset($applied_coupon['id']) && intval($applied_coupon['id']) > 0) {
             error_log("=== RECORDING COUPON USAGE (PAYMONGO) ===");
             require_once '../../../backend/pages/user-page-content/database-config.php';
-            $user_id = $_SESSION['user_id'] ?? null;
+            $user_id = SessionManager::getUserId();
             $coupon_id = intval($applied_coupon['id']);
             
             if ($user_id) {
@@ -896,8 +900,9 @@ try {
             
             // Get username if user is logged in
             $username = null;
-            if (isset($_SESSION['username'])) {
-                $username = $_SESSION['username'];
+            if (SessionManager::isUserLoggedIn()) {
+                $userData = SessionManager::getUserData();
+                $username = $userData['username'];
             }
             
             // Create notification for new order
@@ -991,11 +996,12 @@ try {
                 // CRITICAL FIX: Clean up database backup
                 try {
                     $payment_id = $pending_payment['source_id'] ?? ($pending_payment['payment_intent_id'] ?? null);
-                    if ($payment_id && isset($_SESSION['user_id'])) {
+                    $cleanup_user_id = SessionManager::getUserId();
+                    if ($payment_id && $cleanup_user_id !== null) {
                         $cleanup_sql = "DELETE FROM pending_payments WHERE payment_id = ? AND user_id = ?";
                         $cleanup_stmt = $conn->prepare($cleanup_sql);
                         if ($cleanup_stmt) {
-                            $cleanup_stmt->bind_param("si", $payment_id, $_SESSION['user_id']);
+                            $cleanup_stmt->bind_param("si", $payment_id, $cleanup_user_id);
                             $cleanup_stmt->execute();
                             $cleanup_stmt->close();
                             error_log("[PAYMENT-RETURN] ✓ Cleaned up pending payment from database");
@@ -1030,7 +1036,7 @@ try {
     // Log context information
     error_log("[PAYMENT-RETURN] Context at time of error:");
     error_log("[PAYMENT-RETURN]   - GET params: " . json_encode($_GET));
-    error_log("[PAYMENT-RETURN]   - Session user_id: " . ($_SESSION['user_id'] ?? 'NOT SET'));
+    error_log("[PAYMENT-RETURN]   - Session user_id: " . (SessionManager::getUserId() ?? 'NOT SET'));
     error_log("[PAYMENT-RETURN]   - Pending payment exists: " . (isset($pending_payment) ? 'YES' : 'NO'));
     
     // Store error for display
@@ -1144,8 +1150,9 @@ function sendOrderConfirmationEmail($order_id, $order_data, $order_type) {
         // Fetch saved customer info if user is logged in
         error_log("=== CUSTOMER DATA MERGING START (PAYMENT-RETURN) ===");
         $saved_info = null;
-        if (isset($_SESSION['user_id'])) {
-            $saved_info = fetchCustomerInfoFromSaved($conn, intval($_SESSION['user_id']));
+        $merge_user_id = SessionManager::getUserId();
+        if ($merge_user_id !== null) {
+            $saved_info = fetchCustomerInfoFromSaved($conn, intval($merge_user_id));
         }
         
         // Normalize email/name and fields for reliability
@@ -1385,12 +1392,13 @@ function autoSaveCustomerInfo($customer_name, $customer_email, $customer_contact
     global $conn;
     
     // Only proceed if user is logged in
-    if (!isset($_SESSION['user_id'])) {
+    $user_id = SessionManager::getUserId();
+    if ($user_id === null) {
         error_log("Auto-save customer info: No user_id in session");
         return false;
     }
     
-    $user_id = intval($_SESSION['user_id']);
+    $user_id = intval($user_id);
     
     try {
         // Check if user already has saved customer info

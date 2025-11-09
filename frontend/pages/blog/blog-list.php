@@ -1,10 +1,5 @@
 <?php
-// Don't start session if it's already active
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-// Database connection
+// Load database connection first (it starts session)
 require_once "../../../backend/pages/admin-includes/database.php";
 
 $page_title = "Neo Cafe's Corner";

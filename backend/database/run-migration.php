@@ -6,10 +6,10 @@
  * Access: https://admin.neocafe.shop/backend/database/run-migration.php
  */
 
-session_start();
+require_once __DIR__ . '/../../includes/session-manager.php';
 
 // Check if admin is logged in
-if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
+if (!SessionManager::isAdminLoggedIn()) {
     die("Unauthorized. Please log in as admin.");
 }
 

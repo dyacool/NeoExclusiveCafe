@@ -1,9 +1,6 @@
 <?php
-    session_start();
-    if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
-        header("Location: /login/admin/admin-login.php");
-        exit();
-    }
+    // Use admin-auth for authentication
+    require_once __DIR__ . '/../../login/admin/admin-auth.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">

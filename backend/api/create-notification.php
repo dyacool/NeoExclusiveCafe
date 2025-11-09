@@ -12,10 +12,11 @@ error_reporting(E_ALL);
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 
-session_start();
+require_once __DIR__ . '/../includes/session-manager.php';
 
 // Check authentication (only admins can create notifications for now)
-if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
+$userData = SessionManager::getUserData();
+if (!SessionManager::isUserLoggedIn() || $userData['role'] !== 'admin') {
     http_response_code(401);
     echo json_encode(['success' => false, 'error' => 'Unauthorized']);
     exit();

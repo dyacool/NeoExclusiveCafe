@@ -1,22 +1,14 @@
 <?php
-// Don't start session if it's already active
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+// Load database connection first (it starts session)
+require_once __DIR__ . '/../../../backend/pages/admin-includes/database.php';
 
+// Then load SessionManager (it will use existing session)
+require_once __DIR__ . '/../../../includes/session-manager.php';
 
 // Check if user is logged in
-if (!isset($_SESSION['user_id'])) {
+if (!SessionManager::isUserLoggedIn()) {
     header('Location: ../../login/user/login-signup.php');
     exit();
-}
-
-// Connect to online database
-$conn = new mysqli("mysql-neoexclusivecafe.alwaysdata.net", "429123", "NeoCafe123", "neoexclusivecafe_crud");
-
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
 }
 
 // Include notification handler
@@ -43,7 +35,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_bulk_order']))
                                   AND created_at > DATE_SUB(NOW(), INTERVAL 30 SECOND) 
                                   ORDER BY created_at DESC LIMIT 1";
         $check_stmt = mysqli_prepare($conn, $submission_check_query);
-        mysqli_stmt_bind_param($check_stmt, "i", $_SESSION['user_id']);
+        $user_id = SessionManager::getUserId();
+        mysqli_stmt_bind_param($check_stmt, "i", $user_id);
         mysqli_stmt_execute($check_stmt);
         $check_result = mysqli_stmt_get_result($check_stmt);
         
@@ -52,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_bulk_order']))
         } else {
             try {
                 // Get form data
-                $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
+                $user_id = SessionManager::getUserId();
                 $name = mysqli_real_escape_string($conn, $_POST['name']);
                 $contact = mysqli_real_escape_string($conn, $_POST['contact']);
                 $email = mysqli_real_escape_string($conn, $_POST['email']);
@@ -148,7 +141,8 @@ if (!isset($_SESSION['bulk_order_token'])) {
 // Get current user information
 $user_query = "SELECT firstname, lastname, email FROM users WHERE id = ?";
 $user_stmt = mysqli_prepare($conn, $user_query);
-mysqli_stmt_bind_param($user_stmt, "i", $_SESSION['user_id']);
+$current_user_id = SessionManager::getUserId();
+mysqli_stmt_bind_param($user_stmt, "i", $current_user_id);
 mysqli_stmt_execute($user_stmt);
 $user_result = mysqli_stmt_get_result($user_stmt);
 $current_user = mysqli_fetch_assoc($user_result);
@@ -555,7 +549,7 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
     <!-- Hidden Form for Final Submission -->
     <form id="finalSubmissionForm" method="POST" style="display: none;">
         <input type="hidden" name="submit_bulk_order" value="1">
-        <input type="hidden" name="submission_token" value="<?php echo $_SESSION['bulk_order_token']; ?>">
+        <input type="hidden" name="submission_token" value="<?php echo $_SESSION['bulk_order_token'] ?? ''; ?>">
         <input type="hidden" name="name" id="final-name">
         <input type="hidden" name="contact" id="final-contact">
         <input type="hidden" name="email" id="final-email">

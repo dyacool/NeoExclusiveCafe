@@ -1,13 +1,13 @@
 <?php
-session_start();
-if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
+require_once __DIR__ . "/../../../includes/session-manager.php";
+require_once __DIR__ . "/admin-includes/database.php";
+
+if (!SessionManager::isAdminLoggedIn()) {
     echo "Admin not logged in. Current session: ";
     var_dump($_SESSION);
     echo "<br><a href='../login/admin/admin-login.php'>Login as Admin</a>";
     exit();
 }
-
-require_once __DIR__ . "/admin-includes/database.php";
 
 echo "<h1>Bulk Orders Test Page</h1>";
 echo "<p>Admin logged in successfully!</p>";

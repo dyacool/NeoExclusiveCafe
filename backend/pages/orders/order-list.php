@@ -1,11 +1,6 @@
 <?php
-    session_start();
-    if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
-        header("Location: ../../login/admin/admin-login.php");
-        exit();
-    }
-
-    require_once __DIR__ . "/../admin-includes/database.php";
+    // Use admin-auth for authentication (it loads database.php and SessionManager in correct order)
+    require_once __DIR__ . '/../../login/admin/admin-auth.php';
 
     // Pagination settings
     $orders_per_page = 15;

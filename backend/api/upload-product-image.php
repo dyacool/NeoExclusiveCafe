@@ -25,8 +25,10 @@ error_reporting(E_ALL);
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 
+require_once __DIR__ . '/../../includes/session-manager.php';
+
 // Verify admin authentication
-if (!isset($_SESSION["is_admin"]) || $_SESSION["is_admin"] !== true) {
+if (!SessionManager::isAdminLoggedIn()) {
     http_response_code(401);
     echo json_encode([
         'success' => false,
