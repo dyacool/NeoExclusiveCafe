@@ -763,69 +763,40 @@ if (!$navbar_conn) {
                     markAllReadBtn.disabled = true;
                     markAllReadBtn.style.opacity = '0.7';
                     
-                    // Make API call to mark all as read
+                    // Make API call to mark all as read (no response needed)
                     fetch('/frontend/pages/notifications/mark-all-notifications-read.php', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Success feedback
-                            markAllReadBtn.textContent = 'All marked!';
-                            markAllReadBtn.style.color = '#28a745';
-                            
-                            // Update UI - mark all items as read
-                            unreadItems.forEach(item => {
-                                item.classList.remove('unread');
-                                item.classList.add('read');
-                            });
-                            
-                            // Update notification count badge
-                            const notifCount = document.getElementById('notifCount');
-                            if (notifCount) {
-                                notifCount.style.display = 'none';
-                            }
-                            
-                            // Reset button after 2 seconds
-                            setTimeout(() => {
-                                markAllReadBtn.textContent = originalText;
-                                markAllReadBtn.disabled = false;
-                                markAllReadBtn.style.opacity = '1';
-                                markAllReadBtn.style.color = '';
-                                
-                                // Trigger notification update
-                                if (window.dispatchEvent) {
-                                    window.dispatchEvent(new CustomEvent('notificationUpdated'));
-                                }
-                            }, 2000);
-                            
-                        } else {
-                            // Error handling
-                            markAllReadBtn.textContent = 'Try again';
-                            markAllReadBtn.style.color = '#dc3545';
-                            console.error('Failed to mark notifications as read:', data.message);
-                            
-                            setTimeout(() => {
-                                markAllReadBtn.textContent = originalText;
-                                markAllReadBtn.disabled = false;
-                                markAllReadBtn.style.opacity = '1';
-                                markAllReadBtn.style.color = '';
-                            }, 2000);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error marking all notifications as read:', error);
-                        markAllReadBtn.textContent = 'Try again';
-                        markAllReadBtn.style.color = '#dc3545';
-                        
-                        setTimeout(() => {
-                            markAllReadBtn.textContent = originalText;
-                            markAllReadBtn.disabled = false;
-                            markAllReadBtn.style.opacity = '1';
-                            markAllReadBtn.style.color = '';
-                        }, 2000);
                     });
+                    
+                    // Immediately update UI
+                    markAllReadBtn.textContent = 'All marked!';
+                    markAllReadBtn.style.color = '#28a745';
+                    
+                    // Update UI - mark all items as read
+                    unreadItems.forEach(item => {
+                        item.classList.remove('unread');
+                        item.classList.add('read');
+                    });
+                    
+                    // Update notification count badge
+                    const notifCount = document.getElementById('notifCount');
+                    if (notifCount) {
+                        notifCount.style.display = 'none';
+                    }
+                    
+                    // Reset button after 2 seconds
+                    setTimeout(() => {
+                        markAllReadBtn.textContent = originalText;
+                        markAllReadBtn.disabled = false;
+                        markAllReadBtn.style.opacity = '1';
+                        markAllReadBtn.style.color = '';
+                        
+                        // Trigger notification update
+                        if (window.dispatchEvent) {
+                            window.dispatchEvent(new CustomEvent('notificationUpdated'));
+                        }
+                    }, 2000);
                 });
             }
             
@@ -856,69 +827,40 @@ if (!$navbar_conn) {
                     mobileMarkAllReadBtn.disabled = true;
                     mobileMarkAllReadBtn.style.opacity = '0.7';
                     
-                    // Make API call to mark all as read
+                    // Make API call to mark all as read (no response needed)
                     fetch('/frontend/pages/notifications/mark-all-notifications-read.php', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Success feedback
-                            mobileMarkAllReadBtn.textContent = 'All marked!';
-                            mobileMarkAllReadBtn.style.color = '#28a745';
-                            
-                            // Update UI - mark all items as read
-                            unreadItems.forEach(item => {
-                                item.classList.remove('unread');
-                                item.classList.add('read');
-                            });
-                            
-                            // Update notification count badge
-                            const notifCount = document.getElementById('notifCount');
-                            if (notifCount) {
-                                notifCount.style.display = 'none';
-                            }
-                            
-                            // Reset button after 2 seconds
-                            setTimeout(() => {
-                                mobileMarkAllReadBtn.textContent = originalText;
-                                mobileMarkAllReadBtn.disabled = false;
-                                mobileMarkAllReadBtn.style.opacity = '1';
-                                mobileMarkAllReadBtn.style.color = '';
-                                
-                                // Trigger notification update
-                                if (window.dispatchEvent) {
-                                    window.dispatchEvent(new CustomEvent('notificationUpdated'));
-                                }
-                            }, 2000);
-                            
-                        } else {
-                            // Error handling
-                            mobileMarkAllReadBtn.textContent = 'Try again';
-                            mobileMarkAllReadBtn.style.color = '#dc3545';
-                            console.error('Failed to mark notifications as read:', data.message);
-                            
-                            setTimeout(() => {
-                                mobileMarkAllReadBtn.textContent = originalText;
-                                mobileMarkAllReadBtn.disabled = false;
-                                mobileMarkAllReadBtn.style.opacity = '1';
-                                mobileMarkAllReadBtn.style.color = '';
-                            }, 2000);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error marking all notifications as read:', error);
-                        mobileMarkAllReadBtn.textContent = 'Try again';
-                        mobileMarkAllReadBtn.style.color = '#dc3545';
-                        
-                        setTimeout(() => {
-                            mobileMarkAllReadBtn.textContent = originalText;
-                            mobileMarkAllReadBtn.disabled = false;
-                            mobileMarkAllReadBtn.style.opacity = '1';
-                            mobileMarkAllReadBtn.style.color = '';
-                        }, 2000);
                     });
+                    
+                    // Immediately update UI
+                    mobileMarkAllReadBtn.textContent = 'All marked!';
+                    mobileMarkAllReadBtn.style.color = '#28a745';
+                    
+                    // Update UI - mark all items as read
+                    unreadItems.forEach(item => {
+                        item.classList.remove('unread');
+                        item.classList.add('read');
+                    });
+                    
+                    // Update notification count badge
+                    const notifCount = document.getElementById('notifCount');
+                    if (notifCount) {
+                        notifCount.style.display = 'none';
+                    }
+                    
+                    // Reset button after 2 seconds
+                    setTimeout(() => {
+                        mobileMarkAllReadBtn.textContent = originalText;
+                        mobileMarkAllReadBtn.disabled = false;
+                        mobileMarkAllReadBtn.style.opacity = '1';
+                        mobileMarkAllReadBtn.style.color = '';
+                        
+                        // Trigger notification update
+                        if (window.dispatchEvent) {
+                            window.dispatchEvent(new CustomEvent('notificationUpdated'));
+                        }
+                    }, 2000);
                 });
             }
             
