@@ -844,12 +844,14 @@ if ($cart_truncated) {
             <div id="orderTypeSelector" class="order-type-selector" style="display: none;">
                 <label>Order Type:</label>
                 <div class="order-type-buttons">
-                    <button type="button" class="order-type-btn active" data-type="preorder" onclick="selectOrderType('preorder')">
-                        Pre-Order
-                    </button>
-                    <button type="button" class="order-type-btn" data-type="sameday" onclick="selectOrderType('sameday')">
-                        Same Day Order
-                    </button>
+                    <label class="order-type-radio">
+                        <input type="radio" name="orderType" value="preorder" checked onclick="selectOrderType('preorder')">
+                        <span>Pre-Order</span>
+                    </label>
+                    <label class="order-type-radio">
+                        <input type="radio" name="orderType" value="sameday" onclick="selectOrderType('sameday')">
+                        <span>Same Day Order</span>
+                    </label>
                 </div>
             </div>
             
@@ -1412,7 +1414,7 @@ function closeProductModal() {
         
         if ((statusId == 1 || statusId == 2 || statusId == 3) && availtodayStatusId) {
             // Product has BOTH pre-order and same day order
-            // Always show both options, even if one has 0 stock
+            // Check if same-day is actually available today
             orderTypeSelector.style.display = 'block';
             
             // Show loading state
@@ -1424,7 +1426,28 @@ function closeProductModal() {
             quantityInput.max = 1;
             
             await fetchPreOrderQuantity(pendingCartProduct.id);
-            selectOrderType('preorder'); // Default to pre-order
+            
+            // Check same-day availability
+            const sameDayAvailable = await checkSameDayAvailability(pendingCartProduct.id);
+            
+            if (sameDayAvailable) {
+                // Show both options
+                const samedayRadio = document.querySelector('input[name="orderType"][value="sameday"]');
+                const samedayLabel = samedayRadio.closest('.order-type-radio');
+                samedayRadio.disabled = false;
+                samedayLabel.style.opacity = '1';
+                samedayLabel.style.cursor = 'pointer';
+                selectOrderType('preorder'); // Default to pre-order
+            } else {
+                // Hide or disable same-day option
+                const samedayRadio = document.querySelector('input[name="orderType"][value="sameday"]');
+                const samedayLabel = samedayRadio.closest('.order-type-radio');
+                samedayRadio.disabled = true;
+                samedayLabel.style.opacity = '0.5';
+                samedayLabel.style.cursor = 'not-allowed';
+                samedayLabel.title = 'Not available today';
+                selectOrderType('preorder'); // Force pre-order only
+            }
             
             // Remove loading state
             setQuantityModalLoading(false);
@@ -1504,13 +1527,10 @@ function closeProductModal() {
 
     // Select order type
     function selectOrderType(type) {
-        const buttons = document.querySelectorAll('.order-type-btn');
-        buttons.forEach(btn => {
-            if (btn.getAttribute('data-type') === type) {
-                btn.classList.add('active');
-            } else {
-                btn.classList.remove('active');
-            }
+        // Update radio button selection
+        const radioButtons = document.querySelectorAll('input[name="orderType"]');
+        radioButtons.forEach(radio => {
+            radio.checked = (radio.value === type);
         });
         
         const dateDisplay = document.getElementById('quantityModalDate');
@@ -1555,21 +1575,26 @@ function closeProductModal() {
             const data = await response.json();
             
             if (data.success) {
-                const preorderQuantity = data.quantity || 0;
-                stockDisplay.textContent = `Stock: ${preorderQuantity}`;
+                const totalStock = data.quantity || 0;
+                const cartQuantity = data.cart_quantity || 0;
+                const availableToAdd = Math.max(0, totalStock - cartQuantity);
+                
+                stockDisplay.textContent = `Stock: ${totalStock}${cartQuantity > 0 ? ` (${cartQuantity} in cart, ${availableToAdd} available)` : ''}`;
                 
                 const quantityInput = document.getElementById('quantityModalInput');
-                quantityInput.max = preorderQuantity;
-                quantityInput.value = Math.min(parseInt(quantityInput.value) || 1, Math.max(preorderQuantity, 1));
+                quantityInput.max = availableToAdd;
+                quantityInput.value = Math.min(parseInt(quantityInput.value) || 1, Math.max(availableToAdd, 1));
                 
                 // Update pendingCartProduct with fresh stock value
                 if (pendingCartProduct) {
-                    pendingCartProduct.stock = preorderQuantity;
+                    pendingCartProduct.stock = availableToAdd;
                 }
                 
-                // Disable/enable Add to Cart button based on stock
-                if (preorderQuantity === 0) {
-                    stockDisplay.textContent = 'Stock: 0 (Out of stock)';
+                // Disable/enable Add to Cart button based on available stock
+                if (availableToAdd === 0) {
+                    stockDisplay.textContent = cartQuantity > 0 
+                        ? `Stock: ${totalStock} (All ${cartQuantity} already in cart)` 
+                        : 'Stock: 0 (Out of stock)';
                     confirmBtn.disabled = true;
                     quantityInput.disabled = true;
                 } else {
@@ -1601,16 +1626,21 @@ function closeProductModal() {
             const data = await response.json();
             
             if (data.success) {
-                const todayQuantity = data.quantity || 0;
-                stockDisplay.textContent = `Stock: ${todayQuantity}`;
+                const totalStock = data.quantity || 0;
+                const cartQuantity = data.cart_quantity || 0;
+                const availableToAdd = Math.max(0, totalStock - cartQuantity);
+                
+                stockDisplay.textContent = `Stock: ${totalStock}${cartQuantity > 0 ? ` (${cartQuantity} in cart, ${availableToAdd} available)` : ''}`;
                 
                 const quantityInput = document.getElementById('quantityModalInput');
-                quantityInput.max = todayQuantity;
-                quantityInput.value = Math.min(parseInt(quantityInput.value) || 1, Math.max(todayQuantity, 1));
+                quantityInput.max = availableToAdd;
+                quantityInput.value = Math.min(parseInt(quantityInput.value) || 1, Math.max(availableToAdd, 1));
                 
-                // Disable/enable Add to Cart button based on stock
-                if (todayQuantity === 0) {
-                    stockDisplay.textContent = 'Stock: 0 (Not available today)';
+                // Disable/enable Add to Cart button based on available stock
+                if (availableToAdd === 0) {
+                    stockDisplay.textContent = cartQuantity > 0 
+                        ? `Stock: ${totalStock} (All ${cartQuantity} already in cart)` 
+                        : 'Stock: 0 (Not available today)';
                     confirmBtn.disabled = true;
                     quantityInput.disabled = true;
                 } else {
