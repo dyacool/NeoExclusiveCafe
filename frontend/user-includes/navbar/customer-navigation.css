@@ -1071,6 +1071,37 @@ html.homepage-animation .main-nav {
   transform: translateY(-1px);
 }
 
+/* Notification Loader */
+.notification-loader {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.notification-loader .spinner {
+  border: 3px solid rgba(203, 213, 192, 0.3);
+  border-top: 3px solid var(--primary-green);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.notification-loader p {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
 #notificationList {
   max-height: 240px !important;
   overflow-y: auto !important;

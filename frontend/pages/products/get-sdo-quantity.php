@@ -12,6 +12,9 @@ if (!isset($_GET['product_id'])) {
 $product_id = intval($_GET['product_id']);
 $today = date('Y-m-d');
 
+// Get user_id from session (if logged in)
+$user_id = isset($_SESSION['user_id']) ? intval($_SESSION['user_id']) : 0;
+
 try {
     // Get product status and availtoday_status_id
     $status_query = "SELECT status_id, availtoday_status_id, quantity FROM products WHERE id = ?";
@@ -120,9 +123,29 @@ try {
         $date_stmt->close();
     }
     
+    // Get quantity already in same-day cart for this user
+    $cart_quantity = 0;
+    if ($user_id > 0) {
+        $cart_query = "SELECT SUM(quantity) as total FROM availtoday_cart WHERE user_id = ? AND product_id = ?";
+        $cart_stmt = $conn->prepare($cart_query);
+        
+        if ($cart_stmt) {
+            $cart_stmt->bind_param("ii", $user_id, $product_id);
+            $cart_stmt->execute();
+            $cart_result = $cart_stmt->get_result();
+            
+            if ($cart_row = $cart_result->fetch_assoc()) {
+                $cart_quantity = intval($cart_row['total'] ?? 0);
+            }
+            
+            $cart_stmt->close();
+        }
+    }
+    
     echo json_encode([
         'success' => true,
         'quantity' => $quantity,
+        'cart_quantity' => $cart_quantity,
         'date' => $today,
         'status_id' => $product['status_id'],
         'availtoday_status_id' => $product['availtoday_status_id'],

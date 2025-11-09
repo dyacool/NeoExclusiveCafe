@@ -154,6 +154,101 @@ if (!$navbar_conn) {
         <div class="announcement-text"> Products Available for same-day and pre-order purchases.</div>
     </div>
 
+    <!-- Real-time badge styling -->
+    <style>
+        /* Cart Badge Styling */
+        .cart-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+            min-width: 20px;
+            padding: 0 2px;
+        }
+        
+        /* Notification Badge Styling */
+        .badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+            min-width: 20px;
+            padding: 0 2px;
+        }
+        
+        /* Animation for real-time updates */
+        @keyframes badgePulse {
+            0% { transform: scale(0.8); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        .cart-badge.updated, .badge.updated {
+            animation: badgePulse 0.3s ease;
+            box-shadow: 0 0 15px rgba(220, 53, 69, 0.6);
+        }
+        
+        /* Notification Loader Styles */
+        .notification-loader {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .notification-loader .spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #8B4513;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 10px;
+        }
+        
+        .notification-loader p {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Ensure proper positioning for icon containers */
+        .icon-wrapper {
+            position: relative;
+        }
+    </style>
+
     <nav class="main-nav">
         <!-- Hamburger menu for mobile/tablet -->
         <div class="nav-content">
@@ -260,6 +355,7 @@ if (!$navbar_conn) {
                             <path d="M7 8V6a5 5 0 0110 0v2"></path>
                             <path d="M3 8h18"></path>
                         </svg>
+                        <span class="cart-badge" id="cartCount" style="display: none;"></span>
                         <span class="icon-effect"></span>
                         <!-- Cart notification dot -->
                         <span id="cart-notification-dot" class="notification-dot" style="display: none;"></span>
@@ -280,12 +376,16 @@ if (!$navbar_conn) {
                     <div class="notification-dropdown" id="notifDropdown">
                         <div class="dropdown-header">
                             <h3>Notifications</h3>
-                            <button id="markAllRead" class="mark-read" title="Mark all as read">Mark all as read</button>
+                            <button id="markAllRead" class="mark-read" title="Mark all as read" style="transition: all 0.3s ease;">Mark all as read</button>
+                        </div>
+                        <div class="notification-loader" id="notificationLoader" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Loading notifications...</p>
                         </div>
                         <ul id="notificationList" class="notification-list">
                             <!-- Notifications will appear dynamically -->
                         </ul>
-                        <div class="no-notifications" id="noNotifications">
+                        <div class="no-notifications" id="noNotifications" style="display: none;">
                             <p>No new notifications.</p>
                         </div>
                         <div class="dropdown-footer">
@@ -320,8 +420,8 @@ if (!$navbar_conn) {
                                 
                                 // Determine profile image url - prioritize Cloudinary
                                 $profile_image_url = $profile_default_image_path;
-                                if (isset($user['profile_image_url']) && !empty(trim($user['profile_image_url']))) {
-                                    $profile_image_url = trim($user['profile_image_urls']);
+                                if (isset($user['profile_image']) && !empty(trim($user['profile_image']))) {
+                                    $profile_image_url = trim($user['profile_image']);
                                 }
                                 
                                 // Check if user has a profile image (not the default SVG)
@@ -360,12 +460,12 @@ if (!$navbar_conn) {
                         <div class="dropdown-menu">
                             <?php if ($is_admin_logged_in): ?>
                                 <a href="/backend/pages/homepage/admin-homepage.php">Admin Panel</a>
-                                <a href="/backend/login/admin/logout.php">Logout</a>
+                                <a href="#" onclick="confirmLogout('admin'); return false;">Logout</a>
                             <?php else: ?>
                                 <a href="/frontend/pages/profile/profile.php">Profile</a>
                                 <a href="/frontend/pages/profile/account-settings.php">Account Settings</a>
                                 <a href="/frontend/pages/blog/user-blog-post.php">View Post</a>
-                                <a href="/frontend/login/user/logout.php">Logout</a>
+                                <a href="#" onclick="confirmLogout('user'); return false;">Logout</a>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -665,69 +765,104 @@ if (!$navbar_conn) {
                     markAllReadBtn.disabled = true;
                     markAllReadBtn.style.opacity = '0.7';
                     
-                    // Make API call to mark all as read
+                    // Make API call to mark all as read (no response needed)
                     fetch('/frontend/pages/notifications/mark-all-notifications-read.php', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Success feedback
-                            markAllReadBtn.textContent = 'All marked!';
-                            markAllReadBtn.style.color = '#28a745';
-                            
-                            // Update UI - mark all items as read
-                            unreadItems.forEach(item => {
-                                item.classList.remove('unread');
-                                item.classList.add('read');
-                            });
-                            
-                            // Update notification count badge
-                            const notifCount = document.getElementById('notifCount');
-                            if (notifCount) {
-                                notifCount.style.display = 'none';
-                            }
-                            
-                            // Reset button after 2 seconds
-                            setTimeout(() => {
-                                markAllReadBtn.textContent = originalText;
-                                markAllReadBtn.disabled = false;
-                                markAllReadBtn.style.opacity = '1';
-                                markAllReadBtn.style.color = '';
-                                
-                                // Trigger notification update
-                                if (window.dispatchEvent) {
-                                    window.dispatchEvent(new CustomEvent('notificationUpdated'));
-                                }
-                            }, 2000);
-                            
-                        } else {
-                            // Error handling
-                            markAllReadBtn.textContent = 'Try again';
-                            markAllReadBtn.style.color = '#dc3545';
-                            console.error('Failed to mark notifications as read:', data.message);
-                            
-                            setTimeout(() => {
-                                markAllReadBtn.textContent = originalText;
-                                markAllReadBtn.disabled = false;
-                                markAllReadBtn.style.opacity = '1';
-                                markAllReadBtn.style.color = '';
-                            }, 2000);
+                    });
+                    
+                    // Immediately update UI
+                    markAllReadBtn.textContent = 'All marked!';
+                    markAllReadBtn.style.color = '#28a745';
+                    
+                    // Update UI - mark all items as read
+                    unreadItems.forEach(item => {
+                        item.classList.remove('unread');
+                        item.classList.add('read');
+                    });
+                    
+                    // Update notification count badge
+                    const notifCount = document.getElementById('notifCount');
+                    if (notifCount) {
+                        notifCount.style.display = 'none';
+                    }
+                    
+                    // Reset button after 2 seconds
+                    setTimeout(() => {
+                        markAllReadBtn.textContent = originalText;
+                        markAllReadBtn.disabled = false;
+                        markAllReadBtn.style.opacity = '1';
+                        markAllReadBtn.style.color = '';
+                        
+                        // Trigger notification update
+                        if (window.dispatchEvent) {
+                            window.dispatchEvent(new CustomEvent('notificationUpdated'));
                         }
-                    })
-                    .catch(error => {
-                        console.error('Error marking all notifications as read:', error);
-                        markAllReadBtn.textContent = 'Try again';
-                        markAllReadBtn.style.color = '#dc3545';
+                    }, 2000);
+                });
+            }
+            
+            // MOBILE MARK ALL AS READ FUNCTIONALITY
+            const mobileMarkAllReadBtn = document.getElementById('mobileMarkAllRead');
+            if (mobileMarkAllReadBtn) {
+                mobileMarkAllReadBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Check if there are any unread notifications first
+                    const unreadItems = document.querySelectorAll('#mobileNotificationList .notification-item.unread');
+                    if (unreadItems.length === 0) {
+                        // Show message if no unread notifications
+                        mobileMarkAllReadBtn.textContent = 'All read!';
+                        mobileMarkAllReadBtn.style.opacity = '0.7';
                         
                         setTimeout(() => {
-                            markAllReadBtn.textContent = originalText;
-                            markAllReadBtn.disabled = false;
-                            markAllReadBtn.style.opacity = '1';
-                            markAllReadBtn.style.color = '';
+                            mobileMarkAllReadBtn.textContent = 'Mark all as read';
+                            mobileMarkAllReadBtn.style.opacity = '1';
                         }, 2000);
+                        return;
+                    }
+                    
+                    // Change button state
+                    const originalText = mobileMarkAllReadBtn.textContent;
+                    mobileMarkAllReadBtn.textContent = 'Marking...';
+                    mobileMarkAllReadBtn.disabled = true;
+                    mobileMarkAllReadBtn.style.opacity = '0.7';
+                    
+                    // Make API call to mark all as read (no response needed)
+                    fetch('/frontend/pages/notifications/mark-all-notifications-read.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
                     });
+                    
+                    // Immediately update UI
+                    mobileMarkAllReadBtn.textContent = 'All marked!';
+                    mobileMarkAllReadBtn.style.color = '#28a745';
+                    
+                    // Update UI - mark all items as read
+                    unreadItems.forEach(item => {
+                        item.classList.remove('unread');
+                        item.classList.add('read');
+                    });
+                    
+                    // Update notification count badge
+                    const notifCount = document.getElementById('notifCount');
+                    if (notifCount) {
+                        notifCount.style.display = 'none';
+                    }
+                    
+                    // Reset button after 2 seconds
+                    setTimeout(() => {
+                        mobileMarkAllReadBtn.textContent = originalText;
+                        mobileMarkAllReadBtn.disabled = false;
+                        mobileMarkAllReadBtn.style.opacity = '1';
+                        mobileMarkAllReadBtn.style.color = '';
+                        
+                        // Trigger notification update
+                        if (window.dispatchEvent) {
+                            window.dispatchEvent(new CustomEvent('notificationUpdated'));
+                        }
+                    }, 2000);
                 });
             }
             
@@ -823,6 +958,13 @@ if (!$navbar_conn) {
                 
                 if (!notificationList || !noNotifications) return;
                 
+                // Show loader while fetching
+                if (loader) {
+                    loader.style.display = 'block';
+                }
+                notificationList.style.display = 'none';
+                noNotifications.style.display = 'none';
+                
                 // Use global function if available, otherwise fetch directly
                 if (window.fetchDropdownNotifications) {
                     window.fetchDropdownNotifications()
@@ -851,7 +993,13 @@ if (!$navbar_conn) {
                 }
                 
                 function updateNotificationDisplay(notifications) {
+                    // Hide loader
+                    if (loader) {
+                        loader.style.display = 'none';
+                    }
+                    
                     notificationList.innerHTML = '';
+                    notificationList.style.display = 'block';
                     
                     if (notifications && notifications.length > 0) {
                         // Hide "no notifications" message
@@ -867,10 +1015,6 @@ if (!$navbar_conn) {
                             title.className = "notification-title";
                             title.textContent = notif.title;
 
-                            const message = document.createElement("div");
-                            message.className = "notification-message";
-                            message.textContent = notif.message.substring(0, 50) + (notif.message.length > 50 ? '...' : '');
-
                             const time = document.createElement("div");
                             time.className = "notification-time";
                             time.textContent = new Date(notif.created_at).toLocaleString([], { short: 'short' });
@@ -878,7 +1022,6 @@ if (!$navbar_conn) {
                             const contentDiv = document.createElement('div');
                             contentDiv.className = 'notification-content';
                             contentDiv.appendChild(title);
-                            contentDiv.appendChild(message);
                             contentDiv.appendChild(time);
 
                             listItem.appendChild(contentDiv);
@@ -901,7 +1044,13 @@ if (!$navbar_conn) {
                 }
                 
                 function showNoNotifications() {
+                    // Hide loader
+                    if (loader) {
+                        loader.style.display = 'none';
+                    }
+                    
                     notificationList.innerHTML = '';
+                    notificationList.style.display = 'none';
                     noNotifications.style.display = "block";
                     if (notifCount) {
                         notifCount.style.display = "none";

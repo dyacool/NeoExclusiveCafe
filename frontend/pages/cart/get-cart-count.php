@@ -19,8 +19,8 @@ if (!SessionManager::isUserLoggedIn()) {
 try {
     $user_id = SessionManager::getUserId();
     
-    // Get cart count from database
-    $query = "SELECT SUM(quantity) as total_count FROM cart WHERE user_id = ?";
+    // Get cart count from database - count number of different products, not total quantity
+    $query = "SELECT COUNT(*) as total_count FROM cart WHERE user_id = ?";
     $stmt = mysqli_prepare($conn, $query);
     
     if (!$stmt) {

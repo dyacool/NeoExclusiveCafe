@@ -1836,21 +1836,9 @@
   margin: 5px 0 20px 0; */
 }
 
-.quantity-modal-controls {
-  margin: 20px 0;
-}
-
-.quantity-modal-controls label {
-  display: block;
-  margin-bottom: 10px;
-  font-weight: 600;
-  color: #333;
-}
-
 .quantity-modal-actions {
   display: flex;
   gap: 10px;
-  margin-top: 25px;
 }
 
 .quantity-modal-actions button {
@@ -1883,22 +1871,6 @@
   background-color: #0f5132;
 }
 
-/* Order Type Selector */
-.order-type-selector {
-  margin: 15px 0;
-  padding: 15px;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-}
-
-.order-type-selector label {
-  display: block;
-  margin-bottom: 10px;
-  font-weight: 600;
-  color: #333;
-  font-size: 14px;
-}
-
 .order-type-buttons {
   display: flex;
   gap: 10px;
@@ -1928,6 +1900,47 @@
   color: white;
 }
 
+/* Order Type Radio Buttons */
+.order-type-radio {
+  text-align: left;
+  cursor: pointer;
+  padding: 8px 20px;
+}
+
+.order-type-radio:hover {
+  border-color: #2d5016;
+}
+
+.order-type-radio input[type="radio"] {
+  margin: 0 8px 0 0;
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+  accent-color: #2d5016;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.order-type-radio span {
+  line-height: 18px;
+  vertical-align: middle;
+}
+
+.order-type-radio input[type="radio"]:checked + span {
+  font-weight: 600;
+  color: #2d5016;
+}
+
+.order-type-radio input[type="radio"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.order-type-radio:has(input[type="radio"]:disabled) {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .quantity-modal-date {
   display: none !important;
   /* font-size: 13px;
@@ -1938,9 +1951,7 @@
 
 /* Order Type Selector in Quantity Modal */
 .order-type-selector {
-  margin: 15px 0;
   padding: 15px;
-  background: #f8f9fa;
   border-radius: 8px;
 }
 
@@ -1949,7 +1960,6 @@
   font-size: 14px;
   font-weight: 600;
   color: #333;
-  margin-bottom: 10px;
 }
 
 .order-type-buttons {
@@ -2017,7 +2027,7 @@
 .quantity-modal-body {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 5px;
 }
 
 .quantity-modal-body h2 {
@@ -2042,16 +2052,12 @@
 }
 
 .quantity-modal-controls label {
+  display: block;
+
   font-size: 14px;
   font-weight: 600;
   color: #333;
   text-align: center;
-}
-
-.quantity-modal-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 15px;
 }
 
 .btn-cancel,
@@ -2112,7 +2118,7 @@
   }
 
   .order-type-buttons {
-    flex-direction: column;
+    flex-direction: row;
   }
 
   .order-type-btn {
@@ -2125,5 +2131,12 @@
 
   .quantity-modal-price {
     font-size: 16px;
+  }
+}
+
+/* Responsive adjustments for quantity modal */
+@media (max-width: 375px) {
+  .order-type-buttons {
+    flex-direction: column;
   }
 }
