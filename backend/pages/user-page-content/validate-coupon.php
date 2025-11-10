@@ -205,8 +205,9 @@ try {
     if (!$is_voucher && isset($coupon['usage_limit_per_user']) && $coupon['usage_limit_per_user'] > 0) {
         error_log("Per-user limit check: Coupon ID {$coupon['id']}, Limit: {$coupon['usage_limit_per_user']}");
         
-        // Check if user is logged in
-        if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
+        // Check if user is logged in using SessionManager
+        $user_id = SessionManager::getUserId();
+        if ($user_id === null) {
             error_log("Per-user limit check: User not logged in");
             echo json_encode([
                 'success' => false, 
@@ -216,7 +217,6 @@ try {
         }
         
         // Check per-user usage
-        $user_id = intval($_SESSION['user_id']);
         error_log("Per-user limit check: User ID $user_id");
         
         $per_user_check = checkPerUserUsage($conn, $user_id, $coupon['id'], $coupon['usage_limit_per_user']);

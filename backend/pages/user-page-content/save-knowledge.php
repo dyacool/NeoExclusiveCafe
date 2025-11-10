@@ -13,6 +13,13 @@ require_once __DIR__ . '/../admin-includes/config.php';
 try {
     require_once __DIR__ . '/../admin-includes/database.php';
     require_once __DIR__ . '/../admin-includes/activity-logger.php';
+    require_once __DIR__ . '/../../../includes/session-manager.php';
+    
+    // Check admin authentication
+    if (!SessionManager::isAdminLoggedIn()) {
+        echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+        exit;
+    }
 
     // Check if content is provided
     if (!isset($_POST['content']) || empty(trim($_POST['content']))) {
@@ -37,11 +44,9 @@ try {
     }
     
     if ($stmt->execute()) {
-        // Log the activity (need to start session to get admin info)
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-        if (isset($_SESSION['admin_id'])) {
+        // Log the activity using SessionManager
+        $adminData = SessionManager::getAdminData();
+        if ($adminData) {
             $action_type = ($checkResult && $checkResult->num_rows > 0) ? 'UPDATE' : 'CREATE';
             logAdminActivity($conn, $action_type, "Updated chatbot knowledge base", 'chatbot_knowledge', 1);
         }

@@ -1,6 +1,27 @@
 <?php
+    // Enable mysqli exception mode for better error handling
+    mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+    
     // Use admin-auth for authentication (it loads database.php and SessionManager in correct order)
     require_once __DIR__ . '/../../login/admin/admin-auth.php';
+
+    // Verify database connection
+    if (!isset($conn) || !$conn) {
+        error_log("CRITICAL: Database connection not established in order-list.php");
+        die("Database connection error. Please contact administrator.");
+    }
+
+    // Verify orders table exists
+    try {
+        $table_check = mysqli_query($conn, "SHOW TABLES LIKE 'orders'");
+        if (!$table_check || mysqli_num_rows($table_check) === 0) {
+            error_log("CRITICAL: orders table does not exist");
+            die("Database configuration error. Please contact administrator.");
+        }
+    } catch (Exception $e) {
+        error_log("CRITICAL: Error checking orders table: " . $e->getMessage());
+        die("Database error. Please contact administrator.");
+    }
 
     // Pagination settings
     $orders_per_page = 15;
@@ -12,7 +33,7 @@
     $search = isset($_GET['search']) ? $_GET['search'] : '';
     
     // Base query
-    $sql = "SELECT * FROM orders";
+    $sql = "SELECT * FROM `orders`";
     $where_clauses = [];
     $params = [];
     $types = "";
@@ -21,14 +42,14 @@
     if ($status_filter !== 'all') {
         // Map display status to database status
         $db_status = ($status_filter == 'Pending') ? 'Confirmed' : $status_filter;
-        $where_clauses[] = "LOWER(TRIM(status)) = LOWER(?)";
+        $where_clauses[] = "LOWER(TRIM(`status`)) = LOWER(?)";
         $params[] = $db_status;
         $types .= "s";
     }
     
     // Add search filter if provided
     if (!empty($search)) {
-        $where_clauses[] = "(customer_name LIKE ? OR order_id LIKE ?)";
+        $where_clauses[] = "(`customer_name` LIKE ? OR `order_id` LIKE ?)";
         $params[] = "%$search%";
         $params[] = "%$search%";
         $types .= "ss";
@@ -40,25 +61,48 @@
     }
     
     // Add order by and pagination
-    $sql .= " ORDER BY order_date DESC LIMIT ? OFFSET ?";
+    $sql .= " ORDER BY `order_date` DESC LIMIT ? OFFSET ?";
     
     // Add pagination parameters
     $params[] = $orders_per_page;
     $params[] = $offset;
     $types .= "ii";
     
+    // Debug: Display the SQL query being built (remove after debugging)
+    echo "<!-- DEBUG SQL: " . htmlspecialchars($sql) . " -->";
+    echo "<!-- DEBUG PARAMS: " . htmlspecialchars(print_r($params, true)) . " -->";
+    
+    // Debug: Log the SQL query being built
+    error_log("ORDER LIST SQL: " . $sql);
+    error_log("ORDER LIST PARAMS: " . print_r($params, true));
+    error_log("ORDER LIST TYPES: " . $types);
+    
     // Prepare and execute the statement
     $stmt = mysqli_prepare($conn, $sql);
     
-    if (!empty($params)) {
-        mysqli_stmt_bind_param($stmt, $types, ...$params);
+    if ($stmt === false) {
+        die("Error preparing statement: " . mysqli_error($conn) . "<br>SQL: " . htmlspecialchars($sql));
     }
     
-    mysqli_stmt_execute($stmt);
+    if (!empty($params)) {
+        $bind_result = mysqli_stmt_bind_param($stmt, $types, ...$params);
+        if ($bind_result === false) {
+            die("Error binding parameters: " . mysqli_stmt_error($stmt));
+        }
+    }
+    
+    if (!mysqli_stmt_execute($stmt)) {
+        die("Error executing statement: " . mysqli_stmt_error($stmt) . "<br>SQL: " . htmlspecialchars($sql));
+    }
+    
     $result = mysqli_stmt_get_result($stmt);
     
+    if ($result === false) {
+        die("Error getting result: " . mysqli_stmt_error($stmt) . "<br>SQL: " . htmlspecialchars($sql));
+    }
+    
     // Get total count for pagination
-    $count_sql = "SELECT COUNT(*) as total FROM orders";
+    $count_sql = "SELECT COUNT(*) as total FROM `orders`";
     $count_where_clauses = [];
     $count_params = [];
     $count_types = "";
@@ -67,13 +111,13 @@
     if ($status_filter !== 'all') {
         // Map display status to database status
         $db_status = ($status_filter == 'Pending') ? 'Confirmed' : $status_filter;
-        $count_where_clauses[] = "LOWER(TRIM(status)) = LOWER(?)";
+        $count_where_clauses[] = "LOWER(TRIM(`status`)) = LOWER(?)";
         $count_params[] = $db_status;
         $count_types .= "s";
     }
     
     if (!empty($search)) {
-        $count_where_clauses[] = "(customer_name LIKE ? OR order_id LIKE ?)";
+        $count_where_clauses[] = "(`customer_name` LIKE ? OR `order_id` LIKE ?)";
         $count_params[] = "%$search%";
         $count_params[] = "%$search%";
         $count_types .= "ss";
@@ -105,17 +149,22 @@
         'Delivered' => 0
     ];
     
-    $count_sql = "SELECT status, COUNT(*) as count FROM orders GROUP BY status";
+    $count_sql = "SELECT `status`, COUNT(*) as count FROM `orders` GROUP BY `status`";
     $count_result = mysqli_query($conn, $count_sql);
     
-    while ($count_row = mysqli_fetch_assoc($count_result)) {
-        // Map database status to display status
-        $display_status = ($count_row['status'] == 'Confirmed') ? 'Pending' : $count_row['status'];
-        
-        if (isset($status_counts[$display_status])) {
-            $status_counts[$display_status] = $count_row['count'];
-            $status_counts['all'] += $count_row['count'];
+    if ($count_result) {
+        while ($count_row = mysqli_fetch_assoc($count_result)) {
+            // Map database status to display status
+            $display_status = ($count_row['status'] == 'Confirmed') ? 'Pending' : $count_row['status'];
+            
+            if (isset($status_counts[$display_status])) {
+                $status_counts[$display_status] = $count_row['count'];
+                $status_counts['all'] += $count_row['count'];
+            }
         }
+    } else {
+        // Log error for debugging
+        error_log("Order status count query failed: " . mysqli_error($conn));
     }
 ?>
 <!DOCTYPE html>

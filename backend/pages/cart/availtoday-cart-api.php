@@ -4,24 +4,10 @@
  * Handles database operations for Available Today cart items
  */
 
-// Set session cookie parameters before starting session
-session_set_cookie_params([
-    'lifetime' => 0,
-    'path' => '/',
-    'domain' => '', // Empty domain works for all subdomains and localhost
-    'secure' => false,
-    'httponly' => true,
-    'samesite' => 'Lax' // Changed from Strict to Lax to allow same-site requests
-]);
-
-// Start session if not already started
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
-
 // Include necessary files
 $suppress_db_debug = true; // Suppress database debug output for API
 require_once __DIR__ . '/../admin-includes/database.php';
+require_once __DIR__ . '/../../../../../includes/session-manager.php';
 
 // Set JSON content type and CORS headers
 header('Content-Type: application/json');
@@ -47,20 +33,20 @@ if (!isset($conn) || !$conn) {
 $method = $_SERVER['REQUEST_METHOD'];
 $action = isset($_POST['action']) ? $_POST['action'] : (isset($_GET['action']) ? $_GET['action'] : '');
 
-// Handle different HTTP methods
+// Check if user is logged in using SessionManager
+$user_id = SessionManager::getUserId();
 
-// Check if user is logged in
-error_log("[availtoday-cart-api.php] Session check - user_id: " . (isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 'NOT SET'));
-error_log("[availtoday-cart-api.php] Full session data: " . print_r($_SESSION, true));
-
-if (!isset($_SESSION['user_id'])) {
-    error_log("[availtoday-cart-api.php] User not authenticated - session user_id not found");
+if ($user_id === null) {
+    error_log("[availtoday-cart-api.php] User not authenticated");
     http_response_code(401);
-    echo json_encode(['success' => false, 'error' => 'User not authenticated', 'debug' => 'Session user_id not found', 'session_id' => session_id()]);
+    echo json_encode([
+        'success' => false, 
+        'error' => 'User not authenticated', 
+        'debug' => 'SessionManager returned null user_id'
+    ]);
     exit;
 }
 
-$user_id = $_SESSION['user_id'];
 error_log("[availtoday-cart-api.php] User authenticated - user_id: $user_id");
 
 try {

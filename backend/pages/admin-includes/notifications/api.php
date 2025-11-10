@@ -1,11 +1,9 @@
 <?php
+// Load SessionManager for authentication
+require_once __DIR__ . '/../../../../../includes/session-manager.php';
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-// Check if user is admin - use correct session variable
-if (!isset($_SESSION['admin_id']) || !isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
+// Check if user is admin using SessionManager
+if (!SessionManager::isAdminLoggedIn()) {
     http_response_code(401);
     echo json_encode(['success' => false, 'error' => 'Unauthorized']);
     exit;

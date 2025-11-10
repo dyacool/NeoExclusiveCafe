@@ -1,16 +1,18 @@
 <?php
 header('Content-Type: application/json');
 
-// Include database connection FIRST - it handles session configuration
+// Include database connection and SessionManager
 require_once '../pages/admin-includes/database.php';
+require_once '../../includes/session-manager.php';
 
-if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'user') {
+// Check user authentication using SessionManager
+$user_id = SessionManager::getUserId();
+
+if ($user_id === null) {
     http_response_code(401);
     echo json_encode(['success' => false, 'error' => 'User not authenticated']);
     exit();
 }
-
-$user_id = intval($_SESSION['user_id']);
 
 try {
     // Check if user has saved info but no primary set

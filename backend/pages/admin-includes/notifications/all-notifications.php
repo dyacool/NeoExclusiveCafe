@@ -1,11 +1,10 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+// Load SessionManager for authentication
+require_once __DIR__ . '/../../../../../includes/session-manager.php';
 
-// Check if user is admin
-if (!isset($_SESSION['admin_user_id'])) {
-    header('Location: /backend/login/admin/index.php');
+// Check if user is admin using SessionManager
+if (!SessionManager::isAdminLoggedIn()) {
+    header('Location: /backend/login/admin/admin-login.php');
     exit;
 }
 

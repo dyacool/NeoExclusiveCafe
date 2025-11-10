@@ -4,6 +4,7 @@ $page_title = "Manage Carousel Images";
 
 require_once __DIR__ . "/../admin-includes/config.php";
 require_once __DIR__ . "/../admin-includes/database.php";
+require_once __DIR__ . "/../../../includes/session-manager.php";
 require_once __DIR__ . "/../admin-includes/navbar/navbar.php";
 require_once __DIR__ . "/../admin-includes/activity-logger.php";
 
@@ -20,21 +21,19 @@ function getNextAvailableOrder($conn) {
     return 1; // Start with 1 if no images exist
 }
 
-// Start session if not already started
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-// Generate CSRF token if not exists
+// Generate CSRF token if not exists (SessionManager handles session start)
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
-// Check if user is logged in as admin
-if (!isset($_SESSION['admin_id']) || !isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true || $_SESSION['admin_role'] !== 'admin') {
-    header("Location: /login/admin/admin-login.php");
+// Check if user is logged in as admin using SessionManager
+if (!SessionManager::isAdminLoggedIn()) {
+    header("Location: /backend/login/admin/admin-login.php");
     exit();
 }
+
+// Get admin data
+$adminData = SessionManager::getAdminData();
 
 // Check if the carousel_images table exists, create it if it doesn't
 $table_check_query = "SHOW TABLES LIKE 'carousel_images'";
@@ -110,15 +109,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (empty($image_url) || empty($public_id)) {
                 $error_message = "Please upload an image first.";
             } else {
+                $admin_id = $adminData['id'];
+                
                 // Insert carousel image with Cloudinary metadata
                 $insert_query = "INSERT INTO carousel_images 
                                 (image_url, cloud_url, cloud_public_id, cloud_provider, 
                                  title, display_order, is_active, created_by) 
                                 VALUES (?, ?, ?, 'cloudinary', ?, ?, ?, ?)";
                 $insert_stmt = mysqli_prepare($conn, $insert_query);
-                mysqli_stmt_bind_param($insert_stmt, "ssssiis", 
+                mysqli_stmt_bind_param($insert_stmt, "ssssiisi", 
                     $image_url, $image_url, $public_id, 
-                    $title, $display_order, $is_active, $_SESSION['admin_id']);
+                    $title, $display_order, $is_active, $admin_id);
                 
                 if (mysqli_stmt_execute($insert_stmt)) {
                     // Remove from temp_uploaded_images table
@@ -155,11 +156,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($check_order_data['count'] > 0) {
             $error_message = "Display order " . $display_order . " is already in use. Please choose a different order number.";
         } else {
+            $admin_id = $adminData['id'];
+            
             // Update without changing image
             $update_query = "UPDATE carousel_images SET title = ?, display_order = ?, is_active = ?, 
                             updated_by = ? WHERE id = ?";
             $update_stmt = mysqli_prepare($conn, $update_query);
-            mysqli_stmt_bind_param($update_stmt, "siisi", $title, $display_order, $is_active, $_SESSION['admin_id'], $image_id);
+            mysqli_stmt_bind_param($update_stmt, "siiii", $title, $display_order, $is_active, $admin_id, $image_id);
             
             if (mysqli_stmt_execute($update_stmt)) {
                 $success_message = "Image updated successfully!";
@@ -183,9 +186,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $title_result = mysqli_stmt_get_result($get_title_stmt);
         $title_data = mysqli_fetch_assoc($title_result);
         
+        $admin_id = $adminData['id'];
+        
         $update_query = "UPDATE carousel_images SET is_active = ?, updated_by = ? WHERE id = ?";
         $update_stmt = mysqli_prepare($conn, $update_query);
-        mysqli_stmt_bind_param($update_stmt, "isi", $new_status, $_SESSION['admin_id'], $image_id);
+        mysqli_stmt_bind_param($update_stmt, "iii", $new_status, $admin_id, $image_id);
         
         if (mysqli_stmt_execute($update_stmt)) {
             $status_text = $new_status ? "activated" : "deactivated";

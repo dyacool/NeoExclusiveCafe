@@ -1,10 +1,11 @@
 <?php
-session_start();
+// Load database and SessionManager
 require_once '../admin-includes/database.php';
+require_once '../../../includes/session-manager.php';
 
-// Check if admin is logged in
-if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
-    echo json_encode(['success' => false, 'error' => 'Unauthorized access']);
+// Check if admin is logged in using SessionManager
+if (!SessionManager::isAdminLoggedIn()) {
+    echo json_encode(['success' => false, 'error' => 'Unauthorized']);
     exit;
 }
 

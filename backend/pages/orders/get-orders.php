@@ -12,26 +12,39 @@ if (!SessionManager::isAdminLoggedIn()) {
 header('Content-Type: application/json');
 
 try {
+    // Verify database connection
+    if (!isset($conn) || !$conn) {
+        throw new Exception("Database connection not established");
+    }
+
+    // Verify orders table exists
+    $table_check = mysqli_query($conn, "SHOW TABLES LIKE 'orders'");
+    if (!$table_check || mysqli_num_rows($table_check) === 0) {
+        throw new Exception("Orders table does not exist");
+    }
+
     // Get filter parameters
     $status_filter = isset($_GET['status']) ? $_GET['status'] : 'all';
     $search = isset($_GET['search']) ? $_GET['search'] : '';
     
     // Base query
-    $sql = "SELECT * FROM orders";
+    $sql = "SELECT * FROM `orders`";
     $where_clauses = [];
     $params = [];
     $types = "";
     
     // Add status filter if not 'all'
     if ($status_filter !== 'all') {
-        $where_clauses[] = "status = ?";
-        $params[] = $status_filter;
+        // Map display status to database status (Pending is stored as Confirmed)
+        $db_status = ($status_filter == 'Pending') ? 'Confirmed' : $status_filter;
+        $where_clauses[] = "`status` = ?";
+        $params[] = $db_status;
         $types .= "s";
     }
     
     // Add search filter if provided
     if (!empty($search)) {
-        $where_clauses[] = "(customer_name LIKE ? OR order_id LIKE ?)";
+        $where_clauses[] = "(`customer_name` LIKE ? OR `order_id` LIKE ?)";
         $params[] = "%$search%";
         $params[] = "%$search%";
         $types .= "ss";
@@ -43,7 +56,7 @@ try {
     }
     
     // Add order by
-    $sql .= " ORDER BY order_date DESC";
+    $sql .= " ORDER BY `order_date` DESC";
     
     // Prepare and execute the statement
     $stmt = mysqli_prepare($conn, $sql);
@@ -67,12 +80,15 @@ try {
         'Delivered' => 0
     ];
     
-    $count_sql = "SELECT status, COUNT(*) as count FROM orders GROUP BY status";
+    $count_sql = "SELECT `status`, COUNT(*) as count FROM `orders` GROUP BY `status`";
     $count_result = mysqli_query($conn, $count_sql);
     
     while ($count_row = mysqli_fetch_assoc($count_result)) {
-        if (isset($status_counts[$count_row['status']])) {
-            $status_counts[$count_row['status']] = $count_row['count'];
+        // Map database status to display status (Confirmed is displayed as Pending)
+        $display_status = ($count_row['status'] == 'Confirmed') ? 'Pending' : $count_row['status'];
+        
+        if (isset($status_counts[$display_status])) {
+            $status_counts[$display_status] = $count_row['count'];
             $status_counts['all'] += $count_row['count'];
         }
     }
@@ -99,10 +115,18 @@ try {
     echo json_encode($response);
     
 } catch (Exception $e) {
+    // Log the full error for debugging
+    error_log("Error in get-orders.php: " . $e->getMessage());
+    error_log("Stack trace: " . $e->getTraceAsString());
+    
     http_response_code(500);
     echo json_encode([
         'success' => false,
-        'error' => $e->getMessage()
+        'error' => $e->getMessage(),
+        'debug' => [
+            'file' => basename($e->getFile()),
+            'line' => $e->getLine()
+        ]
     ]);
 }
 ?> 

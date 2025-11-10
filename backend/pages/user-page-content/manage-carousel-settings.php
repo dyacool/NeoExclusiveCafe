@@ -4,19 +4,18 @@ $page_title = "Carousel Settings";
 
 require_once __DIR__ . "/../admin-includes/config.php";
 require_once __DIR__ . "/../admin-includes/database.php";
+require_once __DIR__ . "/../../../includes/session-manager.php";
 require_once __DIR__ . "/../admin-includes/navbar/navbar.php";
 require_once __DIR__ . "/../admin-includes/activity-logger.php";
 
-// Start session if not already started
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-// Check if user is logged in as admin
-if (!isset($_SESSION['admin_id']) || !isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true || $_SESSION['admin_role'] !== 'admin') {
-    header("Location: /login/admin/admin-login.php");
+// Check if user is logged in as admin using SessionManager
+if (!SessionManager::isAdminLoggedIn()) {
+    header("Location: /backend/login/admin/admin-login.php");
     exit();
 }
+
+// Get admin data
+$adminData = SessionManager::getAdminData();
 
 // Check if the carousel_settings table exists, create it if it doesn't
 $table_check_query = "SHOW TABLES LIKE 'carousel_settings'";
@@ -45,7 +44,8 @@ if (mysqli_num_rows($table_check_result) == 0) {
                           VALUES ('Welcome to Neo Exclusive Cafe', 'Discover our premium coffee selection and delicious pastries', 
                           'Explore Menu', '/frontend/pages/products/product-dashboard.php', ?)";
         $default_stmt = mysqli_prepare($conn, $default_insert);
-        mysqli_stmt_bind_param($default_stmt, "s", $_SESSION['admin_id']);
+        $admin_id = $adminData['id'];
+        mysqli_stmt_bind_param($default_stmt, "i", $admin_id);
         mysqli_stmt_execute($default_stmt);
     } else {
         echo "<div class='alert alert-danger'>Error creating table: " . mysqli_error($conn) . "</div>";
@@ -59,6 +59,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_settings'])) {
     $button_text = mysqli_real_escape_string($conn, $_POST['button_text']);
     $button_link = mysqli_real_escape_string($conn, $_POST['button_link']);
     
+    $admin_id = $adminData['id'];
+    
     // Check if settings exist
     $check_query = "SELECT COUNT(*) as count FROM carousel_settings";
     $check_result = mysqli_query($conn, $check_query);
@@ -69,13 +71,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_settings'])) {
         $update_query = "UPDATE carousel_settings SET title = ?, description = ?, button_text = ?, 
                         button_link = ?, updated_by = ? WHERE id = 1";
         $update_stmt = mysqli_prepare($conn, $update_query);
-        mysqli_stmt_bind_param($update_stmt, "sssss", $title, $description, $button_text, $button_link, $_SESSION['admin_id']);
+        mysqli_stmt_bind_param($update_stmt, "ssssi", $title, $description, $button_text, $button_link, $admin_id);
     } else {
         // Insert new settings
         $insert_query = "INSERT INTO carousel_settings (title, description, button_text, button_link, created_by) 
                         VALUES (?, ?, ?, ?, ?)";
         $update_stmt = mysqli_prepare($conn, $insert_query);
-        mysqli_stmt_bind_param($update_stmt, "sssss", $title, $description, $button_text, $button_link, $_SESSION['admin_id']);
+        mysqli_stmt_bind_param($update_stmt, "ssssi", $title, $description, $button_text, $button_link, $admin_id);
     }
     
     if (mysqli_stmt_execute($update_stmt)) {
