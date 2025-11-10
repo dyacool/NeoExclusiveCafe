@@ -62,8 +62,33 @@ try {
         $sql .= " WHERE " . implode(" AND ", $where_clauses);
     }
     
-    // Add order by and pagination
-    $sql .= " ORDER BY order_date DESC LIMIT ? OFFSET ?";
+    // Add complex ordering:
+    // 1. Completed/Delivered orders go last
+    // 2. Active orders sorted by delivery/pickup date (nearest first)
+    // 3. Completed orders sorted by order date (oldest first)
+    $sql .= " ORDER BY 
+        CASE 
+            WHEN LOWER(TRIM(status)) IN ('delivered', 'picked-up', 'completed') THEN 2
+            ELSE 1
+        END ASC,
+        CASE 
+            WHEN LOWER(TRIM(status)) IN ('delivered', 'picked-up', 'completed') THEN order_date
+            ELSE COALESCE(
+                NULLIF(delivery_date, '0000-00-00'),
+                NULLIF(pickup_date, '0000-00-00'),
+                order_date
+            )
+        END ASC,
+        CASE 
+            WHEN LOWER(TRIM(status)) NOT IN ('delivered', 'picked-up', 'completed') THEN 
+                COALESCE(
+                    NULLIF(delivery_time, '00:00:00'),
+                    NULLIF(pickup_time, '00:00:00')
+                )
+            ELSE NULL
+        END ASC,
+        order_date ASC
+        LIMIT ? OFFSET ?";
     
     // Add pagination parameters
     $params[] = $orders_per_page;
