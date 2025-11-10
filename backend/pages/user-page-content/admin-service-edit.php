@@ -1,5 +1,4 @@
 <?php
-// Load database first (it starts the session)
 if (!isset($conn)) {
     require_once "../admin-includes/database.php";
 }
