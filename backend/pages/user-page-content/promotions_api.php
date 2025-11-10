@@ -24,6 +24,9 @@ switch ($action) {
     case 'datatableDisplay':
         handleDataTableDisplay($conn);
         break;
+    case 'getFilterCounts':
+        handleGetFilterCounts($conn);
+        break;
     case 'add_voucher':
         handleAddVoucher($conn);
         break;
@@ -45,6 +48,9 @@ switch ($action) {
 }
 
 function handleDataTableDisplay($conn) {
+    // Update expired vouchers before displaying
+    updateExpiredVouchers($conn);
+    
     $draw = intval($_POST['draw']);
     $start = intval($_POST['start']);
     $length = intval($_POST['length']);
@@ -625,11 +631,84 @@ function handleReactivateVoucher($conn) {
             echo json_encode(['success' => false, 'message' => 'Voucher not found']);
         }
     } else {
-        echo json_encode(['success' => false, 'message' => 'Error reactivating voucher: ' . $conn->error]);
+            echo json_encode(['success' => false, 'message' => 'Error reactivating voucher: ' . $conn->error]);
     }
     
     $stmt->close();
 }
 
+function handleGetFilterCounts($conn) {
+    // First, update expired vouchers
+    updateExpiredVouchers($conn);
+    
+    // Get counts for all filter categories
+    $counts = [
+        'all' => 0,
+        'active' => 0,
+        'expired' => 0,
+        'fixed' => 0,
+        'percentage' => 0,
+        'free_shipping' => 0
+    ];
+    
+    // Count all vouchers
+    $sql = "SELECT COUNT(*) as count FROM promotions";
+    $result = $conn->query($sql);
+    if ($result && $row = $result->fetch_assoc()) {
+        $counts['all'] = (int)$row['count'];
+    }
+    
+    // Count by status - active (case-insensitive)
+    $sql = "SELECT COUNT(*) as count FROM promotions WHERE LOWER(status) = 'active'";
+    $result = $conn->query($sql);
+    if ($result && $row = $result->fetch_assoc()) {
+        $counts['active'] = (int)$row['count'];
+    }
+    
+    // Count by status - expired (case-insensitive)
+    $sql = "SELECT COUNT(*) as count FROM promotions WHERE LOWER(status) = 'expired'";
+    $result = $conn->query($sql);
+    if ($result && $row = $result->fetch_assoc()) {
+        $counts['expired'] = (int)$row['count'];
+    }
+    
+    // Count by type - fixed
+    $sql = "SELECT COUNT(*) as count FROM promotions WHERE type = 'fixed'";
+    $result = $conn->query($sql);
+    if ($result && $row = $result->fetch_assoc()) {
+        $counts['fixed'] = (int)$row['count'];
+    }
+    
+    // Count by type - percentage
+    $sql = "SELECT COUNT(*) as count FROM promotions WHERE type = 'percentage'";
+    $result = $conn->query($sql);
+    if ($result && $row = $result->fetch_assoc()) {
+        $counts['percentage'] = (int)$row['count'];
+    }
+    
+    // Count by type - free_shipping
+    $sql = "SELECT COUNT(*) as count FROM promotions WHERE type = 'free_shipping'";
+    $result = $conn->query($sql);
+    if ($result && $row = $result->fetch_assoc()) {
+        $counts['free_shipping'] = (int)$row['count'];
+    }
+    
+    echo json_encode(['success' => true, 'counts' => $counts]);
+}
+
+// Helper function to update expired vouchers
+function updateExpiredVouchers($conn) {
+    $today = date('Y-m-d');
+    $sql = "UPDATE promotions 
+            SET status = 'expired' 
+            WHERE expiration_date < ? 
+            AND status = 'active'";
+    $stmt = $conn->prepare($sql);
+    if ($stmt) {
+        $stmt->bind_param("s", $today);
+        $stmt->execute();
+        $stmt->close();
+    }
+}
 $conn->close();
 ?>

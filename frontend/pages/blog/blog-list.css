@@ -9,6 +9,9 @@
   max-width: 1400px;
   margin: 0 auto;
   padding: 0 20px;
+  min-height: calc(
+    100vh - 250px
+  ); /* Full viewport height minus navbar and footer */
 }
 
 .fade-in {
@@ -148,9 +151,13 @@
 .no-posts {
   text-align: center;
   padding: 3rem;
-  background: #f8f9fa;
   border-radius: 8px;
   margin: 2rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px; /* Make the empty state more prominent */
 }
 
 .no-posts h2 {

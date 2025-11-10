@@ -56,123 +56,33 @@ createCouponUsageTable($conn);
                     </button>
                 </div>
                 <div class="controls-supply-order-right">
-                    <button id="filter-btn">
-                        <i class="fas fa-filter"></i>
-                        <span>Filter</span>
-                    </button>
-                    <div class="filter-container" style="display: none;">
-                        <div class="filter-item">
-                            <label for="voucher-type-filter">Voucher Type</label>
-                            <select id="voucher-type-filter" name="voucher-type-filter">
-                                <option value="" selected>All Types</option>
-                                <option value="percentage">Percentage (%)</option>
-                                <option value="fixed">Fixed Amount (₱)</option>
-                                <option value="free_shipping">Free Shipping Only</option>
-                            </select>
-                        </div>
-                        <fieldset class="filter-fieldset" id="value-range-fieldset">
-                            <legend>Value</legend>
-                            <div class="field-group">
-                                <div class="filter-item">
-                                    <label for="value-min">Min</label>
-                                    <input type="number" id="value-min" placeholder="Min Value">
-                                </div>
-                                <div class="filter-item">
-                                    <label for="value-max">Max</label>
-                                    <input type="number" id="value-max" placeholder="Max Value">
-                                </div>
-                            </div>
-                        </fieldset>
-                        <fieldset class="filter-fieldset">
-                            <legend>Min Purchase</legend>
-                            <div class="field-group">
-                                <div class="filter-item">
-                                    <label for="min-purchase-min">Min</label>
-                                    <input type="number" id="min-purchase-min" placeholder="Min Purchase">
-                                </div>
-                                <div class="filter-item">
-                                    <label for="min-purchase-max">Max</label>
-                                    <input type="number" id="min-purchase-max" placeholder="Max Purchase">
-                                </div>
-                            </div>
-                        </fieldset>
-                        <div class="filter-item">
-                            <label for="status-filter">Status</label>
-                            <select id="status-filter" name="status-filter">
-                                <option value="" selected>All Status</option>
-                                <option value="active">Active</option>
-                                <option value="expired">Expired</option>
-                                <option value="upcoming">Upcoming</option>
-                            </select>
-                        </div>
-                        <div class="filter-item">
-                            <label for="applies-to-filter">Applies To</label>
-                            <select id="applies-to-filter" name="applies-to-filter">
-                                <option value="" selected>All</option>
-                                <option value="all">All Products</option>
-                                <option value="delivery">Delivery Products</option>
-                                <option value="pickup">Pickup Products</option>
-                                <option value="special">Special Products</option>
-                            </select>
-                        </div>
-                        <fieldset class="filter-fieldset">
-                            <legend>Usage Limit (Global)</legend>
-                            <div class="field-group">
-                                <div class="filter-item">
-                                    <label for="usage-limit-min">Min</label>
-                                    <input type="number" id="usage-limit-min" placeholder="Min Usage Limit">
-                                </div>
-                                <div class="filter-item">
-                                    <label for="usage-limit-max">Max</label>
-                                    <input type="number" id="usage-limit-max" placeholder="Max Usage Limit">
-                                </div>
-                            </div>
-                            <div class="filter-item">
-                                <label for="usage-limit-type">Global Usage Limit Type</label>
-                                <select id="usage-limit-type">
-                                    <option value="" selected>All</option>
-                                    <option value="unlimited">Unlimited (∞)</option>
-                                    <option value="limited">Limited</option>
-                                </select>
-                            </div>
-                        </fieldset>
-                        <fieldset class="filter-fieldset">
-                            <legend>Usage Limit Per User</legend>
-                            <div class="field-group">
-                                <div class="filter-item">
-                                    <label for="usage-limit-user-min">Min</label>
-                                    <input type="number" id="usage-limit-user-min" placeholder="Min Usage/User">
-                                </div>
-                                <div class="filter-item">
-                                    <label for="usage-limit-user-max">Max</label>
-                                    <input type="number" id="usage-limit-user-max" placeholder="Max Usage/User">
-                                </div>
-                            </div>
-                            <div class="filter-item">
-                                <label for="usage-limit-user-type">Per User Usage Limit Type</label>
-                                <select id="usage-limit-user-type">
-                                    <option value="" selected>All</option>
-                                    <option value="unlimited">Unlimited (∞)</option>
-                                    <option value="limited">Limited</option>
-                                </select>
-                            </div>
-                        </fieldset>
-                        <fieldset class="filter-fieldset">
-                            <legend>Validity Date</legend>
-                            <div class="field-group">
-                                <div class="filter-item">
-                                    <label for="validity-from">From</label>
-                                    <input type="date" id="validity-from">
-                                </div>
-                                <div class="filter-item">
-                                    <label for="validity-to">To</label>
-                                    <input type="date" id="validity-to">
-                                </div>
-                            </div>
-                        </fieldset>
-                        <div class="filter-btns">
-                            <button id="reset-filters-btn" type="button">Reset</button>
-                            <button id="apply-filters-btn" type="button">Apply</button>
+                    <!-- Filter Buttons -->
+                    <div class="filter-group">
+                        <div class="filter-buttons">
+                            <button class="filter-btn active" onclick="filterVouchers('all', this)" data-filter="all">
+                                <span class="filter-count" id="count-all">0</span>
+                                All
+                            </button>
+                            <button class="filter-btn" onclick="filterVouchers('active', this)" data-filter="active">
+                                <span class="filter-count" id="count-active">0</span>
+                                Active
+                            </button>
+                            <button class="filter-btn" onclick="filterVouchers('expired', this)" data-filter="expired">
+                                <span class="filter-count" id="count-expired">0</span>
+                                Expired
+                            </button>
+                            <button class="filter-btn" onclick="filterVouchers('fixed', this)" data-filter="fixed">
+                                <span class="filter-count" id="count-fixed">0</span>
+                                Fixed Amount
+                            </button>
+                            <button class="filter-btn" onclick="filterVouchers('percentage', this)" data-filter="percentage">
+                                <span class="filter-count" id="count-percentage">0</span>
+                                Percentage
+                            </button>
+                            <button class="filter-btn" onclick="filterVouchers('free_shipping', this)" data-filter="free_shipping">
+                                <span class="filter-count" id="count-free-shipping">0</span>
+                                Free Shipping
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -186,7 +96,6 @@ createCouponUsageTable($conn);
                         <tr>
                             <th>Id</th>
                             <th>Title</th>
-                            <th>Method</th>
                             <th>Code</th>
                             <th>Discount</th>
                             <th>Restrictions</th>
@@ -231,13 +140,6 @@ createCouponUsageTable($conn);
                         <label for="code">Code * (Max 10 characters)</label>
                         <input type="text" id="code" name="code" maxlength="10" required pattern="[A-Za-z0-9]+" title="Only letters and numbers allowed">
                     </div>
-                    <div class="form-group">
-                        <label for="applicationMethod">Application Method *</label>
-                        <select id="applicationMethod" name="application_method" required>
-                            <option value="voucher_code">Voucher Code</option>
-                            <option value="automatic_discount">Automatic Discount</option>
-                        </select>
-                    </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="discountType">Discount Type *</label>
@@ -259,20 +161,9 @@ createCouponUsageTable($conn);
                     </div>
                 </div>
 
-                <!-- Applicable To -->
+                <!-- Validity -->
                 <div class="form-section">
-                    <h3>Applicable To</h3>
-                    <div class="form-group">
-                        <label for="applicableTo">Product Type *</label>
-                        <select id="applicableTo" name="applicable_to" required>
-                            <option value="all">All Products</option>
-                            <option value="delivery">Delivery Products Only</option>
-                            <option value="pickup">Pickup Products Only</option>
-                            <option value="special">Special Products</option>
-                        </select>
-                    </div>
-                    
-                    <h4>Restrictions</h4>
+                    <h3>Restrictions</h3>
                     <div class="form-row">
                         <div class="form-group">
                             <div class="switch-group">
@@ -350,34 +241,22 @@ createCouponUsageTable($conn);
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Application Method</label>
-                        <div class="view-field" id="viewMethod">-</div>
-                    </div>
-                    <div class="form-group">
                         <label>Discount Type</label>
                         <div class="view-field" id="viewDiscountType">-</div>
                     </div>
-                </div>
-                <div class="form-row">
                     <div class="form-group">
                         <label>Discount Value</label>
                         <div class="view-field" id="viewDiscount">-</div>
                     </div>
-                    <div class="form-group">
-                        <label>Minimum Spend</label>
-                        <div class="view-field" id="viewMinSpend">-</div>
-                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Minimum Spend</label>
+                    <div class="view-field" id="viewMinSpend">-</div>
                 </div>
             </div>
 
             <div class="form-section">
-                <h3>Applicable To</h3>
-                <div class="form-group">
-                    <label>Product Type</label>
-                    <div class="view-field" id="viewApplicableTo">-</div>
-                </div>
-                
-                <h4>Restrictions</h4>
+                <h3>Restrictions</h3>
                 <div class="form-row">
                     <div class="form-group">
                         <label>Usage Limit</label>

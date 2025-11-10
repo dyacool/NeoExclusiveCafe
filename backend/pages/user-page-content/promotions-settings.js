@@ -17,17 +17,14 @@ const VoucherTable = (function () {
       ajax: {
         url: "./promotions_api.php",
         type: "post",
-        data: { action: "datatableDisplay" },
+        data: function (d) {
+          d.action = "datatableDisplay";
+          return d;
+        },
       },
       columns: [
         { data: "id", visible: false, orderable: false, searchable: false },
         { data: "title", orderable: false, searchable: false },
-        {
-          data: "application_method",
-          render: renderMethod,
-          orderable: false,
-          searchable: false,
-        },
         { data: "code", orderable: false, searchable: false },
         {
           data: "discount",
@@ -66,12 +63,18 @@ const VoucherTable = (function () {
       initComplete: function (settings, json) {
         // Remove any DataTables generated headers
         $(this.api().table().header()).hide();
+        // Load filter counts immediately after table loads
+        updateFilterCounts();
       },
       drawCallback: function (settings) {
         // Show custom pagination after table loads
         updateCustomPagination(settings);
         // Ensure DataTables headers stay hidden
         $(this.api().table().header()).hide();
+        // Remove spinner from filter buttons after data loads
+        document.querySelectorAll(".filter-btn").forEach((btn) => {
+          btn.classList.remove("loading");
+        });
       },
     });
   }
@@ -168,10 +171,30 @@ const VoucherTable = (function () {
 
   function renderDiscount(data, type, row) {
     if (type === "display") {
-      if (row.discount.includes("Free Shipping Only")) {
-        return `<span class='status-badge upcoming'>Free Shipping Only</span>`;
+      // Check if it's free shipping only (no other discount)
+      if (row.type === "free_shipping") {
+        return `<div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="background: #D1FAE5; color: #065F46; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 500;">Free Shipping</span>
+                </div>`;
       }
-      let html = data;
+
+      // Check if it's a percentage discount
+      if (row.type === "percentage") {
+        return `<div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="font-weight: 600; color: #111827;">${row.value}%</span>
+                  <span style="background: #DBEAFE; color: #1E40AF; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 500;">Percentage</span>
+                </div>`;
+      }
+
+      // Otherwise it's a fixed amount
+      if (row.type === "fixed") {
+        return `<div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="font-weight: 600; color: #111827;">₱${parseFloat(
+                    row.value
+                  ).toFixed(2)}</span>
+                  <span style="background: #FEF3C7; color: #92400E; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 500;">Fixed Amount</span>
+                </div>`;
+      }
     }
     return data;
   }
@@ -284,6 +307,9 @@ const VoucherControls = (function () {
 
 let supplyOrderTable = null;
 document.addEventListener("DOMContentLoaded", function () {
+  // Load filter counts immediately before table loads
+  updateFilterCounts();
+
   supplyOrderTable = VoucherTable.initDataTable();
   VoucherTable.addSelectEvent(supplyOrderTable);
   VoucherControls.add_events();
@@ -469,12 +495,6 @@ function viewVoucher() {
   document.getElementById("viewTitle").textContent = voucher.title || "-";
   document.getElementById("viewCode").textContent = voucher.code || "-";
 
-  // Format method display
-  let methodText = voucher.application_method || "-";
-  if (methodText === "voucher_code") methodText = "Voucher Code";
-  if (methodText === "automatic_discount") methodText = "Automatic Discount";
-  document.getElementById("viewMethod").textContent = methodText;
-
   // Format discount type and value
   let discountTypeText = voucher.type || "-";
   if (discountTypeText === "percentage")
@@ -483,18 +503,20 @@ function viewVoucher() {
   if (discountTypeText === "free_shipping") discountTypeText = "Free Shipping";
   document.getElementById("viewDiscountType").textContent = discountTypeText;
 
-  document.getElementById("viewDiscount").textContent = voucher.discount || "-";
+  // Format discount value based on type
+  let discountValue = "-";
+  if (voucher.type === "percentage") {
+    discountValue = voucher.value + "%";
+  } else if (voucher.type === "fixed") {
+    discountValue = "₱" + parseFloat(voucher.value).toFixed(2);
+  } else if (voucher.type === "free_shipping") {
+    discountValue = "Free Shipping Only";
+  }
+  document.getElementById("viewDiscount").textContent = discountValue;
+
   document.getElementById("viewMinSpend").textContent = voucher.min_purchase
     ? `₱${voucher.min_purchase}`
     : "₱0";
-
-  // Format applicable to
-  let applicableText = voucher.applicable_to || "-";
-  if (applicableText === "all") applicableText = "All Products";
-  if (applicableText === "delivery") applicableText = "Delivery Products Only";
-  if (applicableText === "pickup") applicableText = "Pickup Products Only";
-  if (applicableText === "special") applicableText = "Special Products";
-  document.getElementById("viewApplicableTo").textContent = applicableText;
 
   document.getElementById("viewUsageLimit").textContent = voucher.usage || "-";
   document.getElementById("viewPerUserLimit").textContent =
@@ -541,207 +563,86 @@ if (viewBtn) {
   viewBtn.addEventListener("click", viewVoucher);
 }
 
-const VoucherFilter = (function () {
-  const filter_btn = document.getElementById("filter-btn");
-  const filterContainer = document.querySelector(".filter-container");
-  const apply_btn = document.getElementById("apply-filters-btn");
-  const reset_btn = document.getElementById("reset-filters-btn");
+// Filter vouchers by type or status
+let currentFilter = "all";
 
-  const voucherTypeFilter = document.getElementById("voucher-type-filter");
-  const valueMin = document.getElementById("value-min");
-  const valueMax = document.getElementById("value-max");
-  const valueRangeFieldset = document.getElementById("value-range-fieldset");
-  const minPurchaseMin = document.getElementById("min-purchase-min");
-  const minPurchaseMax = document.getElementById("min-purchase-max");
-  const statusFilter = document.getElementById("status-filter");
-  const validityFrom = document.getElementById("validity-from");
-  const validityTo = document.getElementById("validity-to");
-  const appliesToFilter = document.getElementById("applies-to-filter");
-  const usageLimitMin = document.getElementById("usage-limit-min");
-  const usageLimitMax = document.getElementById("usage-limit-max");
-  const usageLimitUserMin = document.getElementById("usage-limit-user-min");
-  const usageLimitUserMax = document.getElementById("usage-limit-user-max");
-  const usageLimitType = document.getElementById("usage-limit-type");
-  const usageLimitUserType = document.getElementById("usage-limit-user-type");
+function filterVouchers(filter, buttonElement) {
+  // Remove active class from all buttons
+  document.querySelectorAll(".filter-btn").forEach((btn) => {
+    btn.classList.remove("active");
+    btn.classList.remove("loading");
+  });
 
-  function add_events() {
-    filter_btn.addEventListener("click", toggle_filter_container);
-    apply_btn.addEventListener("click", () => {
-      draw_table_filter();
-      toggle_filter_container();
-    });
-    reset_btn.addEventListener("click", reset);
+  // Add active class and loading class to clicked button
+  buttonElement.classList.add("active");
+  buttonElement.classList.add("loading");
 
-    // Close filter when clicking outside
-    document.addEventListener("click", function (event) {
-      if (
-        !filterContainer.contains(event.target) &&
-        !filter_btn.contains(event.target)
-      ) {
-        if (filterContainer.style.display === "flex") {
-          filterContainer.style.display = "none";
-        }
-      }
-    });
+  // Store current filter
+  currentFilter = filter;
 
-    voucherTypeFilter.addEventListener("change", function () {
-      if (voucherTypeFilter.value === "free_shipping") {
-        valueRangeFieldset.style.display = "none";
-      } else {
-        valueRangeFieldset.style.display = "block";
-      }
-    });
-    if (voucherTypeFilter.value === "free_shipping") {
-      valueRangeFieldset.style.display = "none";
+  // Update DataTable ajax data function
+  const table = supplyOrderTable;
+  const settings = table.settings()[0];
+
+  // Update the ajax.data to be a function that returns the filter parameters
+  settings.ajax.data = function (d) {
+    d.action = "datatableDisplay";
+
+    if (filter === "all") {
+      // No additional filters for 'all'
+      delete d.status;
+      delete d.voucher_type;
+    } else if (filter === "active" || filter === "expired") {
+      // Filter by status
+      d.status = filter;
+      delete d.voucher_type;
     } else {
-      valueRangeFieldset.style.display = "block";
+      // Filter by voucher type (fixed, percentage, free_shipping)
+      d.voucher_type = filter;
+      delete d.status;
     }
-    validityFrom.addEventListener(
-      "change",
-      () => (validityTo.min = validityFrom.value)
-    );
-    validityTo.addEventListener(
-      "change",
-      () => (validityFrom.max = validityTo.value)
-    );
-    appliesToFilter.value = "";
-    usageLimitMin.value = "";
-    usageLimitMax.value = "";
-    usageLimitUserMin.value = "";
-    usageLimitUserMax.value = "";
-    usageLimitType.value = "";
-    usageLimitUserType.value = "";
-  }
 
-  function toggle_filter_container() {
-    if (
-      filterContainer.style.display === "none" ||
-      filterContainer.style.display === ""
-    ) {
-      // Position the filter container dynamically
-      const filterBtn = document.getElementById("filter-btn");
-      const rect = filterBtn.getBoundingClientRect();
-      const viewportHeight = window.innerHeight;
-      const viewportWidth = window.innerWidth;
-      const containerHeight = 600; // Approximate height of filter container
-      const containerWidth = 450; // Width of filter container
-
-      // Calculate optimal position
-      let top = rect.bottom + 8;
-      let left = rect.right - containerWidth;
-
-      // Adjust if goes below viewport
-      if (top + containerHeight > viewportHeight) {
-        top = rect.top - containerHeight - 8;
-        // If still doesn't fit, position at bottom with scroll
-        if (top < 0) {
-          top = 20;
-          filterContainer.style.maxHeight = viewportHeight - 40 + "px";
-        }
-      }
-
-      // Adjust if goes beyond left edge
-      if (left < 20) {
-        left = 20;
-      }
-
-      // Adjust if goes beyond right edge
-      if (left + containerWidth > viewportWidth - 20) {
-        left = viewportWidth - containerWidth - 20;
-      }
-
-      filterContainer.style.top = top + "px";
-      filterContainer.style.left = left + "px";
-      filterContainer.style.display = "flex";
-    } else {
-      filterContainer.style.display = "none";
-    }
-  }
-
-  function reset() {
-    voucherTypeFilter.value = "";
-    valueMin.value = "";
-    valueMax.value = "";
-    minPurchaseMin.value = "";
-    minPurchaseMax.value = "";
-    statusFilter.value = "";
-    validityFrom.value = "";
-    validityTo.value = "";
-    valueRangeFieldset.style.display = "block";
-    appliesToFilter.value = "";
-    usageLimitMin.value = "";
-    usageLimitMax.value = "";
-    usageLimitUserMin.value = "";
-    usageLimitUserMax.value = "";
-    usageLimitType.value = "";
-    usageLimitUserType.value = "";
-    draw_table_filter();
-    toggle_filter_container();
-  }
-
-  function draw_table_filter() {
-    if (
-      valueMin.value &&
-      valueMax.value &&
-      parseFloat(valueMin.value) > parseFloat(valueMax.value)
-    ) {
-      Swal.fire("Invalid Value Range!", "error");
-      return;
-    }
-    if (
-      minPurchaseMin.value &&
-      minPurchaseMax.value &&
-      parseFloat(minPurchaseMin.value) > parseFloat(minPurchaseMax.value)
-    ) {
-      Swal.fire("Invalid Min Purchase Range!", "error");
-      return;
-    }
-    if (
-      usageLimitMin.value &&
-      usageLimitMax.value &&
-      parseInt(usageLimitMin.value) > parseInt(usageLimitMax.value)
-    ) {
-      Swal.fire("Invalid Usage Limit Range!", "error");
-      return;
-    }
-    if (
-      usageLimitUserMin.value &&
-      usageLimitUserMax.value &&
-      parseInt(usageLimitUserMin.value) > parseInt(usageLimitUserMax.value)
-    ) {
-      Swal.fire("Invalid Usage Limit Per User Range!", "error");
-      return;
-    }
-    supplyOrderTable.context[0].ajax.data = {
-      action: "datatableDisplay",
-      voucher_type: voucherTypeFilter.value,
-      value_min: valueMin.value,
-      value_max: valueMax.value,
-      min_purchase_min: minPurchaseMin.value,
-      min_purchase_max: minPurchaseMax.value,
-      status: statusFilter.value,
-      applies_to: appliesToFilter.value,
-      usage_limit_min: usageLimitMin.value,
-      usage_limit_max: usageLimitMax.value,
-      usage_limit_type: usageLimitType.value,
-      usage_limit_user_min: usageLimitUserMin.value,
-      usage_limit_user_max: usageLimitUserMax.value,
-      usage_limit_user_type: usageLimitUserType.value,
-      validity_from: validityFrom.value,
-      validity_to: validityTo.value,
-    };
-    // Reset to first page when filtering
-    supplyOrderTable.page(0).draw();
-  }
-
-  return {
-    add_events,
-    draw_table_filter,
+    return d;
   };
-})();
 
-if (VoucherFilter && VoucherFilter.add_events) {
-  VoucherFilter.add_events();
+  // Reload table
+  table.ajax.reload();
+}
+
+// Update filter counts after table loads
+function updateFilterCounts(data) {
+  // Make AJAX call to get all counts regardless of current filter
+  $.ajax({
+    url: "./promotions_api.php",
+    type: "POST",
+    data: { action: "getFilterCounts" },
+    dataType: "json",
+    success: function (response) {
+      if (response.success) {
+        const counts = response.counts;
+        document.getElementById("count-all").textContent = counts.all || 0;
+        document.getElementById("count-active").textContent =
+          counts.active || 0;
+        document.getElementById("count-expired").textContent =
+          counts.expired || 0;
+        document.getElementById("count-fixed").textContent = counts.fixed || 0;
+        document.getElementById("count-percentage").textContent =
+          counts.percentage || 0;
+        document.getElementById("count-free-shipping").textContent =
+          counts.free_shipping || 0;
+      }
+    },
+    error: function (xhr, status, error) {
+      console.error("Error loading filter counts:", error);
+      // Fallback: set all counts to 0
+      document.getElementById("count-all").textContent = "0";
+      document.getElementById("count-active").textContent = "0";
+      document.getElementById("count-expired").textContent = "0";
+      document.getElementById("count-fixed").textContent = "0";
+      document.getElementById("count-percentage").textContent = "0";
+      document.getElementById("count-free-shipping").textContent = "0";
+    },
+  });
 }
 
 // Global pagination function

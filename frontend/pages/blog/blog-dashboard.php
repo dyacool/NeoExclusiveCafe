@@ -48,7 +48,6 @@ if (!$is_preview_mode && (!isset($_SESSION['is_verified']) || $_SESSION['is_veri
 <body>
     
 <?php include __DIR__ . "/../../user-includes/bread-crumb/bread-crumb.php"; ?>
-    <div class="main">
         <div class="content">
             <!-- Blog Header Section -->
             <div class="blog-header">
@@ -77,7 +76,6 @@ if (!$is_preview_mode && (!isset($_SESSION['is_verified']) || $_SESSION['is_veri
                 </div>
             </div>
         </div>
-    </div>
 
     <!-- Full Page Loading Overlay -->
     <div class="loading-overlay" id="loadingOverlay">

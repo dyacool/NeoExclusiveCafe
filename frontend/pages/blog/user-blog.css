@@ -2,6 +2,9 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 1rem;
+  min-height: calc(
+    100vh - 250px
+  ); /* Full viewport height minus navbar and footer */
 }
 
 .fade-in {
@@ -280,7 +283,12 @@
 
 .no-posts {
   text-align: center;
-  padding: 5rem;
+  padding: 3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px; /* Make the empty state more prominent */
 }
 
 .no-posts h2 {
@@ -293,10 +301,6 @@
     flex-direction: row;
     gap: 1rem;
     text-align: center;
-  }
-
-  .blog-grid {
-    grid-template-columns: 2fr;
   }
 }
 
