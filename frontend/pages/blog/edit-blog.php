@@ -41,10 +41,15 @@ $post = mysqli_fetch_assoc($result);
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Load Cloudinary helper only when needed
+    require_once __DIR__ . '/../../../backend/includes/cloudinary-helper.php';
+    
     $title = trim($_POST['title']);
     $content = trim($_POST['content']);
-    $current_image = $post['image_path'];
-    $image_path = $current_image;
+    $current_cloud_url = $post['cloud_url'] ?? '';
+    $current_cloud_public_id = $post['cloud_public_id'] ?? '';
+    $cloud_url = $current_cloud_url;
+    $cloud_public_id = $current_cloud_public_id;
     $error = null;
 
     // Validate inputs
@@ -55,43 +60,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Handle image upload if a new image is provided
     if (!$error && isset($_FILES['image']) && $_FILES['image']['size'] > 0) {
         $allowed_types = ['image/jpeg', 'image/png', 'image/gif'];
-        $max_size = 5 * 1024 * 1024; // 5MB
+        $max_size = 10 * 1024 * 1024; // 10MB
 
         if (!in_array($_FILES['image']['type'], $allowed_types)) {
             $error = "Invalid file type. Only JPG, PNG, and GIF are allowed.";
         } elseif ($_FILES['image']['size'] > $max_size) {
-            $error = "File is too large. Maximum size is 5MB.";
+            $error = "File is too large. Maximum size is 10MB.";
         } else {
-            // Delete old image if it exists
-            if ($current_image && file_exists("../../" . $current_image)) {
-                unlink("../../" . $current_image);
+            // Delete old image from Cloudinary if it exists
+            if (!empty($current_cloud_public_id)) {
+                deleteFromCloudinary($current_cloud_public_id);
             }
 
-            // Generate unique filename
-            $extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
-            $filename = uniqid() . '.' . $extension;
-            $upload_path = "assets/uploaded-images-users/" . $filename;
-            $full_path = "../../" . $upload_path;
-
-            // Create directory if it doesn't exist
-            if (!file_exists(dirname($full_path))) {
-                mkdir(dirname($full_path), 0777, true);
-            }
-
-            // Move uploaded file
-            if (move_uploaded_file($_FILES['image']['tmp_name'], $full_path)) {
-                $image_path = $upload_path;
+            // Generate unique public ID
+            $publicId = 'user_blog_' . $_SESSION['user_id'] . '_' . uniqid();
+            
+            // Upload to Cloudinary
+            $result = uploadToCloudinary($_FILES['image']['tmp_name'], 'neocafe/user_blog', $publicId);
+            
+            if ($result['success']) {
+                $cloud_url = $result['url'];
+                $cloud_public_id = $result['public_id'];
             } else {
-                $error = "Failed to upload image.";
+                $error = $result['error'];
             }
         }
     }
 
     // If no errors, update the post
     if (!$error) {
-        $update_sql = "UPDATE user_blog_post SET title = ?, content = ?, image_path = ? WHERE id = ? AND user_id = ?";
+        $update_sql = "UPDATE user_blog_post SET title = ?, content = ?, cloud_url = ?, cloud_public_id = ?, cloud_provider = 'cloudinary' WHERE id = ? AND user_id = ?";
         $update_stmt = mysqli_prepare($conn, $update_sql);
-        mysqli_stmt_bind_param($update_stmt, "sssii", $title, $content, $image_path, $post_id, $_SESSION['user_id']);
+        mysqli_stmt_bind_param($update_stmt, "ssssii", $title, $content, $cloud_url, $cloud_public_id, $post_id, $_SESSION['user_id']);
         
         if (mysqli_stmt_execute($update_stmt)) {
             $_SESSION['success_message'] = "Post updated successfully!";
@@ -137,21 +137,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label class="lbl-title">Image (Optional)</label>
                 <div class="imagecont">
                     <label class="media" for="image">
-                        <?php if ($post['image_path']): ?>
-                            <?php 
-                            // Simplified image path handling like in user-blog.php
-                            $image_path = $post['image_path'];
-                            
-                            // If path doesn't start with 'assets/', add the prefix
-                            if (strpos($image_path, 'assets/') !== 0) {
-                                $image_path = 'assets/uploaded-images-users/' . basename($image_path);
-                            }
-                            
-                            // Create the relative path from the current location
-                            $display_path = '../../' . $image_path;
-                            ?>
+                        <?php if (!empty($post['cloud_url'])): ?>
                             <div class="upload-text" style="display: none;">Click to upload new image</div>
-                            <img class="image-preview preview-active" src="<?= htmlspecialchars($display_path) ?>" alt="<?php echo htmlspecialchars($post['title']); ?>" onerror="this.style.display='none'; this.parentNode.querySelector('.upload-text').style.display='block';">
+                            <img class="image-preview preview-active" src="<?= htmlspecialchars($post['cloud_url']) ?>" alt="<?php echo htmlspecialchars($post['title']); ?>" onerror="this.style.display='none'; this.parentNode.querySelector('.upload-text').style.display='block';">
                             <button type="button" class="remove-image remove-active">×</button>
                         <?php else: ?>
                             <div class="upload-text">Click to upload image</div>

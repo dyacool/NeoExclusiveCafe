@@ -1,21 +1,19 @@
 <?php
-    require_once __DIR__ . '/../../../includes/session-manager.php';
-    
-    if (!SessionManager::isAdminLoggedIn()) {
-        header("Location: /login/admin/admin-login.php");
-        exit();
-    }
+// Load database first (it starts the session)
+if (!isset($conn)) {
+    require_once __DIR__ . "/../admin-includes/database.php";
+}
+require_once __DIR__ . "/../../../includes/session-manager.php";
 
-    // Include database configuration
-    require_once __DIR__ . '/../../../config/database-config.php';
-    
-    // Pagination settings
-    $items_per_page = 12;
-    $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-    $offset = ($current_page - 1) * $items_per_page;
+if (!SessionManager::isAdminLoggedIn()) {
+    header("Location: /backend/login/admin/admin-login.php");
+    exit();
+}
 
-    // Get database connection
-    $conn = getDatabaseConnection();
+// Pagination settings
+$items_per_page = 12;
+$current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$offset = ($current_page - 1) * $items_per_page;
     
     // Count total archived products
     $count_sql = "SELECT COUNT(*) as total FROM products WHERE deleted_at IS NOT NULL";

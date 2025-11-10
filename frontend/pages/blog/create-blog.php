@@ -1,5 +1,12 @@
 <?php
 ob_start();
+
+// Load database first (starts session)
+if (!isset($conn)) {
+    require_once __DIR__ . "/../../../backend/pages/admin-includes/database.php";
+}
+require_once __DIR__ . "/../../../includes/session-manager.php";
+
 $page_title = "Create Blog Post - NeoExclusiveCafe";
 $additional_css = [
     "/frontend/pages/blog/create-blog.css",
@@ -9,14 +16,11 @@ $additional_css = [
 
 require_once "../../user-includes/user-header.php";
 
-// Redirect if not logged in
-if (!isset($_SESSION['user_id'])) {
-    header("Location: /frontend/login/user/login-signup.php");
-    exit();
-}
+// Require user login
+SessionManager::requireUserLogin('/frontend/login/user/login-signup.php');
 
 // Check if user has completed orders (delivered or picked up)
-$user_id = $_SESSION['user_id'];
+$user_id = SessionManager::getUserId();
 
 // Get user email for orders query
 $email_query = "SELECT email FROM users WHERE id = ?";
@@ -88,31 +92,40 @@ if (!$can_create_post) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Load Cloudinary helper only when needed
+    require_once __DIR__ . '/../../../backend/includes/cloudinary-helper.php';
+    
     $title = trim($_POST['title']);
     $content = trim($_POST['content']);
     $user_id = $_SESSION['user_id'];
     $status = 'published';
     $upload_error = '';
     
-    // Handle image upload
-    $image_path = '';
+    // Handle image upload to Cloudinary
+    $cloud_url = '';
+    $cloud_public_id = '';
+    
     if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-        $upload_dir = '../../assets/uploaded-images-users/';
-        if (!file_exists($upload_dir)) {
-            mkdir($upload_dir, 0777, true);
-        }
-        
         $file_extension = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
         $allowedTypes = array("jpg", "jpeg", "png", "gif", "JPG", "JPEG", "PNG", "GIF");
         
         if (in_array($file_extension, $allowedTypes)) {
-            $new_filename = uniqid('blog_') . '.' . $file_extension;
-            $upload_path = $upload_dir . $new_filename;
-            
-            if (move_uploaded_file($_FILES['image']['tmp_name'], $upload_path)) {
-                $image_path = 'assets/uploaded-images-users/' . $new_filename;
+            // Validate file size (max 10MB)
+            if ($_FILES['image']['size'] > 10 * 1024 * 1024) {
+                $upload_error = 'File size exceeds 10MB limit.';
             } else {
-                $upload_error = 'Error uploading image. Please check file permissions.';
+                // Generate unique public ID
+                $publicId = 'user_blog_' . $user_id . '_' . uniqid();
+                
+                // Upload to Cloudinary
+                $result = uploadToCloudinary($_FILES['image']['tmp_name'], 'neocafe/user_blog', $publicId);
+                
+                if ($result['success']) {
+                    $cloud_url = $result['url'];
+                    $cloud_public_id = $result['public_id'];
+                } else {
+                    $upload_error = $result['error'];
+                }
             }
         } else {
             $upload_error = 'Invalid file type. Only JPG, JPEG, PNG and GIF files are allowed.';
@@ -121,10 +134,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // Insert blog post only if no upload errors
     if (empty($upload_error)) {
-        $query = "INSERT INTO user_blog_post (user_id, title, content, image_path, status, created_at) 
-                  VALUES (?, ?, ?, ?, ?, NOW())";
+        $query = "INSERT INTO user_blog_post (user_id, title, content, cloud_url, cloud_public_id, cloud_provider, status, created_at) 
+                  VALUES (?, ?, ?, ?, ?, 'cloudinary', ?, NOW())";
         $stmt = mysqli_prepare($conn, $query);
-        mysqli_stmt_bind_param($stmt, "issss", $user_id, $title, $content, $image_path, $status);
+        mysqli_stmt_bind_param($stmt, "isssss", $user_id, $title, $content, $cloud_url, $cloud_public_id, $status);
         
         if (mysqli_stmt_execute($stmt)) {
             $_SESSION['success_message'] = 'Your testimonial has been published successfully!';

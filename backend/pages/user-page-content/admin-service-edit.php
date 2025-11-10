@@ -1,6 +1,8 @@
 <?php
-// Load admin authentication (handles session, database, and auth check)
-require_once __DIR__ . '/../../login/admin/admin-auth.php';
+if (!isset($conn)) {
+    require_once "../admin-includes/database.php";
+}
+require_once __DIR__ . "/../../../includes/session-manager.php";
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -9,6 +11,13 @@ $page_title = "Edit Service Section";
 
 require_once "../admin-includes/activity-logger.php";
 require_once "../admin-includes/navbar/navbar.php";
+
+// Check admin authentication using SessionManager
+if (!SessionManager::isAdminLoggedIn()) {
+    $_SESSION['redirect_after_login'] = $_SERVER['REQUEST_URI'];
+    header("Location: /backend/login/admin/admin-login.php");
+    exit();
+}
 
 function debug_log($message) {
     error_log("[" . date('Y-m-d H:i:s') . "] " . $message);

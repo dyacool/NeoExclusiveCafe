@@ -1,6 +1,16 @@
 <?php
-require_once "../admin-includes/database.php";
-require_once __DIR__ . "/../../login/admin/admin-auth.php";
+// Load database first (starts session)
+if (!isset($conn)) {
+    require_once __DIR__ . "/../admin-includes/database.php";
+}
+require_once __DIR__ . "/../../../includes/session-manager.php";
+
+// Check admin authentication
+if (!SessionManager::isAdminLoggedIn()) {
+    header('Content-Type: application/json');
+    echo json_encode(['error' => 'Unauthorized']);
+    exit();
+}
 
 header('Content-Type: application/json');
 
@@ -39,7 +49,7 @@ $result = mysqli_stmt_get_result($stmt);
 
 if ($order = mysqli_fetch_assoc($result)) {
     // Get order items
-    $items_query = "SELECT product_name, quantity, price 
+    $items_query = "SELECT product_name, quantity, product_price, discount_price, subtotal 
                     FROM bulk_order_items 
                     WHERE bulk_order_id = ?";
     $items_stmt = mysqli_prepare($conn, $items_query);
@@ -49,7 +59,13 @@ if ($order = mysqli_fetch_assoc($result)) {
     
     $items = [];
     while ($item = mysqli_fetch_assoc($items_result)) {
-        $items[] = $item;
+        $items[] = [
+            'product_name' => $item['product_name'],
+            'quantity' => $item['quantity'],
+            'price' => $item['product_price'],
+            'discount_price' => $item['discount_price'] ?? null,
+            'subtotal' => $item['subtotal']
+        ];
     }
     
     mysqli_stmt_close($items_stmt);

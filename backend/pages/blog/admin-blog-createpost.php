@@ -1,4 +1,6 @@
 <?php
+    // Load database first (it starts the session)
+    require_once __DIR__ . "/../admin-includes/database.php";
     require_once __DIR__ . "/../../../includes/session-manager.php";
     require_once __DIR__ . "/../../../config/database-config.php";
     
@@ -24,39 +26,54 @@
     <body>
         <?php
             include __DIR__ . "/../admin-includes/navbar/navbar.php";
-            if ($_SERVER["REQUEST_METHOD"] == "POST") {                
+            if ($_SERVER["REQUEST_METHOD"] == "POST") {
+                // Load Cloudinary helper only when needed
+                require_once __DIR__ . "/../../includes/cloudinary-helper.php";
+                
                 $title = $_POST['title'];
                 $description = $_POST['description'];
-                $imagePath = $_FILES['image']["name"];
-                $ext = pathinfo($imagePath, PATHINFO_EXTENSION);
-                $allowedTypes = array("jpg", "jpeg", "png", "gif", "JPG", "JPEG", "PNG", "GIF");
-                $tempName = $_FILES['image']["tmp_name"];
-                $targetPath = $_SERVER['DOCUMENT_ROOT'] . "/NeoCafe/assets/uploaded-images-admin/" . $imagePath;
+                $cloud_url = '';
+                $cloud_public_id = '';
                 
-                // Create directory if it doesn't exist
-                $uploadDir = $_SERVER['DOCUMENT_ROOT'] . "/NeoCafe/assets/uploaded-images-admin/";
-                if (!file_exists($uploadDir)) {
-                    mkdir($uploadDir, 0777, true);
-                }
+                if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+                    $ext = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+                    $allowedTypes = array("jpg", "jpeg", "png", "gif", "JPG", "JPEG", "PNG", "GIF");
 
-                if (in_array($ext, $allowedTypes)){
-                    if(move_uploaded_file($tempName, $targetPath)){
-                        $sql = "INSERT INTO blog_posts (title, description, image_path, author, created_at) 
-                        VALUES (?, ?, ?, 'Admin', NOW())";
-                        $stmt = mysqli_prepare($conn, $sql);
-                        mysqli_stmt_bind_param($stmt, "sss", $title, $description, $imagePath);
-                        
-                        if(mysqli_stmt_execute($stmt)){
-                            echo"<script>alert('New blog post created successfully'); window.location.href = '/backend/pages/blog/admin-blog.php';</script>";
+                    if (in_array($ext, $allowedTypes)){
+                        // Validate file size (max 10MB)
+                        if ($_FILES['image']['size'] > 10 * 1024 * 1024) {
+                            echo"<script>alert('File size exceeds 10MB limit.');</script>";
                         } else {
-                            echo"<script>alert('Error creating blog post: " . mysqli_error($conn) . "');</script>";
+                            // Generate unique public ID
+                            $publicId = 'admin_blog_' . uniqid();
+                            
+                            // Upload to Cloudinary
+                            $result = uploadToCloudinary($_FILES['image']['tmp_name'], 'neocafe/admin_blog', $publicId);
+                            
+                            if ($result['success']) {
+                                $cloud_url = $result['url'];
+                                $cloud_public_id = $result['public_id'];
+                                
+                                $sql = "INSERT INTO blog_posts (title, description, cloud_url, cloud_public_id, cloud_provider, author, created_at) 
+                                VALUES (?, ?, ?, ?, 'cloudinary', 'Admin', NOW())";
+                                $stmt = mysqli_prepare($conn, $sql);
+                                mysqli_stmt_bind_param($stmt, "ssss", $title, $description, $cloud_url, $cloud_public_id);
+                                
+                                if(mysqli_stmt_execute($stmt)){
+                                    echo"<script>alert('New blog post created successfully'); window.location.href = '/backend/pages/blog/admin-blog.php';</script>";
+                                } else {
+                                    echo"<script>alert('Error creating blog post: " . mysqli_error($conn) . "');</script>";
+                                }
+                                mysqli_stmt_close($stmt);
+                            } else {
+                                echo"<script>alert('Error uploading image to cloud: " . addslashes($result['error']) . "');</script>";
+                            }
                         }
-                        mysqli_stmt_close($stmt);
                     } else {
-                        echo"<script>alert('Error uploading image. Please check file permissions.');</script>";
+                        echo"<script>alert('Invalid file type. Only JPG, JPEG, PNG and GIF files are allowed.');</script>";
                     }
                 } else {
-                    echo"<script>alert('Invalid file type. Only JPG, JPEG, PNG and GIF files are allowed.');</script>";
+                    echo"<script>alert('Please select an image to upload.');</script>";
                 }
             }
         ?>

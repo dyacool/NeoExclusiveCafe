@@ -633,61 +633,6 @@ try {
                         <?php endif; ?>
                     </div>
                 </div>
-
-                <!-- Products with Today Availability -->
-                <div class="table-card" data-container="availtoday-products">
-                    <div class="table-header">
-                        <h3>Same Day Order Products</h3>
-                        <div class="card-loading-spinner"></div>
-                        <span class="table-subtitle">Products available for pickup/delivery with specific dates</span>
-                    </div>
-                    <div class="table-container">
-                        <?php if (count($availtoday_products) > 0): ?>
-                            <table class="data-table">
-                                <tbody>
-                                    <?php foreach ($availtoday_products as $product): ?>
-                                        <tr>
-                                            <td>
-                                                <div class="customer-info">
-                                                    <div class="customer-name"><?php echo htmlspecialchars($product['name']); ?></div>
-                                                    <div class="order-id">
-                                                        <span class="status-badge status-<?php echo strtolower(str_replace(' ', '', $product['status_name'])); ?>">
-                                                            <?php echo htmlspecialchars($product['status_name']); ?>
-                                                        </span>
-                                                        <?php if (!empty($product['availtoday_status_name'])): ?>
-                                                            <span class="availtoday-badge">
-                                                                <?php echo ($product['status_id'] == 3 ? 'for ' : 'also for ') . htmlspecialchars($product['availtoday_status_name']); ?>
-                                                            </span>
-                                                        <?php endif; ?>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="amount-cell">
-                                                <div class="available-dates">
-                                                    <?php 
-                                                    $dates = $product['status_id'] == 3 ? $product['todays_product_dates'] : $product['regular_today_dates'];
-                                                    echo formatDashboardDates($dates);
-                                                    ?>
-                                                </div>
-                                                <div class="dates-count">
-                                                    <?php 
-                                                    $dateArray = array_filter(explode(',', $dates));
-                                                    echo count($dateArray) . ' date' . (count($dateArray) != 1 ? 's' : '');
-                                                    ?>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                        <?php else: ?>
-                            <div class="empty-state">
-                                <i class="fas fa-calendar-alt"></i>
-                                <p>No products with today availability found</p>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
             </div>
         </div>
     </div>

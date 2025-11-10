@@ -161,7 +161,7 @@ if (!$navbar_conn) {
             position: absolute;
             top: -8px;
             right: -8px;
-            background: #dc3545;
+            background: #8B4513;
             color: white;
             border-radius: 50%;
             width: 20px;

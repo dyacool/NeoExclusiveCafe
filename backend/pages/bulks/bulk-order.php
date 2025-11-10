@@ -4,8 +4,11 @@ error_reporting(E_ALL);
 ini_set('display_errors', 0); // Don't show errors on page (could break JSON)
 ini_set('log_errors', 1);
 
+// Load database first (starts session)
+if (!isset($conn)) {
+    require_once __DIR__ . "/../admin-includes/database.php";
+}
 require_once __DIR__ . "/../../../includes/session-manager.php";
-require_once __DIR__ . "/../admin-includes/database.php";
 
 if (!SessionManager::isAdminLoggedIn()) {
     header("Location: ../login/admin/admin-login.php");
@@ -1043,14 +1046,20 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
             <?php if (!empty($proofs)): ?>
                 <div class="proofs-grid">
                     <?php foreach ($proofs as $pf): 
-                        $file = "../../../assets/bulk_payments/" . $pf['filename'];
+                        // Prioritize cloud_url over legacy filename
+                        if (!empty($pf['cloud_url'])) {
+                            $file = $pf['cloud_url'];
+                        } else {
+                            // Fallback to local file for backward compatibility
+                            $file = "../../../assets/bulk_payments/" . $pf['filename'];
+                        }
                         $ext = strtolower(pathinfo($pf['filename'], PATHINFO_EXTENSION));
                     ?>
                     <div class="proof-item" title="<?php echo htmlspecialchars(ucfirst($pf['type']).' • '.$pf['uploaded_at']); ?>">
                         <?php if (in_array($ext, ['jpg','jpeg','png'])): ?>
-                            <img src="<?php echo $file; ?>" alt="Proof of payment" class="proof-thumb" onclick="openImageModal(this.src)">
+                            <img src="<?php echo htmlspecialchars($file); ?>" alt="Proof of payment" class="proof-thumb" onclick="openImageModal(this.src)">
                         <?php else: ?>
-                            <a class="btn btn-secondary" href="<?php echo $file; ?>" target="_blank"><i class="fas fa-file-pdf"></i> View PDF</a>
+                            <a class="btn btn-secondary" href="<?php echo htmlspecialchars($file); ?>" target="_blank"><i class="fas fa-file-pdf"></i> View PDF</a>
                         <?php endif; ?>
                     </div>
                     <?php endforeach; ?>

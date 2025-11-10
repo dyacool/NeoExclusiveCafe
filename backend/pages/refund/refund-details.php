@@ -256,12 +256,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
         <?php endif; ?>
         
-        <?php if (!empty($refund['proof_image'])): ?>
+        <?php 
+        // Check for refund proof image - prioritize cloud_url
+        $proof_url = '';
+        if (!empty($refund['cloud_url'])) {
+            $proof_url = $refund['cloud_url'];
+        } elseif (!empty($refund['proof_image'])) {
+            // Fallback to local image for backward compatibility
+            $proof_url = '../../../' . $refund['proof_image'];
+        }
+        
+        if (!empty($proof_url)): 
+        ?>
         <div class="proof-image-section">
             <h3>Proof Image</h3>
             <div class="proof-image-container">
-                <a href="../../../<?php echo htmlspecialchars($refund['proof_image']); ?>" target="_blank">
-                    <img src="../../../<?php echo htmlspecialchars($refund['proof_image']); ?>" 
+                <a href="<?php echo htmlspecialchars($proof_url); ?>" target="_blank">
+                    <img src="<?php echo htmlspecialchars($proof_url); ?>" 
                          alt="Refund Proof" 
                          class="proof-image">
                 </a>

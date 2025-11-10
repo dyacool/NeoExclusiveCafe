@@ -67,15 +67,13 @@ if ($result->num_rows > 0) {
 }
 $stmt->close();
 
-// Handle proof image upload
+// Handle proof image upload to Cloudinary
 $proof_image = '';
+$cloud_url = '';
+$cloud_public_id = '';
 if (isset($_FILES['proof_image']) && $_FILES['proof_image']['error'] === UPLOAD_ERR_OK) {
-    $upload_dir = '../../../assets/refund-proofs/';
-    
-    // Create directory if it doesn't exist
-    if (!is_dir($upload_dir)) {
-        mkdir($upload_dir, 0755, true);
-    }
+    // Load Cloudinary helper
+    require_once __DIR__ . '/../../includes/cloudinary-helper.php';
     
     $file_extension = strtolower(pathinfo($_FILES['proof_image']['name'], PATHINFO_EXTENSION));
     $allowed_extensions = ['jpg', 'jpeg', 'png', 'gif'];
@@ -91,13 +89,18 @@ if (isset($_FILES['proof_image']) && $_FILES['proof_image']['error'] === UPLOAD_
         exit();
     }
     
-    $filename = 'refund_' . $order_id . '_' . $user_id . '_' . time() . '.' . $file_extension;
-    $filepath = $upload_dir . $filename;
+    // Generate unique public ID
+    $publicId = 'refund_' . $order_id . '_' . $user_id . '_' . time();
     
-    if (move_uploaded_file($_FILES['proof_image']['tmp_name'], $filepath)) {
-        $proof_image = 'assets/refund-proofs/' . $filename;
+    // Upload to Cloudinary
+    $result = uploadToCloudinary($_FILES['proof_image']['tmp_name'], 'neocafe/refund_proofs', $publicId);
+    
+    if ($result['success']) {
+        $cloud_url = $result['url'];
+        $cloud_public_id = $result['public_id'];
+        $proof_image = $cloud_url; // For backward compatibility
     } else {
-        echo json_encode(['success' => false, 'message' => 'Failed to upload proof image']);
+        echo json_encode(['success' => false, 'message' => 'Failed to upload proof image: ' . $result['error']]);
         exit();
     }
 } else {
@@ -118,10 +121,10 @@ foreach ($items_array as $item) {
 }
 
 // Insert refund request
-$insert_sql = "INSERT INTO order_refunds (order_id, user_id, refund_reason, refund_items, refund_note, proof_image, refund_amount, refund_status) 
-               VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')";
+$insert_sql = "INSERT INTO order_refunds (order_id, user_id, refund_reason, refund_items, refund_note, proof_image, cloud_url, cloud_public_id, cloud_provider, refund_amount, refund_status) 
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'cloudinary', ?, 'pending')";
 $stmt = $conn->prepare($insert_sql);
-$stmt->bind_param('iissssd', $order_id, $user_id, $refund_reason, $refund_items, $refund_note, $proof_image, $refund_amount);
+$stmt->bind_param('iisssssd', $order_id, $user_id, $refund_reason, $refund_items, $refund_note, $proof_image, $cloud_url, $cloud_public_id, $refund_amount);
 
 if ($stmt->execute()) {
     $refund_id = $stmt->insert_id;

@@ -1,6 +1,7 @@
 <?php
-require_once __DIR__ . "/../../../includes/session-manager.php";
+// Load database first (it starts the session)
 require_once __DIR__ . "/../admin-includes/database.php";
+require_once __DIR__ . "/../../../includes/session-manager.php";
 
 if (!SessionManager::isAdminLoggedIn()) {
     header("Location: /login/admin/admin-login.php");
@@ -92,18 +93,22 @@ $post = mysqli_fetch_assoc($result);
                 </div>
             </header>
 
-            <?php if (!empty($post['image_path'])): ?>
-            <div class="post-image">
-                <?php
-                echo "<!-- DEBUG: Original image_path from DB: " . htmlspecialchars($post['image_path']) . " -->";
-                
+            <?php 
+            // Support both old image_path and new cloud_url for backward compatibility
+            $image_url = '';
+            if (!empty($post['cloud_url'])) {
+                $image_url = $post['cloud_url'];
+            } elseif (!empty($post['image_path'])) {
+                // Fallback for old local images
                 $image_url = '/assets/uploaded-images-admin/' . $post['image_path'];
-                
-                echo "<!-- DEBUG: Constructed image URL: " . htmlspecialchars($image_url) . " -->";
-                ?>
+            }
+            ?>
+            
+            <?php if (!empty($image_url)): ?>
+            <div class="post-image">
                 <img src="<?= htmlspecialchars($image_url) ?>" 
                      alt="<?php echo htmlspecialchars($post['title']); ?>" 
-                     onerror="console.log('Image failed to load: <?= htmlspecialchars($image_url) ?>'); this.style.display='none';">
+                     onerror="this.style.display='none';">
             </div>
             <?php endif; ?>
 
@@ -210,12 +215,17 @@ $post = mysqli_fetch_assoc($result);
                     editDescription.value = data.description || '';
                     postIdField.value = postId;
                     
-                    // Handle current image
-                    currentImagePath = data.image_path;
+                    // Handle current image - support both cloud_url and image_path
+                    currentImagePath = data.cloud_url || data.image_path;
                     
-                    if (data.image_path && data.image_path.trim() !== '' && data.image_path !== null) {
+                    if (currentImagePath && currentImagePath.trim() !== '' && currentImagePath !== null) {
                         const currentImage = document.createElement('img');
-                        currentImage.src = '/assets/uploaded-images-admin/' + data.image_path;
+                        // Use cloud_url if available, otherwise construct local path
+                        if (data.cloud_url) {
+                            currentImage.src = data.cloud_url;
+                        } else if (data.image_path) {
+                            currentImage.src = '/assets/uploaded-images-admin/' + data.image_path;
+                        }
                         currentImage.className = 'image-preview';
                         
                         currentImage.onerror = function() {

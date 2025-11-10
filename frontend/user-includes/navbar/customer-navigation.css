@@ -1609,7 +1609,7 @@ html.homepage-animation .main-nav {
   right: 0;
   width: 8px;
   height: 8px;
-  background-color: #ef4444;
+  background-color: var(--warm-accent);
   border-radius: 50%;
   border: 2px solid white;
   z-index: 10;
