@@ -493,9 +493,9 @@ $debug_info = [
                 
                 <!-- Pickup Details -->
                 <div id="pickup-details" class="delivery-content" style="display: none;">
-                    <div class="same-day-notice" style="background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 6px; padding: 12px; margin-bottom: 15px;">
-                        <p style="margin: 0 0 8px 0;"><strong>Same-Day Order:</strong> This order is for today, <?= date('F j, Y') ?></p>
-                        <p style="margin: 0; font-size: 14px; color: #2e7d32;">Minimum pickup time: <span id="min-time-display-pickup"></span> (2 hours from now)</p>
+                    <div class="same-day-notice" style="background: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px; padding: 12px; margin-bottom: 15px;">
+                        <p style="margin: 0 0 8px 0;"><strong>Pre-Order Notice:</strong> Orders must be placed at least 2 days in advance</p>
+                        <p style="margin: 0; font-size: 14px; color: #1976d2;">Earliest pickup date: <span id="earliest-date-display-pickup"></span></p>
                     </div>
                     <div class="form-group">
                         <label for="pickup_time">Pickup Time:</label>
@@ -517,16 +517,16 @@ $debug_info = [
                             <option value="19:00:00">7:00 PM</option>
                             <option value="20:00:00">8:00 PM</option>
                         </select>
-                        <small class="time-note">Select your preferred pickup time (minimum 2 hours from now)</small>
+                        <small class="time-note">Select your preferred pickup time</small>
                     </div>
-                    <input type="hidden" id="pickup_date" name="pickup_date" value="<?= date('Y-m-d') ?>">
+                    <input type="hidden" id="pickup_date" name="pickup_date" value="">
                 </div>
 
                 <!-- Delivery Details -->
                 <div id="delivery-details" class="delivery-content" style="display: none;">
-                    <div class="same-day-notice" style="background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 6px; padding: 12px; margin-bottom: 15px;">
-                        <p style="margin: 0 0 8px 0;"><strong>Same-Day Order:</strong> This order is for today, <?= date('F j, Y') ?></p>
-                        <p style="margin: 0; font-size: 14px; color: #2e7d32;">Minimum delivery time: <span id="min-time-display-delivery"></span> (2 hours from now)</p>
+                    <div class="same-day-notice" style="background: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px; padding: 12px; margin-bottom: 15px;">
+                        <p style="margin: 0 0 8px 0;"><strong>Pre-Order Notice:</strong> Orders must be placed at least 2 days in advance</p>
+                        <p style="margin: 0; font-size: 14px; color: #1976d2;">Earliest delivery date: <span id="earliest-date-display-delivery"></span></p>
                     </div>
                     <div class="form-group">
                         <label for="delivery_time">Delivery Time:</label>
@@ -1339,42 +1339,60 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Phone input validation
 const phoneInput = document.getElementById('phone');
-if (phoneInput) {
-    phoneInput.addEventListener('input', function () {
-        // Always allow only numbers and optional leading +
-        this.value = this.value.replace(/[^\d+]/g, '');
 
-        // Check prefix and set maxlength accordingly
-        if (this.value.startsWith('+63')) {
-            this.maxLength = 13;  // +63 + 9-digit number
-        } else if (this.value.startsWith('0')) {
-            this.maxLength = 11;  // 0 + 10-digit number
-        } else {
-            this.maxLength = 13; // default to max possible
-        }
+// Add touched class handling for better validation UX
+function addTouchedClassToInputs() {
+    const inputs = document.querySelectorAll('input, textarea, select');
+    inputs.forEach(input => {
+        // Add touched class on blur (when user leaves the field)
+        input.addEventListener('blur', function() {
+            this.classList.add('touched');
+        });
+        
+        // Add touched class on first input
+        input.addEventListener('input', function() {
+            if (!this.classList.contains('touched')) {
+                this.classList.add('touched');
+            }
+        }, { once: true });
     });
 }
 
-// PayMongo Integration
-let paymongoInstance;
-let cardElement;
+// Initialize touched class handling
+addTouchedClassToInputs();
+
+if (phoneInput) {
+    phoneInput.addEventListener('input', function () {
+        // Only allow digits
+        this.value = this.value.replace(/[^\d]/g, '');
+        
+        // Ensure it starts with 09
+        if (this.value.length > 0 && !this.value.startsWith('09')) {
+            // If user types something that doesn't start with 09, prepend 09
+            if (this.value.startsWith('9')) {
+                this.value = '0' + this.value;
+            } else if (!this.value.startsWith('0')) {
+                this.value = '09' + this.value;
+            } else {
+                // If starts with 0 but not 09, replace with 09
+                this.value = '09' + this.value.substring(1);
+            }
+        }
+        
+        // Limit to 11 digits maximum
+        if (this.value.length > 11) {
+            this.value = this.value.substring(0, 11);
+        }
+    });
+}
 
 // Global variable to track if order is being processed
 let orderProcessing = false;
 let countdownTimer = null;
 
-// Initialize PayMongo
+// Initialize form submission
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize PayMongo (we'll set the public key when needed)
-    // paymongoInstance will be initialized when card payment is selected
-    
-    // Handle payment method changes
-    const paymentMethods = document.querySelectorAll('input[name="payment_method"]');
-    paymentMethods.forEach(method => {
-        method.addEventListener('change', handlePaymentMethodChange);
-    });
-    
-    // Form submission handler with PayMongo integration - SAME AS checkout.php
+    // Form submission handler - Available Today Checkout
     const checkoutForm = document.getElementById('checkout-form');
     if (checkoutForm) {
         checkoutForm.addEventListener('submit', async function(e) {
@@ -1633,143 +1651,6 @@ function startCountdownTimer(submitButton, buttonText, initialCountdown = 20) {
     countdownTimer = setInterval(updateCountdown, 1000);
 }
 
-// Handle payment method selection
-function handlePaymentMethodChange(e) {
-    const cardForm = document.getElementById('card-payment-form');
-    
-    if (e.target.value === 'card') {
-        cardForm.style.display = 'block';
-        initializeCardElement();
-    } else {
-        cardForm.style.display = 'none';
-        if (cardElement) {
-            cardElement.unmount();
-            cardElement = null;
-        }
-    }
-}
-
-// Initialize PayMongo card element
-async function initializeCardElement() {
-    try {
-        // We'll get the public key from the server when processing payment
-        // For now, just prepare the card element container
-        const cardElementContainer = document.getElementById('card-element');
-        cardElementContainer.innerHTML = `
-            <div class="card-field-group">
-                <div class="card-field">
-                    <label>Card Number</label>
-                    <input type="text" id="card-number" placeholder="1234 5678 9012 3456" maxlength="19">
-                </div>
-                <div class="card-field-row">
-                    <div class="card-field">
-                        <label>Expiry Date</label>
-                        <input type="text" id="card-expiry" placeholder="MM/YY" maxlength="5">
-                    </div>
-                    <div class="card-field">
-                        <label>CVC</label>
-                        <input type="text" id="card-cvc" placeholder="123" maxlength="4">
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        // Add input formatting
-        formatCardInputs();
-        
-    } catch (error) {
-        console.error('Error initializing card element:', error);
-    }
-}
-
-// Format card inputs
-function formatCardInputs() {
-    const cardNumber = document.getElementById('card-number');
-    const cardExpiry = document.getElementById('card-expiry');
-    const cardCvc = document.getElementById('card-cvc');
-    
-    if (cardNumber) {
-        cardNumber.addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
-            value = value.substring(0, 16);
-            value = value.replace(/(\d{4})(?=\d)/g, '$1 ');
-            e.target.value = value;
-        });
-    }
-    
-    if (cardExpiry) {
-        cardExpiry.addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
-            if (value.length >= 2) {
-                value = value.substring(0, 2) + '/' + value.substring(2, 4);
-            }
-            e.target.value = value;
-        });
-    }
-    
-    if (cardCvc) {
-        cardCvc.addEventListener('input', function(e) {
-            e.target.value = e.target.value.replace(/\D/g, '').substring(0, 4);
-        });
-    }
-}
-
-// Handle card payment with PayMongo (kept for card payment support)
-async function handleCardPayment(paymentResult) {
-    try {
-        // Initialize PayMongo with public key
-        paymongoInstance = new PayMongo(paymentResult.public_key);
-        
-        // Get card details
-        const cardNumber = document.getElementById('card-number').value.replace(/\s/g, '');
-        const cardExpiry = document.getElementById('card-expiry').value;
-        const cardCvc = document.getElementById('card-cvc').value;
-        
-        // Parse expiry
-        const [expMonth, expYear] = cardExpiry.split('/');
-        
-        // Create payment method
-        const paymentMethod = await paymongoInstance.createPaymentMethod({
-            type: 'card',
-            details: {
-                card_number: cardNumber,
-                exp_month: parseInt(expMonth),
-                exp_year: parseInt('20' + expYear),
-                cvc: cardCvc
-            }
-        });
-        
-        if (paymentMethod.error) {
-            throw new Error(paymentMethod.error.message);
-        }
-        
-        // Confirm payment intent
-        const result = await paymongoInstance.confirmPaymentIntent(
-            paymentResult.payment_intent_id,
-            {
-                payment_method: paymentMethod.paymentMethod.id,
-                return_url: window.location.origin + '/frontend/pages/cart/payment-return.php?type=availtoday'
-            }
-        );
-        
-        if (result.error) {
-            throw new Error(result.error.message);
-        }
-        
-        // Handle 3D Secure redirect if needed
-        if (result.paymentIntent.status === 'requires_action') {
-            window.location.href = result.paymentIntent.next_action.redirect.url;
-        } else if (result.paymentIntent.status === 'succeeded') {
-            // Payment successful
-            window.location.href = 'payment-return.php?type=availtoday&status=success';
-        }
-        
-    } catch (error) {
-        console.error('Card payment error:', error);
-        throw error;
-    }
-}
-
 // Get form data
 function getFormData() {
     const form = document.getElementById('availtoday-checkout-form');
@@ -1801,29 +1682,6 @@ function validateForm() {
             field.style.borderColor = '#ddd';
         }
     });
-    
-    // Validate card fields if card payment is selected
-    const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
-    if (paymentMethod === 'card') {
-        const cardNumber = document.getElementById('card-number');
-        const cardExpiry = document.getElementById('card-expiry');
-        const cardCvc = document.getElementById('card-cvc');
-        
-        if (!cardNumber.value || cardNumber.value.replace(/\s/g, '').length < 16) {
-            cardNumber.style.borderColor = '#f44336';
-            isValid = false;
-        }
-        
-        if (!cardExpiry.value || cardExpiry.value.length < 5) {
-            cardExpiry.style.borderColor = '#f44336';
-            isValid = false;
-        }
-        
-        if (!cardCvc.value || cardCvc.value.length < 3) {
-            cardCvc.style.borderColor = '#f44336';
-            isValid = false;
-        }
-    }
     
     if (!isValid) {
         alert('Please fill in all required fields correctly.');
