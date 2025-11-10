@@ -4,8 +4,11 @@ error_reporting(E_ALL);
 ini_set('display_errors', 0); // Don't show errors on page (could break JSON)
 ini_set('log_errors', 1);
 
+// Load database first (starts session)
+if (!isset($conn)) {
+    require_once __DIR__ . "/../admin-includes/database.php";
+}
 require_once __DIR__ . "/../../../includes/session-manager.php";
-require_once __DIR__ . "/../admin-includes/database.php";
 
 if (!SessionManager::isAdminLoggedIn()) {
     header("Location: ../login/admin/admin-login.php");

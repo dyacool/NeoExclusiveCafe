@@ -167,22 +167,22 @@ function getRefundCounts($conn) {
         return ['total' => 0, 'active' => 0];
     }
     
-    // Check if refund_requests table exists
-    $table_check = mysqli_query($conn, "SHOW TABLES LIKE 'refund_requests'");
+    // Check if order_refunds table exists
+    $table_check = mysqli_query($conn, "SHOW TABLES LIKE 'order_refunds'");
     if (!$table_check || mysqli_num_rows($table_check) == 0) {
         return ['total' => 0, 'active' => 0];
     }
     
     // Get total refund requests count
-    $total_query = "SELECT COUNT(*) as total FROM refund_requests";
+    $total_query = "SELECT COUNT(*) as total FROM order_refunds";
     $total_result = mysqli_query($conn, $total_query);
     if (!$total_result) {
         return ['total' => 0, 'active' => 0];
     }
     $total_count = mysqli_fetch_assoc($total_result)['total'];
     
-    // Get active refund requests count (only pending and approved statuses)
-    $active_query = "SELECT COUNT(*) as active FROM refund_requests WHERE status IN ('Pending', 'Approved')";
+    // Get active refund requests count (only pending and under review statuses)
+    $active_query = "SELECT COUNT(*) as active FROM order_refunds WHERE status IN ('Pending', 'Approved')";
     $active_result = mysqli_query($conn, $active_query);
     if (!$active_result) {
         return ['total' => $total_count, 'active' => 0];

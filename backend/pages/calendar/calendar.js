@@ -621,7 +621,7 @@ function showOrderDetails(orderId, isBulk = false) {
 
       orderInfo.innerHTML = `
                 <div class="modal-header">
-                    <h3>Order Details</h3>
+                    <h3>${isBulk ? "Bulk Order Details" : "Order Details"}</h3>
                     <span class="close" onclick="document.getElementById('orderModal').style.display='none'">&times;</span>
                 </div>
                 <div class="modal-body">
@@ -637,9 +637,15 @@ function showOrderDetails(orderId, isBulk = false) {
                             }</p>
                             ${displayDate}
                             <p><strong>Time:</strong> ${order.pickup_time}</p>
-                            <p><strong>Payment Method:</strong> ${
-                              order.payment_method || "N/A"
-                            }</p>
+                            ${
+                              isBulk
+                                ? order.purpose
+                                  ? `<p><strong>Purpose:</strong> ${order.purpose}</p>`
+                                  : ""
+                                : `<p><strong>Payment Method:</strong> ${
+                                    order.payment_method || "N/A"
+                                  }</p>`
+                            }
                         </div>
                         
                         <div class="order-details-section">
