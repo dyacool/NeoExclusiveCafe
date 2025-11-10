@@ -1528,7 +1528,7 @@ $debug_info = [
             const pickupTimeInput = document.getElementById('pickup_time');
             const deliveryTimeInput = document.getElementById('delivery_time');
             
-            // Get the first available date
+            // Get the first available date (2 days from today or first available day)
             const firstAvailableDate = getFirstAvailableDate();
             
             if (pickupDateInput && !pickupDateInput.value) {
@@ -1539,6 +1539,15 @@ $debug_info = [
             if (deliveryDateInput && !deliveryDateInput.value) {
                 deliveryDateInput.value = firstAvailableDate;
                 console.log('[CHECKOUT] Set default delivery date:', firstAvailableDate);
+            }
+            
+            // Also update calendar selection to match the default date
+            if (pickupCalendar && firstAvailableDate) {
+                const dateObj = new Date(firstAvailableDate + 'T00:00:00');
+                pickupCalendar.selectedDate = dateObj;
+                // Trigger a re-render to show the selection
+                pickupCalendar.render();
+                console.log('[CHECKOUT] Calendar selection updated to:', firstAvailableDate);
             }
             
             // Set default times
@@ -1554,45 +1563,55 @@ $debug_info = [
         }
 
         function getFirstAvailableDate() {
+            // PRE-ORDER REQUIREMENT: All orders must be placed 2 days in advance
+            const minDaysAhead = 2;
+            
             // Get first available date from cart items
             const availableDays = calculateCombinedAvailableDays();
             console.log('[CHECKOUT] Available days for products:', availableDays);
+            console.log('[CHECKOUT] Minimum days ahead required:', minDaysAhead);
             
-            // If no specific days are available, use today
+            // Calculate minimum date (today + 2 days)
+            const today = new Date();
+            const minDate = new Date(today);
+            minDate.setDate(today.getDate() + minDaysAhead);
+            
+            console.log('[CHECKOUT] Today:', today.toDateString());
+            console.log('[CHECKOUT] Minimum date (2 days from today):', minDate.toDateString());
+            
+            // If no specific days are available, use minimum date
             if (availableDays.length === 0) {
-                const today = new Date();
-                const todayStr = today.getFullYear() + '-' + 
-                               String(today.getMonth() + 1).padStart(2, '0') + '-' + 
-                               String(today.getDate()).padStart(2, '0');
-                console.log('[CHECKOUT] No specific days available, using today:', todayStr);
-                return todayStr;
+                const minDateStr = minDate.getFullYear() + '-' + 
+                               String(minDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                               String(minDate.getDate()).padStart(2, '0');
+                console.log('[CHECKOUT] No specific days available, using minimum date:', minDateStr);
+                return minDateStr;
             }
             
-            // Find the first available date starting from today
-            const today = new Date();
+            // Find the first available date starting from minimum date (2 days from today)
             const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
             
-            // Check the next 14 days to find the first available day
-            for (let i = 0; i < 14; i++) {
-                const checkDate = new Date(today);
-                checkDate.setDate(today.getDate() + i);
+            // Check the next 30 days starting from minDate to find the first available day
+            for (let i = 0; i < 30; i++) {
+                const checkDate = new Date(minDate);
+                checkDate.setDate(minDate.getDate() + i);
                 const dayName = dayNames[checkDate.getDay()];
                 
                 if (availableDays.includes(dayName)) {
                     const dateStr = checkDate.getFullYear() + '-' + 
                                    String(checkDate.getMonth() + 1).padStart(2, '0') + '-' + 
                                    String(checkDate.getDate()).padStart(2, '0');
-                    console.log('[CHECKOUT] First available date found:', dateStr, '(' + dayName + ')');
+                    console.log('[CHECKOUT] First available date found:', dateStr, '(' + dayName + ')', '- Days from today:', minDaysAhead + i);
                     return dateStr;
                 }
             }
             
-            // Fallback to today if no available day found in next 14 days
-            const todayStr = today.getFullYear() + '-' + 
-                           String(today.getMonth() + 1).padStart(2, '0') + '-' + 
-                           String(today.getDate()).padStart(2, '0');
-            console.log('[CHECKOUT] No available day found in next 14 days, using today:', todayStr);
-            return todayStr;
+            // Fallback to minimum date if no available day found in next 30 days
+            const minDateStr = minDate.getFullYear() + '-' + 
+                           String(minDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                           String(minDate.getDate()).padStart(2, '0');
+            console.log('[CHECKOUT] No available day found in next 30 days, using minimum date:', minDateStr);
+            return minDateStr;
         }
 
         function showCalendarLoading() {
@@ -2025,8 +2044,14 @@ $debug_info = [
                         if (prevSelected) {
                             prevSelected.classList.remove('selected');
                         }
+                        // Re-render calendar to update minimum date
+                        pickupCalendar.render();
                     }
-                    console.log('Switched to pickup - date cleared');
+                    
+                    // Set new default date (2 days from today or next available)
+                    setDefaultDateIfEmpty();
+                    
+                    console.log('Switched to pickup - date reset to 2-day minimum');
                 }
                 
                 updateVisibility();
@@ -2049,8 +2074,14 @@ $debug_info = [
                         if (prevSelected) {
                             prevSelected.classList.remove('selected');
                         }
+                        // Re-render calendar to update minimum date
+                        pickupCalendar.render();
                     }
-                    console.log('Switched to delivery - date cleared');
+                    
+                    // Set new default date (2 days from today or next available)
+                    setDefaultDateIfEmpty();
+                    
+                    console.log('Switched to delivery - date reset to 2-day minimum');
                 }
                 
                 updateVisibility();

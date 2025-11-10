@@ -149,7 +149,26 @@ $sql = "SELECT bo.id,
                u.firstname, u.lastname, u.username
         FROM bulk_orders bo
         LEFT JOIN users u ON bo.user_id = u.id
-        ORDER BY bo.created_at DESC";
+        ORDER BY 
+            CASE 
+                WHEN LOWER(TRIM(bo.status)) IN ('completed', 'cancelled', 'rejected', 'payment_rejected') THEN 2
+                ELSE 1
+            END ASC,
+            CASE 
+                WHEN LOWER(TRIM(bo.status)) IN ('completed', 'cancelled', 'rejected', 'payment_rejected') THEN bo.created_at
+                ELSE COALESCE(
+                    NULLIF(bo.date_needed, '0000-00-00'),
+                    bo.created_at
+                )
+            END ASC,
+            CASE 
+                WHEN LOWER(TRIM(bo.status)) NOT IN ('completed', 'cancelled', 'rejected', 'payment_rejected') THEN 
+                    COALESCE(
+                        NULLIF(bo.time_needed, '00:00:00')
+                    )
+                ELSE NULL
+            END ASC,
+            bo.created_at ASC";
 
 $result = mysqli_query($conn, $sql);
 

@@ -163,11 +163,12 @@ try {
     mysqli_stmt_close($stmt);
     
     // 4. Update pickup orders due today to "Ready for Pick-up"
+    // This handles both "Preparing" orders AND "Confirmed" orders that are due today
     $sql = "UPDATE orders 
             SET status = 'Ready for Pick-up' 
             WHERE delivery_method = 'Pick-up' 
             AND pickup_date = ? 
-            AND status = 'Preparing'";
+            AND status IN ('Preparing', 'Confirmed')";
     
     $stmt = mysqli_prepare($conn, $sql);
     mysqli_stmt_bind_param($stmt, "s", $today);
@@ -233,11 +234,12 @@ try {
     mysqli_stmt_close($stmt);
     
     // 6. Update delivery orders due today to "Ready for Delivery"
+    // This handles both "Preparing" orders AND "Confirmed" orders that are due today
     $sql = "UPDATE orders 
             SET status = 'Ready for Delivery' 
             WHERE delivery_method = 'Delivery' 
             AND delivery_date = ? 
-            AND status = 'Preparing'";
+            AND status IN ('Preparing', 'Confirmed')";
     
     $stmt = mysqli_prepare($conn, $sql);
     mysqli_stmt_bind_param($stmt, "s", $today);
