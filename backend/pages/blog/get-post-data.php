@@ -1,6 +1,7 @@
 <?php
-require_once __DIR__ . "/../../../includes/session-manager.php";
+// Load database first (it starts the session)
 require_once __DIR__ . "/../admin-includes/database.php";
+require_once __DIR__ . "/../../../includes/session-manager.php";
 
 if (!SessionManager::isAdminLoggedIn()) {
     http_response_code(403);

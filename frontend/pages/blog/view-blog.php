@@ -1,10 +1,10 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+// Load database first (starts session)
+if (!isset($conn)) {
+    require_once "../../../backend/pages/admin-includes/database.php";
 }
 
 require_once "../../user-includes/preview-mode.php";
-require_once "../../../backend/pages/admin-includes/database.php";
 
 $page_title = "View Blog";
 $additional_css = [

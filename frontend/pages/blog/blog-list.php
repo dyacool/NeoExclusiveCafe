@@ -56,17 +56,22 @@ $total_pages = ceil($total_posts / $posts_per_page);
                         </div>
                     </div>
                     
-                    <?php if (!empty($post['image_path'])): ?>
+                    <?php 
+                    // Support both old image_path and new cloud_url for backward compatibility
+                    $image_url = '';
+                    if (!empty($post['cloud_url'])) {
+                        $image_url = $post['cloud_url'];
+                    } elseif (!empty($post['image_path'])) {
+                        // Fallback for old local images
+                        $image_url = '/assets/uploaded-images-admin/' . $post['image_path'];
+                    }
+                    ?>
+                    
+                    <?php if (!empty($image_url)): ?>
                         <div class="post-image">
-                            <?php
-                            // Debug and create image URL
-                            echo "<!-- DEBUG: Image path from DB: " . htmlspecialchars($post['image_path']) . " -->";
-                            $image_url = '/assets/uploaded-images-admin/' . $post['image_path'];
-                            echo "<!-- DEBUG: Final image URL: " . htmlspecialchars($image_url) . " -->";
-                            ?>
                             <img src="<?= htmlspecialchars($image_url) ?>" 
                                 alt="<?php echo htmlspecialchars($post['title']); ?>" 
-                                onerror="console.log('Image load failed: <?= htmlspecialchars($image_url) ?>'); this.style.display='none';">
+                                onerror="this.style.display='none';">
                         </div>
                     <?php endif; ?>
                     

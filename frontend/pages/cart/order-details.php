@@ -1,19 +1,14 @@
 <?php
-session_set_cookie_params([
-    'lifetime' => 0,
-    'httponly' => true,
-    'samesite' => 'Strict',
-    'domain' => 'neocafe.cafe'
-]);
-session_start();
-require_once '../../../backend/pages/admin-includes/database.php';
-
-if (!isset($_SESSION['user_id'])) {
-    header('Location: ../../login/user/login-signup.php');
-    exit();
+// Load database first (starts session)
+if (!isset($conn)) {
+    require_once '../../../backend/pages/admin-includes/database.php';
 }
+require_once '../../../includes/session-manager.php';
 
-$user_id = $_SESSION['user_id'];
+// Require user login
+SessionManager::requireUserLogin('../../login/user/login-signup.php');
+
+$user_id = SessionManager::getUserId();
 $order_id = isset($_GET['order_id']) ? intval($_GET['order_id']) : 0;
 
 if ($order_id <= 0) {
@@ -1053,12 +1048,23 @@ if ($pod_stmt) {
                     </div>
                 </div>
 
-                <?php if (!empty($refund['proof_image'])): ?>
+                <?php 
+                // Check for refund proof image - prioritize cloud_url
+                $refund_proof_url = '';
+                if (!empty($refund['cloud_url'])) {
+                    $refund_proof_url = $refund['cloud_url'];
+                } elseif (!empty($refund['proof_image'])) {
+                    // Fallback to local image for backward compatibility
+                    $refund_proof_url = '../../../' . $refund['proof_image'];
+                }
+                
+                if (!empty($refund_proof_url)): 
+                ?>
                 <div class="refund-form-group">
                     <label>Proof Image:</label>
                     <div style="text-align: center; margin-top: 12px;">
-                        <a href="../../../<?php echo htmlspecialchars($refund['proof_image']); ?>" target="_blank" style="display: inline-block;">
-                            <img src="../../../<?php echo htmlspecialchars($refund['proof_image']); ?>" 
+                        <a href="<?php echo htmlspecialchars($refund_proof_url); ?>" target="_blank" style="display: inline-block;">
+                            <img src="<?php echo htmlspecialchars($refund_proof_url); ?>" 
                                  alt="Refund Proof" 
                                  style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s;"
                                  onmouseover="this.style.transform='scale(1.02)'"

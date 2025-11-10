@@ -185,6 +185,8 @@ document.addEventListener("DOMContentLoaded", () => {
       "delivery-locations.php": "Delivery Locations",
       "cb-knowledge-settings.php": "Chatbot Knowledge",
       "reset-password.php": "Reset Password",
+      "blog-details.php": "Blog Post Details",
+      "admin-blog-createpost.php": "Create Blog Post",
     };
 
     const pageTitle = pageTitles[currentPage] || "Neo Cafe Admin";

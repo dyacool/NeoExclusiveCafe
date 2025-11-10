@@ -1,10 +1,8 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+// Load database first (starts session)
+if (!isset($conn)) {
+    require_once "../../../backend/pages/admin-includes/database.php";
 }
-
-// Database connection
-require_once "../../../backend/pages/admin-includes/database.php";
 
 $page_title = "View Blog Post";
 $additional_css = [
@@ -34,6 +32,15 @@ if (mysqli_num_rows($result) === 0) {
 }
 
 $post = mysqli_fetch_assoc($result);
+
+// Determine image URL - prioritize cloud_url over legacy image_path
+$image_url = '';
+if (!empty($post['cloud_url'])) {
+    $image_url = $post['cloud_url'];
+} elseif (!empty($post['image_path'])) {
+    // Fallback to local image for backward compatibility
+    $image_url = '/assets/uploaded-images-admin/' . $post['image_path'];
+}
 ?>
 <?php include __DIR__ . "/../../user-includes/bread-crumb/bread-crumb.php"; ?>
 
@@ -48,18 +55,11 @@ $post = mysqli_fetch_assoc($result);
             </div>
         </header>
 
-        <?php if (!empty($post['image_path'])): ?>
+        <?php if (!empty($image_url)): ?>
         <div class="post-image">
-            <?php
-            echo "<!-- DEBUG: Original image_path from DB: " . htmlspecialchars($post['image_path']) . " -->";
-            
-            $image_url = '/assets/uploaded-images-admin/' . $post['image_path'];
-            
-            echo "<!-- DEBUG: Constructed image URL: " . htmlspecialchars($image_url) . " -->";
-            ?>
             <img src="<?= htmlspecialchars($image_url) ?>" 
                  alt="<?php echo htmlspecialchars($post['title']); ?>" 
-                 onerror="console.log('Image failed to load: <?= htmlspecialchars($image_url) ?>'); this.style.display='none';">
+                 onerror="this.style.display='none';">
         </div>
         <?php endif; ?>
 

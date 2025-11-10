@@ -1,7 +1,8 @@
 <?php
 // Load database connection first (it starts session)
-require_once __DIR__ . "/../../../config/database-config.php";
-$conn = getDatabaseConnection();
+if (!isset($conn)) {
+    require_once __DIR__ . "/../../../backend/pages/admin-includes/database.php";
+}
 
 $page_title = "Neo Cafe's Corner";
 $additional_css = [
@@ -176,21 +177,24 @@ if ($user_logged_in) {
                         </div>
                     </div>
                     
-                    <?php if (!empty($post['image_path'])): ?>
-                    <div class="post-image">
-                        <?php 
-                        // Simplified image path handling
+                    <?php 
+                    // Support both old image_path and new cloud_url for backward compatibility
+                    $image_url = '';
+                    if (!empty($post['cloud_url'])) {
+                        $image_url = $post['cloud_url'];
+                    } elseif (!empty($post['image_path'])) {
+                        // Fallback for old local images
                         $image_path = $post['image_path'];
-                        
-                        // If path doesn't start with 'assets/', add the prefix
                         if (strpos($image_path, 'assets/') !== 0) {
                             $image_path = 'assets/uploaded-images-users/' . basename($image_path);
                         }
-                        
-                        // Create the relative path from the current location
-                        $display_path = '../../' . $image_path;
-                        ?>
-                        <img src="<?= htmlspecialchars($display_path) ?>" alt="<?php echo htmlspecialchars($post['title']); ?>" onerror="this.style.display='none';" />
+                        $image_url = '../../' . $image_path;
+                    }
+                    ?>
+                    
+                    <?php if (!empty($image_url)): ?>
+                    <div class="post-image">
+                        <img src="<?= htmlspecialchars($image_url) ?>" alt="<?php echo htmlspecialchars($post['title']); ?>" onerror="this.style.display='none';" />
                     </div>
                     <?php endif; ?>
                     

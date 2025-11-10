@@ -1,23 +1,22 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+// Load database first (it starts the session)
+if (!isset($conn)) {
+    require_once "../admin-includes/database.php";
 }
+require_once __DIR__ . "/../../../includes/session-manager.php";
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 $page_title = "Edit Service Section";
 
-if (!isset($conn)) {
-    require_once "../admin-includes/database.php";
-}
 require_once "../admin-includes/activity-logger.php";
-
 require_once "../admin-includes/navbar/navbar.php";
 
-if (!isset($_SESSION['admin_id']) && !isset($_SESSION['admin_username'])) {
+// Check admin authentication using SessionManager
+if (!SessionManager::isAdminLoggedIn()) {
     $_SESSION['redirect_after_login'] = $_SERVER['REQUEST_URI'];
-    echo "<script>window.location.href = 'admin-login.php';</script>";
+    header("Location: /backend/login/admin/admin-login.php");
     exit();
 }
 

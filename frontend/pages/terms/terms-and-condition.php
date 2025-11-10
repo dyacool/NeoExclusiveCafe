@@ -1,12 +1,8 @@
 <?php
-// Don't start session if it's already active
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+// Load database first (starts session)
+if (!isset($conn)) {
+    require_once "../../../backend/pages/admin-includes/database.php";
 }
-
-
-// Include database connection
-require_once "../../../backend/pages/admin-includes/database.php";
 
 // Fetch terms and conditions
 $sql = "SELECT * FROM terms_conditions WHERE id = 1";

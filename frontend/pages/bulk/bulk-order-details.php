@@ -1,17 +1,13 @@
 <?php
-// Don't start session if it's already active
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+// Load database first (starts session)
+if (!isset($conn)) {
+    require_once "../../../backend/pages/admin-includes/database.php";
 }
-
-require_once "../../../backend/pages/admin-includes/database.php";
+require_once "../../../includes/session-manager.php";
 require_once "../../../backend/pages/admin-includes/notifications/notification.php";
 
-// Check if user is logged in
-if (!isset($_SESSION['user_id'])) {
-    header('Location: ../../pages/auth/login-signup.php');
-    exit();
-}
+// Require user login
+SessionManager::requireUserLogin('../../pages/auth/login-signup.php');
 
 // Check if order ID is provided
 if (!isset($_GET['id'])) {
@@ -20,7 +16,7 @@ if (!isset($_GET['id'])) {
 }
 
 $order_id = trim($_GET['id']); // Keep as string for unique_order_id
-$user_id = $_SESSION['user_id'];
+$user_id = SessionManager::getUserId();
 
 // Fetch order details with user verification first
 $order_sql = "SELECT * FROM bulk_orders WHERE unique_order_id = ? AND user_id = ?";
@@ -35,13 +31,11 @@ if (!$order) {
     exit();
 }
 
-// Handle proof of payment upload
+// Handle proof of payment upload to Cloudinary
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_proof'])) {
     if (isset($_FILES['proof_file']) && $_FILES['proof_file']['error'] === 0) {
-        $upload_dir = '../../../assets/bulk_payments/';
-        if (!file_exists($upload_dir)) {
-            mkdir($upload_dir, 0777, true);
-        }
+        // Load Cloudinary helper
+        require_once __DIR__ . '/../../../backend/includes/cloudinary-helper.php';
         
         $file_extension = strtolower(pathinfo($_FILES['proof_file']['name'], PATHINFO_EXTENSION));
         $allowed_extensions = ['jpg', 'jpeg', 'png', 'pdf'];
@@ -49,19 +43,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_proof'])) {
         if (in_array($file_extension, $allowed_extensions)) {
             $payment_type = isset($_POST['payment_type']) ? $_POST['payment_type'] : 'full';
             $timestamp = time();
-            $filename = 'bulk_payment_' . $payment_type . '_' . $order_id . '_' . $timestamp . '.' . $file_extension;
-            $filepath = $upload_dir . $filename;
             
-            if (move_uploaded_file($_FILES['proof_file']['tmp_name'], $filepath)) {
+            // Generate unique public ID
+            $publicId = 'bulk_payment_' . $payment_type . '_' . $order_id . '_' . $timestamp;
+            
+            // Upload to Cloudinary
+            $result = uploadToCloudinary($_FILES['proof_file']['tmp_name'], 'neocafe/bulk_payments', $publicId);
+            
+            if ($result['success']) {
                 // Get existing proofs
                 $existing_proofs = !empty($order['proof_of_payment']) ? json_decode($order['proof_of_payment'], true) : [];
                 if (!is_array($existing_proofs)) {
                     $existing_proofs = [];
                 }
                 
-                // Add new proof
+                // Add new proof with Cloudinary info
                 $new_proof = [
-                    'filename' => $filename,
+                    'filename' => basename($result['url']), // For backward compatibility
+                    'cloud_url' => $result['url'],
+                    'cloud_public_id' => $result['public_id'],
+                    'cloud_provider' => 'cloudinary',
                     'type' => $payment_type,
                     'uploaded_at' => date('Y-m-d H:i:s'),
                     'original_name' => $_FILES['proof_file']['name']
@@ -112,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_proof'])) {
                 }
                 mysqli_stmt_close($update_stmt);
             } else {
-                $_SESSION['flash_error'] = "Error uploading file.";
+                $_SESSION['flash_error'] = "Error uploading to cloud: " . $result['error'];
             }
         } else {
             $_SESSION['flash_error'] = "Invalid file type. Please upload JPG, PNG, or PDF files only.";
@@ -385,13 +386,19 @@ if (isset($_SESSION['flash_error'])) {
                             </div>
                             <div class="proof-preview">
                                 <?php 
-                                $file_path = "../../../assets/bulk_payments/" . $proof['filename'];
+                                // Prioritize cloud_url over legacy filename
+                                if (!empty($proof['cloud_url'])) {
+                                    $file_path = $proof['cloud_url'];
+                                } else {
+                                    // Fallback to local file for backward compatibility
+                                    $file_path = "../../../assets/bulk_payments/" . $proof['filename'];
+                                }
                                 $file_extension = strtolower(pathinfo($proof['filename'], PATHINFO_EXTENSION));
                                 ?>
                                 <?php if (in_array($file_extension, ['jpg', 'jpeg', 'png'])): ?>
-                                    <img src="<?php echo $file_path; ?>" alt="Proof of Payment">
+                                    <img src="<?php echo htmlspecialchars($file_path); ?>" alt="Proof of Payment">
                                 <?php else: ?>
-                                    <p><a href="<?php echo $file_path; ?>" target="_blank" class="btn btn-secondary">View PDF</a></p>
+                                    <p><a href="<?php echo htmlspecialchars($file_path); ?>" target="_blank" class="btn btn-secondary">View PDF</a></p>
                                 <?php endif; ?>
                             </div>
                         </div>

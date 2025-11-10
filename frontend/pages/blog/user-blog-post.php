@@ -1,19 +1,14 @@
 <?php
-// Don't start session if it's already active
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+// Load database first (starts session)
+if (!isset($conn)) {
+    require_once __DIR__ . "/../../../backend/pages/admin-includes/database.php";
 }
+require_once __DIR__ . "/../../../includes/session-manager.php";
 
-if (!isset($_SESSION['user_id'])) {
-    header("Location: ../../login/user/login-signup.php");
-    exit();
-}
+// Require user login
+SessionManager::requireUserLogin('../../login/user/login-signup.php');
 
-// Include database connection
-require_once __DIR__ . "/../../../config/database-config.php";
-
-// Get database connection
-$conn = getDatabaseConnection();
+$user_id = SessionManager::getUserId();
 
 $page_title = "My Posts";
 $additional_css = [

@@ -1,4 +1,6 @@
 <?php
+    // Load database first (it starts the session)
+    require_once __DIR__ . "/../admin-includes/database.php";
     require_once __DIR__ . "/../../../includes/session-manager.php";
     
     if (!SessionManager::isAdminLoggedIn()) {
@@ -17,7 +19,6 @@
     // Font for headings
     $head_extra = '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">';
 
-    require_once __DIR__ . "/../admin-includes/database.php";
     include __DIR__ . "/../admin-includes/navbar/navbar.php";
 
 
@@ -91,9 +92,20 @@
                             </div>
                         </div>
                         
-                        <?php if (!empty($post['image_path'])): ?>
+                        <?php 
+                        // Support both old image_path and new cloud_url for backward compatibility
+                        $image_url = '';
+                        if (!empty($post['cloud_url'])) {
+                            $image_url = $post['cloud_url'];
+                        } elseif (!empty($post['image_path'])) {
+                            // Fallback for old local images
+                            $image_url = '/assets/uploaded-images-admin/' . $post['image_path'];
+                        }
+                        ?>
+                        
+                        <?php if (!empty($image_url)): ?>
                             <div class="post-image">
-                                <img src="/assets/uploaded-images-admin/<?php echo htmlspecialchars($post['image_path']); ?>" 
+                                <img src="<?= htmlspecialchars($image_url) ?>" 
                                      alt="<?php echo htmlspecialchars($post['title']); ?>">
                             </div>
                         <?php endif; ?>
@@ -374,15 +386,20 @@
                             postIdField.value = postId;
                             console.log('Post ID set to:', postIdField.value);
                             
-                            // Handle current image
-                            currentImagePath = data.image_path;
-                            console.log('Image path:', data.image_path); // Debug log
+                            // Handle current image - support both cloud_url and image_path
+                            currentImagePath = data.cloud_url || data.image_path;
+                            console.log('Image path/URL:', currentImagePath); // Debug log
                             
-                            if (data.image_path && data.image_path.trim() !== '' && data.image_path !== null) {
-                                console.log('Displaying existing image:', data.image_path); // Debug log
+                            if (currentImagePath && currentImagePath.trim() !== '' && currentImagePath !== null) {
+                                console.log('Displaying existing image:', currentImagePath); // Debug log
                                 
                                 const currentImage = document.createElement('img');
-                                currentImage.src = '/assets/uploaded-images-admin/' + data.image_path;
+                                // Use cloud_url if available, otherwise construct local path
+                                if (data.cloud_url) {
+                                    currentImage.src = data.cloud_url;
+                                } else if (data.image_path) {
+                                    currentImage.src = '/assets/uploaded-images-admin/' + data.image_path;
+                                }
                                 currentImage.className = 'image-preview';
                                 
                                 // Add error handling for image loading

@@ -51,9 +51,19 @@ $delete_stmt = mysqli_prepare($conn, $delete_sql);
 mysqli_stmt_bind_param($delete_stmt, "ii", $post_id, $_SESSION['user_id']);
 
 if (mysqli_stmt_execute($delete_stmt)) {
-    // If post is deleted successfully, delete the associated image if it exists
-    if (!empty($post['image_path']) && file_exists("../../" . $post['image_path'])) {
-        unlink("../../" . $post['image_path']);
+    // Load Cloudinary helper only when needed for deletion
+    if (!empty($post['cloud_public_id']) || !empty($post['image_path'])) {
+        require_once __DIR__ . "/../../../backend/includes/cloudinary-helper.php";
+        
+        // If post is deleted successfully, delete the associated image
+        // Delete from Cloudinary if cloud image exists
+        if (!empty($post['cloud_public_id'])) {
+            deleteFromCloudinary($post['cloud_public_id']);
+        }
+        // Also delete local file if it exists (for backward compatibility)
+        elseif (!empty($post['image_path']) && file_exists("../../" . $post['image_path'])) {
+            unlink("../../" . $post['image_path']);
+        }
     }
     
     $response['success'] = true;

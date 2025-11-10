@@ -1,6 +1,8 @@
 <?php
-session_start();
-require_once "../../../backend/pages/admin-includes/database.php";
+// Load database first (starts session)
+if (!isset($conn)) {
+    require_once "../../../backend/pages/admin-includes/database.php";
+}
 require_once "../../../includes/session-manager.php";
 
 // Require user login - redirect if not authenticated
