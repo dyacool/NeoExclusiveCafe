@@ -488,12 +488,25 @@ class NotificationSystem {
 
 // Initialize notification system when DOM is ready
 document.addEventListener("DOMContentLoaded", function () {
-  // Only initialize if we're in an admin page
+  // Only initialize on specific pages: dashboard, orders, refund, and bulk orders
+  const allowedPages = [
+    "dashboard.php",
+    "order-list.php",
+    "view-orders.php",
+    "refund-request-lists.php",
+    "bulk-order-lists.php",
+    "bulk-order.php",
+  ];
+
+  const currentPage = window.location.pathname.split("/").pop();
+  const isAllowedPage = allowedPages.some((page) => currentPage.includes(page));
+
   if (
-    document.body.classList.contains("admin-page") ||
-    window.location.pathname.includes("/backend/") ||
-    document.querySelector(".admin-header") ||
-    document.querySelector(".header-actions")
+    isAllowedPage &&
+    (document.body.classList.contains("admin-page") ||
+      window.location.pathname.includes("/backend/") ||
+      document.querySelector(".admin-header") ||
+      document.querySelector(".header-actions"))
   ) {
     window.notificationSystem = new NotificationSystem();
   }

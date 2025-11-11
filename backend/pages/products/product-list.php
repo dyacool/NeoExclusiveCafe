@@ -258,18 +258,6 @@
 
         <!-- Products Grid/Table -->
         <div class="products-container">
-            <!-- Polling Loading Indicator -->
-            <div id="polling-loading-indicator" style="display: none;">
-                <div class="spinner"></div>
-                <span>Updating...</span>
-            </div>
-            
-            <!-- Last Update Timestamp -->
-            <div class="last-update-container">
-                <span class="last-update-label">Last updated:</span>
-                <span id="last-update-time">Just now</span>
-            </div>
-            
             <div class="table-wrapper">
                 <table class="products-table">
                     <tbody id="products-tbody">

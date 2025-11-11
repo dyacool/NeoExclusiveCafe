@@ -145,4 +145,4 @@ function settingExists($key) {
     
     return false;
 }
-?>
+// End of file - no closing PHP tag to prevent whitespace issues
