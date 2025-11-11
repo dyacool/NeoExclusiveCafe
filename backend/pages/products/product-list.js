@@ -2506,3 +2506,292 @@ function updateGlobalAvailableDays() {
       (selectedDays.length > 0 ? selectedDays.join(", ") : "None selected");
   }
 }
+
+
+/**
+ * Save product changes via AJAX without page refresh
+ */
+async function saveProductChanges(event) {
+  event.preventDefault();
+  
+  const form = document.getElementById('editProductForm');
+  const productId = document.getElementById('editProductId').value;
+  const saveButton = event.submitter || document.querySelector('.btn-primary[form="editProductForm"]');
+  
+  // Disable save button and show loading state
+  const originalButtonText = saveButton.innerHTML;
+  saveButton.disabled = true;
+  saveButton.innerHTML = '<svg class="spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg> Saving...';
+  
+  try {
+    // Collect form data
+    const formData = new FormData();
+    formData.append('csrf_token', document.getElementById('csrf_token').value);
+    formData.append('product_id', productId);
+    formData.append('name', document.getElementById('editProductName').value);
+    formData.append('description', document.getElementById('editProductDescription').value);
+    formData.append('price', document.getElementById('editProductPrice').value);
+    formData.append('quantity', document.getElementById('editProductQuantity').value);
+    formData.append('category_id', document.getElementById('editProductCategory').value);
+    formData.append('is_featured', document.getElementById('editIsFeature').value);
+    formData.append('visibility_option', document.getElementById('editVisibilityOption').value);
+    
+    // Order types
+    const preOrderChecked = document.getElementById('editPreOrderCheckbox').checked;
+    const sameDayChecked = document.getElementById('editSameDayCheckbox').checked;
+    
+    formData.append('preOrderCheckbox', preOrderChecked ? 'true' : 'false');
+    formData.append('sameDayCheckbox', sameDayChecked ? 'true' : 'false');
+    
+    if (preOrderChecked) {
+      formData.append('status_id', document.getElementById('editPreOrderStatus').value);
+    }
+    
+    if (sameDayChecked) {
+      formData.append('availtoday_status_id', document.getElementById('editSameDayStatus').value);
+      
+      // Add dates based on whether pre-order is also checked
+      if (preOrderChecked) {
+        // Both checked: use availableTodayDates
+        const availableTodayDates = document.getElementById('availableTodayDates');
+        if (availableTodayDates) {
+          formData.append('available_today_dates', availableTodayDates.value);
+        }
+      } else {
+        // Only same-day: use todaysProductDates
+        const todaysProductDates = document.getElementById('todaysProductDates');
+        if (todaysProductDates) {
+          formData.append('todays_product_dates', todaysProductDates.value);
+        }
+      }
+    }
+    
+    // Send AJAX request
+    const response = await fetch('/backend/api/update-product.php', {
+      method: 'POST',
+      body: formData,
+      credentials: 'same-origin'
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      // Update the product row in the table without refreshing
+      updateProductRow(result.product);
+      
+      // Update allProductsData array
+      const index = allProductsData.findIndex(p => p.id == productId);
+      if (index !== -1) {
+        allProductsData[index] = result.product;
+      }
+      
+      // Show success message
+      showNotification('Product updated successfully!', 'success');
+      
+      // Close modal
+      closeModal();
+      
+      // Update filter counts
+      updateFilterCounts();
+      
+    } else {
+      throw new Error(result.error || 'Failed to update product');
+    }
+    
+  } catch (error) {
+    console.error('Error saving product:', error);
+    showNotification('Error: ' + error.message, 'error');
+    
+    // Re-enable save button
+    saveButton.disabled = false;
+    saveButton.innerHTML = originalButtonText;
+  }
+}
+
+/**
+ * Update a product row in the table with new data
+ */
+function updateProductRow(product) {
+  const row = document.querySelector(`tr[data-product-id="${product.id}"]`);
+  if (!row) {
+    console.error('Product row not found:', product.id);
+    return;
+  }
+  
+  // Update row attributes
+  row.setAttribute('data-status', product.status_name || 'Unknown');
+  row.setAttribute('data-name', product.name.toLowerCase());
+  
+  // Update product name
+  const nameCell = row.querySelector('.product-name');
+  if (nameCell) {
+    nameCell.textContent = product.name;
+  }
+  
+  // Update category
+  const categoryCell = row.querySelector('.category-text');
+  if (categoryCell) {
+    categoryCell.innerHTML = product.category_name 
+      ? product.category_name 
+      : '<span style="color: #9ca3af;">No Category</span>';
+  }
+  
+  // Update price
+  const priceCell = row.querySelector('.price-text');
+  if (priceCell) {
+    priceCell.textContent = '₱' + parseFloat(product.price).toFixed(2);
+  }
+  
+  // Update status badges
+  const statusContainer = row.querySelector('.status-container');
+  if (statusContainer) {
+    const hasPreOrder = [1, 2, 3].includes(parseInt(product.status_id));
+    const hasSameDayOrder = product.availtoday_status_name != null;
+    
+    let statusHTML = '';
+    
+    // Main status badge
+    if (hasPreOrder && hasSameDayOrder) {
+      statusHTML += '<span class="status-badge status-both">Pre-Order & Same Day Order</span>';
+    } else if (product.status_id == 4) {
+      statusHTML += '<span class="status-badge status-same-day-order">Same Day Order</span>';
+    } else {
+      statusHTML += '<span class="status-badge status-pre-order">Pre-Order</span>';
+    }
+    
+    // Pre-order delivery type
+    if (hasPreOrder) {
+      const deliveryType = product.status_name || '';
+      if (deliveryType.includes('Delivery or Pick')) {
+        statusHTML += '<span class="delivery-badge delivery-preorder">PO: Delivery/Pick-Up</span>';
+      } else {
+        statusHTML += `<span class="delivery-badge delivery-preorder">PO: ${deliveryType}</span>`;
+      }
+    }
+    
+    // Same-day delivery type
+    if (hasSameDayOrder) {
+      const deliveryType = product.availtoday_status_name || '';
+      if (deliveryType.includes('Delivery or Pick')) {
+        statusHTML += '<span class="delivery-badge delivery-sameday">SDO: Delivery/Pick-Up</span>';
+      } else {
+        statusHTML += `<span class="delivery-badge delivery-sameday">SDO: ${deliveryType}</span>`;
+      }
+    }
+    
+    // Stock badge
+    const quantity = parseInt(product.quantity) || 0;
+    const quantityClass = quantity <= 5 ? 'low-stock' : (quantity <= 10 ? 'medium-stock' : 'good-stock');
+    
+    statusHTML += `<span class="stock-badge ${quantityClass}">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20 7h-9"></path>
+        <path d="M14 17H5"></path>
+        <circle cx="17" cy="17" r="3"></circle>
+        <circle cx="7" cy="7" r="3"></circle>
+      </svg>
+      <span class="preorder-stock">${quantity}</span> in stock
+    </span>`;
+    
+    statusContainer.innerHTML = statusHTML;
+  }
+  
+  // Update featured badge
+  const imageContainer = row.querySelector('.product-image-container');
+  if (imageContainer) {
+    const existingBadge = imageContainer.querySelector('.featured-badge');
+    if (product.is_featured == 1 && !existingBadge) {
+      imageContainer.innerHTML += '<span class="featured-badge">★</span>';
+    } else if (product.is_featured == 0 && existingBadge) {
+      existingBadge.remove();
+    }
+  }
+  
+  // Update available days
+  const availableDaysCell = row.querySelector('.available-days-text');
+  if (availableDaysCell && product.available_days) {
+    availableDaysCell.textContent = formatAvailableDays(product.available_days);
+  }
+  
+  // Update selected dates
+  const selectedDatesCell = row.querySelector('.selected-dates-text');
+  if (selectedDatesCell) {
+    const dates = product.status_id == 4 ? product.todays_product_dates : product.regular_today_dates;
+    selectedDatesCell.innerHTML = formatSelectedDates(dates);
+  }
+  
+  // Add a brief highlight animation
+  row.style.backgroundColor = '#d1fae5';
+  setTimeout(() => {
+    row.style.transition = 'background-color 1s ease';
+    row.style.backgroundColor = '';
+  }, 100);
+}
+
+/**
+ * Format selected dates for display
+ */
+function formatSelectedDates(datesString) {
+  if (!datesString) return '';
+  
+  const dates = datesString.split(',').filter(d => d.trim());
+  if (dates.length === 0) return '';
+  
+  const formattedDates = dates.map(date => {
+    const d = new Date(date.trim() + 'T00:00:00');
+    return `${d.getMonth() + 1}/${d.getDate()}`;
+  });
+  
+  if (formattedDates.length <= 3) {
+    return formattedDates.join(' · ');
+  } else {
+    const visible = formattedDates.slice(0, 3).join(' · ');
+    const all = formattedDates.join(' · ');
+    return `<span class="dates-display" data-tooltip="${all}">${visible} <span class="more-dates">+${formattedDates.length - 3}</span></span>`;
+  }
+}
+
+/**
+ * Show notification message
+ */
+function showNotification(message, type = 'success') {
+  // Remove existing notifications
+  const existing = document.querySelector('.notification-toast');
+  if (existing) {
+    existing.remove();
+  }
+  
+  // Create notification
+  const notification = document.createElement('div');
+  notification.className = `notification-toast notification-${type}`;
+  notification.innerHTML = `
+    <div class="notification-content">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        ${type === 'success' 
+          ? '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22,4 12,14.01 9,11.01"></polyline>'
+          : '<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>'
+        }
+      </svg>
+      <span>${message}</span>
+    </div>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Trigger animation
+  setTimeout(() => notification.classList.add('show'), 10);
+  
+  // Auto-remove after 3 seconds
+  setTimeout(() => {
+    notification.classList.remove('show');
+    setTimeout(() => notification.remove(), 300);
+  }, 3000);
+}
+
+// Setup form submission handler
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('editProductForm');
+  if (form) {
+    form.addEventListener('submit', saveProductChanges);
+  }
+});

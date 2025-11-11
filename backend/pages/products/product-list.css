@@ -1867,3 +1867,71 @@
   font-weight: 500;
   color: var(--gray-700);
 }
+
+
+/* Notification Toast */
+.notification-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 16px 20px;
+  z-index: 10000;
+  opacity: 0;
+  transform: translateX(400px);
+  transition: all 0.3s ease;
+}
+
+.notification-toast.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.notification-toast.notification-success {
+  border-left: 4px solid #10b981;
+}
+
+.notification-toast.notification-error {
+  border-left: 4px solid #ef4444;
+}
+
+.notification-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.notification-success svg {
+  color: #10b981;
+}
+
+.notification-error svg {
+  color: #ef4444;
+}
+
+.notification-content span {
+  font-size: 14px;
+  color: #374151;
+  font-weight: 500;
+}
+
+/* Spinner animation for save button */
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Row update animation */
+tr {
+  transition: background-color 0.3s ease;
+}

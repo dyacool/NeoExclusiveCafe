@@ -7,11 +7,17 @@
  */
 
 require_once __DIR__ . '/../../includes/session-manager.php';
+SessionManager::init();
 
 header('Content-Type: application/json');
 
+// Log session state for debugging
+error_log("AJAX Delete - Session ID: " . session_id());
+error_log("AJAX Delete - Admin logged in: " . (SessionManager::isAdminLoggedIn() ? 'YES' : 'NO'));
+
 // Verify admin authentication
 if (!SessionManager::isAdminLoggedIn()) {
+    error_log("AJAX Delete - Authentication failed. Session: " . json_encode($_SESSION));
     http_response_code(401);
     echo json_encode([
         'success' => false,

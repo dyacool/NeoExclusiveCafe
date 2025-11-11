@@ -47,6 +47,19 @@ function getCsrfToken() {
  * @returns {Promise<Object>} Upload result
  */
 async function uploadImageToCloudinary(file, imageType) {
+  console.log("uploadImageToCloudinary called with:", {
+    fileName: file ? file.name : 'NO FILE',
+    fileType: file ? file.type : 'NO FILE',
+    fileSize: file ? file.size : 'NO FILE',
+    imageType: imageType
+  });
+  
+  if (!file) {
+    console.error("No file provided to uploadImageToCloudinary");
+    showErrorMessage("No file selected", imageType);
+    return null;
+  }
+  
   const formData = new FormData();
   formData.append("image", file);
   formData.append("image_type", imageType);
@@ -62,6 +75,16 @@ async function uploadImageToCloudinary(file, imageType) {
   console.log("Product name value:", productName);
 
   formData.append("product_name", productName);
+  
+  // Log FormData contents
+  console.log("FormData contents:");
+  for (let pair of formData.entries()) {
+    if (pair[1] instanceof File) {
+      console.log(pair[0] + ': File(' + pair[1].name + ', ' + pair[1].size + ' bytes)');
+    } else {
+      console.log(pair[0] + ': ' + pair[1]);
+    }
+  }
 
   try {
     showLoadingIndicator(imageType);
@@ -70,6 +93,7 @@ async function uploadImageToCloudinary(file, imageType) {
     const response = await fetch(UPLOAD_ENDPOINT, {
       method: "POST",
       body: formData,
+      credentials: 'same-origin' // Ensure cookies are sent with the request
     });
 
     // Check if response is ok
@@ -152,7 +176,9 @@ function startModerationPolling(publicId, url, imageType) {
     attempts++;
     
     try {
-      const response = await fetch(`${MODERATION_CHECK_ENDPOINT}?public_id=${encodeURIComponent(publicId)}`);
+      const response = await fetch(`${MODERATION_CHECK_ENDPOINT}?public_id=${encodeURIComponent(publicId)}`, {
+        credentials: 'same-origin' // Ensure cookies are sent with the request
+      });
       const result = await response.json();
       
       console.log(`Moderation check attempt ${attempts}:`, result);
@@ -353,6 +379,7 @@ async function deleteImageFromCloudinary(publicId, imageType) {
     const response = await fetch(DELETE_ENDPOINT, {
       method: "POST",
       body: formData,
+      credentials: 'same-origin' // Ensure cookies are sent with the request
     });
 
     const result = await response.json();
@@ -783,13 +810,22 @@ function validateFile(file) {
  */
 async function handlePrimaryImageChange(event) {
   console.log("Primary image change event triggered");
+  console.log("Event target:", event.target);
+  console.log("Files array:", event.target.files);
+  console.log("Files length:", event.target.files ? event.target.files.length : 0);
+  
   const file = event.target.files[0];
   if (!file) {
-    console.log("No file selected");
+    console.log("No file selected - file is:", file);
     return;
   }
 
-  console.log("Selected file:", file.name, file.type, file.size);
+  console.log("Selected file:", {
+    name: file.name,
+    type: file.type,
+    size: file.size,
+    lastModified: file.lastModified
+  });
 
   // Validate file
   const validation = validateFile(file);

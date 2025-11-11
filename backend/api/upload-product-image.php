@@ -10,29 +10,40 @@
 // Start output buffering to prevent any accidental output
 ob_start();
 
-try {
-    session_start();
-} catch (Exception $e) {
-    error_log("Session start failed: " . $e->getMessage());
-}
-
-// Clean any previous output and set headers
-ob_clean();
-header('Content-Type: application/json');
-
 // Enable error reporting for debugging but don't display errors
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 
+// Initialize SessionManager first (it handles session_start internally)
 require_once __DIR__ . '/../../includes/session-manager.php';
+SessionManager::init();
+
+// Clean any previous output and set headers
+ob_clean();
+header('Content-Type: application/json');
+
+// Log session state for debugging
+error_log("AJAX Upload - Session ID: " . session_id());
+error_log("AJAX Upload - Admin logged in: " . (SessionManager::isAdminLoggedIn() ? 'YES' : 'NO'));
+error_log("AJAX Upload - Session data: " . json_encode([
+    'has_admin_id' => isset($_SESSION['admin_id']),
+    'has_csrf' => isset($_SESSION['csrf_token']),
+    'session_keys' => array_keys($_SESSION)
+]));
 
 // Verify admin authentication
 if (!SessionManager::isAdminLoggedIn()) {
+    error_log("AJAX Upload - Authentication failed. Session: " . json_encode($_SESSION));
     http_response_code(401);
     echo json_encode([
         'success' => false,
-        'error' => 'Unauthorized. Please log in as admin.'
+        'error' => 'Unauthorized. Please log in as admin.',
+        'debug' => [
+            'session_id' => session_id(),
+            'has_admin_id' => isset($_SESSION['admin_id']),
+            'session_keys' => array_keys($_SESSION)
+        ]
     ]);
     exit();
 }
@@ -82,9 +93,35 @@ function logTempImageUpload($conn, $publicId, $url, $moderationStatus = 'pending
     }
 }
 
+// Log all received data for debugging
+error_log("AJAX Upload - POST data: " . json_encode($_POST));
+error_log("AJAX Upload - FILES data: " . json_encode(array_map(function($file) {
+    return [
+        'name' => $file['name'] ?? 'N/A',
+        'type' => $file['type'] ?? 'N/A',
+        'size' => $file['size'] ?? 'N/A',
+        'error' => $file['error'] ?? 'N/A',
+        'tmp_name_exists' => isset($file['tmp_name']) && file_exists($file['tmp_name']) ? 'YES' : 'NO'
+    ];
+}, $_FILES)));
+
 // Validate uploaded file
 if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
     $errorMessage = 'No file uploaded';
+    $errorDetails = [];
+    
+    if (isset($_FILES['image'])) {
+        $errorDetails['file_info'] = [
+            'name' => $_FILES['image']['name'] ?? 'N/A',
+            'type' => $_FILES['image']['type'] ?? 'N/A',
+            'size' => $_FILES['image']['size'] ?? 'N/A',
+            'error' => $_FILES['image']['error'] ?? 'N/A',
+            'tmp_name' => $_FILES['image']['tmp_name'] ?? 'N/A',
+            'tmp_exists' => isset($_FILES['image']['tmp_name']) && file_exists($_FILES['image']['tmp_name']) ? 'YES' : 'NO'
+        ];
+    } else {
+        $errorDetails['files_array'] = array_keys($_FILES);
+    }
     
     if (isset($_FILES['image']['error'])) {
         switch ($_FILES['image']['error']) {
@@ -110,13 +147,18 @@ if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
         }
     }
     
+    error_log("AJAX Upload - File validation failed: $errorMessage - Details: " . json_encode($errorDetails));
+    
     http_response_code(400);
     echo json_encode([
         'success' => false,
-        'error' => $errorMessage
+        'error' => $errorMessage,
+        'debug_info' => $errorDetails
     ]);
     exit();
 }
+
+error_log("AJAX Upload - File validation passed. Processing file: " . $_FILES['image']['name']);
 
 // Validate image file
 $validation = validateImageFile($_FILES['image']['tmp_name']);
