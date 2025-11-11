@@ -940,7 +940,7 @@
         <div class="modal-footer">
             <div class="modal-actions">
                 <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                <button type="submit" class="btn btn-primary" form="editProductForm">Save Changes</button>
+                <button type="button" class="btn btn-primary" onclick="saveProductChanges(); return false;">Save Changes</button>
             </div>
         </div>
     </div>

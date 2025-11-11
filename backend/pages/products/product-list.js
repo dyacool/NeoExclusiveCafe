@@ -2512,11 +2512,22 @@ function updateGlobalAvailableDays() {
  * Save product changes via AJAX without page refresh
  */
 async function saveProductChanges(event) {
-  event.preventDefault();
+  // Prevent form submission if event is provided
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+  
+  console.log('saveProductChanges called');
   
   const form = document.getElementById('editProductForm');
   const productId = document.getElementById('editProductId').value;
-  const saveButton = event.submitter || document.querySelector('.btn-primary[form="editProductForm"]');
+  const saveButton = document.querySelector('.btn-primary[form="editProductForm"]');
+  
+  if (!saveButton) {
+    console.error('Save button not found');
+    return false;
+  }
   
   // Disable save button and show loading state
   const originalButtonText = saveButton.innerHTML;
@@ -2606,6 +2617,8 @@ async function saveProductChanges(event) {
     saveButton.disabled = false;
     saveButton.innerHTML = originalButtonText;
   }
+  
+  return false; // Prevent form submission
 }
 
 /**
@@ -2789,9 +2802,43 @@ function showNotification(message, type = 'success') {
 }
 
 // Setup form submission handler
-document.addEventListener('DOMContentLoaded', () => {
+function setupFormHandler() {
+  console.log('Setting up form handler...');
   const form = document.getElementById('editProductForm');
   if (form) {
-    form.addEventListener('submit', saveProductChanges);
+    // Remove the form's action attribute to prevent default submission
+    form.removeAttribute('action');
+    form.removeAttribute('method');
+    
+    // Add our AJAX submit handler with capture phase to ensure it runs first
+    form.addEventListener('submit', function(e) {
+      console.log('Form submit event captured');
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      saveProductChanges(e);
+      return false;
+    }, true);
+    
+    console.log('AJAX form handler attached');
+  } else {
+    console.log('Form not found, will retry...');
+    // Retry after a short delay if form doesn't exist yet
+    setTimeout(setupFormHandler, 500);
   }
-});
+}
+
+// Call setup when DOM is ready and also after a delay to catch dynamically loaded forms
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', function() {
+    setupFormHandler();
+    // Also setup again after a delay to catch modal forms
+    setTimeout(setupFormHandler, 1000);
+  });
+} else {
+  setupFormHandler();
+  setTimeout(setupFormHandler, 1000);
+}
+
+// Make saveProductChanges globally available so it can be called from onclick
+window.saveProductChanges = saveProductChanges;
