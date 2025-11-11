@@ -13,7 +13,7 @@ if (strpos($_SERVER["REQUEST_URI"], "admin-login.php") === false) {
 // Check if admin is logged in using SessionManager
 if (!SessionManager::isAdminLoggedIn()) {
     // Redirect to admin login page with error message
-    header("Location: backend/login/admin/admin-login.php?error=unauthorized");
+    header("Location: /backend/login/admin/admin-login.php?error=unauthorized");
     exit();
 }
 
@@ -27,7 +27,7 @@ $result = $stmt->get_result();
 if ($result->num_rows === 0) {
     // User is not an admin in the database
     SessionManager::destroySession();
-    header("Location: /login/admin/admin-login.php?error=unauthorized");
+    header("Location: /backend/login/admin/admin-login.php?error=unauthorized");
     exit();
 }
 ?> 
