@@ -41,11 +41,14 @@ mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
 
 // Set headers for CSV download
-header('Content-Type: text/csv');
+header('Content-Type: text/csv; charset=UTF-8');
 header('Content-Disposition: attachment; filename="transactions_' . $start_date . '_to_' . $end_date . '.csv"');
 
 // Create file pointer
 $output = fopen('php://output', 'w');
+
+// Add BOM to fix UTF-8 encoding in Excel
+fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
 
 // Add CSV headers
 fputcsv($output, [
@@ -76,7 +79,7 @@ while ($row = mysqli_fetch_assoc($result)) {
         $row['customer_name'],
         $paymentMethods[$row['payment_method']] ?? $row['payment_method'],
         $row['status'],
-        '₱' . number_format($row['total_amount'], 2),
+        'PHP ' . number_format($row['total_amount'], 2),
         $row['order_type'],
         $row['customer_contact'],
         $row['customer_address']

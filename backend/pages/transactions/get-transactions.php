@@ -54,12 +54,33 @@ try {
         $sort_direction = 'desc';
     }
     
+    // Pagination setup
+    $records_per_page = 20;
+    $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
+    $page = max(1, $page);
+    $offset = ($page - 1) * $records_per_page;
+    
+    // Get total count for pagination
+    $count_sql = "SELECT COUNT(*) as total 
+                  FROM orders o
+                  WHERE (o.status IN ('Delivered', 'Picked-up'))
+                  AND (DATE(o.order_date) BETWEEN ? AND ?)";
+    $count_stmt = mysqli_prepare($conn, $count_sql);
+    mysqli_stmt_bind_param($count_stmt, "ss", $start_date, $end_date);
+    mysqli_stmt_execute($count_stmt);
+    $count_result = mysqli_stmt_get_result($count_stmt);
+    $count_row = mysqli_fetch_assoc($count_result);
+    $total_records = $count_row['total'];
+    $total_pages = ceil($total_records / $records_per_page);
+    mysqli_stmt_close($count_stmt);
+    
     $sql = "SELECT o.order_id, o.order_date, o.customer_name, o.payment_method, o.total_amount, o.status, o.delivery_method as order_type,
             o.pickup_date, o.delivery_date, o.customer_contact, o.customer_address
             FROM orders o
             WHERE (o.status IN ('Delivered', 'Picked-up'))
             AND (DATE(o.order_date) BETWEEN ? AND ?)
-            ORDER BY o.$sort_field $sort_direction";
+            ORDER BY o.$sort_field $sort_direction
+            LIMIT ? OFFSET ?";
     
     $stmt = mysqli_prepare($conn, $sql);
     
@@ -67,7 +88,7 @@ try {
         throw new Exception("Prepare failed: " . mysqli_error($conn));
     }
     
-    mysqli_stmt_bind_param($stmt, "ss", $start_date, $end_date);
+    mysqli_stmt_bind_param($stmt, "ssii", $start_date, $end_date, $records_per_page, $offset);
     mysqli_stmt_execute($stmt);
     $result = mysqli_stmt_get_result($stmt);
     
@@ -85,6 +106,23 @@ try {
     // Calculate average order value
     $average_order_value = $total_orders > 0 ? $total_revenue / $total_orders : 0;
     
+    // Calculate total refunded amount
+    $total_refunded = 0;
+    $refund_sql = "SELECT SUM(refund_amount) as total_refunded 
+                   FROM order_refunds 
+                   WHERE refund_status IN ('approved', 'completed')
+                   AND DATE(created_at) BETWEEN ? AND ?";
+    $refund_stmt = mysqli_prepare($conn, $refund_sql);
+    if ($refund_stmt) {
+        mysqli_stmt_bind_param($refund_stmt, "ss", $start_date, $end_date);
+        mysqli_stmt_execute($refund_stmt);
+        $refund_result = mysqli_stmt_get_result($refund_stmt);
+        if ($refund_row = mysqli_fetch_assoc($refund_result)) {
+            $total_refunded = $refund_row['total_refunded'] ?? 0;
+        }
+        mysqli_stmt_close($refund_stmt);
+    }
+    
     // Prepare response data
     $response = [
         'success' => true,
@@ -93,7 +131,8 @@ try {
             'summary' => [
                 'total_revenue' => $total_revenue,
                 'total_orders' => $total_orders,
-                'average_order_value' => $average_order_value
+                'average_order_value' => $average_order_value,
+                'total_refunded' => $total_refunded
             ],
             'filters' => [
                 'start_date' => $start_date,
@@ -101,6 +140,13 @@ try {
                 'selected_period' => $selected_period,
                 'sort_field' => $sort_field,
                 'sort_direction' => $sort_direction
+            ],
+            'pagination' => [
+                'current_page' => $page,
+                'total_pages' => $total_pages,
+                'total_records' => $total_records,
+                'records_per_page' => $records_per_page,
+                'offset' => $offset
             ]
         ]
     ];

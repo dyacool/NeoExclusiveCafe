@@ -46,12 +46,33 @@
         $sort_direction = 'desc';
     }
     
+    // Pagination setup
+    $records_per_page = 20;
+    $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
+    $page = max(1, $page); // Ensure page is at least 1
+    $offset = ($page - 1) * $records_per_page;
+    
+    // Get total count for pagination
+    $count_sql = "SELECT COUNT(*) as total 
+                  FROM orders o
+                  WHERE (o.status IN ('Delivered', 'Picked-up', 'Completed'))
+                  AND (DATE(o.order_date) BETWEEN ? AND ?)";
+    $count_stmt = mysqli_prepare($conn, $count_sql);
+    mysqli_stmt_bind_param($count_stmt, "ss", $start_date, $end_date);
+    mysqli_stmt_execute($count_stmt);
+    $count_result = mysqli_stmt_get_result($count_stmt);
+    $count_row = mysqli_fetch_assoc($count_result);
+    $total_records = $count_row['total'];
+    $total_pages = ceil($total_records / $records_per_page);
+    mysqli_stmt_close($count_stmt);
+    
     $sql = "SELECT o.order_id, o.order_date, o.customer_name, o.payment_method, o.total_amount, o.status, o.delivery_method as order_type,
             o.pickup_date, o.delivery_date, o.customer_contact, o.customer_address
             FROM orders o
             WHERE (o.status IN ('Delivered', 'Picked-up', 'Completed'))
             AND (DATE(o.order_date) BETWEEN ? AND ?)
-            ORDER BY o.$sort_field $sort_direction";
+            ORDER BY o.$sort_field $sort_direction
+            LIMIT ? OFFSET ?";
     
     $stmt = mysqli_prepare($conn, $sql);
     
@@ -59,7 +80,7 @@
         die("Prepare failed: " . mysqli_error($conn));
     }
     
-    mysqli_stmt_bind_param($stmt, "ss", $start_date, $end_date);
+    mysqli_stmt_bind_param($stmt, "ssii", $start_date, $end_date, $records_per_page, $offset);
     mysqli_stmt_execute($stmt);
     $result = mysqli_stmt_get_result($stmt);
     
@@ -76,6 +97,23 @@
     
     // Calculate average order value
     $average_order_value = $total_orders > 0 ? $total_revenue / $total_orders : 0;
+    
+    // Calculate total refunded amount
+    $total_refunded = 0;
+    $refund_sql = "SELECT SUM(refund_amount) as total_refunded 
+                   FROM order_refunds 
+                   WHERE refund_status IN ('approved', 'completed')
+                   AND DATE(created_at) BETWEEN ? AND ?";
+    $refund_stmt = mysqli_prepare($conn, $refund_sql);
+    if ($refund_stmt) {
+        mysqli_stmt_bind_param($refund_stmt, "ss", $start_date, $end_date);
+        mysqli_stmt_execute($refund_stmt);
+        $refund_result = mysqli_stmt_get_result($refund_stmt);
+        if ($refund_row = mysqli_fetch_assoc($refund_result)) {
+            $total_refunded = $refund_row['total_refunded'] ?? 0;
+        }
+        mysqli_stmt_close($refund_stmt);
+    }
     
     // Get summary card sort parameters
     $summary_sort = isset($_GET['summary_sort']) ? $_GET['summary_sort'] : '';
@@ -186,6 +224,27 @@
                             Value improving
                         </div>
                     </div>
+
+                    <div class="summary-card">
+                        <div class="card-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                            </svg>
+                        </div>
+                        <h3 onclick="sortSummary('refunded')" class="<?php echo $summary_sort === 'refunded' ? 'sorted ' . $summary_direction : ''; ?>">
+                            Total Refunded
+                        </h3>
+                        <p class="amount" id="total-refunded">₱<?php echo number_format($total_refunded, 2); ?></p>
+                        <p class="period"><?php echo date('M d, Y', strtotime($start_date)); ?> - <?php echo date('M d, Y', strtotime($end_date)); ?></p>
+                        <div class="trend negative">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="23,18 13.5,8.5 8.5,13.5 1,6"></polyline>
+                                <polyline points="17,18 23,18 23,12"></polyline>
+                            </svg>
+                            Approved refunds
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -254,8 +313,13 @@
                     </div>
                 </div>
                 <div class="filter-group export-group">
-                    <button class="export-btn" onclick="exportTransactions()">
-                        <i class="fa-solid fa-download"></i> Export Transactions
+                    <button class="export-btn" onclick="exportTransactions()" id="exportBtn">
+                        <span class="export-normal">
+                            <i class="fa-solid fa-download"></i> Export Transactions
+                        </span>
+                        <span class="export-loading" style="display: none;">
+                            <i class="fa-solid fa-spinner fa-spin"></i> Exporting...
+                        </span>
                     </button>
                 </div>
             </div>
@@ -330,6 +394,47 @@
                         </tbody>
                     </table>
                 </div>
+                
+                <!-- Pagination -->
+                <?php if ($total_pages > 1): ?>
+                    <div class="pagination-container">
+                        <div class="pagination-info">
+                            <span>Showing<?php echo min($offset + $records_per_page, $total_records); ?> of <?php echo $total_records; ?> transactions</span>
+                        </div>
+                        
+                        <div class="pagination">
+                            <?php if ($page > 1): ?>
+                                <a href="?<?php echo http_build_query(array_merge($_GET, ['page' => 1])); ?>" class="pagination-btn">
+                                    <i class="fas fa-angle-double-left"></i>
+                                </a>
+                                <a href="?<?php echo http_build_query(array_merge($_GET, ['page' => ($page - 1)])); ?>" class="pagination-btn">
+                                    <i class="fas fa-angle-left"></i>
+                                </a>
+                            <?php endif; ?>
+
+                            <?php
+                            $start_page = max(1, $page - 2);
+                            $end_page = min($total_pages, $page + 2);
+                            
+                            for ($i = $start_page; $i <= $end_page; $i++):
+                            ?>
+                                <a href="?<?php echo http_build_query(array_merge($_GET, ['page' => $i])); ?>" 
+                                   class="pagination-btn <?php echo ($i == $page) ? 'active' : ''; ?>">
+                                    <?php echo $i; ?>
+                                </a>
+                            <?php endfor; ?>
+
+                            <?php if ($page < $total_pages): ?>
+                                <a href="?<?php echo http_build_query(array_merge($_GET, ['page' => ($page + 1)])); ?>" class="pagination-btn">
+                                    <i class="fas fa-angle-right"></i>
+                                </a>
+                                <a href="?<?php echo http_build_query(array_merge($_GET, ['page' => $total_pages])); ?>" class="pagination-btn">
+                                    <i class="fas fa-angle-double-right"></i>
+                                </a>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -368,6 +473,7 @@
                         updateTransactionsTable(data.data.transactions);
                         updateSummaryCards(data.data.summary);
                         updateFilterStates(data.data.filters);
+                        updatePagination(data.data.pagination);
                     } else {
                         console.error('Error fetching transactions:', data.error);
                     }
@@ -426,6 +532,7 @@
             document.getElementById('total-revenue').textContent = `₱${parseFloat(summary.total_revenue).toFixed(2)}`;
             document.getElementById('total-orders').textContent = summary.total_orders;
             document.getElementById('average-order-value').textContent = `₱${parseFloat(summary.average_order_value).toFixed(2)}`;
+            document.getElementById('total-refunded').textContent = `₱${parseFloat(summary.total_refunded || 0).toFixed(2)}`;
         }
         
         // Update filter states
@@ -449,6 +556,12 @@
             } else {
                 customFilter.classList.remove('active');
             }
+        }
+        
+        // Update pagination
+        function updatePagination(pagination) {
+            // This will be handled by page reload for now
+            // Could be enhanced with dynamic pagination update if needed
         }
         
         // Helper functions
@@ -1045,6 +1158,27 @@
                             title: {
                                 display: true,
                                 text: 'Products'
+                            },
+                            ticks: {
+                                callback: function(value, index) {
+                                    const label = this.getLabelForValue(value);
+                                    // Check if screen width is 1440px or below
+                                    if (window.innerWidth <= 1440) {
+                                        const maxLength = 15;
+                                        if (label.length > maxLength) {
+                                            // Split label into chunks of maxLength
+                                            const chunks = [];
+                                            for (let i = 0; i < label.length; i += maxLength) {
+                                                chunks.push(label.substr(i, maxLength));
+                                            }
+                                            return chunks;
+                                        }
+                                    }
+                                    return label;
+                                },
+                                font: {
+                                    size: window.innerWidth <= 1440 ? 11 : 12
+                                }
                             }
                         }
                     }
@@ -1055,6 +1189,15 @@
         // Initialize charts on page load
         // Export functionality
         function exportTransactions() {
+            const exportBtn = document.getElementById('exportBtn');
+            const normalState = exportBtn.querySelector('.export-normal');
+            const loadingState = exportBtn.querySelector('.export-loading');
+            
+            // Show loading state
+            normalState.style.display = 'none';
+            loadingState.style.display = 'inline-flex';
+            exportBtn.disabled = true;
+            
             // Get current URL parameters to maintain the same filters
             const urlParams = new URLSearchParams(window.location.search);
             const exportUrl = 'export-transactions.php?' + urlParams.toString();
@@ -1066,6 +1209,13 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            
+            // Hide loading state after a short delay (since download is instant)
+            setTimeout(() => {
+                normalState.style.display = 'inline-flex';
+                loadingState.style.display = 'none';
+                exportBtn.disabled = false;
+            }, 1500);
         }
 
         document.addEventListener('DOMContentLoaded', function() {

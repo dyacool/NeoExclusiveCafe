@@ -339,7 +339,7 @@ if (isset($_GET['action']) || isset($_POST['action'])) {
             
         case 'get_unread_count':
             $count = $handler->getUnreadCount();
-            echo json_encode(['success' => true, 'count' => $count]);
+            echo json_encode(['success' => $count]);
             break;
             
         case 'mark_as_read':
@@ -363,6 +363,23 @@ if (isset($_GET['action']) || isset($_POST['action'])) {
             echo json_encode(['success' => false, 'message' => 'Invalid action']);
     }
     exit;
+}
+
+// ============================================
+// ALLOWED PAGES FOR AUTO-CHECKING ORDERS
+// ============================================
+$current_file = basename($_SERVER['PHP_SELF']);
+$allowed_auto_check_pages = [
+    'dashboard.php',
+    'order-list.php',
+    'bulk-order-lists.php',
+    'refund-request-lists.php'
+];
+
+// Only check for due/overdue orders on specific pages
+if (in_array($current_file, $allowed_auto_check_pages)) {
+    $handler = new NotificationHandler($conn);
+    $handler->checkDueAndOverdueOrders();
 }
 
 // Only render notification bell UI on dashboard page
