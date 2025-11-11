@@ -20,6 +20,77 @@ if (!SessionManager::isAdminLoggedIn()) {
 header('Content-Type: application/json');
 
 try {
+    // ====================================
+    // AUTO-STATUS UPDATE CHECK
+    // ====================================
+    // Check if auto-status is enabled and run status updates if needed
+    $check_sql = "SELECT auto_status_enabled FROM order_status_settings WHERE admin_id IS NULL LIMIT 1";
+    $check_result = mysqli_query($conn, $check_sql);
+    
+    $auto_status_enabled = false;
+    if ($check_result && mysqli_num_rows($check_result) > 0) {
+        $row = mysqli_fetch_assoc($check_result);
+        $auto_status_enabled = (bool)$row['auto_status_enabled'];
+    }
+    
+    // If auto-status is enabled, perform automatic status updates
+    if ($auto_status_enabled) {
+        // Get current date
+        $today = date('Y-m-d');
+        $tomorrow = date('Y-m-d', strtotime('+1 day'));
+        
+        // 1. Update pickup orders due today to "Ready for Pick-up"
+        $sql = "UPDATE orders 
+                SET status = 'Ready for Pick-up' 
+                WHERE delivery_method = 'Pick-up' 
+                AND pickup_date = ? 
+                AND status IN ('Preparing', 'Confirmed')";
+        
+        $stmt = mysqli_prepare($conn, $sql);
+        mysqli_stmt_bind_param($stmt, "s", $today);
+        mysqli_stmt_execute($stmt);
+        mysqli_stmt_close($stmt);
+        
+        // 2. Update delivery orders due today to "Ready for Delivery"
+        $sql = "UPDATE orders 
+                SET status = 'Ready for Delivery' 
+                WHERE delivery_method = 'Delivery' 
+                AND delivery_date = ? 
+                AND status IN ('Preparing', 'Confirmed')";
+        
+        $stmt = mysqli_prepare($conn, $sql);
+        mysqli_stmt_bind_param($stmt, "s", $today);
+        mysqli_stmt_execute($stmt);
+        mysqli_stmt_close($stmt);
+        
+        // 3. Update pickup orders due tomorrow to "Preparing"
+        $sql = "UPDATE orders 
+                SET status = 'Preparing' 
+                WHERE delivery_method = 'Pick-up' 
+                AND pickup_date = ? 
+                AND status = 'Confirmed'";
+        
+        $stmt = mysqli_prepare($conn, $sql);
+        mysqli_stmt_bind_param($stmt, "s", $tomorrow);
+        mysqli_stmt_execute($stmt);
+        mysqli_stmt_close($stmt);
+        
+        // 4. Update delivery orders due tomorrow to "Preparing"
+        $sql = "UPDATE orders 
+                SET status = 'Preparing' 
+                WHERE delivery_method = 'Delivery' 
+                AND delivery_date = ? 
+                AND status = 'Confirmed'";
+        
+        $stmt = mysqli_prepare($conn, $sql);
+        mysqli_stmt_bind_param($stmt, "s", $tomorrow);
+        mysqli_stmt_execute($stmt);
+        mysqli_stmt_close($stmt);
+    }
+    // ====================================
+    // END AUTO-STATUS UPDATE
+    // ====================================
+    
     // Get filter parameters
     $status_filter = isset($_GET['status']) ? $_GET['status'] : 'all';
     $search = isset($_GET['search']) ? $_GET['search'] : '';
