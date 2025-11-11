@@ -247,7 +247,9 @@ foreach ($preorder_items as $item) {
                                         <div class="product-controls-mobile">
                                             <div class="quantity-controls">
                                                 <button class="quantity-btn" onclick="updateQuantityInstant(<?= $item['cart_id'] ?>, <?= $item['quantity'] - 1 ?>, 'preorder', <?= $item['product_stock'] ?>, this)">-</button>
-                                                <span class="quantity-display"><?= $item['quantity'] ?></span>
+                                                <input type="number" class="quantity-input" value="<?= $item['quantity'] ?>" min="1" max="<?= $item['product_stock'] ?>" 
+                                                       onchange="handleQuantityInput(<?= $item['cart_id'] ?>, this.value, 'preorder', <?= $item['product_stock'] ?>, this)"
+                                                       onblur="handleQuantityInput(<?= $item['cart_id'] ?>, this.value, 'preorder', <?= $item['product_stock'] ?>, this)">
                                                 <button class="quantity-btn" onclick="updateQuantityInstant(<?= $item['cart_id'] ?>, <?= $item['quantity'] + 1 ?>, 'preorder', <?= $item['product_stock'] ?>, this)">+</button>
                                             </div>
                                             <div class="mobile-price">₱<?= number_format($item['price'] * $item['quantity'], 2) ?></div>
@@ -340,7 +342,9 @@ foreach ($preorder_items as $item) {
                                         <div class="product-controls-mobile">
                                             <div class="quantity-controls">
                                                 <button class="quantity-btn" onclick="updateQuantityInstant(<?= $item['cart_id'] ?>, <?= $item['quantity'] - 1 ?>, 'sameday', <?= $item['product_stock'] ?>, this)">-</button>
-                                                <span class="quantity-display"><?= $item['quantity'] ?></span>
+                                                <input type="number" class="quantity-input" value="<?= $item['quantity'] ?>" min="1" max="<?= $item['product_stock'] ?>" 
+                                                       onchange="handleQuantityInput(<?= $item['cart_id'] ?>, this.value, 'sameday', <?= $item['product_stock'] ?>, this)"
+                                                       onblur="handleQuantityInput(<?= $item['cart_id'] ?>, this.value, 'sameday', <?= $item['product_stock'] ?>, this)">
                                                 <button class="quantity-btn" onclick="updateQuantityInstant(<?= $item['cart_id'] ?>, <?= $item['quantity'] + 1 ?>, 'sameday', <?= $item['product_stock'] ?>, this)">+</button>
                                             </div>
                                             <div class="mobile-price">₱<?= number_format($item['price'] * $item['quantity'], 2) ?></div>

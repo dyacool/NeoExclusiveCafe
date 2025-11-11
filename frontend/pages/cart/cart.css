@@ -961,10 +961,20 @@ body {
     font-size: 12px;
   }
 
-  .quantity-display {
-    width: 30px;
-    height: 28px;
+  .quantity-btn {
+    width: 25px;
+    height: 25px;
     font-size: 12px;
+  }
+
+  .quantity-input {
+    width: 40px;
+    height: 25px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 10px;
+    background: white;
   }
 
   .remove-btn {
@@ -1079,7 +1089,7 @@ body {
   .product-info-mobile {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 5px;
   }
 
   .product-name-mobile {
@@ -1107,9 +1117,19 @@ body {
   }
 
   .quantity-btn {
-    width: 22px;
+    width: 20px;
     height: 22px;
+    font-size: 12px;
+  }
+
+  .quantity-input {
+    width: 35px;
+    height: 22px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    text-align: center;
     font-size: 10px;
+    background: white;
   }
 
   .quantity-display {
@@ -1302,8 +1322,8 @@ body {
     margin-bottom: 10px;
   }
 
-  .checkout-btn {
-    padding: 8px 12px;
+  .mobile-checkout-btn {
+    padding: 8px 20px;
     font-size: 13px;
   }
 
@@ -1397,9 +1417,19 @@ body {
   }
 
   .quantity-btn {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 20px;
     font-size: 10px;
+  }
+
+  .quantity-input {
+    width: 35px;
+    height: 20px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 8px;
+    background: white;
   }
 
   .quantity-display {
@@ -1457,25 +1487,29 @@ body {
 
 /* Loading spinner for checkout button */
 .loading-spinner-small {
-    display: inline-block;
-    width: 14px;
-    height: 14px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-top: 2px solid white;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin-right: 8px;
-    vertical-align: middle;
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-right: 8px;
+  vertical-align: middle;
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Button loading state */
 .checkout-btn.loading,
 .mobile-checkout-btn.loading {
-    cursor: wait;
-    opacity: 0.8;
+  cursor: wait;
+  opacity: 0.8;
 }

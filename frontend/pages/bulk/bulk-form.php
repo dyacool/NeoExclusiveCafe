@@ -252,7 +252,7 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
                     </div>
 
                     <div class="form-group">
-                        <label for="order_type">Order Type <span class="required">*</span></label>
+                        <label for="order_type">Delivery Type <span class="required">*</span></label>
                         <select id="order_type" name="order_type" required>
                             <option value="">Select Order Type</option>
                             <option value="delivery">Delivery</option>
@@ -660,6 +660,54 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
             if ('scrollRestoration' in history) {
                 history.scrollRestoration = 'manual';
             }
+        })();
+        
+        // Enforce minimum date validation for date_needed field
+        (function() {
+            const dateInput = document.getElementById('date_needed');
+            const minDate = '<?php echo $min_date; ?>';
+            
+            // Set min attribute
+            dateInput.setAttribute('min', minDate);
+            
+            // Validate on change
+            dateInput.addEventListener('change', function() {
+                const selectedDate = new Date(this.value);
+                const minDateObj = new Date(minDate);
+                
+                if (selectedDate < minDateObj) {
+                    alert('Please select a date at least 2 weeks from today. Minimum date: ' + minDateObj.toLocaleDateString());
+                    this.value = '';
+                    this.focus();
+                }
+            });
+            
+            // Validate on blur
+            dateInput.addEventListener('blur', function() {
+                if (this.value) {
+                    const selectedDate = new Date(this.value);
+                    const minDateObj = new Date(minDate);
+                    
+                    if (selectedDate < minDateObj) {
+                        alert('Please select a date at least 2 weeks from today. Minimum date: ' + minDateObj.toLocaleDateString());
+                        this.value = '';
+                    }
+                }
+            });
+            
+            // Prevent form submission with invalid date
+            const form = document.getElementById('bulkOrderForm');
+            form.addEventListener('submit', function(e) {
+                const selectedDate = new Date(dateInput.value);
+                const minDateObj = new Date(minDate);
+                
+                if (selectedDate < minDateObj) {
+                    e.preventDefault();
+                    alert('Please select a date at least 2 weeks from today. Minimum date: ' + minDateObj.toLocaleDateString());
+                    dateInput.focus();
+                    return false;
+                }
+            });
         })();
     </script>
 </body>

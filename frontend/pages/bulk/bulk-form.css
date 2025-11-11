@@ -199,7 +199,6 @@ textarea {
 /* Select styling */
 select {
   cursor: pointer;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
   background-position: right 12px center;
   background-repeat: no-repeat;
   background-size: 16px;
@@ -1120,7 +1119,7 @@ select {
   }
 
   .products-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 16px;
   }
 
@@ -1129,12 +1128,13 @@ select {
   }
 
   .quantity-section {
-    padding: 0 20px 20px 20px;
+    padding: 0 1rem 1rem 1rem;
   }
 
   .quantity-controls {
-    flex-direction: column;
+    flex-direction: row;
     gap: 16px;
+    padding: 0;
     align-items: stretch;
   }
 
@@ -1143,7 +1143,7 @@ select {
   }
 
   .form-actions {
-    flex-direction: column;
+    flex-direction: row;
     gap: 16px;
     padding: 24px 20px;
   }
@@ -1175,9 +1175,14 @@ select {
     padding: 16px;
   }
 
+  .products-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
   .product-header {
     padding: 16px;
-    flex-direction: column;
+    flex-direction: row;
     gap: 12px;
     align-items: flex-start;
   }
@@ -1217,7 +1222,7 @@ select {
   }
 }
 
-@media (max-width: 360px) {
+@media (max-width: 375px) {
   .product-header {
     padding: 12px;
   }
@@ -1234,6 +1239,213 @@ select {
   .btn-same-address {
     font-size: 0.7rem;
     padding: 4px 8px;
+  }
+
+  .quantity-controls {
+    padding: 0;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    padding: 0;
+    padding-bottom: 1rem;
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 320px) {
+  .quantity-controls {
+    flex-direction: column;
+    gap: 16px;
+    padding: 0;
+    align-items: stretch;
+  }
+}
+
+/* Order Summary Responsive Styles for Small Screens */
+@media (max-width: 425px) {
+  .summary-header {
+    padding: 14px 12px;
+  }
+
+  .summary-header h3 {
+    font-size: 1.1rem;
+  }
+
+  .summary-table th,
+  .summary-table td {
+    padding: 8px 4px;
+    font-size: 0.75rem;
+  }
+
+  .summary-table th {
+    font-size: 0.7rem;
+  }
+
+  .item-name {
+    font-size: 0.75rem;
+    line-height: 1.2;
+  }
+
+  .item-calculation {
+    font-size: 0.65rem;
+  }
+
+  .item-total {
+    font-size: 0.75rem;
+    min-width: 50px;
+  }
+
+  .total-label {
+    font-size: 0.75rem;
+  }
+
+  .total-value {
+    font-size: 0.75rem;
+  }
+
+  .grand-total .total-value {
+    font-size: 1rem;
+  }
+
+  .pricing-note {
+    font-size: 0.7rem;
+    padding: 8px;
+  }
+}
+
+@media (max-width: 375px) {
+  .summary-header {
+    padding: 12px 10px;
+  }
+
+  .summary-header h3 {
+    font-size: 1rem;
+  }
+
+  .summary-content {
+    padding: 12px;
+  }
+
+  .summary-table th,
+  .summary-table td {
+    padding: 6px 3px;
+    font-size: 0.7rem;
+  }
+
+  .summary-table th {
+    font-size: 0.65rem;
+  }
+
+  .product-image-wrapper {
+    flex-shrink: 0;
+    width: 60px;
+    height: 60px;
+  }
+
+  .item-name {
+    font-size: 0.7rem;
+  }
+
+  .item-total {
+    font-size: 0.7rem;
+    min-width: 45px;
+  }
+
+  .summary-totals {
+    padding: 10px 12px;
+  }
+
+  .total-value {
+    font-size: 0.7rem;
+  }
+
+  .grand-total .total-value {
+    font-size: 0.95rem;
+  }
+
+  .items-count {
+    font-size: 0.65rem;
+  }
+}
+
+@media (max-width: 320px) {
+  .summary-header {
+    padding: 10px 8px;
+  }
+
+  .summary-header h3 {
+    font-size: 0.95rem;
+  }
+
+  .summary-icon {
+    font-size: 1.1rem;
+  }
+
+  .summary-content {
+    padding: 8px;
+  }
+
+  .summary-table {
+    display: block;
+    overflow-x: auto;
+  }
+
+  .summary-table table {
+    min-width: 280px;
+  }
+
+  .summary-table th,
+  .summary-table td {
+    padding: 5px 2px;
+    font-size: 0.65rem;
+  }
+
+  .summary-table th {
+    font-size: 0.6rem;
+  }
+
+  .item-name {
+    font-size: 0.65rem;
+  }
+
+  .item-calculation {
+    font-size: 0.6rem;
+  }
+
+  .item-total {
+    font-size: 0.65rem;
+    min-width: 40px;
+  }
+
+  .summary-totals {
+    padding: 8px 10px;
+  }
+
+  .total-label {
+    font-size: 0.65rem;
+  }
+
+  .total-value {
+    font-size: 0.65rem;
+  }
+
+  .grand-total .total-label {
+    font-size: 0.7rem;
+  }
+
+  .grand-total .total-value {
+    font-size: 0.85rem;
+  }
+
+  .items-count {
+    font-size: 0.6rem;
+    padding: 6px;
+  }
+
+  .pricing-note {
+    font-size: 0.6rem;
+    padding: 6px;
   }
 }
 
@@ -1273,15 +1485,14 @@ select {
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .wrapper {
-    padding: 0 16px 30px 16px;
-  }
-
   .form-header {
     padding: 24px 16px;
-    margin-bottom: 30px;
+    margin-bottom: 0 !important;
   }
 
+  .form-sectionP {
+    margin-bottom: 1rem;
+  }
   .form-header h1 {
     font-size: 2rem;
     margin-bottom: 12px;
@@ -1289,6 +1500,7 @@ select {
 
   .form-header p {
     font-size: 1rem;
+    margin-bottom: 0;
   }
 
   .form-row {
@@ -1303,15 +1515,11 @@ select {
 
   .product-selection,
   .order-summary {
-    padding: 20px 16px;
+    padding: 0;
   }
 }
 
 @media (max-width: 480px) {
-  .wrapper {
-    padding: 0 12px 25px 12px;
-  }
-
   .form-header {
     padding: 20px 12px;
   }
@@ -1712,11 +1920,129 @@ select {
 
   .order-summary-table {
     font-size: 0.85rem;
+    overflow-x: auto;
+    display: block;
+  }
+
+  .order-summary-table table {
+    min-width: 100%;
+    display: table;
   }
 
   .order-summary-table th,
   .order-summary-table td {
     padding: 0.5rem 0.25rem;
+    font-size: 0.75rem;
+    white-space: nowrap;
+  }
+
+  .order-summary-table th {
+    font-size: 0.7rem;
+    padding: 0.5rem 0.25rem;
+  }
+
+  .order-summary-table .total-row td {
+    font-size: 0.9rem;
+  }
+}
+
+/* Additional responsive styles for 425px, 375px, and 320px */
+@media (max-width: 425px) {
+  .order-summary-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .order-summary-table table {
+    min-width: 400px;
+  }
+
+  .order-summary-table th,
+  .order-summary-table td {
+    padding: 0.5rem 0.3rem;
+    font-size: 0.7rem;
+  }
+
+  .order-summary-table th {
+    font-size: 0.65rem;
+  }
+
+  .order-summary-table .total-row td {
+    font-size: 0.85rem;
+    padding: 0.6rem 0.3rem;
+  }
+}
+
+@media (max-width: 375px) {
+  .order-summary-table table {
+    min-width: 350px;
+  }
+
+  .order-summary-table th,
+  .order-summary-table td {
+    padding: 0.4rem 0.25rem;
+    font-size: 0.65rem;
+  }
+
+  .order-summary-table th {
+    font-size: 0.6rem;
+  }
+
+  .order-summary-table .total-row td {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.25rem;
+  }
+
+  .pricing-disclaimer {
+    padding: 0.5rem;
+  }
+
+  .pricing-disclaimer p {
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 320px) {
+  .order-summary-table {
+    margin: 0 -0.5rem;
+  }
+
+  .order-summary-table table {
+    min-width: 300px;
+  }
+
+  .order-summary-table th,
+  .order-summary-table td {
+    padding: 0.3rem 0.2rem;
+    font-size: 0.6rem;
+  }
+
+  .order-summary-table th {
+    font-size: 0.55rem;
+    letter-spacing: 0.3px;
+  }
+
+  .order-summary-table .total-row td {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.2rem;
+  }
+
+  .pricing-disclaimer {
+    padding: 0.4rem;
+  }
+
+  .pricing-disclaimer p {
+    font-size: 0.65rem;
+    line-height: 1.3;
+  }
+
+  .confirmation-section {
+    padding: 0.75rem;
+  }
+
+  .confirmation-section h3 {
+    font-size: 1rem;
   }
 }
 
@@ -1761,7 +2087,7 @@ select {
 
   .modal-footer .btn {
     width: 100%;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0;
   }
 
   .modal-footer .btn:last-child {
@@ -1814,13 +2140,14 @@ select {
 
 .pricing-disclaimer p {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: #6c757d;
   line-height: 1.4;
 }
 
 .pricing-disclaimer em {
   font-style: italic;
+  font-size: 0.625rem;
 }
 
 /* Order Summary Table Enhancements */
