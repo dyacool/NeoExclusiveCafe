@@ -184,8 +184,9 @@
             <h2>Delete Post</h2>
             <p>Are you sure you want to delete this post? This action cannot be undone.</p>
             <div class="modal-buttons">
-                <button id="confirmDelete" class="delete-btn">Delete</button>
                 <button id="cancelDelete" class="save-btn">Cancel</button>
+                <button id="confirmDelete" class="delete-btn">Delete</button>
+
             </div>
         </div>
     </div>

@@ -126,22 +126,43 @@ try {
         throw new Exception('Failed to update product: ' . $stmt->error);
     }
     
-    // Handle available days for pre-order products
-    if ($status_id == 1 || $status_id == 2 || $status_id == 3) {
-        // Delete existing days
-        $conn->query("DELETE FROM product_day WHERE product_id = $product_id");
+    // Handle available days - ALWAYS delete first, then re-insert only for Pre-Order
+    error_log("=== AVAILABLE DAYS UPDATE (update-product.php API) ===");
+    error_log("Product ID: $product_id, Status: $status_id, Pre-Order Checked: " . ($preOrderChecked ? 'YES' : 'NO'));
+    
+    // ALWAYS delete existing days first (for ALL products)
+    $delete_result = $conn->query("DELETE FROM product_day WHERE product_id = $product_id");
+    $deleted_count = $conn->affected_rows;
+    error_log("Deleted $deleted_count existing available days");
+    
+    // Only re-insert days if Pre-Order is checked (status 1, 2, 3)
+    if ($preOrderChecked && ($status_id == 1 || $status_id == 2 || $status_id == 3)) {
+        error_log("Pre-Order is checked - re-inserting available days");
         
-        // Get global available days
-        $available_days = getSetting('global_available_days', []);
+        // Check if available_days was sent from frontend
+        $available_days = [];
+        if (isset($_POST['available_days']) && is_array($_POST['available_days'])) {
+            $available_days = $_POST['available_days'];
+            error_log("Using available_days from POST: " . json_encode($available_days));
+        } else {
+            // Fallback to global settings if not sent
+            $available_days = getSetting('global_available_days', []);
+            error_log("Using global_available_days from settings: " . json_encode($available_days));
+        }
         
         if (!empty($available_days)) {
             $day_stmt = $conn->prepare("INSERT INTO product_day (product_id, day_of_week) VALUES (?, ?)");
             foreach ($available_days as $day) {
                 $day_stmt->bind_param("is", $product_id, $day);
                 $day_stmt->execute();
+                error_log("  Inserted: $day");
             }
             $day_stmt->close();
+        } else {
+            error_log("No available days to insert");
         }
+    } else {
+        error_log("Pre-Order NOT checked or status is Same Day Order (4) - days remain deleted");
     }
     
     // Handle dates for same-day order

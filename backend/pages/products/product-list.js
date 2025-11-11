@@ -189,13 +189,13 @@ function formatAvailableDays(availableDays) {
   if (!availableDays) return "Not Applicable";
 
   const dayMap = {
-    Sunday: "S",
-    Monday: "M",
-    Tuesday: "T",
-    Wednesday: "W",
-    Thursday: "Th",
-    Friday: "F",
-    Saturday: "Sa",
+    Sunday: "Sun",
+    Monday: "Mon",
+    Tuesday: "Tue",
+    Wednesday: "Wed",
+    Thursday: "Thu",
+    Friday: "Fri",
+    Saturday: "Sat",
   };
 
   const days = availableDays.split(", ");
@@ -771,6 +771,13 @@ function openEditModal(
 
       // Hide loading overlay after everything is initialized (including Cloudinary images)
       showModalLoading(false);
+
+      // Reset save button state to ensure it's not stuck in loading state
+      const saveButton = document.querySelector(".modal-footer .btn-primary");
+      if (saveButton) {
+        saveButton.disabled = false;
+        saveButton.innerHTML = "Save Changes";
+      }
     }, 200);
   });
 }
@@ -1860,6 +1867,8 @@ function handleFormSubmit(event) {
     is_available: isAvailable,
     unavailable_status_id: isAvailable ? null : unavailableTypeId,
     availtoday_status_id: availtodayStatusId,
+    // NEW: Send is_available_today flag to backend
+    is_available_today: preOrderChecked && sameDayChecked,
     // Send dates in the appropriate field based on product type
     todays_product_dates:
       statusId == 4 ? JSON.stringify(sameDayDates) : JSON.stringify([]),
@@ -2343,22 +2352,11 @@ function resetFormToOriginal() {
         console.error("Error cleaning up temp images:", error);
       });
 
-    const restoreFormData = new FormData();
-    restoreFormData.append("product_id", originalFormData.id);
-
-    fetch("restore-removed-images.php", {
-      method: "POST",
-      body: restoreFormData,
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (!data.success) {
-          console.error("Failed to restore removed images:", data.error);
-        }
-      })
-      .catch((error) => {
-        console.error("Error restoring removed images:", error);
-      });
+    // Note: restore-removed-images.php is deprecated (Cloudinary is used now)
+    // Skip calling it to avoid unnecessary errors
+    // const restoreFormData = new FormData();
+    // restoreFormData.append("product_id", originalFormData.id);
+    // fetch("restore-removed-images.php", { method: "POST", body: restoreFormData })
 
     loadProductImages(originalFormData.id);
   }
@@ -2651,6 +2649,24 @@ async function saveProductChanges(event) {
         "status_id",
         document.getElementById("editPreOrderStatus").value
       );
+
+      // Collect available days from GLOBAL checkboxes (for pre-order products)
+      const globalDayCheckboxes = {
+        global_sunday: "Sunday",
+        global_monday: "Monday",
+        global_tuesday: "Tuesday",
+        global_wednesday: "Wednesday",
+        global_thursday: "Thursday",
+        global_friday: "Friday",
+        global_saturday: "Saturday",
+      };
+
+      Object.keys(globalDayCheckboxes).forEach((checkboxId) => {
+        const checkbox = document.getElementById(checkboxId);
+        if (checkbox && checkbox.checked) {
+          formData.append("available_days[]", globalDayCheckboxes[checkboxId]);
+        }
+      });
     }
 
     if (sameDayChecked) {
@@ -2713,6 +2729,10 @@ async function saveProductChanges(event) {
 
       // Show success message
       showNotification("Product updated successfully!", "success");
+
+      // Re-enable save button BEFORE closing modal
+      saveButton.disabled = false;
+      saveButton.innerHTML = originalButtonText;
 
       // Close modal
       closeModal();
@@ -2845,8 +2865,10 @@ function updateProductRow(product) {
 
   // Update available days
   const availableDaysCell = row.querySelector(".available-days-text");
-  if (availableDaysCell && product.available_days) {
-    availableDaysCell.textContent = formatAvailableDays(product.available_days);
+  if (availableDaysCell) {
+    availableDaysCell.textContent = formatAvailableDays(
+      product.available_days || ""
+    );
   }
 
   // Update selected dates

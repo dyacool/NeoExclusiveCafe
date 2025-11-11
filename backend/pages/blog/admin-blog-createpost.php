@@ -78,11 +78,7 @@
             }
         ?>
 
-        <div class="breadcrumb">
-            <a href="/backend/pages/blog/admin-blog.php">Blog Posts</a>
-            <span class="separator">></span>
-            <span class="current">Create Post</span>
-        </div>
+        <?php include __DIR__ . '/../admin-includes/breadcrumbs/admin-breadcrumb.php'; ?>
 
         <div class="mainContainer">
             <form method="post" enctype="multipart/form-data" class="post-form">

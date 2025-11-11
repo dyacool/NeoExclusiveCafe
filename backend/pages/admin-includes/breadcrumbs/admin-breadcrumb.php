@@ -94,7 +94,6 @@ $hierarchy = [
     'refund-details' => ['Refund Requests'],
 
     // Product Management children
-    'view-products' => ['Product Management'],
     'add-product' => ['Product Management'],
     
     // Profile children
@@ -116,7 +115,7 @@ function generateAdminBreadcrumb($current_file, $route_mappings, $hierarchy) {
         'Blog' => '../blog/admin-blog.php',
         'Orders' => '../orders/order-list.php',
         'Bulk Orders' => '../bulks/bulk-order-lists.php',
-        'Product Management' => '../products/view-products.php',
+        'Product Management' => '../products/product-list.php',
         'Refund Requests' => '../refund/refund-request-lists.php',
         'Profile' => '../account/admin-profile.php'
     ];

@@ -175,70 +175,38 @@ try {
         }
         
         // Update available days in product_day table
-        // Logic:
-        // - Status 1, 2, or 3: Available days ALWAYS work
-        // - Status 1, 2, or 3 with "Set to same day order too": Available days work + calendar dates
-        // - Status 4 ONLY (without being 1, 2, or 3 first): NO available days, only calendar dates
-        // 
-        // To detect "Status 4 only": Check if there are entries in regular_products_today_dates
-        // If yes, it means it was 1, 2, or 3 with same day order, so days should work
-        // If no, it's pure status 4, so days shouldn't work
+        // LOGIC:
+        // 1. If current status is Pre-Order (1, 2, 3): Store days in product_day table
+        // 2. If current status is Same Day Order (4): Delete from product_day table
+        // EXCEPTION: If it's BOTH Pre-Order AND Same Day Order (has availtoday_status_id), keep the days
         
-        if ($status_id == 1 || $status_id == 2 || $status_id == 3) {
-            // Status 1, 2, or 3: Always use available days
-            // First, delete existing days for this product
-            $delete_stmt = $conn->prepare("DELETE FROM product_day WHERE product_id = ?");
-            $delete_stmt->bind_param("i", $id);
-            $delete_stmt->execute();
-            $delete_stmt->close();
-            
-            // Then insert new days
-            if (!empty($available_days)) {
-                $day_stmt = $conn->prepare("INSERT INTO product_day (product_id, day_of_week) VALUES (?, ?)");
-                foreach ($available_days as $day) {
-                    $day_stmt->bind_param("is", $id, $day);
-                    $day_stmt->execute();
-                }
-                $day_stmt->close();
+        error_log("=== AVAILABLE DAYS UPDATE ===");
+        error_log("Product ID: $id, Status: $status_id, Availtoday Status: " . ($availtoday_status_id ?? 'NULL'));
+        error_log("Available days from input: " . json_encode($available_days));
+        
+        // ALWAYS delete existing days first
+        $delete_stmt = $conn->prepare("DELETE FROM product_day WHERE product_id = ?");
+        $delete_stmt->bind_param("i", $id);
+        $delete_stmt->execute();
+        $deleted_count = $delete_stmt->affected_rows;
+        $delete_stmt->close();
+        error_log("Deleted $deleted_count existing available days");
+        
+        // Only re-insert days if status is Pre-Order (1, 2, 3)
+        // This handles both:
+        // - Pre-Order only (status 1/2/3, no availtoday_status_id)
+        // - Pre-Order + Same Day (status 1/2/3, WITH availtoday_status_id)
+        if (($status_id == 1 || $status_id == 2 || $status_id == 3) && !empty($available_days)) {
+            error_log("Re-inserting available days for Pre-Order product");
+            $day_stmt = $conn->prepare("INSERT INTO product_day (product_id, day_of_week) VALUES (?, ?)");
+            foreach ($available_days as $day) {
+                $day_stmt->bind_param("is", $id, $day);
+                $day_stmt->execute();
+                error_log("  Inserted: $day");
             }
+            $day_stmt->close();
         } else if ($status_id == 4) {
-            // Status 4: Check if this product has regular_today_dates (meaning it was 1, 2, or 3 with same day order)
-            $check_regular_stmt = $conn->prepare("SELECT COUNT(*) as count FROM regular_products_today_dates WHERE product_id = ?");
-            $check_regular_stmt->bind_param("i", $id);
-            $check_regular_stmt->execute();
-            $check_result = $check_regular_stmt->get_result();
-            $has_regular_dates = $check_result->fetch_assoc()['count'] > 0;
-            $check_regular_stmt->close();
-            
-            if ($has_regular_dates) {
-                // This product was 1, 2, or 3 with "set to same day order too"
-                // Keep/update available days
-                $delete_stmt = $conn->prepare("DELETE FROM product_day WHERE product_id = ?");
-                $delete_stmt->bind_param("i", $id);
-                $delete_stmt->execute();
-                $delete_stmt->close();
-                
-                if (!empty($available_days)) {
-                    $day_stmt = $conn->prepare("INSERT INTO product_day (product_id, day_of_week) VALUES (?, ?)");
-                    foreach ($available_days as $day) {
-                        $day_stmt->bind_param("is", $id, $day);
-                        $day_stmt->execute();
-                    }
-                    $day_stmt->close();
-                }
-            } else {
-                // Pure status 4 (Same Day Order only): Remove all available days
-                $delete_stmt = $conn->prepare("DELETE FROM product_day WHERE product_id = ?");
-                $delete_stmt->bind_param("i", $id);
-                $delete_stmt->execute();
-                $delete_stmt->close();
-            }
-        } else {
-            // Any other status: remove all available days
-            $delete_stmt = $conn->prepare("DELETE FROM product_day WHERE product_id = ?");
-            $delete_stmt->bind_param("i", $id);
-            $delete_stmt->execute();
-            $delete_stmt->close();
+            error_log("Status is 4 (Same Day Order) - available days remain deleted");
         }
         
         // Handle Today's product dates (status_id == 4 for Same Day Order)

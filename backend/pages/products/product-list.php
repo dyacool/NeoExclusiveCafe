@@ -95,7 +95,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="/backend/assets/images/favicon.ico">
     <link rel="stylesheet" href="/backend/pages/products/product-list.css">
     <link rel="stylesheet" href="/backend/pages/products/edit-modal.css">
     <link rel="stylesheet" href="/backend/pages/products/dates-tooltip.css">
@@ -304,19 +304,22 @@
                                     WHERE p.deleted_at IS NULL AND p.id > 0
                                     GROUP BY p.id
                                     ORDER BY 
-                                        -- 1. Same Day Order with future dates and stock first
+                                        -- 1. Products with stock (1-99), sorted by lowest stock first
                                         CASE 
-                                            WHEN p.status_id = 4 AND has_future_sdo_dates = 1 AND effective_stock > 0 THEN 1
-                                            -- 2. Pre-order products (Pickup, Delivery, Delivery or Pickup) with stock
-                                            WHEN p.status_id IN (1, 2, 3) AND effective_stock > 0 THEN 2
-                                            -- 3. Pre-order products without stock
-                                            WHEN p.status_id IN (1, 2, 3) AND effective_stock = 0 THEN 3
-                                            -- 4. Same Day Order without future dates or stock (unavailable)
-                                            WHEN p.status_id = 4 THEN 4
-                                            -- 5. Everything else
-                                            ELSE 5
+                                            WHEN effective_stock > 0 AND effective_stock < 100 THEN 1
+                                            -- 2. Products with high stock (100+)
+                                            WHEN effective_stock >= 100 THEN 2
+                                            -- 3. Products with no stock (0)
+                                            WHEN effective_stock = 0 THEN 3
+                                            -- 4. Everything else
+                                            ELSE 4
                                         END ASC,
-                                        -- Within each group, sort by created date (newest first)
+                                        -- Within group 1, sort by stock amount (lowest first)
+                                        CASE 
+                                            WHEN effective_stock > 0 AND effective_stock < 100 THEN effective_stock
+                                            ELSE 9999
+                                        END ASC,
+                                        -- Within other groups, sort by created date (newest first)
                                         p.created_at DESC
                                     LIMIT $items_per_page OFFSET $offset";
                                     
@@ -356,19 +359,22 @@
                                                 WHERE p.deleted_at IS NULL AND p.id > 0
                                                 GROUP BY p.id
                                                 ORDER BY 
-                                                    -- 1. Same Day Order with future dates and stock first
+                                                    -- 1. Products with stock (1-99), sorted by lowest stock first
                                                     CASE 
-                                                        WHEN p.status_id = 4 AND has_future_sdo_dates = 1 AND effective_stock > 0 THEN 1
-                                                        -- 2. Pre-order products (Pickup, Delivery, Delivery or Pickup) with stock
-                                                        WHEN p.status_id IN (1, 2, 3) AND effective_stock > 0 THEN 2
-                                                        -- 3. Pre-order products without stock
-                                                        WHEN p.status_id IN (1, 2, 3) AND effective_stock = 0 THEN 3
-                                                        -- 4. Same Day Order without future dates or stock (unavailable)
-                                                        WHEN p.status_id = 4 THEN 4
-                                                        -- 5. Everything else
-                                                        ELSE 5
+                                                        WHEN effective_stock > 0 AND effective_stock < 100 THEN 1
+                                                        -- 2. Products with high stock (100+)
+                                                        WHEN effective_stock >= 100 THEN 2
+                                                        -- 3. Products with no stock (0)
+                                                        WHEN effective_stock = 0 THEN 3
+                                                        -- 4. Everything else
+                                                        ELSE 4
                                                     END ASC,
-                                                    -- Within each group, sort by created date (newest first)
+                                                    -- Within group 1, sort by stock amount (lowest first)
+                                                    CASE 
+                                                        WHEN effective_stock > 0 AND effective_stock < 100 THEN effective_stock
+                                                        ELSE 9999
+                                                    END ASC,
+                                                    -- Within other groups, sort by created date (newest first)
                                                     p.created_at DESC";
                                     
                             $all_products_result = $conn->query($all_products_sql);
@@ -955,46 +961,6 @@
 <!-- Hidden container for all products data -->
 <script id="allProductsData" type="application/json">
 <?php echo json_encode($all_products_data); ?>
-</script>
-
-<!-- Product List Polling CSS -->
-<link rel="stylesheet" href="../assets/css/product-list-polling.css">
-
-<!-- Product List Polling Script -->
-<script src="../assets/js/product-list-polling.js"></script>
-<script>
-    // Initialize product list polling
-    document.addEventListener('DOMContentLoaded', function() {
-        // Get current filter state from URL or form
-        const urlParams = new URLSearchParams(window.location.search);
-        const currentSearch = urlParams.get('search') || '';
-        const currentCategory = urlParams.get('category') || null;
-        const currentStatus = urlParams.get('status') || null;
-        const currentPage = urlParams.get('page') || 1;
-        
-        // Initialize poller
-        const poller = new ProductListPoller({
-            pollInterval: 5000, // 5 seconds
-            initialSearch: currentSearch,
-            initialCategory: currentCategory,
-            initialStatus: currentStatus,
-            initialPage: currentPage,
-            apiEndpoint: '../api/get-product-list-admin.php'
-        });
-        
-        // Start polling
-        poller.start();
-        
-        console.log('[Product List] Polling initialized');
-        
-        // Update filters when search/filter changes
-        const searchInput = document.querySelector('input[name="search"]');
-        if (searchInput) {
-            searchInput.addEventListener('change', function() {
-                poller.updateFilters({ search: this.value });
-            });
-        }
-    });
 </script>
 
 </body>

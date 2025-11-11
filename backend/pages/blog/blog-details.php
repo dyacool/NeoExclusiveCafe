@@ -49,6 +49,8 @@ $post = mysqli_fetch_assoc($result);
 </head>
 
 <body>
+    <?php include __DIR__ . '/../admin-includes/breadcrumbs/admin-breadcrumb.php'; ?>
+
     <div class="admin-blog-view-container fade-in">
         <article class="admin-blog-post">
             <header class="post-header">
@@ -150,6 +152,19 @@ $post = mysqli_fetch_assoc($result);
                         <button id="saveEdit" class="submitBtn" type="button">Save Changes</button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Delete Post</h2>
+            <p>Are you sure you want to delete this post? This action cannot be undone.</p>
+            <div class="modal-buttons">
+                <button id="confirmDelete" class="delete-btn">Delete</button>
+                <button id="cancelDelete" class="save-btn">Cancel</button>
             </div>
         </div>
     </div>
@@ -266,34 +281,14 @@ $post = mysqli_fetch_assoc($result);
         }
 
         function deletePost(postId) {
-            if (confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
-                fetch("delete-post.php", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'Accept': 'application/json'
-                    },
-                    body: 'id=' + postId
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.text();
-                })
-                .then(data => {
-                    console.log('Response:', data);
-                    if (data.trim() === "success") {
-                        window.location.href = 'admin-blog.php';
-                    } else {
-                        alert('Error deleting post. Please try again.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error deleting post. Please try again.');
-                });
-            }
+            // Show delete modal instead of confirm dialog
+            const deleteModal = document.getElementById("deleteModal");
+            const confirmDeleteBtn = document.getElementById("confirmDelete");
+            
+            deleteModal.style.display = "flex";
+            
+            // Store postId for confirmation
+            confirmDeleteBtn.dataset.postId = postId;
         }
 
         // Add fade-in animation
@@ -305,9 +300,12 @@ $post = mysqli_fetch_assoc($result);
             
             // Modal functionality
             const modal = document.getElementById("editModal");
+            const deleteModal = document.getElementById("deleteModal");
             const closeBtn = document.querySelectorAll(".close-btn");
             const saveBtn = document.getElementById("saveEdit");
             const cancelBtn = document.getElementById("cancelEdit");
+            const confirmDeleteBtn = document.getElementById("confirmDelete");
+            const cancelDeleteBtn = document.getElementById("cancelDelete");
             const editTitle = document.getElementById("editTitle");
             const editDescription = document.getElementById("editDescription");
             const postIdField = document.getElementById("editPostId");
@@ -381,12 +379,53 @@ $post = mysqli_fetch_assoc($result);
             closeBtn.forEach(btn => {
                 btn.addEventListener("click", function () {
                     modal.style.display = "none";
+                    deleteModal.style.display = "none";
                 });
             });
 
             // Cancel Edit
             cancelBtn.addEventListener("click", function() {
                 modal.style.display = "none";
+            });
+
+            // Cancel Delete
+            cancelDeleteBtn.addEventListener("click", function() {
+                deleteModal.style.display = "none";
+            });
+
+            // Confirm Delete
+            confirmDeleteBtn.addEventListener("click", function() {
+                const postId = this.dataset.postId;
+                
+                fetch("delete-post.php", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Accept': 'application/json'
+                    },
+                    body: 'id=' + postId
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    console.log('Response:', data);
+                    if (data.trim() === "success") {
+                        window.location.href = 'admin-blog.php';
+                    } else {
+                        alert('Error deleting post. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error deleting post. Please try again.');
+                })
+                .finally(() => {
+                    deleteModal.style.display = "none";
+                });
             });
 
             // Save Changes
@@ -460,6 +499,9 @@ $post = mysqli_fetch_assoc($result);
             window.addEventListener("click", function (e) {
                 if (e.target === modal) {
                     modal.style.display = "none";
+                }
+                if (e.target === deleteModal) {
+                    deleteModal.style.display = "none";
                 }
             });
         });
