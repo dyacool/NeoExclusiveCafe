@@ -300,6 +300,25 @@ function validateForm() {
     return false;
   }
 
+  // Validate contact number format
+  if (!contact.startsWith("09")) {
+    alert("Contact number must start with 09 (e.g., 09123456789)");
+    document.getElementById("contact").focus();
+    return false;
+  }
+
+  if (contact.length !== 11) {
+    alert("Contact number must be exactly 11 digits (e.g., 09123456789)");
+    document.getElementById("contact").focus();
+    return false;
+  }
+
+  if (!/^\d+$/.test(contact)) {
+    alert("Contact number can only contain digits");
+    document.getElementById("contact").focus();
+    return false;
+  }
+
   // Check delivery address if delivery is selected
   if (orderType === "delivery") {
     const deliveryAddress = document

@@ -28,60 +28,11 @@ if (mysqli_stmt_execute($stmt)) {
     // Log the activity
     logAdminActivity($conn, 'UPDATE', "Changed order #$order_id status to '$status'", 'orders', $order_id);
     
-    // Create admin notification for status update
-    try {
-        require_once '../admin-includes/notifications/notification.php';
-        $notificationHandler = new NotificationHandler($conn);
-        
-        // Get order and customer details
-        $order_query = "SELECT customer_name, delivery_method, delivery_date, pickup_date, delivery_time, pickup_time,
-                               u.username
-                        FROM orders o
-                        LEFT JOIN users u ON o.customer_id = u.id 
-                        WHERE o.order_id = ?";
-        $order_stmt = mysqli_prepare($conn, $order_query);
-        
-        if (!$order_stmt) {
-            error_log("Order query prepare failed: " . mysqli_error($conn));
-            throw new Exception("Failed to prepare order query");
-        }
-        
-        mysqli_stmt_bind_param($order_stmt, "i", $order_id);
-        mysqli_stmt_execute($order_stmt);
-        $order_result = mysqli_stmt_get_result($order_stmt);
-        $order_data = mysqli_fetch_assoc($order_result);
-        mysqli_stmt_close($order_stmt);
-        
-        if ($order_data) {
-            $customer_name = $order_data['customer_name'];
-            $username = $order_data['username'];
-            $delivery_method = $order_data['delivery_method'];
-            $delivery_date = $order_data['delivery_date'];
-            $pickup_date = $order_data['pickup_date'];
-            $delivery_time = $order_data['delivery_time'];
-            $pickup_time = $order_data['pickup_time'];
-            
-            // Use appropriate date and time based on delivery method
-            $order_date = $delivery_method === 'Delivery' ? $delivery_date : $pickup_date;
-            $order_time = $delivery_method === 'Delivery' ? $delivery_time : $pickup_time;
-            
-            $notificationHandler->createOrderNotification(
-                $order_id,
-                'order_status',
-                $customer_name,
-                $username,
-                $status,
-                $delivery_method,
-                $order_date,
-                $order_time
-            );
-        }
-        
-    } catch (Exception $e) {
-        error_log("Failed to create order status notification: " . $e->getMessage());
-    }
+    // DO NOT create admin notification for status updates
+    // Status updates are done BY admin, so admin doesn't need notification about their own action
+    // Only customers get notified via email and in-app notification below
     
-    // Revert to original in-app notification + email to customer
+    // Send in-app notification + email to customer
     require_once '../../../frontend/pages/notifications/class-notif.php';
     require_once __DIR__ . '/../admin-includes/mailer.php';
 

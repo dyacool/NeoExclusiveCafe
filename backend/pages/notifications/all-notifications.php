@@ -234,6 +234,13 @@ $unread_count = $notificationHandler->getUnreadCount();
                     if (selectedIds.length === 0) return;
                     
                     if (confirm(`Are you sure you want to delete ${selectedIds.length} notification(s)? This action cannot be undone.`)) {
+                        // Add hidden input for delete_selected action
+                        const deleteInput = document.createElement('input');
+                        deleteInput.type = 'hidden';
+                        deleteInput.name = 'delete_selected';
+                        deleteInput.value = '1';
+                        notificationsForm.appendChild(deleteInput);
+                        
                         notificationsForm.submit();
                     }
                 });

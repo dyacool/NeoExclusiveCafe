@@ -108,23 +108,24 @@ function renderNewEntryForm() {
                 </div>
                 <div class="entry-field">
                     <label>Contact No.: *</label>
-                    <input type="tel" id="new-phone" class="entry-input" required 
+                    <input type="tel" id="new-phone" class="entry-input phone-input" required 
                            pattern="09\\d{9}" 
                            placeholder="09xxxxxxxxx (11 digits)" 
                            maxlength="11" 
                            minlength="11"
                            inputmode="numeric">
                     <small class="field-hint">Enter 11-digit phone number starting with 09</small>
+                    <small class="phone-error" style="color: #d32f2f; display: none; margin-top: 5px;"> Must start with 09 and have 11 digits</small>
                 </div>
                 <div class="entry-field">
-                    <label>Delivery Location: *</label>
+                    <label>City (Eligible Delivery Location): *</label>
                     <select id="new-delivery-location" class="entry-input entry-select" required>
                         <option value="">Choose your delivery location</option>
                     </select>
                 </div>
                 <div class="entry-field">
-                    <label>Complete Address: *</label>
-                    <textarea id="new-complete-address" class="entry-input entry-textarea" rows="3" required placeholder="Enter your complete address (house number, street, subdivision, etc.)"></textarea>
+                    <label> Address: *</label>
+                    <textarea id="new-complete-address" class="entry-input entry-textarea" rows="3" required placeholder="Enter your address (house number, street, subdivision, etc.)"></textarea>
                     <small class="field-hint">Please provide specific details like house/building number, street name, subdivision, landmarks, etc.</small>
                 </div>
             </div>
@@ -174,18 +175,19 @@ function renderEntryCard(entry) {
                 </div>
                 <div class="entry-field">
                     <label>Contact No.:</label>
-                    <input type="tel" class="entry-input" data-field="phone" value="${
+                    <input type="tel" class="entry-input phone-input" data-field="phone" value="${
                       entry.phone
                     }" required pattern="(\\+63|0)9\\d{9}">
+                    <small class="phone-error" style="color: #d32f2f; display: none; margin-top: 5px;"> Must start with 09 and have 11 digits</small>
                 </div>
                 <div class="entry-field">
-                    <label>Delivery Location:</label>
+                    <label>City (Eligible Delivery Location):</label>
                     <select class="entry-input entry-select" data-field="delivery_location_id" required>
                         <option value="">Select location...</option>
                     </select>
                 </div>
                 <div class="entry-field">
-                    <label>Complete Address:</label>
+                    <label> Address:</label>
                     <textarea class="entry-input entry-textarea" data-field="complete_address" rows="2" required>${
                       entry.complete_address
                     }</textarea>
@@ -235,10 +237,57 @@ function renderEntryCard(entry) {
     `;
 }
 
+function validatePhoneNumber(inputElement) {
+  const phone = inputElement.value.trim();
+  const errorElement = inputElement.parentElement.querySelector(".phone-error");
+
+  if (!errorElement) return;
+
+  if (phone === "") {
+    // Empty field - don't show error yet
+    errorElement.style.display = "none";
+    inputElement.style.borderColor = "";
+    return;
+  }
+
+  const isValid = /^09\d{9}$/.test(phone);
+
+  if (!isValid) {
+    // Show error
+    errorElement.style.display = "block";
+    inputElement.style.borderColor = "#d32f2f";
+  } else {
+    // Hide error
+    errorElement.style.display = "none";
+    inputElement.style.borderColor = "";
+  }
+}
+
 function attachModalEventListeners() {
   populateDeliveryLocationDropdowns();
   populateNewEntryLocationDropdown();
   populateNewEntryEmail();
+
+  // Add real-time phone validation for new entry form
+  const newPhoneInput = document.getElementById("new-phone");
+  if (newPhoneInput) {
+    newPhoneInput.addEventListener("input", function () {
+      validatePhoneNumber(this);
+    });
+    newPhoneInput.addEventListener("blur", function () {
+      validatePhoneNumber(this);
+    });
+  }
+
+  // Add real-time phone validation for saved entry cards
+  document.querySelectorAll('[data-field="phone"]').forEach((phoneInput) => {
+    phoneInput.addEventListener("input", function () {
+      validatePhoneNumber(this);
+    });
+    phoneInput.addEventListener("blur", function () {
+      validatePhoneNumber(this);
+    });
+  });
 
   const saveNewEntryBtn = document.getElementById("saveNewEntryBtn");
   console.log("Save New Entry Button:", saveNewEntryBtn);
@@ -386,10 +435,10 @@ function attachModalEventListeners() {
 
   document.querySelectorAll(".btn-save-changes").forEach((btn) => {
     btn.addEventListener("click", async function () {
-      const icon = this.querySelector(".btn-icon");
-      const originalSVG = icon.innerHTML;
-      icon.innerHTML =
-        '<circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2" style="animation: spin 1s linear infinite;"></circle>';
+      const originalHTML = this.innerHTML;
+      // Show a proper spinner in the button
+      this.innerHTML = '<span class="btn-spinner"></span>';
+      this.disabled = true;
 
       try {
         const entryId = parseInt(this.dataset.entryId);
@@ -435,6 +484,13 @@ function attachModalEventListeners() {
           return;
         }
 
+        if (!updatedData.phone.match(/^09\d{9}$/)) {
+          alert(
+            "❌ Invalid phone number format. Please enter 11 digits starting with 09"
+          );
+          return;
+        }
+
         const response = await fetch(
           window.savedInfoManager.apiBasePath + "save-customer-info.php",
           {
@@ -457,17 +513,18 @@ function attachModalEventListeners() {
         console.error("Error saving changes:", error);
         alert("❌ An error occurred while saving");
       } finally {
-        icon.innerHTML = originalSVG;
+        this.innerHTML = originalHTML;
+        this.disabled = false;
       }
     });
   });
 
   document.querySelectorAll(".btn-delete").forEach((btn) => {
     btn.addEventListener("click", async function () {
-      const icon = this.querySelector(".btn-icon");
-      const originalSVG = icon.innerHTML;
-      icon.innerHTML =
-        '<circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2" style="animation: spin 1s linear infinite;"></circle>';
+      const originalHTML = this.innerHTML;
+      // Show a proper spinner in the button
+      this.innerHTML = '<span class="btn-spinner"></span>';
+      this.disabled = true;
 
       try {
         const entryId = parseInt(this.dataset.entryId);
@@ -476,7 +533,8 @@ function attachModalEventListeners() {
           renderSavedEntries();
         }
       } finally {
-        icon.innerHTML = originalSVG;
+        this.innerHTML = originalHTML;
+        this.disabled = false;
       }
     });
   });
@@ -485,10 +543,9 @@ function attachModalEventListeners() {
     btn.addEventListener("click", async function () {
       if (this.disabled) return;
 
-      const icon = this.querySelector(".btn-icon");
-      const originalSVG = icon.innerHTML;
-      icon.innerHTML =
-        '<circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2" style="animation: spin 1s linear infinite;"></circle>';
+      const originalHTML = this.innerHTML;
+      // Show a proper spinner in the button
+      this.innerHTML = '<span class="btn-spinner"></span>';
 
       try {
         const entryId = parseInt(this.dataset.entryId);
@@ -497,7 +554,7 @@ function attachModalEventListeners() {
           renderSavedEntries();
         }
       } finally {
-        icon.innerHTML = originalSVG;
+        this.innerHTML = originalHTML;
       }
     });
   });

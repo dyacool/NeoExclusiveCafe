@@ -234,11 +234,13 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
                     <div class="form-group">
                         <label for="contact">Contact Number <span class="required">*</span></label>
                         <input type="tel" id="contact" name="contact" required 
-                               pattern="[0-9]{11}" 
+                               pattern="09[0-9]{9}" 
                                maxlength="11" 
-                               title="Please enter exactly 11 digits" 
+                               title="Please enter a valid Philippine phone number starting with 09 (11 digits total)" 
                                placeholder="09XXXXXXXXX"
-                               oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11)">
+                               oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11)"
+                               onblur="validateContactRealTime()">
+                        <small id="contactError" class="error-message" style="display: none; color: #d32f2f; margin-top: 5px;"></small>
                     </div>
 
                     <div class="form-group">
@@ -284,8 +286,8 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
 
                     <div class="form-group">
                         <label for="date_needed">Date Needed <span class="required">*</span></label>
-                        <input type="date" id="date_needed" name="date_needed" min="<?php echo $min_date; ?>" required>
-                        <small>Minimum 2 weeks advance notice required</small>
+                        <input type="date" id="date_needed" name="date_needed" required onchange="validateDateRange()" onblur="validateDateRange()">
+                        <small>Minimum 2 weeks advance notice required. Maximum 1 year in advance.</small>
                     </div>
 
                     <div class="form-group">
@@ -327,7 +329,7 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
             <div class="form-section">
                 <div class="section-header">
                     <h2>Product Selection</h2>
-                    <p>Choose the products you want to include in your bulk order (minimum 12 pieces per item)</p>
+                    <p>Choose the products you want to include in your bulk order (minimum 10 pieces per item)</p>
                 </div>
                 
                 <div class="section-content">
@@ -378,7 +380,7 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
                                                        min="10" 
                                                        value="10" 
                                                        class="quantity-field"
-                                                       onchange="updateOrderSummary()"
+                                                       onchange="enforceMinQuantity(this); updateOrderSummary()"
                                                        oninput="updateOrderSummary()">
                                                 <button type="button" class="quantity-btn" onclick="updateQuantity(<?php echo $product['id']; ?>, 1)">+</button>
                                             </div>
@@ -593,6 +595,103 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
 
     <script src="bulk-form-fixed.js?v=<?php echo time(); ?>"></script>
     <script>
+        // Enforce minimum quantity (10 pieces) - only on blur, not while typing
+        function enforceMinQuantity(input) {
+            // This will be called on change/blur
+            const value = parseInt(input.value);
+            
+            // If empty or not a number, set to minimum
+            if (!input.value || isNaN(value)) {
+                input.value = 10;
+                return;
+            }
+            
+            // If less than minimum, set to minimum
+            if (value < 10) {
+                input.value = 10;
+            }
+        }
+        
+        // Real-time validation for contact number (on blur/leaving field)
+        function validateContactRealTime() {
+            const contactInput = document.getElementById('contact');
+            const errorMsg = document.getElementById('contactError');
+            const contactValue = contactInput.value.trim();
+            
+            // If field is empty, just hide error (required validation handles this)
+            if (!contactValue) {
+                errorMsg.style.display = 'none';
+                contactInput.style.borderColor = '';
+                return true;
+            }
+            
+            let error = null;
+            
+            // Check if it starts with 09
+            if (!contactValue.startsWith('09')) {
+                error = 'Contact number must start with 09 (e.g., 09123456789)';
+            } 
+            // Check if it's exactly 11 digits
+            else if (contactValue.length !== 11) {
+                error = 'Contact number must be exactly 11 digits (e.g., 09123456789)';
+            } 
+            // Check if it's all digits
+            else if (!/^\d+$/.test(contactValue)) {
+                error = 'Contact number can only contain digits';
+            }
+            
+            if (error) {
+                errorMsg.textContent = error;
+                errorMsg.style.display = 'block';
+                contactInput.style.borderColor = '#d32f2f';
+                contactInput.style.boxShadow = '0 0 0 2px rgba(211, 47, 47, 0.1)';
+                return false;
+            } else {
+                errorMsg.style.display = 'none';
+                contactInput.style.borderColor = '#4caf50';
+                contactInput.style.boxShadow = '0 0 0 2px rgba(76, 175, 80, 0.1)';
+                return true;
+            }
+        }
+        
+        // Validate contact number on form submission
+        function validateContactNumber() {
+            const contactInput = document.getElementById('contact');
+            const contactValue = contactInput.value.trim();
+            
+            // Check if empty
+            if (!contactValue) {
+                alert('Please enter a contact number');
+                contactInput.focus();
+                return false;
+            }
+            
+            // Check if it starts with 09
+            if (!contactValue.startsWith('09')) {
+                alert('Contact number must start with 09 (e.g., 09123456789)');
+                contactInput.focus();
+                contactInput.value = '';
+                return false;
+            }
+            
+            // Check if it's exactly 11 digits
+            if (contactValue.length !== 11) {
+                alert('Contact number must be exactly 11 digits (e.g., 09123456789)');
+                contactInput.focus();
+                return false;
+            }
+            
+            // Check if it's all digits
+            if (!/^\d+$/.test(contactValue)) {
+                alert('Contact number can only contain digits');
+                contactInput.focus();
+                contactInput.value = '';
+                return false;
+            }
+            
+            return true;
+        }
+        
         // Copy billing address to delivery address
         function copyBillingToDelivery() {
             const billingAddress = document.getElementById('billing_address').value.trim();
@@ -662,53 +761,66 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
             }
         })();
         
-        // Enforce minimum date validation for date_needed field
+        // Set up date range for date_needed field (native date input with validation)
         (function() {
             const dateInput = document.getElementById('date_needed');
             const minDate = '<?php echo $min_date; ?>';
             
-            // Set min attribute
+            // Calculate maximum date (1 year from now)
+            const today = new Date();
+            const maxDateObj = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+            const maxDate = maxDateObj.toISOString().split('T')[0];
+            
+            // Set min and max attributes on the date input
             dateInput.setAttribute('min', minDate);
+            dateInput.setAttribute('max', maxDate);
             
-            // Validate on change
-            dateInput.addEventListener('change', function() {
-                const selectedDate = new Date(this.value);
-                const minDateObj = new Date(minDate);
-                
-                if (selectedDate < minDateObj) {
-                    alert('Please select a date at least 2 weeks from today. Minimum date: ' + minDateObj.toLocaleDateString());
-                    this.value = '';
-                    this.focus();
-                }
-            });
-            
-            // Validate on blur
-            dateInput.addEventListener('blur', function() {
-                if (this.value) {
-                    const selectedDate = new Date(this.value);
-                    const minDateObj = new Date(minDate);
-                    
-                    if (selectedDate < minDateObj) {
-                        alert('Please select a date at least 2 weeks from today. Minimum date: ' + minDateObj.toLocaleDateString());
-                        this.value = '';
-                    }
-                }
-            });
-            
-            // Prevent form submission with invalid date
-            const form = document.getElementById('bulkOrderForm');
-            form.addEventListener('submit', function(e) {
-                const selectedDate = new Date(dateInput.value);
-                const minDateObj = new Date(minDate);
-                
-                if (selectedDate < minDateObj) {
-                    e.preventDefault();
-                    alert('Please select a date at least 2 weeks from today. Minimum date: ' + minDateObj.toLocaleDateString());
-                    dateInput.focus();
-                    return false;
-                }
-            });
+            // Store for reference
+            dateInput.dataset.minDate = minDate;
+            dateInput.dataset.maxDate = maxDate;
         })();
+        
+        // Validate date range on change or blur
+        function validateDateRange() {
+            const dateInput = document.getElementById('date_needed');
+            const minDate = dateInput.dataset.minDate;
+            const maxDate = dateInput.dataset.maxDate;
+            const inputValue = dateInput.value.trim();
+            
+            // If empty, just return (required validation will catch it on submit)
+            if (!inputValue) {
+                dateInput.style.borderColor = '';
+                dateInput.style.boxShadow = '';
+                return true;
+            }
+            
+            // Parse the date
+            const selectedDate = new Date(inputValue);
+            const minDateObj = new Date(minDate);
+            const maxDateObj = new Date(maxDate);
+            
+            // Check if date is in valid range
+            if (selectedDate < minDateObj) {
+                dateInput.style.borderColor = '#d32f2f';
+                dateInput.style.boxShadow = '0 0 0 2px rgba(211, 47, 47, 0.1)';
+                alert('Please select a date at least 2 weeks from today.\nMinimum date: ' + minDateObj.toLocaleDateString());
+                dateInput.value = '';
+                return false;
+            }
+            
+            if (selectedDate > maxDateObj) {
+                dateInput.style.borderColor = '#d32f2f';
+                dateInput.style.boxShadow = '0 0 0 2px rgba(211, 47, 47, 0.1)';
+                alert('Please select a date within 1 year from today.\nMaximum date: ' + maxDateObj.toLocaleDateString());
+                dateInput.value = '';
+                return false;
+            }
+            
+            // If all validations pass, show success
+            dateInput.style.borderColor = '#4caf50';
+            dateInput.style.boxShadow = '0 0 0 2px rgba(76, 175, 80, 0.1)';
+            return true;
+        }
     </script>
 </body>
 </html>

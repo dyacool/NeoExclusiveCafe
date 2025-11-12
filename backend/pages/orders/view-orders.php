@@ -303,11 +303,11 @@ mysqli_stmt_close($items_stmt);
             .items-table tbody td:nth-child(2) {
                 display: block !important;
                 font-weight: bold;
-                font-size: 7pt;
+                font-size: 9pt;
                 margin-bottom: 2px;
-                word-wrap: break-word;
-                overflow-wrap: break-word;
-                max-width: 100%;
+                white-space: pre-wrap !important;
+                max-width: 48mm !important;
+                width: 48mm !important;
                 color: #000 !important;
                 text-align: left !important;
             }
@@ -316,7 +316,7 @@ mysqli_stmt_close($items_stmt);
             .items-table tbody td:nth-child(4),
             .items-table tbody td:nth-child(5) {
                 display: inline !important;
-                font-size: 7pt;
+                font-size: 7.5pt;
                 color: #000 !important;
             }
             
@@ -358,7 +358,7 @@ mysqli_stmt_close($items_stmt);
             /* Target the specific classes used in HTML */
             .items-table tfoot .total-label {
                 border: none !important;
-                font-size: 8pt !important;
+                font-size: 9pt !important;
                 font-weight: 700 !important;
                 color: #000 !important;
                 background: transparent !important;
@@ -392,7 +392,7 @@ mysqli_stmt_close($items_stmt);
             /* Special styling for Total row */
             .items-table tfoot tr:last-child .total-label,
             .items-table tfoot tr:last-child .total-value {
-                font-size: 8pt !important;
+                font-size: 11pt !important;
                 font-weight: bold !important;
             }
             
@@ -431,6 +431,10 @@ mysqli_stmt_close($items_stmt);
             .items-table th,
             .items-table td {
                 border: 1px solid var(--gray-300);
+            }
+
+            .admin-breadcrumb-container{
+                display: none !important;
             }
         }
     </style>
@@ -579,7 +583,7 @@ mysqli_stmt_close($items_stmt);
                                                 <div class="no-image">No Image</div>
                                             <?php endif; ?>
                                         </td>
-                                        <td><?php echo htmlspecialchars($item['product_name']); ?></td>
+                                        <td><?php echo htmlspecialchars(wordwrap($item['product_name'], 20, "\n", true)); ?></td>
                                         <td><?php echo number_format($item['price'], 2); ?></td>
                                         <td><?php echo $item['quantity']; ?></td>
                                         <td><?php echo number_format($item_total, 2); ?></td>

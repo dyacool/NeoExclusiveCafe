@@ -21,48 +21,111 @@ $search_query = isset($_GET['query']) ? trim($_GET['query']) : '';
 // Initialize results array
 $products = [];
 $admin_blogs = [];
+$testimonials = [];
 
 // Only search if a query was provided
 if (!empty($search_query)) {
     // Create search term with wildcards for partial word matching
     $search_param = "%" . $search_query . "%";
     
-    // Search in products table - only search product names (not descriptions)
+    // Check if user is searching for generic "product" or "products" - show all products
+    $show_all_products = strtolower($search_query) === 'product' || strtolower($search_query) === 'products';
+    
+    // Search in products table
     try {
-        $product_sql = "SELECT 
-                            p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.category_id,
-                            ps.name AS status_name, 
-                            COALESCE(pi.cloud_url, pi.image_url) as image_url,
-                            p.quantity, p.show_when_unavailable, p.hide_when_unavailable,
-                            p.availtoday_status_id, ats.name AS availtoday_status_name,
-                            c.name AS category_name,
-                            GROUP_CONCAT(DISTINCT tpd.available_date ORDER BY tpd.available_date SEPARATOR ', ') as todays_product_dates,
-                            GROUP_CONCAT(DISTINCT rptd.available_date ORDER BY rptd.available_date SEPARATOR ', ') as regular_today_dates,
-                            qpd.quantity as sameday_stock_today
-                        FROM products p
-                        LEFT JOIN product_statuses ps ON p.status_id = ps.id
-                        LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
-                        LEFT JOIN availtoday_status ats ON p.availtoday_status_id = ats.id
-                        LEFT JOIN categories c ON p.category_id = c.id
-                        LEFT JOIN todays_products_dates tpd ON p.id = tpd.product_id
-                        LEFT JOIN regular_products_today_dates rptd ON p.id = rptd.product_id
-                        LEFT JOIN quantity_per_day_sdo qpd ON p.id = qpd.product_id AND qpd.date = CURDATE()
-                        WHERE p.name LIKE ?
-                        AND p.deleted_at IS NULL 
-                        AND p.id > 0 
-                        AND p.status_id IN (1, 2, 3, 4)
-                        GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.category_id, ps.name, pi.cloud_url, pi.image_url, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.availtoday_status_id, ats.name, c.name, qpd.quantity
-                        ORDER BY p.is_featured DESC, p.name ASC
-                        LIMIT 20";
+        if ($show_all_products) {
+            // Show all products if searching for "product" or "products"
+            $product_sql = "SELECT 
+                                p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.category_id,
+                                ps.name AS status_name, 
+                                COALESCE(pi.cloud_url, pi.image_url) as image_url,
+                                p.quantity, p.show_when_unavailable, p.hide_when_unavailable,
+                                p.availtoday_status_id, ats.name AS availtoday_status_name,
+                                c.name AS category_name,
+                                GROUP_CONCAT(DISTINCT tpd.available_date ORDER BY tpd.available_date SEPARATOR ', ') as todays_product_dates,
+                                GROUP_CONCAT(DISTINCT rptd.available_date ORDER BY rptd.available_date SEPARATOR ', ') as regular_today_dates,
+                                qpd.quantity as sameday_stock_today
+                            FROM products p
+                            LEFT JOIN product_statuses ps ON p.status_id = ps.id
+                            LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
+                            LEFT JOIN availtoday_status ats ON p.availtoday_status_id = ats.id
+                            LEFT JOIN categories c ON p.category_id = c.id
+                            LEFT JOIN todays_products_dates tpd ON p.id = tpd.product_id
+                            LEFT JOIN regular_products_today_dates rptd ON p.id = rptd.product_id
+                            LEFT JOIN quantity_per_day_sdo qpd ON p.id = qpd.product_id AND qpd.date = CURDATE()
+                            WHERE p.deleted_at IS NULL 
+                            AND p.id > 0 
+                            AND p.status_id IN (1, 2, 3, 4)
+                            GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.category_id, ps.name, pi.cloud_url, pi.image_url, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.availtoday_status_id, ats.name, c.name, qpd.quantity
+                            ORDER BY p.is_featured DESC, p.name ASC
+                            LIMIT 100";
+            
+            $result = $conn->query($product_sql);
+            if ($result) {
+                while ($row = $result->fetch_assoc()) {
+                    $products[] = $row;
+                }
+            }
+        } else {
+            // Normal search
+            $product_sql = "SELECT 
+                                p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.category_id,
+                                ps.name AS status_name, 
+                                COALESCE(pi.cloud_url, pi.image_url) as image_url,
+                                p.quantity, p.show_when_unavailable, p.hide_when_unavailable,
+                                p.availtoday_status_id, ats.name AS availtoday_status_name,
+                                c.name AS category_name,
+                                GROUP_CONCAT(DISTINCT tpd.available_date ORDER BY tpd.available_date SEPARATOR ', ') as todays_product_dates,
+                                GROUP_CONCAT(DISTINCT rptd.available_date ORDER BY rptd.available_date SEPARATOR ', ') as regular_today_dates,
+                                qpd.quantity as sameday_stock_today
+                            FROM products p
+                            LEFT JOIN product_statuses ps ON p.status_id = ps.id
+                            LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
+                            LEFT JOIN availtoday_status ats ON p.availtoday_status_id = ats.id
+                            LEFT JOIN categories c ON p.category_id = c.id
+                            LEFT JOIN todays_products_dates tpd ON p.id = tpd.product_id
+                            LEFT JOIN regular_products_today_dates rptd ON p.id = rptd.product_id
+                            LEFT JOIN quantity_per_day_sdo qpd ON p.id = qpd.product_id AND qpd.date = CURDATE()
+                            WHERE p.name LIKE ?
+                            AND p.deleted_at IS NULL 
+                            AND p.id > 0 
+                            AND p.status_id IN (1, 2, 3, 4)
+                            GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.category_id, ps.name, pi.cloud_url, pi.image_url, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.availtoday_status_id, ats.name, c.name, qpd.quantity
+                            ORDER BY p.is_featured DESC, p.name ASC
+                            LIMIT 20";
+            
+            $stmt = $conn->prepare($product_sql);
+            if ($stmt) {
+                $stmt->bind_param("s", $search_param);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                
+                while ($row = $result->fetch_assoc()) {
+                    $products[] = $row;
+                }
+                $stmt->close();
+            }
+        }
+    } catch (Exception $e) {
+        // Silently handle errors
+    }
+    
+    // Search in admin blog posts
+    try {
+        $admin_blog_sql = "SELECT adblog_id, title, description, image_path, cloud_url, author, created_at 
+                          FROM blog_posts 
+                          WHERE title LIKE ? OR description LIKE ?
+                          ORDER BY created_at DESC 
+                          LIMIT 10";
         
-        $stmt = $conn->prepare($product_sql);
+        $stmt = $conn->prepare($admin_blog_sql);
         if ($stmt) {
-            $stmt->bind_param("s", $search_param);
+            $stmt->bind_param("ss", $search_param, $search_param);
             $stmt->execute();
             $result = $stmt->get_result();
             
             while ($row = $result->fetch_assoc()) {
-                $products[] = $row;
+                $admin_blogs[] = $row;
             }
             $stmt->close();
         }
@@ -70,22 +133,22 @@ if (!empty($search_query)) {
         // Silently handle errors
     }
     
-    // Search in admin blog posts - only search titles (not descriptions)
+    // Search in customer testimonials
     try {
-        $admin_blog_sql = "SELECT id, title, description, image_path, cloud_url, author, created_at 
-                          FROM blog_posts 
-                          WHERE title LIKE ? 
-                          ORDER BY created_at DESC 
-                          LIMIT 10";
+        $testimonial_sql = "SELECT id, customer_name, testimonial_text, rating, image_path, cloud_url, created_at 
+                           FROM customer_testimonials 
+                           WHERE customer_name LIKE ? OR testimonial_text LIKE ?
+                           ORDER BY created_at DESC 
+                           LIMIT 10";
         
-        $stmt = $conn->prepare($admin_blog_sql);
+        $stmt = $conn->prepare($testimonial_sql);
         if ($stmt) {
-            $stmt->bind_param("s", $search_param);
+            $stmt->bind_param("ss", $search_param, $search_param);
             $stmt->execute();
             $result = $stmt->get_result();
             
             while ($row = $result->fetch_assoc()) {
-                $admin_blogs[] = $row;
+                $testimonials[] = $row;
             }
             $stmt->close();
         }
@@ -213,6 +276,27 @@ require_once __DIR__ . "/../user-includes/navbar/customer-navigation.php";
 <link rel="stylesheet" href="/frontend/search/search-results.css">
 <link rel="stylesheet" href="/frontend/pages/products/product-dashboard.css">
 
+<!-- Search Box Section - STICKY AT TOP -->
+<div class="search-box-section">
+    <div class="search-box-container">
+        <div class="search-input-wrapper">
+            <input type="text" 
+                   id="pageSearchInput" 
+                   class="page-search-input" 
+                   placeholder="Search for products, blogs..." 
+                   value="<?php echo htmlspecialchars($search_query); ?>"
+                   onkeyup="handleSearchInput()"
+                   onkeypress="handleSearchKeyPress(event)">
+            <button class="search-btn" onclick="performSearch()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                </svg>
+            </button>
+        </div>
+        <div id="suggestionsContainer" class="suggestions-container" style="display: none;"></div>
+    </div>
+</div>
 
 <div class="wrapper">
     <div id="confirmationPopup" class="confirmation-popup"></div>
@@ -223,7 +307,7 @@ require_once __DIR__ . "/../user-includes/navbar/customer-navigation.php";
             <div class="no-results">
                 <p>Please enter a search term to find products and blog posts.</p>
             </div>
-        <?php elseif (empty($products) && empty($user_blogs) && empty($admin_blogs)): ?>
+        <?php elseif (empty($products) && empty($admin_blogs) && empty($testimonials)): ?>
             <div class="no-results">
                 <p>No results found for "<?php echo htmlspecialchars($search_query); ?>".</p>
                 <p>Try different keywords or check your spelling.</p>
@@ -473,8 +557,47 @@ require_once __DIR__ . "/../user-includes/navbar/customer-navigation.php";
                                 
                                 <div class="post-content">
                                     <h3 class="post-title"><?php echo htmlspecialchars($post['title']); ?></h3>
+                                    <p class="post-description"><?php echo substr(htmlspecialchars($post['description']), 0, 100) . '...'; ?></p>
                                 </div>
                                 </a>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
+
+            <!-- Customer Testimonials Results -->
+            <?php if (!empty($testimonials)): ?>
+                <div class="result-section">
+                    <h2>Customer Testimonials (<?php echo count($testimonials); ?>)</h2>
+                    <div class="testimonials-grid">
+                        <?php foreach ($testimonials as $testimonial): ?>
+                            <div class="testimonial-card">
+                                <?php if (!empty($testimonial['cloud_url']) || !empty($testimonial['image_path'])): ?>
+                                    <div class="testimonial-image">
+                                        <img src="<?php echo !empty($testimonial['cloud_url']) ? htmlspecialchars($testimonial['cloud_url']) : '/assets/uploaded-images-testimonials/' . htmlspecialchars($testimonial['image_path']); ?>" 
+                                            alt="<?php echo htmlspecialchars($testimonial['customer_name']); ?>">
+                                    </div>
+                                <?php endif; ?>
+                                
+                                <div class="testimonial-content">
+                                    <h3 class="testimonial-name"><?php echo htmlspecialchars($testimonial['customer_name']); ?></h3>
+                                    
+                                    <?php if (!empty($testimonial['rating'])): ?>
+                                        <div class="testimonial-rating">
+                                            <?php 
+                                            $rating = (int)$testimonial['rating'];
+                                            for ($i = 0; $i < 5; $i++) {
+                                                echo $i < $rating ? '⭐' : '☆';
+                                            }
+                                            ?>
+                                            <span class="rating-text"><?php echo $rating; ?>/5</span>
+                                        </div>
+                                    <?php endif; ?>
+                                    
+                                    <p class="testimonial-text"><?php echo htmlspecialchars($testimonial['testimonial_text']); ?></p>
+                                    <div class="testimonial-date"><?php echo date('M d, Y', strtotime($testimonial['created_at'])); ?></div>
+                                </div>
                             </div>
                         <?php endforeach; ?>
                     </div>
@@ -560,6 +683,117 @@ require_once __DIR__ . "/../user-includes/navbar/customer-navigation.php";
     // Check if user is logged in
     const isLoggedIn = <?= SessionManager::isUserLoggedIn() ? 'true' : 'false' ?>;
     const loginUrl = '/frontend/login/user/login-signup.php';
+    
+    // Search suggestions functionality
+    let suggestionsTimeout;
+    
+    async function handleSearchInput() {
+        const searchInput = document.getElementById('pageSearchInput');
+        const suggestionsContainer = document.getElementById('suggestionsContainer');
+        const query = searchInput.value.trim();
+        
+        // Clear previous timeout
+        clearTimeout(suggestionsTimeout);
+        
+        if (query.length < 2) {
+            suggestionsContainer.style.display = 'none';
+            return;
+        }
+        
+        // Debounce the search
+        suggestionsTimeout = setTimeout(() => {
+            fetchSuggestions(query);
+        }, 300);
+    }
+    
+    async function fetchSuggestions(query) {
+        const suggestionsContainer = document.getElementById('suggestionsContainer');
+        
+        try {
+            const response = await fetch(`/frontend/search/get-suggestions.php?q=${encodeURIComponent(query)}`);
+            const data = await response.json();
+            
+            if (data.suggestions && data.suggestions.length > 0) {
+                displaySuggestions(data.suggestions, query);
+                suggestionsContainer.style.display = 'block';
+            } else {
+                suggestionsContainer.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Error fetching suggestions:', error);
+            suggestionsContainer.style.display = 'none';
+        }
+    }
+    
+    function displaySuggestions(suggestions, query) {
+        const suggestionsContainer = document.getElementById('suggestionsContainer');
+        suggestionsContainer.innerHTML = '';
+        
+        suggestions.forEach(suggestion => {
+            const item = document.createElement('div');
+            item.className = 'suggestion-item';
+            
+            const icon = document.createElement('div');
+            icon.className = 'suggestion-icon';
+            icon.innerHTML = suggestion.type === 'product' 
+                ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h12a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"></path><path d="M9 11h6"></path></svg>'
+                : suggestion.type === 'blog'
+                ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>'
+                : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path><path d="M12 7v6m3-3H9"></path></svg>';
+            
+            const text = document.createElement('div');
+            text.className = 'suggestion-text';
+            
+            const title = document.createElement('div');
+            title.className = 'suggestion-title';
+            title.textContent = suggestion.name;
+            
+            const type = document.createElement('div');
+            type.className = 'suggestion-type';
+            type.textContent = suggestion.type === 'product' 
+                ? 'Product' 
+                : suggestion.type === 'blog'
+                ? 'Blog Post'
+                : 'Testimonial';
+            
+            text.appendChild(title);
+            text.appendChild(type);
+            
+            item.appendChild(icon);
+            item.appendChild(text);
+            item.onclick = () => searchForSuggestion(suggestion.name);
+            
+            suggestionsContainer.appendChild(item);
+        });
+    }
+    
+    function searchForSuggestion(term) {
+        document.getElementById('pageSearchInput').value = term;
+        performSearch();
+    }
+    
+    function handleSearchKeyPress(event) {
+        if (event.key === 'Enter') {
+            performSearch();
+        }
+    }
+    
+    function performSearch() {
+        const query = document.getElementById('pageSearchInput').value.trim();
+        if (query.length > 0) {
+            window.location.href = `?query=${encodeURIComponent(query)}`;
+        }
+    }
+    
+    // Hide suggestions when clicking outside
+    document.addEventListener('click', function(e) {
+        const searchBox = document.querySelector('.search-box-container');
+        const suggestionsContainer = document.getElementById('suggestionsContainer');
+        
+        if (!searchBox.contains(e.target)) {
+            suggestionsContainer.style.display = 'none';
+        }
+    });
     
     // Function to check login and redirect if needed
     function checkLoginAndRedirect() {

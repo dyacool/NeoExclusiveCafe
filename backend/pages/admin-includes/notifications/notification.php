@@ -339,7 +339,7 @@ if (isset($_GET['action']) || isset($_POST['action'])) {
             
         case 'get_unread_count':
             $count = $handler->getUnreadCount();
-            echo json_encode(['success' => $count]);
+            echo json_encode(['success' => true, 'count' => $count]);
             break;
             
         case 'mark_as_read':

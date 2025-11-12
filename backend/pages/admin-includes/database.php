@@ -32,7 +32,8 @@ if (headers_sent()) {
     !strpos($_SERVER['SCRIPT_NAME'], '/products/restore-removed-images.php') &&
     !strpos($_SERVER['SCRIPT_NAME'], '/products/delete-removed-images.php') &&
     !strpos($_SERVER['SCRIPT_NAME'], '/calendar/update-limit.php') &&
-    !strpos($_SERVER['SCRIPT_NAME'], '/cart/availtoday-cart-api.php')) {
+    !strpos($_SERVER['SCRIPT_NAME'], '/cart/availtoday-cart-api.php') &&
+    !strpos($_SERVER['SCRIPT_NAME'], '/notifications/api.php')) {
         
         echo "<!-- Headers already sent, could not set content type -->";
     }
@@ -53,7 +54,8 @@ if (headers_sent()) {
         strpos($_SERVER['SCRIPT_NAME'], '/products/restore-removed-images.php') ||
         strpos($_SERVER['SCRIPT_NAME'], '/products/delete-removed-images.php') ||
         strpos($_SERVER['SCRIPT_NAME'], '/calendar/update-limit.php') ||
-        strpos($_SERVER['SCRIPT_NAME'], '/cart/availtoday-cart-api.php')) {
+        strpos($_SERVER['SCRIPT_NAME'], '/cart/availtoday-cart-api.php') ||
+        strpos($_SERVER['SCRIPT_NAME'], '/notifications/api.php')) {
         
         // For API endpoints, force JSON content type
         header('Content-Type: application/json');
@@ -80,7 +82,8 @@ if (!isset($suppress_db_debug) &&
     !strpos($_SERVER['SCRIPT_NAME'], '/admin/minimal-orders.php') &&
     !strpos($_SERVER['SCRIPT_NAME'], '/products/update-product.php') &&
     !strpos($_SERVER['SCRIPT_NAME'], '/calendar/update-limit.php') &&
-    !strpos($_SERVER['SCRIPT_NAME'], '/cart/availtoday-cart-api.php')) {
+    !strpos($_SERVER['SCRIPT_NAME'], '/cart/availtoday-cart-api.php') &&
+    !strpos($_SERVER['SCRIPT_NAME'], '/notifications/api.php')) {
     // echo $debug_info;
 }
 
@@ -115,7 +118,8 @@ if ($conn->connect_error) {
         strpos($_SERVER['SCRIPT_NAME'], '/admin/minimal-orders.php') !== false ||
         strpos($_SERVER['SCRIPT_NAME'], '/products/update-product.php') !== false ||
         strpos($_SERVER['SCRIPT_NAME'], '/calendar/update-limit.php') !== false ||
-        strpos($_SERVER['SCRIPT_NAME'], '/cart/availtoday-cart-api.php') !== false
+        strpos($_SERVER['SCRIPT_NAME'], '/cart/availtoday-cart-api.php') !== false ||
+        strpos($_SERVER['SCRIPT_NAME'], '/notifications/api.php') !== false
     );
     
     if ($is_api_call) {

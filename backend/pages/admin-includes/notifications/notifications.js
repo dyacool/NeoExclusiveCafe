@@ -11,7 +11,10 @@ class NotificationSystem {
   init() {
     this.createHTML();
     this.bindEvents();
-    this.loadNotifications();
+    // Load unread count first for badge, then load full notifications
+    setTimeout(() => {
+      this.loadUnreadCount();
+    }, 100);
     this.startAutoUpdate();
   }
 
@@ -239,6 +242,37 @@ class NotificationSystem {
       });
   }
 
+  loadUnreadCount() {
+    console.log("🔔 loadUnreadCount() called");
+    // Load just the unread count for the badge
+    fetch(
+      "/backend/pages/admin-includes/notifications/api.php?action=get_unread_count",
+      { credentials: "include" }
+    )
+      .then((response) => {
+        console.log("🔔 API Response Status:", response.status);
+        if (response.status === 401) {
+          console.log("🔔 Unauthorized - stopping auto update");
+          this.stopAutoUpdate();
+          return { success: false, error: "Unauthorized" };
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log("🔔 API Response Data:", data);
+        if (data && data.success !== undefined) {
+          this.unreadCount = data.unread_count || 0;
+          console.log("🔔 Setting unread count to:", this.unreadCount);
+          this.updateBadge();
+        } else {
+          console.log("🔔 Invalid data format received");
+        }
+      })
+      .catch((error) => {
+        console.error("🔔 Error loading unread count:", error);
+      });
+  }
+
   renderNotifications() {
     const listContainer = document.getElementById("notification-list");
 
@@ -284,12 +318,22 @@ class NotificationSystem {
   }
 
   updateBadge() {
+    console.log("🔔 updateBadge() called with count:", this.unreadCount);
     const badge = document.getElementById("notification-badge");
+    if (!badge) {
+      console.error("🔔 Badge element not found!");
+      return;
+    }
+    console.log("🔔 Badge element found:", badge);
+
     if (this.unreadCount > 0) {
-      badge.textContent = this.unreadCount > 99 ? "99+" : this.unreadCount;
+      const displayCount = this.unreadCount > 99 ? "99+" : this.unreadCount;
+      badge.textContent = displayCount;
       badge.style.display = "block";
+      console.log("🔔 Badge updated - showing count:", displayCount);
     } else {
       badge.style.display = "none";
+      console.log("🔔 Badge hidden - no unread notifications");
     }
   }
 
