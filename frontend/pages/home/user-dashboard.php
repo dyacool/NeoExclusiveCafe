@@ -337,7 +337,14 @@ $total_images = mysqli_num_rows($images_result);
                     ?>
                 </div>
                 <div class="button-link" data-aos="fade-up">
-                    <a href="<?php echo htmlspecialchars($carousel_settings['button_link']); ?>" class="carousel-button">
+                    <?php
+                    $button_link = $carousel_settings['button_link'];
+                    // Ensure the link starts with / for absolute path from root
+                    if (!empty($button_link) && strpos($button_link, '/') !== 0 && strpos($button_link, 'http') !== 0) {
+                        $button_link = '/' . $button_link;
+                    }
+                    ?>
+                    <a href="<?php echo htmlspecialchars($button_link); ?>" class="carousel-button">
                         <?php echo htmlspecialchars($carousel_settings['button_text']); ?>
                     </a>
                 </div>

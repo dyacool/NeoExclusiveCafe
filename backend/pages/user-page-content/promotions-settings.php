@@ -318,5 +318,68 @@ createCouponUsageTable($conn);
 <script src="https://cdn.datatables.net/2.1.7/js/dataTables.js"></script>
 <script src="/backend/pages/user-page-content/promotions-settings.js"></script>
 
+<script>
+// Set minimum date to today for all date inputs
+function setDateMinimums() {
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Set min date for Add Coupon modal
+    const startDate = document.getElementById('startDate');
+    const endDate = document.getElementById('endDate');
+    const reactivateActivationDate = document.getElementById('reactivate-activation-date');
+    const reactivateExpirationDate = document.getElementById('reactivate-expiration-date');
+    
+    if (startDate) {
+        startDate.min = today;
+        startDate.addEventListener('change', function() {
+            if (endDate) {
+                endDate.min = this.value;
+                if (endDate.value && endDate.value < this.value) {
+                    endDate.value = this.value;
+                }
+            }
+        });
+    }
+    
+    if (endDate) {
+        endDate.min = today;
+    }
+    
+    if (reactivateActivationDate) {
+        reactivateActivationDate.min = today;
+        reactivateActivationDate.addEventListener('change', function() {
+            if (reactivateExpirationDate) {
+                reactivateExpirationDate.min = this.value;
+                if (reactivateExpirationDate.value && reactivateExpirationDate.value < this.value) {
+                    reactivateExpirationDate.value = this.value;
+                }
+            }
+        });
+    }
+    
+    if (reactivateExpirationDate) {
+        reactivateExpirationDate.min = today;
+    }
+}
+
+// Call on page load
+document.addEventListener('DOMContentLoaded', setDateMinimums);
+
+// Also call when modals are opened to ensure dates are set
+const originalOpenModal = window.openModal || function() {};
+window.openModal = function(modalId) {
+    setDateMinimums();
+    // Call original if it exists, otherwise just show the modal
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'block';
+    }
+};
+
+// Monitor for modal visibility changes and reapply constraints
+document.addEventListener('show.bs.modal', setDateMinimums);
+document.addEventListener('shown.bs.modal', setDateMinimums);
+</script>
+
 </body>
 </html>

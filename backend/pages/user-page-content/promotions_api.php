@@ -608,30 +608,41 @@ function handleReactivateVoucher($conn) {
     $activation_date = $_POST['activation_date'];
     $expiration_date = $_POST['expiration_date'];
     
+    // Validate voucher_id is provided and not zero
+    if (empty($voucher_id) || $voucher_id <= 0) {
+        echo json_encode(['success' => false, 'message' => 'Invalid voucher ID']);
+        exit();
+    }
  
     if (strtotime($activation_date) >= strtotime($expiration_date)) {
         echo json_encode(['success' => false, 'message' => 'Expiration date must be after activation date']);
         exit();
     }
     
-    $sql = "UPDATE promotions SET 
-            activation_date = ?, 
-            expiration_date = ?, 
-            status = 'active',
-            updated_at = CURRENT_TIMESTAMP
-            WHERE id = ?";
+    // Use explicit WHERE clause to ensure only one voucher is updated
+    $sql = "UPDATE promotions 
+            SET activation_date = ?, 
+                expiration_date = ?, 
+                status = 'active',
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = ? AND id > 0";
     
     $stmt = $conn->prepare($sql);
+    if (!$stmt) {
+        echo json_encode(['success' => false, 'message' => 'Database error: ' . $conn->error]);
+        exit();
+    }
+    
     $stmt->bind_param("ssi", $activation_date, $expiration_date, $voucher_id);
     
     if ($stmt->execute()) {
         if ($stmt->affected_rows > 0) {
             echo json_encode(['success' => true, 'message' => 'Voucher reactivated successfully']);
         } else {
-            echo json_encode(['success' => false, 'message' => 'Voucher not found']);
+            echo json_encode(['success' => false, 'message' => 'Voucher not found or no changes made']);
         }
     } else {
-            echo json_encode(['success' => false, 'message' => 'Error reactivating voucher: ' . $conn->error]);
+        echo json_encode(['success' => false, 'message' => 'Error reactivating voucher: ' . $conn->error]);
     }
     
     $stmt->close();

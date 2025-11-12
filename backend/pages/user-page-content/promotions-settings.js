@@ -279,6 +279,10 @@ const VoucherControls = (function () {
     if (newBtn && addModal) {
       newBtn.addEventListener("click", function () {
         addModal.style.display = "flex";
+        // Apply date constraints when modal opens
+        if (typeof setDateMinimums === "function") {
+          setDateMinimums();
+        }
       });
     }
 
@@ -339,6 +343,23 @@ document.addEventListener("DOMContentLoaded", function () {
     const selectedRows = VoucherTable.getSelectedRow(supplyOrderTable);
     if (selectedRows.length !== 1) return;
     const voucher = selectedRows[0];
+
+    // Store the voucher ID in a more reliable way
+    const voucherIdInput = document.createElement("input");
+    voucherIdInput.type = "hidden";
+    voucherIdInput.id = "selected-voucher-id";
+    voucherIdInput.value = voucher.id;
+
+    const form = document.getElementById("reactivate-voucher-form");
+    const existingInput = form.querySelector("#selected-voucher-id");
+    if (existingInput) {
+      existingInput.remove();
+    }
+    form.appendChild(voucherIdInput);
+
+    // Also store in dataset as backup
+    form.dataset.voucherId = voucher.id;
+
     const today = new Date();
     const todayStr = today.toISOString().split("T")[0];
     const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
@@ -360,8 +381,10 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     };
     document.getElementById("reactivate-voucher-modal").style.display = "flex";
-    document.getElementById("reactivate-voucher-form").dataset.voucherId =
-      voucher.id;
+    // Apply date constraints when modal opens
+    if (typeof setDateMinimums === "function") {
+      setDateMinimums();
+    }
   });
 
   function resetReactivateForm() {
@@ -389,6 +412,12 @@ document.addEventListener("DOMContentLoaded", function () {
         input.style.backgroundColor = "";
       }
     });
+
+    // Clear the voucher ID references
+    const voucherIdInput = form.querySelector("#selected-voucher-id");
+    if (voucherIdInput) {
+      voucherIdInput.remove();
+    }
     form.dataset.voucherId = "";
   }
   document.getElementById("reactivate-voucher-modal-close").onclick =
@@ -408,7 +437,18 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("reactivate-voucher-submit").onclick = function (e) {
     e.preventDefault();
     const form = document.getElementById("reactivate-voucher-form");
-    const voucherId = form.dataset.voucherId;
+
+    // Get voucherId from hidden input first, then fallback to dataset
+    let voucherId =
+      document.getElementById("selected-voucher-id")?.value ||
+      form.dataset.voucherId;
+
+    // Validate that we have a voucher ID
+    if (!voucherId || voucherId === "undefined" || voucherId === "") {
+      Swal.fire("Error", "No voucher selected. Please try again.", "error");
+      return;
+    }
+
     const activationDate = document.getElementById(
       "reactivate-activation-date"
     ).value;
@@ -737,19 +777,11 @@ function addCoupon(event) {
   // Validate required fields
   const title = formData.get("title");
   const code = formData.get("code");
-  const applicationMethod = formData.get("application_method");
   const discountType = formData.get("type");
   const startDate = formData.get("activation_date");
   const endDate = formData.get("expiration_date");
 
-  if (
-    !title ||
-    !code ||
-    !applicationMethod ||
-    !discountType ||
-    !startDate ||
-    !endDate
-  ) {
+  if (!title || !code || !discountType || !startDate || !endDate) {
     Swal.fire({
       title: "Error",
       text: "Please fill in all required fields.",
