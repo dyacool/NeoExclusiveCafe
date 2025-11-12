@@ -72,11 +72,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_discount_prices'
         // Log the activity
         logAdminActivity($conn, 'UPDATE', "Updated discount pricing for bulk order #$order_id (Total: ₱" . number_format($discount_total, 2) . ") and auto-approved", 'bulk_orders', $order_id);
         
-        // Send email notification
+        // Send approval email to customer
         try {
-            sendBulkOrderNotificationEmail($order_id, $conn);
+            sendBulkOrderApprovalEmail($order_id, $conn);
         } catch (Exception $e) {
-            error_log("Failed to send bulk order email notification: " . $e->getMessage());
+            error_log("Failed to send bulk order approval email to customer: " . $e->getMessage());
         }
         
         $success_message = "Discount prices saved successfully! Order automatically approved.";
@@ -127,12 +127,12 @@ if ($is_ajax_request) {
             if ($ok) {
                 logAdminActivity($conn, 'UPDATE', "Updated bulk order #$target_id status to $new_status", 'bulk_orders', $target_id);
                 
-                // Send email notification if status is approved
+                // Send approval email to customer if status is approved
                 if ($new_status === 'approved') {
                     try {
-                        sendBulkOrderNotificationEmail($target_id, $conn);
+                        sendBulkOrderApprovalEmail($target_id, $conn);
                     } catch (Exception $e) {
-                        error_log("Failed to send bulk order email notification: " . $e->getMessage());
+                        error_log("Failed to send bulk order approval email to customer: " . $e->getMessage());
                     }
                 }
             }
@@ -248,11 +248,11 @@ if ($is_ajax_request) {
                         logAdminActivity($conn, 'UPDATE', "Updated discount pricing for bulk order #$target_id (Discount Total: ₱" . number_format($discount_total, 2) . ") and auto-approved order", 'bulk_orders', $target_id);
                         error_log("Activity logged successfully");
                         
-                        // Send email notification
+                        // Send approval email to customer
                         try {
-                            sendBulkOrderNotificationEmail($target_id, $conn);
+                            sendBulkOrderApprovalEmail($target_id, $conn);
                         } catch (Exception $e) {
-                            error_log("Failed to send bulk order email notification: " . $e->getMessage());
+                            error_log("Failed to send bulk order approval email to customer: " . $e->getMessage());
                         }
                     }
                 }
@@ -356,12 +356,12 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'update_status') {
         if ($ok) {
             logAdminActivity($conn, 'UPDATE', "Changed bulk order #$target_id status to '$new_status'", 'bulk_orders', $target_id);
             
-            // Send email notification if status is approved
+            // Send approval email to customer if status is approved
             if ($new_status === 'approved') {
                 try {
-                    sendBulkOrderNotificationEmail($target_id, $conn);
+                    sendBulkOrderApprovalEmail($target_id, $conn);
                 } catch (Exception $e) {
-                    error_log("Failed to send bulk order email notification: " . $e->getMessage());
+                    error_log("Failed to send bulk order approval email to customer: " . $e->getMessage());
                 }
             }
             
@@ -433,11 +433,11 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'save_customer_inf
     if ($ok) {
         logAdminActivity($conn, 'UPDATE', "Updated customer info for bulk order #$target_id and auto-approved order", 'bulk_orders', $target_id);
         
-        // Send email notification
+        // Send approval email to customer
         try {
-            sendBulkOrderNotificationEmail($target_id, $conn);
+            sendBulkOrderApprovalEmail($target_id, $conn);
         } catch (Exception $e) {
-            error_log("Failed to send bulk order email notification: " . $e->getMessage());
+            error_log("Failed to send bulk order approval email to customer: " . $e->getMessage());
         }
     }
     
@@ -466,11 +466,11 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'save_order_detail
     if ($ok) {
         logAdminActivity($conn, 'UPDATE', "Updated order details for bulk order #$target_id and auto-approved order", 'bulk_orders', $target_id);
         
-        // Send email notification
+        // Send approval email to customer
         try {
-            sendBulkOrderNotificationEmail($target_id, $conn);
+            sendBulkOrderApprovalEmail($target_id, $conn);
         } catch (Exception $e) {
-            error_log("Failed to send bulk order email notification: " . $e->getMessage());
+            error_log("Failed to send bulk order approval email to customer: " . $e->getMessage());
         }
     }
     
@@ -504,11 +504,11 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'save_all') {
             if ($ok) {
                 logAdminActivity($conn, 'UPDATE', "Updated all order details for bulk order #$orderId and auto-approved order", 'bulk_orders', $orderId);
                 
-                // Send email notification
+                // Send approval email to customer
                 try {
-                    sendBulkOrderNotificationEmail($orderId, $conn);
+                    sendBulkOrderApprovalEmail($orderId, $conn);
                 } catch (Exception $e) {
-                    error_log("Failed to send bulk order email notification: " . $e->getMessage());
+                    error_log("Failed to send bulk order approval email to customer: " . $e->getMessage());
                 }
             }
         } else { $err = $conn->error; }
@@ -621,11 +621,11 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'update_discount_p
                     logAdminActivity($conn, 'UPDATE', "Updated discount pricing for bulk order #$target_id (Discount Total: ₱" . number_format($discount_total, 2) . ") and auto-approved order", 'bulk_orders', $target_id);
                     error_log("Activity logged successfully");
                     
-                    // Send email notification
+                    // Send approval email to customer
                     try {
-                        sendBulkOrderNotificationEmail($target_id, $conn);
+                        sendBulkOrderApprovalEmail($target_id, $conn);
                     } catch (Exception $e) {
-                        error_log("Failed to send bulk order email notification: " . $e->getMessage());
+                        error_log("Failed to send bulk order approval email to customer: " . $e->getMessage());
                     }
                 }
             }

@@ -59,7 +59,99 @@ function sendOrderNotificationEmail($orderDetails) {
     }
 }
 
-// Function to send bulk order notification to admin
+// Function to send bulk order request notification to admin (when user submits)
+function sendBulkOrderRequestEmail($bulkOrderId, $conn) {
+    try {
+        error_log("Starting bulk order request email notification for order #$bulkOrderId");
+        
+        // Validate inputs
+        if (!$bulkOrderId || $bulkOrderId <= 0) {
+            error_log("Invalid bulk order ID: $bulkOrderId");
+            return false;
+        }
+        
+        if (!$conn) {
+            error_log("Database connection not provided");
+            return false;
+        }
+        
+        // Fetch bulk order details
+        $order_sql = "SELECT * FROM bulk_orders WHERE id = ?";
+        $order_stmt = mysqli_prepare($conn, $order_sql);
+        
+        if (!$order_stmt) {
+            error_log("Failed to prepare bulk order query: " . mysqli_error($conn));
+            return false;
+        }
+        
+        mysqli_stmt_bind_param($order_stmt, "i", $bulkOrderId);
+        
+        if (!mysqli_stmt_execute($order_stmt)) {
+            error_log("Failed to execute bulk order query: " . mysqli_error($conn));
+            mysqli_stmt_close($order_stmt);
+            return false;
+        }
+        
+        $order_result = mysqli_stmt_get_result($order_stmt);
+        $bulkOrder = mysqli_fetch_assoc($order_result);
+        mysqli_stmt_close($order_stmt);
+        
+        if (!$bulkOrder) {
+            error_log("Bulk order #$bulkOrderId not found");
+            return false;
+        }
+        
+        // Fetch order items
+        $items_sql = "SELECT * FROM bulk_order_items WHERE bulk_order_id = ? ORDER BY id";
+        $items_stmt = mysqli_prepare($conn, $items_sql);
+        
+        if (!$items_stmt) {
+            error_log("Failed to prepare bulk order items query: " . mysqli_error($conn));
+            return false;
+        }
+        
+        mysqli_stmt_bind_param($items_stmt, "i", $bulkOrderId);
+        
+        if (!mysqli_stmt_execute($items_stmt)) {
+            error_log("Failed to execute bulk order items query: " . mysqli_error($conn));
+            mysqli_stmt_close($items_stmt);
+            return false;
+        }
+        
+        $items_result = mysqli_stmt_get_result($items_stmt);
+        $items = [];
+        
+        while ($item = mysqli_fetch_assoc($items_result)) {
+            $items[] = $item;
+        }
+        
+        mysqli_stmt_close($items_stmt);
+        
+        $bulkOrder['items'] = $items;
+        
+        // Get admin email
+        $adminEmail = getAdminEmail();
+        
+        // Create email subject
+        $orderIdDisplay = !empty($bulkOrder['unique_order_id']) ? $bulkOrder['unique_order_id'] : 'BO' . str_pad($bulkOrderId, 6, '0', STR_PAD_LEFT);
+        $subject = "New Bulk Order Request - Order #" . $orderIdDisplay;
+        
+        // Generate email body
+        $emailBody = createBulkOrderRequestEmailBody($bulkOrder);
+        
+        // Send email
+        $result = sendEmail($adminEmail, $subject, $emailBody, true);
+        error_log("Bulk order request email send result: " . ($result ? "Success" : "Failed"));
+        
+        return $result;
+        
+    } catch (Exception $e) {
+        error_log("Failed to send bulk order request email: " . $e->getMessage());
+        return false;
+    }
+}
+
+// Function to send bulk order notification to admin (when admin processes)
 function sendBulkOrderNotificationEmail($bulkOrderId, $conn) {
     try {
         error_log("Starting bulk order email notification for order #$bulkOrderId");
@@ -376,7 +468,121 @@ function createOrderEmailBody($order, $orderType = "New Order", $deliveryMethod 
     return $html;
 }
 
-// Function to create bulk order email body
+// Function to send bulk order approval email to customer
+function sendBulkOrderApprovalEmail($bulkOrderId, $conn) {
+    try {
+        error_log("Starting bulk order approval email to customer for order #$bulkOrderId");
+        
+        // Validate inputs
+        if (!$bulkOrderId || $bulkOrderId <= 0) {
+            error_log("Invalid bulk order ID: $bulkOrderId");
+            return false;
+        }
+        
+        if (!$conn) {
+            error_log("Database connection not provided");
+            return false;
+        }
+        
+        // Fetch bulk order details
+        $order_sql = "SELECT * FROM bulk_orders WHERE id = ?";
+        $order_stmt = mysqli_prepare($conn, $order_sql);
+        
+        if (!$order_stmt) {
+            error_log("Failed to prepare bulk order query: " . mysqli_error($conn));
+            return false;
+        }
+        
+        mysqli_stmt_bind_param($order_stmt, "i", $bulkOrderId);
+        
+        if (!mysqli_stmt_execute($order_stmt)) {
+            error_log("Failed to execute bulk order query: " . mysqli_error($conn));
+            mysqli_stmt_close($order_stmt);
+            return false;
+        }
+        
+        $order_result = mysqli_stmt_get_result($order_stmt);
+        $bulkOrder = mysqli_fetch_assoc($order_result);
+        mysqli_stmt_close($order_stmt);
+        
+        if (!$bulkOrder) {
+            error_log("Bulk order #$bulkOrderId not found");
+            return false;
+        }
+        
+        // Fetch order items
+        $items_sql = "SELECT * FROM bulk_order_items WHERE bulk_order_id = ? ORDER BY id";
+        $items_stmt = mysqli_prepare($conn, $items_sql);
+        
+        if (!$items_stmt) {
+            error_log("Failed to prepare bulk order items query: " . mysqli_error($conn));
+            return false;
+        }
+        
+        mysqli_stmt_bind_param($items_stmt, "i", $bulkOrderId);
+        
+        if (!mysqli_stmt_execute($items_stmt)) {
+            error_log("Failed to execute bulk order items query: " . mysqli_error($conn));
+            mysqli_stmt_close($items_stmt);
+            return false;
+        }
+        
+        $items_result = mysqli_stmt_get_result($items_stmt);
+        $items = [];
+        
+        while ($item = mysqli_fetch_assoc($items_result)) {
+            $items[] = $item;
+        }
+        
+        mysqli_stmt_close($items_stmt);
+        
+        $bulkOrder['items'] = $items;
+        
+        // Calculate totals
+        $regularTotal = 0;
+        $finalTotal = 0;
+        
+        foreach ($items as $item) {
+            $regularTotal += $item['subtotal'];
+            
+            if (isset($item['discount_price']) && $item['discount_price'] > 0) {
+                $finalTotal += $item['discount_price'] * $item['quantity'];
+            } else {
+                $finalTotal += $item['product_price'] * $item['quantity'];
+            }
+        }
+        
+        $bulkOrder['calculated_regular_total'] = $regularTotal;
+        $bulkOrder['calculated_final_total'] = $finalTotal;
+        
+        // Get customer email
+        $customerEmail = $bulkOrder['email'];
+        
+        if (empty($customerEmail)) {
+            error_log("No customer email found for bulk order #$bulkOrderId");
+            return false;
+        }
+        
+        // Create email subject
+        $orderIdDisplay = !empty($bulkOrder['unique_order_id']) ? $bulkOrder['unique_order_id'] : 'BO' . str_pad($bulkOrderId, 6, '0', STR_PAD_LEFT);
+        $subject = "Your Bulk Order Has Been Approved - Order #" . $orderIdDisplay;
+        
+        // Generate email body
+        $emailBody = createBulkOrderApprovalEmailBody($bulkOrder);
+        
+        // Send email
+        $result = sendEmail($customerEmail, $subject, $emailBody, true);
+        error_log("Bulk order approval email to customer send result: " . ($result ? "Success" : "Failed"));
+        
+        return $result;
+        
+    } catch (Exception $e) {
+        error_log("Failed to send bulk order approval email to customer: " . $e->getMessage());
+        return false;
+    }
+}
+
+// Function to create bulk order email body (for admin notification)
 function createBulkOrderEmailBody($bulkOrder) {
     // Base URL for assets and links
     $baseUrl = getBaseUrl();
@@ -555,6 +761,325 @@ function createBulkOrderEmailBody($bulkOrder) {
     $html .= '
             <div class="footer">
                 <p>This is an automated notification from Neo Exclusive Cafe\'s ordering system.</p>
+                <p>© ' . date('Y') . ' Neo Exclusive Cafe. All rights reserved.</p>
+            </div>
+        </div>
+    </body>
+    </html>';
+    
+    return $html;
+}
+
+// Function to create bulk order request email body (when user submits - sent to admin)
+function createBulkOrderRequestEmailBody($bulkOrder) {
+    $baseUrl = getBaseUrl();
+    $orderIdDisplay = !empty($bulkOrder['unique_order_id']) ? $bulkOrder['unique_order_id'] : 'BO' . str_pad($bulkOrder['id'], 6, '0', STR_PAD_LEFT);
+    
+    $html = '
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>New Bulk Order Request</title>
+        <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background-color: #2f603c; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+            .alert-box { background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; border-radius: 4px; }
+            .section { margin-bottom: 20px; padding: 15px; background-color: #f9f9f9; border-radius: 5px; }
+            .section h2 { color: #2f603c; margin-top: 0; }
+            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+            th, td { padding: 10px; text-align: left; border: 1px solid #ddd; }
+            th { background-color: #2f603c; color: white; }
+            .footer { text-align: center; margin-top: 20px; padding: 20px; background-color: #f8f9fa; border-radius: 5px; }
+            .cta-button {
+                display: inline-block;
+                padding: 12px 24px;
+                background-color: #2f603c;
+                color: white !important;
+                text-decoration: none;
+                border-radius: 6px;
+                font-weight: bold;
+                margin: 20px 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>🔔 New Bulk Order Request</h1>
+                <p>Order #' . htmlspecialchars($orderIdDisplay) . '</p>
+                <p>' . date('F j, Y g:i A') . '</p>
+            </div>
+            
+            <div class="alert-box">
+                <strong>⚠️ Action Required:</strong> A new bulk order request has been submitted and requires your review.
+            </div>
+            
+            <div class="section">
+                <h2>Customer Information</h2>
+                <p><strong>Name:</strong> ' . htmlspecialchars($bulkOrder['name']) . '</p>
+                <p><strong>Email:</strong> ' . htmlspecialchars($bulkOrder['email']) . '</p>
+                <p><strong>Contact:</strong> ' . htmlspecialchars($bulkOrder['contact']) . '</p>
+                <p><strong>Billing Address:</strong> ' . nl2br(htmlspecialchars($bulkOrder['billing_address'])) . '</p>
+            </div>
+            
+            <div class="section">
+                <h2>Order Details</h2>
+                <p><strong>Order Type:</strong> ' . ucfirst(htmlspecialchars($bulkOrder['order_type'])) . '</p>';
+    
+    if ($bulkOrder['order_type'] === 'delivery' && !empty($bulkOrder['delivery_address'])) {
+        $html .= '
+                <p><strong>Delivery Address:</strong> ' . nl2br(htmlspecialchars($bulkOrder['delivery_address'])) . '</p>';
+    }
+    
+    $html .= '
+                <p><strong>Purpose:</strong> ' . nl2br(htmlspecialchars($bulkOrder['purpose'])) . '</p>
+                <p><strong>Date Needed:</strong> ' . date('F j, Y', strtotime($bulkOrder['date_needed'])) . '</p>
+                <p><strong>Time Needed:</strong> ' . date('g:i A', strtotime($bulkOrder['time_needed'])) . '</p>
+                <p><strong>Date Submitted:</strong> ' . date('F j, Y g:i A', strtotime($bulkOrder['created_at'])) . '</p>
+            </div>';
+    
+    if (!empty($bulkOrder['items'])) {
+        $totalAmount = 0;
+        $html .= '
+            <div class="section">
+                <h2>Requested Items</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>';
+        
+        foreach ($bulkOrder['items'] as $item) {
+            $itemSubtotal = $item['product_price'] * $item['quantity'];
+            $totalAmount += $itemSubtotal;
+            
+            $html .= '
+                        <tr>
+                            <td>' . htmlspecialchars($item['product_name']) . '</td>
+                            <td style="text-align: center;">' . $item['quantity'] . '</td>
+                            <td style="text-align: right;">₱' . number_format($item['product_price'], 2) . '</td>
+                            <td style="text-align: right;">₱' . number_format($itemSubtotal, 2) . '</td>
+                        </tr>';
+        }
+        
+        $html .= '
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" style="text-align: right;"><strong>Total Amount:</strong></td>
+                            <td style="text-align: right;"><strong>₱' . number_format($totalAmount, 2) . '</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+                <p style="margin-top: 10px; font-size: 14px; color: #666;"><em>Note: These are retail prices. You can apply bulk discounts when reviewing the order.</em></p>
+            </div>';
+    }
+    
+    if (!empty($bulkOrder['note'])) {
+        $html .= '
+            <div class="section">
+                <h2>Customer Notes</h2>
+                <p>' . nl2br(htmlspecialchars($bulkOrder['note'])) . '</p>
+            </div>';
+    }
+    
+    $bulkOrderUrl = $baseUrl . '/backend/pages/bulks/bulk-order.php?id=' . $bulkOrder['id'];
+    $html .= '
+            <div class="section" style="text-align: center;">
+                <a href="' . htmlspecialchars($bulkOrderUrl) . '" class="cta-button">
+                    Review & Process Order
+                </a>
+            </div>
+            
+            <div class="footer">
+                <p>This is an automated notification from Neo Exclusive Cafe\'s ordering system.</p>
+                <p>© ' . date('Y') . ' Neo Exclusive Cafe. All rights reserved.</p>
+            </div>
+        </div>
+    </body>
+    </html>';
+    
+    return $html;
+}
+
+// Function to create bulk order approval email body (sent to customer)
+function createBulkOrderApprovalEmailBody($bulkOrder) {
+    $baseUrl = getBaseUrl();
+    $orderIdDisplay = !empty($bulkOrder['unique_order_id']) ? $bulkOrder['unique_order_id'] : 'BO' . str_pad($bulkOrder['id'], 6, '0', STR_PAD_LEFT);
+    
+    $html = '
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Bulk Order Approved</title>
+        <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background-color: #2f603c; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+            .success-box { background-color: #d1fae5; border-left: 4px solid #10b981; padding: 15px; margin: 20px 0; border-radius: 4px; color: #065f46; }
+            .section { margin-bottom: 20px; padding: 15px; background-color: #f9f9f9; border-radius: 5px; }
+            .section h2 { color: #2f603c; margin-top: 0; }
+            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+            th, td { padding: 10px; text-align: left; border: 1px solid #ddd; }
+            th { background-color: #2f603c; color: white; }
+            .footer { text-align: center; margin-top: 20px; padding: 20px; background-color: #f8f9fa; border-radius: 5px; }
+            .discount-row { background-color: #f0fdf4; }
+            .cta-button {
+                display: inline-block;
+                padding: 12px 24px;
+                background-color: #2f603c;
+                color: white !important;
+                text-decoration: none;
+                border-radius: 6px;
+                font-weight: bold;
+                margin: 20px 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>✅ Your Bulk Order Has Been Approved!</h1>
+                <p>Order #' . htmlspecialchars($orderIdDisplay) . '</p>
+                <p>' . date('F j, Y g:i A') . '</p>
+            </div>
+            
+            <div class="success-box">
+                <strong>Good News!</strong> Your bulk order has been reviewed and approved by our team.
+            </div>
+            
+            <div class="section">
+                <h2>Order Summary</h2>
+                <p><strong>Order Type:</strong> ' . ucfirst(htmlspecialchars($bulkOrder['order_type'])) . '</p>';
+    
+    if ($bulkOrder['order_type'] === 'delivery' && !empty($bulkOrder['delivery_address'])) {
+        $html .= '
+                <p><strong>Delivery Address:</strong> ' . nl2br(htmlspecialchars($bulkOrder['delivery_address'])) . '</p>';
+    }
+    
+    $html .= '
+                <p><strong>Purpose:</strong> ' . nl2br(htmlspecialchars($bulkOrder['purpose'])) . '</p>
+                <p><strong>Date Needed:</strong> ' . date('F j, Y', strtotime($bulkOrder['date_needed'])) . '</p>
+                <p><strong>Time Needed:</strong> ' . date('g:i A', strtotime($bulkOrder['time_needed'])) . '</p>
+            </div>';
+    
+    if (!empty($bulkOrder['items'])) {
+        $hasDiscount = false;
+        foreach ($bulkOrder['items'] as $item) {
+            if (isset($item['discount_price']) && $item['discount_price'] > 0) {
+                $hasDiscount = true;
+                break;
+            }
+        }
+        
+        $html .= '
+            <div class="section">
+                <h2>Order Items</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Quantity</th>
+                            <th>Price</th>';
+        
+        if ($hasDiscount) {
+            $html .= '
+                            <th>Your Price</th>';
+        }
+        
+        $html .= '
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>';
+        
+        foreach ($bulkOrder['items'] as $item) {
+            $itemSubtotal = $item['product_price'] * $item['quantity'];
+            $discountSubtotal = isset($item['discount_price']) && $item['discount_price'] > 0 
+                ? $item['discount_price'] * $item['quantity'] 
+                : 0;
+            
+            $html .= '
+                        <tr>
+                            <td>' . htmlspecialchars($item['product_name']) . '</td>
+                            <td style="text-align: center;">' . $item['quantity'] . '</td>
+                            <td style="text-align: right;">₱' . number_format($item['product_price'], 2) . '</td>';
+            
+            if ($hasDiscount) {
+                $html .= '
+                            <td style="text-align: right;">' . ($discountSubtotal > 0 ? '₱' . number_format($item['discount_price'], 2) : '-') . '</td>';
+            }
+            
+            $html .= '
+                            <td style="text-align: right;">₱' . number_format($itemSubtotal, 2) . '</td>
+                        </tr>';
+        }
+        
+        $html .= '
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="' . ($hasDiscount ? '4' : '3') . '" style="text-align: right;"><strong>Regular Total:</strong></td>
+                            <td style="text-align: right;"><strong>₱' . number_format($bulkOrder['calculated_regular_total'], 2) . '</strong></td>
+                        </tr>';
+        
+        if ($hasDiscount) {
+            $savings = $bulkOrder['calculated_regular_total'] - $bulkOrder['calculated_final_total'];
+            $html .= '
+                        <tr class="discount-row">
+                            <td colspan="4" style="text-align: right;"><strong>Your Discounted Total:</strong></td>
+                            <td style="text-align: right;"><strong>₱' . number_format($bulkOrder['calculated_final_total'], 2) . '</strong></td>
+                        </tr>
+                        <tr class="discount-row">
+                            <td colspan="4" style="text-align: right;"><strong>You Save:</strong></td>
+                            <td style="text-align: right;"><strong style="color: #10b981;">₱' . number_format($savings, 2) . '</strong></td>
+                        </tr>';
+        }
+        
+        $html .= '
+                    </tfoot>
+                </table>
+            </div>';
+    }
+    
+    if (!empty($bulkOrder['admin_notes'])) {
+        $html .= '
+            <div class="section">
+                <h2>Message from Neo Cafe</h2>
+                <p>' . nl2br(htmlspecialchars($bulkOrder['admin_notes'])) . '</p>
+            </div>';
+    }
+    
+    $html .= '
+            <div class="section">
+                <h2>Next Steps</h2>
+                <ol>
+                    <li>Review your order details above</li>
+                    <li>Proceed with payment for your order</li>
+                    <li>Upload proof of payment through your account</li>
+                    <li>We\'ll prepare your order for ' . date('F j, Y', strtotime($bulkOrder['date_needed'])) . '</li>
+                </ol>
+            </div>
+            
+            <div class="section" style="text-align: center;">
+                <a href="' . htmlspecialchars($baseUrl) . '/frontend/pages/bulk/bulk-order-details.php?id=' . $bulkOrder['id'] . '" class="cta-button">
+                    View Order Details
+                </a>
+            </div>
+            
+            <div class="footer">
+                <p>Thank you for choosing Neo Exclusive Cafe!</p>
+                <p>If you have any questions, please contact us.</p>
                 <p>© ' . date('Y') . ' Neo Exclusive Cafe. All rights reserved.</p>
             </div>
         </div>
