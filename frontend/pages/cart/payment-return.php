@@ -1412,7 +1412,7 @@ function createCustomerEmailBody($orderDetails) {
                     <p>• For pickup orders: Please bring a valid ID</p>
                     <p>• For delivery orders: Please be available at your provided address</p>
                 </div>
-                
+                <p>NOTICE: If bulk order reached 76 hours without being reviewed, the order will be rejected.</p>
                 <p>If you have any questions about your order, please don't hesitate to contact us.</p>
                 
                 <p>Thank you for choosing Neo Exclusive Cafe!</p>

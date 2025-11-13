@@ -329,9 +329,22 @@ try {
         session_write_close();
         error_log("✓ Session closed and saved before redirect");
         
+        // For card payments, we need to redirect to PayMongo's hosted payment page
+        // Get the checkout URL from the payment intent
+        $checkout_url = $result['data']['attributes']['next_action']['redirect']['url'] ?? null;
+        
+        if (!$checkout_url) {
+            error_log("⚠ No checkout URL in payment intent response");
+            // Fallback: construct payment URL manually
+            $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
+            $host = $_SERVER['HTTP_HOST'];
+            $checkout_url = $protocol . '://' . $host . '/frontend/pages/cart/card-payment.php?payment_intent_id=' . $result['data']['id'];
+        }
+        
         $response = [
             'success' => true,
             'payment_type' => 'payment_intent',
+            'payment_url' => $checkout_url, // Add payment_url for consistency
             'payment_intent_id' => $result['data']['id'],
             'client_secret' => $result['data']['attributes']['client_key'],
             'public_key' => 'pk_test_1XUMJ3yMs8QZugdq3uWr8vYU'
