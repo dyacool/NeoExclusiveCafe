@@ -749,9 +749,8 @@ function createBulkOrderEmailBody($bulkOrder) {
             </div>';
     }
     
-    // CTA Button - always use admin subdomain
-    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
-    $bulkOrderUrl = $protocol . 'admin.neocafe.shop/backend/pages/bulks/bulk-order.php?id=' . $bulkOrder['id'];
+    // CTA Button - use admin URL helper
+    $bulkOrderUrl = getAdminUrl('/backend/pages/bulks/bulk-order.php?id=' . $bulkOrder['id']);
     $html .= '
             <div class="section" style="text-align: center;">
                 <a href="' . htmlspecialchars($bulkOrderUrl) . '" class="cta-button">
@@ -888,7 +887,8 @@ function createBulkOrderRequestEmailBody($bulkOrder) {
             </div>';
     }
     
-    $bulkOrderUrl = $baseUrl . '/backend/pages/bulks/bulk-order.php?id=' . $bulkOrder['id'];
+    // Construct admin URL using helper function
+    $bulkOrderUrl = getAdminUrl('/backend/pages/bulks/bulk-order.php?id=' . $bulkOrder['id']);
     $html .= '
             <div class="section" style="text-align: center;">
                 <a href="' . htmlspecialchars($bulkOrderUrl) . '" class="cta-button">
@@ -1069,7 +1069,7 @@ function createBulkOrderApprovalEmailBody($bulkOrder) {
             </div>
             
             <div class="section" style="text-align: center;">
-                <a href="' . htmlspecialchars($baseUrl) . '/frontend/pages/bulk/bulk-order-details.php?id=' . $bulkOrder['id'] . '" class="cta-button">
+                <a href="' . htmlspecialchars(getUserUrl('/frontend/pages/bulk/bulk-order-details.php?id=' . $bulkOrder['id'])) . '" class="cta-button">
                     View Order Details
                 </a>
             </div>
@@ -1283,6 +1283,18 @@ function getBaseUrl() {
     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
     $domainName = $_SERVER['HTTP_HOST'];
     return $protocol . $domainName;
+}
+
+// Function to get admin URL (always points to admin subdomain)
+function getAdminUrl($path = '') {
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+    return $protocol . 'admin.neocafe.shop' . $path;
+}
+
+// Function to get user URL (always points to main domain)
+function getUserUrl($path = '') {
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+    return $protocol . 'neocafe.shop' . $path;
 }
 
 // Function to generate a secure token for order acceptance
