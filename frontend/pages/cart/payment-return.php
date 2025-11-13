@@ -332,14 +332,60 @@ try {
     $paymongo = new PayMongoAPI();
     error_log("[PAYMENT-RETURN] ✓ PayMongo API initialized");
 
-    // CRITICAL: Validate status before ANY order processing
-    if ($status !== 'success') {
-        error_log("[PAYMENT-RETURN] ⚠ Payment status is NOT success: '$status' - Aborting order creation");
-        throw new Exception('Payment was not successful. Status: ' . ($status ?: 'empty'));
+    // CRITICAL FIX: Verify payment status with PayMongo API instead of trusting URL parameter
+    $payment_verified = false;
+    $payment_id = $pending_payment['source_id'] ?? ($pending_payment['payment_intent_id'] ?? null);
+    
+    if ($payment_id) {
+        error_log("[PAYMENT-RETURN] Verifying payment with PayMongo API. Payment ID: $payment_id");
+        
+        // Check if it's a source or payment intent
+        if (isset($pending_payment['source_id'])) {
+            // It's a source (GCash/Maya)
+            $payment_status = $paymongo->getSource($payment_id);
+            error_log("[PAYMENT-RETURN] PayMongo Source Status Response: " . json_encode($payment_status));
+            
+            if (isset($payment_status['data']['attributes']['status'])) {
+                $source_status = $payment_status['data']['attributes']['status'];
+                error_log("[PAYMENT-RETURN] Source status: $source_status");
+                
+                // Source is chargeable means payment was authorized
+                if ($source_status === 'chargeable') {
+                    $payment_verified = true;
+                    error_log("[PAYMENT-RETURN] ✓ Payment verified as CHARGEABLE");
+                } else {
+                    error_log("[PAYMENT-RETURN] ✗ Payment NOT chargeable. Status: $source_status");
+                }
+            }
+        } elseif (isset($pending_payment['payment_intent_id'])) {
+            // It's a payment intent (Card)
+            $payment_status = $paymongo->getPaymentIntent($payment_id);
+            error_log("[PAYMENT-RETURN] PayMongo Payment Intent Status Response: " . json_encode($payment_status));
+            
+            if (isset($payment_status['data']['attributes']['status'])) {
+                $intent_status = $payment_status['data']['attributes']['status'];
+                error_log("[PAYMENT-RETURN] Payment Intent status: $intent_status");
+                
+                // Payment intent succeeded means payment was completed
+                if ($intent_status === 'succeeded') {
+                    $payment_verified = true;
+                    error_log("[PAYMENT-RETURN] ✓ Payment verified as SUCCEEDED");
+                } else {
+                    error_log("[PAYMENT-RETURN] ✗ Payment NOT succeeded. Status: $intent_status");
+                }
+            }
+        }
     }
     
-    // Process payment based on status
-    if ($status === 'success') {
+    if (!$payment_verified) {
+        error_log("[PAYMENT-RETURN] ⚠ Payment verification FAILED - Aborting order creation");
+        throw new Exception('Payment could not be verified. Please contact support if you were charged.');
+    }
+    
+    error_log("[PAYMENT-RETURN] ✓ Payment successfully verified with PayMongo");
+    
+    // Process payment - verification passed
+    if ($payment_verified) {
         // Check if this payment has already been processed to prevent duplicates
         $payment_id = $pending_payment['source_id'] ?? ($pending_payment['payment_intent_id'] ?? null);
         if ($payment_id) {
