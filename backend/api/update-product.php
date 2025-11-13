@@ -183,6 +183,9 @@ try {
             }
             $date_stmt->close();
         }
+        
+        // Clean up regular_products_today_dates if switching from pre-order+SDO to SDO only
+        $conn->query("DELETE FROM regular_products_today_dates WHERE product_id = $product_id");
     }
     
     // Handle dates for products with both pre-order and same-day
@@ -202,6 +205,85 @@ try {
                 }
             }
             $date_stmt->close();
+        }
+        
+        // Clean up todays_products_dates if switching from SDO only to pre-order+SDO
+        $conn->query("DELETE FROM todays_products_dates WHERE product_id = $product_id");
+    }
+    
+    // Clean up SDO-related data if same-day is NOT checked
+    if (!$sameDayChecked) {
+        error_log("Same-day NOT checked - cleaning up SDO data");
+        $conn->query("DELETE FROM todays_products_dates WHERE product_id = $product_id");
+        $conn->query("DELETE FROM regular_products_today_dates WHERE product_id = $product_id");
+        $conn->query("DELETE FROM quantity_per_day_sdo WHERE product_id = $product_id");
+    }
+    
+    // Handle SDO quantities (quantity per day for same-day orders)
+    error_log("=== SDO QUANTITIES UPDATE ===");
+    if (isset($_POST['sdo_quantities']) && !empty($_POST['sdo_quantities'])) {
+        $sdo_quantities_json = $_POST['sdo_quantities'];
+        error_log("Raw SDO quantities JSON: " . $sdo_quantities_json);
+        
+        $sdo_quantities = json_decode($sdo_quantities_json, true);
+        
+        if (json_last_error() === JSON_ERROR_NONE && is_array($sdo_quantities)) {
+            error_log("Parsed SDO quantities: " . print_r($sdo_quantities, true));
+            
+            // Start transaction for quantity operations
+            $conn->begin_transaction();
+            
+            try {
+                // Delete existing quantities for this product
+                $delete_qty_stmt = $conn->prepare("DELETE FROM quantity_per_day_sdo WHERE product_id = ?");
+                $delete_qty_stmt->bind_param("i", $product_id);
+                $delete_qty_stmt->execute();
+                $deleted_count = $delete_qty_stmt->affected_rows;
+                $delete_qty_stmt->close();
+                error_log("Deleted $deleted_count existing SDO quantities");
+                
+                // Insert new quantities
+                if (!empty($sdo_quantities)) {
+                    $insert_qty_stmt = $conn->prepare(
+                        "INSERT INTO quantity_per_day_sdo (product_id, date, quantity) VALUES (?, ?, ?)"
+                    );
+                    
+                    $inserted_count = 0;
+                    foreach ($sdo_quantities as $date => $quantity) {
+                        $qty = intval($quantity);
+                        error_log("Inserting: product_id=$product_id, date=$date, quantity=$qty");
+                        
+                        $insert_qty_stmt->bind_param("isi", $product_id, $date, $qty);
+                        if ($insert_qty_stmt->execute()) {
+                            $inserted_count++;
+                        } else {
+                            error_log("Failed to insert quantity for date $date: " . $insert_qty_stmt->error);
+                        }
+                    }
+                    $insert_qty_stmt->close();
+                    error_log("Inserted $inserted_count SDO quantities");
+                }
+                
+                // Commit transaction
+                $conn->commit();
+                error_log("SDO quantities saved successfully");
+                
+            } catch (Exception $e) {
+                // Rollback on error
+                $conn->rollback();
+                error_log("Error saving SDO quantities: " . $e->getMessage());
+                throw new Exception("Failed to save quantity per day data: " . $e->getMessage());
+            }
+        } else {
+            error_log("Failed to parse SDO quantities JSON: " . json_last_error_msg());
+        }
+    } else {
+        error_log("No SDO quantities provided in request");
+        
+        // If no quantities provided but product has same-day order, clean up existing quantities
+        if ($sameDayChecked) {
+            error_log("Same-day order enabled but no quantities - cleaning up existing quantities");
+            $conn->query("DELETE FROM quantity_per_day_sdo WHERE product_id = $product_id");
         }
     }
     

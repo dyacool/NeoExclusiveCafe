@@ -1876,6 +1876,8 @@ function handleFormSubmit(event) {
       statusId != 4 && availtodayStatusId
         ? JSON.stringify(sameDayDates)
         : JSON.stringify([]),
+    // Add SDO quantities to formData
+    sdo_quantities: JSON.stringify(sdoQuantitiesData),
     pending_image_changes: pendingImageChanges,
   };
 
@@ -1952,31 +1954,10 @@ function handleFormSubmit(event) {
     })
     .then((data) => {
       if (data.success) {
-        // Save SDO quantities if the function exists and we have quantities to save
-        if (
-          typeof saveSDOQuantitiesWithData === "function" &&
-          Object.keys(sdoQuantitiesData).length > 0
-        ) {
-          return saveSDOQuantitiesWithData(formData.id, sdoQuantitiesData)
-            .then(() => {
-              showNotification("Product updated successfully!", "success");
-              closeModal();
-              setTimeout(() => location.reload(), 1000);
-            })
-            .catch((error) => {
-              console.error("Error saving SDO quantities:", error);
-              showNotification(
-                "Product updated but failed to save quantities",
-                "warning"
-              );
-              closeModal();
-              setTimeout(() => location.reload(), 1000);
-            });
-        } else {
-          showNotification("Product updated successfully!", "success");
-          closeModal();
-          setTimeout(() => location.reload(), 1000);
-        }
+        // SDO quantities are now saved together with the product in update-product.php
+        showNotification("Product updated successfully!", "success");
+        closeModal();
+        setTimeout(() => location.reload(), 1000);
       } else {
         showNotification("Error: " + data.error, "error");
       }
@@ -2582,6 +2563,8 @@ function updateGlobalAvailableDays() {
  * Save product changes via AJAX without page refresh
  */
 async function saveProductChanges(event) {
+  console.log("=== SAVE PRODUCT CHANGES CALLED ===");
+  
   // Prevent form submission if event is provided
   if (event) {
     event.preventDefault();
@@ -2641,6 +2624,9 @@ async function saveProductChanges(event) {
       "editSameDayCheckbox"
     ).checked;
 
+    console.log('Pre-Order Checkbox:', preOrderChecked);
+    console.log('Same-Day Checkbox:', sameDayChecked);
+
     formData.append("preOrderCheckbox", preOrderChecked ? "true" : "false");
     formData.append("sameDayCheckbox", sameDayChecked ? "true" : "false");
 
@@ -2692,8 +2678,68 @@ async function saveProductChanges(event) {
           formData.append("todays_product_dates", todaysProductDates.value);
         }
       }
+
+      // Collect SDO quantities (for both same-day only and pre-order + same-day)
+      // Collect from DOM inputs to ensure we have the latest values
+      const sdoQuantities = {};
+      
+      // Check which container is visible
+      const todayContainer = document.getElementById('sdoQuantityContainerToday');
+      const regularContainer = document.getElementById('sdoQuantityContainerRegular');
+      console.log('Today container visible:', todayContainer && todayContainer.offsetParent !== null);
+      console.log('Regular container visible:', regularContainer && regularContainer.offsetParent !== null);
+      
+      const quantityInputs = document.querySelectorAll('.sdo-quantity-input[data-date]');
+      
+      console.log('Found', quantityInputs.length, 'quantity inputs');
+      console.log('Quantity inputs:', quantityInputs);
+      
+      quantityInputs.forEach(input => {
+        const date = input.getAttribute('data-date');
+        const quantity = parseInt(input.value) || 0;
+        console.log(`Collecting: ${date} = ${quantity}`);
+        sdoQuantities[date] = quantity;
+      });
+      
+      console.log('Collected SDO quantities:', sdoQuantities);
+      
+      // Validate quantities before sending
+      if (Object.keys(sdoQuantities).length > 0) {
+        let isValid = true;
+        for (const [date, quantity] of Object.entries(sdoQuantities)) {
+          // Validate date format
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+            console.error(`Invalid date format: ${date}`);
+            isValid = false;
+            break;
+          }
+          
+          // Validate quantity
+          const qty = parseInt(quantity);
+          if (isNaN(qty) || qty < 0) {
+            console.error(`Invalid quantity for ${date}: ${quantity}`);
+            isValid = false;
+            break;
+          }
+        }
+        
+        if (!isValid) {
+          throw new Error('Invalid SDO quantity data. Please check dates and quantities.');
+        }
+        
+        formData.append('sdo_quantities', JSON.stringify(sdoQuantities));
+        console.log('SDO quantities added to FormData');
+      } else {
+        console.log('No SDO quantities to save');
+      }
     }
 
+    // Debug: Log FormData contents
+    console.log('=== FormData Contents ===');
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}:`, value);
+    }
+    
     // Send AJAX request
     const response = await fetch("/backend/api/update-product.php", {
       method: "POST",
@@ -2830,14 +2876,30 @@ function updateProductRow(product) {
       }
     }
 
-    // Stock badge
-    const quantity = parseInt(product.quantity) || 0;
-    const quantityClass =
-      quantity <= 5
-        ? "low-stock"
-        : quantity <= 10
-        ? "medium-stock"
-        : "good-stock";
+    // Stock badge - show appropriate stock based on product type
+    let stockDisplay = '';
+    let quantityClass = '';
+    
+    if (product.status_id == 4) {
+      // Same Day Order only - show today's stock
+      const today = new Date().toISOString().split('T')[0];
+      const todaysDates = product.todays_product_dates ? product.todays_product_dates.split(',') : [];
+      const isTodayAvailable = todaysDates.includes(today);
+      
+      if (isTodayAvailable && product.sameday_stock_today !== undefined) {
+        const sdoStock = parseInt(product.sameday_stock_today) || 0;
+        quantityClass = sdoStock <= 5 ? "low-stock" : sdoStock <= 10 ? "medium-stock" : "good-stock";
+        stockDisplay = `<span class="sameday-stock">${sdoStock}</span> in stock`;
+      } else {
+        quantityClass = "na-stock";
+        stockDisplay = 'N/A';
+      }
+    } else {
+      // Pre-order - show regular quantity
+      const quantity = parseInt(product.quantity) || 0;
+      quantityClass = quantity <= 5 ? "low-stock" : quantity <= 10 ? "medium-stock" : "good-stock";
+      stockDisplay = `<span class="preorder-stock">${quantity}</span> in stock`;
+    }
 
     statusHTML += `<span class="stock-badge ${quantityClass}">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -2846,7 +2908,7 @@ function updateProductRow(product) {
         <circle cx="17" cy="17" r="3"></circle>
         <circle cx="7" cy="7" r="3"></circle>
       </svg>
-      <span class="preorder-stock">${quantity}</span> in stock
+      ${stockDisplay}
     </span>`;
 
     statusContainer.innerHTML = statusHTML;

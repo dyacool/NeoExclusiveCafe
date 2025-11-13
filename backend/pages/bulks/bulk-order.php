@@ -11,11 +11,12 @@ if (!isset($conn)) {
 require_once __DIR__ . "/../../../includes/session-manager.php";
 
 if (!SessionManager::isAdminLoggedIn()) {
-    header("Location: ../login/admin/admin-login.php");
+    header("Location: /backend/login/admin/admin-login.php");
     exit();
 }
 require_once __DIR__ . "/../admin-includes/activity-logger.php";
 require_once __DIR__ . "/../admin-includes/notifications/notification.php";
+require_once __DIR__ . "/../admin-includes/mailer.php";
 
 // SIMPLE FORM-BASED DISCOUNT PRICE HANDLER (No AJAX!)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_discount_prices'])) {
@@ -71,6 +72,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_discount_prices'
         // Log the activity
         logAdminActivity($conn, 'UPDATE', "Updated discount pricing for bulk order #$order_id (Total: ₱" . number_format($discount_total, 2) . ") and auto-approved", 'bulk_orders', $order_id);
         
+        // Send approval email to customer
+        try {
+            sendBulkOrderApprovalEmail($order_id, $conn);
+        } catch (Exception $e) {
+            error_log("Failed to send bulk order approval email to customer: " . $e->getMessage());
+        }
+        
         $success_message = "Discount prices saved successfully! Order automatically approved.";
         
     } catch (Exception $e) {
@@ -118,6 +126,15 @@ if ($is_ajax_request) {
             mysqli_stmt_close($update_stmt);
             if ($ok) {
                 logAdminActivity($conn, 'UPDATE', "Updated bulk order #$target_id status to $new_status", 'bulk_orders', $target_id);
+                
+                // Send approval email to customer if status is approved
+                if ($new_status === 'approved') {
+                    try {
+                        sendBulkOrderApprovalEmail($target_id, $conn);
+                    } catch (Exception $e) {
+                        error_log("Failed to send bulk order approval email to customer: " . $e->getMessage());
+                    }
+                }
             }
         } else {
             $ok = false;
@@ -230,6 +247,13 @@ if ($is_ajax_request) {
                     if ($ok) {
                         logAdminActivity($conn, 'UPDATE', "Updated discount pricing for bulk order #$target_id (Discount Total: ₱" . number_format($discount_total, 2) . ") and auto-approved order", 'bulk_orders', $target_id);
                         error_log("Activity logged successfully");
+                        
+                        // Send approval email to customer
+                        try {
+                            sendBulkOrderApprovalEmail($target_id, $conn);
+                        } catch (Exception $e) {
+                            error_log("Failed to send bulk order approval email to customer: " . $e->getMessage());
+                        }
                     }
                 }
             }
@@ -332,6 +356,15 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'update_status') {
         if ($ok) {
             logAdminActivity($conn, 'UPDATE', "Changed bulk order #$target_id status to '$new_status'", 'bulk_orders', $target_id);
             
+            // Send approval email to customer if status is approved
+            if ($new_status === 'approved') {
+                try {
+                    sendBulkOrderApprovalEmail($target_id, $conn);
+                } catch (Exception $e) {
+                    error_log("Failed to send bulk order approval email to customer: " . $e->getMessage());
+                }
+            }
+            
             // Create notification for status change
             try {
                 // Get order details for notification
@@ -399,6 +432,13 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'save_customer_inf
     // Log the activity
     if ($ok) {
         logAdminActivity($conn, 'UPDATE', "Updated customer info for bulk order #$target_id and auto-approved order", 'bulk_orders', $target_id);
+        
+        // Send approval email to customer
+        try {
+            sendBulkOrderApprovalEmail($target_id, $conn);
+        } catch (Exception $e) {
+            error_log("Failed to send bulk order approval email to customer: " . $e->getMessage());
+        }
     }
     
     header('Content-Type: application/json');
@@ -425,6 +465,13 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'save_order_detail
     // Log the activity
     if ($ok) {
         logAdminActivity($conn, 'UPDATE', "Updated order details for bulk order #$target_id and auto-approved order", 'bulk_orders', $target_id);
+        
+        // Send approval email to customer
+        try {
+            sendBulkOrderApprovalEmail($target_id, $conn);
+        } catch (Exception $e) {
+            error_log("Failed to send bulk order approval email to customer: " . $e->getMessage());
+        }
     }
     
     header('Content-Type: application/json');
@@ -456,6 +503,13 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'save_all') {
             // Log the activity
             if ($ok) {
                 logAdminActivity($conn, 'UPDATE', "Updated all order details for bulk order #$orderId and auto-approved order", 'bulk_orders', $orderId);
+                
+                // Send approval email to customer
+                try {
+                    sendBulkOrderApprovalEmail($orderId, $conn);
+                } catch (Exception $e) {
+                    error_log("Failed to send bulk order approval email to customer: " . $e->getMessage());
+                }
             }
         } else { $err = $conn->error; }
     } else { $err = 'Invalid order id'; }
@@ -566,6 +620,13 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'update_discount_p
                 if ($ok) {
                     logAdminActivity($conn, 'UPDATE', "Updated discount pricing for bulk order #$target_id (Discount Total: ₱" . number_format($discount_total, 2) . ") and auto-approved order", 'bulk_orders', $target_id);
                     error_log("Activity logged successfully");
+                    
+                    // Send approval email to customer
+                    try {
+                        sendBulkOrderApprovalEmail($target_id, $conn);
+                    } catch (Exception $e) {
+                        error_log("Failed to send bulk order approval email to customer: " . $e->getMessage());
+                    }
                 }
             }
         }

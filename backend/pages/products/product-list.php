@@ -99,7 +99,7 @@
     <link rel="stylesheet" href="/backend/pages/products/product-list.css">
     <link rel="stylesheet" href="/backend/pages/products/edit-modal.css">
     <link rel="stylesheet" href="/backend/pages/products/dates-tooltip.css">
-    <script src="/backend/pages/products/product-list.js" defer></script>
+    <script src="/backend/pages/products/product-list.js?v=<?php echo time(); ?>" defer></script>
     <script src="components/date-calendar.js" defer></script>
     <script src="/backend/pages/products/modal-calendar-handler.js" defer></script>
     <script src="/backend/pages/products/sdo-quantity-manager.js" defer></script>

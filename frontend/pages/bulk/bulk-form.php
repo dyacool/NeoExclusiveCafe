@@ -120,6 +120,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_bulk_order']))
                     error_log("Failed to create bulk order notification: " . $notif_error->getMessage());
                 }
                 
+                // Send email notification to admin about new bulk order request
+                try {
+                    require_once __DIR__ . '/../../../backend/pages/admin-includes/mailer.php';
+                    sendBulkOrderRequestEmail($bulk_order_id, $conn);
+                    error_log("✓ Email notification sent to admin for bulk order #$bulk_order_id");
+                } catch (Exception $email_error) {
+                    error_log("Failed to send bulk order request email: " . $email_error->getMessage());
+                }
+                
                 $show_success_modal = true;
             } else {
                 $error_message = "Error submitting order: " . mysqli_error($conn);

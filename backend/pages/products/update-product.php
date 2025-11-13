@@ -277,6 +277,68 @@ try {
         }
         $regular_today_stmt->close();
     }
+    
+    // Handle SDO quantities (quantity per day for same-day orders)
+    error_log("=== SDO QUANTITIES UPDATE ===");
+    if (isset($input['sdo_quantities']) && !empty($input['sdo_quantities'])) {
+        $sdo_quantities_json = $input['sdo_quantities'];
+        error_log("Raw SDO quantities JSON: " . $sdo_quantities_json);
+        
+        $sdo_quantities = json_decode($sdo_quantities_json, true);
+        
+        if (json_last_error() === JSON_ERROR_NONE && is_array($sdo_quantities)) {
+            error_log("Parsed SDO quantities: " . print_r($sdo_quantities, true));
+            
+            // Start transaction for quantity operations
+            $conn->begin_transaction();
+            
+            try {
+                // Delete existing quantities for this product
+                $delete_qty_stmt = $conn->prepare("DELETE FROM quantity_per_day_sdo WHERE product_id = ?");
+                $delete_qty_stmt->bind_param("i", $id);
+                $delete_qty_stmt->execute();
+                $deleted_count = $delete_qty_stmt->affected_rows;
+                $delete_qty_stmt->close();
+                error_log("Deleted $deleted_count existing SDO quantities");
+                
+                // Insert new quantities
+                if (!empty($sdo_quantities)) {
+                    $insert_qty_stmt = $conn->prepare(
+                        "INSERT INTO quantity_per_day_sdo (product_id, date, quantity) VALUES (?, ?, ?)"
+                    );
+                    
+                    $inserted_count = 0;
+                    foreach ($sdo_quantities as $date => $quantity) {
+                        $qty = intval($quantity);
+                        error_log("Inserting: product_id=$id, date=$date, quantity=$qty");
+                        
+                        $insert_qty_stmt->bind_param("isi", $id, $date, $qty);
+                        if ($insert_qty_stmt->execute()) {
+                            $inserted_count++;
+                        } else {
+                            error_log("Failed to insert quantity for date $date: " . $insert_qty_stmt->error);
+                        }
+                    }
+                    $insert_qty_stmt->close();
+                    error_log("Inserted $inserted_count SDO quantities");
+                }
+                
+                // Commit transaction
+                $conn->commit();
+                error_log("SDO quantities saved successfully");
+                
+            } catch (Exception $e) {
+                // Rollback on error
+                $conn->rollback();
+                error_log("Error saving SDO quantities: " . $e->getMessage());
+                throw new Exception("Failed to save quantity per day data: " . $e->getMessage());
+            }
+        } else {
+            error_log("Failed to parse SDO quantities JSON: " . json_last_error_msg());
+        }
+    } else {
+        error_log("No SDO quantities provided in request");
+    }
         
         // Handle image updates
         // Primary image
