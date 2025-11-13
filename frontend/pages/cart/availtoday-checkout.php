@@ -645,6 +645,25 @@ $debug_info = [
             <!-- Payment Mode -->
             <div class="section-card payment-mode">
                 <h2>Mode of Payment</h2>
+                <style>
+                    .payment-option-disabled {
+                        opacity: 0.6;
+                        cursor: not-allowed !important;
+                        pointer-events: none;
+                    }
+                    .unavailable-badge {
+                        display: inline-block;
+                        background: #ff9800;
+                        color: white;
+                        font-size: 10px;
+                        padding: 2px 8px;
+                        border-radius: 12px;
+                        margin-left: 8px;
+                        font-weight: 600;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                    }
+                </style>
                 <div class="payment-options">
                     <label class="payment-option">
                         <input type="radio" name="payment_method" value="gcash" id="gcash" checked>
@@ -653,10 +672,13 @@ $debug_info = [
                             <small class="payment-desc">Pay with GCash e-wallet</small>
                         </div>
                     </label>
-                    <label class="payment-option">
-                        <input type="radio" name="payment_method" value="paymaya" id="maya">
+                    <label class="payment-option payment-option-disabled">
+                        <input type="radio" name="payment_method" value="paymaya" id="maya" disabled>
                         <div class="payment-option-content">
-                            <span class="payment-text">Maya</span>
+                            <span class="payment-text">
+                                Maya
+                                <span class="unavailable-badge">Currently Unavailable</span>
+                            </span>
                             <small class="payment-desc">Pay with Maya e-wallet</small>
                         </div>
                     </label>

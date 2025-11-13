@@ -83,18 +83,7 @@ try {
     $order_data = $input['order_data'] ?? [];
     $amount = floatval($input['amount'] ?? 0);
     
-    error_log("BEFORE NORMALIZATION - Payment method: $payment_method, Order type: $order_type, Amount: $amount");
-    
-    // For sandbox/presentation: Maya uses GCash backend (PayMongo doesn't support Maya)
-    // Store original payment method for display purposes
-    $original_payment_method = $payment_method;
-    
-    if ($payment_method === 'maya' || $payment_method === 'paymaya') {
-        $payment_method = 'gcash'; // Use GCash for Maya in sandbox
-        error_log("SANDBOX MODE: Using GCash backend for Maya payment (presentation only)");
-    }
-    
-    error_log("AFTER NORMALIZATION - Payment method: $payment_method (original: $original_payment_method)");
+    error_log("Payment method: $payment_method, Order type: $order_type, Amount: $amount");
     
     // Validate required fields
     if (empty($payment_method)) {
@@ -144,8 +133,7 @@ try {
         'customer_name' => (string)($order_data['first_name'] . ' ' . $order_data['last_name']),
         'customer_email' => (string)($order_data['email'] ?? ''),
         'phone' => (string)($order_data['phone'] ?? ''),
-        'shipping_method' => (string)($order_data['shipping_method'] ?? ''),
-        'display_payment_method' => (string)$original_payment_method // Store original for display
+        'shipping_method' => (string)($order_data['shipping_method'] ?? '')
     ];
     
     error_log("Metadata prepared: " . json_encode($metadata));
@@ -195,8 +183,7 @@ try {
             'order_id' => $order_id,
             'order_type' => $order_type,
             'amount' => $amount,
-            'payment_method' => $original_payment_method, // Store original for display
-            'actual_payment_method' => $payment_method, // Store actual method used
+            'payment_method' => $payment_method,
             'order_data' => $order_data
         ];
         
@@ -229,7 +216,7 @@ try {
                     $payment_type,
                     $order_type,
                     $amount,
-                    $original_payment_method, // Store original for display (maya/paymaya/gcash)
+                    $payment_method,
                     $order_data_json
                 );
                 
@@ -342,9 +329,22 @@ try {
         session_write_close();
         error_log("✓ Session closed and saved before redirect");
         
+        // For card payments, we need to redirect to PayMongo's hosted payment page
+        // Get the checkout URL from the payment intent
+        $checkout_url = $result['data']['attributes']['next_action']['redirect']['url'] ?? null;
+        
+        if (!$checkout_url) {
+            error_log("⚠ No checkout URL in payment intent response");
+            // Fallback: construct payment URL manually
+            $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
+            $host = $_SERVER['HTTP_HOST'];
+            $checkout_url = $protocol . '://' . $host . '/frontend/pages/cart/card-payment.php?payment_intent_id=' . $result['data']['id'];
+        }
+        
         $response = [
             'success' => true,
             'payment_type' => 'payment_intent',
+            'payment_url' => $checkout_url, // Add payment_url for consistency
             'payment_intent_id' => $result['data']['id'],
             'client_secret' => $result['data']['attributes']['client_key'],
             'public_key' => 'pk_test_1XUMJ3yMs8QZugdq3uWr8vYU'

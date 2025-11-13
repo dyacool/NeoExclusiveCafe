@@ -110,7 +110,7 @@ class PayMongoAPI {
     }
     
     /**
-     * Create a source (for GCash/Maya)
+     * Create a source (for GCash)
      */
     public function createSource($type, $amount, $currency = 'PHP', $redirect_url = '', $metadata = []) {
         $url = $this->api_url . '/sources';
@@ -268,11 +268,12 @@ function generateReturnURL($order_type = 'regular') {
     $mode = isPayMongoSandboxMode() ? 'SANDBOX' : 'LIVE';
     error_log("[PAYMONGO-{$mode}] Generating return URL for {$order_type} order");
     
-    // Add status=success parameter so payment-return.php knows payment succeeded
+    // Don't add status parameter - let payment-return.php verify with PayMongo API
+    // PayMongo will add source_id parameter automatically
     if ($order_type === 'availtoday') {
-        return $base_url . '/frontend/pages/cart/payment-return.php?type=availtoday&status=success';
+        return $base_url . '/frontend/pages/cart/payment-return.php?type=availtoday';
     } else {
-        return $base_url . '/frontend/pages/cart/payment-return.php?type=regular&status=success';
+        return $base_url . '/frontend/pages/cart/payment-return.php?type=regular';
     }
 }
 ?>
