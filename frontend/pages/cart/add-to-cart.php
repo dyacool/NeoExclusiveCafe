@@ -60,12 +60,12 @@ if ($cart_result->num_rows > 0) {
     
     // Check if total quantity exceeds available stock
     if ($new_quantity > $product["quantity"]) {
+        $available_to_add = max(0, $product["quantity"] - $cart_item["quantity"]);
         echo json_encode([
             "success" => false, 
-            "message" => "Cannot add more items. Cart would exceed available stock. Available: " . 
-                      ($product["quantity"] - $cart_item["quantity"])
+            "message" => "Cannot add {$quantity} more. You already have {$cart_item["quantity"]} in cart. Only {$available_to_add} more available."
         ]);
-        exit();
+        exit;
     }
     
     $update_sql = "UPDATE cart SET quantity = ? WHERE id = ?";

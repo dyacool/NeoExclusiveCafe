@@ -8,7 +8,20 @@ require_once __DIR__ . "/../../user-includes/user-header.php";
 
 // Include navigation after session is established
 require_once __DIR__ . "/../../user-includes/navbar/customer-navigation.php";
+
+// Get business hours for same-day availability check
+$business_hours = null;
+if ($conn) {
+    $business_hours_query = "SELECT opening_time, closing_time FROM business_hours ORDER BY id DESC LIMIT 1";
+    $business_hours_result = $conn->query($business_hours_query);
+    if ($business_hours_result && $business_hours_result->num_rows > 0) {
+        $business_hours = $business_hours_result->fetch_assoc();
+    }
+}
 ?>
+
+<meta name="business-opening-time" content="<?php echo $business_hours['opening_time'] ?? '08:00'; ?>">
+<meta name="business-closing-time" content="<?php echo $business_hours['closing_time'] ?? '21:00'; ?>">
 
 <link rel="stylesheet" href="/frontend/pages/home/user-dashboard.css">
 <link rel="stylesheet" href="/frontend/pages/home/coupons.css">
@@ -387,7 +400,17 @@ $total_images = mysqli_num_rows($images_result);
                             if ($count >= 4) break;
                             $count++;
                             
-                            // Encode product data for modal
+                            // Get all images for this product
+                            $images_sql = "SELECT COALESCE(cloud_url, image_url) as image_url FROM product_images WHERE product_id = ?";
+                            $images_stmt = mysqli_prepare($conn, $images_sql);
+                            mysqli_stmt_bind_param($images_stmt, "i", $row['id']);
+                            mysqli_stmt_execute($images_stmt);
+                            $images_result = mysqli_stmt_get_result($images_stmt);
+                            $images = [];
+                            while ($image = mysqli_fetch_assoc($images_result)) {
+                                $images[] = $image['image_url'];
+                            }
+                            
                             $productData = [
                                 'id' => $row['id'],
                                 'name' => $row['name'],
@@ -395,30 +418,35 @@ $total_images = mysqli_num_rows($images_result);
                                 'description' => $row['description'],
                                 'status' => $row['status_name'],
                                 'status_id' => $row['status_id'],
-                                'images' => $row['images'],
+                                'images' => $images,
                                 'is_featured' => (bool)$row['is_featured'],
                                 'quantity' => $row['quantity'],
                                 'sameday_stock_today' => $row['sameday_stock_today'] ?? 0,
                                 'show_when_unavailable' => (bool)$row['show_when_unavailable'],
+                                'hide_when_unavailable' => (bool)($row['hide_when_unavailable'] ?? 0),
                                 'availtoday_status_id' => $row['availtoday_status_id'],
                                 'availtoday_status_name' => $row['availtoday_status_name'],
                                 'todays_product_dates' => $row['todays_product_dates'] ? explode(', ', $row['todays_product_dates']) : [],
                                 'regular_today_dates' => $row['regular_today_dates'] ? explode(', ', $row['regular_today_dates']) : []
                             ];
                             
-                            $featuredClass = $row['is_featured'] ? 'featured-product' : '';
+                            // Do NOT add featured class on dashboard - no featured badge display needed
                             $statusClass = strtolower(str_replace(' ', '-', $row['status_name']));
                             
                             $productDataJson = htmlspecialchars(json_encode($productData), ENT_QUOTES, 'UTF-8');
                             
                             // Get available dates for display
+                            // Status 4 = Same Day Order
                             $available_dates = $row['status_id'] == 4 ? $row['todays_product_dates'] : $row['regular_today_dates'];
                             
-                            // Use pre-calculated availability data
-                            $is_unavailable = $row['is_unavailable'] ?? false;
-                            $unavailable_reason = $row['unavailable_reason'] ?? '';
+                            // Use availability data already calculated by determineProductAvailability()
+                            $is_unavailable = $row['is_unavailable'];
+                            $unavailable_reason = $row['unavailable_reason'];
                             
                             // Check if product is available TODAY
+                            // Can be from either:
+                            // 1. Pure status 4 (Same Day Order only) - uses todays_product_dates
+                            // 2. Status 1/2/3 with same-day option - uses regular_today_dates
                             $is_available_today = false;
                             
                             // Check todays_product_dates (for status 4 products)
@@ -440,7 +468,8 @@ $total_images = mysqli_num_rows($images_result);
                             // Add unavailable class if product is unavailable
                             $unavailableClass = $is_unavailable ? 'unavailable-product' : '';
                         ?>
-                            <div class="product-card <?php echo $featuredClass; ?> <?php echo $unavailableClass; ?>" 
+                            <div class="product-card <?php echo $unavailableClass; ?>" 
+                                data-product-id="<?php echo $row['id']; ?>"
                                 data-status="<?php echo htmlspecialchars($row['status_name']); ?>"
                                 data-available-dates="<?php echo htmlspecialchars($available_dates ?? ''); ?>"
                                 data-product="<?php echo $productDataJson; ?>" 
@@ -448,16 +477,35 @@ $total_images = mysqli_num_rows($images_result);
                                 onclick="openProductModalFromData(this)">
                                 
                                 <?php
-                                // Display badges: Show both if product is Available Today AND Featured
+                                // Display badges: Show capabilities based on product configuration AND stock availability
                                 if ($is_unavailable) {
                                     // Unavailable badge (highest priority, exclusive)
                                     echo "<div class='unavailable-badge-left'>" . htmlspecialchars($unavailable_reason) . "</div>";
                                 } else {
-                                    // Show today badge if available today
-                                    if ($is_available_today) {
+                                    // Determine product capabilities with actual stock checks
+                                    $has_preorder = in_array($row['status_id'], [1, 2, 3]) && $row['quantity'] > 0;
+                                    
+                                    // Check same-day capability: must have stock AND be available today
+                                    $sameday_stock = $row['sameday_stock_today'] ?? 0;
+                                    $has_sameday = false;
+                                    
+                                    if ($row['status_id'] == 4) {
+                                        // Status 4: Same-day only product - check stock and date
+                                        $has_sameday = ($sameday_stock > 0) && $is_available_today;
+                                    } elseif (!empty($row['availtoday_status_id'])) {
+                                        // Status 1/2/3 with same-day capability - check stock and date
+                                        $has_sameday = ($sameday_stock > 0) && $is_available_today;
+                                    }
+                                    
+                                    // Show badges based on capabilities
+                                    if ($has_sameday && $has_preorder) {
+                                        // Product has BOTH capabilities with stock
+                                        echo "<div class='today-badge-left'>Same Day & Pre-Order</div>";
+                                    } elseif ($has_sameday) {
+                                        // Same-day only with stock
                                         echo "<div class='today-badge-left'>Same Day Order</div>";
-                                    } else {
-                                        // Show pre-order badge if not available today and not unavailable
+                                    } elseif ($has_preorder) {
+                                        // Pre-order only with stock
                                         echo "<div class='preorder-badge-left'>Pre-Order</div>";
                                     }
                                     // Note: Featured badge is handled by CSS class 'featured-product' and image overlay
@@ -479,15 +527,16 @@ $total_images = mysqli_num_rows($images_result);
                                     $image_src = $row['image_url'] ?: 'images/no-image.jpg';
                                     if (strpos($image_src, 'http://') === 0 || strpos($image_src, 'https://') === 0) {
                                         // It's a full URL (Cloudinary)
-                                        $image_path = $image_src;
+                                        $image_path = htmlspecialchars($image_src);
                                     } else {
                                         // It's a local path
-                                        $image_path = '/assets/' . $image_src;
+                                        $image_path = '/assets/' . htmlspecialchars($image_src);
                                     }
                                     ?>
-                                    <img src="<?php echo htmlspecialchars($image_path); ?>" 
+                                    <img src="<?php echo $image_path; ?>" 
                                         alt="<?php echo htmlspecialchars($row['name']); ?>"
-                                        loading="lazy">
+                                        loading="lazy"
+                                        onerror="this.onerror=null; this.src='/assets/images/no-image.jpg';">
                                 </div>
                                 
                                 <div class="product-info">
@@ -510,7 +559,7 @@ $total_images = mysqli_num_rows($images_result);
                             <span class="icon arrow"></span>
                             </span>
                             <span class="button-text"> 
-                                <a href="/frontend/pages/products/products-categories.php">
+                                <a href="/frontend/pages/products/product-dashboard.php">
                                 View More
                                 </a>
                             </span>
@@ -720,12 +769,14 @@ $total_images = mysqli_num_rows($images_result);
             <div id="orderTypeSelector" class="order-type-selector" style="display: none;">
                 <label>Order Type:</label>
                 <div class="order-type-buttons">
-                    <button type="button" class="order-type-btn active" data-type="preorder" onclick="selectOrderType('preorder')">
-                        Pre-Order
-                    </button>
-                    <button type="button" class="order-type-btn" data-type="sameday" onclick="selectOrderType('sameday')">
-                        Same Day Order
-                    </button>
+                    <label class="order-type-radio">
+                        <input type="radio" name="orderType" value="preorder" checked onclick="selectOrderType('preorder')">
+                        <span>Pre-Order</span>
+                    </label>
+                    <label class="order-type-radio">
+                        <input type="radio" name="orderType" value="sameday" onclick="selectOrderType('sameday')">
+                        <span>Same Day Order</span>
+                    </label>
                 </div>
             </div>
             
@@ -1048,6 +1099,28 @@ async function checkSameDayAvailability(productId) {
     }
 }
 
+// Check if business is currently closed
+function isBusinessClosed() {
+    const currentTime = new Date();
+    const currentHours = String(currentTime.getHours()).padStart(2, '0');
+    const currentMinutes = String(currentTime.getMinutes()).padStart(2, '0');
+    const currentTimeStr = currentHours + ':' + currentMinutes;
+    
+    // Get business hours from page meta tags
+    const openingTime = document.querySelector('meta[name="business-opening-time"]')?.getAttribute('content') || '08:00';
+    const closingTime = document.querySelector('meta[name="business-closing-time"]')?.getAttribute('content') || '21:00';
+    
+    // If closing time < opening time (e.g., 21:00 vs 08:00), it wraps past midnight
+    // Handle wrapping: if current time >= opening time OR < closing time (from previous day), business is open
+    if (closingTime < openingTime) {
+        // Wraps past midnight (e.g., 15:00 to 08:00 next day)
+        return !(currentTimeStr >= openingTime || currentTimeStr < closingTime);
+    } else {
+        // Normal hours (e.g., 08:00 to 21:00)
+        return currentTimeStr < openingTime || currentTimeStr > closingTime;
+    }
+}
+
 // Open quantity modal with order type selection
 async function openQuantityModalWithOrderType(productName, productPrice, productStock, statusId, availtodayStatusId) {
     const modal = document.getElementById('quantityModal');
@@ -1069,6 +1142,11 @@ async function openQuantityModalWithOrderType(productName, productPrice, product
     const quantityInput = document.getElementById('quantityModalInput');
     const orderTypeSelector = document.getElementById('orderTypeSelector');
     const dateDisplay = document.getElementById('quantityModalDate');
+    const samedayRadio = document.querySelector('input[name="orderType"][value="sameday"]');
+    const preorderRadio = document.querySelector('input[name="orderType"][value="preorder"]');
+    
+    // Check if business is currently closed
+    const businessClosed = isBusinessClosed();
     
     // Determine which order types to show
     if ((statusId == 1 || statusId == 2 || statusId == 3) && availtodayStatusId) {
@@ -1076,43 +1154,70 @@ async function openQuantityModalWithOrderType(productName, productPrice, product
         // Check if same-day is actually available today
         const sameDayAvailable = await checkSameDayAvailability(pendingCartProduct.id);
         
-        if (sameDayAvailable) {
-            // Show both options
+        if (sameDayAvailable && !businessClosed) {
+            // Show both options (only if business is open)
             orderTypeSelector.style.display = 'block';
-            document.getElementById('quantityModalStock').textContent = `Stock: ${productStock}`;
+            samedayRadio.disabled = false;
+            preorderRadio.disabled = false;
+            preorderRadio.checked = true;
+            samedayRadio.checked = false;
             quantityInput.value = 1;
-            quantityInput.max = productStock;
-            selectOrderType('preorder'); // Default to pre-order
+            dateDisplay.style.display = 'none';
+            
+            // Set default to pre-order
+            pendingCartProduct.selectedOrderType = 'preorder';
+            
+            // Fetch pre-order quantity with cart check
+            await fetchPreOrderQuantity(pendingCartProduct.id);
         } else {
-            // Same-day not available - show pre-order only
-            orderTypeSelector.style.display = 'none';
+            // Same-day not available or business closed - show pre-order only
+            orderTypeSelector.style.display = 'block';
+            samedayRadio.disabled = true;
+            preorderRadio.disabled = false;
+            preorderRadio.checked = true;
+            samedayRadio.checked = false;
             dateDisplay.style.display = 'none';
             pendingCartProduct.selectedOrderType = 'preorder';
-            document.getElementById('quantityModalStock').textContent = `Stock: ${productStock}`;
             quantityInput.value = 1;
-            quantityInput.max = productStock;
+            
+            // Fetch pre-order quantity with cart check
+            await fetchPreOrderQuantity(pendingCartProduct.id);
         }
     } else if (statusId == 4) {
-        // Same Day Order ONLY - Fetch today's quantity
-        orderTypeSelector.style.display = 'none';
-        dateDisplay.style.display = 'block';
-        dateDisplay.textContent = 'For: Today';
-        pendingCartProduct.selectedOrderType = 'sameday';
+        // Same Day Order ONLY
+        orderTypeSelector.style.display = 'block';
+        samedayRadio.disabled = businessClosed;
+        preorderRadio.disabled = true;
         
-        // Fetch today's quantity before hiding loader
-        document.getElementById('quantityModalStock').textContent = 'Loading...';
-        quantityInput.value = 1;
-        quantityInput.max = 1;
-        
-        await fetchTodayQuantity(pendingCartProduct.id);
+        if (businessClosed) {
+            // Business is closed - disable same-day option
+            samedayRadio.checked = false;
+            dateDisplay.style.display = 'none';
+            document.getElementById('quantityModalStock').textContent = 'Same-day orders not available now';
+            quantityInput.value = 1;
+            quantityInput.max = 1;
+        } else {
+            // Business is open - enable same-day
+            samedayRadio.checked = true;
+            dateDisplay.style.display = 'block';
+            dateDisplay.textContent = 'For: Today';
+            pendingCartProduct.selectedOrderType = 'sameday';
+            
+            // Fetch today's quantity before hiding loader
+            quantityInput.value = 1;
+            quantityInput.max = 1;
+            
+            await fetchTodayQuantity(pendingCartProduct.id);
+        }
     } else {
         // Pre-order ONLY (status 1, 2, or 3 without availtoday_status_id)
         orderTypeSelector.style.display = 'none';
         dateDisplay.style.display = 'none';
         pendingCartProduct.selectedOrderType = 'preorder';
-        document.getElementById('quantityModalStock').textContent = `Stock: ${productStock}`;
         quantityInput.value = 1;
-        quantityInput.max = productStock;
+        
+        // Fetch pre-order quantity with cart check
+        await fetchPreOrderQuantity(pendingCartProduct.id);
     }
     
     // Hide loader and show content
@@ -1121,15 +1226,46 @@ async function openQuantityModalWithOrderType(productName, productPrice, product
     modalBody.style.pointerEvents = 'auto';
 }
 
-// Select order type
-async function selectOrderType(type) {
-    const buttons = document.querySelectorAll('.order-type-btn');
-    buttons.forEach(btn => {
-        if (btn.getAttribute('data-type') === type) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
+// Set loading state for quantity modal
+function setQuantityModalLoading(isLoading) {
+    const modal = document.getElementById('quantityModal');
+    const modalContent = modal.querySelector('.modal-content');
+    const quantityInput = document.getElementById('quantityModalInput');
+    const buttons = modal.querySelectorAll('button');
+    
+    if (isLoading) {
+        // Add loading overlay
+        if (!modal.querySelector('.modal-loading-overlay')) {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-loading-overlay';
+            overlay.innerHTML = '<div class="loading-spinner"></div>';
+            overlay.style.cssText = 'position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.8); display: flex; align-items: center; justify-content: center; z-index: 10; border-radius: 8px;';
+            modalContent.style.position = 'relative';
+            modalContent.appendChild(overlay);
         }
+        
+        // Disable inputs and buttons
+        quantityInput.disabled = true;
+        buttons.forEach(btn => btn.disabled = true);
+    } else {
+        // Remove loading overlay
+        const overlay = modal.querySelector('.modal-loading-overlay');
+        if (overlay) {
+            overlay.remove();
+        }
+        
+        // Enable inputs and buttons
+        quantityInput.disabled = false;
+        buttons.forEach(btn => btn.disabled = false);
+    }
+}
+
+// Select order type
+function selectOrderType(type) {
+    // Update radio button selection
+    const radioButtons = document.querySelectorAll('input[name="orderType"]');
+    radioButtons.forEach(radio => {
+        radio.checked = (radio.value === type);
     });
     
     const dateDisplay = document.getElementById('quantityModalDate');
@@ -1139,22 +1275,22 @@ async function selectOrderType(type) {
         dateDisplay.style.display = 'block';
         dateDisplay.textContent = 'For: Today';
         
-        // Show mini loader in stock display while fetching
-        stockDisplay.innerHTML = '<span class="loading-spinner-small" style="display: inline-block;"></span> Loading...';
-        
-        // Fetch today's specific quantity from database
+        // Fetch today's specific quantity from quantity_per_day_sdo table
         if (pendingCartProduct) {
-            await fetchTodayQuantity(pendingCartProduct.id);
+            setQuantityModalLoading(true);
+            fetchTodayQuantity(pendingCartProduct.id).then(() => {
+                setQuantityModalLoading(false);
+            });
         }
     } else {
         dateDisplay.style.display = 'none';
         
-        // Restore original stock quantity for pre-order
+        // Fetch pre-order stock quantity from products.quantity
         if (pendingCartProduct) {
-            stockDisplay.textContent = `Stock: ${pendingCartProduct.stock}`;
-            const quantityInput = document.getElementById('quantityModalInput');
-            quantityInput.max = pendingCartProduct.stock;
-            quantityInput.value = Math.min(parseInt(quantityInput.value) || 1, pendingCartProduct.stock);
+            setQuantityModalLoading(true);
+            fetchPreOrderQuantity(pendingCartProduct.id).then(() => {
+                setQuantityModalLoading(false);
+            });
         }
     }
     
@@ -1164,34 +1300,104 @@ async function selectOrderType(type) {
 }
 
 // Fetch today's specific quantity for same day orders
-function fetchTodayQuantity(productId) {
+async function fetchTodayQuantity(productId) {
     const stockDisplay = document.getElementById('quantityModalStock');
+    const confirmBtn = document.querySelector('.btn-confirm');
     stockDisplay.textContent = 'Loading...';
     
-    return fetch(`/frontend/pages/products/get-sdo-quantity.php?product_id=${productId}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const todayQuantity = data.quantity || 0;
-                stockDisplay.textContent = `Stock: ${todayQuantity}`;
-                
-                const quantityInput = document.getElementById('quantityModalInput');
-                quantityInput.max = todayQuantity;
-                quantityInput.value = Math.min(parseInt(quantityInput.value) || 1, todayQuantity);
-                
-                if (todayQuantity === 0) {
-                    stockDisplay.textContent = 'Out of Stock for Today';
-                    quantityInput.disabled = true;
-                }
+    try {
+        const response = await fetch(`/frontend/pages/products/get-sdo-quantity.php?product_id=${productId}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            const totalStock = data.quantity || 0;
+            const cartQuantity = data.cart_quantity || 0;
+            const availableToAdd = Math.max(0, totalStock - cartQuantity);
+            
+            stockDisplay.textContent = `Stock: ${totalStock}${cartQuantity > 0 ? ` (${cartQuantity} in cart, ${availableToAdd} available)` : ''}`;
+            
+            const quantityInput = document.getElementById('quantityModalInput');
+            quantityInput.max = availableToAdd;
+            quantityInput.value = Math.min(parseInt(quantityInput.value) || 1, Math.max(availableToAdd, 1));
+            
+            // Disable/enable Add to Cart button based on available stock
+            if (availableToAdd === 0) {
+                stockDisplay.textContent = cartQuantity > 0 
+                    ? `Stock: ${totalStock} (All ${cartQuantity} already in cart)` 
+                    : 'Stock: 0 (Not available today)';
+                confirmBtn.disabled = true;
+                quantityInput.disabled = true;
             } else {
-                stockDisplay.textContent = 'Stock: 0';
-                console.error('Failed to fetch today\'s quantity');
+                confirmBtn.disabled = false;
+                quantityInput.disabled = false;
             }
-        })
-        .catch(error => {
-            console.error('Error fetching today\'s quantity:', error);
+        } else {
+            console.error('Error fetching today quantity:', data.error);
             stockDisplay.textContent = 'Stock: 0';
-        });
+            confirmBtn.disabled = true;
+            const quantityInput = document.getElementById('quantityModalInput');
+            quantityInput.disabled = true;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        stockDisplay.textContent = 'Stock: 0';
+        confirmBtn.disabled = true;
+        const quantityInput = document.getElementById('quantityModalInput');
+        quantityInput.disabled = true;
+    }
+}
+
+// Fetch pre-order quantity from cart (with cart quantity check)
+async function fetchPreOrderQuantity(productId) {
+    const stockDisplay = document.getElementById('quantityModalStock');
+    const confirmBtn = document.querySelector('.btn-confirm');
+    stockDisplay.textContent = 'Loading...';
+    
+    try {
+        const response = await fetch(`/frontend/pages/products/get-preorder-quantity.php?product_id=${productId}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            const totalStock = data.quantity || 0;
+            const cartQuantity = data.cart_quantity || 0;
+            const availableToAdd = Math.max(0, totalStock - cartQuantity);
+            
+            stockDisplay.textContent = `Stock: ${totalStock}${cartQuantity > 0 ? ` (${cartQuantity} in cart, ${availableToAdd} available)` : ''}`;
+            
+            const quantityInput = document.getElementById('quantityModalInput');
+            quantityInput.max = availableToAdd;
+            quantityInput.value = Math.min(parseInt(quantityInput.value) || 1, Math.max(availableToAdd, 1));
+            
+            // Update pendingCartProduct with fresh stock value
+            if (pendingCartProduct) {
+                pendingCartProduct.stock = availableToAdd;
+            }
+            
+            // Disable/enable Add to Cart button based on available stock
+            if (availableToAdd === 0) {
+                stockDisplay.textContent = cartQuantity > 0 
+                    ? `Stock: ${totalStock} (All ${cartQuantity} already in cart)` 
+                    : 'Stock: 0 (Out of stock)';
+                confirmBtn.disabled = true;
+                quantityInput.disabled = true;
+            } else {
+                confirmBtn.disabled = false;
+                quantityInput.disabled = false;
+            }
+        } else {
+            console.error('Error fetching pre-order quantity:', data.error);
+            stockDisplay.textContent = 'Stock: 0';
+            confirmBtn.disabled = true;
+            const quantityInput = document.getElementById('quantityModalInput');
+            quantityInput.disabled = true;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        stockDisplay.textContent = 'Stock: 0';
+        confirmBtn.disabled = true;
+        const quantityInput = document.getElementById('quantityModalInput');
+        quantityInput.disabled = true;
+    }
 }
 
 // Close quantity modal
@@ -1245,10 +1451,25 @@ function validateQuantityModalInput() {
 function confirmAddToCart() {
     if (!pendingCartProduct) return;
     
-    const quantity = parseInt(document.getElementById('quantityModalInput').value) || 1;
+    const quantityInput = document.getElementById('quantityModalInput');
+    const quantity = parseInt(quantityInput.value) || 1;
+    const maxAllowed = parseInt(quantityInput.max) || 0;
     const confirmBtn = document.querySelector('.quantity-modal-actions .btn-confirm');
     
     if (!confirmBtn) return;
+    
+    // Validate quantity doesn't exceed max allowed
+    if (quantity > maxAllowed) {
+        showConfirmation(`Cannot add ${quantity}. Maximum available: ${maxAllowed}`, true);
+        quantityInput.value = maxAllowed;
+        return;
+    }
+    
+    if (quantity < 1) {
+        showConfirmation('Quantity must be at least 1', true);
+        quantityInput.value = 1;
+        return;
+    }
     
     // Store original button text
     const originalText = confirmBtn.textContent;
@@ -1262,29 +1483,131 @@ function confirmAddToCart() {
     // Determine which cart to add to based on selectedOrderType
     const orderType = pendingCartProduct.selectedOrderType || 'preorder';
     
-    // Determine the correct endpoint based on order type
-    const endpoint = orderType === 'sameday' 
-        ? '/frontend/pages/cart/add-to-availtoday-cart.php' 
-        : '/frontend/pages/cart/add-to-cart.php';
+    // DEBUG: Log the order type and product info
+    console.log('confirmAddToCart called');
+    console.log('orderType:', orderType);
+    console.log('pendingCartProduct:', pendingCartProduct);
+    console.log('selectedOrderType:', pendingCartProduct.selectedOrderType);
+    console.log('quantity:', quantity, 'maxAllowed:', maxAllowed);
     
-    // Make the actual API call
-    fetch(endpoint, {
+    if (orderType === 'sameday') {
+        // Add to same-day cart via API directly
+        console.log('Adding to same-day cart');
+        addToSameDayCartViaAPI(pendingCartProduct.id, quantity, confirmBtn, originalText);
+    } else {
+        // Add to pre-order cart (cart table)
+        console.log('Adding to pre-order cart');
+        // Use fetch to add to regular cart
+        fetch('/frontend/pages/cart/add-to-cart.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `product_id=${pendingCartProduct.id}&quantity=${quantity}`,
+            credentials: 'include'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Trigger cart notification update
+                window.dispatchEvent(new CustomEvent('cartUpdated'));
+                
+                // Show success state
+                confirmBtn.innerHTML = '<span class="success-icon">✓</span> Product added!';
+                confirmBtn.style.backgroundColor = '#4CAF50';
+                
+                // Show confirmation message
+                showConfirmation(`Added ${quantity} ${pendingCartProduct.name} to cart`, false);
+                
+                // Close modal after short delay
+                setTimeout(() => {
+                    closeQuantityModal();
+                    
+                    // Reset button state
+                    confirmBtn.disabled = false;
+                    confirmBtn.style.opacity = '1';
+                    confirmBtn.style.cursor = 'pointer';
+                    confirmBtn.textContent = originalText;
+                    confirmBtn.style.backgroundColor = '';
+                }, 800);
+            } else {
+                console.error('Failed to add to cart:', data.message);
+                showConfirmation(data.message || 'Failed to add to cart', true);
+                
+                // Reset button on error
+                confirmBtn.disabled = false;
+                confirmBtn.style.opacity = '1';
+                confirmBtn.style.cursor = 'pointer';
+                confirmBtn.textContent = originalText;
+            }
+        })
+        .catch(error => {
+            console.error('Error adding to cart:', error);
+            showConfirmation('Error adding to cart', true);
+            
+            // Reset button on error
+            confirmBtn.disabled = false;
+            confirmBtn.style.opacity = '1';
+            confirmBtn.style.cursor = 'pointer';
+            confirmBtn.textContent = originalText;
+        });
+    }
+}
+
+// Add to same-day cart via API
+function addToSameDayCartViaAPI(productId, quantity, confirmBtn, originalText) {
+    // First check if user is logged in
+    if (!isLoggedIn) {
+        showConfirmation('Please login to add items to cart', true);
+        confirmBtn.disabled = false;
+        confirmBtn.style.opacity = '1';
+        confirmBtn.style.cursor = 'pointer';
+        confirmBtn.textContent = originalText;
+        
+        // Redirect to login
+        setTimeout(() => {
+            window.location.href = loginUrl;
+        }, 1500);
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('action', 'add');
+    formData.append('product_id', productId);
+    formData.append('quantity', quantity);
+    
+    fetch('/frontend/pages/products/availtoday-cart-api.php', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: `product_id=${pendingCartProduct.id}&quantity=${quantity}`
+        body: formData,
+        credentials: 'include'
     })
-    .then(response => response.json())
+    .then(response => {
+        // Log the response for debugging
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+        
+        // Clone response to read it twice
+        return response.text().then(text => {
+            console.log('Raw response:', text);
+            
+            try {
+                const data = JSON.parse(text);
+                return data;
+            } catch (e) {
+                console.error('Failed to parse JSON:', e);
+                console.error('Response text:', text);
+                throw new Error('Invalid JSON response from server');
+            }
+        });
+    })
     .then(data => {
-        if (data && data.success) {
+        if (data.success) {
             // Show success state
             confirmBtn.innerHTML = '<span class="success-icon">✓</span> Product added!';
             confirmBtn.style.backgroundColor = '#4CAF50';
             
             // Show confirmation message
-            const cartType = orderType === 'sameday' ? 'same-day cart' : 'cart';
-            showConfirmation(`✓ Added ${quantity} ${pendingCartProduct.name} to ${cartType}`, false);
+            showConfirmation(`Added ${quantity} ${pendingCartProduct.name} to cart`, false);
             
             // Close modal after short delay
             setTimeout(() => {
@@ -1298,8 +1621,8 @@ function confirmAddToCart() {
                 confirmBtn.style.backgroundColor = '';
             }, 800);
         } else {
-            console.error('Failed to add to cart:', data.message);
-            showConfirmation('✗ ' + (data.message || 'Failed to add to cart'), true);
+            console.error('Failed to add to same-day cart:', data.error);
+            showConfirmation(data.error || 'Failed to add to cart', true);
             
             // Reset button on error
             confirmBtn.disabled = false;
@@ -1309,8 +1632,8 @@ function confirmAddToCart() {
         }
     })
     .catch(error => {
-        console.error('Error adding to cart:', error);
-        showConfirmation('✗ Error adding to cart. Please try again.', true);
+        console.error('Error adding to same-day cart:', error);
+        showConfirmation('Error adding to cart', true);
         
         // Reset button on error
         confirmBtn.disabled = false;

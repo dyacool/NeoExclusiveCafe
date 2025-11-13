@@ -3,6 +3,9 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// Include database connection first (it starts the session)
+require_once __DIR__ . "/../admin-includes/database.php";
+
 // Include SessionManager and check admin authentication
 require_once __DIR__ . '/../../../includes/session-manager.php';
 
@@ -11,9 +14,6 @@ if (!SessionManager::isAdminLoggedIn()) {
     echo json_encode(['success' => false, 'error' => 'Unauthorized access']);
     exit();
 }
-
-// Include database connection
-require_once __DIR__ . "/../admin-includes/database.php";
 
 // Set JSON response header
 header('Content-Type: application/json');

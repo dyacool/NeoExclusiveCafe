@@ -183,3 +183,208 @@
     height: 24px;
   }
 }
+
+/* Quantity Modal Styles */
+.quantity-modal-content {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 90%;
+  position: relative;
+}
+
+.quantity-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  text-align: center;
+}
+
+.quantity-modal-body h2 {
+  text-align: center;
+  font-size: 20px;
+  margin: 0 0 5px 0;
+  color: #333;
+}
+
+.quantity-modal-price {
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: #256035;
+  margin: 0 0 10px 0;
+}
+
+.quantity-modal-stock {
+  display: none;
+}
+
+.quantity-modal-date {
+  display: none;
+}
+
+.quantity-modal-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.quantity-modal-controls label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+}
+
+.quantity-modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.quantity-modal-actions button {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.btn-cancel {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.btn-cancel:hover {
+  background-color: #e0e0e0;
+}
+
+.btn-confirm {
+  background-color: #256035;
+  color: white;
+}
+
+.btn-confirm:hover {
+  background-color: #0f5132;
+}
+
+.btn-confirm:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Order Type Radio Buttons in Quantity Modal */
+.order-type-selector {
+  border-radius: 8px;
+}
+
+.order-type-selector label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.order-type-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.order-type-radio {
+  text-align: left;
+  cursor: pointer;
+  padding: 8px 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.order-type-radio:hover {
+  border-color: #2d5016;
+}
+
+.order-type-radio input[type="radio"] {
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+  accent-color: #2d5016;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.order-type-radio span {
+  line-height: 18px;
+  vertical-align: middle;
+}
+
+.order-type-radio input[type="radio"]:checked + span {
+  font-weight: 600;
+  color: #2d5016;
+}
+
+.order-type-radio input[type="radio"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.order-type-radio:has(input[type="radio"]:disabled) {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Quantity Modal Loading State */
+.modal-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border-radius: 8px;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #256035;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive Quantity Modal */
+@media (max-width: 768px) {
+  .quantity-modal-content {
+    max-width: 90%;
+    padding: 20px;
+  }
+
+  .quantity-modal-body h2 {
+    font-size: 18px;
+  }
+
+  .quantity-modal-price {
+    font-size: 16px;
+  }
+}

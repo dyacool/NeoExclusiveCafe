@@ -632,14 +632,26 @@
         
         // Filter by status
         function filterByStatus(status) {
-            // Update URL without reload, reset to page 1 when filtering
+            // Prevent default event behavior
+            if (event) {
+                event.preventDefault ? event.preventDefault() : (event.returnValue = false);
+            }
+            
+            // Update URL with new status filter
             const urlParams = new URLSearchParams(window.location.search);
             urlParams.set('status', status);
             urlParams.delete('page'); // Reset to page 1 when filtering
-            window.history.pushState({}, '', '?' + urlParams.toString());
             
-            // Reload page to apply filter
-            location.reload();
+            // Update poller filters if available
+            if (window.orderListPoller) {
+                window.orderListPoller.updateFilters({
+                    status: status,
+                    page: 1
+                });
+            }
+            
+            // Navigate to new URL with updated parameters
+            window.location.href = window.location.pathname + '?' + urlParams.toString();
         }
         
         // Handle search input
@@ -648,7 +660,7 @@
             searchTimeout = setTimeout(() => {
                 const searchTerm = event.target.value;
                 
-                // Update URL without reload, reset to page 1 when searching
+                // Update URL and navigate
                 const urlParams = new URLSearchParams(window.location.search);
                 if (searchTerm) {
                     urlParams.set('search', searchTerm);
@@ -656,10 +668,9 @@
                     urlParams.delete('search');
                 }
                 urlParams.delete('page'); // Reset to page 1 when searching
-                window.history.pushState({}, '', '?' + urlParams.toString());
                 
-                // Reload page to apply search
-                location.reload();
+                // Navigate to new URL with updated parameters
+                window.location.href = window.location.pathname + '?' + urlParams.toString();
             }, 300); // Debounce search
         }
         
@@ -806,6 +817,9 @@
                 initialSearch: currentSearch,
                 initialPage: currentPage
             });
+            
+            // Expose poller globally for filter functions
+            window.orderListPoller = poller;
             
             // Start polling
             poller.start();
