@@ -808,13 +808,9 @@ function createBulkOrderRequestEmailBody($bulkOrder) {
     <body>
         <div class="container">
             <div class="header">
-                <h1>🔔 New Bulk Order Request</h1>
+                <h1>New Bulk Order Request!!</h1>
                 <p>Order #' . htmlspecialchars($orderIdDisplay) . '</p>
                 <p>' . date('F j, Y g:i A') . '</p>
-            </div>
-            
-            <div class="alert-box">
-                <strong>⚠️ Action Required:</strong> A new bulk order request has been submitted and requires your review.
             </div>
             
             <div class="section">
