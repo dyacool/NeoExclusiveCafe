@@ -264,9 +264,8 @@ $notifications = $notifications_data; // Use consistent variable name
                             console.log('Redirecting to notification link:', notificationData.link);
                             window.location.href = notificationData.link;
                         } else {
-                            // Fallback: redirect to general orders page or stay on notifications
-                            console.log('No order_id or link found, staying on notifications page');
-                            alert('This notification does not have an associated order or link.');
+                            // Fallback: This is a simple notification like welcome message - it was already shown in modal
+                            console.log('No order_id or link found - this is a simple notification');
                         }
                     } catch (error) {
                         console.error('Error parsing notification data:', error);

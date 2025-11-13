@@ -18,6 +18,17 @@ require_once __DIR__ . "/../admin-includes/activity-logger.php";
 require_once __DIR__ . "/../admin-includes/notifications/notification.php";
 require_once __DIR__ . "/../admin-includes/mailer.php";
 
+// Handle redirect messages from update-bulk-status.php
+$success_message = '';
+$error_message = '';
+
+if (isset($_GET['status_updated']) && $_GET['status_updated'] === '1') {
+    $success_message = "Order status updated successfully!";
+}
+if (isset($_GET['error']) && $_GET['error'] === '1') {
+    $error_message = "Error updating order status. Please try again.";
+}
+
 // SIMPLE FORM-BASED DISCOUNT PRICE HANDLER (No AJAX!)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_discount_prices'])) {
     $order_id = (int)$_POST['order_id'];
@@ -111,39 +122,12 @@ if ($is_ajax_request) {
     // Get order ID for AJAX requests
     $order_id = isset($_POST['order_id']) ? (int)$_POST['order_id'] : 0;
     
-    // Handle status updates
-    if ($_POST['action'] === 'update_status') {
-        $new_status = $_POST['new_status'] ?? '';
-        $is_ajax = isset($_POST['is_ajax']) && $_POST['is_ajax'] === '1';
-        $target_id = $order_id;
-        $allowed_statuses = ['pending','approved','payment_received','payment_rejected','ready_for_delivery','cancelled','rejected','completed'];
-        if (in_array($new_status, $allowed_statuses)) {
-            $update_sql = "UPDATE bulk_orders SET status = ?, admin_updated = NOW() WHERE id = ?";
-            $update_stmt = mysqli_prepare($conn, $update_sql);
-            mysqli_stmt_bind_param($update_stmt, "si", $new_status, $target_id);
-            $ok = mysqli_stmt_execute($update_stmt);
-            $err = mysqli_error($conn);
-            mysqli_stmt_close($update_stmt);
-            if ($ok) {
-                logAdminActivity($conn, 'UPDATE', "Updated bulk order #$target_id status to $new_status", 'bulk_orders', $target_id);
-                
-                // Send approval email to customer if status is approved
-                if ($new_status === 'approved') {
-                    try {
-                        sendBulkOrderApprovalEmail($target_id, $conn);
-                    } catch (Exception $e) {
-                        error_log("Failed to send bulk order approval email to customer: " . $e->getMessage());
-                    }
-                }
-            }
-        } else {
-            $ok = false;
-            $err = 'Invalid status';
-        }
-        header('Content-Type: application/json');
-        echo json_encode(['success' => $ok, 'error' => $ok ? null : ($err ?: 'Update failed')]);
-        exit();
-    }
+    error_log("=== AJAX REQUEST START ===");
+    error_log("Action: " . $_POST['action']);
+    error_log("Order ID: " . $order_id);
+    error_log("POST data: " . json_encode($_POST));
+    
+    // Status updates now handled by update-bulk-status.php (form submission)
     
     // Handle discount price updates
     if ($_POST['action'] === 'update_discount_prices') {
@@ -297,7 +281,7 @@ foreach ($check_columns as $column => $alter_query) {
 }
 
 // Ensure status enum includes new values
-$desired_statuses = ['pending','approved','payment_received','payment_rejected','ready_for_delivery','cancelled','rejected','completed'];
+$desired_statuses = ['pending','approved','payment_received','payment_rejected','ready_for_delivery','ready_for_pickup','cancelled','rejected','completed'];
 $colRes = mysqli_query($conn, "SHOW COLUMNS FROM `bulk_orders` LIKE 'status'");
 if ($colRes && mysqli_num_rows($colRes) > 0) {
     $colInfo = mysqli_fetch_assoc($colRes);
@@ -343,7 +327,7 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'update_status') {
     $new_status = $_POST['new_status'] ?? '';
     $is_ajax = isset($_POST['is_ajax']) && $_POST['is_ajax'] === '1';
     $target_id = isset($_POST['order_id']) ? (int)$_POST['order_id'] : $order_id;
-    $allowed_statuses = ['pending','approved','payment_received','payment_rejected','ready_for_delivery','cancelled','rejected','completed'];
+    $allowed_statuses = ['pending','approved','payment_received','payment_rejected','ready_for_delivery','ready_for_pickup','cancelled','rejected','completed'];
     if (in_array($new_status, $allowed_statuses)) {
         $update_sql = "UPDATE bulk_orders SET status = ?, admin_updated = NOW() WHERE id = ?";
         $update_stmt = mysqli_prepare($conn, $update_sql);
@@ -750,23 +734,26 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
                 <div class="header-controls">
                     <!-- Status Update -->
                     <div class="status-control">
-                        <label for="new_status">Status:</label>
-                        <select id="new_status" class="status-select" data-order-id="<?php echo (int)$order['id']; ?>">
-                            <?php $statuses = [
-                                'pending' => 'Pending',
-                                'approved' => 'Approved',
-                                'payment_received' => 'Payment Received',
-                                'payment_rejected' => 'Payment Rejected',
-                                'ready_for_delivery' => 'Ready for Delivery',
-                                'cancelled' => 'Cancelled',
-                                'rejected' => 'Rejected',
-                                'completed' => 'Completed',
-                            ];
-                            foreach ($statuses as $val => $label): ?>
-                                <option value="<?php echo $val; ?>" <?php echo ($order['status'] === $val) ? 'selected' : ''; ?>><?php echo $label; ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                        <span id="status-saved" class="saved-indicator"><i class="fas fa-check"></i> Saved</span>
+                        <form method="POST" action="update-bulk-status.php" class="status-form" style="display: flex; align-items: center; gap: 8px;">
+                            <input type="hidden" name="order_id" value="<?php echo (int)$order['id']; ?>">
+                            <label for="new_status">Status:</label>
+                            <select name="status" id="new_status" class="status-select" onchange="this.form.submit()">
+                                <?php $statuses = [
+                                    'pending' => 'Pending',
+                                    'approved' => 'Approved',
+                                    'payment_received' => 'Payment Received',
+                                    'payment_rejected' => 'Payment Rejected',
+                                    'ready_for_delivery' => 'Ready for Delivery',
+                                    'ready_for_pickup' => 'Ready for Pickup',
+                                    'cancelled' => 'Cancelled',
+                                    'rejected' => 'Rejected',
+                                    'completed' => 'Completed',
+                                ];
+                                foreach ($statuses as $val => $label): ?>
+                                    <option value="<?php echo $val; ?>" <?php echo ($order['status'] === $val) ? 'selected' : ''; ?>><?php echo $label; ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </form>
                     </div>
                     
                     <!-- Action Buttons -->
@@ -1085,7 +1072,7 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
         </div>
 
         <!-- Payment Proofs -->
-        <?php if ($order['status'] == 'approved'): ?>
+        <?php if ($order['status'] != 'rejected' && $order['status'] != 'pending'): ?>
         <div class="payment-status">
             <h3><i class="fas fa-credit-card"></i> Payment Proofs</h3>
             <?php 
@@ -1105,7 +1092,7 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
             }
             ?>
             <?php if (!empty($proofs)): ?>
-                <div class="proofs-grid">
+                <div class="proofs-list">
                     <?php foreach ($proofs as $pf): 
                         // Prioritize cloud_url over legacy filename
                         if (!empty($pf['cloud_url'])) {
@@ -1115,13 +1102,22 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
                             $file = "../../../assets/bulk_payments/" . $pf['filename'];
                         }
                         $ext = strtolower(pathinfo($pf['filename'], PATHINFO_EXTENSION));
+                        $payment_type = isset($pf['type']) ? ucfirst($pf['type']) : 'Full';
                     ?>
-                    <div class="proof-item" title="<?php echo htmlspecialchars(ucfirst($pf['type']).' • '.$pf['uploaded_at']); ?>">
-                        <?php if (in_array($ext, ['jpg','jpeg','png'])): ?>
-                            <img src="<?php echo htmlspecialchars($file); ?>" alt="Proof of payment" class="proof-thumb" onclick="openImageModal(this.src)">
-                        <?php else: ?>
-                            <a class="btn btn-secondary" href="<?php echo htmlspecialchars($file); ?>" target="_blank"><i class="fas fa-file-pdf"></i> View PDF</a>
-                        <?php endif; ?>
+                    <div class="proof-card">
+                        <div class="proof-header">
+                            <span class="payment-type-badge">
+                                <i class="fas fa-receipt"></i> <?php echo htmlspecialchars($payment_type); ?> Payment
+                            </span>
+                            <span class="proof-date"><?php echo htmlspecialchars($pf['uploaded_at'] ?? 'Unknown'); ?></span>
+                        </div>
+                        <div class="proof-preview">
+                            <?php if (in_array($ext, ['jpg','jpeg','png'])): ?>
+                                <img src="<?php echo htmlspecialchars($file); ?>" alt="Proof of payment" class="proof-thumb" onclick="openImageModal(this.src)">
+                            <?php else: ?>
+                                <a class="btn btn-secondary" href="<?php echo htmlspecialchars($file); ?>" target="_blank"><i class="fas fa-file-pdf"></i> View PDF</a>
+                            <?php endif; ?>
+                        </div>
                     </div>
                     <?php endforeach; ?>
                 </div>
@@ -1167,6 +1163,46 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
         .header-actions { display:flex; gap:8px; align-items:center; }
         .hidden { display: none !important; }
         .proofs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+        .proofs-list { display: flex; flex-direction: column; gap: 12px; }
+        .proof-card { 
+            border: 1px solid #e5e7eb; 
+            border-radius: 8px; 
+            padding: 12px; 
+            background: #fafbfc;
+            transition: all 0.2s ease;
+        }
+        .proof-card:hover { 
+            border-color: #d1d5db; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .proof-header { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between;
+            margin-bottom: 10px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .payment-type-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .proof-date { 
+            color: #6b7280; 
+            font-size: 0.875rem;
+            white-space: nowrap;
+        }
+        .proof-preview { 
+            border-radius: 6px; 
+            overflow: hidden;
+        }
         .proof-thumb { width: 100%; height: 120px; object-fit: cover; border-radius: 6px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .image-modal { display:none; position: fixed; z-index: 9999; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.75); align-items:center; justify-content:center; }
         .image-modal img { max-width: 90%; max-height: 90%; border-radius: 8px; }
@@ -1308,38 +1344,6 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
         <img id="imgModalContent" src="" alt="Preview" />
     </div>
     <script>
-        // Status auto-save
-        (function(){
-            const statusSelect = document.getElementById('new_status');
-            const statusSaved = document.getElementById('status-saved');
-            if (statusSelect) {
-                statusSelect.addEventListener('change', async () => {
-                    const orderId = statusSelect.getAttribute('data-order-id');
-                    const form = new FormData();
-                    form.append('action', 'update_status');
-                    form.append('is_ajax', '1');
-                    form.append('order_id', orderId);
-                    form.append('new_status', statusSelect.value);
-                    try {
-                        const res = await fetch('', { method: 'POST', body: form });
-                        const data = await res.json();
-                        if (data.success) {
-                            statusSaved.style.display = 'inline-flex';
-                            setTimeout(() => { statusSaved.style.display = 'none'; }, 1500);
-                            const badge = document.querySelector('.status-badge');
-                            if (badge) {
-                                badge.textContent = statusSelect.options[statusSelect.selectedIndex].text;
-                                badge.className = 'status-badge status-' + statusSelect.value;
-                            }
-                        } else {
-                            alert('Failed to update status: ' + (data.error || 'Unknown error'));
-                        }
-                    } catch (e) {
-                        alert('Request failed. Please try again.');
-                    }
-                });
-            }
-        })();
 
         // Single toggle for both sections
         (function(){

@@ -52,13 +52,18 @@
     $page = max(1, $page); // Ensure page is at least 1
     $offset = ($page - 1) * $records_per_page;
     
-    // Get total count for pagination
-    $count_sql = "SELECT COUNT(*) as total 
-                  FROM orders o
-                  WHERE (o.status IN ('Delivered', 'Picked-up', 'Completed'))
-                  AND (DATE(o.order_date) BETWEEN ? AND ?)";
+    // Get total count for pagination (including both regular and bulk orders)
+    $count_sql = "SELECT COUNT(*) as total FROM (
+                    SELECT 1 FROM orders o
+                    WHERE (o.status IN ('Delivered', 'Picked-up', 'Completed'))
+                    AND (DATE(o.order_date) BETWEEN ? AND ?)
+                    UNION ALL
+                    SELECT 1 FROM bulk_orders bo
+                    WHERE (bo.status = 'completed')
+                    AND (DATE(bo.updated_at) BETWEEN ? AND ?)
+                  ) as combined_count";
     $count_stmt = mysqli_prepare($conn, $count_sql);
-    mysqli_stmt_bind_param($count_stmt, "ss", $start_date, $end_date);
+    mysqli_stmt_bind_param($count_stmt, "ssss", $start_date, $end_date, $start_date, $end_date);
     mysqli_stmt_execute($count_stmt);
     $count_result = mysqli_stmt_get_result($count_stmt);
     $count_row = mysqli_fetch_assoc($count_result);
@@ -66,13 +71,56 @@
     $total_pages = ceil($total_records / $records_per_page);
     mysqli_stmt_close($count_stmt);
     
-    $sql = "SELECT o.order_id, o.order_date, o.customer_name, o.payment_method, o.total_amount, o.status, o.delivery_method as order_type,
-            o.pickup_date, o.delivery_date, o.customer_contact, o.customer_address
+    // Build combined query with both regular and bulk orders
+    $sql = "SELECT 
+            o.order_id, 
+            o.order_date, 
+            o.customer_name, 
+            o.payment_method, 
+            o.total_amount, 
+            o.status, 
+            o.delivery_method as order_type,
+            o.pickup_date, 
+            o.delivery_date, 
+            o.customer_contact, 
+            o.customer_address,
+            'regular' as order_source
             FROM orders o
             WHERE (o.status IN ('Delivered', 'Picked-up', 'Completed'))
             AND (DATE(o.order_date) BETWEEN ? AND ?)
-            ORDER BY o.$sort_field $sort_direction
-            LIMIT ? OFFSET ?";
+            UNION ALL
+            SELECT 
+            bo.unique_order_id as order_id,
+            bo.updated_at as order_date,
+            bo.name as customer_name,
+            'Bulk Order' as payment_method,
+            bo.total_amount,
+            'Completed' as status,
+            bo.order_type,
+            NULL as pickup_date,
+            NULL as delivery_date,
+            bo.contact as customer_contact,
+            bo.delivery_address as customer_address,
+            'bulk' as order_source
+            FROM bulk_orders bo
+            WHERE (bo.status = 'completed')
+            AND (DATE(bo.updated_at) BETWEEN ? AND ?)
+            ORDER BY ";
+    
+    // Add sorting logic - map order_source to determine sort method
+    if ($sort_field === 'order_date') {
+        $sql .= "order_date $sort_direction";
+    } else if ($sort_field === 'total_amount') {
+        $sql .= "total_amount $sort_direction";
+    } else if ($sort_field === 'customer_name') {
+        $sql .= "customer_name $sort_direction";
+    } else if ($sort_field === 'status') {
+        $sql .= "status $sort_direction";
+    } else {
+        $sql .= "order_date $sort_direction";
+    }
+    
+    $sql .= " LIMIT ? OFFSET ?";
     
     $stmt = mysqli_prepare($conn, $sql);
     
@@ -80,11 +128,11 @@
         die("Prepare failed: " . mysqli_error($conn));
     }
     
-    mysqli_stmt_bind_param($stmt, "ssii", $start_date, $end_date, $records_per_page, $offset);
+    mysqli_stmt_bind_param($stmt, "ssssii", $start_date, $end_date, $start_date, $end_date, $records_per_page, $offset);
     mysqli_stmt_execute($stmt);
     $result = mysqli_stmt_get_result($stmt);
     
-    // Calculate totals
+    // Calculate totals from both regular and bulk orders
     $total_revenue = 0;
     $total_orders = 0;
     $transactions = [];
@@ -97,6 +145,25 @@
     
     // Calculate average order value
     $average_order_value = $total_orders > 0 ? $total_revenue / $total_orders : 0;
+    
+    // Calculate bulk order specific totals
+    $bulk_revenue = 0;
+    $bulk_orders_count = 0;
+    $bulk_sql = "SELECT COUNT(*) as count, SUM(total_amount) as total
+                 FROM bulk_orders
+                 WHERE status = 'completed'
+                 AND DATE(updated_at) BETWEEN ? AND ?";
+    $bulk_stmt = mysqli_prepare($conn, $bulk_sql);
+    if ($bulk_stmt) {
+        mysqli_stmt_bind_param($bulk_stmt, "ss", $start_date, $end_date);
+        mysqli_stmt_execute($bulk_stmt);
+        $bulk_result = mysqli_stmt_get_result($bulk_stmt);
+        if ($bulk_row = mysqli_fetch_assoc($bulk_result)) {
+            $bulk_orders_count = $bulk_row['count'] ?? 0;
+            $bulk_revenue = $bulk_row['total'] ?? 0;
+        }
+        mysqli_stmt_close($bulk_stmt);
+    }
     
     // Calculate total refunded amount
     $total_refunded = 0;
@@ -170,7 +237,7 @@
                             </svg>
                         </div>
                         <h3 onclick="sortSummary('revenue')" class="<?php echo $summary_sort === 'revenue' ? 'sorted ' . $summary_direction : ''; ?>">
-                            Net Income
+                            Revenue
                         </h3>
                         <p class="amount" id="total-revenue">₱<?php echo number_format($total_revenue, 2); ?></p>
                         <p class="period"><?php echo date('M d, Y', strtotime($start_date)); ?> - <?php echo date('M d, Y', strtotime($end_date)); ?></p>
@@ -223,6 +290,7 @@
                             </svg>
                             Value improving
                         </div>
+
                     </div>
 
                     <div class="summary-card">
@@ -245,6 +313,48 @@
                             Approved refunds
                         </div>
                     </div>
+
+                    <div class="summary-card">
+                        <div class="card-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="9" cy="21" r="1"></circle>
+                                <circle cx="20" cy="21" r="1"></circle>
+                                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                            </svg>
+                        </div>
+                        <h3>Bulk Orders Sales</h3>
+                        <p class="amount" id="bulk-revenue">₱<?php echo number_format($bulk_revenue, 2); ?></p>
+                        <p class="period"><?php echo date('M d, Y', strtotime($start_date)); ?> - <?php echo date('M d, Y', strtotime($end_date)); ?></p>
+                        <div class="trend positive">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="23,6 13.5,15.5 8.5,10.5 1,18"></polyline>
+                                <polyline points="17,6 23,6 23,12"></polyline>
+                            </svg>
+                            Bulk sales
+                        </div>
+                    </div>
+
+                    <div class="summary-card">
+                        <div class="card-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <path d="M16 10a4 4 0 0 1-8 0"></path>
+                            </svg>
+                        </div>
+                        <h3>Total Bulk Orders</h3>
+                        <p class="amount" id="total-bulk-orders"><?php echo $bulk_orders_count; ?></p>
+                        <p class="period"><?php echo date('M d, Y', strtotime($start_date)); ?> - <?php echo date('M d, Y', strtotime($end_date)); ?></p>
+                        <div class="trend positive">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="23,6 13.5,15.5 8.5,10.5 1,18"></polyline>
+                                <polyline points="17,6 23,6 23,12"></polyline>
+                            </svg>
+                            Orders completed
+                        </div>
+                    </div>
+
+                    
                 </div>
             </div>
 
@@ -357,17 +467,27 @@
                             <?php if (count($transactions) > 0): ?>
                                 <?php foreach ($transactions as $transaction): ?>
                                     <tr onclick="viewTransaction(<?php echo $transaction['order_id']; ?>)" style="cursor: pointer;">
-                                        <td><?php echo htmlspecialchars($transaction['order_id']); ?></td>
+                                        <td>
+                                            <?php echo htmlspecialchars($transaction['order_id']); ?>
+                                            <?php if ($transaction['order_source'] === 'bulk'): ?>
+                                                <span style="margin-left: 8px; padding: 3px 8px; background-color: #e8f4f8; color: #0d7a8f; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">BULK</span>
+                                            <?php endif; ?>
+                                        </td>
                                         <td><?php echo date('M d, Y', strtotime($transaction['order_date'])); ?></td>
                                         <td><?php echo htmlspecialchars($transaction['customer_name']); ?></td>
                                         <td><?php 
-                                            $paymentMethods = [
-                                                '0' => 'Cash on Delivery',
-                                                '1' => 'GCash',
-                                                '2' => 'PayMaya',
-                                                '3' => 'Bank Transfer'
-                                            ];
-                                            echo htmlspecialchars($paymentMethods[$transaction['payment_method']] ?? $transaction['payment_method']);
+                                            // Handle bulk orders - they show 'Bulk Order' directly
+                                            if ($transaction['order_source'] === 'bulk') {
+                                                echo htmlspecialchars($transaction['payment_method']);
+                                            } else {
+                                                $paymentMethods = [
+                                                    '0' => 'Cash on Delivery',
+                                                    '1' => 'GCash',
+                                                    '2' => 'PayMaya',
+                                                    '3' => 'Bank Transfer'
+                                                ];
+                                                echo htmlspecialchars($paymentMethods[$transaction['payment_method']] ?? $transaction['payment_method']);
+                                            }
                                         ?></td>
                                         <td>
                                             <span class="status-badge status-<?php echo strtolower(str_replace([' ', '-'], ['_', '_'], $transaction['status'])); ?>">

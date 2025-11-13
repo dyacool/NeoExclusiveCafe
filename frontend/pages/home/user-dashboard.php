@@ -568,11 +568,17 @@ $total_images = mysqli_num_rows($images_result);
                 <div class="promotion-grid">
                     <?php if (count($active_promotions) > 0): ?>
                         <?php foreach ($active_promotions as $promo): 
-                            // Format discount type display
-                            $discount_type_display = '';
+                            // Format discount display
                             if ($promo['type'] === 'free_shipping') {
+                                $discount_display = 'FREE SHIPPING';
                                 $discount_type_display = 'FREE SHIPPING';
+                            } elseif ($promo['type'] === 'percentage') {
+                                // Percentage discount: format as 0%
+                                $discount_display = $promo['value'] . '%' . ' DISCOUNT';
+                                $discount_type_display = 'PRODUCT DISCOUNT';
                             } else {
+                                // Fixed amount discount: format as ₱0.00
+                                $discount_display = '₱' . number_format($promo['value'], 2) . ' DISCOUNT';
                                 $discount_type_display = 'PRODUCT DISCOUNT';
                             }
                             
@@ -587,7 +593,7 @@ $total_images = mysqli_num_rows($images_result);
                             <div class="coupon-ticket" data-aos="fade-up">
                                 <div class="ticket-left">
                                     <div class="coupon-code"><?php echo htmlspecialchars($promo['code']); ?></div>
-                                    <div class="coupon-title"><?php echo htmlspecialchars($promo['title']); ?></div>
+                                    <div class="coupon-title"><?php echo $discount_display; ?></div>
                                 </div>
                                 <div class="ticket-divider">
                                     <div class="circle-top"></div>

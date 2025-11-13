@@ -17,7 +17,7 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'update_status') {
     $new_status = $_POST['new_status'] ?? '';
     $is_ajax = isset($_POST['is_ajax']) && $_POST['is_ajax'] === '1';
     // Allow all statuses
-    $allowed_statuses = ['pending','approved','payment_received','payment_rejected','ready_for_delivery','cancelled','rejected','completed'];
+    $allowed_statuses = ['pending','approved','payment_received','payment_rejected','ready_for_delivery','ready_for_pickup','cancelled','rejected','completed'];
     if (in_array($new_status, $allowed_statuses)) {
         $update_sql = "UPDATE bulk_orders SET status = ?, admin_updated = NOW() WHERE id = ?";
         $update_stmt = mysqli_prepare($conn, $update_sql);
@@ -76,7 +76,7 @@ $create_table_query = "
 mysqli_query($conn, $create_table_query);
 
 // Ensure status enum includes new values
-$desired_statuses = ['pending','approved','payment_received','payment_rejected','ready_for_delivery','cancelled','rejected','completed'];
+$desired_statuses = ['pending','approved','payment_received','payment_rejected','ready_for_delivery','ready_for_pickup','cancelled','rejected','completed'];
 $colRes = mysqli_query($conn, "SHOW COLUMNS FROM `bulk_orders` LIKE 'status'");
 if ($colRes && mysqli_num_rows($colRes) > 0) {
     $colInfo = mysqli_fetch_assoc($colRes);
@@ -136,6 +136,34 @@ $create_items_table_query = "
 ";
 mysqli_query($conn, $create_items_table_query);
 
+// Auto-update pending orders to rejected if 96 hours have passed since creation
+$now = date('Y-m-d H:i:s');
+$time_96hrs_ago = date('Y-m-d H:i:s', strtotime('-96 hours'));
+$overdue_update_sql = "UPDATE bulk_orders 
+                       SET status = 'rejected', admin_updated = NOW() 
+                       WHERE status = 'pending' 
+                       AND created_at < ?";
+$overdue_stmt = mysqli_prepare($conn, $overdue_update_sql);
+mysqli_stmt_bind_param($overdue_stmt, "s", $time_96hrs_ago);
+mysqli_stmt_execute($overdue_stmt);
+mysqli_stmt_close($overdue_stmt);
+
+// Auto-cancel approved orders without payment proof after 7 days
+$time_7days_ago = date('Y-m-d H:i:s', strtotime('-7 days'));
+$cancel_update_sql = "UPDATE bulk_orders 
+                      SET status = 'cancelled', admin_updated = NOW() 
+                      WHERE status = 'approved' 
+                      AND (proof_of_payment IS NULL OR proof_of_payment = '') 
+                      AND updated_at < ?";
+$cancel_stmt = mysqli_prepare($conn, $cancel_update_sql);
+mysqli_stmt_bind_param($cancel_stmt, "s", $time_7days_ago);
+mysqli_stmt_execute($cancel_stmt);
+mysqli_stmt_close($cancel_stmt);
+
+// Get today's date and date 5 days from now for due date warnings
+$today = date('Y-m-d');
+$five_days_later = date('Y-m-d', strtotime('+5 days'));
+
 // Fetch all bulk orders with user information
 $sql = "SELECT bo.id, 
                bo.unique_order_id,
@@ -151,24 +179,19 @@ $sql = "SELECT bo.id,
         LEFT JOIN users u ON bo.user_id = u.id
         ORDER BY 
             CASE 
-                WHEN LOWER(TRIM(bo.status)) IN ('completed', 'cancelled', 'rejected', 'payment_rejected') THEN 2
-                ELSE 1
+                WHEN LOWER(TRIM(bo.status)) = 'pending' THEN 1
+                WHEN LOWER(TRIM(bo.status)) = 'approved' THEN 2
+                WHEN LOWER(TRIM(bo.status)) = 'payment_rejected' THEN 3
+                WHEN LOWER(TRIM(bo.status)) = 'payment_received' THEN 4
+                WHEN LOWER(TRIM(bo.status)) = 'ready_for_delivery' THEN 5
+                WHEN LOWER(TRIM(bo.status)) = 'ready_for_pickup' THEN 6
+                WHEN LOWER(TRIM(bo.status)) = 'completed' THEN 7
+                WHEN LOWER(TRIM(bo.status)) = 'rejected' THEN 8
+                WHEN LOWER(TRIM(bo.status)) = 'cancelled' THEN 9
+                ELSE 10
             END ASC,
-            CASE 
-                WHEN LOWER(TRIM(bo.status)) IN ('completed', 'cancelled', 'rejected', 'payment_rejected') THEN bo.created_at
-                ELSE COALESCE(
-                    NULLIF(bo.date_needed, '0000-00-00'),
-                    bo.created_at
-                )
-            END ASC,
-            CASE 
-                WHEN LOWER(TRIM(bo.status)) NOT IN ('completed', 'cancelled', 'rejected', 'payment_rejected') THEN 
-                    COALESCE(
-                        NULLIF(bo.time_needed, '00:00:00')
-                    )
-                ELSE NULL
-            END ASC,
-            bo.created_at ASC";
+            bo.date_needed ASC,
+            bo.time_needed ASC";
 
 $result = mysqli_query($conn, $sql);
 
@@ -332,6 +355,22 @@ if ($result && mysqli_num_rows($result) > 0) {
                                     <div class="date-info">
                                         <div class="date-main"><?php echo date("M j, Y", strtotime($order['date_needed'])); ?></div>
                                         <div class="date-time"><?php echo date("g:i A", strtotime($order['time_needed'])); ?></div>
+                                        <?php 
+                                            // Only show warnings for active statuses (not rejected, completed, cancelled, payment_rejected)
+                                            $active_statuses = ['pending', 'approved', 'payment_received', 'ready_for_delivery', 'ready_for_pickup'];
+                                            if (in_array($order['status'], $active_statuses)) {
+                                                $due_date = strtotime($order['date_needed']);
+                                                $today_time = strtotime($today);
+                                                $five_days_later_time = strtotime($five_days_later);
+                                                
+                                                if ($due_date == $today_time) {
+                                                    echo '<span style="display: inline-block; margin-top: 4px; padding: 2px 8px; background: #dc2626; color: white; border-radius: 3px; font-size: 0.75rem; font-weight: 600;">DUE TODAY</span>';
+                                                } elseif ($due_date > $today_time && $due_date <= $five_days_later_time) {
+                                                    $days_left = ceil(($due_date - $today_time) / 86400);
+                                                    echo '<span style="display: inline-block; margin-top: 4px; padding: 2px 8px; background: #f59e0b; color: white; border-radius: 3px; font-size: 0.75rem; font-weight: 600;">Due in ' . $days_left . ' day' . ($days_left > 1 ? 's' : '') . '</span>';
+                                                }
+                                            }
+                                        ?>
                                     </div>
                                 </td>
                                 
@@ -356,6 +395,7 @@ if ($result && mysqli_num_rows($result) > 0) {
                                             'payment_received' => 'Payment Received',
                                             'payment_rejected' => 'Payment Rejected',
                                             'ready_for_delivery' => 'Ready for Delivery',
+                                            'ready_for_pickup' => 'Ready for Pickup',
                                             'cancelled' => 'Cancelled',
                                             'rejected' => 'Rejected',
                                             'completed' => 'Completed',
