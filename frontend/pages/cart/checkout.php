@@ -2664,7 +2664,7 @@ $debug_info = [
                         </div>
                     </label>
                     <label class="payment-option">
-                        <input type="radio" name="payment_method" value="maya" id="maya">
+                        <input type="radio" name="payment_method" value="paymaya" id="maya">
                         <div class="payment-option-content">
                             <span class="payment-text">Maya</span>
                             <small class="payment-desc">Pay with Maya e-wallet</small>

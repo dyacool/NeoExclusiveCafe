@@ -83,7 +83,15 @@ try {
     $order_data = $input['order_data'] ?? [];
     $amount = floatval($input['amount'] ?? 0);
     
-    error_log("Payment method: $payment_method, Order type: $order_type, Amount: $amount");
+    error_log("BEFORE NORMALIZATION - Payment method: $payment_method, Order type: $order_type, Amount: $amount");
+    
+    // Normalize payment method IMMEDIATELY (accept both 'maya' and 'paymaya')
+    if ($payment_method === 'maya') {
+        $payment_method = 'paymaya';
+        error_log("NORMALIZED payment method from 'maya' to 'paymaya'");
+    }
+    
+    error_log("AFTER NORMALIZATION - Payment method: $payment_method");
     
     // Validate required fields
     if (empty($payment_method)) {
@@ -101,7 +109,7 @@ try {
         throw new Exception('Missing order data');
     }
     
-    // Validate payment method
+    // Validate payment method (normalization already done above)
     if (!in_array($payment_method, ['gcash', 'paymaya', 'card'])) {
         error_log("Invalid payment method: $payment_method");
         throw new Exception('Invalid payment method: ' . $payment_method);
