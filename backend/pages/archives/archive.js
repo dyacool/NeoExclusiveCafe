@@ -48,15 +48,24 @@ function restoreProduct(id) {
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: `id=${id}`,
   })
-    .then((response) => response.text())
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
     .then((data) => {
-      showNotification("Product restored successfully!", "success");
-      setTimeout(() => location.reload(), 1000);
+      if (data.success) {
+        showNotification("Product restored successfully!", "success");
+        setTimeout(() => location.reload(), 1000);
+      } else {
+        throw new Error(data.error || "Unknown error occurred");
+      }
     })
     .catch((error) => {
       console.error("Error:", error);
       showNotification(
-        "An error occurred while restoring the product.",
+        error.message || "An error occurred while restoring the product.",
         "error"
       );
     });
@@ -77,15 +86,24 @@ function deletePermanently(id) {
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: `id=${id}`,
   })
-    .then((response) => response.text())
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
     .then((data) => {
-      showNotification("Product permanently deleted!", "success");
-      setTimeout(() => location.reload(), 1000);
+      if (data.success) {
+        showNotification("Product permanently deleted!", "success");
+        setTimeout(() => location.reload(), 1000);
+      } else {
+        throw new Error(data.error || "Unknown error occurred");
+      }
     })
     .catch((error) => {
       console.error("Error:", error);
       showNotification(
-        "An error occurred while deleting the product.",
+        error.message || "An error occurred while deleting the product.",
         "error"
       );
     });

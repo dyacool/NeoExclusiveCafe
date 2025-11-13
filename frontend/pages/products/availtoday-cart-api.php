@@ -4,31 +4,32 @@
  * This file acts as a local endpoint for the product dashboard
  */
 
-// Start session
-session_start();
-
-// Include database connection
-require_once __DIR__ . '/../../../backend/pages/admin-includes/database.php';
-require_once __DIR__ . '/../../../includes/session-manager.php';
-
-// Set JSON content type
+// Set JSON content type FIRST
 header('Content-Type: application/json');
 
-// Get the action
-$action = isset($_POST['action']) ? $_POST['action'] : (isset($_GET['action']) ? $_GET['action'] : '');
+// Error handling
+try {
+    // Include database connection first (it starts the session properly)
+    require_once __DIR__ . '/../../../backend/pages/admin-includes/database.php';
+    require_once __DIR__ . '/../../../includes/session-manager.php';
 
-error_log("[frontend availtoday-cart-api.php] API called with action: $action");
-error_log("[frontend availtoday-cart-api.php] User logged in: " . (SessionManager::isUserLoggedIn() ? 'yes' : 'no'));
+    // Get the action
+    $action = isset($_POST['action']) ? $_POST['action'] : (isset($_GET['action']) ? $_GET['action'] : '');
 
-// Check if user is logged in
-if (!SessionManager::isUserLoggedIn()) {
-    error_log("[frontend availtoday-cart-api.php] AUTHENTICATION FAILED - User not logged in");
-    echo json_encode(['success' => false, 'error' => 'User not authenticated', 'debug' => 'User not logged in']);
-    exit;
-}
+    error_log("[frontend availtoday-cart-api.php] API called with action: $action");
+    error_log("[frontend availtoday-cart-api.php] Session ID: " . session_id());
+    error_log("[frontend availtoday-cart-api.php] Session vars: " . print_r($_SESSION, true));
+    error_log("[frontend availtoday-cart-api.php] User logged in: " . (SessionManager::isUserLoggedIn() ? 'yes' : 'no'));
 
-$user_id = SessionManager::getUserId();
-error_log("[frontend availtoday-cart-api.php] User authenticated - proceeding with action: $action");
+    // Check if user is logged in
+    if (!SessionManager::isUserLoggedIn()) {
+        error_log("[frontend availtoday-cart-api.php] AUTHENTICATION FAILED - User not logged in");
+        echo json_encode(['success' => false, 'error' => 'User not authenticated', 'debug' => 'User not logged in']);
+        exit;
+    }
+
+    $user_id = SessionManager::getUserId();
+    error_log("[frontend availtoday-cart-api.php] User authenticated with ID: $user_id - proceeding with action: $action");
 
 // Handle different actions
 switch ($action) {
@@ -41,8 +42,19 @@ switch ($action) {
             exit;
         }
         
-        // Get product details
-        $stmt = $conn->prepare("SELECT name, price FROM products WHERE id = ? AND deleted_at IS NULL");
+        if ($quantity < 1) {
+            echo json_encode(['success' => false, 'error' => 'Invalid quantity']);
+            exit;
+        }
+        
+        // Get product details and check if it's available for same-day
+        // Products can be same-day if: status_id = 4 OR has entry in todays_products_dates/regular_products_today_dates
+        $stmt = $conn->prepare("
+            SELECT p.name, p.price, p.status_id, qpd.quantity as sdo_stock
+            FROM products p
+            LEFT JOIN quantity_per_day_sdo qpd ON p.id = qpd.product_id AND DATE(qpd.date) = CURDATE()
+            WHERE p.id = ? AND p.deleted_at IS NULL
+        ");
         $stmt->bind_param("i", $product_id);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -53,6 +65,33 @@ switch ($action) {
         }
         
         $product = $result->fetch_assoc();
+        
+        // Check if product is available for same-day order
+        $has_sameday = false;
+        $available_stock = 0;
+        
+        // If product has stock in quantity_per_day_sdo for today, it's available for same-day
+        $sdo_stock = intval($product['sdo_stock'] ?? 0);
+        
+        if ($sdo_stock > 0) {
+            // Has same-day stock regardless of status
+            $has_sameday = true;
+            $available_stock = $sdo_stock;
+        }
+        
+        if (!$has_sameday) {
+            echo json_encode(['success' => false, 'error' => 'Product not available for same-day order']);
+            exit;
+        }
+        
+        // Check if requested quantity exceeds available stock
+        if ($quantity > $available_stock) {
+            echo json_encode([
+                'success' => false, 
+                'error' => "Insufficient stock. Only {$available_stock} available"
+            ]);
+            exit;
+        }
         
         // Check if product already in cart
         $stmt = $conn->prepare("SELECT id, quantity FROM availtoday_cart WHERE user_id = ? AND product_id = ?");
@@ -65,14 +104,40 @@ switch ($action) {
             $cart_item = $cart_result->fetch_assoc();
             $new_quantity = $cart_item['quantity'] + $quantity;
             
-            $stmt = $conn->prepare("UPDATE availtoday_cart SET quantity = ?, updated_at = NOW() WHERE id = ?");
+            // Check if total quantity exceeds available stock
+            if ($new_quantity > $available_stock) {
+                $available_to_add = max(0, $available_stock - $cart_item['quantity']);
+                echo json_encode([
+                    'success' => false, 
+                    'error' => "Cannot add {$quantity} more. You already have {$cart_item['quantity']} in cart. Only {$available_to_add} more available."
+                ]);
+                exit;
+            }
+            
+            // Check if table has updated_at column
+            $check_column = $conn->query("SHOW COLUMNS FROM availtoday_cart LIKE 'updated_at'");
+            if ($check_column->num_rows > 0) {
+                $stmt = $conn->prepare("UPDATE availtoday_cart SET quantity = ?, updated_at = NOW() WHERE id = ?");
+            } else {
+                $stmt = $conn->prepare("UPDATE availtoday_cart SET quantity = ? WHERE id = ?");
+            }
             $stmt->bind_param("ii", $new_quantity, $cart_item['id']);
-            $stmt->execute();
+            
+            if (!$stmt->execute()) {
+                error_log("[availtoday-cart-api.php] Failed to update cart: " . $stmt->error);
+                echo json_encode(['success' => false, 'error' => 'Failed to update cart: ' . $stmt->error]);
+                exit;
+            }
         } else {
             // Insert new cart item
             $stmt = $conn->prepare("INSERT INTO availtoday_cart (user_id, product_id, quantity) VALUES (?, ?, ?)");
             $stmt->bind_param("iii", $user_id, $product_id, $quantity);
-            $stmt->execute();
+            
+            if (!$stmt->execute()) {
+                error_log("[availtoday-cart-api.php] Failed to insert into cart: " . $stmt->error);
+                echo json_encode(['success' => false, 'error' => 'Failed to add to cart: ' . $stmt->error]);
+                exit;
+            }
         }
         
         echo json_encode([
@@ -114,8 +179,13 @@ switch ($action) {
             $stmt->bind_param("ii", $user_id, $product_id);
             $stmt->execute();
         } else {
-            // Update quantity
-            $stmt = $conn->prepare("UPDATE availtoday_cart SET quantity = ?, updated_at = NOW() WHERE user_id = ? AND product_id = ?");
+            // Check if table has updated_at column
+            $check_column = $conn->query("SHOW COLUMNS FROM availtoday_cart LIKE 'updated_at'");
+            if ($check_column->num_rows > 0) {
+                $stmt = $conn->prepare("UPDATE availtoday_cart SET quantity = ?, updated_at = NOW() WHERE user_id = ? AND product_id = ?");
+            } else {
+                $stmt = $conn->prepare("UPDATE availtoday_cart SET quantity = ? WHERE user_id = ? AND product_id = ?");
+            }
             $stmt->bind_param("iii", $quantity, $user_id, $product_id);
             $stmt->execute();
         }
@@ -137,6 +207,16 @@ switch ($action) {
         break;
 }
 
-$conn->close();
-?>
+if (isset($conn)) {
+    $conn->close();
+}
 
+} catch (Exception $e) {
+    error_log("[availtoday-cart-api.php] EXCEPTION: " . $e->getMessage());
+    error_log("[availtoday-cart-api.php] TRACE: " . $e->getTraceAsString());
+    echo json_encode([
+        'success' => false, 
+        'error' => 'Server error: ' . $e->getMessage(),
+        'trace' => $e->getTraceAsString()
+    ]);
+}

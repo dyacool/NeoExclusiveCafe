@@ -387,9 +387,10 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
                                                 <input type="number" 
                                                        id="quantity_<?php echo $product['id']; ?>" 
                                                        min="10" 
+                                                       max="150"
                                                        value="10" 
                                                        class="quantity-field"
-                                                       onchange="enforceMinQuantity(this); updateOrderSummary()"
+                                                       onchange="enforceMinMaxQuantity(this); updateOrderSummary()"
                                                        oninput="updateOrderSummary()">
                                                 <button type="button" class="quantity-btn" onclick="updateQuantity(<?php echo $product['id']; ?>, 1)">+</button>
                                             </div>
@@ -604,20 +605,28 @@ $min_date = date('Y-m-d', strtotime('+14 days'));
 
     <script src="bulk-form-fixed.js?v=<?php echo time(); ?>"></script>
     <script>
-        // Enforce minimum quantity (10 pieces) - only on blur, not while typing
-        function enforceMinQuantity(input) {
+        // Enforce minimum and maximum quantity (10-150 pieces)
+        function enforceMinMaxQuantity(input) {
             // This will be called on change/blur
             const value = parseInt(input.value);
+            const min = parseInt(input.min) || 10;
+            const max = parseInt(input.max) || 150;
             
             // If empty or not a number, set to minimum
             if (!input.value || isNaN(value)) {
-                input.value = 10;
+                input.value = min;
                 return;
             }
             
             // If less than minimum, set to minimum
-            if (value < 10) {
-                input.value = 10;
+            if (value < min) {
+                input.value = min;
+                alert(`Quantity must be at least ${min} pieces.`);
+            }
+            // If greater than maximum, set to maximum
+            else if (value > max) {
+                input.value = max;
+                alert(`Quantity cannot exceed ${max} pieces.`);
             }
         }
         

@@ -13,6 +13,22 @@ require_once __DIR__ . "/../../user-includes/user-header.php";
 require_once __DIR__ . "/../../user-includes/preview-mode.php";
 require_once __DIR__ . "/../../../backend/pages/products/todays-products-handler.php";
 
+// Get business hours for same-day availability check
+$business_hours = null;
+if ($conn) {
+    $business_hours_query = "SELECT opening_time, closing_time FROM business_hours ORDER BY id DESC LIMIT 1";
+    $business_hours_result = $conn->query($business_hours_query);
+    if ($business_hours_result && $business_hours_result->num_rows > 0) {
+        $business_hours = $business_hours_result->fetch_assoc();
+    }
+}
+
+?>
+
+<meta name="business-opening-time" content="<?php echo $business_hours['opening_time'] ?? '08:00'; ?>">
+<meta name="business-closing-time" content="<?php echo $business_hours['closing_time'] ?? '21:00'; ?>">
+
+<?php
 // Try to include Cloudinary image fetcher (may fail if vendor/autoload.php is missing)
 try {
     require_once __DIR__ . "/../../../backend/includes/cloudinary-image-fetcher.php";
@@ -1191,6 +1207,28 @@ function closeProductModal() {
         }
     }
 
+    // Check if business is currently closed
+    function isBusinessClosed() {
+        const currentTime = new Date();
+        const currentHours = String(currentTime.getHours()).padStart(2, '0');
+        const currentMinutes = String(currentTime.getMinutes()).padStart(2, '0');
+        const currentTimeStr = currentHours + ':' + currentMinutes;
+        
+        // Get business hours from page meta tags
+        const openingTime = document.querySelector('meta[name="business-opening-time"]')?.getAttribute('content') || '08:00';
+        const closingTime = document.querySelector('meta[name="business-closing-time"]')?.getAttribute('content') || '21:00';
+        
+        // If closing time < opening time (e.g., 21:00 vs 08:00), it wraps past midnight
+        // Handle wrapping: if current time >= opening time OR < closing time (from previous day), business is open
+        if (closingTime < openingTime) {
+            // Wraps past midnight (e.g., 15:00 to 08:00 next day)
+            return !(currentTimeStr >= openingTime || currentTimeStr < closingTime);
+        } else {
+            // Normal hours (e.g., 08:00 to 21:00)
+            return currentTimeStr < openingTime || currentTimeStr > closingTime;
+        }
+    }
+
     // Open quantity modal with order type selection
     async function openQuantityModalWithOrderType(productName, productPrice, productStock, statusId, availtodayStatusId) {
         const modal = document.getElementById('quantityModal');
@@ -1200,6 +1238,11 @@ function closeProductModal() {
         const quantityInput = document.getElementById('quantityModalInput');
         const orderTypeSelector = document.getElementById('orderTypeSelector');
         const dateDisplay = document.getElementById('quantityModalDate');
+        const samedayRadio = document.querySelector('input[name="orderType"][value="sameday"]');
+        const preorderRadio = document.querySelector('input[name="orderType"][value="preorder"]');
+        
+        // Check if business is currently closed
+        const businessClosed = isBusinessClosed();
         
         // Show modal first
         modal.style.display = 'flex';
@@ -1222,16 +1265,18 @@ function closeProductModal() {
             const hasPreorderStock = preorderQty > 0;
             const hasSamedayStock = samedayQty > 0;
             
-            if (hasPreorderStock && hasSamedayStock) {
-                // BOTH have stock: Show order type selector
+            if (hasPreorderStock && hasSamedayStock && !businessClosed) {
+                // BOTH have stock AND business is open: Show order type selector
                 orderTypeSelector.style.display = 'block';
+                samedayRadio.disabled = false;
+                preorderRadio.disabled = false;
                 dateDisplay.style.display = 'none';
                 
                 // Default to pre-order
                 await fetchPreOrderQuantity(pendingCartProduct.id);
                 selectOrderType('preorder');
-            } else if (hasSamedayStock && !hasPreorderStock) {
-                // ONLY same-day has stock: Show same-day only
+            } else if (hasSamedayStock && !hasPreorderStock && !businessClosed) {
+                // ONLY same-day has stock AND business is open: Show same-day only
                 orderTypeSelector.style.display = 'none';
                 dateDisplay.style.display = 'block';
                 dateDisplay.textContent = 'For: Today';
@@ -1245,9 +1290,19 @@ function closeProductModal() {
                 pendingCartProduct.selectedOrderType = 'preorder';
                 
                 await fetchPreOrderQuantity(pendingCartProduct.id);
+            } else if (businessClosed && hasPreorderStock) {
+                // Business is closed BUT pre-order has stock: Show pre-order only with same-day disabled
+                orderTypeSelector.style.display = 'block';
+                samedayRadio.disabled = true;
+                preorderRadio.disabled = false;
+                preorderRadio.checked = true;
+                samedayRadio.checked = false;
+                dateDisplay.style.display = 'none';
+                pendingCartProduct.selectedOrderType = 'preorder';
+                
+                await fetchPreOrderQuantity(pendingCartProduct.id);
             } else {
-                // NEITHER has stock: This shouldn't happen (product should be unavailable)
-                // Default to pre-order view
+                // NEITHER has stock or no valid combination: Default to pre-order view
                 orderTypeSelector.style.display = 'none';
                 dateDisplay.style.display = 'none';
                 pendingCartProduct.selectedOrderType = 'preorder';
@@ -1255,13 +1310,25 @@ function closeProductModal() {
                 await fetchPreOrderQuantity(pendingCartProduct.id);
             }
         } else if (statusId == 4) {
-            // Same Day Order ONLY - Fetch today's quantity from quantity_per_day_sdo
-            orderTypeSelector.style.display = 'none';
-            dateDisplay.style.display = 'block';
-            dateDisplay.textContent = 'For: Today';
-            pendingCartProduct.selectedOrderType = 'sameday';
+            // Same Day Order ONLY
+            orderTypeSelector.style.display = 'block';
+            samedayRadio.disabled = businessClosed;
+            preorderRadio.disabled = true;
             
-            await fetchTodayQuantity(pendingCartProduct.id);
+            if (businessClosed) {
+                // Business is closed - disable same-day option
+                samedayRadio.checked = false;
+                dateDisplay.style.display = 'none';
+                document.getElementById('quantityModalStock').textContent = 'Same-day orders not available now';
+            } else {
+                // Business is open - enable same-day
+                samedayRadio.checked = true;
+                dateDisplay.style.display = 'block';
+                dateDisplay.textContent = 'For: Today';
+                pendingCartProduct.selectedOrderType = 'sameday';
+                
+                await fetchTodayQuantity(pendingCartProduct.id);
+            }
         } else {
             // Pre-order ONLY (status 1, 2, or 3 without availtoday_status_id)
             orderTypeSelector.style.display = 'none';
@@ -1516,10 +1583,25 @@ function closeProductModal() {
     function confirmAddToCart() {
         if (!pendingCartProduct) return;
         
-        const quantity = parseInt(document.getElementById('quantityModalInput').value) || 1;
+        const quantityInput = document.getElementById('quantityModalInput');
+        const quantity = parseInt(quantityInput.value) || 1;
+        const maxAllowed = parseInt(quantityInput.max) || 0;
         const confirmBtn = document.querySelector('.quantity-modal-actions .btn-confirm');
         
         if (!confirmBtn) return;
+        
+        // Validate quantity doesn't exceed max allowed
+        if (quantity > maxAllowed) {
+            showConfirmation(`Cannot add ${quantity}. Maximum available: ${maxAllowed}`, true);
+            quantityInput.value = maxAllowed;
+            return;
+        }
+        
+        if (quantity < 1) {
+            showConfirmation('Quantity must be at least 1', true);
+            quantityInput.value = 1;
+            return;
+        }
         
         // Store original button text
         const originalText = confirmBtn.textContent;
@@ -1533,80 +1615,101 @@ function closeProductModal() {
         // Determine which cart to add to based on selectedOrderType
         const orderType = pendingCartProduct.selectedOrderType || 'preorder';
         
-        // Simulate async operation (add to cart)
-        setTimeout(() => {
-            let addSuccess = false;
-            
-            if (orderType === 'sameday') {
-                // Add to same-day cart (availtoday_cart table)
-                if (typeof addToAvailableTodayCart === 'function') {
-                    addToAvailableTodayCart(pendingCartProduct.id, quantity, pendingCartProduct.button);
-                    addSuccess = true;
-                } else {
-                    console.error('Same-day cart function not available');
-                }
-            } else {
-                // Add to pre-order cart (cart table)
-                // Use fetch to add to regular cart
-                fetch('../cart/add-to-cart.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `product_id=${pendingCartProduct.id}&quantity=${quantity}`
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        addSuccess = true;
+        if (orderType === 'sameday') {
+            // Add to same-day cart via API directly
+            addToSameDayCartViaAPI(pendingCartProduct.id, quantity, confirmBtn, originalText);
+        } else {
+            // Add to pre-order cart (cart table)
+            // Use fetch to add to regular cart
+            fetch('../cart/add-to-cart.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `product_id=${pendingCartProduct.id}&quantity=${quantity}`,
+                credentials: 'include'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Trigger cart notification update
+                    window.dispatchEvent(new CustomEvent('cartUpdated'));
+                    
+                    // Show success state
+                    confirmBtn.innerHTML = '<span class="success-icon">✓</span> Product added!';
+                    confirmBtn.style.backgroundColor = '#4CAF50';
+                    
+                    // Show confirmation message
+                    showConfirmation(`Added ${quantity} ${pendingCartProduct.name} to cart`, false);
+                    
+                    // Close modal after short delay
+                    setTimeout(() => {
+                        closeQuantityModal();
                         
-                        // Trigger cart notification update
-                        window.dispatchEvent(new CustomEvent('cartUpdated'));
-                        
-                        // Show success state
-                        confirmBtn.innerHTML = '<span class="success-icon">✓</span> Product added!';
-                        confirmBtn.style.backgroundColor = '#4CAF50';
-                        
-                        // Show confirmation message
-                        showConfirmation(`Added ${quantity} ${pendingCartProduct.name} to cart`, false);
-                        
-                        // Close modal after short delay
-                        setTimeout(() => {
-                            closeQuantityModal();
-                            
-                            // Reset button state
-                            confirmBtn.disabled = false;
-                            confirmBtn.style.opacity = '1';
-                            confirmBtn.style.cursor = 'pointer';
-                            confirmBtn.textContent = originalText;
-                            confirmBtn.style.backgroundColor = '';
-                        }, 800);
-                    } else {
-                        console.error('Failed to add to cart:', data.message);
-                        showConfirmation(data.message || 'Failed to add to cart', true);
-                        
-                        // Reset button on error
+                        // Reset button state
                         confirmBtn.disabled = false;
                         confirmBtn.style.opacity = '1';
                         confirmBtn.style.cursor = 'pointer';
                         confirmBtn.textContent = originalText;
-                    }
-                })
-                .catch(error => {
-                    console.error('Error adding to cart:', error);
-                    showConfirmation('Error adding to cart', true);
+                        confirmBtn.style.backgroundColor = '';
+                    }, 800);
+                } else {
+                    console.error('Failed to add to cart:', data.message);
+                    showConfirmation(data.message || 'Failed to add to cart', true);
                     
                     // Reset button on error
                     confirmBtn.disabled = false;
                     confirmBtn.style.opacity = '1';
                     confirmBtn.style.cursor = 'pointer';
                     confirmBtn.textContent = originalText;
-                });
-                return; // Exit early for async fetch
-            }
+                }
+            })
+            .catch(error => {
+                console.error('Error adding to cart:', error);
+                showConfirmation('Error adding to cart', true);
+                
+                // Reset button on error
+                confirmBtn.disabled = false;
+                confirmBtn.style.opacity = '1';
+                confirmBtn.style.cursor = 'pointer';
+                confirmBtn.textContent = originalText;
+            });
+        }
+    }
+    
+    // Add to same-day cart via API
+    function addToSameDayCartViaAPI(productId, quantity, confirmBtn, originalText) {
+        // First check if user is logged in
+        if (!isLoggedIn) {
+            showConfirmation('Please login to add items to cart', true);
+            confirmBtn.disabled = false;
+            confirmBtn.style.opacity = '1';
+            confirmBtn.style.cursor = 'pointer';
+            confirmBtn.textContent = originalText;
             
-            // For same-day cart (synchronous)
-            if (addSuccess) {
+            // Redirect to login
+            setTimeout(() => {
+                window.location.href = loginUrl;
+            }, 1500);
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('action', 'add');
+        formData.append('product_id', productId);
+        formData.append('quantity', quantity);
+        
+        fetch('../products/availtoday-cart-api.php', {
+            method: 'POST',
+            body: formData,
+            credentials: 'include'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update local cart
+                updateAvailableTodayCartDisplay();
+                
                 // Show success state
                 confirmBtn.innerHTML = '<span class="success-icon">✓</span> Product added!';
                 confirmBtn.style.backgroundColor = '#4CAF50';
@@ -1626,13 +1729,26 @@ function closeProductModal() {
                     confirmBtn.style.backgroundColor = '';
                 }, 800);
             } else {
+                console.error('Failed to add to same-day cart:', data.error);
+                showConfirmation(data.error || 'Failed to add to cart', true);
+                
                 // Reset button on error
                 confirmBtn.disabled = false;
                 confirmBtn.style.opacity = '1';
                 confirmBtn.style.cursor = 'pointer';
                 confirmBtn.textContent = originalText;
             }
-        }, 500); // Small delay to show loading state
+        })
+        .catch(error => {
+            console.error('Error adding to same-day cart:', error);
+            showConfirmation('Error adding to cart', true);
+            
+            // Reset button on error
+            confirmBtn.disabled = false;
+            confirmBtn.style.opacity = '1';
+            confirmBtn.style.cursor = 'pointer';
+            confirmBtn.textContent = originalText;
+        });
     }
 
     // Close modal when clicking outside

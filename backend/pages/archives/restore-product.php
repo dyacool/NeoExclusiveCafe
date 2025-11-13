@@ -3,9 +3,11 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Include SessionManager and check admin authentication
-require_once __DIR__ . "/../../../includes/session-manager.php";
+// Include database connection first (it starts the session)
 require_once __DIR__ . "/../admin-includes/database.php";
+
+// Include SessionManager and check admin authentication
+require_once __DIR__ . '/../../../includes/session-manager.php';
 
 if (!SessionManager::isAdminLoggedIn()) {
     header('Content-Type: application/json');
