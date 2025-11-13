@@ -110,7 +110,7 @@ class PayMongoAPI {
     }
     
     /**
-     * Create a source (for GCash/Maya)
+     * Create a source (for GCash)
      */
     public function createSource($type, $amount, $currency = 'PHP', $redirect_url = '', $metadata = []) {
         $url = $this->api_url . '/sources';
