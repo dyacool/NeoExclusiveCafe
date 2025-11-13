@@ -224,45 +224,53 @@ foreach ($preorder_items as $item) {
                                 }
                                 $item_total = $item['price'] * $item['quantity'];
                             ?>
-                            <tr data-cart-id="<?= $item['cart_id'] ?>" data-status-id="<?= $item['status_id'] ?>">
+                            <tr data-cart-id="<?= $item['cart_id'] ?>" data-status-id="<?= $item['status_id'] ?>" <?= $item['product_stock'] <= 0 ? 'data-soldout="true"' : '' ?>>
                                 <td>
                                     <input type="checkbox" class="item-checkbox preorder-checkbox" 
                                            value="<?= $item['cart_id'] ?>" 
                                            data-total="<?= $item_total ?>"
-                                           data-status-id="<?= $item['status_id'] ?>">
+                                           data-status-id="<?= $item['status_id'] ?>"
+                                           <?= $item['product_stock'] <= 0 ? 'disabled' : '' ?>>
                                 </td>
                                 <td>
                                     <div class="cart-item-image-container" style="position: relative; display: inline-block;">
-                                        <img class="cart-item-image" src="<?= $image ?>" alt="<?= htmlspecialchars($item['product_name']) ?>" >
-                                        <?php if ($item['status_id'] == 1): ?>
-                                            <span class="image-badge badge-pickup">Pick Up Only</span>
-                                        <?php elseif ($item['status_id'] == 2): ?>
-                                            <span class="image-badge badge-delivery">Delivery Only</span>
+                                        <img class="cart-item-image" src="<?= $image ?>" alt="<?= htmlspecialchars($item['product_name']) ?>" 
+                                             style="<?= $item['product_stock'] <= 0 ? 'opacity: 0.6;' : '' ?>">
+                                        <?php if ($item['product_stock'] <= 0): ?>
+                                            <span class="image-badge badge-soldout">SOLD OUT</span>
+                                        <?php else: ?>
+                                            <?php if ($item['status_id'] == 1): ?>
+                                                <span class="image-badge badge-pickup">Pick Up Only</span>
+                                            <?php elseif ($item['status_id'] == 2): ?>
+                                                <span class="image-badge badge-delivery">Delivery Only</span>
+                                            <?php endif; ?>
                                         <?php endif; ?>
                                     </div>
                                 </td>
                                 <td>
                                     <div class="product-info-mobile">
                                         <div class="product-name-mobile"><?= htmlspecialchars($item['product_name']) ?></div>
-                                        <div class="product-controls-mobile">
+                                        <div class="product-controls-mobile" <?= $item['product_stock'] <= 0 ? 'style="opacity: 0.5; pointer-events: none;"' : '' ?>>
                                             <div class="quantity-controls">
-                                                <button class="quantity-btn" onclick="updateQuantityInstant(<?= $item['cart_id'] ?>, <?= $item['quantity'] - 1 ?>, 'preorder', <?= $item['product_stock'] ?>, this)">-</button>
+                                                <button class="quantity-btn" onclick="decreaseQuantity(this, '<?= $item['cart_id'] ?>', 'preorder', <?= $item['product_stock'] ?>)" <?= $item['product_stock'] <= 0 ? 'disabled' : '' ?>>-</button>
                                                 <input type="number" class="quantity-input" value="<?= $item['quantity'] ?>" min="1" max="<?= $item['product_stock'] ?>" 
                                                        onchange="handleQuantityInput(<?= $item['cart_id'] ?>, this.value, 'preorder', <?= $item['product_stock'] ?>, this)"
-                                                       onblur="handleQuantityInput(<?= $item['cart_id'] ?>, this.value, 'preorder', <?= $item['product_stock'] ?>, this)">
-                                                <button class="quantity-btn" onclick="updateQuantityInstant(<?= $item['cart_id'] ?>, <?= $item['quantity'] + 1 ?>, 'preorder', <?= $item['product_stock'] ?>, this)">+</button>
+                                                       onblur="handleQuantityInput(<?= $item['cart_id'] ?>, this.value, 'preorder', <?= $item['product_stock'] ?>, this)"
+                                                       <?= $item['product_stock'] <= 0 ? 'disabled' : '' ?>>
+                                                <button class="quantity-btn" onclick="increaseQuantity(this, '<?= $item['cart_id'] ?>', 'preorder', <?= $item['product_stock'] ?>)" <?= $item['product_stock'] <= 0 ? 'disabled' : '' ?>>+</button>
                                             </div>
-                                            <div class="mobile-price">₱<?= number_format($item['price'] * $item['quantity'], 2) ?></div>
+                                            <div class="mobile-price">₱<?= number_format($item['price'], 2) ?></div>
                                         </div>
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="quantity-controls">
-                                        <button class="quantity-btn" onclick="updateQuantityInstant(<?= $item['cart_id'] ?>, <?= $item['quantity'] - 1 ?>, 'preorder', <?= $item['product_stock'] ?>, this)">-</button>
+                                    <div class="quantity-controls" <?= $item['product_stock'] <= 0 ? 'style="opacity: 0.5; pointer-events: none;"' : '' ?>>
+                                        <button class="quantity-btn" onclick="decreaseQuantity(this, '<?= $item['cart_id'] ?>', 'preorder', <?= $item['product_stock'] ?>)" <?= $item['product_stock'] <= 0 ? 'disabled' : '' ?>>-</button>
                                         <input type="number" class="quantity-input" value="<?= $item['quantity'] ?>" min="1" max="<?= $item['product_stock'] ?>" 
                                                onchange="handleQuantityInput(<?= $item['cart_id'] ?>, this.value, 'preorder', <?= $item['product_stock'] ?>, this)"
-                                               onblur="handleQuantityInput(<?= $item['cart_id'] ?>, this.value, 'preorder', <?= $item['product_stock'] ?>, this)">
-                                        <button class="quantity-btn" onclick="updateQuantityInstant(<?= $item['cart_id'] ?>, <?= $item['quantity'] + 1 ?>, 'preorder', <?= $item['product_stock'] ?>, this)">+</button>
+                                               onblur="handleQuantityInput(<?= $item['cart_id'] ?>, this.value, 'preorder', <?= $item['product_stock'] ?>, this)"
+                                               <?= $item['product_stock'] <= 0 ? 'disabled' : '' ?>>
+                                        <button class="quantity-btn" onclick="increaseQuantity(this, '<?= $item['cart_id'] ?>', 'preorder', <?= $item['product_stock'] ?>)" <?= $item['product_stock'] <= 0 ? 'disabled' : '' ?>>+</button>
                                     </div>
                                 </td>
                                 <td>₱<?= number_format($item['price'], 2) ?></td>
@@ -341,23 +349,23 @@ foreach ($preorder_items as $item) {
                                         <div class="product-name-mobile"><?= htmlspecialchars($item['product_name']) ?></div>
                                         <div class="product-controls-mobile">
                                             <div class="quantity-controls">
-                                                <button class="quantity-btn" onclick="updateQuantityInstant(<?= $item['cart_id'] ?>, <?= $item['quantity'] - 1 ?>, 'sameday', <?= $item['product_stock'] ?>, this)">-</button>
+                                                <button class="quantity-btn" onclick="decreaseQuantity(this, '<?= $item['cart_id'] ?>', 'sameday', <?= $item['product_stock'] ?>)">-</button>
                                                 <input type="number" class="quantity-input" value="<?= $item['quantity'] ?>" min="1" max="<?= $item['product_stock'] ?>" 
                                                        onchange="handleQuantityInput(<?= $item['cart_id'] ?>, this.value, 'sameday', <?= $item['product_stock'] ?>, this)"
                                                        onblur="handleQuantityInput(<?= $item['cart_id'] ?>, this.value, 'sameday', <?= $item['product_stock'] ?>, this)">
-                                                <button class="quantity-btn" onclick="updateQuantityInstant(<?= $item['cart_id'] ?>, <?= $item['quantity'] + 1 ?>, 'sameday', <?= $item['product_stock'] ?>, this)">+</button>
+                                                <button class="quantity-btn" onclick="increaseQuantity(this, '<?= $item['cart_id'] ?>', 'sameday', <?= $item['product_stock'] ?>)">+</button>
                                             </div>
-                                            <div class="mobile-price">₱<?= number_format($item['price'] * $item['quantity'], 2) ?></div>
+                                            <div class="mobile-price">₱<?= number_format($item['price'], 2) ?></div>
                                         </div>
                                     </div>
                                 </td>
                                 <td>
                                     <div class="quantity-controls">
-                                        <button class="quantity-btn" onclick="updateQuantityInstant(<?= $item['cart_id'] ?>, <?= $item['quantity'] - 1 ?>, 'sameday', <?= $item['product_stock'] ?>, this)">-</button>
+                                        <button class="quantity-btn" onclick="decreaseQuantity(this, '<?= $item['cart_id'] ?>', 'sameday', <?= $item['product_stock'] ?>)">-</button>
                                         <input type="number" class="quantity-input" value="<?= $item['quantity'] ?>" min="1" max="<?= $item['product_stock'] ?>" 
                                                onchange="handleQuantityInput(<?= $item['cart_id'] ?>, this.value, 'sameday', <?= $item['product_stock'] ?>, this)"
                                                onblur="handleQuantityInput(<?= $item['cart_id'] ?>, this.value, 'sameday', <?= $item['product_stock'] ?>, this)">
-                                        <button class="quantity-btn" onclick="updateQuantityInstant(<?= $item['cart_id'] ?>, <?= $item['quantity'] + 1 ?>, 'sameday', <?= $item['product_stock'] ?>, this)">+</button>
+                                        <button class="quantity-btn" onclick="increaseQuantity(this, '<?= $item['cart_id'] ?>', 'sameday', <?= $item['product_stock'] ?>)">+</button>
                                     </div>
                                 </td>
                                 <td>₱<?= number_format($item['price'], 2) ?></td>
@@ -456,6 +464,31 @@ let inheritedShippingMethod = null; // For status_id 3 products
 
 // Wait for DOM to be ready before attaching event listeners
 document.addEventListener('DOMContentLoaded', function() {
+    // Restore terms checkbox state from localStorage
+    const termsCheckbox = document.getElementById('termsCheckbox');
+    const termsCheckboxMobile = document.getElementById('termsCheckboxMobile');
+    const savedTermsState = localStorage.getItem('termsAccepted');
+    
+    if (savedTermsState === 'true') {
+        if (termsCheckbox) termsCheckbox.checked = true;
+        if (termsCheckboxMobile) termsCheckboxMobile.checked = true;
+    }
+    
+    // Add change event listeners to save terms state
+    if (termsCheckbox) {
+        termsCheckbox.addEventListener('change', function() {
+            localStorage.setItem('termsAccepted', this.checked ? 'true' : 'false');
+            syncCheckboxes('desktop');
+        });
+    }
+    
+    if (termsCheckboxMobile) {
+        termsCheckboxMobile.addEventListener('change', function() {
+            localStorage.setItem('termsAccepted', this.checked ? 'true' : 'false');
+            syncCheckboxes('mobile');
+        });
+    }
+    
     // Update totals when checkboxes change
     const checkboxes = document.querySelectorAll('.item-checkbox');
     if (checkboxes && checkboxes.length > 0) {
@@ -644,6 +677,124 @@ function handleQuantityInput(cartId, inputValue, type, maxStock, element) {
     updateQuantityInstant(cartId, newQuantity, type, maxStock, element);
 }
 
+// Increase quantity when + button is clicked
+function increaseQuantity(button, cartId, type, maxStock) {
+    // Find the row and get ALL quantity inputs (both mobile and desktop)
+    const row = button.closest('tr');
+    if (!row) return;
+    
+    const quantityInputs = row.querySelectorAll('.quantity-input');
+    if (quantityInputs.length === 0) return;
+    
+    // Get the current quantity from the first input
+    let currentQuantity = parseInt(quantityInputs[0].value) || 1;
+    let newQuantity = currentQuantity + 1;
+    
+    // Check max stock
+    if (newQuantity > maxStock) {
+        alert(`Maximum available quantity is ${maxStock}`);
+        return;
+    }
+    
+    // Update ALL quantity inputs in this row immediately (before server call)
+    quantityInputs.forEach(input => {
+        input.value = newQuantity;
+    });
+    
+    // Update price/total immediately
+    const priceCell = row.cells[4];
+    const totalCell = row.cells[5];
+    
+    if (priceCell && totalCell) {
+        const priceText = priceCell.textContent.replace('₱', '').replace(',', '');
+        const price = parseFloat(priceText);
+        const newTotal = price * newQuantity;
+        totalCell.textContent = '₱' + newTotal.toFixed(2);
+        
+        // Update checkbox data-total
+        const checkbox = row.querySelector('.item-checkbox');
+        if (checkbox) {
+            checkbox.setAttribute('data-total', newTotal);
+            if (checkbox.checked) {
+                updateTotals();
+            }
+        }
+    }
+    
+    // Update server without disabling buttons
+    updateQuantityInstant(cartId, newQuantity, type, maxStock, button);
+}
+
+// Decrease quantity when - button is clicked
+function decreaseQuantity(button, cartId, type, maxStock) {
+    // Find the row and get ALL quantity inputs (both mobile and desktop)
+    const row = button.closest('tr');
+    if (!row) return;
+    
+    const quantityInputs = row.querySelectorAll('.quantity-input');
+    if (quantityInputs.length === 0) return;
+    
+    // Get the current quantity from the first input
+    let currentQuantity = parseInt(quantityInputs[0].value) || 1;
+    let newQuantity = currentQuantity - 1;
+    
+    // If quantity would be less than 1, ask to remove
+    if (newQuantity < 1) {
+        if (confirm('Remove this item from cart?')) {
+            removeItem(cartId, type);
+        }
+        return;
+    }
+    
+    // Update ALL quantity inputs in this row immediately (before server call)
+    quantityInputs.forEach(input => {
+        input.value = newQuantity;
+    });
+    
+    // Update price/total immediately
+    const priceCell = row.cells[4];
+    const totalCell = row.cells[5];
+    
+    if (priceCell && totalCell) {
+        const priceText = priceCell.textContent.replace('₱', '').replace(',', '');
+        const price = parseFloat(priceText);
+        const newTotal = price * newQuantity;
+        totalCell.textContent = '₱' + newTotal.toFixed(2);
+        
+        // Update checkbox data-total
+        const checkbox = row.querySelector('.item-checkbox');
+        if (checkbox) {
+            checkbox.setAttribute('data-total', newTotal);
+            if (checkbox.checked) {
+                updateTotals();
+            }
+        }
+    }
+    
+    // Update server without disabling buttons
+    updateQuantityInstant(cartId, newQuantity, type, maxStock, button);
+}
+
+// Handle manual quantity input
+function handleQuantityInput(cartId, inputValue, type, maxStock, element) {
+    let newQuantity = parseInt(inputValue);
+    
+    // Validate input
+    if (isNaN(newQuantity) || newQuantity < 1) {
+        newQuantity = 1;
+        element.value = 1;
+    }
+    
+    // Cap at max stock silently
+    if (newQuantity > maxStock) {
+        newQuantity = maxStock;
+        element.value = maxStock;
+    }
+    
+    // Update the cart
+    updateQuantityInstant(cartId, newQuantity, type, maxStock, element);
+}
+
 // New instant update function without page refresh
 function updateQuantityInstant(cartId, newQuantity, type, maxStock, element) {
     // Validate quantity
@@ -659,13 +810,9 @@ function updateQuantityInstant(cartId, newQuantity, type, maxStock, element) {
         return;
     }
     
-    // Disable buttons during update
+    // Don't disable buttons - allow rapid clicks to queue
     const row = element.closest('tr');
-    const buttons = row.querySelectorAll('.quantity-btn');
-    const quantityInput = row.querySelector('.quantity-input');
-    
-    buttons.forEach(btn => btn.disabled = true);
-    if (quantityInput) quantityInput.disabled = true;
+    if (!row) return;
     
     const url = type === 'preorder' ? 'update-cart.php' : 'update-cart-quantity-sameday.php';
     
@@ -677,42 +824,22 @@ function updateQuantityInstant(cartId, newQuantity, type, maxStock, element) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Update the quantity input and total without page refresh
-            if (quantityInput) quantityInput.value = newQuantity;
-            
-            // Update the total price for this row
-            const priceCell = row.cells[4]; // Price column
-            const totalCell = row.cells[5]; // Total column
-            const priceText = priceCell.textContent.replace('₱', '').replace(',', '');
-            const price = parseFloat(priceText);
-            const newTotal = price * newQuantity;
-            totalCell.textContent = '₱' + newTotal.toFixed(2);
-            
-            // Update checkbox data-total if checked
-            const checkbox = row.querySelector('.item-checkbox');
-            if (checkbox) {
-                checkbox.setAttribute('data-total', newTotal);
-                if (checkbox.checked) {
-                    updateTotals(); // Update cart totals
-                }
-            }
-            
-            // Re-enable buttons and input
-            buttons.forEach(btn => btn.disabled = false);
-            if (quantityInput) quantityInput.disabled = false;
+            // Quantity is already updated in the UI by increaseQuantity/decreaseQuantity
+            // Just validate it matches server response
         } else {
+            // Revert to previous quantity on error
+            const quantityInputs = row.querySelectorAll('.quantity-input');
+            if (data.current_quantity) {
+                quantityInputs.forEach(input => {
+                    input.value = data.current_quantity;
+                });
+            }
             alert(data.message || 'Failed to update quantity');
-            // Re-enable buttons and input
-            buttons.forEach(btn => btn.disabled = false);
-            if (quantityInput) quantityInput.disabled = false;
         }
     })
     .catch(error => {
         console.error('Error:', error);
         alert('Failed to update quantity');
-        // Re-enable buttons and input
-        buttons.forEach(btn => btn.disabled = false);
-        if (quantityInput) quantityInput.disabled = false;
     });
 }
 
@@ -826,21 +953,6 @@ function syncCheckboxes(source) {
     
     updateCheckoutButton();
 }
-
-// Add terms checkbox listeners
-document.getElementById('termsCheckbox').addEventListener('change', function() {
-    syncCheckboxes('desktop');
-});
-
-// Add mobile checkbox listener if it exists
-setTimeout(() => {
-    const mobileCheckbox = document.getElementById('termsCheckboxMobile');
-    if (mobileCheckbox) {
-        mobileCheckbox.addEventListener('change', function() {
-            syncCheckboxes('mobile');
-        });
-    }
-}, 100);
 
 async function proceedToCheckout() {
     console.log('proceedToCheckout called, selectedItems:', selectedItems);
