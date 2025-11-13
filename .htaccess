@@ -24,6 +24,76 @@ RewriteRule ^$ /index.php [L]
 RewriteCond %{HTTP_HOST} ^(localhost|neocafe\.cafe|neocafe\.local)(:[0-9]+)?$ [NC]
 RewriteRule ^$ /index.php [L]
 
+# --- Clean URL Routing ---
+# Purpose: Transform user-friendly URLs into internal file paths while hiding technical details
+# Example: /user-dashboard → /frontend/pages/home/user-dashboard.php
+#
+# RULE EVALUATION ORDER (most specific to most general):
+# 1. Static file/directory bypass (if file exists, serve it directly)
+# 2. API endpoint exclusion (preserve explicit API paths)
+# 3. Special case mappings (non-standard directory locations)
+# 4. Nested path pattern (two-level URLs like /products/view)
+# 5. Primary page pattern (pages in their own directories)
+# 6. Fallback flat pattern (pages directly in /frontend/pages/)
+#
+# IMPORTANT: This section must come after domain routing to preserve subdomain functionality
+# The [L] flag stops processing once a rule matches, so order matters!
+
+# STEP 1: Skip rewriting if the requested file or directory actually exists
+# This ensures static assets (CSS, JS, images) are served directly without rewriting
+# -f checks if file exists, -d checks if directory exists
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# STEP 2: Exclude API endpoints from clean URL rewriting
+# API paths should remain explicit for clarity and to avoid routing conflicts
+# This prevents /frontend/api/get-products.php from being rewritten
+RewriteCond %{REQUEST_URI} ^/frontend/api/ [OR]
+RewriteCond %{REQUEST_URI} ^/backend/api/
+RewriteRule ^ - [L]
+
+# STEP 3: Special case mappings for pages with non-standard directory locations
+# Use this section for pages where the URL name doesn't match the directory structure
+# Example: /user-dashboard lives in /frontend/pages/home/ not /frontend/pages/user-dashboard/
+# Add more special cases here as needed
+RewriteRule ^user-dashboard$ /frontend/pages/home/user-dashboard.php [L]
+
+# STEP 4: Nested path pattern for two-level URLs
+# Pattern: /category/page → /frontend/pages/category/page.php
+# Example: /products/view → /frontend/pages/products/view.php
+# Example: /account/settings → /frontend/pages/account/settings.php
+# Regex: [a-zA-Z0-9-]+ matches letters, numbers, and hyphens (prevents security issues)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{DOCUMENT_ROOT}/frontend/pages/$1/$2.php -f
+RewriteRule ^([a-zA-Z0-9-]+)/([a-zA-Z0-9-]+)$ /frontend/pages/$1/$2.php [L]
+
+# STEP 5: Primary page pattern for pages in their own directories
+# Pattern: /page-name → /frontend/pages/page-name/page-name.php
+# Example: /bulk-form → /frontend/pages/bulk/bulk-form.php
+# This is the most common pattern for pages organized in their own directories
+# The file existence check ensures we only rewrite if the target file actually exists
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{DOCUMENT_ROOT}/frontend/pages/$1/$1.php -f
+RewriteRule ^([a-zA-Z0-9-]+)$ /frontend/pages/$1/$1.php [L]
+
+# STEP 6: Fallback flat page pattern for pages without subdirectories
+# Pattern: /page-name → /frontend/pages/page-name.php
+# This handles pages stored directly in the pages directory
+# Only applies if the nested directory pattern above didn't match
+# This is the last resort before returning a 404
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{DOCUMENT_ROOT}/frontend/pages/$1.php -f
+RewriteRule ^([a-zA-Z0-9-]+)$ /frontend/pages/$1.php [L]
+
+# EXTENDING THE PATTERNS:
+# - To allow underscores in URLs, change [a-zA-Z0-9-]+ to [a-zA-Z0-9_-]+
+# - To add three-level URLs, add a rule like: ^([a-zA-Z0-9-]+)/([a-zA-Z0-9-]+)/([a-zA-Z0-9-]+)$
+# - To redirect old URLs to new clean URLs, add 301 redirects before these rules
+
 # --- PHP Upload Limits ---
 <IfModule mod_php7.c>
     php_value upload_max_filesize 10M
