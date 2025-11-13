@@ -110,6 +110,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
     require_once __DIR__ . "/../admin-includes/settings-helper.php";
     
+    // DEBUG: Check if sdo_quantities is in POST
+    echo "<script>console.log('🔍 PHP POST DATA CHECK:');</script>";
+    echo "<script>console.log('sdo_quantities in POST:', " . (isset($_POST['sdo_quantities']) ? 'true' : 'false') . ");</script>";
+    if (isset($_POST['sdo_quantities'])) {
+        echo "<script>console.log('sdo_quantities value:', '" . addslashes($_POST['sdo_quantities']) . "');</script>";
+    }
+    
     $sku = generateSKU($conn);
     $name = $_POST['name'];
     $description = $_POST['description'];
@@ -294,6 +301,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $regular_date_stmt->close();
         }
 
+        // Handle SDO quantities (quantity per day for same-day orders)
+        if ($sameDayChecked && isset($_POST['sdo_quantities']) && !empty($_POST['sdo_quantities'])) {
+            $sdo_quantities_json = $_POST['sdo_quantities'];
+            $sdo_quantities = json_decode($sdo_quantities_json, true);
+            
+            if (json_last_error() === JSON_ERROR_NONE && is_array($sdo_quantities)) {
+                // Insert quantities
+                if (!empty($sdo_quantities)) {
+                    $insert_qty_stmt = $conn->prepare(
+                        "INSERT INTO quantity_per_day_sdo (product_id, date, quantity) VALUES (?, ?, ?)"
+                    );
+                    
+                    $inserted_count = 0;
+                    foreach ($sdo_quantities as $date => $quantity) {
+                        $qty = intval($quantity);
+                        $insert_qty_stmt->bind_param("isi", $product_id, $date, $qty);
+                        if ($insert_qty_stmt->execute()) {
+                            $inserted_count++;
+                        }
+                    }
+                    $insert_qty_stmt->close();
+                }
+            }
+        }
+
         // Set success message in session
         $_SESSION['success_message'] = "Product has been added successfully!";
         
@@ -326,6 +358,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="components/date-calendar.js" defer></script>
     <script src="/backend/pages/products/js/product-image-ajax.js" defer></script>
+    <script src="/backend/pages/products/sdo-quantity-manager.js" defer></script>
     <style>
         .success-popup {
             display: none;
@@ -362,6 +395,49 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 opacity: 0;
                 transform: translate(-50%, -20px);
             }
+        }
+        
+        /* SDO Quantity Styles */
+        .sdo-quantity-list {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .sdo-quantity-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .sdo-quantity-item:last-child {
+            border-bottom: none;
+        }
+        
+        .sdo-quantity-item label {
+            font-size: 13px;
+            color: #374151;
+            font-weight: 500;
+        }
+        
+        .sdo-quantity-input {
+            width: 80px;
+            padding: 6px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 13px;
+            text-align: center;
+        }
+        
+        .sdo-quantity-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
     </style>
 </head>
@@ -403,6 +479,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <input type="hidden" id="primary_image_public_id" name="primary_image_public_id" value="">
             <input type="hidden" id="additional_image_urls" name="additional_image_urls" value="">
             <input type="hidden" id="additional_image_public_ids" name="additional_image_public_ids" value="">
+            <input type="hidden" id="sdo_quantities" name="sdo_quantities" value="">
             
             <div class="container">
                 <div class="grp1">
@@ -524,14 +601,34 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <!-- Calendar for Same Day Order Products -->
                     <div id="todaysProductCalendarContainer" style="display: none;">
                         <label>Select dates for same day order:</label>
-                        <div id="todaysProductCalendar"></div>
+                        <div style="display: flex; gap: 20px; align-items: flex-start;">
+                            <div style="flex: 0 0 auto;">
+                                <div id="todaysProductCalendar"></div>
+                            </div>
+                            <div style="flex: 1; min-width: 250px;">
+                                <!-- Quantity per day manager -->
+                                <div id="sdoQuantityContainerToday">
+                                    <p style="color: #6b7280; font-size: 13px;">Select dates to set quantities</p>
+                                </div>
+                            </div>
+                        </div>
                         <input type="hidden" id="todaysProductDates" name="todays_product_dates">
                     </div>
 
                     <!-- Calendar for regular products that are also available today -->
                     <div id="availableTodayCalendarContainer" style="display: none;">
                         <label>Select dates for same day order:</label>
-                        <div id="availableTodayCalendar"></div>
+                        <div style="display: flex; gap: 20px; align-items: flex-start;">
+                            <div style="flex: 0 0 auto;">
+                                <div id="availableTodayCalendar"></div>
+                            </div>
+                            <div style="flex: 1; min-width: 250px;">
+                                <!-- Quantity per day manager for regular products with SDO -->
+                                <div id="sdoQuantityContainerRegular">
+                                    <p style="color: #6b7280; font-size: 13px;">Select dates to set quantities</p>
+                                </div>
+                            </div>
+                        </div>
                         <input type="hidden" id="availableTodayDates" name="available_today_dates">
                     </div>
 
@@ -564,6 +661,40 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <button class="discardBtn" type="button" onclick="if(confirm('Are you sure you want to discard changes?')) { window.location.href='product-list.php'; }">Discard</button>
                         <button class="submitBtn" type="submit">Add Product</button>
                     </div>
+                    
+                    <!-- Debug button -->
+                    <button type="button" onclick="
+                        console.clear();
+                        console.log('='.repeat(50));
+                        console.log('🔍 SDO QUANTITIES DEBUG INFO');
+                        console.log('='.repeat(50));
+                        console.log('📊 window.sdoQuantities:', window.sdoQuantities);
+                        console.log('📊 Total dates:', Object.keys(window.sdoQuantities || {}).length);
+                        
+                        const inputs = document.querySelectorAll('.sdo-quantity-input[data-date]');
+                        console.log('📋 Quantity inputs on page:', inputs.length);
+                        
+                        // Collect from inputs (like form submission does)
+                        const collected = {};
+                        inputs.forEach(input => {
+                            const date = input.getAttribute('data-date');
+                            const qty = parseInt(input.value) || 0;
+                            collected[date] = qty;
+                            console.log('  Input:', date, '=', qty);
+                        });
+                        console.log('📦 Collected from inputs:', collected);
+                        
+                        // Update hidden field
+                        const hiddenField = document.getElementById('sdo_quantities');
+                        if (hiddenField) {
+                            hiddenField.value = JSON.stringify(collected);
+                            console.log('✅ Updated hidden field to:', hiddenField.value);
+                        }
+                        
+                        console.log('📝 Hidden field value:', document.getElementById('sdo_quantities')?.value || 'EMPTY');
+                        console.log('='.repeat(50));
+                        alert('✅ Debug info logged to console (F12)\\nHidden field has been updated!');
+                    " style="margin-top: 10px; padding: 8px 16px; background: #6b7280; color: white; border: none; border-radius: 4px; cursor: pointer;">🔍 Debug Quantities</button>
                 </div>
             </div>
         </form>
@@ -720,9 +851,89 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         }
 
+        // Inline quantity display function
+        function updateQuantityDisplayInline() {
+            console.log('📅 updateQuantityDisplayInline called');
+            
+            const todaysProductDates = document.getElementById('todaysProductDates');
+            const availableTodayDates = document.getElementById('availableTodayDates');
+            
+            let selectedDates = [];
+            let container = null;
+            let calendarType = '';
+            
+            if (todaysProductDates && todaysProductDates.value) {
+                selectedDates = todaysProductDates.value.split(',').filter(d => d.trim());
+                container = document.getElementById('sdoQuantityContainerToday');
+                calendarType = 'Today\'s Products';
+                console.log('📍 Using Today\'s Products calendar');
+            } else if (availableTodayDates && availableTodayDates.value) {
+                selectedDates = availableTodayDates.value.split(',').filter(d => d.trim());
+                container = document.getElementById('sdoQuantityContainerRegular');
+                calendarType = 'Regular Products (Available Today)';
+                console.log('📍 Using Regular Products calendar');
+            }
+            
+            if (!container) {
+                console.warn('⚠️ No container found for quantity display');
+                return;
+            }
+            
+            console.log(`📊 Selected dates (${selectedDates.length}):`, selectedDates);
+            
+            if (selectedDates.length === 0) {
+                container.innerHTML = '<p style="color: #6b7280; font-size: 13px;">Select dates to set quantities</p>';
+                return;
+            }
+            
+            selectedDates.sort();
+            
+            let html = '<div class="sdo-quantity-list">';
+            html += '<h4 style="margin-bottom: 10px; font-size: 14px; color: #374151;">Set Quantity Per Day:</h4>';
+            
+            selectedDates.forEach(date => {
+                const dateObj = new Date(date + 'T00:00:00');
+                const formattedDate = dateObj.toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    year: 'numeric' 
+                });
+                
+                const quantity = (window.sdoQuantities && window.sdoQuantities[date]) || 0;
+                
+                html += `
+                    <div class="sdo-quantity-item">
+                        <label for="qty_${date}">${formattedDate}</label>
+                        <input 
+                            type="number" 
+                            id="qty_${date}" 
+                            data-date="${date}"
+                            value="${quantity}" 
+                            min="0" 
+                            step="1"
+                            class="sdo-quantity-input"
+                            onchange="if(!window.sdoQuantities) window.sdoQuantities = {}; window.sdoQuantities['${date}'] = parseInt(this.value) || 0; console.log('✏️ Quantity updated:', '${date}', '=', this.value);"
+                        />
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+            console.log('✅ Quantity inputs created for', selectedDates.length, 'dates');
+        }
+
         function initializeCalendars() {
             const preOrderChecked = document.getElementById('preOrderCheckbox').checked;
             const sameDayChecked = document.getElementById('sameDayCheckbox').checked;
+            
+            console.log('🚀 Initializing calendars - PreOrder:', preOrderChecked, 'SameDay:', sameDayChecked);
+            
+            // Initialize sdoQuantities object
+            if (!window.sdoQuantities) {
+                window.sdoQuantities = {};
+                console.log('💾 Initialized window.sdoQuantities');
+            }
             
             // Add a small delay to ensure DOM is ready
             setTimeout(() => {
@@ -730,40 +941,46 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     if (sameDayChecked) {
                         if (preOrderChecked) {
                             // Both checked: initialize availableTodayCalendar
+                            console.log('📅 Initializing availableTodayCalendar (Both Pre-Order & Same-Day)');
                             if (typeof DateCalendar !== 'undefined') {
-                                // Destroy existing calendar if it exists
                                 if (window.availableTodayCalendar && typeof window.availableTodayCalendar.destroy === 'function') {
                                     window.availableTodayCalendar.destroy();
                                 }
                                 window.availableTodayCalendar = new DateCalendar('availableTodayCalendar', {
                                     onSelectionChange: function(selectedDates) {
+                                        console.log('📅 availableTodayCalendar dates changed:', selectedDates);
                                         const hiddenInput = document.getElementById('availableTodayDates');
                                         if (hiddenInput) {
                                             hiddenInput.value = selectedDates.join(',');
                                         }
+                                        updateQuantityDisplayInline();
                                     }
                                 });
+                                console.log('✅ availableTodayCalendar initialized');
                             }
                         } else {
                             // Only same-day: initialize todaysProductCalendar
+                            console.log('📅 Initializing todaysProductCalendar (Same-Day Only)');
                             if (typeof DateCalendar !== 'undefined') {
-                                // Destroy existing calendar if it exists
                                 if (window.todaysProductCalendar && typeof window.todaysProductCalendar.destroy === 'function') {
                                     window.todaysProductCalendar.destroy();
                                 }
                                 window.todaysProductCalendar = new DateCalendar('todaysProductCalendar', {
                                     onSelectionChange: function(selectedDates) {
+                                        console.log('📅 todaysProductCalendar dates changed:', selectedDates);
                                         const hiddenInput = document.getElementById('todaysProductDates');
                                         if (hiddenInput) {
                                             hiddenInput.value = selectedDates.join(',');
                                         }
+                                        updateQuantityDisplayInline();
                                     }
                                 });
+                                console.log('✅ todaysProductCalendar initialized');
                             }
                         }
                     }
                 } catch (error) {
-                    console.error('Error initializing calendar:', error);
+                    console.error('❌ Error initializing calendar:', error);
                 }
             }, 100);
         }
@@ -920,6 +1137,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Initialize quantity field state on page load
         updateQuantityFieldState();
         
+        // Initialize SDO quantities object
+        if (!window.sdoQuantities) {
+            window.sdoQuantities = {};
+            console.log('Initialized window.sdoQuantities for add-product');
+        }
+        
         // Add event listeners to checkboxes
         const preOrderCheckbox = document.getElementById('preOrderCheckbox');
         if (preOrderCheckbox) {
@@ -933,8 +1156,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // Image upload handling is now managed by product-image-ajax.js
         // Old inline event listeners removed to prevent conflicts with AJAX upload
-
-        function validateForm() {
+    });
+    
+    // IMPORTANT: validateForm must be global for onsubmit to work
+    function validateForm() {
             const preOrderChecked = document.getElementById('preOrderCheckbox').checked;
             const sameDayChecked = document.getElementById('sameDayCheckbox').checked;
             const todaysProductDates = document.getElementById('todaysProductDates');
@@ -968,10 +1193,77 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         return false;
                     }
                 }
+                
+                // Collect SDO quantities from input fields
+                console.log('📦 Collecting SDO quantities for submission...');
+                const sdoQuantitiesData = {};
+                const sdoInputs = document.querySelectorAll('.sdo-quantity-input[data-date]');
+                
+                console.log(`🔍 Found ${sdoInputs.length} quantity input fields`);
+                
+                // Debug: Log each input element
+                sdoInputs.forEach((input, index) => {
+                    console.log(`Input ${index + 1}:`, {
+                        element: input,
+                        'data-date': input.getAttribute('data-date'),
+                        value: input.value,
+                        id: input.id
+                    });
+                });
+                
+                sdoInputs.forEach(input => {
+                    const date = input.getAttribute('data-date');
+                    const quantity = parseInt(input.value) || 0;
+                    console.log(`Processing: date="${date}", value="${input.value}", parsed=${quantity}`);
+                    
+                    // Collect ALL quantities, even if zero (we'll filter later if needed)
+                    sdoQuantitiesData[date] = quantity;
+                    
+                    if (quantity > 0) {
+                        console.log(`  ✓ ${date}: ${quantity}`);
+                    } else {
+                        console.log(`  ⊘ ${date}: ${quantity} (zero or invalid)`);
+                    }
+                });
+                
+                console.log('📊 Final SDO quantities:', sdoQuantitiesData);
+                console.log('📊 Total dates with quantities:', Object.keys(sdoQuantitiesData).length);
+                
+                const sdoQuantitiesInput = document.getElementById('sdo_quantities');
+                if (sdoQuantitiesInput) {
+                    const jsonString = JSON.stringify(sdoQuantitiesData);
+                    sdoQuantitiesInput.value = jsonString;
+                    console.log('✅ Hidden field updated with JSON:', jsonString);
+                    console.log('✅ Hidden field element:', sdoQuantitiesInput);
+                } else {
+                    console.error('❌ Hidden field #sdo_quantities not found!');
+                }
             }
 
+            // Final validation check
+            console.log('✅ Form validation passed');
             return true;
         }
+        
+        // Add warning if submitting with zero quantities
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const sameDayChecked = document.getElementById('sameDayCheckbox').checked;
+            if (sameDayChecked) {
+                const sdoInputs = document.querySelectorAll('.sdo-quantity-input[data-date]');
+                let hasNonZero = false;
+                sdoInputs.forEach(input => {
+                    if (parseInt(input.value) > 0) hasNonZero = true;
+                });
+                
+                if (!hasNonZero && sdoInputs.length > 0) {
+                    console.warn('⚠️ WARNING: All quantities are zero!');
+                    if (!confirm('All quantities are set to 0. Continue anyway?')) {
+                        e.preventDefault();
+                        return false;
+                    }
+                }
+            }
+        });
     });
 </script>
 </body>

@@ -325,10 +325,6 @@ try {
             // Don't fail the payment if database backup fails
         }
         
-        // CRITICAL: Force session write before redirect
-        session_write_close();
-        error_log("✓ Session closed and saved before redirect");
-        
         // For card payments, we need to redirect to PayMongo's hosted payment page
         // Get the checkout URL from the payment intent
         $checkout_url = $result['data']['attributes']['next_action']['redirect']['url'] ?? null;

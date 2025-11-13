@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test SDO Calendar</title>
+    <script src="components/date-calendar.js"></script>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .container { display: flex; gap: 20px; }
+        .calendar-side { flex: 0 0 auto; }
+        .quantity-side { flex: 1; min-width: 250px; }
+        .sdo-quantity-list {
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
+        .sdo-quantity-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .sdo-quantity-input {
+            width: 80px;
+            padding: 6px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test SDO Calendar & Quantities</h1>
+    
+    <div class="container">
+        <div class="calendar-side">
+            <div id="testCalendar"></div>
+        </div>
+        <div class="quantity-side">
+            <div id="quantityContainer">
+                <p style="color: #999;">Select dates to set quantities</p>
+            </div>
+        </div>
+    </div>
+    
+    <hr>
+    <h3>Debug Info:</h3>
+    <div id="debug"></div>
+    
+    <button onclick="showQuantities()">Show Quantities</button>
+    
+    <script>
+        window.sdoQuantities = {};
+        
+        function updateQuantityDisplay() {
+            const hiddenInput = document.getElementById('selectedDates');
+            if (!hiddenInput || !hiddenInput.value) {
+                document.getElementById('quantityContainer').innerHTML = '<p style="color: #999;">Select dates to set quantities</p>';
+                return;
+            }
+            
+            const selectedDates = hiddenInput.value.split(',').filter(d => d.trim());
+            selectedDates.sort();
+            
+            let html = '<div class="sdo-quantity-list">';
+            html += '<h4>Set Quantity Per Day:</h4>';
+            
+            selectedDates.forEach(date => {
+                const dateObj = new Date(date + 'T00:00:00');
+                const formattedDate = dateObj.toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    year: 'numeric' 
+                });
+                
+                const quantity = window.sdoQuantities[date] || 0;
+                
+                html += `
+                    <div class="sdo-quantity-item">
+                        <label>${formattedDate}</label>
+                        <input 
+                            type="number" 
+                            data-date="${date}"
+                            value="${quantity}" 
+                            min="0" 
+                            class="sdo-quantity-input"
+                            onchange="window.sdoQuantities['${date}'] = parseInt(this.value) || 0; console.log('Updated:', window.sdoQuantities);"
+                        />
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            document.getElementById('quantityContainer').innerHTML = html;
+        }
+        
+        function showQuantities() {
+            document.getElementById('debug').innerHTML = '<pre>' + JSON.stringify(window.sdoQuantities, null, 2) + '</pre>';
+        }
+        
+        // Initialize calendar
+        const calendar = new DateCalendar('testCalendar', {
+            onSelectionChange: function(selectedDates) {
+                console.log('Dates selected:', selectedDates);
+                document.getElementById('selectedDates').value = selectedDates.join(',');
+                updateQuantityDisplay();
+            }
+        });
+    </script>
+    
+    <input type="hidden" id="selectedDates" value="">
+</body>
+</html>

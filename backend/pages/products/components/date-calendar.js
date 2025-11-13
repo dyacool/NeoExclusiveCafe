@@ -133,9 +133,14 @@ class DateCalendar {
             if (isSelected) classes += ' selected';
             if (isDisabled) classes += ' disabled';
             
+            // Get quantity for this date if it exists
+            const dateStr = this.formatDate(currentDay);
+            const quantity = (window.sdoQuantities && window.sdoQuantities[dateStr]) || '';
+            
             daysHtml += `
                 <div class="${classes}" 
-                     data-date="${this.formatDate(currentDay)}"
+                     data-date="${dateStr}"
+                     data-quantity="${quantity ? 'Qty: ' + quantity : ''}"
                      ${!isDisabled ? `onclick="window.calendarInstances['${this.container.id}'].toggleDate(this)"` : ''}>
                     ${currentDay.getDate()}
                 </div>
@@ -177,6 +182,12 @@ class DateCalendar {
             return;
         }
         
+        // Check if we should open quantity modal (for SDO products)
+        if (this.options.enableQuantityModal) {
+            this.openQuantityModal(date, dayElement);
+            return;
+        }
+        
         if (this.selectedDates.has(date)) {
             this.selectedDates.delete(date);
             dayElement.classList.remove('selected');
@@ -193,6 +204,114 @@ class DateCalendar {
         
         this.updateSelectedSummary();
         this.onDateSelectionChange();
+    }
+    
+    openQuantityModal(date, dayElement) {
+        const dateObj = new Date(date + 'T00:00:00');
+        const formattedDate = dateObj.toLocaleDateString('en-US', { 
+            month: 'long', 
+            day: 'numeric', 
+            year: 'numeric' 
+        });
+        
+        // Get current quantity for this date
+        const currentQuantity = (window.sdoQuantities && window.sdoQuantities[date]) || 0;
+        const isSelected = this.selectedDates.has(date);
+        
+        // Create modal HTML
+        const modalHtml = `
+            <div class="sdo-quantity-modal-overlay" id="sdoQuantityModalOverlay">
+                <div class="sdo-quantity-modal">
+                    <div class="sdo-quantity-modal-header">
+                        <h3>Set Quantity for ${formattedDate}</h3>
+                        <button type="button" class="sdo-modal-close" onclick="window.calendarInstances['${this.container.id}'].closeQuantityModal()">&times;</button>
+                    </div>
+                    <div class="sdo-quantity-modal-body">
+                        <label for="sdoModalQuantityInput">Quantity Available:</label>
+                        <input 
+                            type="number" 
+                            id="sdoModalQuantityInput" 
+                            value="${currentQuantity}" 
+                            min="0" 
+                            step="1"
+                            placeholder="Enter quantity"
+                            autofocus
+                        />
+                        <p class="sdo-modal-hint">Set quantity to 0 to remove this date</p>
+                    </div>
+                    <div class="sdo-quantity-modal-footer">
+                        <button type="button" class="btn-modal-cancel" onclick="window.calendarInstances['${this.container.id}'].closeQuantityModal()">Cancel</button>
+                        <button type="button" class="btn-modal-save" onclick="window.calendarInstances['${this.container.id}'].saveQuantityFromModal('${date}')">Save</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Add modal to body
+        const modalContainer = document.createElement('div');
+        modalContainer.innerHTML = modalHtml;
+        document.body.appendChild(modalContainer.firstElementChild);
+        
+        // Focus on input
+        setTimeout(() => {
+            const input = document.getElementById('sdoModalQuantityInput');
+            if (input) {
+                input.focus();
+                input.select();
+            }
+        }, 100);
+        
+        // Handle Enter key
+        document.getElementById('sdoModalQuantityInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                this.saveQuantityFromModal(date);
+            }
+        });
+    }
+    
+    saveQuantityFromModal(date) {
+        const input = document.getElementById('sdoModalQuantityInput');
+        const quantity = parseInt(input.value) || 0;
+        
+        console.log('Saving quantity for date:', date, 'quantity:', quantity);
+        
+        // Initialize sdoQuantities if not exists
+        if (!window.sdoQuantities) {
+            window.sdoQuantities = {};
+            console.log('Initialized window.sdoQuantities');
+        }
+        
+        if (quantity > 0) {
+            // Add/update date with quantity
+            window.sdoQuantities[date] = quantity;
+            console.log('Added/updated quantity:', date, '=', quantity);
+            if (!this.selectedDates.has(date)) {
+                this.selectedDates.add(date);
+            }
+        } else {
+            // Remove date if quantity is 0
+            delete window.sdoQuantities[date];
+            this.selectedDates.delete(date);
+            console.log('Removed date:', date);
+        }
+        
+        console.log('Current sdoQuantities:', window.sdoQuantities);
+        
+        // Update calendar display
+        this.render();
+        this.bindEvents();
+        this.updateSelectedSummary();
+        this.onDateSelectionChange();
+        
+        // Close modal
+        this.closeQuantityModal();
+    }
+    
+    closeQuantityModal() {
+        const modal = document.getElementById('sdoQuantityModalOverlay');
+        if (modal) {
+            modal.remove();
+        }
     }
     
     previousMonth() {
@@ -387,6 +506,18 @@ class DateCalendar {
                 background: #4caf50 !important;
                 color: white;
                 font-weight: 600;
+                position: relative;
+            }
+            
+            .calendar-day.selected::after {
+                content: attr(data-quantity);
+                position: absolute;
+                bottom: 2px;
+                right: 2px;
+                font-size: 9px;
+                background: rgba(0, 0, 0, 0.3);
+                padding: 1px 3px;
+                border-radius: 2px;
             }
             
             .calendar-day.disabled {
@@ -422,6 +553,153 @@ class DateCalendar {
             .clear-dates-btn:hover {
                 background: #f5f5f5;
                 color: #333;
+            }
+            
+            /* SDO Quantity Modal Styles */
+            .sdo-quantity-modal-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                animation: fadeIn 0.2s ease-out;
+            }
+            
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            
+            .sdo-quantity-modal {
+                background: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+                width: 90%;
+                max-width: 400px;
+                animation: slideUp 0.3s ease-out;
+            }
+            
+            @keyframes slideUp {
+                from {
+                    transform: translateY(20px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateY(0);
+                    opacity: 1;
+                }
+            }
+            
+            .sdo-quantity-modal-header {
+                padding: 20px;
+                border-bottom: 1px solid #e5e7eb;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            .sdo-quantity-modal-header h3 {
+                margin: 0;
+                font-size: 18px;
+                font-weight: 600;
+                color: #111827;
+            }
+            
+            .sdo-modal-close {
+                background: none;
+                border: none;
+                font-size: 28px;
+                color: #6b7280;
+                cursor: pointer;
+                padding: 0;
+                width: 32px;
+                height: 32px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 4px;
+                transition: all 0.2s;
+            }
+            
+            .sdo-modal-close:hover {
+                background: #f3f4f6;
+                color: #111827;
+            }
+            
+            .sdo-quantity-modal-body {
+                padding: 24px 20px;
+            }
+            
+            .sdo-quantity-modal-body label {
+                display: block;
+                font-size: 14px;
+                font-weight: 500;
+                color: #374151;
+                margin-bottom: 8px;
+            }
+            
+            .sdo-quantity-modal-body input {
+                width: 100%;
+                padding: 10px 12px;
+                border: 1px solid #d1d5db;
+                border-radius: 6px;
+                font-size: 16px;
+                transition: all 0.2s;
+                box-sizing: border-box;
+            }
+            
+            .sdo-quantity-modal-body input:focus {
+                outline: none;
+                border-color: #3b82f6;
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            }
+            
+            .sdo-modal-hint {
+                margin-top: 8px;
+                font-size: 12px;
+                color: #6b7280;
+            }
+            
+            .sdo-quantity-modal-footer {
+                padding: 16px 20px;
+                border-top: 1px solid #e5e7eb;
+                display: flex;
+                justify-content: flex-end;
+                gap: 12px;
+            }
+            
+            .btn-modal-cancel,
+            .btn-modal-save {
+                padding: 8px 16px;
+                border-radius: 6px;
+                font-size: 14px;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.2s;
+                border: none;
+            }
+            
+            .btn-modal-cancel {
+                background: #f3f4f6;
+                color: #374151;
+            }
+            
+            .btn-modal-cancel:hover {
+                background: #e5e7eb;
+            }
+            
+            .btn-modal-save {
+                background: #3b82f6;
+                color: white;
+            }
+            
+            .btn-modal-save:hover {
+                background: #2563eb;
             }
         `;
         document.head.appendChild(style);
