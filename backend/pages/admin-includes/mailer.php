@@ -749,8 +749,9 @@ function createBulkOrderEmailBody($bulkOrder) {
             </div>';
     }
     
-    // CTA Button
-    $bulkOrderUrl = $baseUrl . '/backend/pages/bulks/bulk-order.php?id=' . $bulkOrder['id'];
+    // CTA Button - always use admin subdomain
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+    $bulkOrderUrl = $protocol . 'admin.neocafe.shop/backend/pages/bulks/bulk-order.php?id=' . $bulkOrder['id'];
     $html .= '
             <div class="section" style="text-align: center;">
                 <a href="' . htmlspecialchars($bulkOrderUrl) . '" class="cta-button">
@@ -1235,20 +1236,39 @@ function createPHPMailer() {
     }
 }
 
-// Function to get admin email from configuration
+// Function to get admin email from database
 function getAdminEmail() {
     try {
-        error_log("Getting admin email from configuration...");
+        error_log("Getting admin email from database...");
         
-        // Get admin email from configuration file
+        // Get database connection
+        global $conn;
+        if (!isset($conn)) {
+            require_once __DIR__ . '/database.php';
+        }
+        
+        // Query to get email of user where is_admin = 1
+        $admin_query = "SELECT email FROM users WHERE is_admin = 1 LIMIT 1";
+        $admin_result = mysqli_query($conn, $admin_query);
+        
+        if ($admin_result && mysqli_num_rows($admin_result) > 0) {
+            $admin_row = mysqli_fetch_assoc($admin_result);
+            $admin_email = $admin_row['email'];
+            error_log("Admin email found in database: " . $admin_email);
+            return $admin_email;
+        }
+        
+        error_log("No admin user found in database, checking config fallback");
+        
+        // Fallback to config file
         $config = getEmailConfig();
         if (isset($config['admin_email']) && !empty($config['admin_email'])) {
             error_log("Admin email found in config: " . $config['admin_email']);
             return $config['admin_email'];
         }
         
-        error_log("No admin email found in configuration, using fallback");
-        // Fallback to default
+        error_log("No admin email found, using default fallback");
+        // Final fallback to default
         return 'admin@neoexclusive.com';
         
     } catch (Exception $e) {
