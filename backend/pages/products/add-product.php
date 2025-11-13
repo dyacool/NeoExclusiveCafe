@@ -1245,26 +1245,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             return true;
         }
         
-        // Add warning if submitting with zero quantities
-        document.querySelector('form').addEventListener('submit', function(e) {
-            const sameDayChecked = document.getElementById('sameDayCheckbox').checked;
-            if (sameDayChecked) {
-                const sdoInputs = document.querySelectorAll('.sdo-quantity-input[data-date]');
-                let hasNonZero = false;
-                sdoInputs.forEach(input => {
-                    if (parseInt(input.value) > 0) hasNonZero = true;
-                });
-                
-                if (!hasNonZero && sdoInputs.length > 0) {
-                    console.warn('⚠️ WARNING: All quantities are zero!');
-                    if (!confirm('All quantities are set to 0. Continue anyway?')) {
-                        e.preventDefault();
-                        return false;
+        // Add warning if submitting with zero quantities (after DOM is loaded)
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelector('form').addEventListener('submit', function(e) {
+                const sameDayChecked = document.getElementById('sameDayCheckbox').checked;
+                if (sameDayChecked) {
+                    const sdoInputs = document.querySelectorAll('.sdo-quantity-input[data-date]');
+                    let hasNonZero = false;
+                    sdoInputs.forEach(input => {
+                        if (parseInt(input.value) > 0) hasNonZero = true;
+                    });
+                    
+                    if (!hasNonZero && sdoInputs.length > 0) {
+                        console.warn('⚠️ WARNING: All quantities are zero!');
+                        if (!confirm('All quantities are set to 0. Continue anyway?')) {
+                            e.preventDefault();
+                            return false;
+                        }
                     }
                 }
-            }
+            });
         });
-    });
 </script>
 </body>
 </html>
