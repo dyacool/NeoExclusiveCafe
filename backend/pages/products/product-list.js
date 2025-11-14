@@ -2564,7 +2564,7 @@ function updateGlobalAvailableDays() {
  */
 async function saveProductChanges(event) {
   console.log("=== SAVE PRODUCT CHANGES CALLED ===");
-  
+
   // Prevent form submission if event is provided
   if (event) {
     event.preventDefault();
@@ -2581,6 +2581,9 @@ async function saveProductChanges(event) {
     console.error("Save button not found");
     return false;
   }
+
+  // Show modal saving overlay
+  showModalSaving(true);
 
   // Disable save button and show loading state
   const originalButtonText = saveButton.innerHTML;
@@ -2624,8 +2627,8 @@ async function saveProductChanges(event) {
       "editSameDayCheckbox"
     ).checked;
 
-    console.log('Pre-Order Checkbox:', preOrderChecked);
-    console.log('Same-Day Checkbox:', sameDayChecked);
+    console.log("Pre-Order Checkbox:", preOrderChecked);
+    console.log("Same-Day Checkbox:", sameDayChecked);
 
     formData.append("preOrderCheckbox", preOrderChecked ? "true" : "false");
     formData.append("sameDayCheckbox", sameDayChecked ? "true" : "false");
@@ -2682,27 +2685,39 @@ async function saveProductChanges(event) {
       // Collect SDO quantities (for both same-day only and pre-order + same-day)
       // Collect from DOM inputs to ensure we have the latest values
       const sdoQuantities = {};
-      
+
       // Check which container is visible
-      const todayContainer = document.getElementById('sdoQuantityContainerToday');
-      const regularContainer = document.getElementById('sdoQuantityContainerRegular');
-      console.log('Today container visible:', todayContainer && todayContainer.offsetParent !== null);
-      console.log('Regular container visible:', regularContainer && regularContainer.offsetParent !== null);
-      
-      const quantityInputs = document.querySelectorAll('.sdo-quantity-input[data-date]');
-      
-      console.log('Found', quantityInputs.length, 'quantity inputs');
-      console.log('Quantity inputs:', quantityInputs);
-      
-      quantityInputs.forEach(input => {
-        const date = input.getAttribute('data-date');
+      const todayContainer = document.getElementById(
+        "sdoQuantityContainerToday"
+      );
+      const regularContainer = document.getElementById(
+        "sdoQuantityContainerRegular"
+      );
+      console.log(
+        "Today container visible:",
+        todayContainer && todayContainer.offsetParent !== null
+      );
+      console.log(
+        "Regular container visible:",
+        regularContainer && regularContainer.offsetParent !== null
+      );
+
+      const quantityInputs = document.querySelectorAll(
+        ".sdo-quantity-input[data-date]"
+      );
+
+      console.log("Found", quantityInputs.length, "quantity inputs");
+      console.log("Quantity inputs:", quantityInputs);
+
+      quantityInputs.forEach((input) => {
+        const date = input.getAttribute("data-date");
         const quantity = parseInt(input.value) || 0;
         console.log(`Collecting: ${date} = ${quantity}`);
         sdoQuantities[date] = quantity;
       });
-      
-      console.log('Collected SDO quantities:', sdoQuantities);
-      
+
+      console.log("Collected SDO quantities:", sdoQuantities);
+
       // Validate quantities before sending
       if (Object.keys(sdoQuantities).length > 0) {
         let isValid = true;
@@ -2713,7 +2728,7 @@ async function saveProductChanges(event) {
             isValid = false;
             break;
           }
-          
+
           // Validate quantity
           const qty = parseInt(quantity);
           if (isNaN(qty) || qty < 0) {
@@ -2722,24 +2737,26 @@ async function saveProductChanges(event) {
             break;
           }
         }
-        
+
         if (!isValid) {
-          throw new Error('Invalid SDO quantity data. Please check dates and quantities.');
+          throw new Error(
+            "Invalid SDO quantity data. Please check dates and quantities."
+          );
         }
-        
-        formData.append('sdo_quantities', JSON.stringify(sdoQuantities));
-        console.log('SDO quantities added to FormData');
+
+        formData.append("sdo_quantities", JSON.stringify(sdoQuantities));
+        console.log("SDO quantities added to FormData");
       } else {
-        console.log('No SDO quantities to save');
+        console.log("No SDO quantities to save");
       }
     }
 
     // Debug: Log FormData contents
-    console.log('=== FormData Contents ===');
+    console.log("=== FormData Contents ===");
     for (let [key, value] of formData.entries()) {
       console.log(`${key}:`, value);
     }
-    
+
     // Send AJAX request
     const response = await fetch("/backend/api/update-product.php", {
       method: "POST",
@@ -2776,6 +2793,9 @@ async function saveProductChanges(event) {
       // Show success message
       showNotification("Product updated successfully!", "success");
 
+      // Hide saving overlay
+      showModalSaving(false);
+
       // Re-enable save button BEFORE closing modal
       saveButton.disabled = false;
       saveButton.innerHTML = originalButtonText;
@@ -2791,6 +2811,9 @@ async function saveProductChanges(event) {
   } catch (error) {
     console.error("Error saving product:", error);
     showNotification("Error: " + error.message, "error");
+
+    // Hide saving overlay
+    showModalSaving(false);
 
     // Re-enable save button
     saveButton.disabled = false;
@@ -2877,27 +2900,39 @@ function updateProductRow(product) {
     }
 
     // Stock badge - show appropriate stock based on product type
-    let stockDisplay = '';
-    let quantityClass = '';
-    
+    let stockDisplay = "";
+    let quantityClass = "";
+
     if (product.status_id == 4) {
       // Same Day Order only - show today's stock
-      const today = new Date().toISOString().split('T')[0];
-      const todaysDates = product.todays_product_dates ? product.todays_product_dates.split(',') : [];
+      const today = new Date().toISOString().split("T")[0];
+      const todaysDates = product.todays_product_dates
+        ? product.todays_product_dates.split(",")
+        : [];
       const isTodayAvailable = todaysDates.includes(today);
-      
+
       if (isTodayAvailable && product.sameday_stock_today !== undefined) {
         const sdoStock = parseInt(product.sameday_stock_today) || 0;
-        quantityClass = sdoStock <= 5 ? "low-stock" : sdoStock <= 10 ? "medium-stock" : "good-stock";
+        quantityClass =
+          sdoStock <= 5
+            ? "low-stock"
+            : sdoStock <= 10
+            ? "medium-stock"
+            : "good-stock";
         stockDisplay = `<span class="sameday-stock">${sdoStock}</span> in stock`;
       } else {
         quantityClass = "na-stock";
-        stockDisplay = 'N/A';
+        stockDisplay = "N/A";
       }
     } else {
       // Pre-order - show regular quantity
       const quantity = parseInt(product.quantity) || 0;
-      quantityClass = quantity <= 5 ? "low-stock" : quantity <= 10 ? "medium-stock" : "good-stock";
+      quantityClass =
+        quantity <= 5
+          ? "low-stock"
+          : quantity <= 10
+          ? "medium-stock"
+          : "good-stock";
       stockDisplay = `<span class="preorder-stock">${quantity}</span> in stock`;
     }
 
@@ -3059,3 +3094,35 @@ if (document.readyState === "loading") {
 
 // Make saveProductChanges globally available so it can be called from onclick
 window.saveProductChanges = saveProductChanges;
+
+/**
+ * Wrapper function to open edit modal from button with data attributes
+ * This prevents issues with special characters in product data
+ */
+function openEditModalFromButton(button) {
+  const dataset = button.dataset;
+
+  openEditModal(
+    dataset.productId,
+    dataset.productName,
+    dataset.productDescription,
+    dataset.productPrice,
+    dataset.productStatus,
+    dataset.productFeatured,
+    dataset.productShowUnavailable,
+    dataset.productHideUnavailable,
+    parseInt(dataset.productQuantity),
+    dataset.productAvailableDays,
+    dataset.productStatusName,
+    dataset.productUnavailableStatusId,
+    dataset.productUnavailableStatusName,
+    dataset.productAvailtodayStatusId,
+    dataset.productAvailtodayStatusName,
+    dataset.productTodaysDates,
+    dataset.productRegularTodayDates,
+    dataset.productCategoryId
+  );
+}
+
+// Make wrapper function globally available
+window.openEditModalFromButton = openEditModalFromButton;

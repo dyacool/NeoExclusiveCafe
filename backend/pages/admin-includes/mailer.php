@@ -1303,5 +1303,570 @@ function generateOrderToken($orderId) {
     return hash('sha256', $orderId . $secret . date('Ymd'));
 }
 
+// Function to send payment received email to customer
+function sendBulkOrderPaymentReceivedEmail($bulkOrderId, $conn) {
+    try {
+        error_log("Starting payment received email for bulk order #$bulkOrderId");
+        
+        // Fetch bulk order details
+        $order_sql = "SELECT * FROM bulk_orders WHERE id = ?";
+        $order_stmt = mysqli_prepare($conn, $order_sql);
+        mysqli_stmt_bind_param($order_stmt, "i", $bulkOrderId);
+        mysqli_stmt_execute($order_stmt);
+        $order_result = mysqli_stmt_get_result($order_stmt);
+        $bulkOrder = mysqli_fetch_assoc($order_result);
+        mysqli_stmt_close($order_stmt);
+        
+        if (!$bulkOrder) {
+            error_log("Bulk order #$bulkOrderId not found");
+            return false;
+        }
+        
+        $customerEmail = $bulkOrder['email'];
+        if (empty($customerEmail)) {
+            error_log("No customer email found for bulk order #$bulkOrderId");
+            return false;
+        }
+        
+        $orderIdDisplay = !empty($bulkOrder['unique_order_id']) ? $bulkOrder['unique_order_id'] : 'BO' . str_pad($bulkOrderId, 6, '0', STR_PAD_LEFT);
+        $subject = "Payment Received - Bulk Order #" . $orderIdDisplay;
+        
+        $baseUrl = getBaseUrl();
+        $viewOrderUrl = $baseUrl . "/frontend/pages/bulk/bulk-order-details.php?id=" . urlencode($bulkOrder['unique_order_id'] ?? $bulkOrderId);
+        
+        $emailBody = '
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Payment Received</title>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background-color: #059669; color: white; padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0; }
+                .content { background-color: #f9f9f9; padding: 30px 20px; border-radius: 0 0 8px 8px; }
+                .success-icon { font-size: 48px; margin-bottom: 10px; }
+                .cta-button {
+                    display: inline-block;
+                    padding: 12px 24px;
+                    background-color: #059669;
+                    color: white !important;
+                    text-decoration: none;
+                    border-radius: 6px;
+                    font-weight: bold;
+                    margin: 20px 0;
+                }
+                .info-box { background-color: white; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #059669; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <div class="success-icon">✓</div>
+                    <h1>Payment Received!</h1>
+                    <p>Order #' . htmlspecialchars($orderIdDisplay) . '</p>
+                </div>
+                
+                <div class="content">
+                    <p>Dear ' . htmlspecialchars($bulkOrder['name']) . ',</p>
+                    
+                    <p>We have successfully received and verified your payment for bulk order <strong>#' . htmlspecialchars($orderIdDisplay) . '</strong>.</p>
+                    
+                    <div class="info-box">
+                        <h3 style="margin-top: 0; color: #059669;">What\'s Next?</h3>
+                        <p>Your order is now being processed and will be prepared for ' . ($bulkOrder['order_type'] === 'delivery' ? 'delivery' : 'pickup') . ' on:</p>
+                        <p><strong>Date:</strong> ' . date('F j, Y', strtotime($bulkOrder['date_needed'])) . '<br>
+                        <strong>Time:</strong> ' . date('g:i A', strtotime($bulkOrder['time_needed'])) . '</p>
+                    </div>
+                    
+                    <p>You will receive another notification when your order is ready.</p>
+                    
+                    <div style="text-align: center;">
+                        <a href="' . $viewOrderUrl . '" class="cta-button">View Order Details</a>
+                    </div>
+                    
+                    <p style="margin-top: 30px; font-size: 14px; color: #666;">
+                        If you have any questions, please contact us at ' . htmlspecialchars(getAdminEmail($conn)) . '
+                    </p>
+                </div>
+            </div>
+        </body>
+        </html>';
+        
+        $result = sendEmail($customerEmail, $subject, $emailBody, true);
+        error_log("Payment received email send result: " . ($result ? "Success" : "Failed"));
+        
+        return $result;
+        
+    } catch (Exception $e) {
+        error_log("Failed to send payment received email: " . $e->getMessage());
+        return false;
+    }
+}
+
+// Function to send cancellation warning email (5 days after approval, no payment)
+function sendBulkOrderCancellationWarningEmail($bulkOrderId, $conn) {
+    try {
+        error_log("Starting cancellation warning email for bulk order #$bulkOrderId");
+        
+        $order_sql = "SELECT * FROM bulk_orders WHERE id = ?";
+        $order_stmt = mysqli_prepare($conn, $order_sql);
+        mysqli_stmt_bind_param($order_stmt, "i", $bulkOrderId);
+        mysqli_stmt_execute($order_stmt);
+        $order_result = mysqli_stmt_get_result($order_stmt);
+        $bulkOrder = mysqli_fetch_assoc($order_result);
+        mysqli_stmt_close($order_stmt);
+        
+        if (!$bulkOrder) return false;
+        
+        $customerEmail = $bulkOrder['email'];
+        if (empty($customerEmail)) return false;
+        
+        $orderIdDisplay = !empty($bulkOrder['unique_order_id']) ? $bulkOrder['unique_order_id'] : 'BO' . str_pad($bulkOrderId, 6, '0', STR_PAD_LEFT);
+        $subject = "⚠️ Urgent: Payment Required - Bulk Order #" . $orderIdDisplay;
+        
+        $baseUrl = getBaseUrl();
+        $viewOrderUrl = $baseUrl . "/frontend/pages/bulk/bulk-order-details.php?id=" . urlencode($bulkOrder['unique_order_id'] ?? $bulkOrderId);
+        
+        $emailBody = '
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Payment Required - Action Needed</title>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background-color: #f59e0b; color: white; padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0; }
+                .content { background-color: #f9f9f9; padding: 30px 20px; border-radius: 0 0 8px 8px; }
+                .warning-icon { font-size: 48px; margin-bottom: 10px; }
+                .urgent-box { background-color: #fef3c7; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #f59e0b; }
+                .cta-button {
+                    display: inline-block;
+                    padding: 12px 24px;
+                    background-color: #f59e0b;
+                    color: white !important;
+                    text-decoration: none;
+                    border-radius: 6px;
+                    font-weight: bold;
+                    margin: 20px 0;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <div class="warning-icon">⚠️</div>
+                    <h1>Payment Required</h1>
+                    <p>Order #' . htmlspecialchars($orderIdDisplay) . '</p>
+                </div>
+                
+                <div class="content">
+                    <p>Dear ' . htmlspecialchars($bulkOrder['name']) . ',</p>
+                    
+                    <div class="urgent-box">
+                        <h3 style="margin-top: 0; color: #92400e;">Urgent: Action Required</h3>
+                        <p>Your bulk order <strong>#' . htmlspecialchars($orderIdDisplay) . '</strong> was approved but we have not yet received your payment.</p>
+                        <p style="font-size: 18px; font-weight: bold; color: #92400e;">Your order will be automatically cancelled in 2 days if payment is not received.</p>
+                    </div>
+                    
+                    <p><strong>To keep your order active:</strong></p>
+                    <ol>
+                        <li>Submit your payment proof as soon as possible</li>
+                        <li>Ensure the payment amount matches your order total</li>
+                        <li>Include your order number in the payment reference</li>
+                    </ol>
+                    
+                    <div style="text-align: center;">
+                        <a href="' . $viewOrderUrl . '" class="cta-button">Upload Payment Proof Now</a>
+                    </div>
+                    
+                    <p style="margin-top: 30px; font-size: 14px; color: #666;">
+                        Need help? Contact us at ' . htmlspecialchars(getAdminEmail($conn)) . '
+                    </p>
+                </div>
+            </div>
+        </body>
+        </html>';
+        
+        $result = sendEmail($customerEmail, $subject, $emailBody, true);
+        error_log("Cancellation warning email send result: " . ($result ? "Success" : "Failed"));
+        
+        return $result;
+        
+    } catch (Exception $e) {
+        error_log("Failed to send cancellation warning email: " . $e->getMessage());
+        return false;
+    }
+}
+
+// Function to send auto-cancellation email
+function sendBulkOrderAutoCancelledEmail($bulkOrderId, $conn) {
+    try {
+        error_log("Starting auto-cancellation email for bulk order #$bulkOrderId");
+        
+        $order_sql = "SELECT * FROM bulk_orders WHERE id = ?";
+        $order_stmt = mysqli_prepare($conn, $order_sql);
+        mysqli_stmt_bind_param($order_stmt, "i", $bulkOrderId);
+        mysqli_stmt_execute($order_stmt);
+        $order_result = mysqli_stmt_get_result($order_stmt);
+        $bulkOrder = mysqli_fetch_assoc($order_result);
+        mysqli_stmt_close($order_stmt);
+        
+        if (!$bulkOrder) return false;
+        
+        $customerEmail = $bulkOrder['email'];
+        if (empty($customerEmail)) return false;
+        
+        $orderIdDisplay = !empty($bulkOrder['unique_order_id']) ? $bulkOrder['unique_order_id'] : 'BO' . str_pad($bulkOrderId, 6, '0', STR_PAD_LEFT);
+        $subject = "Order Cancelled - Bulk Order #" . $orderIdDisplay;
+        
+        $baseUrl = getBaseUrl();
+        
+        $emailBody = '
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Order Cancelled</title>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background-color: #dc2626; color: white; padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0; }
+                .content { background-color: #f9f9f9; padding: 30px 20px; border-radius: 0 0 8px 8px; }
+                .info-box { background-color: #fee2e2; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #dc2626; }
+                .cta-button {
+                    display: inline-block;
+                    padding: 12px 24px;
+                    background-color: #059669;
+                    color: white !important;
+                    text-decoration: none;
+                    border-radius: 6px;
+                    font-weight: bold;
+                    margin: 20px 0;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>Order Cancelled</h1>
+                    <p>Order #' . htmlspecialchars($orderIdDisplay) . '</p>
+                </div>
+                
+                <div class="content">
+                    <p>Dear ' . htmlspecialchars($bulkOrder['name']) . ',</p>
+                    
+                    <div class="info-box">
+                        <p><strong>Your bulk order #' . htmlspecialchars($orderIdDisplay) . ' has been automatically cancelled due to non-payment.</strong></p>
+                    </div>
+                    
+                    <p>Your approved order was not completed because we did not receive proof of payment within 7 days.</p>
+                    
+                    <p><strong>Would you like to place a new order?</strong></p>
+                    <p>We would love to serve you! You can submit a new bulk order request at any time.</p>
+                    
+                    <div style="text-align: center;">
+                        <a href="' . $baseUrl . '/frontend/pages/bulk/bulk-order-form.php" class="cta-button">Submit New Order</a>
+                    </div>
+                    
+                    <p style="margin-top: 30px; font-size: 14px; color: #666;">
+                        Questions? Contact us at ' . htmlspecialchars(getAdminEmail($conn)) . '
+                    </p>
+                </div>
+            </div>
+        </body>
+        </html>';
+        
+        $result = sendEmail($customerEmail, $subject, $emailBody, true);
+        error_log("Auto-cancellation email send result: " . ($result ? "Success" : "Failed"));
+        
+        return $result;
+        
+    } catch (Exception $e) {
+        error_log("Failed to send auto-cancellation email: " . $e->getMessage());
+        return false;
+    }
+}
+
+// Function to send auto-rejection email (96 hours pending)
+function sendBulkOrderAutoRejectedEmail($bulkOrderId, $conn) {
+    try {
+        error_log("Starting auto-rejection email for bulk order #$bulkOrderId");
+        
+        $order_sql = "SELECT * FROM bulk_orders WHERE id = ?";
+        $order_stmt = mysqli_prepare($conn, $order_sql);
+        mysqli_stmt_bind_param($order_stmt, "i", $bulkOrderId);
+        mysqli_stmt_execute($order_stmt);
+        $order_result = mysqli_stmt_get_result($order_stmt);
+        $bulkOrder = mysqli_fetch_assoc($order_result);
+        mysqli_stmt_close($order_stmt);
+        
+        if (!$bulkOrder) return false;
+        
+        $customerEmail = $bulkOrder['email'];
+        if (empty($customerEmail)) return false;
+        
+        $orderIdDisplay = !empty($bulkOrder['unique_order_id']) ? $bulkOrder['unique_order_id'] : 'BO' . str_pad($bulkOrderId, 6, '0', STR_PAD_LEFT);
+        $subject = "Order Not Processed - Bulk Order #" . $orderIdDisplay;
+        
+        $baseUrl = getBaseUrl();
+        
+        $emailBody = '
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Order Not Processed</title>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background-color: #6b7280; color: white; padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0; }
+                .content { background-color: #f9f9f9; padding: 30px 20px; border-radius: 0 0 8px 8px; }
+                .info-box { background-color: #f3f4f6; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #6b7280; }
+                .cta-button {
+                    display: inline-block;
+                    padding: 12px 24px;
+                    background-color: #059669;
+                    color: white !important;
+                    text-decoration: none;
+                    border-radius: 6px;
+                    font-weight: bold;
+                    margin: 20px 0;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>Order Not Processed</h1>
+                    <p>Order #' . htmlspecialchars($orderIdDisplay) . '</p>
+                </div>
+                
+                <div class="content">
+                    <p>Dear ' . htmlspecialchars($bulkOrder['name']) . ',</p>
+                    
+                    <div class="info-box">
+                        <p><strong>Your bulk order request #' . htmlspecialchars($orderIdDisplay) . ' was not processed within our review period.</strong></p>
+                    </div>
+                    
+                    <p>We apologize for the delay in reviewing your bulk order. Unfortunately, we were unable to process your request within 72 hours.</p>
+                    
+                    <p><strong>You can submit a new order:</strong></p>
+                    <p>We welcome you to submit a new bulk order request, and we will prioritize it for review.</p>
+                    
+                    <div style="text-align: center;">
+                        <a href="' . $baseUrl . '/frontend/pages/bulk/bulk-order-form.php" class="cta-button">Submit New Order</a>
+                    </div>
+                    
+                    <p style="margin-top: 30px; font-size: 14px; color: #666;">
+                        For questions or concerns, please contact us at ' . htmlspecialchars(getAdminEmail($conn)) . '
+                    </p>
+                </div>
+            </div>
+        </body>
+        </html>';
+        
+        $result = sendEmail($customerEmail, $subject, $emailBody, true);
+        error_log("Auto-rejection email send result: " . ($result ? "Success" : "Failed"));
+        
+        return $result;
+        
+    } catch (Exception $e) {
+        error_log("Failed to send auto-rejection email: " . $e->getMessage());
+        return false;
+    }
+}
+
+// Function to send payment rejection email to customer
+function sendBulkOrderPaymentRejectedEmail($bulkOrderId, $conn) {
+    try {
+        error_log("Starting payment rejection email for bulk order #$bulkOrderId");
+        
+        $order_sql = "SELECT * FROM bulk_orders WHERE id = ?";
+        $order_stmt = mysqli_prepare($conn, $order_sql);
+        mysqli_stmt_bind_param($order_stmt, "i", $bulkOrderId);
+        mysqli_stmt_execute($order_stmt);
+        $order_result = mysqli_stmt_get_result($order_stmt);
+        $bulkOrder = mysqli_fetch_assoc($order_result);
+        mysqli_stmt_close($order_stmt);
+        
+        if (!$bulkOrder) return false;
+        
+        $customerEmail = $bulkOrder['email'];
+        if (empty($customerEmail)) return false;
+        
+        $orderIdDisplay = !empty($bulkOrder['unique_order_id']) ? $bulkOrder['unique_order_id'] : 'BO' . str_pad($bulkOrderId, 6, '0', STR_PAD_LEFT);
+        $subject = "Payment Rejected - Bulk Order #" . $orderIdDisplay;
+        
+        $baseUrl = getBaseUrl();
+        
+        $emailBody = '
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Payment Rejected</title>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background-color: #dc2626; color: white; padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0; }
+                .content { background-color: #f9f9f9; padding: 30px 20px; border-radius: 0 0 8px 8px; }
+                .info-box { background-color: #fee2e2; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #dc2626; }
+                .cta-button {
+                    display: inline-block;
+                    padding: 12px 24px;
+                    background-color: #059669;
+                    color: white !important;
+                    text-decoration: none;
+                    border-radius: 6px;
+                    font-weight: bold;
+                    margin: 20px 0;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>Payment Rejected</h1>
+                    <p>Order #' . htmlspecialchars($orderIdDisplay) . '</p>
+                </div>
+                
+                <div class="content">
+                    <p>Dear ' . htmlspecialchars($bulkOrder['name']) . ',</p>
+                    
+                    <div class="info-box">
+                        <p><strong>Your payment proof for bulk order #' . htmlspecialchars($orderIdDisplay) . ' has been rejected.</strong></p>
+                    </div>
+                    
+                    <p>Unfortunately, we were unable to verify your payment proof. This could be due to:</p>
+                    <ul>
+                        <li>Invalid or unclear payment proof</li>
+                        <li>Incorrect payment amount</li>
+                        <li>Payment not matching our records</li>
+                        <li>Other verification issues</li>
+                    </ul>
+                    
+                    <p><strong>Next Steps:</strong></p>
+                    <p>Please submit a valid payment proof or contact us for clarification. You can resubmit your payment proof through your order details page.</p>
+                    
+                    <div style="text-align: center;">
+                        <a href="' . $baseUrl . '/frontend/pages/bulk/bulk-order-details.php?id=' . urlencode($orderIdDisplay) . '" class="cta-button">View Order Details</a>
+                    </div>
+                    
+                    <p style="margin-top: 30px; font-size: 14px; color: #666;">
+                        For questions or concerns, please contact us at ' . htmlspecialchars(getAdminEmail($conn)) . '
+                    </p>
+                </div>
+            </div>
+        </body>
+        </html>';
+        
+        $result = sendEmail($customerEmail, $subject, $emailBody, true);
+        error_log("Payment rejection email send result: " . ($result ? "Success" : "Failed"));
+        
+        return $result;
+        
+    } catch (Exception $e) {
+        error_log("Failed to send payment rejection email: " . $e->getMessage());
+        return false;
+    }
+}
+
+// Function to send proof of payment notification email to admin
+function sendBulkOrderPaymentProofNotificationEmail($bulkOrderId, $conn) {
+    try {
+        error_log("Starting payment proof notification email to admin for bulk order #$bulkOrderId");
+        
+        $order_sql = "SELECT * FROM bulk_orders WHERE id = ?";
+        $order_stmt = mysqli_prepare($conn, $order_sql);
+        mysqli_stmt_bind_param($order_stmt, "i", $bulkOrderId);
+        mysqli_stmt_execute($order_stmt);
+        $order_result = mysqli_stmt_get_result($order_stmt);
+        $bulkOrder = mysqli_fetch_assoc($order_result);
+        mysqli_stmt_close($order_stmt);
+        
+        if (!$bulkOrder) return false;
+        
+        $adminEmail = getAdminEmail($conn);
+        if (empty($adminEmail)) return false;
+        
+        $orderIdDisplay = !empty($bulkOrder['unique_order_id']) ? $bulkOrder['unique_order_id'] : 'BO' . str_pad($bulkOrderId, 6, '0', STR_PAD_LEFT);
+        $subject = "Payment Proof Uploaded - Bulk Order #" . $orderIdDisplay;
+        
+        $baseUrl = getBaseUrl();
+        $viewOrderUrl = getAdminUrl("/backend/pages/bulks/bulk-order.php?id=" . $bulkOrderId);
+        
+        $emailBody = '
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Payment Proof Uploaded</title>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background-color: #2563eb; color: white; padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0; }
+                .content { background-color: #f9f9f9; padding: 30px 20px; border-radius: 0 0 8px 8px; }
+                .info-box { background-color: #dbeafe; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #2563eb; }
+                .cta-button {
+                    display: inline-block;
+                    padding: 12px 24px;
+                    background-color: #2563eb;
+                    color: white !important;
+                    text-decoration: none;
+                    border-radius: 6px;
+                    font-weight: bold;
+                    margin: 20px 0;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>Payment Proof Uploaded</h1>
+                    <p>Order #' . htmlspecialchars($orderIdDisplay) . '</p>
+                </div>
+                
+                <div class="content">
+                    <div class="info-box">
+                        <p><strong>' . htmlspecialchars($bulkOrder['name']) . '</strong> has uploaded proof of payment for bulk order <strong>#' . htmlspecialchars($orderIdDisplay) . '</strong>.</p>
+                    </div>
+                    
+                    <p><strong>Order Details:</strong></p>
+                    <ul>
+                        <li><strong>Customer:</strong> ' . htmlspecialchars($bulkOrder['name']) . '</li>
+                        <li><strong>Email:</strong> ' . htmlspecialchars($bulkOrder['email']) . '</li>
+                        <li><strong>Contact:</strong> ' . htmlspecialchars($bulkOrder['contact']) . '</li>
+                        <li><strong>Total Amount:</strong> ₱' . number_format($bulkOrder['discount_total'] ?? $bulkOrder['total_amount'], 2) . '</li>
+                    </ul>
+                    
+                    <p>Please review the payment proof and update the order status accordingly.</p>
+                    
+                    <div style="text-align: center;">
+                        <a href="' . $viewOrderUrl . '" class="cta-button">Review Payment Proof</a>
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>';
+        
+        $result = sendEmail($adminEmail, $subject, $emailBody, true);
+        error_log("Payment proof notification email to admin send result: " . ($result ? "Success" : "Failed"));
+        
+        return $result;
+        
+    } catch (Exception $e) {
+        error_log("Failed to send payment proof notification email to admin: " . $e->getMessage());
+        return false;
+    }
+}
+
 $isDevelopment = false; // Change to false in production
 ?> 

@@ -1,4 +1,8 @@
 <?php
+// TEMPORARY: Enable error display to debug white screen
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 $page_title = "Manage Carousel Images";
 
 
@@ -117,7 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                  title, display_order, is_active, created_by) 
                                 VALUES (?, ?, ?, 'cloudinary', ?, ?, ?, ?)";
                 $insert_stmt = mysqli_prepare($conn, $insert_query);
-                mysqli_stmt_bind_param($insert_stmt, "ssssiisi", 
+                mysqli_stmt_bind_param($insert_stmt, "ssssiii", 
                     $image_url, $image_url, $public_id, 
                     $title, $display_order, $is_active, $admin_id);
                 

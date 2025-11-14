@@ -10,12 +10,42 @@
 // Set JSON header and error handling FIRST before any output
 header('Content-Type: application/json');
 error_reporting(E_ALL);
-ini_set('display_errors', 0); // Don't display errors in output
-ini_set('log_errors', 1); // Log errors instead
+ini_set('display_errors', 0); // Disable HTML errors - will break JSON
+ini_set('log_errors', 1); // Log errors to file instead
 
-// Include database first to ensure session is configured properly
-require_once __DIR__ . '/../pages/admin-includes/database.php';
-require_once __DIR__ . '/../../includes/session-manager.php';
+// Set flag to suppress database.php HTML output
+$suppress_db_debug = true;
+
+// Catch fatal errors and output JSON
+register_shutdown_function(function() {
+    $error = error_get_last();
+    if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+        error_log("Fatal error in carousel upload: " . json_encode($error));
+        if (!headers_sent()) {
+            header('Content-Type: application/json');
+        }
+        echo json_encode([
+            'success' => false,
+            'error' => 'Server error occurred during upload',
+            'error_details' => $error['message']
+        ]);
+        exit();
+    }
+});
+
+// Wrap everything in try-catch
+try {
+    // Include database first to ensure session is configured properly
+    require_once __DIR__ . '/../pages/admin-includes/database.php';
+    require_once __DIR__ . '/../../includes/session-manager.php';
+} catch (Exception $e) {
+    error_log("Error including files: " . $e->getMessage());
+    echo json_encode([
+        'success' => false,
+        'error' => 'Failed to initialize: ' . $e->getMessage()
+    ]);
+    exit();
+}
 
 // Verify admin authentication
 if (!SessionManager::isAdminLoggedIn()) {
@@ -49,7 +79,7 @@ if (!$adminData) {
 }
 
 // Verify CSRF token
-$sessionCsrfToken = SessionManager::getSessionData('csrf_token');
+$sessionCsrfToken = $_SESSION['csrf_token'] ?? null;
 if (!isset($_POST['csrf_token']) || !$sessionCsrfToken || $_POST['csrf_token'] !== $sessionCsrfToken) {
     http_response_code(403);
     echo json_encode([
@@ -64,7 +94,18 @@ if (!isset($_POST['csrf_token']) || !$sessionCsrfToken || $_POST['csrf_token'] !
     exit();
 }
 
-require_once __DIR__ . '/../includes/cloudinary-helper.php';
+// Try to include cloudinary-helper with error handling
+try {
+    require_once __DIR__ . '/../includes/cloudinary-helper.php';
+} catch (Exception $e) {
+    error_log("Failed to load cloudinary-helper.php: " . $e->getMessage());
+    echo json_encode([
+        'success' => false,
+        'error' => 'Cloudinary configuration error',
+        'error_details' => $e->getMessage()
+    ]);
+    exit();
+}
 
 /**
  * Log temporary image upload for orphan tracking

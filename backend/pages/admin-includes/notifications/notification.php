@@ -16,6 +16,7 @@ class NotificationHandler {
     
     // Create table if it doesn't exist
     private function createTableIfNotExists() {
+        // Admin notifications table
         $sql = "CREATE TABLE IF NOT EXISTS `admin_notifications` (
             `notif_id` int(11) NOT NULL AUTO_INCREMENT,
             `notif_type` enum('order_new','order_status','order_warning','order_due','order_overdue','bulk_new','bulk_status','bulk_payment','refund_new','refund_status') NOT NULL,
@@ -32,8 +33,29 @@ class NotificationHandler {
             KEY `created_at` (`created_at`),
             KEY `notif_reference_id` (`notif_reference_id`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
-        
         mysqli_query($this->conn, $sql);
+        
+        // User notifications table
+        $user_notif_sql = "CREATE TABLE IF NOT EXISTS `user_notifications` (
+            `notif_id` int(11) NOT NULL AUTO_INCREMENT,
+            `user_id` int(11) NOT NULL,
+            `notif_type` enum('order_status','bulk_approved','bulk_payment_received','bulk_warning','bulk_cancelled','bulk_rejected') NOT NULL,
+            `notif_title` varchar(255) NOT NULL,
+            `notif_message` text NOT NULL,
+            `notif_link` varchar(500) DEFAULT NULL,
+            `notif_reference_id` int(11) DEFAULT NULL,
+            `is_read` tinyint(1) NOT NULL DEFAULT 0,
+            `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (`notif_id`),
+            KEY `user_id` (`user_id`),
+            KEY `notif_type` (`notif_type`),
+            KEY `is_read` (`is_read`),
+            KEY `created_at` (`created_at`),
+            KEY `notif_reference_id` (`notif_reference_id`),
+            CONSTRAINT `user_notifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+        mysqli_query($this->conn, $user_notif_sql);
     }
     
     // Create a new notification
@@ -144,6 +166,61 @@ class NotificationHandler {
         }
         
         return $this->create($type, $title, $message, $base_link, $bulk_order_id);
+    }
+    
+    // Helper method to create USER bulk order notifications
+    public function createUserBulkOrderNotification($user_id, $bulk_order_id, $type, $order_display_id = null) {
+        $base_link = "/frontend/pages/bulk/bulk-order-details.php?id=" . $order_display_id;
+        $order_ref = $order_display_id ?? $bulk_order_id;
+        
+        switch ($type) {
+            case 'bulk_approved':
+                $title = "Bulk Order Approved";
+                $message = "Your bulk order #{$order_ref} has been approved! Please submit your payment proof to proceed.";
+                break;
+                
+            case 'bulk_payment_received':
+                $title = "Payment Received";
+                $message = "We have received and verified your payment for bulk order #{$order_ref}. Your order is now being processed.";
+                break;
+                
+            case 'bulk_warning':
+                $title = "Payment Required - Action Needed";
+                $message = "Your bulk order #{$order_ref} will be cancelled in 2 days if payment is not received. Please upload your payment proof.";
+                break;
+                
+            case 'bulk_cancelled':
+                $title = "Order Cancelled";
+                $message = "Your bulk order #{$order_ref} has been cancelled due to non-payment within 7 days.";
+                break;
+                
+            case 'bulk_rejected':
+                $title = "Order Not Processed";
+                $message = "Your bulk order #{$order_ref} could not be processed within our review period. You may submit a new order.";
+                break;
+                
+            case 'bulk_payment_rejected':
+                $title = "Payment Rejected";
+                $message = "Your payment proof for bulk order #{$order_ref} has been rejected. Please submit a valid payment proof or contact us for clarification.";
+                break;
+                
+            default:
+                return false;
+        }
+        
+        return $this->createUserNotification($user_id, $type, $title, $message, $base_link, $bulk_order_id);
+    }
+    
+    // Create a user notification
+    public function createUserNotification($user_id, $type, $title, $message, $link = null, $reference_id = null) {
+        $stmt = mysqli_prepare($this->conn, "
+            INSERT INTO user_notifications (user_id, notif_type, notif_title, notif_message, notif_link, notif_reference_id)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ");
+        mysqli_stmt_bind_param($stmt, "issssi", $user_id, $type, $title, $message, $link, $reference_id);
+        $result = mysqli_stmt_execute($stmt);
+        mysqli_stmt_close($stmt);
+        return $result;
     }
     
     // Helper method to create refund notifications

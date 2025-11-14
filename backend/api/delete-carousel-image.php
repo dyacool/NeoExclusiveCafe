@@ -12,6 +12,9 @@ error_reporting(E_ALL);
 ini_set('display_errors', 0); // Don't display errors in output
 ini_set('log_errors', 1); // Log errors instead
 
+// Set flag to suppress database.php HTML output
+$suppress_db_debug = true;
+
 // Include database first to ensure session is configured properly
 require_once __DIR__ . '/../pages/admin-includes/database.php';
 require_once __DIR__ . '/../../includes/session-manager.php';

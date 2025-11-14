@@ -105,20 +105,81 @@ $create_items_table_query = "
 ";
 mysqli_query($conn, $create_items_table_query);
 
-// Auto-update pending orders to rejected if 96 hours have passed since creation
+// Auto-update pending orders to rejected if 72 hours have passed since creation
 $now = date('Y-m-d H:i:s');
-$time_96hrs_ago = date('Y-m-d H:i:s', strtotime('-96 hours'));
+$time_72hrs_ago = date('Y-m-d H:i:s', strtotime('-72 hours'));
+
+// Get orders that will be rejected
+$get_rejected_sql = "SELECT id, user_id, unique_order_id, name, email FROM bulk_orders 
+                     WHERE status = 'pending' 
+                     AND created_at < ?";
+$get_rejected_stmt = mysqli_prepare($conn, $get_rejected_sql);
+mysqli_stmt_bind_param($get_rejected_stmt, "s", $time_72hrs_ago);
+mysqli_stmt_execute($get_rejected_stmt);
+$rejected_orders_result = mysqli_stmt_get_result($get_rejected_stmt);
+$rejected_orders = [];
+while ($row = mysqli_fetch_assoc($rejected_orders_result)) {
+    $rejected_orders[] = $row;
+}
+mysqli_stmt_close($get_rejected_stmt);
+
+// Update them to rejected
 $overdue_update_sql = "UPDATE bulk_orders 
                        SET status = 'rejected', admin_updated = NOW() 
                        WHERE status = 'pending' 
                        AND created_at < ?";
 $overdue_stmt = mysqli_prepare($conn, $overdue_update_sql);
-mysqli_stmt_bind_param($overdue_stmt, "s", $time_96hrs_ago);
+mysqli_stmt_bind_param($overdue_stmt, "s", $time_72hrs_ago);
 mysqli_stmt_execute($overdue_stmt);
 mysqli_stmt_close($overdue_stmt);
 
+// Send emails and notifications for rejected orders
+if (!empty($rejected_orders)) {
+    require_once __DIR__ . "/../admin-includes/mailer.php";
+    require_once __DIR__ . "/../admin-includes/notifications/notification.php";
+    $notificationHandler = new NotificationHandler($conn);
+    
+    foreach ($rejected_orders as $order) {
+        // Send email
+        try {
+            sendBulkOrderAutoRejectedEmail($order['id'], $conn);
+        } catch (Exception $e) {
+            error_log("Failed to send auto-rejection email for order {$order['id']}: " . $e->getMessage());
+        }
+        
+        // Create user notification
+        try {
+            $notificationHandler->createUserBulkOrderNotification(
+                $order['user_id'],
+                $order['id'],
+                'bulk_rejected',
+                $order['unique_order_id']
+            );
+        } catch (Exception $e) {
+            error_log("Failed to create auto-rejection notification for order {$order['id']}: " . $e->getMessage());
+        }
+    }
+}
+
 // Auto-cancel approved orders without payment proof after 7 days
 $time_7days_ago = date('Y-m-d H:i:s', strtotime('-7 days'));
+
+// Get orders that will be cancelled
+$get_cancelled_sql = "SELECT id, user_id, unique_order_id, name, email FROM bulk_orders 
+                      WHERE status = 'approved' 
+                      AND (proof_of_payment IS NULL OR proof_of_payment = '') 
+                      AND updated_at < ?";
+$get_cancelled_stmt = mysqli_prepare($conn, $get_cancelled_sql);
+mysqli_stmt_bind_param($get_cancelled_stmt, "s", $time_7days_ago);
+mysqli_stmt_execute($get_cancelled_stmt);
+$cancelled_orders_result = mysqli_stmt_get_result($get_cancelled_stmt);
+$cancelled_orders = [];
+while ($row = mysqli_fetch_assoc($cancelled_orders_result)) {
+    $cancelled_orders[] = $row;
+}
+mysqli_stmt_close($get_cancelled_stmt);
+
+// Update them to cancelled
 $cancel_update_sql = "UPDATE bulk_orders 
                       SET status = 'cancelled', admin_updated = NOW() 
                       WHERE status = 'approved' 
@@ -128,6 +189,90 @@ $cancel_stmt = mysqli_prepare($conn, $cancel_update_sql);
 mysqli_stmt_bind_param($cancel_stmt, "s", $time_7days_ago);
 mysqli_stmt_execute($cancel_stmt);
 mysqli_stmt_close($cancel_stmt);
+
+// Send emails and notifications for cancelled orders
+if (!empty($cancelled_orders)) {
+    if (!isset($notificationHandler)) {
+        require_once __DIR__ . "/../admin-includes/mailer.php";
+        require_once __DIR__ . "/../admin-includes/notifications/notification.php";
+        $notificationHandler = new NotificationHandler($conn);
+    }
+    
+    foreach ($cancelled_orders as $order) {
+        // Send email
+        try {
+            sendBulkOrderAutoCancelledEmail($order['id'], $conn);
+        } catch (Exception $e) {
+            error_log("Failed to send auto-cancellation email for order {$order['id']}: " . $e->getMessage());
+        }
+        
+        // Create user notification
+        try {
+            $notificationHandler->createUserBulkOrderNotification(
+                $order['user_id'],
+                $order['id'],
+                'bulk_cancelled',
+                $order['unique_order_id']
+            );
+        } catch (Exception $e) {
+            error_log("Failed to create auto-cancellation notification for order {$order['id']}: " . $e->getMessage());
+        }
+    }
+}
+
+// Send warning emails for orders that will be cancelled in 2 days (5 days after approval)
+$time_5days_ago = date('Y-m-d H:i:s', strtotime('-5 days'));
+$time_5days_1min_ago = date('Y-m-d H:i:s', strtotime('-5 days -1 minute'));
+
+// Get orders that need warnings (approved 5 days ago, no payment, warning not sent today)
+$get_warning_sql = "SELECT id, user_id, unique_order_id, name, email FROM bulk_orders 
+                    WHERE status = 'approved' 
+                    AND (proof_of_payment IS NULL OR proof_of_payment = '') 
+                    AND updated_at BETWEEN ? AND ?
+                    AND id NOT IN (
+                        SELECT notif_reference_id FROM user_notifications 
+                        WHERE notif_type = 'bulk_warning' 
+                        AND DATE(created_at) = CURDATE()
+                    )";
+$get_warning_stmt = mysqli_prepare($conn, $get_warning_sql);
+mysqli_stmt_bind_param($get_warning_stmt, "ss", $time_5days_1min_ago, $time_5days_ago);
+mysqli_stmt_execute($get_warning_stmt);
+$warning_orders_result = mysqli_stmt_get_result($get_warning_stmt);
+$warning_orders = [];
+while ($row = mysqli_fetch_assoc($warning_orders_result)) {
+    $warning_orders[] = $row;
+}
+mysqli_stmt_close($get_warning_stmt);
+
+// Send warning emails and notifications
+if (!empty($warning_orders)) {
+    if (!isset($notificationHandler)) {
+        require_once __DIR__ . "/../admin-includes/mailer.php";
+        require_once __DIR__ . "/../admin-includes/notifications/notification.php";
+        $notificationHandler = new NotificationHandler($conn);
+    }
+    
+    foreach ($warning_orders as $order) {
+        // Send email
+        try {
+            sendBulkOrderCancellationWarningEmail($order['id'], $conn);
+        } catch (Exception $e) {
+            error_log("Failed to send warning email for order {$order['id']}: " . $e->getMessage());
+        }
+        
+        // Create user notification
+        try {
+            $notificationHandler->createUserBulkOrderNotification(
+                $order['user_id'],
+                $order['id'],
+                'bulk_warning',
+                $order['unique_order_id']
+            );
+        } catch (Exception $e) {
+            error_log("Failed to create warning notification for order {$order['id']}: " . $e->getMessage());
+        }
+    }
+}
 
 // Get today's date and date 5 days from now for due date warnings
 $today = date('Y-m-d');

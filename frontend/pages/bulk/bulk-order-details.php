@@ -80,6 +80,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_proof'])) {
                     // Refresh order data to show new proof
                     $order['proof_of_payment'] = $proofs_json;
                     
+                    // Send email to admin about payment proof upload
+                    try {
+                        require_once __DIR__ . '/../../../backend/pages/admin-includes/mailer.php';
+                        sendBulkOrderPaymentProofNotificationEmail($order['id'], $conn);
+                        error_log("✓ Admin email sent for bulk order payment proof upload");
+                    } catch (Exception $email_error) {
+                        error_log("Failed to send admin email for payment proof: " . $email_error->getMessage());
+                    }
+                    
                     // Create admin notification for payment proof upload
                     try {
                         // Get order details for notification

@@ -395,6 +395,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             border: 1px solid #e5e7eb;
         }
         
+        .sdo-set-all-container {
+            padding: 10px;
+            background: #fff;
+            border-radius: 4px;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 8px;
+        }
+        
         .sdo-quantity-item {
             display: flex;
             justify-content: space-between;
@@ -426,6 +434,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             outline: none;
             border-color: #3b82f6;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .btn-apply-all:hover {
+            background: #2563eb !important;
+        }
+        
+        .btn-apply-all:active {
+            background: #1d4ed8 !important;
         }
     </style>
 </head>
@@ -845,6 +861,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             let html = '<div class="sdo-quantity-list">';
             html += '<h4 style="margin-bottom: 10px; font-size: 14px; color: #374151;">Set Quantity Per Day:</h4>';
             
+            // Add "Set All" input at the top
+            html += `
+                <div class="sdo-set-all-container">
+                    <label for="setAllQuantity" style="font-size: 13px; color: #374151; font-weight: 500;">Set all dates to:</label>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <input 
+                            type="number" 
+                            id="setAllQuantity" 
+                            placeholder="0"
+                            min="0" 
+                            step="1"
+                            class="sdo-quantity-input"
+                            style="width: 100px;"
+                        />
+                        <button 
+                            type="button"
+                            onclick="applyQuantityToAllDates()"
+                            class="btn-apply-all"
+                            style="padding: 6px 12px; background: #3b82f6; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer; white-space: nowrap;"
+                        >
+                            Apply to All
+                        </button>
+                    </div>
+                </div>
+                <hr style="margin: 12px 0; border: none; border-top: 1px solid #e5e7eb;">
+            `;
+            
             selectedDates.forEach(date => {
                 const dateObj = new Date(date + 'T00:00:00');
                 const formattedDate = dateObj.toLocaleDateString('en-US', { 
@@ -1111,6 +1154,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Image upload handling is now managed by product-image-ajax.js
         // Old inline event listeners removed to prevent conflicts with AJAX upload
     });
+    
+    /**
+     * Apply quantity to all selected dates
+     */
+    function applyQuantityToAllDates() {
+        const setAllInput = document.getElementById('setAllQuantity');
+        if (!setAllInput) return;
+        
+        const quantity = parseInt(setAllInput.value) || 0;
+        
+        // Get all date inputs
+        const dateInputs = document.querySelectorAll('.sdo-quantity-input[data-date]');
+        dateInputs.forEach(input => {
+            const date = input.getAttribute('data-date');
+            input.value = quantity;
+            // Update the global sdoQuantities object
+            if (!window.sdoQuantities) window.sdoQuantities = {};
+            window.sdoQuantities[date] = quantity;
+        });
+        
+        // Clear the "set all" input
+        setAllInput.value = '';
+        
+        console.log('✅ Applied quantity', quantity, 'to all dates');
+    }
     
     // IMPORTANT: validateForm must be global for onsubmit to work
     function validateForm() {

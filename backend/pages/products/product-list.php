@@ -583,26 +583,27 @@
                                              </td>
                                             <td>
                                                 <div class='action-buttons'>
-                                                    <button class='btn-action btn-edit' onclick=\"openEditModal(
-                                                        '" . $row["id"] . "',     
-                                                        '" . addslashes($row["name"]) . "', 
-                                                        '" . addslashes($row["description"] ?? '') . "',
-                                                        '" . $row["price"] . "', 
-                                                        '" . $status_id . "',
-                                                        '" . ($row["is_featured"] ? "true" : "false") . "',
-                                                        '" . ($row["show_when_unavailable"] ? "true" : "false") . "',
-                                                        '" . ($row["hide_when_unavailable"] ? "true" : "false") . "',
-                                                        " . $quantity . ",
-                                                        '" . addslashes($row['available_days']) . "',
-                                                        '" . addslashes($row['status_name'] ?? 'Unknown') . "',
-                                                        '" . ($row['unavailable_status_id'] ?? 'null') . "',
-                                                        '" . addslashes($row['unavailable_status_name'] ?? '') . "',
-                                                        '" . ($row['availtoday_status_id'] ?? 'null') . "',
-                                                        '" . addslashes($row['availtoday_status_name'] ?? '') . "',
-                                                        '" . addslashes($row['todays_product_dates'] ?? '') . "',
-                                                        '" . addslashes($row['regular_today_dates'] ?? '') . "',
-                                                        '" . ($row['category_id'] ?? 'null') . "'
-                                                    )\" title='Edit Product'>
+                                                    <button class='btn-action btn-edit' 
+                                                        data-product-id='" . $row["id"] . "'
+                                                        data-product-name='" . htmlspecialchars($row["name"], ENT_QUOTES, 'UTF-8') . "'
+                                                        data-product-description='" . htmlspecialchars($row["description"] ?? '', ENT_QUOTES, 'UTF-8') . "'
+                                                        data-product-price='" . $row["price"] . "'
+                                                        data-product-status='" . $status_id . "'
+                                                        data-product-featured='" . ($row["is_featured"] ? "true" : "false") . "'
+                                                        data-product-show-unavailable='" . ($row["show_when_unavailable"] ? "true" : "false") . "'
+                                                        data-product-hide-unavailable='" . ($row["hide_when_unavailable"] ? "true" : "false") . "'
+                                                        data-product-quantity='" . $quantity . "'
+                                                        data-product-available-days='" . htmlspecialchars($row['available_days'], ENT_QUOTES, 'UTF-8') . "'
+                                                        data-product-status-name='" . htmlspecialchars($row['status_name'] ?? 'Unknown', ENT_QUOTES, 'UTF-8') . "'
+                                                        data-product-unavailable-status-id='" . ($row['unavailable_status_id'] ?? 'null') . "'
+                                                        data-product-unavailable-status-name='" . htmlspecialchars($row['unavailable_status_name'] ?? '', ENT_QUOTES, 'UTF-8') . "'
+                                                        data-product-availtoday-status-id='" . ($row['availtoday_status_id'] ?? 'null') . "'
+                                                        data-product-availtoday-status-name='" . htmlspecialchars($row['availtoday_status_name'] ?? '', ENT_QUOTES, 'UTF-8') . "'
+                                                        data-product-todays-dates='" . htmlspecialchars($row['todays_product_dates'] ?? '', ENT_QUOTES, 'UTF-8') . "'
+                                                        data-product-regular-today-dates='" . htmlspecialchars($row['regular_today_dates'] ?? '', ENT_QUOTES, 'UTF-8') . "'
+                                                        data-product-category-id='" . ($row['category_id'] ?? 'null') . "'
+                                                        onclick='openEditModalFromButton(this)'
+                                                        title='Edit Product'>
                                                         <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>
                                                             <path d='M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7'></path>
                                                             <path d='M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z'></path>
