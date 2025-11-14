@@ -33,7 +33,9 @@ if (headers_sent()) {
     !strpos($_SERVER['SCRIPT_NAME'], '/products/delete-removed-images.php') &&
     !strpos($_SERVER['SCRIPT_NAME'], '/calendar/update-limit.php') &&
     !strpos($_SERVER['SCRIPT_NAME'], '/cart/availtoday-cart-api.php') &&
-    !strpos($_SERVER['SCRIPT_NAME'], '/notifications/api.php')) {
+    !strpos($_SERVER['SCRIPT_NAME'], '/notifications/api.php') &&
+    !strpos($_SERVER['SCRIPT_NAME'], '/api/upload-carousel-image.php') &&
+    !strpos($_SERVER['SCRIPT_NAME'], '/api/delete-carousel-image.php')) {
         
         echo "<!-- Headers already sent, could not set content type -->";
     }
@@ -55,7 +57,9 @@ if (headers_sent()) {
         strpos($_SERVER['SCRIPT_NAME'], '/products/delete-removed-images.php') ||
         strpos($_SERVER['SCRIPT_NAME'], '/calendar/update-limit.php') ||
         strpos($_SERVER['SCRIPT_NAME'], '/cart/availtoday-cart-api.php') ||
-        strpos($_SERVER['SCRIPT_NAME'], '/notifications/api.php')) {
+        strpos($_SERVER['SCRIPT_NAME'], '/notifications/api.php') ||
+        strpos($_SERVER['SCRIPT_NAME'], '/api/upload-carousel-image.php') ||
+        strpos($_SERVER['SCRIPT_NAME'], '/api/delete-carousel-image.php')) {
         
         // For API endpoints, force JSON content type
         header('Content-Type: application/json');

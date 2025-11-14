@@ -7,32 +7,64 @@
  * table until they are associated with a saved carousel entry.
  */
 
-require_once __DIR__ . '/../../includes/session-manager.php';
-
+// Set JSON header and error handling FIRST before any output
 header('Content-Type: application/json');
+error_reporting(E_ALL);
+ini_set('display_errors', 0); // Don't display errors in output
+ini_set('log_errors', 1); // Log errors instead
+
+// Include database first to ensure session is configured properly
+require_once __DIR__ . '/../pages/admin-includes/database.php';
+require_once __DIR__ . '/../../includes/session-manager.php';
 
 // Verify admin authentication
 if (!SessionManager::isAdminLoggedIn()) {
+    // Debug: Log session state
+    error_log("Carousel upload auth failed - Session state: " . print_r($_SESSION ?? [], true));
+    
     http_response_code(401);
     echo json_encode([
         'success' => false,
-        'error' => 'Unauthorized. Please log in as admin.'
+        'error' => 'Unauthorized. Please log in as admin.',
+        'debug' => [
+            'session_started' => session_status() === PHP_SESSION_ACTIVE,
+            'has_is_admin' => isset($_SESSION['is_admin']),
+            'is_admin_value' => $_SESSION['is_admin'] ?? null,
+            'has_admin_role' => isset($_SESSION['admin_role']),
+            'admin_role_value' => $_SESSION['admin_role'] ?? null
+        ]
+    ]);
+    exit();
+}
+
+// Get admin data to verify session is working
+$adminData = SessionManager::getAdminData();
+if (!$adminData) {
+    http_response_code(401);
+    echo json_encode([
+        'success' => false,
+        'error' => 'Invalid admin session. Please log in again.'
     ]);
     exit();
 }
 
 // Verify CSRF token
-if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+$sessionCsrfToken = SessionManager::getSessionData('csrf_token');
+if (!isset($_POST['csrf_token']) || !$sessionCsrfToken || $_POST['csrf_token'] !== $sessionCsrfToken) {
     http_response_code(403);
     echo json_encode([
         'success' => false,
-        'error' => 'Invalid CSRF token. Please refresh the page and try again.'
+        'error' => 'Invalid CSRF token. Please refresh the page and try again.',
+        'debug' => [
+            'has_post_token' => isset($_POST['csrf_token']),
+            'has_session_token' => !empty($sessionCsrfToken),
+            'tokens_match' => isset($_POST['csrf_token']) && $sessionCsrfToken && $_POST['csrf_token'] === $sessionCsrfToken
+        ]
     ]);
     exit();
 }
 
 require_once __DIR__ . '/../includes/cloudinary-helper.php';
-require_once __DIR__ . '/../pages/admin-includes/database.php';
 
 /**
  * Log temporary image upload for orphan tracking

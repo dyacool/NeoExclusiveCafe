@@ -15,6 +15,16 @@ $additional_css = [
 
 require_once __DIR__ . "/../user-includes/navbar/customer-navigation.php";
 
+// Get business hours for same-day availability check
+$business_hours = null;
+if ($conn) {
+    $business_hours_query = "SELECT opening_time, closing_time FROM business_hours ORDER BY id DESC LIMIT 1";
+    $business_hours_result = $conn->query($business_hours_query);
+    if ($business_hours_result && $business_hours_result->num_rows > 0) {
+        $business_hours = $business_hours_result->fetch_assoc();
+    }
+}
+
 // Get the search query
 $search_query = isset($_GET['query']) ? trim($_GET['query']) : '';
 
@@ -273,6 +283,10 @@ function determineProductAvailability($product_row, $today_date) {
 // Include the header/navigation
 require_once __DIR__ . "/../user-includes/navbar/customer-navigation.php";
 ?>
+
+<meta name="business-opening-time" content="<?php echo $business_hours['opening_time'] ?? '08:00'; ?>">
+<meta name="business-closing-time" content="<?php echo $business_hours['closing_time'] ?? '21:00'; ?>">
+
 <link rel="stylesheet" href="/frontend/search/search-results.css">
 <link rel="stylesheet" href="/frontend/pages/products/product-dashboard.css">
 
@@ -1061,6 +1075,28 @@ require_once __DIR__ . "/../user-includes/navbar/customer-navigation.php";
         }
     }
 
+    // Check if business is currently closed
+    function isBusinessClosed() {
+        const currentTime = new Date();
+        const currentHours = String(currentTime.getHours()).padStart(2, '0');
+        const currentMinutes = String(currentTime.getMinutes()).padStart(2, '0');
+        const currentTimeStr = currentHours + ':' + currentMinutes;
+        
+        // Get business hours from page meta tags
+        const openingTime = document.querySelector('meta[name="business-opening-time"]')?.getAttribute('content') || '08:00';
+        const closingTime = document.querySelector('meta[name="business-closing-time"]')?.getAttribute('content') || '21:00';
+        
+        // If closing time < opening time (e.g., 21:00 vs 08:00), it wraps past midnight
+        // Handle wrapping: if current time >= opening time OR < closing time (from previous day), business is open
+        if (closingTime < openingTime) {
+            // Business hours wrap past midnight (e.g., 22:00 to 02:00)
+            return !(currentTimeStr >= openingTime || currentTimeStr < closingTime);
+        } else {
+            // Normal business hours (e.g., 08:00 to 21:00)
+            return !(currentTimeStr >= openingTime && currentTimeStr < closingTime);
+        }
+    }
+
     // Open quantity modal with order type selection
     async function openQuantityModalWithOrderType(productName, productPrice, productStock, statusId, availtodayStatusId) {
         const modal = document.getElementById('quantityModal');
@@ -1070,92 +1106,108 @@ require_once __DIR__ . "/../user-includes/navbar/customer-navigation.php";
         const quantityInput = document.getElementById('quantityModalInput');
         const orderTypeSelector = document.getElementById('orderTypeSelector');
         const dateDisplay = document.getElementById('quantityModalDate');
+        const samedayRadio = document.querySelector('input[name="orderType"][value="sameday"]');
+        const preorderRadio = document.querySelector('input[name="orderType"][value="preorder"]');
+        
+        // Check if business is currently closed
+        const businessClosed = isBusinessClosed();
         
         // Show modal first
         modal.style.display = 'flex';
         
-        // Determine which order types to show
+        // Show loading state
+        setQuantityModalLoading(true);
+        
+        // Determine which order types to show based on product configuration and stock availability
         // Status 1, 2, 3 = Pre-order products
         // Status 4 = Same Day Order products
-        // If product has both status (1,2,3) AND availtoday_status_id, show both options
         
         if ((statusId == 1 || statusId == 2 || statusId == 3) && availtodayStatusId) {
-            // Product has BOTH pre-order and same day order
-            // Check if same-day is actually available today
-            orderTypeSelector.style.display = 'block';
+            // Product has BOTH pre-order and same day order capability
+            // Fetch both stock quantities to determine what to show
             
-            // Show loading state
-            setQuantityModalLoading(true);
+            const preorderQty = await fetchPreOrderQuantityValue(pendingCartProduct.id);
+            const samedayQty = await fetchTodayQuantityValue(pendingCartProduct.id);
             
-            // Fetch pre-order quantity (default selection)
-            document.getElementById('quantityModalStock').textContent = 'Loading...';
-            quantityInput.value = 1;
-            quantityInput.max = 1;
+            // Determine which options are available based on stock
+            const hasPreorderStock = preorderQty > 0;
+            const hasSamedayStock = samedayQty > 0;
             
-            await fetchPreOrderQuantity(pendingCartProduct.id);
-            
-            // Check same-day availability
-            const sameDayAvailable = await checkSameDayAvailability(pendingCartProduct.id);
-            
-            if (sameDayAvailable) {
-                // Show both options
-                const samedayRadio = document.querySelector('input[name="orderType"][value="sameday"]');
-                const samedayLabel = samedayRadio.closest('.order-type-radio');
+            if (hasPreorderStock && hasSamedayStock && !businessClosed) {
+                // BOTH have stock AND business is open: Show order type selector
+                orderTypeSelector.style.display = 'block';
                 samedayRadio.disabled = false;
-                samedayLabel.style.opacity = '1';
-                samedayLabel.style.cursor = 'pointer';
-                selectOrderType('preorder'); // Default to pre-order
-            } else {
-                // Hide or disable same-day option
-                const samedayRadio = document.querySelector('input[name="orderType"][value="sameday"]');
-                const samedayLabel = samedayRadio.closest('.order-type-radio');
+                preorderRadio.disabled = false;
+                dateDisplay.style.display = 'none';
+                
+                // Default to pre-order
+                await fetchPreOrderQuantity(pendingCartProduct.id);
+                selectOrderType('preorder');
+            } else if (hasSamedayStock && !hasPreorderStock && !businessClosed) {
+                // ONLY same-day has stock AND business is open: Show same-day only
+                orderTypeSelector.style.display = 'none';
+                dateDisplay.style.display = 'block';
+                dateDisplay.textContent = 'For: Today';
+                pendingCartProduct.selectedOrderType = 'sameday';
+                
+                await fetchTodayQuantity(pendingCartProduct.id);
+            } else if (hasPreorderStock && !hasSamedayStock) {
+                // ONLY pre-order has stock: Show pre-order only
+                orderTypeSelector.style.display = 'none';
+                dateDisplay.style.display = 'none';
+                pendingCartProduct.selectedOrderType = 'preorder';
+                
+                await fetchPreOrderQuantity(pendingCartProduct.id);
+            } else if (businessClosed && hasPreorderStock) {
+                // Business is closed BUT pre-order has stock: Show pre-order only with same-day disabled
+                orderTypeSelector.style.display = 'block';
                 samedayRadio.disabled = true;
-                samedayLabel.style.opacity = '0.5';
-                samedayLabel.style.cursor = 'not-allowed';
-                samedayLabel.title = 'Not available today';
-                selectOrderType('preorder'); // Force pre-order only
+                preorderRadio.disabled = false;
+                preorderRadio.checked = true;
+                samedayRadio.checked = false;
+                dateDisplay.style.display = 'none';
+                pendingCartProduct.selectedOrderType = 'preorder';
+                
+                await fetchPreOrderQuantity(pendingCartProduct.id);
+            } else {
+                // NEITHER has stock or no valid combination: Default to pre-order view
+                orderTypeSelector.style.display = 'none';
+                dateDisplay.style.display = 'none';
+                pendingCartProduct.selectedOrderType = 'preorder';
+                
+                await fetchPreOrderQuantity(pendingCartProduct.id);
             }
-            
-            // Remove loading state
-            setQuantityModalLoading(false);
         } else if (statusId == 4) {
-            // Same Day Order ONLY - Fetch today's quantity from quantity_per_day_sdo
-            orderTypeSelector.style.display = 'none';
-            dateDisplay.style.display = 'block';
-            dateDisplay.textContent = 'For: Today';
-            pendingCartProduct.selectedOrderType = 'sameday';
+            // Same Day Order ONLY
+            orderTypeSelector.style.display = 'block';
+            samedayRadio.disabled = businessClosed;
+            preorderRadio.disabled = true;
             
-            // Show loading state
-            setQuantityModalLoading(true);
-            
-            // Fetch today's quantity from quantity_per_day_sdo table
-            document.getElementById('quantityModalStock').textContent = 'Loading...';
-            quantityInput.value = 1;
-            quantityInput.max = 1;
-            
-            await fetchTodayQuantity(pendingCartProduct.id);
-            
-            // Remove loading state
-            setQuantityModalLoading(false);
+            if (businessClosed) {
+                // Business is closed - disable same-day option
+                samedayRadio.checked = false;
+                dateDisplay.style.display = 'none';
+                document.getElementById('quantityModalStock').textContent = 'Same-day orders not available now';
+            } else {
+                // Business is open - enable same-day
+                samedayRadio.checked = true;
+                dateDisplay.style.display = 'block';
+                dateDisplay.textContent = 'For: Today';
+                pendingCartProduct.selectedOrderType = 'sameday';
+                
+                await fetchTodayQuantity(pendingCartProduct.id);
+            }
         } else {
             // Pre-order ONLY (status 1, 2, or 3 without availtoday_status_id)
             orderTypeSelector.style.display = 'none';
             dateDisplay.style.display = 'none';
             pendingCartProduct.selectedOrderType = 'preorder';
             
-            // Show loading state
-            setQuantityModalLoading(true);
-            
-            // Fetch pre-order quantity from products.quantity
-            document.getElementById('quantityModalStock').textContent = 'Loading...';
-            quantityInput.value = 1;
-            quantityInput.max = 1;
-            
             await fetchPreOrderQuantity(pendingCartProduct.id);
-            
-            // Remove loading state
-            setQuantityModalLoading(false);
         }
+        
+        // Remove loading state
+        setQuantityModalLoading(false);
     }
 
     function setQuantityModalLoading(isLoading) {
@@ -1227,6 +1279,43 @@ require_once __DIR__ . "/../user-includes/navbar/customer-navigation.php";
         }
     }
 
+    // Fetch pre-order quantity value only (no UI update) - for checking availability
+    async function fetchPreOrderQuantityValue(productId) {
+        try {
+            const response = await fetch(`../pages/products/get-preorder-quantity.php?product_id=${productId}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                return data.quantity || 0;
+            }
+            return 0;
+        } catch (error) {
+            console.error('Error fetching pre-order quantity:', error);
+            return 0;
+        }
+    }
+    
+    // Fetch today's quantity value only (no UI update) - for checking availability
+    async function fetchTodayQuantityValue(productId) {
+        try {
+            const response = await fetch(`../pages/products/get-sdo-quantity.php?product_id=${productId}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                const todayQuantity = data.quantity || 0;
+                const hasDateToday = data.has_date_today || false;
+                
+                // Only return quantity if date is configured for today
+                return hasDateToday ? todayQuantity : 0;
+            }
+            return 0;
+        } catch (error) {
+            console.error('Error fetching today quantity:', error);
+            return 0;
+        }
+    }
+    
+    // Fetch pre-order quantity from products.quantity (with UI update)
     async function fetchPreOrderQuantity(productId) {
         const stockDisplay = document.getElementById('quantityModalStock');
         const confirmBtn = document.querySelector('.btn-confirm');

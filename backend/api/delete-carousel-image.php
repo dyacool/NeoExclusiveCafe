@@ -6,9 +6,15 @@
  * It removes images from Cloudinary and cleans up the temp_uploaded_images tracking table.
  */
 
-require_once __DIR__ . '/../../includes/session-manager.php';
-
+// Set JSON header and error handling FIRST before any output
 header('Content-Type: application/json');
+error_reporting(E_ALL);
+ini_set('display_errors', 0); // Don't display errors in output
+ini_set('log_errors', 1); // Log errors instead
+
+// Include database first to ensure session is configured properly
+require_once __DIR__ . '/../pages/admin-includes/database.php';
+require_once __DIR__ . '/../../includes/session-manager.php';
 
 // Verify admin authentication
 if (!SessionManager::isAdminLoggedIn()) {
@@ -20,8 +26,20 @@ if (!SessionManager::isAdminLoggedIn()) {
     exit();
 }
 
+// Get admin data to verify session is working
+$adminData = SessionManager::getAdminData();
+if (!$adminData) {
+    http_response_code(401);
+    echo json_encode([
+        'success' => false,
+        'error' => 'Invalid admin session. Please log in again.'
+    ]);
+    exit();
+}
+
 // Verify CSRF token
-if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+$sessionCsrfToken = SessionManager::getSessionData('csrf_token');
+if (!isset($_POST['csrf_token']) || !$sessionCsrfToken || $_POST['csrf_token'] !== $sessionCsrfToken) {
     http_response_code(403);
     echo json_encode([
         'success' => false,
@@ -31,7 +49,6 @@ if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || $_POST['c
 }
 
 require_once __DIR__ . '/../includes/cloudinary-helper.php';
-require_once __DIR__ . '/../pages/admin-includes/database.php';
 
 /**
  * Remove temporary image from tracking table

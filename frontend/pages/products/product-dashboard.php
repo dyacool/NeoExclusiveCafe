@@ -733,7 +733,7 @@ if ($cart_truncated) {
 <script>
     // Check if user is logged in
     const isLoggedIn = <?= SessionManager::isUserLoggedIn() ? 'true' : 'false' ?>;
-    const loginUrl = 'http://neocafe.cafe:8080/frontend/login/user/login-signup.php';
+    const loginUrl = window.location.origin + '/frontend/login/user/login-signup.php';
     
     // Function to check login and redirect if needed
     function checkLoginAndRedirect() {
