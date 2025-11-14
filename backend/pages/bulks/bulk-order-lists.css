@@ -375,7 +375,9 @@
   color: var(--green-600);
 }
 
-.status-cancelled {
+.status-cancelled,
+.status-rejected,
+.status-payment-rejected {
   background-color: #fef2f2;
   color: var(--red-600);
 }

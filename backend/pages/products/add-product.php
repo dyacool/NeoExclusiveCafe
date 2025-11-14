@@ -110,13 +110,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
     require_once __DIR__ . "/../admin-includes/settings-helper.php";
     
-    // DEBUG: Check if sdo_quantities is in POST
-    echo "<script>console.log('🔍 PHP POST DATA CHECK:');</script>";
-    echo "<script>console.log('sdo_quantities in POST:', " . (isset($_POST['sdo_quantities']) ? 'true' : 'false') . ");</script>";
-    if (isset($_POST['sdo_quantities'])) {
-        echo "<script>console.log('sdo_quantities value:', '" . addslashes($_POST['sdo_quantities']) . "');</script>";
-    }
-    
     $sku = generateSKU($conn);
     $name = $_POST['name'];
     $description = $_POST['description'];
@@ -183,11 +176,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt = $conn->prepare("INSERT INTO products (sku, name, description, price, status_id, quantity, is_featured, show_when_unavailable, hide_when_unavailable, availtoday_status_id, category_id) 
                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     $stmt->bind_param("sssdiiiiiii", $sku, $name, $description, $price, $status_id, $quantity, $is_featured, $show_when_unavailable, $hide_when_unavailable, $availtoday_status_id, $category_id);
-    
-    // Debug: Check if the statement prepared correctly
-    if (!$stmt) {
-        die("Prepare failed: " . $conn->error);
-    }
     
     if ($stmt->execute()) {
         $product_id = $stmt->insert_id;
@@ -661,40 +649,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <button class="discardBtn" type="button" onclick="if(confirm('Are you sure you want to discard changes?')) { window.location.href='product-list.php'; }">Discard</button>
                         <button class="submitBtn" type="submit">Add Product</button>
                     </div>
-                    
-                    <!-- Debug button -->
-                    <button type="button" onclick="
-                        console.clear();
-                        console.log('='.repeat(50));
-                        console.log('🔍 SDO QUANTITIES DEBUG INFO');
-                        console.log('='.repeat(50));
-                        console.log('📊 window.sdoQuantities:', window.sdoQuantities);
-                        console.log('📊 Total dates:', Object.keys(window.sdoQuantities || {}).length);
-                        
-                        const inputs = document.querySelectorAll('.sdo-quantity-input[data-date]');
-                        console.log('📋 Quantity inputs on page:', inputs.length);
-                        
-                        // Collect from inputs (like form submission does)
-                        const collected = {};
-                        inputs.forEach(input => {
-                            const date = input.getAttribute('data-date');
-                            const qty = parseInt(input.value) || 0;
-                            collected[date] = qty;
-                            console.log('  Input:', date, '=', qty);
-                        });
-                        console.log('📦 Collected from inputs:', collected);
-                        
-                        // Update hidden field
-                        const hiddenField = document.getElementById('sdo_quantities');
-                        if (hiddenField) {
-                            hiddenField.value = JSON.stringify(collected);
-                            console.log('✅ Updated hidden field to:', hiddenField.value);
-                        }
-                        
-                        console.log('📝 Hidden field value:', document.getElementById('sdo_quantities')?.value || 'EMPTY');
-                        console.log('='.repeat(50));
-                        alert('✅ Debug info logged to console (F12)\\nHidden field has been updated!');
-                    " style="margin-top: 10px; padding: 8px 16px; background: #6b7280; color: white; border: none; border-radius: 4px; cursor: pointer;">🔍 Debug Quantities</button>
                 </div>
             </div>
         </form>
@@ -1200,16 +1154,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 const sdoInputs = document.querySelectorAll('.sdo-quantity-input[data-date]');
                 
                 console.log(`🔍 Found ${sdoInputs.length} quantity input fields`);
-                
-                // Debug: Log each input element
-                sdoInputs.forEach((input, index) => {
-                    console.log(`Input ${index + 1}:`, {
-                        element: input,
-                        'data-date': input.getAttribute('data-date'),
-                        value: input.value,
-                        id: input.id
-                    });
-                });
                 
                 sdoInputs.forEach(input => {
                     const date = input.getAttribute('data-date');

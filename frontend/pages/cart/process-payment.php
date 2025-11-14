@@ -7,29 +7,31 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 0); // Disable display_errors to prevent HTML output
 ini_set('log_errors', 1);
-ini_set('error_log', __DIR__ . '/../../logs/php_errors.log');
+ini_set('error_log', __DIR__ . '/../../../logs/payment_errors.log');
+
+// CRITICAL: Log that this script is being executed
+error_log("=========================================");
+error_log("[PROCESS-PAYMENT] Script execution started");
+error_log("[PROCESS-PAYMENT] Request method: " . ($_SERVER['REQUEST_METHOD'] ?? 'UNKNOWN'));
+error_log("[PROCESS-PAYMENT] Request URI: " . ($_SERVER['REQUEST_URI'] ?? 'UNKNOWN'));
+error_log("=========================================");
 
 // Start output buffering to catch any accidental output
 ob_start();
 
-// Start session with dynamic domain
-$session_domain = $_SERVER['HTTP_HOST'] ?? 'localhost';
-session_set_cookie_params([
-    'lifetime' => 0,
-    'httponly' => true,
-    'samesite' => 'Strict',
-    'domain' => $session_domain
-]);
-session_start();
+// DON'T start session here - database.php will handle it
+// This prevents session conflicts and ensures we continue the existing session from checkout.php
 
 // Set JSON content type
 header('Content-Type: application/json');
 
-// Test if includes work
+// Include database connection FIRST - it handles session configuration
 try {
     require_once '../../../backend/pages/admin-includes/database.php';
     require_once '../../../includes/session-manager.php';
-    error_log("Database include successful");
+    error_log("[PROCESS-PAYMENT] Database include successful");
+    error_log("[PROCESS-PAYMENT] Session ID: " . session_id());
+    error_log("[PROCESS-PAYMENT] User ID from session: " . (SessionManager::getUserId() ?? 'NULL'));
     
     // Test database connection
     if (isset($conn) && $conn->ping()) {
@@ -331,10 +333,12 @@ try {
         
         if (!$checkout_url) {
             error_log("⚠ No checkout URL in payment intent response");
-            // Fallback: construct payment URL manually
+            // Fallback: construct payment URL manually with client_secret in URL for session recovery
             $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
             $host = $_SERVER['HTTP_HOST'];
-            $checkout_url = $protocol . '://' . $host . '/frontend/pages/cart/card-payment.php?payment_intent_id=' . $result['data']['id'];
+            $client_key_encoded = urlencode($result['data']['attributes']['client_key']);
+            $checkout_url = $protocol . '://' . $host . '/frontend/pages/cart/card-payment.php?payment_intent_id=' . $result['data']['id'] . '&client_secret=' . $client_key_encoded . '&order_type=' . urlencode($order_type);
+            error_log("[PROCESS-PAYMENT] Generated fallback URL with client_secret parameter");
         }
         
         $response = [

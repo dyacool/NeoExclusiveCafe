@@ -10,6 +10,63 @@ require_once __DIR__ . "/../admin-includes/activity-logger.php";
 // Initialize variables
 $success_message = '';
 $error_message = '';
+
+// Handle AJAX requests for save and get operations
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['content'])) {
+    header('Content-Type: application/json');
+    
+    try {
+        $content = $_POST['content'];
+        
+        // Check if knowledge base entry exists
+        $stmt = $pdo->prepare("SELECT id FROM chatbot_knowledge LIMIT 1");
+        $stmt->execute();
+        $exists = $stmt->fetch();
+        
+        if ($exists) {
+            // Update existing
+            $stmt = $pdo->prepare("UPDATE chatbot_knowledge SET content = ?, updated_at = NOW() WHERE id = ?");
+            $stmt->execute([$content, $exists['id']]);
+        } else {
+            // Insert new
+            $stmt = $pdo->prepare("INSERT INTO chatbot_knowledge (content, updated_at) VALUES (?, NOW())");
+            $stmt->execute([$content]);
+        }
+        
+        echo json_encode(['success' => true]);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    }
+    exit;
+}
+
+// Handle AJAX requests for getting knowledge
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'get') {
+    header('Content-Type: application/json');
+    
+    try {
+        $stmt = $pdo->prepare("SELECT content, updated_at FROM chatbot_knowledge ORDER BY updated_at DESC LIMIT 1");
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($result) {
+            echo json_encode([
+                'success' => true,
+                'content' => $result['content'],
+                'updated_at' => $result['updated_at']
+            ]);
+        } else {
+            echo json_encode([
+                'success' => true,
+                'content' => '',
+                'updated_at' => null
+            ]);
+        }
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    }
+    exit;
+}
 ?>
 
 <!DOCTYPE html>
@@ -119,28 +176,28 @@ $error_message = '';
 
         // Function to update preview and stats
         function updatePreview() {
-            const content = $('#knowledge-content').val();
-            const preview = $('#knowledge-preview');
-            
-            if (content.trim() === '') {
-                preview.html(`
-                    <div class="kb-preview-placeholder">
-                        <i class="fas fa-file-alt"></i>
-                        <p>Start typing to see a preview...</p>
-                    </div>
-                `);
-                $('#word-count').text('0');
-                $('#char-count').text('0');
-            } else {
-                const escapedContent = escapeHtml(content);
-                const linkedContent = linkifyText(escapedContent);
-                preview.html(linkedContent);
-                
-                // Update stats
-                const words = content.trim().split(/\s+/).length;
-                const chars = content.length;
-                $('#word-count').text(words);
-                $('#char-count').text(chars);
+        // Function to load knowledge base
+        function loadKnowledge() {
+            fetch('?action=get')
+                .then(response => response.json())
+                .then(res => {
+                    if (res.success) {
+                        $('#knowledge-content').val(res.content || '');
+                        updatePreview();
+                        
+                        // Update last updated time if available
+                        if (res.updated_at) {
+                            $('#last-updated').text(formatDate(res.updated_at));
+                        }
+                    } else {
+                        showMessage('Error loading knowledge base: ' + (res.error || 'Unknown error'), 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Failed to load knowledge base:', error);
+                    showMessage('Failed to load knowledge base. Please refresh the page.', 'error');
+                });
+        }
             }
         }
 
@@ -166,14 +223,14 @@ $error_message = '';
         // Function to format date
         function formatDate(dateString) {
             if (!dateString) return 'Never';
-            const date = new Date(dateString);
-            return date.toLocaleString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
+                // Send data
+                fetch('', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'content=' + encodeURIComponent(content)
+                })
         }
 
         // Function to load knowledge base

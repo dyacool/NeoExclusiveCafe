@@ -43,37 +43,6 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'update_status') {
     }
 }
 
-// Create bulk_orders table if it doesn't exist
-// Ensure table exists with extended statuses
-$create_table_query = "
-    CREATE TABLE IF NOT EXISTS `bulk_orders` (
-        `id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-        `unique_order_id` varchar(20) UNIQUE,
-        `user_id` int(11) DEFAULT NULL,
-        `name` varchar(255) NOT NULL,
-        `contact` varchar(20) NOT NULL,
-        `email` varchar(255) NOT NULL,
-        `billing_address` text NOT NULL,
-        `order_type` enum('delivery','pickup') NOT NULL,
-        `delivery_address` text DEFAULT NULL,
-        `purpose` text NOT NULL,
-        `date_needed` date NOT NULL,
-        `time_needed` time NOT NULL,
-        `note` text DEFAULT NULL,
-        `total_amount` decimal(10,2) NOT NULL,
-        `total_items` int(11) NOT NULL DEFAULT 0,
-        `status` enum('pending','approved','payment_received','payment_rejected','ready_for_delivery','cancelled','rejected','completed') NOT NULL DEFAULT 'pending',
-        `proof_of_payment` varchar(500) DEFAULT NULL,
-        `admin_updated` timestamp NULL DEFAULT NULL,
-        `admin_notes` text DEFAULT NULL,
-        `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        KEY `user_id` (`user_id`),
-        KEY `status` (`status`),
-        KEY `created_at` (`created_at`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-";
-mysqli_query($conn, $create_table_query);
 
 // Ensure status enum includes new values
 $desired_statuses = ['pending','approved','payment_received','payment_rejected','ready_for_delivery','ready_for_pickup','cancelled','rejected','completed'];

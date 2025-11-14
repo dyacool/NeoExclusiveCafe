@@ -1987,22 +1987,28 @@ $debug_info = [
                 discountRow.style.display = 'none';
             }
             
-            // Get current shipping fee
-            let shippingFee = pickupRadio.checked ? 0 : 50;
+            // Get current shipping fee based on shipping method
+            let shippingFee = 0;
             
-            // If it was free shipping and delivery is selected, restore the delivery fee
-            if (wasFreeShipping && !pickupRadio.checked) {
+            if (pickupRadio.checked) {
+                // Pickup: No shipping fee
+                shippingFee = 0;
+            } else {
+                // Delivery: Get the actual delivery fee from selected location
                 const shippingFeeElement = document.getElementById('shipping_fee');
                 const deliveryLocationSelect = document.getElementById('delivery_location');
                 
                 // Get the delivery fee from the selected location if available
                 if (deliveryLocationSelect && deliveryLocationSelect.value) {
                     const selectedOption = deliveryLocationSelect.options[deliveryLocationSelect.selectedIndex];
-                    const deliveryFee = parseFloat(selectedOption.dataset.deliveryFee) || 50;
-                    shippingFee = deliveryFee;
-                    if (shippingFeeElement) {
-                        shippingFeeElement.textContent = '₱' + deliveryFee.toFixed(2);
-                    }
+                    shippingFee = parseFloat(selectedOption.dataset.deliveryFee) || 50;
+                } else {
+                    shippingFee = 50; // Default delivery fee if no location selected
+                }
+                
+                // Update shipping fee display to actual fee
+                if (shippingFeeElement) {
+                    shippingFeeElement.textContent = '₱' + shippingFee.toFixed(2);
                 }
             }
             

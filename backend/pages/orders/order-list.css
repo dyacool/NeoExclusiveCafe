@@ -237,7 +237,7 @@
   letter-spacing: 0.025em;
 }
 
-.status-pending {
+.status-confirmed {
   background-color: var(--yellow-100);
   color: var(--yellow-600);
 }
@@ -300,7 +300,7 @@
 }
 
 /* Status select color classes */
-.status-badge-select.status-pending {
+.status-badge-select.status-confirmed {
   background-color: var(--yellow-100);
   color: var(--yellow-600);
   border: 1px solid var(--yellow-200);
@@ -314,9 +314,9 @@
 
 .status-badge-select.status-ready-for-delivery,
 .status-badge-select.status-ready-for-pick-up {
-  background-color: var(--green-100);
-  color: var(--green-700);
-  border: 1px solid var(--green-200);
+  background-color: #ffcaef;
+  color: #720151;
+  border: 1px solid #ff87db;
 }
 
 .status-badge-select.status-out-for-delivery {
@@ -1281,7 +1281,6 @@
   }
 }
 
-
 /* Auto-Status Toggle Switch */
 .auto-status-toggle-container {
   display: flex;
@@ -1420,7 +1419,7 @@
     width: 100%;
     justify-content: space-between;
   }
-  
+
   .controls-section {
     flex-direction: column;
   }
@@ -1430,17 +1429,17 @@
   .toggle-text {
     font-size: 0.8125rem;
   }
-  
+
   .toggle-switch {
     width: 44px;
     height: 22px;
   }
-  
+
   .toggle-slider:before {
     height: 16px;
     width: 16px;
   }
-  
+
   .toggle-input:checked + .toggle-slider:before {
     transform: translateX(22px);
   }

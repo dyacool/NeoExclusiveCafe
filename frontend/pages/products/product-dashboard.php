@@ -521,32 +521,42 @@ if ($cart_truncated) {
                                   data-unavailable='" . ($is_unavailable ? 'true' : 'false') . "'
                                   onclick='openProductModalFromData(this)'>";
                             
-                            // Display badges: Show capabilities based on product configuration AND stock availability
+                            // Display badges: Show capabilities based on product configuration AND stock availability AND date availability
                             if ($is_unavailable) {
                                 // Unavailable badge (highest priority, exclusive)
                                 echo "<div class='unavailable-badge-left'>" . htmlspecialchars($unavailable_reason) . "</div>";
                             } else {
-                                // Determine product capabilities with actual stock checks
+                                // Determine product capabilities with actual stock checks AND date validation
                                 $has_preorder = in_array($row['status_id'], [1, 2, 3]) && $row['quantity'] > 0;
                                 
-                                // Check same-day capability: must have stock AND be available today
+                                // Check same-day capability: must have stock AND be available today (date check)
                                 $sameday_stock = $row['sameday_stock_today'] ?? 0;
                                 $has_sameday = false;
                                 
                                 if ($row['status_id'] == 4) {
-                                    // Status 4: Same-day only product - check stock and date
-                                    $has_sameday = ($sameday_stock > 0) && $is_available_today;
+                                    // Status 4: Same-day only product - check stock AND today's date exists in todays_product_dates
+                                    $has_date_today = false;
+                                    if (!empty($row['todays_product_dates'])) {
+                                        $todays_dates = explode(', ', $row['todays_product_dates']);
+                                        $has_date_today = in_array($today_date, $todays_dates);
+                                    }
+                                    $has_sameday = ($sameday_stock > 0) && $has_date_today;
                                 } elseif (!empty($row['availtoday_status_id'])) {
-                                    // Status 1/2/3 with same-day capability - check stock and date
-                                    $has_sameday = ($sameday_stock > 0) && $is_available_today;
+                                    // Status 1/2/3 with same-day capability - check stock AND today's date exists in regular_products_today_dates
+                                    $has_date_today = false;
+                                    if (!empty($row['regular_today_dates'])) {
+                                        $regular_dates = explode(', ', $row['regular_today_dates']);
+                                        $has_date_today = in_array($today_date, $regular_dates);
+                                    }
+                                    $has_sameday = ($sameday_stock > 0) && $has_date_today;
                                 }
                                 
                                 // Show badges based on capabilities
                                 if ($has_sameday && $has_preorder) {
-                                    // Product has BOTH capabilities with stock
+                                    // Product has BOTH capabilities with stock and valid dates
                                     echo "<div class='today-badge-left'>Same Day & Pre-Order</div>";
                                 } elseif ($has_sameday) {
-                                    // Same-day only with stock
+                                    // Same-day only with stock and valid date
                                     echo "<div class='today-badge-left'>Same Day Order</div>";
                                 } elseif ($has_preorder) {
                                     // Pre-order only with stock

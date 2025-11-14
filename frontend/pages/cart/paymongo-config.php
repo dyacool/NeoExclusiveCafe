@@ -13,10 +13,10 @@
  * For production: Replace sk_test_* and pk_test_* with sk_live_* and pk_live_*
  */
 
-// ⚠️ SANDBOX MODE - Test API Configuration
+// 🧪 SANDBOX/TEST MODE - Test Payment Processing
 define('PAYMONGO_MODE', 'sandbox'); // 'sandbox' or 'live'
-define('PAYMONGO_SECRET_KEY', 'sk_test_your_secret_key_here'); // Replace with your test secret key
-define('PAYMONGO_PUBLIC_KEY', 'pk_test_your_public_key_here'); // Replace with your test public key
+define('PAYMONGO_SECRET_KEY', 'sk_test_yb8pkZvUA3WjHP6T4FKhgudU'); // Test secret key
+define('PAYMONGO_PUBLIC_KEY', 'pk_test_1XUMJ3yMs8QZugdq3uWr8vYU'); // Test public key
 define('PAYMONGO_API_URL', 'https://api.paymongo.com/v1');
 
 // PayMongo Helper Class
@@ -26,15 +26,15 @@ class PayMongoAPI {
     private $api_url;
     
     public function __construct() {
-        // ⚠️ SANDBOX MODE - Using PayMongo TEST keys
+        // 🧪 SANDBOX/TEST MODE - Using PayMongo TEST keys
         // These are test keys and will NOT process real payments
-        // For production, replace with sk_live_* and pk_live_* keys
+        // Only PayMongo test cards will work in this mode
         $this->secret_key = 'sk_test_yb8pkZvUA3WjHP6T4FKhgudU'; // TEST SECRET KEY
         $this->public_key = 'pk_test_1XUMJ3yMs8QZugdq3uWr8vYU'; // TEST PUBLIC KEY
         $this->api_url = 'https://api.paymongo.com/v1';
         
         // Log that we're in sandbox mode
-        error_log('[PAYMONGO] Running in SANDBOX/TEST mode - No real transactions');
+        error_log('[PAYMONGO] 🧪 Running in SANDBOX/TEST mode - Only test cards accepted');
     }
     
     /**
@@ -250,10 +250,46 @@ function isPayMongoSandboxMode() {
 }
 
 /**
+ * Check if PayMongo is in live/production mode
+ */
+function isPayMongoLiveMode() {
+    return defined('PAYMONGO_MODE') && PAYMONGO_MODE === 'live';
+}
+
+/**
  * Get PayMongo mode display name
  */
 function getPayMongoModeDisplay() {
-    return isPayMongoSandboxMode() ? '🧪 SANDBOX/TEST MODE' : '🔴 LIVE MODE';
+    return isPayMongoSandboxMode() ? '🧪 TEST MODE' : '🔴 LIVE MODE';
+}
+
+/**
+ * Get PayMongo test card numbers
+ */
+function getPayMongoTestCards() {
+    return [
+        'success' => [
+            'number' => '4343434343434345',
+            'cvc' => '123',
+            'exp_month' => '12',
+            'exp_year' => '25',
+            'label' => 'Payment Success'
+        ],
+        'declined' => [
+            'number' => '4571736000000075',
+            'cvc' => '123',
+            'exp_month' => '12',
+            'exp_year' => '25',
+            'label' => 'Card Declined'
+        ],
+        '3ds_success' => [
+            'number' => '4120000000000007',
+            'cvc' => '123',
+            'exp_month' => '12',
+            'exp_year' => '25',
+            'label' => '3DS Authentication Required (Success)'
+        ]
+    ];
 }
 
 /**

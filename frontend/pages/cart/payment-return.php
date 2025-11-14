@@ -215,12 +215,14 @@ try {
     $status = $_GET['status'] ?? '';
     $type = $_GET['type'] ?? 'regular';
     $source_id = $_GET['source_id'] ?? '';
+    $payment_intent_id = $_GET['payment_intent_id'] ?? ''; // Also check for payment_intent_id
 
     // Log all incoming parameters
     error_log("[PAYMENT-RETURN] GET Parameters:");
     error_log("[PAYMENT-RETURN]   - status: " . ($status ?: 'EMPTY'));
     error_log("[PAYMENT-RETURN]   - type: " . ($type ?: 'EMPTY'));
     error_log("[PAYMENT-RETURN]   - source_id: " . ($source_id ?: 'EMPTY'));
+    error_log("[PAYMENT-RETURN]   - payment_intent_id: " . ($payment_intent_id ?: 'EMPTY'));
     error_log("[PAYMENT-RETURN]   - Full GET: " . json_encode($_GET));
 
     // Log session data
@@ -254,18 +256,22 @@ try {
         $user_id = SessionManager::getUserId();
         if ($user_id !== null) {
             try {
-                // Try to recover by source_id if provided, otherwise get most recent pending payment for user
-                if (!empty($source_id)) {
+                // Use payment_intent_id or source_id to recover
+                $lookup_id = !empty($payment_intent_id) ? $payment_intent_id : $source_id;
+                
+                // Try to recover by payment ID if provided, otherwise get most recent pending payment for user
+                if (!empty($lookup_id)) {
+                    error_log("[PAYMENT-RETURN] Attempting recovery with payment ID: $lookup_id");
                     $recover_sql = "SELECT * FROM pending_payments 
                                     WHERE payment_id = ? 
                                     AND user_id = ? 
                                     AND expires_at > NOW()
                                     LIMIT 1";
                     $recover_stmt = $conn->prepare($recover_sql);
-                    $recover_stmt->bind_param("si", $source_id, $user_id);
+                    $recover_stmt->bind_param("si", $lookup_id, $user_id);
                 } else {
-                    // No source_id provided, get most recent pending payment for this user
-                    error_log("[PAYMENT-RETURN] No source_id, trying to recover most recent pending payment for user");
+                    // No payment ID provided, get most recent pending payment for this user
+                    error_log("[PAYMENT-RETURN] No payment ID, trying to recover most recent pending payment for user");
                     $recover_sql = "SELECT * FROM pending_payments 
                                     WHERE user_id = ? 
                                     AND expires_at > NOW()
