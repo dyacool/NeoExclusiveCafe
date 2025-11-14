@@ -39,38 +39,109 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['order_id']) && isset($
         // Log the activity
         logAdminActivity($conn, 'UPDATE', "Changed bulk order #$order_id status to '$status'", 'bulk_orders', $order_id);
         
-        // Send notification to customer about status change
+        // Send emails and notifications based on status change
         require_once __DIR__ . '/../admin-includes/mailer.php';
+        require_once __DIR__ . '/../admin-includes/notifications/notification.php';
         
         try {
-            // Get customer email
-            $emailStmt = mysqli_prepare($conn, "SELECT email FROM bulk_orders WHERE id = ? LIMIT 1");
+            // Get order details for emails and notifications
+            $order_info_sql = "SELECT b.user_id, b.unique_order_id, b.name, b.email, u.username FROM bulk_orders b 
+                              LEFT JOIN users u ON b.user_id = u.id 
+                              WHERE b.id = ?";
+            $order_info_stmt = $conn->prepare($order_info_sql);
+            $order_info_stmt->bind_param("i", $order_id);
+            $order_info_stmt->execute();
+            $order_info_result = $order_info_stmt->get_result();
+            $order_info = $order_info_result->fetch_assoc();
             
-            if ($emailStmt) {
-                mysqli_stmt_bind_param($emailStmt, "i", $order_id);
-                mysqli_stmt_execute($emailStmt);
-                mysqli_stmt_bind_result($emailStmt, $customer_email);
-                mysqli_stmt_fetch($emailStmt);
-                mysqli_stmt_close($emailStmt);
-
-                if (!empty($customer_email) && filter_var($customer_email, FILTER_VALIDATE_EMAIL)) {
-                    $status_display = ucfirst(str_replace('_', ' ', $status));
-                    $subject = "Bulk Order Status Update: {$status_display}";
-                    $base = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
-                    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-                    $fullLink = $base . $host . "/NeoCafe/frontend/pages/bulk/bulk-order-details.php?order_id=" . $order_id;
-                    $body = "<!DOCTYPE html><html><body style='font-family: Arial, sans-serif; color:#333'>"
-                          . "<h2>Bulk Order Status Update</h2>"
-                          . "<p>Your bulk order has been <strong>{$status_display}</strong>.</p>"
-                          . "<p><a href='" . $fullLink . "' style='background:#667eea;color:#fff;padding:10px 16px;border-radius:4px;text-decoration:none;'>View Order Details</a></p>"
-                          . "<p style='font-size:12px;color:#777'>If the button doesn't work, copy and paste this URL:<br>" . $fullLink . "</p>"
-                          . "<p>Thank you,<br>Neo Exclusive Cafe</p>"
-                          . "</body></html>";
-                    sendEmail($customer_email, $subject, $body, true);
+            if ($order_info) {
+                $notificationHandler = new NotificationHandler($conn);
+                
+                // Send approval email to customer if status is approved
+                if ($status === 'approved') {
+                    try {
+                        sendBulkOrderApprovalEmail($order_id, $conn);
+                        error_log("✓ Approval email sent for bulk order #$order_id");
+                    } catch (Exception $e) {
+                        error_log("Failed to send bulk order approval email to customer: " . $e->getMessage());
+                    }
+                    
+                    // Create user notification for approval
+                    try {
+                        $notificationHandler->createUserBulkOrderNotification(
+                            $order_info['user_id'],
+                            $order_id,
+                            'bulk_approved',
+                            $order_info['unique_order_id']
+                        );
+                        error_log("✓ User notification created for bulk order #$order_id approval");
+                    } catch (Exception $e) {
+                        error_log("Failed to create approval notification: " . $e->getMessage());
+                    }
+                }
+                
+                // Send payment received email to customer if status is payment_received
+                if ($status === 'payment_received') {
+                    try {
+                        sendBulkOrderPaymentReceivedEmail($order_id, $conn);
+                        error_log("✓ Payment received email sent for bulk order #$order_id");
+                    } catch (Exception $e) {
+                        error_log("Failed to send payment received email: " . $e->getMessage());
+                    }
+                    
+                    // Create user notification for payment received
+                    try {
+                        $notificationHandler->createUserBulkOrderNotification(
+                            $order_info['user_id'],
+                            $order_id,
+                            'bulk_payment_received',
+                            $order_info['unique_order_id']
+                        );
+                        error_log("✓ User notification created for bulk order #$order_id payment received");
+                    } catch (Exception $e) {
+                        error_log("Failed to create payment received notification: " . $e->getMessage());
+                    }
+                }
+                
+                // Send payment rejection email to customer if status is payment_rejected
+                if ($status === 'payment_rejected') {
+                    try {
+                        sendBulkOrderPaymentRejectedEmail($order_id, $conn);
+                        error_log("✓ Payment rejection email sent for bulk order #$order_id");
+                    } catch (Exception $e) {
+                        error_log("Failed to send payment rejection email: " . $e->getMessage());
+                    }
+                    
+                    // Create user notification for payment rejection
+                    try {
+                        $notificationHandler->createUserBulkOrderNotification(
+                            $order_info['user_id'],
+                            $order_id,
+                            'bulk_payment_rejected',
+                            $order_info['unique_order_id']
+                        );
+                        error_log("✓ User notification created for bulk order #$order_id payment rejection");
+                    } catch (Exception $e) {
+                        error_log("Failed to create payment rejection notification: " . $e->getMessage());
+                    }
+                }
+                
+                // Create admin notification for status change
+                try {
+                    $notificationHandler->createBulkOrderNotification(
+                        $order_id,
+                        'bulk_status',
+                        $order_info['name'],
+                        $order_info['username'],
+                        ucfirst(str_replace('_', ' ', $status))
+                    );
+                    error_log("✓ Admin notification created for bulk order #$order_id status change");
+                } catch (Exception $e) {
+                    error_log("Failed to create admin status notification: " . $e->getMessage());
                 }
             }
         } catch (Exception $e) {
-            error_log('Bulk order status email send failed: ' . $e->getMessage());
+            error_log('Bulk order status email/notification send failed: ' . $e->getMessage());
         }
 
         // Success - redirect back to the bulk order detail page

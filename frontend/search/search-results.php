@@ -3,8 +3,18 @@
 require_once __DIR__ . '/../../backend/pages/admin-includes/database.php';
 require_once __DIR__ . "/../../includes/session-manager.php";
 require_once __DIR__ . "/../user-includes/preview-mode.php";
+require_once __DIR__ . "/../../backend/pages/products/todays-products-handler.php";
 
 // $conn is now available from database.php
+
+// Clean up past dates automatically when page loads
+try {
+    cleanupPastDates();
+    // Also clean up today's dates if business hours have closed
+    cleanupTodaysDatesAfterBusinessHours();
+} catch (Exception $e) {
+    error_log("Error cleaning up dates: " . $e->getMessage());
+}
 
 // Set page title and additional CSS
 $page_title = "Search Results";

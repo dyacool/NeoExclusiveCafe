@@ -83,11 +83,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_discount_prices'
         // Log the activity
         logAdminActivity($conn, 'UPDATE', "Updated discount pricing for bulk order #$order_id (Total: ₱" . number_format($discount_total, 2) . ") and auto-approved", 'bulk_orders', $order_id);
         
+        // Get order details for notification
+        $order_info_sql = "SELECT user_id, unique_order_id FROM bulk_orders WHERE id = ?";
+        $order_info_stmt = mysqli_prepare($conn, $order_info_sql);
+        mysqli_stmt_bind_param($order_info_stmt, "i", $order_id);
+        mysqli_stmt_execute($order_info_stmt);
+        $order_info_result = mysqli_stmt_get_result($order_info_stmt);
+        $order_info = mysqli_fetch_assoc($order_info_result);
+        mysqli_stmt_close($order_info_stmt);
+        
         // Send approval email to customer
         try {
             sendBulkOrderApprovalEmail($order_id, $conn);
         } catch (Exception $e) {
             error_log("Failed to send bulk order approval email to customer: " . $e->getMessage());
+        }
+        
+        // Create user notification for approval
+        if ($order_info) {
+            try {
+                $notificationHandler = new NotificationHandler($conn);
+                $notificationHandler->createUserBulkOrderNotification(
+                    $order_info['user_id'],
+                    $order_id,
+                    'bulk_approved',
+                    $order_info['unique_order_id']
+                );
+                error_log("✓ User notification created for bulk order #$order_id approval");
+            } catch (Exception $e) {
+                error_log("Failed to create approval notification: " . $e->getMessage());
+            }
         }
         
         $success_message = "Discount prices saved successfully! Order automatically approved.";
@@ -481,11 +506,36 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'save_customer_inf
     if ($ok) {
         logAdminActivity($conn, 'UPDATE', "Updated customer info for bulk order #$target_id and auto-approved order", 'bulk_orders', $target_id);
         
+        // Get order details for notification
+        $order_info_sql = "SELECT user_id, unique_order_id FROM bulk_orders WHERE id = ?";
+        $order_info_stmt = mysqli_prepare($conn, $order_info_sql);
+        mysqli_stmt_bind_param($order_info_stmt, "i", $target_id);
+        mysqli_stmt_execute($order_info_stmt);
+        $order_info_result = mysqli_stmt_get_result($order_info_stmt);
+        $order_info = mysqli_fetch_assoc($order_info_result);
+        mysqli_stmt_close($order_info_stmt);
+        
         // Send approval email to customer
         try {
             sendBulkOrderApprovalEmail($target_id, $conn);
         } catch (Exception $e) {
             error_log("Failed to send bulk order approval email to customer: " . $e->getMessage());
+        }
+        
+        // Create user notification for approval
+        if ($order_info) {
+            try {
+                $notificationHandler = new NotificationHandler($conn);
+                $notificationHandler->createUserBulkOrderNotification(
+                    $order_info['user_id'],
+                    $target_id,
+                    'bulk_approved',
+                    $order_info['unique_order_id']
+                );
+                error_log("✓ User notification created for bulk order #$target_id approval");
+            } catch (Exception $e) {
+                error_log("Failed to create approval notification: " . $e->getMessage());
+            }
         }
     }
     
@@ -514,11 +564,36 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'save_order_detail
     if ($ok) {
         logAdminActivity($conn, 'UPDATE', "Updated order details for bulk order #$target_id and auto-approved order", 'bulk_orders', $target_id);
         
+        // Get order details for notification
+        $order_info_sql = "SELECT user_id, unique_order_id FROM bulk_orders WHERE id = ?";
+        $order_info_stmt = mysqli_prepare($conn, $order_info_sql);
+        mysqli_stmt_bind_param($order_info_stmt, "i", $target_id);
+        mysqli_stmt_execute($order_info_stmt);
+        $order_info_result = mysqli_stmt_get_result($order_info_stmt);
+        $order_info = mysqli_fetch_assoc($order_info_result);
+        mysqli_stmt_close($order_info_stmt);
+        
         // Send approval email to customer
         try {
             sendBulkOrderApprovalEmail($target_id, $conn);
         } catch (Exception $e) {
             error_log("Failed to send bulk order approval email to customer: " . $e->getMessage());
+        }
+        
+        // Create user notification for approval
+        if ($order_info) {
+            try {
+                $notificationHandler = new NotificationHandler($conn);
+                $notificationHandler->createUserBulkOrderNotification(
+                    $order_info['user_id'],
+                    $target_id,
+                    'bulk_approved',
+                    $order_info['unique_order_id']
+                );
+                error_log("✓ User notification created for bulk order #$target_id approval");
+            } catch (Exception $e) {
+                error_log("Failed to create approval notification: " . $e->getMessage());
+            }
         }
     }
     
@@ -672,6 +747,26 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'update_discount_p
                     // Send approval email to customer
                     try {
                         sendBulkOrderApprovalEmail($target_id, $conn);
+                        
+                        // Create user notification for approval
+                        $order_info_sql = "SELECT user_id, unique_order_id FROM bulk_orders WHERE id = ?";
+                        $order_info_stmt = mysqli_prepare($conn, $order_info_sql);
+                        mysqli_stmt_bind_param($order_info_stmt, "i", $target_id);
+                        mysqli_stmt_execute($order_info_stmt);
+                        $order_info_result = mysqli_stmt_get_result($order_info_stmt);
+                        $order_info = mysqli_fetch_assoc($order_info_result);
+                        mysqli_stmt_close($order_info_stmt);
+                        
+                        if ($order_info) {
+                            require_once __DIR__ . '/../../api/notification.php';
+                            $notificationHandler = new NotificationHandler($conn);
+                            $notificationHandler->createUserBulkOrderNotification(
+                                $order_info['user_id'],
+                                $target_id,
+                                'bulk_approved',
+                                $order_info['unique_order_id']
+                            );
+                        }
                     } catch (Exception $e) {
                         error_log("Failed to send bulk order approval email to customer: " . $e->getMessage());
                     }

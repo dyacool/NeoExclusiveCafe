@@ -1,12 +1,20 @@
 <?php
+// Start output buffering to prevent any HTML/errors before JSON
+ob_start();
+
 // Include database.php first - it handles session configuration
 require_once __DIR__ . '/../../../backend/pages/admin-includes/database.php';
 require_once __DIR__ . '/../../../includes/session-manager.php';
 
+// Clean output buffer and set JSON header
+while (ob_get_level()) {
+    ob_end_clean();
+}
+header('Content-Type: application/json');
+
 // Check if user is logged in and has proper role
 if (!SessionManager::isUserLoggedIn()) {
     // Always return JSON for AJAX requests, even when not logged in
-    header('Content-Type: application/json');
     http_response_code(401); // Unauthorized
     echo json_encode(["status" => "error", "message" => "User not logged in", "count" => 0]);
     exit();

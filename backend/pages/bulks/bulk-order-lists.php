@@ -29,6 +29,80 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'update_status') {
         // Log the activity
         if ($ok) {
             logAdminActivity($conn, 'UPDATE', "Changed bulk order #$bulk_order_id status to '$new_status'", 'bulk_orders', $bulk_order_id);
+            
+            // Send emails and create notifications based on status
+            require_once __DIR__ . '/../../api/notification.php';
+            require_once __DIR__ . '/../../../config/cloudinary-config.php';
+            require_once __DIR__ . '/../../includes/mailer.php';
+            
+            // Get order details for notifications
+            $order_info_sql = "SELECT user_id, unique_order_id FROM bulk_orders WHERE id = ?";
+            $order_info_stmt = mysqli_prepare($conn, $order_info_sql);
+            mysqli_stmt_bind_param($order_info_stmt, "i", $bulk_order_id);
+            mysqli_stmt_execute($order_info_stmt);
+            $order_info_result = mysqli_stmt_get_result($order_info_stmt);
+            $order_info = mysqli_fetch_assoc($order_info_result);
+            mysqli_stmt_close($order_info_stmt);
+            
+            if ($order_info) {
+                $notificationHandler = new NotificationHandler($conn);
+                
+                try {
+                    switch ($new_status) {
+                        case 'approved':
+                            sendBulkOrderApprovalEmail($bulk_order_id, $conn);
+                            $notificationHandler->createUserBulkOrderNotification(
+                                $order_info['user_id'],
+                                $bulk_order_id,
+                                'bulk_approved',
+                                $order_info['unique_order_id']
+                            );
+                            break;
+                            
+                        case 'payment_received':
+                            sendBulkOrderPaymentReceivedEmail($bulk_order_id, $conn);
+                            $notificationHandler->createUserBulkOrderNotification(
+                                $order_info['user_id'],
+                                $bulk_order_id,
+                                'bulk_payment_received',
+                                $order_info['unique_order_id']
+                            );
+                            break;
+                            
+                        case 'payment_rejected':
+                            sendBulkOrderPaymentRejectedEmail($bulk_order_id, $conn);
+                            $notificationHandler->createUserBulkOrderNotification(
+                                $order_info['user_id'],
+                                $bulk_order_id,
+                                'bulk_payment_rejected',
+                                $order_info['unique_order_id']
+                            );
+                            break;
+                            
+                        case 'cancelled':
+                            sendBulkOrderAutoCancelledEmail($bulk_order_id, $conn);
+                            $notificationHandler->createUserBulkOrderNotification(
+                                $order_info['user_id'],
+                                $bulk_order_id,
+                                'bulk_cancelled',
+                                $order_info['unique_order_id']
+                            );
+                            break;
+                            
+                        case 'rejected':
+                            sendBulkOrderAutoRejectedEmail($bulk_order_id, $conn);
+                            $notificationHandler->createUserBulkOrderNotification(
+                                $order_info['user_id'],
+                                $bulk_order_id,
+                                'bulk_rejected',
+                                $order_info['unique_order_id']
+                            );
+                            break;
+                    }
+                } catch (Exception $e) {
+                    error_log("Failed to send bulk order email/notification: " . $e->getMessage());
+                }
+            }
         }
         
         if ($is_ajax) {
@@ -446,11 +520,11 @@ if ($result && mysqli_num_rows($result) > 0) {
                                 : ($order['username'] ?: 'Guest User');
                             $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_pad($order['id'], 6, '0', STR_PAD_LEFT);
                             ?>
-                            <tr tabindex="0" onkeydown="if(event.key==='Enter'){showBulkOrderPreview(<?php echo $order['id']; ?>);}" class="order-row" data-status="<?php echo strtolower($order['status']); ?>">
-                                <td onclick="showBulkOrderPreview(<?php echo $order['id']; ?>)" style="cursor:pointer;">
+                            <tr tabindex="0" onkeydown="if(event.key==='Enter'){window.location.href='bulk-order.php?id=<?php echo $order['id']; ?>';}" class="order-row" data-status="<?php echo strtolower($order['status']); ?>">
+                                <td onclick="window.location.href='bulk-order.php?id=<?php echo $order['id']; ?>'" style="cursor:pointer;">
                                     <div class="order-id">#<?php echo htmlspecialchars($order_id_display); ?></div>
                                 </td>
-                                <td onclick="showBulkOrderPreview(<?php echo $order['id']; ?>)" style="cursor:pointer;">
+                                <td onclick="window.location.href='bulk-order.php?id=<?php echo $order['id']; ?>'" style="cursor:pointer;">
                                     <div class="user-info">
                                         <div class="user-name"><?php echo htmlspecialchars($user_name); ?></div>
                                         <?php if ($order['username']): ?>
@@ -458,14 +532,14 @@ if ($result && mysqli_num_rows($result) > 0) {
                                         <?php endif; ?>
                                     </div>
                                 </td>
-                                <td onclick="showBulkOrderPreview(<?php echo $order['id']; ?>)" style="cursor:pointer;">
+                                <td onclick="window.location.href='bulk-order.php?id=<?php echo $order['id']; ?>'" style="cursor:pointer;">
                                     <div class="date-info">
                                         <div class="date-main"><?php echo date("M j, Y", strtotime($order['created_at'])); ?></div>
                                         <div class="date-time"><?php echo date("g:i A", strtotime($order['created_at'])); ?></div>
                                     </div>
                                 </td>
 
-                                <td onclick="showBulkOrderPreview(<?php echo $order['id']; ?>)" style="cursor:pointer;">
+                                <td onclick="window.location.href='bulk-order.php?id=<?php echo $order['id']; ?>'" style="cursor:pointer;">
                                     <div class="date-info">
                                         <div class="date-main"><?php echo date("M j, Y", strtotime($order['date_needed'])); ?></div>
                                         <div class="date-time"><?php echo date("g:i A", strtotime($order['time_needed'])); ?></div>
@@ -488,37 +562,37 @@ if ($result && mysqli_num_rows($result) > 0) {
                                     </div>
                                 </td>
                                 
-                                <td onclick="showBulkOrderPreview(<?php echo $order['id']; ?>)" style="cursor:pointer;">
+                                <td onclick="window.location.href='bulk-order.php?id=<?php echo $order['id']; ?>'" style="cursor:pointer;">
                                     <?php echo number_format($totals['total_items']); ?>
                                 </td>
-                                <td onclick="showBulkOrderPreview(<?php echo $order['id']; ?>)" style="cursor:pointer;">
+                                <td onclick="window.location.href='bulk-order.php?id=<?php echo $order['id']; ?>'" style="cursor:pointer;">
                                     ₱<?php echo number_format($totals['total_amount'], 2); ?>
                                 </td>
-                                <td onclick="showBulkOrderPreview(<?php echo $order['id']; ?>)" style="cursor:pointer;">
+                                <td onclick="window.location.href='bulk-order.php?id=<?php echo $order['id']; ?>'" style="cursor:pointer;">
                                     <?php if ($totals['discount_total'] && $totals['discount_total'] > 0): ?>
                                         <span style="color: #047857; font-weight: 600;">₱<?php echo number_format($totals['discount_total'], 2); ?></span>
                                     <?php else: ?>
                                         <span style="color: #9ca3af; font-style: italic;">No discount</span>
                                     <?php endif; ?>
                                 </td>
-                                <td>
-                                    <select class="status-select-list status-badge status-<?php echo strtolower($order['status']); ?>" data-order-id="<?php echo (int)$order['id']; ?>" style="margin-left:8px;">
-                                        <?php $statuses = [
-                                            'pending' => 'Pending',
-                                            'approved' => 'Approved',
-                                            'payment_received' => 'Payment Received',
-                                            'payment_rejected' => 'Payment Rejected',
-                                            'ready_for_delivery' => 'Ready for Delivery',
-                                            'ready_for_pickup' => 'Ready for Pickup',
-                                            'cancelled' => 'Cancelled',
-                                            'rejected' => 'Rejected',
-                                            'completed' => 'Completed',
-                                        ];
-                                        foreach ($statuses as $val => $label): ?>
-                                            <option value="<?php echo $val; ?>" <?php echo ($order['status'] === $val) ? 'selected' : ''; ?>><?php echo $label; ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                    <span class="saved-indicator" style="display:none; color:#16a34a; margin-left:6px;"><i class="fas fa-check"></i> Saved</span>
+                                <td onclick="window.location.href='bulk-order.php?id=<?php echo $order['id']; ?>'" style="cursor:pointer;">
+                                    <?php 
+                                    $status_labels = [
+                                        'pending' => 'Pending',
+                                        'approved' => 'Approved',
+                                        'payment_received' => 'Payment Received',
+                                        'payment_rejected' => 'Payment Rejected',
+                                        'ready_for_delivery' => 'Ready for Delivery',
+                                        'ready_for_pickup' => 'Ready for Pickup',
+                                        'cancelled' => 'Cancelled',
+                                        'rejected' => 'Rejected',
+                                        'completed' => 'Completed',
+                                    ];
+                                    $status_label = isset($status_labels[$order['status']]) ? $status_labels[$order['status']] : ucfirst($order['status']);
+                                    ?>
+                                    <span class="status-badge status-<?php echo strtolower($order['status']); ?>">
+                                        <?php echo htmlspecialchars($status_label); ?>
+                                    </span>
                                 </td>
                             </tr>
                         <?php endwhile; ?>
@@ -534,439 +608,7 @@ if ($result && mysqli_num_rows($result) > 0) {
         </div>
     </div>
 
-    <!-- Bulk Order Preview Modal -->
-    <div id="bulkOrderPreviewModal" class="preview-modal" style="display: none;">
-        <div class="preview-modal-overlay" onclick="closePreviewModal()"></div>
-        <div class="preview-modal-content">
-            <div class="preview-modal-header">
-                <h2>Bulk Order Preview</h2>
-                <button class="preview-modal-close" onclick="closePreviewModal()">&times;</button>
-            </div>
-            <div class="preview-modal-body" id="previewModalBody">
-                <div class="preview-loader">
-                    <div class="spinner"></div>
-                    <p>Loading order details...</p>
-                </div>
-            </div>
-            <div class="preview-modal-footer">
-                <button class="btn-secondary" onclick="closePreviewModal()">Close</button>
-                <button class="btn-primary" id="viewFullDetailsBtn" onclick="viewFullDetails()">View Full Details</button>
-            </div>
-        </div>
-    </div>
-
-    <style>
-        .preview-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 10000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .preview-modal-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-        }
-        
-        .preview-modal-content {
-            position: relative;
-            background: white;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 800px;
-            max-height: 85vh;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-            z-index: 1;
-        }
-        
-        .preview-modal-header {
-            padding: 20px 24px;
-            border-bottom: 1px solid #e5e7eb;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .preview-modal-header h2 {
-            margin: 0;
-            font-size: 1.5rem;
-            color: #1f2937;
-        }
-        
-        .preview-modal-close {
-            background: none;
-            border: none;
-            font-size: 2rem;
-            color: #6b7280;
-            cursor: pointer;
-            padding: 0;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 6px;
-            transition: all 0.2s;
-        }
-        
-        .preview-modal-close:hover {
-            background: #f3f4f6;
-            color: #1f2937;
-        }
-        
-        .preview-modal-body {
-            padding: 24px;
-            overflow-y: auto;
-            flex: 1;
-        }
-        
-        .preview-loader {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 40px 20px;
-        }
-        
-        .preview-loader .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f4f6;
-            border-top: 4px solid #8B4513;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 16px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .preview-modal-footer {
-            padding: 16px 24px;
-            border-top: 1px solid #e5e7eb;
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-        }
-        
-        .preview-modal-footer button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 6px;
-            font-size: 0.95rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .btn-secondary {
-            background: #f3f4f6;
-            color: #374151;
-        }
-        
-        .btn-secondary:hover {
-            background: #e5e7eb;
-        }
-        
-        .btn-primary {
-            background: #8B4513;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: #6d3410;
-        }
-        
-        .preview-info-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-            margin-bottom: 24px;
-        }
-        
-        .preview-info-item {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .preview-info-label {
-            font-size: 0.85rem;
-            color: #6b7280;
-            margin-bottom: 4px;
-            font-weight: 500;
-        }
-        
-        .preview-info-value {
-            font-size: 1rem;
-            color: #1f2937;
-            font-weight: 500;
-        }
-        
-        .preview-section {
-            margin-bottom: 24px;
-        }
-        
-        .preview-section-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #e5e7eb;
-        }
-        
-        .preview-items-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        .preview-items-table th {
-            background: #f9fafb;
-            padding: 10px 12px;
-            text-align: left;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #6b7280;
-            border-bottom: 2px solid #e5e7eb;
-        }
-        
-        .preview-items-table td {
-            padding: 12px;
-            border-bottom: 1px solid #e5e7eb;
-            color: #374151;
-        }
-        
-        .preview-status-badge {
-            display: inline-block;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            text-transform: capitalize;
-        }
-        
-        .status-pending {
-            background: #fef3c7;
-            color: #92400e;
-        }
-        
-        .status-approved {
-            background: #dcfce7;
-            color: #166534;
-        }
-        
-        .status-payment_received {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-        
-        .status-completed {
-            background: #d1fae5;
-            color: #065f46;
-        }
-    </style>
-
     <script>
-        let currentPreviewOrderId = null;
-        
-        // Show bulk order preview modal
-        function showBulkOrderPreview(orderId) {
-            currentPreviewOrderId = orderId;
-            const modal = document.getElementById('bulkOrderPreviewModal');
-            const body = document.getElementById('previewModalBody');
-            
-            // Show modal with loader
-            body.innerHTML = `
-                <div class="preview-loader">
-                    <div class="spinner"></div>
-                    <p>Loading order details...</p>
-                </div>
-            `;
-            modal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-            
-            // Fetch order details
-            fetch(`get-bulk-order-preview.php?id=${orderId}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        displayPreviewData(data.order);
-                    } else {
-                        body.innerHTML = `
-                            <div class="preview-error">
-                                <p style="color: #dc2626; text-align: center;">
-                                    <i class="fas fa-exclamation-circle"></i> Failed to load order details
-                                </p>
-                            </div>
-                        `;
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    body.innerHTML = `
-                        <div class="preview-error">
-                            <p style="color: #dc2626; text-align: center;">
-                                <i class="fas fa-exclamation-circle"></i> Error loading order details
-                            </p>
-                        </div>
-                    `;
-                });
-        }
-        
-        // Display preview data
-        function displayPreviewData(order) {
-            const body = document.getElementById('previewModalBody');
-            const orderIdDisplay = order.unique_order_id || String(order.id).padStart(6, '0');
-            const userName = order.firstname && order.lastname 
-                ? `${order.firstname} ${order.lastname}`
-                : (order.username || 'Guest User');
-            
-            let html = `
-                <div class="preview-section">
-                    <div class="preview-info-grid">
-                        <div class="preview-info-item">
-                            <span class="preview-info-label">Order ID</span>
-                            <span class="preview-info-value">#${orderIdDisplay}</span>
-                        </div>
-                        <div class="preview-info-item">
-                            <span class="preview-info-label">Customer</span>
-                            <span class="preview-info-value">${userName}</span>
-                        </div>
-                        <div class="preview-info-item">
-                            <span class="preview-info-label">Contact</span>
-                            <span class="preview-info-value">${order.contact}</span>
-                        </div>
-                        <div class="preview-info-item">
-                            <span class="preview-info-label">Email</span>
-                            <span class="preview-info-value">${order.email}</span>
-                        </div>
-                        <div class="preview-info-item">
-                            <span class="preview-info-label">Date Needed</span>
-                            <span class="preview-info-value">${new Date(order.date_needed + ' ' + order.time_needed).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
-                        </div>
-                        <div class="preview-info-item">
-                            <span class="preview-info-label">Order Type</span>
-                            <span class="preview-info-value">${order.order_type.charAt(0).toUpperCase() + order.order_type.slice(1)}</span>
-                        </div>
-                        <div class="preview-info-item">
-                            <span class="preview-info-label">Status</span>
-                            <span class="preview-status-badge status-${order.status}">${order.status.replace(/_/g, ' ')}</span>
-                        </div>
-                        <div class="preview-info-item">
-                            <span class="preview-info-label">Total Amount</span>
-                            <span class="preview-info-value">₱${parseFloat(order.total_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            if (order.purpose) {
-                html += `
-                    <div class="preview-section">
-                        <h3 class="preview-section-title">Purpose</h3>
-                        <p style="color: #374151; line-height: 1.6;">${order.purpose}</p>
-                    </div>
-                `;
-            }
-            
-            if (order.items && order.items.length > 0) {
-                html += `
-                    <div class="preview-section">
-                        <h3 class="preview-section-title">Order Items (${order.items.length})</h3>
-                        <table class="preview-items-table">
-                            <thead>
-                                <tr>
-                                    <th>Product</th>
-                                    <th style="text-align: center;">Quantity</th>
-                                    <th style="text-align: right;">Price</th>
-                                    <th style="text-align: right;">Subtotal</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                `;
-                
-                order.items.forEach(item => {
-                    html += `
-                        <tr>
-                            <td>${item.product_name}</td>
-                            <td style="text-align: center;">${item.quantity}</td>
-                            <td style="text-align: right;">₱${parseFloat(item.product_price).toFixed(2)}</td>
-                            <td style="text-align: right;">₱${parseFloat(item.subtotal).toFixed(2)}</td>
-                        </tr>
-                    `;
-                });
-                
-                html += `
-                            </tbody>
-                        </table>
-                    </div>
-                `;
-            }
-            
-            body.innerHTML = html;
-        }
-        
-        // Close preview modal
-        function closePreviewModal() {
-            const modal = document.getElementById('bulkOrderPreviewModal');
-            modal.style.display = 'none';
-            document.body.style.overflow = '';
-            currentPreviewOrderId = null;
-        }
-        
-        // View full details
-        function viewFullDetails() {
-            if (currentPreviewOrderId) {
-                window.location.href = `bulk-order.php?id=${currentPreviewOrderId}`;
-            }
-        }
-        
-        // Close modal with Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closePreviewModal();
-            }
-        });
-        
-        // Auto-save status changes from list
-        (function(){
-            function onChange(e){
-                const select = e.target;
-                if (!select.classList.contains('status-select-list')) return;
-                const orderId = select.getAttribute('data-order-id');
-                const row = select.closest('tr');
-                const saved = row ? row.querySelector('.saved-indicator') : null;
-                const form = new FormData();
-                form.append('action', 'update_status');
-                form.append('is_ajax', '1');
-                form.append('bulk_order_id', orderId);
-                form.append('new_status', select.value);
-                fetch('', { method: 'POST', body: form }).then(r => r.json()).then(data => {
-                    if (data && data.success) {
-                        if (saved) { saved.style.display = 'inline-flex'; setTimeout(()=> saved.style.display='none', 1500); }
-                        // Update select styling class to reflect status and row filter attribute
-                        select.className = 'status-select-list status-badge status-' + select.value;
-                        row.setAttribute('data-status', select.value);
-                    } else {
-                        alert('Failed to update status: ' + (data && data.error ? data.error : 'Unknown error'));
-                    }
-                }).catch(() => alert('Request failed. Please try again.'));
-            }
-            document.addEventListener('change', onChange);
-        })();
         function filterOrders(status, buttonElement) {
             // Remove active class from all filter buttons
             document.querySelectorAll('.filter-btn').forEach(btn => {

@@ -377,7 +377,7 @@
 
 .status-cancelled,
 .status-rejected,
-.status-payment-rejected {
+.status-payment_rejected {
   background-color: #fef2f2;
   color: var(--red-600);
 }

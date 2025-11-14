@@ -131,6 +131,18 @@ if (isset($admin['cloud_url']) && !empty(trim($admin['cloud_url']))) {
                                     <span class="link-title">Archive</span>
                                 </a>
                             </div>
+
+                            <div class="link-card">
+                                <a href="../bulks/bulk-payment-setup.php">
+                                    <div class="link-icon">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                                            <line x1="1" y1="10" x2="23" y2="10"></line>
+                                        </svg>
+                                    </div>
+                                    <span class="link-title">Bulk Payment Setup</span>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -1,8 +1,16 @@
 <?php
-header('Content-Type: application/json');
+// Start output buffering to prevent any HTML/errors before JSON
+ob_start();
+
 // Include database.php first - it handles session configuration
 require_once '../../../backend/pages/admin-includes/database.php';
 require_once '../../../includes/session-manager.php';
+
+// Clean output buffer and set JSON header
+while (ob_get_level()) {
+    ob_end_clean();
+}
+header('Content-Type: application/json');
 
 // Check if user is logged in
 if (!SessionManager::isUserLoggedIn()) {

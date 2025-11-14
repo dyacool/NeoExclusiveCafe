@@ -5,6 +5,16 @@ $page_title = "Dashboard";
 require_once __DIR__ . "/../../../backend/pages/admin-includes/database.php";
 require_once __DIR__ . "/../../../includes/session-manager.php";
 require_once __DIR__ . "/../../user-includes/user-header.php";
+require_once __DIR__ . "/../../../backend/pages/products/todays-products-handler.php";
+
+// Clean up past dates automatically when page loads
+try {
+    cleanupPastDates();
+    // Also clean up today's dates if business hours have closed
+    cleanupTodaysDatesAfterBusinessHours();
+} catch (Exception $e) {
+    error_log("Error cleaning up dates: " . $e->getMessage());
+}
 
 // Include navigation after session is established
 require_once __DIR__ . "/../../user-includes/navbar/customer-navigation.php";
@@ -122,92 +132,95 @@ $featured_result = mysqli_stmt_get_result($featured_stmt);
  * 
  * @param array $product_row Product data from database query
  * @param string $today_date Current date in Y-m-d format
- * @return array Availability information with keys: is_unavailable, unavailable_reason, should_display
+ * @return array Availability information with keys: has_preorder, has_sameday, is_unavailable, unavailable_reason, should_display
  */
 function determineProductAvailability($product_row, $today_date) {
+    // Initialize result structure with default values
     $result = [
-        'is_unavailable' => false,
-        'unavailable_reason' => '',
-        'should_display' => true
+        'has_preorder' => false,      // Can customer pre-order this product?
+        'has_sameday' => false,       // Can customer order for same-day delivery?
+        'is_unavailable' => false,    // Is product completely unavailable?
+        'unavailable_reason' => '',   // Why is it unavailable (if applicable)?
+        'should_display' => true      // Should we show this product on the page?
     ];
     
-    // Extract data
-    $status_id = $product_row['status_id'];
-    $preorder_stock = $product_row['quantity'] ?? 0;
-    $sameday_stock = $product_row['sameday_stock_today'] ?? 0;
-    $has_availtoday = !empty($product_row['availtoday_status_id']);
-    $todays_dates = $product_row['todays_product_dates'] ? explode(', ', $product_row['todays_product_dates']) : [];
-    $regular_dates = $product_row['regular_today_dates'] ? explode(', ', $product_row['regular_today_dates']) : [];
-    $show_when_unavailable = (bool)($product_row['show_when_unavailable'] ?? 0);
-    $hide_when_unavailable = (bool)($product_row['hide_when_unavailable'] ?? 0);
+    // Extract and normalize product data from database row
+    $status_id = $product_row['status_id'];                                      // Product status: 1=Regular, 2=Featured, 3=Limited, 4=Same-Day Only
+    $preorder_stock = $product_row['quantity'] ?? 0;                            // Stock available for pre-orders (products.quantity)
+    $sameday_stock = $product_row['sameday_stock_today'] ?? 0;                  // Stock available for same-day orders today (quantity_per_day_sdo.quantity)
+    $has_availtoday_config = !empty($product_row['availtoday_status_id']);      // Does product have same-day configuration?
+    $todays_dates = $product_row['todays_product_dates'] ? explode(', ', $product_row['todays_product_dates']) : [];  // Dates for status 4 products
+    $regular_dates = $product_row['regular_today_dates'] ? explode(', ', $product_row['regular_today_dates']) : [];   // Dates for status 1/2/3 products with same-day
+    $show_when_unavailable = (bool)($product_row['show_when_unavailable'] ?? 0); // Force show even when unavailable?
+    $hide_when_unavailable = (bool)($product_row['hide_when_unavailable'] ?? 0); // Force hide when unavailable?
     
-    // Step 1: Check stock based on product type
-    $stock_unavailable = false;
+    // ============================================================================
+    // STEP 1: Determine product capabilities (per system documentation)
+    // ============================================================================
     
+    // Pre-order capability check:
+    // Products with status 1/2/3 can be pre-ordered if they have stock in products.quantity
+    // Status 4 products are same-day only and CANNOT be pre-ordered
+    $result['has_preorder'] = in_array($status_id, [1, 2, 3]) && $preorder_stock > 0;
+    
+    // Same-day capability check for pure same-day products (status 4):
+    // Requirements: stock in quantity_per_day_sdo AND today's date in todays_products_dates
     if ($status_id == 4) {
-        // Same-day ONLY product
-        $stock_unavailable = ($sameday_stock == 0 || $sameday_stock === null);
-    } elseif (in_array($status_id, [1, 2, 3])) {
-        if ($has_availtoday) {
-            // DUAL capability: unavailable if BOTH stocks are 0
-            $stock_unavailable = ($preorder_stock == 0 && ($sameday_stock == 0 || $sameday_stock === null));
-        } else {
-            // Pre-order ONLY
-            $stock_unavailable = ($preorder_stock == 0);
-        }
+        $has_valid_date = in_array($today_date, $todays_dates);
+        $result['has_sameday'] = ($sameday_stock > 0) && $has_valid_date;
     }
     
-    // Step 2: Check date availability
-    $date_unavailable = false;
-    
-    if ($status_id == 4) {
-        // Same-day ONLY: must have date in todays_products_dates
-        $date_unavailable = !in_array($today_date, $todays_dates);
-    } elseif (in_array($status_id, [1, 2, 3]) && $has_availtoday) {
-        // DUAL capability: check regular_products_today_dates for same-day option
-        if ($sameday_stock > 0) {
-            // Has same-day stock, so must have valid date
-            $date_unavailable = !in_array($today_date, $regular_dates);
-        } else {
-            // No same-day stock, date check not needed
-            $date_unavailable = false;
-        }
+    // Same-day capability check for dual-capability products (status 1/2/3 with availtoday config):
+    // Requirements: has availtoday_status_id set, stock in quantity_per_day_sdo, AND today's date in regular_products_today_dates
+    if (in_array($status_id, [1, 2, 3]) && $has_availtoday_config) {
+        $has_valid_date = in_array($today_date, $regular_dates);
+        $result['has_sameday'] = ($sameday_stock > 0) && $has_valid_date;
     }
     
-    // Step 3: Determine overall unavailability
-    $result['is_unavailable'] = $stock_unavailable || $date_unavailable;
+    // ============================================================================
+    // STEP 2: Determine availability
+    // ============================================================================
     
-    if ($stock_unavailable) {
-        $result['unavailable_reason'] = 'Out of Stock';
-    } elseif ($date_unavailable) {
-        $result['unavailable_reason'] = 'Not Available Today';
-    }
+    // A product is unavailable ONLY if it has NO capabilities at all
+    $result['is_unavailable'] = !$result['has_preorder'] && !$result['has_sameday'];
     
-    // Step 4: Apply visibility rules
     if ($result['is_unavailable']) {
-        // Priority: hide_when_unavailable takes precedence
+        // Determine the specific reason for unavailability based on product type
+        if ($status_id == 4) {
+            // Same-day only product (status 4) unavailability reasons:
+            if ($sameday_stock <= 0 || $sameday_stock === null) {
+                $result['unavailable_reason'] = 'Out of Stock';
+            } else {
+                $result['unavailable_reason'] = 'Not Available Today';
+            }
+        } elseif (in_array($status_id, [1, 2, 3]) && $has_availtoday_config) {
+            // Dual-capability product: both stocks are depleted
+            $result['unavailable_reason'] = 'Out of Stock';
+        } else {
+            // Pre-order only product: no pre-order stock available
+            $result['unavailable_reason'] = 'Out of Stock';
+        }
+    }
+    
+    // ============================================================================
+    // STEP 3: Apply visibility rules
+    // ============================================================================
+    
+    if ($result['is_unavailable']) {
+        // Visibility priority hierarchy:
+        // 1. hide_when_unavailable = 1: ALWAYS hide when unavailable (highest priority)
+        // 2. show_when_unavailable = 1: ALWAYS show even when unavailable (medium priority)
+        // 3. Default: hide unavailable products (lowest priority)
+        
         if ($hide_when_unavailable) {
             $result['should_display'] = false;
         } elseif ($show_when_unavailable) {
             $result['should_display'] = true;
         } else {
-            // Default: hide unavailable products
             $result['should_display'] = false;
         }
-        
-        // Log visibility decisions for debugging
-        if (!$result['should_display']) {
-            error_log(sprintf(
-                "[Product Visibility] Hidden - Product ID: %d, Name: %s, Reason: %s, hide_flag: %d, show_flag: %d",
-                $product_row['id'],
-                $product_row['name'],
-                $result['unavailable_reason'],
-                $hide_when_unavailable ? 1 : 0,
-                $show_when_unavailable ? 1 : 0
-            ));
-        }
     } else {
-        // Available products are always displayed
+        // Available products are always displayed regardless of visibility flags
         $result['should_display'] = true;
     }
     

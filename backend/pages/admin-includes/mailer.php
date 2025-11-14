@@ -1057,6 +1057,23 @@ function createBulkOrderApprovalEmailBody($bulkOrder) {
             </div>';
     }
     
+    // Fetch QR payment code from database
+    $qr_sql = "SELECT qr_image FROM bulk_payment WHERE deleted_at IS NULL AND is_active = 1 LIMIT 1";
+    $qr_result = mysqli_query($conn, $qr_sql);
+    $qr_data = mysqli_fetch_assoc($qr_result);
+    
+    if ($qr_data && !empty($qr_data['qr_image'])) {
+        $html .= '
+            <div class="section">
+                <h2>Payment Information</h2>
+                <p>Please scan the QR code below to make your payment:</p>
+                <div style="text-align: center; margin: 1.5rem 0;">
+                    <img src="' . htmlspecialchars($qr_data['qr_image']) . '" alt="Payment QR Code" style="max-width: 300px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                </div>
+                <p style="color: #666; font-size: 14px;">After payment, please upload your proof of payment through your order details page.</p>
+            </div>';
+    }
+    
     $html .= '
             <div class="section">
                 <h2>Next Steps</h2>
@@ -1592,7 +1609,7 @@ function sendBulkOrderAutoCancelledEmail($bulkOrderId, $conn) {
     }
 }
 
-// Function to send auto-rejection email (96 hours pending)
+// Function to send auto-rejection email (72 hours pending)
 function sendBulkOrderAutoRejectedEmail($bulkOrderId, $conn) {
     try {
         error_log("Starting auto-rejection email for bulk order #$bulkOrderId");
@@ -1655,7 +1672,7 @@ function sendBulkOrderAutoRejectedEmail($bulkOrderId, $conn) {
                     </div>
                     
                     <p>We apologize for the delay in reviewing your bulk order. Unfortunately, we were unable to process your request within 72 hours.</p>
-                    
+
                     <p><strong>You can submit a new order:</strong></p>
                     <p>We welcome you to submit a new bulk order request, and we will prioritize it for review.</p>
                     
@@ -1753,8 +1770,26 @@ function sendBulkOrderPaymentRejectedEmail($bulkOrderId, $conn) {
                     </ul>
                     
                     <p><strong>Next Steps:</strong></p>
-                    <p>Please submit a valid payment proof or contact us for clarification. You can resubmit your payment proof through your order details page.</p>
-                    
+                    <p>Please submit again a valid payment proof or contact us for clarification. You can resubmit your payment proof through your order details page.</p>';
+    
+    // Fetch QR payment code from database for second chance
+    $qr_sql = "SELECT qr_image FROM bulk_payment WHERE deleted_at IS NULL AND is_active = 1 LIMIT 1";
+    $qr_result = mysqli_query($conn, $qr_sql);
+    $qr_data = mysqli_fetch_assoc($qr_result);
+    
+    if ($qr_data && !empty($qr_data['qr_image'])) {
+        $emailBody .= '
+                    <div style="margin: 1.5rem 0; padding: 1rem; background-color: #f0fdf4; border-radius: 6px; border-left: 4px solid #22c55e;">
+                        <h3 style="margin-top: 0; color: #059669;">Payment QR Code</h3>
+                        <p>Scan the QR code below to make your payment:</p>
+                        <div style="text-align: center; margin: 1rem 0;">
+                            <img src="' . htmlspecialchars($qr_data['qr_image']) . '" alt="Payment QR Code" style="max-width: 250px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                        </div>
+                        <p style="font-size: 14px; color: #666;">After payment, upload your new proof through the order details page.</p>
+                    </div>';
+    }
+    
+    $emailBody .= '
                     <div style="text-align: center;">
                         <a href="' . $baseUrl . '/frontend/pages/bulk/bulk-order-details.php?id=' . urlencode($orderIdDisplay) . '" class="cta-button">View Order Details</a>
                     </div>

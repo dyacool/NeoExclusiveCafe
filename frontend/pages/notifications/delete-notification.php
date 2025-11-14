@@ -1,7 +1,6 @@
 <?php
-// Enable error reporting for debugging
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+// Start output buffering to prevent any HTML/errors before JSON
+ob_start();
 
 // Log start of request
 error_log('Delete notification request started');
@@ -13,6 +12,12 @@ require_once '../../../includes/session-manager.php';
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
+// Clean output buffer and set JSON header
+while (ob_get_level()) {
+    ob_end_clean();
+}
+header('Content-Type: application/json');
 
 // Log session info
 error_log('Session user logged in: ' . (SessionManager::isUserLoggedIn() ? 'yes' : 'no'));
