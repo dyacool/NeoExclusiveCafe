@@ -408,20 +408,6 @@ $total_images = mysqli_num_rows($images_result);
                 <div class="promotion-grid">
                     <?php if (count($active_promotions) > 0): ?>
                         <?php foreach ($active_promotions as $promo): 
-                            // Format discount display
-                            if ($promo['type'] === 'free_shipping') {
-                                $discount_display = 'FREE SHIPPING';
-                                $discount_type_display = 'FREE SHIPPING';
-                            } elseif ($promo['type'] === 'percentage') {
-                                // Percentage discount: format as 0%
-                                $discount_display = $promo['value'] . '%' . ' DISCOUNT';
-                                $discount_type_display = 'PRODUCT DISCOUNT';
-                            } else {
-                                // Fixed amount discount: format as ₱0.00
-                                $discount_display = '₱' . number_format($promo['value'], 2) . ' DISCOUNT';
-                                $discount_type_display = 'PRODUCT DISCOUNT';
-                            }
-                            
                             // Format dates to MM/DD/YY
                             $start_date = date('m/d/y', strtotime($promo['activation_date']));
                             $end_date = date('m/d/y', strtotime($promo['expiration_date']));
@@ -429,23 +415,37 @@ $total_images = mysqli_num_rows($images_result);
                             
                             // Format min spend
                             $min_spend = number_format($promo['min_purchase'], 0);
+                            
+                            // Determine icon, type label, and background class
+                            if ($promo['type'] === 'free_shipping') {
+                                $icon = '<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24"><g fill="none" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M10 17h4V5H2v12h3m15 0h2v-3.34a4 4 0 0 0-1.17-2.83L19 9h-5m0 8h1"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></g></svg>';
+                                $type_label = 'Free Shipping';
+                                $bg_class = 'free-shipping-bg';
+                                $text_class = 'free-shipping-text';
+                            } elseif ($promo['type'] === 'percentage') {
+                                $icon = '<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24"><text x="12" y="14" text-anchor="middle" dominant-baseline="middle" font-size="18" font-weight="bold" fill="white">%</text></svg>';
+                                $cap_text = $promo['max_discount'] > 0 ? ' Capped at ₱' . number_format($promo['max_discount'], 0) : '';
+                                $type_label = number_format($promo['value'], 0) . '% Off' . $cap_text;
+                                $bg_class = 'percentage-bg';
+                                $text_class = 'percentage-text';
+                            } else {
+                                $icon = '<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24"><text x="12" y="14" text-anchor="middle" dominant-baseline="middle" font-size="18" font-weight="bold" fill="white">₱</text></svg>';
+                                $type_label = '₱' . number_format($promo['value'], 0) . ' Off' . $cap_text;
+                                $bg_class = 'fixed-bg';
+                                $text_class = 'fixed-text';
+                            }
                         ?>
-                            <div class="coupon-ticket" data-aos="fade-up">
-                                <div class="ticket-left">
-                                    <div class="coupon-code"><?php echo htmlspecialchars($promo['code']); ?></div>
-                                    <div class="coupon-title"><?php echo $discount_display; ?></div>
-                                </div>
-                                <div class="ticket-divider">
-                                    <div class="circle-top"></div>
-                                    <div class="dashed-line"></div>
-                                    <div class="circle-bottom"></div>
-                                </div>
-                                <div class="ticket-right">
-                                    <div class="discount-type"><?php echo $discount_type_display; ?></div>
-                                    <div class="coupon-details">
-                                        <div class="min-spend">Min Spend: ₱<?php echo $min_spend; ?></div>
-                                        <div class="validity">Valid: <?php echo $date_validity; ?></div>
+                            <div class="coupon-card" data-aos="fade-up">
+                                <div class="coupon-left <?php echo $bg_class; ?>">
+                                    <div class="coupon-icon">
+                                        <?php echo $icon; ?>
                                     </div>
+                                </div>
+                                <div class="coupon-right">
+                                    <div class="coupon-code"><?php echo htmlspecialchars($promo['code']); ?></div>
+                                    <div class="coupon-type <?php echo $text_class; ?>"><?php echo $type_label; ?></div>
+                                    <div class="coupon-min-spend">Min. Spend ₱<?php echo $min_spend; ?></div>
+                                    <div class="coupon-validity">Valid Till: <?php echo date('d.m.Y', strtotime($promo['expiration_date'])); ?></div>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -622,6 +622,8 @@ $total_images = mysqli_num_rows($images_result);
                             </div>
                         <?php endforeach; ?>
                     </div>
+
+                    
                     
                     <?php if (count($featured_products_data) > 4): ?>
                         <button class="learn-more" data-aos="fade-up">
@@ -732,63 +734,60 @@ $total_images = mysqli_num_rows($images_result);
         
         <!-- Customer Testimonials Section (Full Width) -->
         <section class="customer-testimonials-section">
-            <div class="section-header">
-                <h1 class="service-title" data-aos="fade-up">Customer Testimonials</h1>
-                <p class="service-subtitle" data-aos="fade-up">What our customers are saying</p>
-            </div>
-            
-            <?php
-            // Fetch testimonials from database
-            $testimonials_query = "SELECT ubp.*, u.firstname, u.created_at as post_date 
-                                  FROM user_blog_post ubp 
-                                  JOIN users u ON ubp.user_id = u.id 
-                                  WHERE ubp.status = 'published' 
-                                  ORDER BY ubp.created_at DESC";
-            $testimonials_result = mysqli_query($conn, $testimonials_query);
-            
-            // Store testimonials in array
-            $testimonials = [];
-            while ($testimonial = mysqli_fetch_assoc($testimonials_result)) {
-                $testimonials[] = $testimonial;
-            }
-            $testimonials_count = count($testimonials);
-            $use_marquee = $testimonials_count >= 6;
-            ?>
-            
-            <?php if ($testimonials_count > 0): ?>
-                <div class="testimonials-marquee <?php echo !$use_marquee ? 'no-animation' : ''; ?>">
-                    <div class="testimonials-track">
-                        <?php 
-                        // For marquee: duplicate content for seamless loop
-                        // For static: show once
-                        $iterations = $use_marquee ? 2 : 1;
-                        for ($loop = 0; $loop < $iterations; $loop++):
+            <div class="testimonials-container">
+                <div class="section-header">
+                    <h1 class="testimonial-title" data-aos="fade-up">Customer Testimonials</h1>
+                    <p class="testimonial-subtitle" data-aos="fade-up">What our customers are saying</p>
+                </div>
+                
+                <?php
+                // Fetch testimonials from database
+                $testimonials_query = "SELECT ubp.*, u.firstname, u.created_at as post_date 
+                                    FROM user_blog_post ubp 
+                                    JOIN users u ON ubp.user_id = u.id 
+                                    WHERE ubp.status = 'published' 
+                                    ORDER BY ubp.created_at DESC";
+                $testimonials_result = mysqli_query($conn, $testimonials_query);
+                
+                // Store testimonials in array
+                $testimonials = [];
+                while ($testimonial = mysqli_fetch_assoc($testimonials_result)) {
+                    $testimonials[] = $testimonial;
+                }
+                $testimonials_count = count($testimonials);
+                ?>
+                
+                <?php if ($testimonials_count > 0): ?>
+                    <div class="testimonials-marquee" data-testimonial-count="<?php echo $testimonials_count; ?>">
+                        <div class="testimonials-track">
+                            <?php 
+                            // Display testimonials once - animation creates seamless wrap
                             foreach ($testimonials as $testimonial): 
                                 $rating = intval($testimonial['rating'] ?? 5);
-                        ?>
-                            <div class="testimonial-card">
-                                <div class="testimonial-rating">
-                                    <?php for ($j = 1; $j <= 5; $j++): ?>
-                                        <span class="star <?php echo $j <= $rating ? 'filled' : ''; ?>">★</span>
-                                    <?php endfor; ?>
+                            ?>
+                                <div class="testimonial-card">
+                                    <div class="testimonial-rating">
+                                        <?php for ($j = 1; $j <= 5; $j++): ?>
+                                            <span class="star <?php echo $j <= $rating ? 'filled' : ''; ?>">★</span>
+                                        <?php endfor; ?>
+                                    </div>
+                                    <p class="testimonial-content"><?php echo htmlspecialchars($testimonial['content']); ?></p>
+                                    <div class="testimonial-footer">
+                                        <span class="testimonial-name"><?php echo htmlspecialchars($testimonial['firstname']); ?></span>
+                                        <span class="testimonial-date"><?php echo date('M d, Y', strtotime($testimonial['created_at'])); ?></span>
+                                    </div>
                                 </div>
-                                <p class="testimonial-content"><?php echo htmlspecialchars($testimonial['content']); ?></p>
-                                <div class="testimonial-footer">
-                                    <span class="testimonial-name"><?php echo htmlspecialchars($testimonial['firstname']); ?></span>
-                                    <span class="testimonial-date"><?php echo date('M d, Y', strtotime($testimonial['created_at'])); ?></span>
-                                </div>
-                            </div>
-                        <?php 
+                            <?php 
                             endforeach;
-                        endfor;
-                        ?>
+                            ?>
+                        </div>
                     </div>
-                </div>
-            <?php else: ?>
-                <div class="no-testimonials">
-                    <p>No testimonials yet. Be the first to share your experience!</p>
-                </div>
-            <?php endif; ?>
+                <?php else: ?>
+                    <div class="no-testimonials">
+                        <p>No testimonials yet. Be the first to share your experience!</p>
+                    </div>
+                <?php endif; ?>
+            </div>
         </section>
     </div>
 </main>
@@ -897,6 +896,57 @@ document.addEventListener('DOMContentLoaded', function() {
     serviceCards.forEach(card => {
         serviceObserver.observe(card);
     });
+
+    // Testimonials responsive marquee logic
+    const testimonialsMarquee = document.querySelector('.testimonials-marquee');
+    if (testimonialsMarquee) {
+        const testimonialCount = parseInt(testimonialsMarquee.getAttribute('data-testimonial-count'));
+        const track = testimonialsMarquee.querySelector('.testimonials-track');
+        
+        // Clone all cards multiple times for continuous seamless loop
+        if (track) {
+            const cards = Array.from(track.children);
+            // Clone 3 times to ensure continuous coverage
+            for (let i = 0; i < 3; i++) {
+                cards.forEach(card => {
+                    const clone = card.cloneNode(true);
+                    clone.classList.add('cloned');
+                    track.appendChild(clone);
+                });
+            }
+        }
+        
+        function updateMarqueeState() {
+            const screenWidth = window.innerWidth;
+            let threshold;
+            
+            // Determine threshold based on screen size
+            if (screenWidth >= 1600) {
+                threshold = 4; // 1600px+: start marquee at 4 cards
+            } else if (screenWidth >= 1440) {
+                threshold = 3; // 1440px: start marquee at 3 cards
+            } else if (screenWidth >= 1024) {
+                threshold = 2; // 1024px: start marquee at 2 cards
+            } else if (screenWidth >= 480) {
+                threshold = 1; // 480px: start marquee at 1 card
+            } else {
+                threshold = 1; // Below 480px: start marquee at 1 card
+            }
+            
+            // Enable or disable marquee based on threshold
+            if (testimonialCount > threshold) {
+                testimonialsMarquee.setAttribute('data-marquee-active', 'true');
+            } else {
+                testimonialsMarquee.setAttribute('data-marquee-active', 'false');
+            }
+        }
+        
+        // Update on load
+        updateMarqueeState();
+        
+        // Update on resize
+        window.addEventListener('resize', updateMarqueeState);
+    }
 
     // Product functionality
     window.updateQuantity = function(button, change) {
@@ -1862,9 +1912,14 @@ window.addEventListener('click', function(event) {
 
 /* Customer Testimonials Section */
 .customer-testimonials-section {
-    padding: 60px 20px;
-    background: #f9f9f9;
+    padding: 60px 0 0 0;
     overflow: hidden;
+}
+
+.testimonials-container {
+    padding: 1.5rem 0 2rem 0;
+    margin: 0 auto;
+    background: #0f5132;
 }
 
 .testimonials-marquee {
@@ -1876,27 +1931,39 @@ window.addEventListener('click', function(event) {
     justify-content: center;
 }
 
-.testimonials-marquee.no-animation {
+/* Default: Enable marquee for 6+ cards (desktop 1600px+) */
+.testimonials-track {
+    display: flex;
+    gap: 20px;
+    width: fit-content;
+}
+
+.testimonials-marquee[data-marquee-active="true"] .testimonials-track {
+    animation: scroll-testimonials 15s linear infinite;
+}
+
+.testimonials-marquee[data-marquee-active="true"] .testimonials-track:hover {
+    animation-play-state: paused;
+}
+
+.testimonials-marquee[data-marquee-active="false"] {
     overflow: visible;
 }
 
-.testimonials-marquee.no-animation .testimonials-track {
-    animation: none !important;
+.testimonials-marquee[data-marquee-active="false"] .testimonials-track {
     justify-content: center;
     flex-wrap: wrap;
     max-width: 1600px;
     margin: 0 auto;
 }
 
-.testimonials-track {
-    display: flex;
-    gap: 20px;
-    animation: scroll-testimonials 15s linear infinite;
-    width: fit-content;
+.testimonials-marquee[data-marquee-active="false"] .testimonials-track .testimonial-card:nth-child(n+7) {
+    display: none;
 }
 
-.testimonials-track:hover {
-    animation-play-state: paused;
+/* Hide cloned cards when marquee is inactive */
+.testimonials-marquee[data-marquee-active="false"] .testimonials-track .testimonial-card.cloned {
+    display: none !important;
 }
 
 @keyframes scroll-testimonials {
@@ -1904,7 +1971,7 @@ window.addEventListener('click', function(event) {
         transform: translateX(0);
     }
     100% {
-        transform: translateX(-50%);
+        transform: translateX(-25%);
     }
 }
 
@@ -1918,7 +1985,7 @@ window.addEventListener('click', function(event) {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 0.75rem;
     flex-shrink: 0;
 }
 
@@ -1953,11 +2020,28 @@ window.addEventListener('click', function(event) {
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-align: justify;
+    margin-bottom: 0px;
 }
 
-.testimonial-content p{
-margin: 0;
+.testimonial-title{
+        font-size: 2.5em;
+    font-weight: 700;
+    color: #ffffffff;
+    text-shadow: 1px 1px 2px #a1a1a1ff;
+    margin-bottom: 15px;
+    text-align: center;
 }
+
+.testimonial-subtitle{
+    margin: 0;
+    color: #fff;
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.6;
+    text-align: center;
+    align-items: center;
+}
+
 
 .testimonial-footer {
     display: flex;
