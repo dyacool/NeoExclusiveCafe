@@ -321,7 +321,7 @@ if (!$navbar_conn) {
                         ?>
                     </div>
                 </div>
-                <a href="../../../frontend/pages/blog/blog-dashboard.php" class="nav-link smooth-nav <?php echo $current_page === 'blog-page.php' ? 'active' : ''; ?>" data-target="../../../frontend/pages/blog/blog-dashboard.php">
+                <a href="../../../frontend/pages/blog/blog-list.php" class="nav-link smooth-nav <?php echo $current_page === 'blog-page.php' ? 'active' : ''; ?>" data-target="../../../frontend/pages/blog/blog-list.php">
                     <span class="link-text">Blog</span>
                     <span class="link-underline"></span>
                 </a>

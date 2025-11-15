@@ -132,12 +132,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     
+    // Get rating from POST
+    $rating = isset($_POST['rating']) ? intval($_POST['rating']) : 5;
+    
     // Insert blog post only if no upload errors
     if (empty($upload_error)) {
-        $query = "INSERT INTO user_blog_post (user_id, title, content, cloud_url, cloud_public_id, cloud_provider, status, created_at) 
-                  VALUES (?, ?, ?, ?, ?, 'cloudinary', ?, NOW())";
+        $query = "INSERT INTO user_blog_post (user_id, title, content, cloud_url, cloud_public_id, cloud_provider, rating, status, created_at) 
+                  VALUES (?, ?, ?, ?, ?, 'cloudinary', ?, ?, NOW())";
         $stmt = mysqli_prepare($conn, $query);
-        mysqli_stmt_bind_param($stmt, "isssss", $user_id, $title, $content, $cloud_url, $cloud_public_id, $status);
+        mysqli_stmt_bind_param($stmt, "issssis", $user_id, $title, $content, $cloud_url, $cloud_public_id, $rating, $status);
         
         if (mysqli_stmt_execute($stmt)) {
             $_SESSION['success_message'] = 'Your testimonial has been published successfully!';
@@ -159,6 +162,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <title>Submit Testimonial - NeoExclusiveCafe</title>
   <link rel="icon" type="image/x-icon" href="/frontend/favicon.ico">
   <style>
+    /* Star Rating Styles */
+    .star-rating-container {
+        margin: 20px 0;
+    }
+    
+    .star-rating {
+        display: flex;
+        gap: 10px;
+        font-size: 40px;
+        margin-top: 10px;
+    }
+    
+    .star-rating input {
+        display: none;
+    }
+    
+    .star-rating label {
+        cursor: pointer;
+        color: #ddd;
+        transition: all 0.2s ease;
+    }
+    
+    .star-rating label:hover {
+        transform: scale(1.1);
+    }
+    
+    .star-rating label.filled {
+        color: #ffd700;
+    }
+
     /* Confirmation Popup */
     .confirmation-popup {
         position: fixed;
@@ -247,6 +280,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <input type="text" id="title" name="title" required>
             </div>
 
+            <div class="star-rating-container">
+                <label class="lbl-title">Rating</label>
+                <div class="star-rating">
+                    <input type="radio" id="star1" name="rating" value="1" />
+                    <label for="star1" title="1 star" data-rating="1">★</label>
+                    
+                    <input type="radio" id="star2" name="rating" value="2" />
+                    <label for="star2" title="2 stars" data-rating="2">★</label>
+                    
+                    <input type="radio" id="star3" name="rating" value="3" />
+                    <label for="star3" title="3 stars" data-rating="3">★</label>
+                    
+                    <input type="radio" id="star4" name="rating" value="4" />
+                    <label for="star4" title="4 stars" data-rating="4">★</label>
+                    
+                    <input type="radio" id="star5" name="rating" value="5" checked />
+                    <label for="star5" title="5 stars" data-rating="5">★</label>
+                </div>
+            </div>
+
             <div class="dimage">
                 <label class="lbl-title">Image (Optional)</label>
                 <div class="imagecont">
@@ -308,6 +361,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+        // Star Rating System
+        const starLabels = document.querySelectorAll('.star-rating label');
+        const starInputs = document.querySelectorAll('.star-rating input');
+        
+        // Function to fill stars up to a certain rating
+        function fillStars(rating) {
+            starLabels.forEach(label => {
+                const labelRating = parseInt(label.getAttribute('data-rating'));
+                if (labelRating <= rating) {
+                    label.classList.add('filled');
+                } else {
+                    label.classList.remove('filled');
+                }
+            });
+        }
+        
+        // Initialize with default 5 stars
+        fillStars(5);
+        
+        // Add click event to each star
+        starLabels.forEach(label => {
+            label.addEventListener('click', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                fillStars(rating);
+            });
+            
+            // Hover effect
+            label.addEventListener('mouseenter', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                fillStars(rating);
+            });
+        });
+        
+        // Restore selected rating when mouse leaves
+        document.querySelector('.star-rating').addEventListener('mouseleave', function() {
+            const checkedInput = document.querySelector('.star-rating input:checked');
+            if (checkedInput) {
+                fillStars(parseInt(checkedInput.value));
+            }
+        });
+        
         // Show upload error if exists
         <?php if (!empty($upload_error)): ?>
             showConfirmation('<?php echo addslashes($upload_error); ?>', 'error');

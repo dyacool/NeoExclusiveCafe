@@ -398,6 +398,63 @@ $total_images = mysqli_num_rows($images_result);
         </section>
 
         <div class="other-content">
+
+            <section class="promotions-section">
+                 <div class="section-header">
+                    <h1 class="promotion-title">Discount Coupons</h1>
+                    <p class="service-subtitle">Save money with our discount codes at checkout!</p>
+                </div>
+
+                <div class="promotion-grid">
+                    <?php if (count($active_promotions) > 0): ?>
+                        <?php foreach ($active_promotions as $promo): 
+                            // Format discount display
+                            if ($promo['type'] === 'free_shipping') {
+                                $discount_display = 'FREE SHIPPING';
+                                $discount_type_display = 'FREE SHIPPING';
+                            } elseif ($promo['type'] === 'percentage') {
+                                // Percentage discount: format as 0%
+                                $discount_display = $promo['value'] . '%' . ' DISCOUNT';
+                                $discount_type_display = 'PRODUCT DISCOUNT';
+                            } else {
+                                // Fixed amount discount: format as ₱0.00
+                                $discount_display = '₱' . number_format($promo['value'], 2) . ' DISCOUNT';
+                                $discount_type_display = 'PRODUCT DISCOUNT';
+                            }
+                            
+                            // Format dates to MM/DD/YY
+                            $start_date = date('m/d/y', strtotime($promo['activation_date']));
+                            $end_date = date('m/d/y', strtotime($promo['expiration_date']));
+                            $date_validity = $start_date . ' - ' . $end_date;
+                            
+                            // Format min spend
+                            $min_spend = number_format($promo['min_purchase'], 0);
+                        ?>
+                            <div class="coupon-ticket" data-aos="fade-up">
+                                <div class="ticket-left">
+                                    <div class="coupon-code"><?php echo htmlspecialchars($promo['code']); ?></div>
+                                    <div class="coupon-title"><?php echo $discount_display; ?></div>
+                                </div>
+                                <div class="ticket-divider">
+                                    <div class="circle-top"></div>
+                                    <div class="dashed-line"></div>
+                                    <div class="circle-bottom"></div>
+                                </div>
+                                <div class="ticket-right">
+                                    <div class="discount-type"><?php echo $discount_type_display; ?></div>
+                                    <div class="coupon-details">
+                                        <div class="min-spend">Min Spend: ₱<?php echo $min_spend; ?></div>
+                                        <div class="validity">Valid: <?php echo $date_validity; ?></div>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <p>No available promotions at the moment.</p>
+                    <?php endif; ?>
+                </div>
+                
+            </section>
             <section class="featured-section">
                 <header class="section-header" data-aos="fade-up">
                     <h1 class="titles">Featured Products</h1>
@@ -620,64 +677,6 @@ $total_images = mysqli_num_rows($images_result);
             }
             ?>
 
-
-            <section class="promotions-section">
-                 <div class="section-header">
-                    <h1 class="promotion-title">Discount Coupons</h1>
-                    <p class="service-subtitle">Save money with our discount codes at checkout!</p>
-                </div>
-
-                <div class="promotion-grid">
-                    <?php if (count($active_promotions) > 0): ?>
-                        <?php foreach ($active_promotions as $promo): 
-                            // Format discount display
-                            if ($promo['type'] === 'free_shipping') {
-                                $discount_display = 'FREE SHIPPING';
-                                $discount_type_display = 'FREE SHIPPING';
-                            } elseif ($promo['type'] === 'percentage') {
-                                // Percentage discount: format as 0%
-                                $discount_display = $promo['value'] . '%' . ' DISCOUNT';
-                                $discount_type_display = 'PRODUCT DISCOUNT';
-                            } else {
-                                // Fixed amount discount: format as ₱0.00
-                                $discount_display = '₱' . number_format($promo['value'], 2) . ' DISCOUNT';
-                                $discount_type_display = 'PRODUCT DISCOUNT';
-                            }
-                            
-                            // Format dates to MM/DD/YY
-                            $start_date = date('m/d/y', strtotime($promo['activation_date']));
-                            $end_date = date('m/d/y', strtotime($promo['expiration_date']));
-                            $date_validity = $start_date . ' - ' . $end_date;
-                            
-                            // Format min spend
-                            $min_spend = number_format($promo['min_purchase'], 0);
-                        ?>
-                            <div class="coupon-ticket" data-aos="fade-up">
-                                <div class="ticket-left">
-                                    <div class="coupon-code"><?php echo htmlspecialchars($promo['code']); ?></div>
-                                    <div class="coupon-title"><?php echo $discount_display; ?></div>
-                                </div>
-                                <div class="ticket-divider">
-                                    <div class="circle-top"></div>
-                                    <div class="dashed-line"></div>
-                                    <div class="circle-bottom"></div>
-                                </div>
-                                <div class="ticket-right">
-                                    <div class="discount-type"><?php echo $discount_type_display; ?></div>
-                                    <div class="coupon-details">
-                                        <div class="min-spend">Min Spend: ₱<?php echo $min_spend; ?></div>
-                                        <div class="validity">Valid: <?php echo $date_validity; ?></div>
-                                    </div>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <p>No available promotions at the moment.</p>
-                    <?php endif; ?>
-                </div>
-                
-            </section>
-
             <!-- Service Section -->
             <section class="service-section">
                 <div class="section-header">
@@ -730,6 +729,67 @@ $total_images = mysqli_num_rows($images_result);
                 </div>
             </section>
         </div>
+        
+        <!-- Customer Testimonials Section (Full Width) -->
+        <section class="customer-testimonials-section">
+            <div class="section-header">
+                <h1 class="service-title" data-aos="fade-up">Customer Testimonials</h1>
+                <p class="service-subtitle" data-aos="fade-up">What our customers are saying</p>
+            </div>
+            
+            <?php
+            // Fetch testimonials from database
+            $testimonials_query = "SELECT ubp.*, u.firstname, u.created_at as post_date 
+                                  FROM user_blog_post ubp 
+                                  JOIN users u ON ubp.user_id = u.id 
+                                  WHERE ubp.status = 'published' 
+                                  ORDER BY ubp.created_at DESC";
+            $testimonials_result = mysqli_query($conn, $testimonials_query);
+            
+            // Store testimonials in array
+            $testimonials = [];
+            while ($testimonial = mysqli_fetch_assoc($testimonials_result)) {
+                $testimonials[] = $testimonial;
+            }
+            $testimonials_count = count($testimonials);
+            $use_marquee = $testimonials_count >= 6;
+            ?>
+            
+            <?php if ($testimonials_count > 0): ?>
+                <div class="testimonials-marquee <?php echo !$use_marquee ? 'no-animation' : ''; ?>">
+                    <div class="testimonials-track">
+                        <?php 
+                        // For marquee: duplicate content for seamless loop
+                        // For static: show once
+                        $iterations = $use_marquee ? 2 : 1;
+                        for ($loop = 0; $loop < $iterations; $loop++):
+                            foreach ($testimonials as $testimonial): 
+                                $rating = intval($testimonial['rating'] ?? 5);
+                        ?>
+                            <div class="testimonial-card">
+                                <div class="testimonial-rating">
+                                    <?php for ($j = 1; $j <= 5; $j++): ?>
+                                        <span class="star <?php echo $j <= $rating ? 'filled' : ''; ?>">★</span>
+                                    <?php endfor; ?>
+                                </div>
+                                <p class="testimonial-content"><?php echo htmlspecialchars($testimonial['content']); ?></p>
+                                <div class="testimonial-footer">
+                                    <span class="testimonial-name"><?php echo htmlspecialchars($testimonial['firstname']); ?></span>
+                                    <span class="testimonial-date"><?php echo date('M d, Y', strtotime($testimonial['created_at'])); ?></span>
+                                </div>
+                            </div>
+                        <?php 
+                            endforeach;
+                        endfor;
+                        ?>
+                    </div>
+                </div>
+            <?php else: ?>
+                <div class="no-testimonials">
+                    <p>No testimonials yet. Be the first to share your experience!</p>
+                </div>
+            <?php endif; ?>
+        </section>
     </div>
 </main>
 
@@ -1797,6 +1857,141 @@ window.addEventListener('click', function(event) {
     
     .confirmation-popup.hide {
         transform: translateX(-50%) translateY(-100px);
+    }
+}
+
+/* Customer Testimonials Section */
+.customer-testimonials-section {
+    padding: 60px 20px;
+    background: #f9f9f9;
+    overflow: hidden;
+}
+
+.testimonials-marquee {
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+    padding: 20px 0;
+    display: flex;
+    justify-content: center;
+}
+
+.testimonials-marquee.no-animation {
+    overflow: visible;
+}
+
+.testimonials-marquee.no-animation .testimonials-track {
+    animation: none !important;
+    justify-content: center;
+    flex-wrap: wrap;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+.testimonials-track {
+    display: flex;
+    gap: 20px;
+    animation: scroll-testimonials 15s linear infinite;
+    width: fit-content;
+}
+
+.testimonials-track:hover {
+    animation-play-state: paused;
+}
+
+@keyframes scroll-testimonials {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+.testimonial-card {
+    min-width: 350px;
+    max-width: 350px;
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    flex-shrink: 0;
+}
+
+.testimonial-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.testimonial-rating {
+
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    font-size: 2rem;
+}
+
+.testimonial-rating .star {
+    color: #ddd;
+}
+
+.testimonial-rating .star.filled {
+    color: #000;
+}
+
+.testimonial-content {
+    font-size: 15px;
+    line-height: 1.6;
+    color: #333;
+    flex-grow: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-align: justify;
+}
+
+.testimonial-content p{
+margin: 0;
+}
+
+.testimonial-footer {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.testimonial-name {
+    font-weight: 600;
+    color: #2d5a27;
+    font-size: 14px;
+}
+
+.testimonial-date {
+    font-size: 12px;
+    color: #999;
+}
+
+.no-testimonials {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+}
+
+@media (max-width: 768px) {
+    .testimonial-card {
+        min-width: 280px;
+        max-width: 280px;
+        padding: 20px;
+    }
+    
+    .testimonials-track {
+        animation-duration: 15s;
     }
 }
 </style>

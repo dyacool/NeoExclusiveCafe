@@ -200,6 +200,16 @@ if ($user_logged_in) {
                     
                     <div class="post-content">
                         <h3 class="post-title"><?php echo htmlspecialchars($post['title']); ?></h3>
+                        <?php if (isset($post['rating']) && $post['rating'] > 0): ?>
+                        <div class="post-rating">
+                            <?php 
+                            $rating = intval($post['rating']);
+                            for ($i = 1; $i <= 5; $i++): 
+                            ?>
+                                <span class="star <?php echo $i <= $rating ? 'filled' : ''; ?>">★</span>
+                            <?php endfor; ?>
+                        </div>
+                        <?php endif; ?>
                         <p class="post-excerpt"><?php echo nl2br(htmlspecialchars($post['content'])); ?></p>
                     </div>
                 </div>
@@ -359,6 +369,22 @@ if ($user_logged_in) {
     border-left: 4px solid #f44336;
     font-weight: 500;
     box-shadow: 0 2px 8px rgba(244, 67, 54, 0.2);
+}
+
+/* Star Rating Display */
+.post-rating {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 10px;
+    font-size: 20px;
+}
+
+.post-rating .star {
+    color: #ddd;
+}
+
+.post-rating .star.filled {
+    color: #ffd700;
 }
 
 .create-post-disabled {
