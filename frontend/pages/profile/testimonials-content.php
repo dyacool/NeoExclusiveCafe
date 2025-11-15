@@ -92,24 +92,33 @@ $all_posts_per_page = 6;
 $all_page = isset($_GET['all_page']) ? (int)$_GET['all_page'] : 1;
 $all_offset = ($all_page - 1) * $all_posts_per_page;
 
-// Fetch all published testimonials
+// Fetch all published testimonials (excluding current user's posts)
 $all_sql = "SELECT p.*, u.firstname, u.lastname 
             FROM user_blog_post p 
             JOIN users u ON p.user_id = u.id 
-            WHERE p.status = 'published'
+            WHERE p.status = 'published' AND p.user_id != ?
             ORDER BY p.created_at DESC 
             LIMIT ? OFFSET ?";
 $all_stmt = mysqli_prepare($conn, $all_sql);
-mysqli_stmt_bind_param($all_stmt, "ii", $all_posts_per_page, $all_offset);
+mysqli_stmt_bind_param($all_stmt, "iii", $user_id, $all_posts_per_page, $all_offset);
 mysqli_stmt_execute($all_stmt);
 $all_result = mysqli_stmt_get_result($all_stmt);
 
-// Get total published posts
-$all_count_query = "SELECT COUNT(*) as total FROM user_blog_post WHERE status = 'published'";
-$all_count_result = mysqli_query($conn, $all_count_query);
+// Get total published posts (excluding current user's posts)
+$all_count_query = "SELECT COUNT(*) as total FROM user_blog_post WHERE status = 'published' AND user_id != ?";
+$all_count_stmt = mysqli_prepare($conn, $all_count_query);
+mysqli_stmt_bind_param($all_count_stmt, "i", $user_id);
+mysqli_stmt_execute($all_count_stmt);
+$all_count_result = mysqli_stmt_get_result($all_count_stmt);
 $all_total_row = mysqli_fetch_assoc($all_count_result);
 $all_total_posts = $all_total_row['total'];
 $all_total_pages = ceil($all_total_posts / $all_posts_per_page);
+mysqli_stmt_close($all_count_stmt);
+
+// Close statements to prevent hanging
+if (isset($my_stmt) && $my_stmt) mysqli_stmt_close($my_stmt);
+if (isset($my_count_stmt) && $my_count_stmt) mysqli_stmt_close($my_count_stmt);
+if (isset($all_stmt) && $all_stmt) mysqli_stmt_close($all_stmt);
 ?>
 
 <style>

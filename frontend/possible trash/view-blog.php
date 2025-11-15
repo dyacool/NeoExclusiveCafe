@@ -1,8 +1,22 @@
 <?php
-session_start();
-require_once "../../php/includes/database.php";
-require_once "../../includes/session-manager.php";
+// Load database first (starts session)
+if (!isset($conn)) {
+    require_once "../../../backend/pages/admin-includes/database.php";
+}
 
+require_once "../../user-includes/preview-mode.php";
+
+$page_title = "View Blog";
+$additional_css = [
+    "view-blog.css"
+];
+
+// Font for headings
+$head_extra = '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">';
+
+require_once "../../user-includes/user-header.php";
+
+// Get the blog post ID from URL
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     header("Location: blog-list.php");
     exit();
@@ -26,157 +40,90 @@ if (mysqli_num_rows($result) === 0) {
 }
 
 $post = mysqli_fetch_assoc($result);
-
-// Check if the post is saved by the current user
-$is_saved = false;
-if (SessionManager::isUserLoggedIn()) {
-    $user_id = SessionManager::getUserId();
-    $save_check = mysqli_prepare($conn, "SELECT id FROM saved_posts WHERE user_id = ? AND post_id = ?");
-    mysqli_stmt_bind_param($save_check, "ii", $user_id, $post_id);
-    mysqli_stmt_execute($save_check);
-    $save_result = mysqli_stmt_get_result($save_check);
-    $is_saved = mysqli_num_rows($save_result) > 0;
-}
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($post['title']); ?> - NeoExclusive</title>
-    <link rel="stylesheet" href="/NeoExclusive/css/users/view-blog.css">
-    <link rel="stylesheet" href="/NeoExclusive/css/includes/customer-navigation.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head>
-<body>
-    <?php include_once "C:/xampp/htdocs/NeoExclusive/php/includes/customer-navigation.php"; ?>
+<div class="blog-view-container">
+    <div class="back-link">
+        <a href="user-blog.php">&larr; Back to Blog List</a>
+    </div>
 
-    <div class="container">
-        <div class="blog-actions">
-            <a href="blog-list.php" class="back-btn">Back to Blog List</a>
-            
-            <?php if (SessionManager::isUserLoggedIn()): ?>
-                <button class="save-btn <?php echo $is_saved ? 'saved' : ''; ?>" 
-                        onclick="toggleSave(<?php echo $post_id; ?>)" 
-                        id="saveBtn">
-                    <i class="fa-<?php echo $is_saved ? 'solid' : 'regular'; ?> fa-bookmark"></i>
-                    <span><?php echo $is_saved ? 'Saved' : 'Save'; ?></span>
-                </button>
-                
-                <?php if (SessionManager::getUserId() == $post['user_id']): ?>
-                    <a href="edit-blog.php?id=<?php echo $post['id']; ?>" class="edit-btn">Edit Post</a>
-                <?php endif; ?>
-            <?php endif; ?>
-        </div>
-
-        <div class="blog-header">
-            <h1 class="blog-title"><?php echo htmlspecialchars($post['title']); ?></h1>
-            <div class="blog-meta">
-                By <?php echo htmlspecialchars($post['firstname'] . ' ' . $post['lastname']); ?><br>
-                Posted on <?php echo date('F j, Y', strtotime($post['created_at'])); ?>
+    <article class="blog-post">
+        <header class="post-header">
+            <div class="post-meta">
+                <span class="post-author"><?php echo htmlspecialchars($post['firstname'] . ' ' . $post['lastname']); ?></span>
+                <span class="post-date"><?php echo date('F j, Y', strtotime($post['created_at'])); ?></span>
             </div>
-        </div>
+            <h1 class="post-title"><?php echo htmlspecialchars($post['title']); ?></h1>
+        </header>
 
-        <?php if ($post['image_path']): ?>
-            <div class="image-preview-container">
-                <img src="/NeoExclusive/<?php echo htmlspecialchars($post['image_path']); ?>" 
-                     alt="<?php echo htmlspecialchars($post['title']); ?>" 
-                     class="blog-image"
-                     onclick="openImagePreview(this.src)">
-            </div>
-        <?php endif; ?>
+                              <?php if (!empty($post['image_path'])): ?>
+                      <div class="post-image">
+                          <?php 
+                          // Handle different path formats in the database
+                          $image_path = $post['image_path'];
+                          if (strpos($image_path, 'uploads/blog/') === 0) {
+                              // Remove the incorrect prefix and use the correct path
+                              $image_path = '../../assets/uploaded-images-users/' . basename($image_path);
+                          } elseif (strpos($image_path, 'assets/uploaded-images-users/') === 0) {
+                              // Path already has the correct prefix, just add the relative path
+                              $image_path = '../../' . $image_path;
+                          } elseif (strpos($image_path, 'blog_') === 0 || strpos($image_path, '6823') === 0) {
+                              // These are user blog images without path prefix
+                              $image_path = '../../assets/uploaded-images-users/' . $image_path;
+                          } else {
+                              // Default case - assume it's a user image
+                              $image_path = '../../assets/uploaded-images-users/' . $image_path;
+                          }
+                          
+                          // Check if the file actually exists
+                          $file_path = $_SERVER['DOCUMENT_ROOT'] . '/NeoCafe/' . str_replace('../../', '', $image_path);
+                          if (file_exists($file_path)) {
+                          ?>
+                              <img src="<?= htmlspecialchars($image_path) ?>" alt="Blog Image" width="50" onerror="this.style.display='none';" />
+                          <?php 
+                          } else {
+                              // File doesn't exist, don't show the image
+                              echo "<!-- Image file not found: " . htmlspecialchars($file_path) . " -->";
+                          }
+                          ?>
+                      </div>
+                      <?php endif; ?>
 
-        <div class="blog-content">
+        <div class="post-content">
             <?php echo nl2br(htmlspecialchars($post['content'])); ?>
         </div>
-    </div>
+    </article>
+</div>
 
-    <!-- Image Preview Modal -->
-    <div id="imagePreviewModal" class="modal">
-        <span class="close-modal">&times;</span>
-        <img class="modal-content" id="previewImage">
-    </div>
+<!-- Image Preview Modal -->
+<div id="imagePreviewModal" class="modal">
+    <span class="close-modal">&times;</span>
+    <img class="modal-content" id="previewImage">
+</div>
 
-    <!-- Alert Message -->
-    <div id="alertMessage" class="alert-message"></div>
+<script>
+    // Mobile menu toggle
+    document.querySelector('.menu-toggle')?.addEventListener('click', function() {
+        document.querySelector('.nav-links').classList.toggle('show');
+    });
 
-    <script>
-        // Mobile menu toggle
-        document.querySelector('.menu-toggle')?.addEventListener('click', function() {
-            document.querySelector('.nav-links').classList.toggle('show');
-        });
+    // Image preview functionality
+    function openImagePreview(imageSrc) {
+        const modal = document.getElementById('imagePreviewModal');
+        const modalImg = document.getElementById('previewImage');
+        modal.style.display = "block";
+        modalImg.src = imageSrc;
+    }
 
-        // Image preview functionality
-        function openImagePreview(imageSrc) {
-            const modal = document.getElementById('imagePreviewModal');
-            const modalImg = document.getElementById('previewImage');
-            modal.style.display = "block";
-            modalImg.src = imageSrc;
+    document.querySelector('.close-modal').onclick = function() {
+        document.getElementById('imagePreviewModal').style.display = "none";
+    }
+
+    document.getElementById('imagePreviewModal').onclick = function(e) {
+        if (e.target === this) {
+            this.style.display = "none";
         }
+    }
+</script>
 
-        document.querySelector('.close-modal').onclick = function() {
-            document.getElementById('imagePreviewModal').style.display = "none";
-        }
-
-        document.getElementById('imagePreviewModal').onclick = function(e) {
-            if (e.target === this) {
-                this.style.display = "none";
-            }
-        }
-
-        // Save/Unsave functionality
-        function toggleSave(postId) {
-            const saveBtn = document.getElementById('saveBtn');
-            const isSaved = saveBtn.classList.contains('saved');
-            const action = isSaved ? 'unsave' : 'save';
-
-            fetch('/NeoExclusive/php/blog/save-post.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `post_id=${postId}&action=${action}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    saveBtn.classList.toggle('saved');
-                    const icon = saveBtn.querySelector('i');
-                    const text = saveBtn.querySelector('span');
-                    
-                    if (data.action === 'saved') {
-                        icon.className = 'fa-solid fa-bookmark';
-                        text.textContent = 'Saved';
-                    } else {
-                        icon.className = 'fa-regular fa-bookmark';
-                        text.textContent = 'Save';
-                    }
-                    
-                    showAlert(data.message, 'success');
-                } else {
-                    showAlert(data.message, 'error');
-                }
-            })
-            .catch(error => {
-                showAlert('An error occurred. Please try again.', 'error');
-            });
-        }
-
-        function showAlert(message, type) {
-            const alert = document.getElementById('alertMessage');
-            alert.textContent = message;
-            alert.className = `alert-message ${type}`;
-            alert.style.display = 'block';
-            
-            setTimeout(() => {
-                alert.style.opacity = '0';
-                setTimeout(() => {
-                    alert.style.display = 'none';
-                    alert.style.opacity = '1';
-                }, 300);
-            }, 3000);
-        }
-    </script>
-</body>
-</html> 
+<?php require_once "../../php/includes/user-footer.php"; ?>

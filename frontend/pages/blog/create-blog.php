@@ -92,65 +92,27 @@ if (!$can_create_post) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Load Cloudinary helper only when needed
-    require_once __DIR__ . '/../../../backend/includes/cloudinary-helper.php';
-    
-    $title = trim($_POST['title']);
     $content = trim($_POST['content']);
     $user_id = $_SESSION['user_id'];
     $status = 'published';
-    $upload_error = '';
-    
-    // Handle image upload to Cloudinary
-    $cloud_url = '';
-    $cloud_public_id = '';
-    
-    if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-        $file_extension = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
-        $allowedTypes = array("jpg", "jpeg", "png", "gif", "JPG", "JPEG", "PNG", "GIF");
-        
-        if (in_array($file_extension, $allowedTypes)) {
-            // Validate file size (max 10MB)
-            if ($_FILES['image']['size'] > 10 * 1024 * 1024) {
-                $upload_error = 'File size exceeds 10MB limit.';
-            } else {
-                // Generate unique public ID
-                $publicId = 'user_blog_' . $user_id . '_' . uniqid();
-                
-                // Upload to Cloudinary
-                $result = uploadToCloudinary($_FILES['image']['tmp_name'], 'neocafe/user_blog', $publicId);
-                
-                if ($result['success']) {
-                    $cloud_url = $result['url'];
-                    $cloud_public_id = $result['public_id'];
-                } else {
-                    $upload_error = $result['error'];
-                }
-            }
-        } else {
-            $upload_error = 'Invalid file type. Only JPG, JPEG, PNG and GIF files are allowed.';
-        }
-    }
     
     // Get rating from POST
     $rating = isset($_POST['rating']) ? intval($_POST['rating']) : 5;
     
-    // Insert blog post only if no upload errors
-    if (empty($upload_error)) {
-        $query = "INSERT INTO user_blog_post (user_id, title, content, cloud_url, cloud_public_id, cloud_provider, rating, status, created_at) 
-                  VALUES (?, ?, ?, ?, ?, 'cloudinary', ?, ?, NOW())";
-        $stmt = mysqli_prepare($conn, $query);
-        mysqli_stmt_bind_param($stmt, "issssis", $user_id, $title, $content, $cloud_url, $cloud_public_id, $rating, $status);
-        
-        if (mysqli_stmt_execute($stmt)) {
-            $_SESSION['success_message'] = 'Your testimonial has been published successfully!';
-            header("Location: user-blog.php");
-            exit();
-        } else {
-            $_SESSION['error_message'] = 'Error creating blog post: ' . mysqli_error($conn);
-            header("Location: user-blog.php");
-            exit();
-        }
+    // Insert blog post
+    $query = "INSERT INTO user_blog_post (user_id, title, content, rating, status, created_at) 
+              VALUES (?, '', ?, ?, ?, NOW())";
+    $stmt = mysqli_prepare($conn, $query);
+    mysqli_stmt_bind_param($stmt, "isis", $user_id, $content, $rating, $status);
+    
+    if (mysqli_stmt_execute($stmt)) {
+        $_SESSION['success_message'] = 'Your testimonial has been published successfully!';
+        header("Location: user-blog.php");
+        exit();
+    } else {
+        $_SESSION['error_message'] = 'Error creating testimonial: ' . mysqli_error($conn);
+        header("Location: user-blog.php");
+        exit();
     }
 }
 ?>
@@ -190,6 +152,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     .star-rating label.filled {
         color: #ffd700;
+    }
+
+    /* Submit Button Loader */
+    .submit {
+        position: relative;
+        transition: all 0.3s ease;
+    }
+
+    .submit.loading {
+        color: transparent;
+        pointer-events: none;
+        cursor: not-allowed;
+    }
+
+    .submit .loader {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        display: none;
+    }
+
+    .submit.loading .loader {
+        display: block;
+    }
+
+    @keyframes spin {
+        to { transform: translate(-50%, -50%) rotate(360deg); }
     }
 
     /* Confirmation Popup */
@@ -273,15 +269,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     </div>
 
-    <form class="post-cont" action="" method="POST" enctype="multipart/form-data">
+    <form class="post-cont" action="" method="POST">
         <div class="post-container">
-            <div class="dtitle">
-                <label class="lbl-title">Title</label>
-                <input type="text" id="title" name="title" required>
-            </div>
-
             <div class="star-rating-container">
-                <label class="lbl-title">Rating</label>
+                <label class="lbl-title">Rating:</label>
                 <div class="star-rating">
                     <input type="radio" id="star1" name="rating" value="1" />
                     <label for="star1" title="1 star" data-rating="1">★</label>
@@ -300,25 +291,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </div>
 
-            <div class="dimage">
-                <label class="lbl-title">Image (Optional)</label>
-                <div class="imagecont">
-                    <label class="media" for="image">
-                        <div class="upload-text">Click to upload image</div>
-                    </label>
-                    <input multiple type="file" class="images" id="image" name="image" accept="image/*">
-                </div>
-            </div>
-
             <div class="ddescription">
-                <label class="lbl-title">Description</label>
+                <label class="lbl-title">Description:</label>
                 <textarea class="description" id="content" name="content" maxlength="500" required></textarea>
             </div>
         </div>
 
         <div class="buttons">
             <input type="button" id="discard" name="discard" value="Discard">
-            <button class="submit" type="submit">Publish Post</button>
+            <button class="submit" type="submit">
+                <span class="loader"></span>
+                Submit
+            </button>
         </div>
     </form>
     
@@ -402,75 +386,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         });
         
-        // Show upload error if exists
-        <?php if (!empty($upload_error)): ?>
-            showConfirmation('<?php echo addslashes($upload_error); ?>', 'error');
-        <?php endif; ?>
-
-        // Elements
-        const fileInput = document.getElementById('image');
-        const mediaLabel = document.querySelector('label.media');
+        // Form submission with loader
+        const form = document.querySelector('.post-cont');
+        const submitBtn = document.querySelector('.submit');
         
-        // Create image preview element
-        const imagePreview = document.createElement('img');
-        imagePreview.className = 'image-preview';
-        mediaLabel.appendChild(imagePreview);
-        
-        // Create remove image button
-        const removeButton = document.createElement('button');
-        removeButton.className = 'remove-image';
-        removeButton.innerHTML = '×';
-        removeButton.type = 'button';
-        removeButton.setAttribute('aria-label', 'Remove image');
-        mediaLabel.appendChild(removeButton);
-        
-        // Handle file selection
-        fileInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            
-            if (file) {
-                const reader = new FileReader();
-                
-                reader.onload = function(e) {
-                    // Show image preview
-                    imagePreview.src = e.target.result;
-                    imagePreview.classList.add('preview-active');
-                    
-                    // Show remove button
-                    removeButton.classList.add('remove-active');
-                    
-                    // Hide the upload text
-                    const uploadText = mediaLabel.querySelector('.upload-text');
-                    if (uploadText) {
-                        uploadText.style.display = 'none';
-                    }
-                };
-                
-                reader.readAsDataURL(file);
-            }
+        form.addEventListener('submit', function(e) {
+            // Show loader
+            submitBtn.classList.add('loading');
+            submitBtn.disabled = true;
         });
         
-        // Handle remove image button
-        removeButton.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            // Clear the file input
-            fileInput.value = '';
-            
-            // Hide image preview
-            imagePreview.classList.remove('preview-active');
-            
-            // Hide remove button
-            removeButton.classList.remove('remove-active');
-            
-            // Show the upload text
-            const uploadText = mediaLabel.querySelector('.upload-text');
-            if (uploadText) {
-                uploadText.style.display = 'block';
-            }
-        });
-
         // Modal functionality
         const discardBtn = document.querySelector("#discard");
         const popup = document.querySelector("#popup");
