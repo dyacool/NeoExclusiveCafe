@@ -182,6 +182,82 @@
         mysqli_stmt_close($refund_stmt);
     }
     
+    // Calculate total expenses
+    $total_expenses = 0;
+    $expense_categories = [];
+    $expenses_check = mysqli_query($conn, "SHOW TABLES LIKE 'expenses'");
+    if (mysqli_num_rows($expenses_check) > 0) {
+        $expenses_sql = "SELECT SUM(amount) as total_expenses 
+                        FROM expenses 
+                        WHERE DATE(created_at) BETWEEN ? AND ?";
+        $expenses_stmt = mysqli_prepare($conn, $expenses_sql);
+        if ($expenses_stmt) {
+            mysqli_stmt_bind_param($expenses_stmt, "ss", $start_date, $end_date);
+            mysqli_stmt_execute($expenses_stmt);
+            $expenses_result = mysqli_stmt_get_result($expenses_stmt);
+            if ($expenses_row = mysqli_fetch_assoc($expenses_result)) {
+                $total_expenses = $expenses_row['total_expenses'] ?? 0;
+            }
+            mysqli_stmt_close($expenses_stmt);
+        }
+        
+        // Get expense breakdown by category
+        $category_sql = "SELECT category, SUM(amount) as total 
+                        FROM expenses 
+                        WHERE DATE(created_at) BETWEEN ? AND ?
+                        GROUP BY category";
+        $category_stmt = mysqli_prepare($conn, $category_sql);
+        if ($category_stmt) {
+            mysqli_stmt_bind_param($category_stmt, "ss", $start_date, $end_date);
+            mysqli_stmt_execute($category_stmt);
+            $category_result = mysqli_stmt_get_result($category_stmt);
+            while ($category_row = mysqli_fetch_assoc($category_result)) {
+                $expense_categories[$category_row['category']] = $category_row['total'];
+            }
+            mysqli_stmt_close($category_stmt);
+        }
+    }
+    
+    // Calculate total discounts applied
+    $total_discounts = 0;
+    $discount_sql = "SELECT SUM(discount_amount) as total_discounts 
+                     FROM orders 
+                     WHERE status IN ('Delivered', 'Picked-up', 'Completed')
+                     AND DATE(order_date) BETWEEN ? AND ?
+                     AND discount_amount > 0";
+    $discount_stmt = mysqli_prepare($conn, $discount_sql);
+    if ($discount_stmt) {
+        mysqli_stmt_bind_param($discount_stmt, "ss", $start_date, $end_date);
+        mysqli_stmt_execute($discount_stmt);
+        $discount_result = mysqli_stmt_get_result($discount_stmt);
+        if ($discount_row = mysqli_fetch_assoc($discount_result)) {
+            $total_discounts = $discount_row['total_discounts'] ?? 0;
+        }
+        mysqli_stmt_close($discount_stmt);
+    }
+    
+    // Calculate total shipping fees collected
+    $total_shipping_fees = 0;
+    $shipping_sql = "SELECT SUM(shipping_fee) as total_shipping 
+                     FROM orders 
+                     WHERE status IN ('Delivered', 'Picked-up', 'Completed')
+                     AND DATE(order_date) BETWEEN ? AND ?
+                     AND shipping_fee > 0";
+    $shipping_stmt = mysqli_prepare($conn, $shipping_sql);
+    if ($shipping_stmt) {
+        mysqli_stmt_bind_param($shipping_stmt, "ss", $start_date, $end_date);
+        mysqli_stmt_execute($shipping_stmt);
+        $shipping_result = mysqli_stmt_get_result($shipping_stmt);
+        if ($shipping_row = mysqli_fetch_assoc($shipping_result)) {
+            $total_shipping_fees = $shipping_row['total_shipping'] ?? 0;
+        }
+        mysqli_stmt_close($shipping_stmt);
+    }
+    
+    // Calculate Net Profit: Revenue - Expenses - Refunds - Discounts
+    $gross_revenue = $total_revenue + $bulk_revenue;
+    $net_profit = $gross_revenue - $total_expenses - $total_refunded - $total_discounts;
+    
     // Get summary card sort parameters
     $summary_sort = isset($_GET['summary_sort']) ? $_GET['summary_sort'] : '';
     $summary_direction = isset($_GET['summary_direction']) ? $_GET['summary_direction'] : 'desc';
@@ -229,6 +305,50 @@
             <div class="summary-section">
                 <!-- Summary Cards -->
                 <div class="summary-cards">
+
+                    <div class="summary-card">
+                        <div class="card-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                <circle cx="12" cy="12" r="10" opacity="0.2" fill="currentColor"></circle>
+                            </svg>
+                        </div>
+                        <h3>Net Profit</h3>
+                        <p class="amount" id="net-profit">₱<?php echo number_format($net_profit, 2); ?></p>
+                        <p class="period"><?php echo date('M d, Y', strtotime($start_date)); ?> - <?php echo date('M d, Y', strtotime($end_date)); ?></p>
+                        <div class="trend <?php echo $net_profit >= 0 ? 'positive' : 'negative'; ?>">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <?php if ($net_profit >= 0): ?>
+                                <polyline points="23,6 13.5,15.5 8.5,10.5 1,18"></polyline>
+                                <polyline points="17,6 23,6 23,12"></polyline>
+                                <?php else: ?>
+                                <polyline points="23,18 13.5,8.5 8.5,13.5 1,6"></polyline>
+                                <polyline points="17,18 23,18 23,12"></polyline>
+                                <?php endif; ?>
+                            </svg>
+                            Revenue - Expenses - Refunds - Discounts
+                        </div>
+                    </div>
+
+                    <div class="summary-card">
+                        <div class="card-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="1" x2="12" y2="23"></line>
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                            </svg>
+                        </div>
+                        <h3>Gross Revenue</h3>
+                        <p class="amount" id="gross-revenue">₱<?php echo number_format($total_revenue + $bulk_revenue, 2); ?></p>
+                        <p class="period"><?php echo date('M d, Y', strtotime($start_date)); ?> - <?php echo date('M d, Y', strtotime($end_date)); ?></p>
+                        <div class="trend positive">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="23,6 13.5,15.5 8.5,10.5 1,18"></polyline>
+                                <polyline points="17,6 23,6 23,12"></polyline>
+                            </svg>
+                            Total sales revenue
+                        </div>
+                    </div>
+
                     <div class="summary-card">
                         <div class="card-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -237,7 +357,7 @@
                             </svg>
                         </div>
                         <h3 onclick="sortSummary('revenue')" class="<?php echo $summary_sort === 'revenue' ? 'sorted ' . $summary_direction : ''; ?>">
-                            Revenue
+                            Order Sales
                         </h3>
                         <p class="amount" id="total-revenue">₱<?php echo number_format($total_revenue, 2); ?></p>
                         <p class="period"><?php echo date('M d, Y', strtotime($start_date)); ?> - <?php echo date('M d, Y', strtotime($end_date)); ?></p>
@@ -246,71 +366,7 @@
                                 <polyline points="23,6 13.5,15.5 8.5,10.5 1,18"></polyline>
                                 <polyline points="17,6 23,6 23,12"></polyline>
                             </svg>
-                            Revenue growth
-                        </div>
-                    </div>
-                    
-                    <div class="summary-card">
-                        <div class="card-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="9" cy="21" r="1"></circle>
-                                <circle cx="20" cy="21" r="1"></circle>
-                                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                            </svg>
-                        </div>
-                        <h3 onclick="sortSummary('orders')" class="<?php echo $summary_sort === 'orders' ? 'sorted ' . $summary_direction : ''; ?>">
-                            Total Orders
-                        </h3>
-                        <p class="amount" id="total-orders"><?php echo $total_orders; ?></p>
-                        <p class="period"><?php echo date('M d, Y', strtotime($start_date)); ?> - <?php echo date('M d, Y', strtotime($end_date)); ?></p>
-                        <div class="trend positive">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="23,6 13.5,15.5 8.5,10.5 1,18"></polyline>
-                                <polyline points="17,6 23,6 23,12"></polyline>
-                            </svg>
-                            Order volume up
-                        </div>
-                    </div>
-                    
-                    <div class="summary-card">
-                        <div class="card-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 2v20m8-10H4"></path>
-                            </svg>
-                        </div>
-                        <h3 onclick="sortSummary('average')" class="<?php echo $summary_sort === 'average' ? 'sorted ' . $summary_direction : ''; ?>">
-                            Average Order Value
-                        </h3>
-                        <p class="amount" id="average-order-value">₱<?php echo $total_orders > 0 ? number_format($total_revenue / $total_orders, 2) : '0.00'; ?></p>
-                        <p class="period"><?php echo date('M d, Y', strtotime($start_date)); ?> - <?php echo date('M d, Y', strtotime($end_date)); ?></p>
-                        <div class="trend positive">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="23,6 13.5,15.5 8.5,10.5 1,18"></polyline>
-                                <polyline points="17,6 23,6 23,12"></polyline>
-                            </svg>
-                            Value improving
-                        </div>
-
-                    </div>
-
-                    <div class="summary-card">
-                        <div class="card-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                            </svg>
-                        </div>
-                        <h3 onclick="sortSummary('refunded')" class="<?php echo $summary_sort === 'refunded' ? 'sorted ' . $summary_direction : ''; ?>">
-                            Total Refunded
-                        </h3>
-                        <p class="amount" id="total-refunded">₱<?php echo number_format($total_refunded, 2); ?></p>
-                        <p class="period"><?php echo date('M d, Y', strtotime($start_date)); ?> - <?php echo date('M d, Y', strtotime($end_date)); ?></p>
-                        <div class="trend negative">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="23,18 13.5,8.5 8.5,13.5 1,6"></polyline>
-                                <polyline points="17,18 23,18 23,12"></polyline>
-                            </svg>
-                            Approved refunds
+                            Order Sales
                         </div>
                     </div>
 
@@ -334,25 +390,90 @@
                         </div>
                     </div>
 
+                    
+
                     <div class="summary-card">
                         <div class="card-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-                                <line x1="3" y1="6" x2="21" y2="6"></line>
-                                <path d="M16 10a4 4 0 0 1-8 0"></path>
+                                <path d="M20 12V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7"></path>
+                                <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V8s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+                                <line x1="4" y1="22" x2="4" y2="15"></line>
                             </svg>
                         </div>
-                        <h3>Total Bulk Orders</h3>
-                        <p class="amount" id="total-bulk-orders"><?php echo $bulk_orders_count; ?></p>
+                        <h3>Total Expenses</h3>
+                        <p class="amount" id="total-expenses">₱<?php echo number_format($total_expenses, 2); ?></p>
+                        <p class="period"><?php echo date('M d, Y', strtotime($start_date)); ?> - <?php echo date('M d, Y', strtotime($end_date)); ?></p>
+                        <div class="trend negative">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="23,18 13.5,8.5 8.5,13.5 1,6"></polyline>
+                                <polyline points="17,18 23,18 23,12"></polyline>
+                            </svg>
+                            Business expenses
+                        </div>
+                    </div>
+
+                    <div class="summary-card">
+                        <div class="card-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                            </svg>
+                        </div>
+                        <h3 onclick="sortSummary('refunded')" class="<?php echo $summary_sort === 'refunded' ? 'sorted ' . $summary_direction : ''; ?>">
+                            Total Refund Amount
+                        </h3>
+                        <p class="amount" id="total-refunded">₱<?php echo number_format($total_refunded, 2); ?></p>
+                        <p class="period"><?php echo date('M d, Y', strtotime($start_date)); ?> - <?php echo date('M d, Y', strtotime($end_date)); ?></p>
+                        <div class="trend negative">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="23,18 13.5,8.5 8.5,13.5 1,6"></polyline>
+                                <polyline points="17,18 23,18 23,12"></polyline>
+                            </svg>
+                            Approved refunds
+                        </div>
+                    </div>
+
+                    <div class="summary-card">
+                        <div class="card-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M16 6l-4 4-4-4"></path>
+                                <path d="M8 14l4 4 4-4"></path>
+                                <circle cx="12" cy="12" r="10"></circle>
+                            </svg>
+                        </div>
+                        <h3>Total Order Discounts</h3>
+                        <p class="amount" id="total-discounts">₱<?php echo number_format($total_discounts, 2); ?></p>
+                        <p class="period"><?php echo date('M d, Y', strtotime($start_date)); ?> - <?php echo date('M d, Y', strtotime($end_date)); ?></p>
+                        <div class="trend negative">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="23,18 13.5,8.5 8.5,13.5 1,6"></polyline>
+                                <polyline points="17,18 23,18 23,12"></polyline>
+                            </svg>
+                            Discounts applied
+                        </div>
+                    </div>
+
+                    <div class="summary-card">
+                        <div class="card-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                                <path d="M9 6h6"></path>
+                            </svg>
+                        </div>
+                        <h3>Total Delivery Fees</h3>
+                        <p class="amount" id="total-shipping-fees">₱<?php echo number_format($total_shipping_fees, 2); ?></p>
                         <p class="period"><?php echo date('M d, Y', strtotime($start_date)); ?> - <?php echo date('M d, Y', strtotime($end_date)); ?></p>
                         <div class="trend positive">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polyline points="23,6 13.5,15.5 8.5,10.5 1,18"></polyline>
                                 <polyline points="17,6 23,6 23,12"></polyline>
                             </svg>
-                            Orders completed
+                            Shipping fees collected
                         </div>
                     </div>
+
+
 
                     
                 </div>
@@ -376,22 +497,30 @@
                         <canvas id="paymentMethodsChart"></canvas>
                     </div>
                 </div>
-                <div class="charts-grid">
-                    <div class="chart-card wide">
-                        <div class="chart-header">
-                            <span class="chart-title">Revenue by Transaction Type</span>
-                            <span class="chart-subtitle">Total revenue from delivered and picked-up orders</span>
-                        </div>
-                        <canvas id="orderStatusChart"></canvas>
-                    </div>
-                    <div class="chart-card pie-narrow">
+                <div class="charts-grid charts-grid-three-col">
+                    <div class="chart-card chart-card-third">
                         <div class="chart-header">
                             <span class="chart-title">Delivery Methods</span>
                             <span class="chart-subtitle">Pickup vs Delivery orders</span>
                         </div>
                         <canvas id="deliveryMethodsChart"></canvas>
                     </div>
+                    <div class="chart-card chart-card-third">
+                        <div class="chart-header">
+                            <span class="chart-title">Revenue Breakdown</span>
+                            <span class="chart-subtitle">Net profit vs expenses, refunds, and discounts</span>
+                        </div>
+                        <canvas id="revenueBreakdownChart"></canvas>
+                    </div>
+                    <div class="chart-card chart-card-third">
+                        <div class="chart-header">
+                            <span class="chart-title">Expense Categories</span>
+                            <span class="chart-subtitle">Breakdown by category type</span>
+                        </div>
+                        <canvas id="expenseCategoriesChart"></canvas>
+                    </div>
                 </div>
+
                 <div class="charts-grid">
                     <div class="chart-card full-width">
                         <div class="chart-header">
@@ -938,8 +1067,9 @@
         // Chart instances
         let revenueTrendChart = null;
         let paymentMethodsChart = null;
-        let orderStatusChart = null;
+        let revenueBreakdownChart = null;
         let deliveryMethodsChart = null;
+        let expenseCategoriesChart = null;
         let topProductsChart = null;
 
         // Fetch and render all charts
@@ -958,8 +1088,9 @@
                 if (data.success) {
                     renderRevenueTrendChart(data.data.revenue_trend);
                     renderPaymentMethodsChart(data.data.payment_methods);
-                    renderOrderStatusChart(data.data.order_status);
+                    renderRevenueBreakdownChart();
                     renderDeliveryMethodsChart(data.data.delivery_methods);
+                    renderExpenseCategoriesChart();
                     renderTopProductsChart(data.data.top_products);
                 } else {
                     console.error('Error fetching chart data:', data.error);
@@ -1084,33 +1215,34 @@
             });
         }
 
-        // Render Order Status Chart
-        function renderOrderStatusChart(chartData) {
-            const ctx = document.getElementById('orderStatusChart').getContext('2d');
+        // Render Revenue Breakdown Chart
+        function renderRevenueBreakdownChart() {
+            const ctx = document.getElementById('revenueBreakdownChart').getContext('2d');
             
-            if (orderStatusChart) {
-                orderStatusChart.destroy();
+            if (revenueBreakdownChart) {
+                revenueBreakdownChart.destroy();
             }
             
-            if (!chartData || !chartData.labels || chartData.labels.length === 0) {
-                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-                ctx.fillStyle = '#6b7280';
-                ctx.font = '16px Inter, sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText('No data available', ctx.canvas.width / 2, ctx.canvas.height / 2);
-                return;
-            }
+            // Get values from summary cards
+            const netProfit = parseFloat('<?php echo $net_profit; ?>');
+            const expenses = parseFloat('<?php echo $total_expenses; ?>');
+            const refunds = parseFloat('<?php echo $total_refunded; ?>');
+            const discounts = parseFloat('<?php echo $total_discounts; ?>');
             
-            orderStatusChart = new Chart(ctx, {
-                type: 'bar',
+            // Create chart data
+            const labels = ['Net Profit', 'Expenses', 'Refunds', 'Discounts'];
+            const data = [netProfit, expenses, refunds, discounts];
+            const colors = ['#22c55e', '#ef4444', '#f59e0b', '#8b5cf6'];
+            
+            revenueBreakdownChart = new Chart(ctx, {
+                type: 'pie',
                 data: {
-                    labels: chartData.labels,
+                    labels: labels,
                     datasets: [{
-                        label: 'Revenue (₱)',
-                        data: chartData.data,
-                        backgroundColor: chartData.colors,
-                        borderColor: chartData.colors,
-                        borderWidth: 1
+                        data: data,
+                        backgroundColor: colors,
+                        borderWidth: 2,
+                        borderColor: '#fff'
                     }]
                 },
                 options: {
@@ -1118,14 +1250,17 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1
+                            display: true,
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.parsed;
+                                    const total = context.dataset.data.reduce((a, b) => Math.abs(a) + Math.abs(b), 0);
+                                    const percentage = ((Math.abs(value) / total) * 100).toFixed(1);
+                                    return `${context.label}: ₱${value.toLocaleString()} (${percentage}%)`;
+                                }
                             }
                         }
                     }
@@ -1175,6 +1310,57 @@
                                     const total = context.dataset.data.reduce((a, b) => a + b, 0);
                                     const percentage = ((context.parsed / total) * 100).toFixed(1);
                                     return `${context.label}: ${context.parsed} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Render Expense Categories Chart
+        function renderExpenseCategoriesChart() {
+            const ctx = document.getElementById('expenseCategoriesChart').getContext('2d');
+            
+            if (expenseCategoriesChart) {
+                expenseCategoriesChart.destroy();
+            }
+            
+            // Get values from PHP
+            const fixedCosts = parseFloat('<?php echo $expense_categories['Fixed Costs'] ?? 0; ?>');
+            const variableCosts = parseFloat('<?php echo $expense_categories['Variable Costs'] ?? 0; ?>');
+            const overheadCosts = parseFloat('<?php echo $expense_categories['Overhead Costs'] ?? 0; ?>');
+            
+            const labels = ['Fixed Costs', 'Variable Costs', 'Overhead Costs'];
+            const data = [fixedCosts, variableCosts, overheadCosts];
+            const colors = ['#3b82f6', '#22c55e', '#f59e0b'];
+            
+            expenseCategoriesChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors,
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.parsed;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                    return `${context.label}: ₱${value.toLocaleString()} (${percentage}%)`;
                                 }
                             }
                         }

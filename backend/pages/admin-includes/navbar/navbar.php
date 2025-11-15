@@ -208,6 +208,16 @@ if (isset($conn) && $conn instanceof mysqli) {
                     </li>
 
                     <li class="nav-item">
+                        <a href="../expenses/expense.php" class="nav-link">
+                            <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                                <line x1="1" y1="10" x2="23" y2="10"></line>
+                            </svg>
+                            <span class="nav-text">Expenses</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
                         <a href="../blog/admin-blog.php" class="nav-link">
                             <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="m12 19 7-7 3 3-7 7-3-3z"></path>

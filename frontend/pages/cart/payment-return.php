@@ -633,6 +633,27 @@ try {
             $notes = $order_data['order_notes'] ?? ($order_data['notes'] ?? '');
             $customer_id = null; // optional
             $payment_id = $pending_payment['source_id'] ?? ($pending_payment['payment_intent_id'] ?? null);
+            
+            // Get discount amount from order_data
+            $discount_amount = floatval($order_data['discount_amount'] ?? 0);
+            error_log("Discount amount to save: $discount_amount");
+            
+            // Get shipping fee from order_data
+            $shipping_fee = floatval($order_data['shipping_fee'] ?? 0);
+            error_log("Shipping fee to save: $shipping_fee");
+            
+            // Check if discount_amount and shipping_fee columns exist in orders table
+            $has_discount_column = false;
+            $has_shipping_column = false;
+            $check_columns = $conn->query("SHOW COLUMNS FROM orders");
+            if ($check_columns) {
+                while ($col = $check_columns->fetch_assoc()) {
+                    if ($col['Field'] === 'discount_amount') $has_discount_column = true;
+                    if ($col['Field'] === 'shipping_fee') $has_shipping_column = true;
+                }
+            }
+            error_log("Has discount_amount column: " . ($has_discount_column ? 'YES' : 'NO'));
+            error_log("Has shipping_fee column: " . ($has_shipping_column ? 'YES' : 'NO'));
 
             // Ensure orders.order_id is AUTO_INCREMENT primary key (fallback safety)
             try {
@@ -651,55 +672,91 @@ try {
                 error_log("payment-return: Failed to enforce AUTO_INCREMENT on orders.order_id: " . $e->getMessage());
             }
 
-            // Insert into orders
-            $sql = "INSERT INTO orders (
-                        order_date,
-                        customer_name,
-                        customer_contact,
-                        customer_email,
-                        customer_address,
-                        payment_method,
-                        total_items,
-                        total_amount,
-                        status,
-                        delivery_method,
-                        delivery_date,
-                        pickup_date,
-                        delivery_time,
-                        notes,
-                        pickup_time,
-                        customer_id,
-                        payment_id,
-                        payment_status,
-                        amount_paid,
-                        paid_at
-                    ) VALUES (
-                        CURRENT_TIMESTAMP,
-                        ?,?,?,?,?,?,?,'Confirmed',?,?,?,?,?,?,?,?, 'paid', ?, NOW()
-                    )";
+            // Build INSERT query dynamically based on available columns
+            $columns = [
+                'order_date',
+                'customer_name',
+                'customer_contact',
+                'customer_email',
+                'customer_address',
+                'payment_method',
+                'total_items',
+                'total_amount'
+            ];
+            
+            $values_placeholders = ['CURRENT_TIMESTAMP', '?', '?', '?', '?', '?', '?', '?'];
+            $bind_types = 'sssssid';
+            $bind_values = [
+                &$customer_name,
+                &$customer_contact,
+                &$customer_email,
+                &$customer_address,
+                &$payment_method,
+                &$total_items,
+                &$total_amount
+            ];
+            
+            // Add discount_amount if column exists
+            if ($has_discount_column) {
+                $columns[] = 'discount_amount';
+                $values_placeholders[] = '?';
+                $bind_types .= 'd';
+                $bind_values[] = &$discount_amount;
+            }
+            
+            // Add shipping_fee if column exists
+            if ($has_shipping_column) {
+                $columns[] = 'shipping_fee';
+                $values_placeholders[] = '?';
+                $bind_types .= 'd';
+                $bind_values[] = &$shipping_fee;
+            }
+            
+            // Add remaining columns
+            $columns = array_merge($columns, [
+                'status',
+                'delivery_method',
+                'delivery_date',
+                'pickup_date',
+                'delivery_time',
+                'notes',
+                'pickup_time',
+                'customer_id',
+                'payment_id',
+                'payment_status',
+                'amount_paid',
+                'paid_at'
+            ]);
+            
+            $values_placeholders = array_merge($values_placeholders, [
+                "'Confirmed'", '?', '?', '?', '?', '?', '?', '?', '?', "'paid'", '?', 'NOW()'
+            ]);
+            
+            $bind_types .= 'ssssssisd';
+            $bind_values = array_merge($bind_values, [
+                &$delivery_method,
+                &$delivery_date,
+                &$pickup_date,
+                &$delivery_time,
+                &$notes,
+                &$pickup_time,
+                &$customer_id,
+                &$payment_id,
+                &$total_amount
+            ]);
+            
+            // Build SQL
+            $sql = "INSERT INTO orders (" . implode(', ', $columns) . ") 
+                    VALUES (" . implode(', ', $values_placeholders) . ")";
+            
+            error_log("INSERT SQL: " . $sql);
+            error_log("Bind types: " . $bind_types);
 
             $stmt = $conn->prepare($sql);
             if (!$stmt) { throw new Exception('Prepare order failed: ' . $conn->error); }
 
-            $stmt->bind_param(
-                "sssssidssssssisd",
-                $customer_name,
-                $customer_contact,
-                $customer_email,
-                $customer_address,
-                $payment_method,
-                $total_items,
-                $total_amount,
-                $delivery_method,
-                $delivery_date,
-                $pickup_date,
-                $delivery_time,
-                $notes,
-                $pickup_time,
-                $customer_id,
-                $payment_id,
-                $total_amount
-            );
+            // Bind parameters dynamically
+            $stmt->bind_param($bind_types, ...$bind_values);
 
             if (!$stmt->execute()) { throw new Exception('Execute order failed: ' . $stmt->error); }
             $order_id_created = $stmt->insert_id;
