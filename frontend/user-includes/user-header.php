@@ -198,7 +198,7 @@ $is_admin_logged_in = SessionManager::isAdminLoggedIn();
                 const formData = new FormData();
                 formData.append('message', message);
                 
-                fetch('/backend/pages/admin-includes/chatbot.php', {
+                fetch('/backend/pages/user-page-content/chatbot/chatbot-api.php', {
                     method: 'POST',
                     body: formData,
                     headers: {

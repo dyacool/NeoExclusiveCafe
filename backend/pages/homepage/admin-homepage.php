@@ -300,7 +300,7 @@ $stats['in_progress'] = $progress_result->fetch_assoc()['in_progress'];
 
         $(document).ready(function() {
             // Load current knowledge base
-            fetch('get-knowledge.php')
+            fetch('user-page-content/get-knowledge.php')
                 .then(response => response.json())
                 .then(res => {
                 if (res.success) {
@@ -340,7 +340,7 @@ $stats['in_progress'] = $progress_result->fetch_assoc()['in_progress'];
                 const originalText = submitBtn.text();
                 submitBtn.prop('disabled', true).text('Saving...');
                 
-                fetch('save-knowledge.php', {
+                fetch('user-page-content/save-knowledge.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
