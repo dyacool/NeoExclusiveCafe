@@ -1,19 +1,41 @@
 <?php
-// Use admin-auth for authentication
-require_once __DIR__ . '/../../login/admin/admin-auth.php';
+// Handle AJAX requests FIRST before any output
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'get') {
+    header('Content-Type: application/json');
+    
+    // Include only database connection for AJAX
+    require_once __DIR__ . '/../admin-includes/database.php';
+    
+    try {
+        $stmt = $pdo->prepare("SELECT content, updated_at FROM chatbot_knowledge ORDER BY updated_at DESC LIMIT 1");
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($result) {
+            echo json_encode([
+                'success' => true,
+                'content' => $result['content'],
+                'updated_at' => $result['updated_at']
+            ]);
+        } else {
+            echo json_encode([
+                'success' => true,
+                'content' => '',
+                'updated_at' => null
+            ]);
+        }
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    }
+    exit;
+}
 
-// Include the navbar and database
-require_once __DIR__ . "/../admin-includes/navbar/navbar.php";
-require_once __DIR__ . "/../admin-includes/database.php";
-require_once __DIR__ . "/../admin-includes/activity-logger.php";
-
-// Initialize variables
-$success_message = '';
-$error_message = '';
-
-// Handle AJAX requests for save and get operations
+// Handle AJAX POST request for saving
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['content'])) {
     header('Content-Type: application/json');
+    
+    // Include only database connection for AJAX
+    require_once __DIR__ . '/../admin-includes/database.php';
     
     try {
         $content = $_POST['content'];
@@ -40,33 +62,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['content'])) {
     exit;
 }
 
-// Handle AJAX requests for getting knowledge
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'get') {
-    header('Content-Type: application/json');
-    
-    try {
-        $stmt = $pdo->prepare("SELECT content, updated_at FROM chatbot_knowledge ORDER BY updated_at DESC LIMIT 1");
-        $stmt->execute();
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        if ($result) {
-            echo json_encode([
-                'success' => true,
-                'content' => $result['content'],
-                'updated_at' => $result['updated_at']
-            ]);
-        } else {
-            echo json_encode([
-                'success' => true,
-                'content' => '',
-                'updated_at' => null
-            ]);
-        }
-    } catch (Exception $e) {
-        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
-    }
-    exit;
-}
+// Normal page load - Use admin-auth for authentication
+require_once __DIR__ . '/../../login/admin/admin-auth.php';
+
+// Include the navbar and database
+require_once __DIR__ . "/../admin-includes/navbar/navbar.php";
+require_once __DIR__ . "/../admin-includes/database.php";
+require_once __DIR__ . "/../admin-includes/activity-logger.php";
+
+// Initialize variables
+$success_message = '';
+$error_message = '';
 ?>
 
 <!DOCTYPE html>
@@ -174,36 +180,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
             return text.replace(/[&<>"']/g, function(m) { return map[m]; });
         }
 
-        // Function to update preview and stats
+        // Function to update preview
         function updatePreview() {
-        // Function to load knowledge base
-        function loadKnowledge() {
-            fetch('?action=get')
-                .then(response => response.json())
-                .then(res => {
-                    if (res.success) {
-                        $('#knowledge-content').val(res.content || '');
-                        updatePreview();
-                        
-                        // Update last updated time if available
-                        if (res.updated_at) {
-                            $('#last-updated').text(formatDate(res.updated_at));
-                        }
-                    } else {
-                        showMessage('Error loading knowledge base: ' + (res.error || 'Unknown error'), 'error');
-                    }
-                })
-                .catch(error => {
-                    console.error('Failed to load knowledge base:', error);
-                    showMessage('Failed to load knowledge base. Please refresh the page.', 'error');
-                });
-        }
+            const content = $('#knowledge-content').val();
+            const preview = $('#knowledge-preview');
+            
+            if (!content || content.trim() === '') {
+                preview.html(`
+                    <div class="kb-preview-placeholder">
+                        <i class="fas fa-file-alt"></i>
+                        <p>Start typing to see a preview...</p>
+                    </div>
+                `);
+                return;
             }
+            
+            // Convert line breaks to <br> and linkify URLs
+            const escapedContent = escapeHtml(content);
+            const formattedContent = linkifyText(escapedContent.replace(/\n/g, '<br>'));
+            
+            preview.html(`<div class="kb-preview-text">${formattedContent}</div>`);
         }
 
         // Function to show message
         function showMessage(message, type = 'success') {
-            const msgDiv = $('#kb-message');
+            // Create message element if it doesn't exist
+            let msgDiv = $('#kb-message');
+            if (msgDiv.length === 0) {
+                msgDiv = $('<div id="kb-message" class="kb-message"></div>');
+                $('.kb-wrapper').prepend(msgDiv);
+            }
+            
             msgDiv.removeClass('success error').addClass(type);
             msgDiv.html(`<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`);
             msgDiv.show();
@@ -223,19 +230,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
         // Function to format date
         function formatDate(dateString) {
             if (!dateString) return 'Never';
-                // Send data
-                fetch('', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: 'content=' + encodeURIComponent(content)
-                })
+            
+            const date = new Date(dateString);
+            const options = { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric', 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            };
+            return date.toLocaleDateString('en-US', options);
         }
 
         // Function to load knowledge base
         function loadKnowledge() {
-            fetch('get-knowledge.php')
+            fetch('?action=get')
                 .then(response => response.json())
                 .then(res => {
                     if (res.success) {
@@ -243,7 +252,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
                         updatePreview();
                         
                         // Update last updated time if available
-                        if (res.updated_at) {
+                        if (res.updated_at && $('#last-updated').length) {
                             $('#last-updated').text(formatDate(res.updated_at));
                         }
                     } else {
@@ -280,19 +289,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
                 const originalText = submitBtn.html();
                 submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Saving...');
                 
-                // Send data
-                fetch('save-knowledge.php', {
+                // Send data using FormData
+                const formData = new FormData();
+                formData.append('content', content);
+                
+                fetch('', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: 'content=' + encodeURIComponent(content)
+                    body: formData
                 })
                 .then(response => response.json())
                 .then(res => {
                     if (res.success) {
                         showMessage('Knowledge base updated successfully!', 'success');
-                        $('#last-updated').text(formatDate(new Date()));
+                        if ($('#last-updated').length) {
+                            $('#last-updated').text(formatDate(new Date()));
+                        }
                     } else {
                         showMessage('Failed to update: ' + (res.error || 'Unknown error occurred'), 'error');
                     }

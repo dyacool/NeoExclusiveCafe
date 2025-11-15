@@ -10,9 +10,6 @@ if (ob_get_level()) ob_end_clean();
 header('Content-Type: application/json');
 header('Cache-Control: no-cache, must-revalidate');
 
-session_start();
-$_SESSION['is_admin'] = true;
-
 // Add this at the very top of the file, before any output
 if (file_exists(__DIR__ . '/../../.env')) {
     $env = parse_ini_file(__DIR__ . '/../../.env');
