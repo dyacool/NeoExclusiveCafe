@@ -28,8 +28,13 @@ if (!$order) {
     die("Order not found or access denied.");
 }
 
-// Fetch order items with item_id
-$items_query = "SELECT item_id, product_name, quantity, price FROM order_items WHERE order_id = ? ORDER BY item_id ASC";
+// Fetch order items with item_id and try to get product_id by matching product name
+$items_query = "SELECT oi.item_id, oi.product_name, oi.quantity, oi.price, 
+                p.id as product_id
+                FROM order_items oi
+                LEFT JOIN products p ON oi.product_name = p.name AND p.deleted_at IS NULL
+                WHERE oi.order_id = ? 
+                ORDER BY oi.item_id ASC";
 $items_stmt = $conn->prepare($items_query);
 $items_stmt->bind_param('i', $order_id);
 $items_stmt->execute();
@@ -61,9 +66,20 @@ if ($table_result && $table_result->num_rows > 0) {
     }
 }
 
-// Determine if order is eligible for refund
-$status_lower = strtolower($order['status']);
-$can_request_refund = ($status_lower === 'delivered' || $status_lower === 'picked-up' || $status_lower === 'picked up') && !$refund;
+// Determine if order is eligible for refund and review
+$status_lower = strtolower(trim($order['status']));
+// Normalize status variations (handle spaces, hyphens, underscores)
+$status_normalized = preg_replace('/[\s\-_]+/', '-', $status_lower);
+
+$can_request_refund = in_array($status_normalized, ['delivered', 'picked-up']) && !$refund;
+
+// Allow reviews for completed orders - check multiple status variations
+$reviewable_statuses = ['delivered', 'picked-up', 'pickedup', 'completed', 'picked_up'];
+$can_write_review = in_array($status_normalized, $reviewable_statuses) || 
+                    in_array($status_lower, $reviewable_statuses) ||
+                    strpos($status_lower, 'delivered') !== false ||
+                    strpos($status_lower, 'picked') !== false ||
+                    strpos($status_lower, 'completed') !== false;
 
 // Get proof of delivery if exists
 $pod = null;
@@ -638,6 +654,19 @@ if ($pod_stmt) {
         <!-- Action Buttons -->
         <div class="action-buttons">
             
+            <?php 
+            // Debug: Check status values (view page source to see)
+            echo "<!-- Debug: Order Status = " . htmlspecialchars($order['status']) . " -->";
+            echo "<!-- Debug: Status Lower = " . htmlspecialchars($status_lower) . " -->";
+            echo "<!-- Debug: Status Normalized = " . htmlspecialchars($status_normalized) . " -->";
+            echo "<!-- Debug: Can Write Review = " . ($can_write_review ? 'true' : 'false') . " -->";
+            
+            if ($can_write_review): ?>
+            <button onclick="openReviewModal()" class="btn btn-primary" style="background-color: #1a4a28; margin-right: 10px;">
+                <i class="fas fa-star"></i> Write a Review
+            </button>
+            <?php endif; ?>
+            
             <?php if ($refund): ?>
             <button onclick="openRefundDetailsModal()" class="btn btn-primary">
                 View Refund Request
@@ -1106,5 +1135,231 @@ if ($pod_stmt) {
         }
     </script>
     <?php endif; ?>
+
+    <!-- Review Modal -->
+    <?php if ($can_write_review): ?>
+    <div id="reviewModal" class="refund-modal">
+        <div class="refund-modal-content" style="max-width: 800px;">
+            <div class="refund-modal-header">
+                <h2>Write a Review</h2>
+                <button type="button" class="refund-modal-close" onclick="closeReviewModal()">&times;</button>
+            </div>
+            <div class="refund-modal-body">
+                <p style="margin-bottom: 20px; color: #666;">Share your experience with the products from this order:</p>
+                
+                <div id="reviewProductsList">
+                    <?php 
+                    $reviewable_items = array_filter($items, function($item) {
+                        return !empty($item['product_id']);
+                    });
+                    
+                    if (empty($reviewable_items)): ?>
+                        <p style="text-align: center; color: #999; padding: 20px;">
+                            No products available for review at this time.
+                        </p>
+                    <?php else: ?>
+                        <?php foreach ($reviewable_items as $item): 
+                            // Check if user has already reviewed this product
+                            $review_check = $conn->prepare("SELECT id, rating, review_text FROM product_reviews WHERE user_id = ? AND product_id = ?");
+                            $review_check->bind_param("ii", $user_id, $item['product_id']);
+                            $review_check->execute();
+                            $review_result = $review_check->get_result();
+                            $existing_review = $review_result->fetch_assoc();
+                            $review_check->close();
+                        ?>
+                        <div class="review-product-item" data-product-id="<?php echo $item['product_id']; ?>" style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin-bottom: 20px; background: #f9fafb;">
+                            <h3 style="margin-top: 0; margin-bottom: 15px; color: #1a4a28;">
+                                <?php echo htmlspecialchars($item['product_name']); ?>
+                            </h3>
+                            
+                            <div class="review-form" data-product-id="<?php echo $item['product_id']; ?>">
+                                <div class="rating-input" style="margin-bottom: 15px;">
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Rating:</label>
+                                    <div class="star-rating" style="display: flex; gap: 5px; cursor: pointer;">
+                                        <?php for ($i = 1; $i <= 5; $i++): ?>
+                                        <span class="star" data-rating="<?php echo $i; ?>" style="font-size: 28px; color: #e5e7eb; transition: color 0.2s; user-select: none;">☆</span>
+                                        <?php endfor; ?>
+                                    </div>
+                                    <input type="hidden" class="review-rating-input" name="rating" value="<?php echo $existing_review ? $existing_review['rating'] : '0'; ?>">
+                                </div>
+                                
+                                <div class="review-text-input" style="margin-bottom: 15px;">
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Your Review (optional):</label>
+                                    <textarea class="review-text-input-field" rows="4" placeholder="Share your experience with this product..." maxlength="2000" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 14px; font-family: inherit; resize: vertical;"><?php echo $existing_review ? htmlspecialchars($existing_review['review_text']) : ''; ?></textarea>
+                                    <span class="char-count" style="display: block; text-align: right; font-size: 12px; color: #6b7280; margin-top: 5px;">
+                                        <span class="char-count-value"><?php echo $existing_review ? strlen($existing_review['review_text']) : '0'; ?></span>/2000
+                                    </span>
+                                </div>
+                                
+                                <button type="button" class="submit-review-btn" onclick="submitProductReview(<?php echo $item['product_id']; ?>, <?php echo $order_id; ?>)" style="background-color: #1a4a28; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background-color 0.3s;">
+                                    <?php echo $existing_review ? 'Update Review' : 'Submit Review'; ?>
+                                </button>
+                                
+                                <?php if ($existing_review): ?>
+                                <span style="margin-left: 10px; color: #6b7280; font-size: 12px;">
+                                    <i class="fas fa-check-circle"></i> You've already reviewed this product
+                                </span>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Review Modal Functions
+        function openReviewModal() {
+            document.getElementById('reviewModal').classList.add('show');
+            initializeReviewForms();
+        }
+
+        function closeReviewModal() {
+            document.getElementById('reviewModal').classList.remove('show');
+        }
+
+        function initializeReviewForms() {
+            // Initialize star ratings
+            document.querySelectorAll('.star-rating').forEach(ratingContainer => {
+                const stars = ratingContainer.querySelectorAll('.star');
+                const ratingInput = ratingContainer.parentElement.querySelector('.review-rating-input');
+                const currentRating = parseInt(ratingInput.value) || 0;
+                
+                // Set initial rating
+                updateStarDisplay(stars, currentRating);
+                
+                stars.forEach(star => {
+                    star.addEventListener('click', function() {
+                        const rating = parseInt(this.dataset.rating);
+                        ratingInput.value = rating;
+                        updateStarDisplay(stars, rating);
+                    });
+                    
+                    star.addEventListener('mouseenter', function() {
+                        const rating = parseInt(this.dataset.rating);
+                        updateStarDisplay(stars, rating);
+                    });
+                });
+                
+                ratingContainer.addEventListener('mouseleave', function() {
+                    const currentRating = parseInt(ratingInput.value) || 0;
+                    updateStarDisplay(stars, currentRating);
+                });
+            });
+            
+            // Initialize character counters
+            document.querySelectorAll('.review-text-input-field').forEach(textarea => {
+                const charCount = textarea.parentElement.querySelector('.char-count-value');
+                updateCharCount(textarea, charCount);
+                
+                textarea.addEventListener('input', function() {
+                    updateCharCount(this, charCount);
+                });
+            });
+        }
+
+        function updateStarDisplay(stars, rating) {
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.textContent = '★';
+                    star.style.color = '#ffc107';
+                } else {
+                    star.textContent = '☆';
+                    star.style.color = '#e5e7eb';
+                }
+            });
+        }
+
+        function updateCharCount(textarea, charCountElement) {
+            charCountElement.textContent = textarea.value.length;
+        }
+
+        async function submitProductReview(productId, orderId) {
+            const reviewForm = document.querySelector(`.review-form[data-product-id="${productId}"]`);
+            const ratingInput = reviewForm.querySelector('.review-rating-input');
+            const reviewText = reviewForm.querySelector('.review-text-input-field').value.trim();
+            const submitBtn = reviewForm.querySelector('.submit-review-btn');
+            
+            const rating = parseInt(ratingInput.value);
+            
+            if (rating === 0) {
+                alert('Please select a rating (1-5 stars)');
+                return;
+            }
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+            
+            try {
+                const response = await fetch('../../api/submit-review.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        product_id: productId,
+                        rating: rating,
+                        review_text: reviewText,
+                        order_id: orderId
+                    })
+                });
+                
+                // Check if response is ok
+                let data;
+                try {
+                    const responseText = await response.text();
+                    console.log('API Response Text:', responseText);
+                    data = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error('Failed to parse JSON response:', parseError);
+                    throw new Error('Invalid response from server. Please check console for details.');
+                }
+                
+                if (!response.ok) {
+                    console.error('API Error Response:', data);
+                    throw new Error(data.message || 'Server error: ' + response.status);
+                }
+                
+                if (data.success) {
+                    alert('Review submitted successfully!');
+                    submitBtn.textContent = 'Review Updated';
+                    submitBtn.style.backgroundColor = '#22c55e';
+                    
+                    // Update the form to show it's been reviewed
+                    const reviewItem = reviewForm.closest('.review-product-item');
+                    if (!reviewItem.querySelector('.reviewed-badge')) {
+                        const badge = document.createElement('span');
+                        badge.className = 'reviewed-badge';
+                        badge.style.cssText = 'margin-left: 10px; color: #22c55e; font-size: 12px;';
+                        badge.innerHTML = '<i class="fas fa-check-circle"></i> Review submitted';
+                        submitBtn.parentElement.appendChild(badge);
+                    }
+                } else {
+                    const errorMsg = data.message || 'Failed to submit review';
+                    console.error('Review submission failed:', data);
+                    alert('Error: ' + errorMsg + (data.error_code ? ' (Error code: ' + data.error_code + ')' : ''));
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = submitBtn.textContent.includes('Update') ? 'Update Review' : 'Submit Review';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                console.error('Error details:', error.message);
+                alert('An error occurred while submitting your review: ' + error.message + '. Please check the console for details.');
+                submitBtn.disabled = false;
+                submitBtn.textContent = submitBtn.textContent.includes('Update') ? 'Update Review' : 'Submit Review';
+            }
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('reviewModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeReviewModal();
+            }
+        });
+    </script>
+    <?php endif; ?>
+
 </body>
 </html>

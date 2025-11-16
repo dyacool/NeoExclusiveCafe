@@ -721,6 +721,24 @@ if ($cart_truncated) {
                 </div>
                 <h3>Description:</h3>
                 <div class="description" id="modalProductDescription"></div>
+                
+                <!-- Reviews Section -->
+                <div class="reviews-section" id="reviewsSection">
+                    <h3>Reviews</h3>
+                    <div class="reviews-summary" id="reviewsSummary">
+                        <div class="rating-overview">
+                            <div class="average-rating" id="averageRating">
+                                <span class="rating-number">0</span>
+                                <div class="stars" id="averageStars"></div>
+                                <span class="review-count" id="reviewCount">(0 reviews)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="reviews-list" id="reviewsList">
+                        <p class="loading-reviews">Loading reviews...</p>
+                    </div>
+                </div>
+                
                 <button class="add-to-cart" id="modalAddToCart" onclick="addToCartFromModal()">Add to Cart</button>
             </div>
         </div>
@@ -977,11 +995,105 @@ if ($cart_truncated) {
             }
 
             modal.classList.add('show');
+            
+            // Load reviews for this product
+            loadProductReviews(product.id);
         } catch (error) {
             console.error('Error in openProductModal:', error);
             showConfirmation('An error occurred while opening the product details', true);
         }
     }
+
+    // Review functionality
+    function loadProductReviews(productId) {
+        const reviewsList = document.getElementById('reviewsList');
+        const reviewsSummary = document.getElementById('reviewsSummary');
+        
+        reviewsList.innerHTML = '<p class="loading-reviews">Loading reviews...</p>';
+        
+        fetch(`../../api/get-reviews.php?product_id=${productId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayReviews(data.reviews, data.statistics);
+                } else {
+                    reviewsList.innerHTML = '<p class="no-reviews">No reviews yet.</p>';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading reviews:', error);
+                reviewsList.innerHTML = '<p class="no-reviews">Error loading reviews.</p>';
+            });
+    }
+
+    function displayReviews(reviews, stats) {
+        const reviewsList = document.getElementById('reviewsList');
+        const averageRating = document.getElementById('averageRating');
+        const averageStars = document.getElementById('averageStars');
+        const reviewCount = document.getElementById('reviewCount');
+        
+        // Update summary
+        if (stats.total_reviews > 0) {
+            averageRating.querySelector('.rating-number').textContent = stats.average_rating.toFixed(1);
+            averageStars.innerHTML = renderStars(stats.average_rating);
+            reviewCount.textContent = `(${stats.total_reviews} ${stats.total_reviews === 1 ? 'review' : 'reviews'})`;
+        } else {
+            averageRating.querySelector('.rating-number').textContent = '0';
+            averageStars.innerHTML = renderStars(0);
+            reviewCount.textContent = '(0 reviews)';
+        }
+        
+        // Display reviews
+        if (reviews.length === 0) {
+            reviewsList.innerHTML = '<p class="no-reviews">No reviews yet. Be the first to review this product!</p>';
+            return;
+        }
+        
+        reviewsList.innerHTML = reviews.map(review => `
+            <div class="review-item ${review.is_featured ? 'featured' : ''}">
+                <div class="review-header">
+                    <span class="review-user">${review.user_name}</span>
+                    <span class="review-date">${formatDate(review.created_at)}</span>
+                </div>
+                <div class="review-rating">${renderStars(review.rating)}</div>
+                ${review.review_text ? `<div class="review-text">${escapeHtml(review.review_text)}</div>` : ''}
+            </div>
+        `).join('');
+    }
+
+    function renderStars(rating) {
+        const fullStars = Math.floor(rating);
+        const hasHalfStar = rating % 1 >= 0.5;
+        let stars = '';
+        
+        for (let i = 1; i <= 5; i++) {
+            if (i <= fullStars) {
+                stars += '<span class="star">★</span>';
+            } else if (i === fullStars + 1 && hasHalfStar) {
+                stars += '<span class="star">☆</span>';
+            } else {
+                stars += '<span class="star empty">☆</span>';
+            }
+        }
+        
+        return stars;
+    }
+
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'short', 
+            day: 'numeric' 
+        });
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
 
 function closeProductModal() {
     productModalOpen = false;

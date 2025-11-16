@@ -313,10 +313,8 @@ if (isset($_POST["signin-submit"])) {
                                 $_SESSION["user_profile_public_id"] = $user["cloud_public_id"] ?? '';
                             }
 
-                            // Set flag for navbar animation on next page load
-                            echo "<script>
-                                sessionStorage.setItem('justLoggedIn', 'true');
-                            </script>";
+                            // Set flag for navbar animation - store in session instead of outputting
+                            $_SESSION['just_logged_in'] = true;
 
                             // If there was a redirect URL stored, use it
                             if (isset($_SESSION["user_redirect_url"])) {

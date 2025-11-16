@@ -7,5 +7,4 @@ define('BASE_URL', $protocol . $host);
 // Function to get the full URL
 function get_full_url($path) {
     return BASE_URL . '/NeoExclusiveCafe' . $path;
-}
-?> 
+} 

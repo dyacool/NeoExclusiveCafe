@@ -47,6 +47,14 @@ if ($conn) {
             once: true
         });
 
+        // Check if user just logged in (from session)
+        <?php if (isset($_SESSION['just_logged_in']) && $_SESSION['just_logged_in']): ?>
+        sessionStorage.setItem('justLoggedIn', 'true');
+        <?php 
+        unset($_SESSION['just_logged_in']); // Clear the flag
+        endif; 
+        ?>
+
         // Hero carousel simple slide transition
         let heroSlideIndex = 0;
         const heroSlides = document.querySelectorAll('.hero-slide');

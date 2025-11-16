@@ -109,6 +109,14 @@ try {
 }
 
 // Create mysqli connection for legacy code
+// Check if mysqli extension is available
+if (!extension_loaded('mysqli')) {
+    error_log("Fatal Error: mysqli extension is not loaded. Please install the mysqli PHP extension.");
+    if (php_sapi_name() !== 'cli') {
+        die("Fatal Error: mysqli extension is not installed. Please contact the administrator.");
+    }
+}
+
 $conn = new mysqli($host, $username, $password, $dbname);
 
 if ($conn->connect_error) {
