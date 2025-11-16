@@ -412,7 +412,7 @@ if (!$navbar_conn) {
                 </style>
                 <?php if ($user): ?>
                     <div class="profile-container auth-buttons">
-                    <a href="<?php echo $is_admin_logged_in ? '/backend/pages/homepage/admin-homepage.php' : '/frontend/pages/profile/profile.php'; ?>"class="profile-link" id="profile-trigger">
+                    <a href="<?php echo $is_admin_logged_in ? '/backend/pages/homepage/admin-homepage.php' : '/frontend/pages/profile/user-profile.php'; ?>"class="profile-link" id="profile-trigger">
                             <div class="profile-avatar">
                                 <?php 
                                 // Define default profile image path
@@ -462,9 +462,10 @@ if (!$navbar_conn) {
                                 <a href="/backend/pages/homepage/admin-homepage.php">Admin Panel</a>
                                 <a href="#" onclick="confirmLogout('admin'); return false;">Logout</a>
                             <?php else: ?>
-                                <a href="/frontend/pages/profile/profile.php">Profile</a>
-                                <a href="/frontend/pages/profile/account-settings.php">Account Settings</a>
-                                <a href="/frontend/pages/blog/user-blog-post.php">View Post</a>
+                                <a href="/frontend/pages/profile/user-profile.php">Profile</a>
+                                <a href="/frontend/pages/profile/user-profile.php#orders">My Orders</a>
+                                <a href="/frontend/pages/profile/user-profile.php#bulk-orders">Bulk Request</a>
+                                <a href="/frontend/pages/profile/user-profile.php#testimonials">Testimonials</a>
                                 <a href="#" onclick="confirmLogout('user'); return false;">Logout</a>
                             <?php endif; ?>
                         </div>

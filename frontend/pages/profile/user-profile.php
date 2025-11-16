@@ -147,18 +147,36 @@ $orders_result = mysqli_stmt_get_result($orders_stmt);
 
 $all_orders = [];
 while ($order = mysqli_fetch_assoc($orders_result)) {
-    // Fetch product images for this order (limit to 3)
-    $images_query = "SELECT image_path FROM order_items WHERE order_id = ? LIMIT 3";
+    // Fetch product images for this order from product_images table (Cloudinary storage)
+    // Join order_items -> products -> product_images to get the Cloudinary URLs
+    $images_query = "SELECT pi.cloud_url, pi.image_url 
+                     FROM order_items oi 
+                     INNER JOIN products p ON oi.product_name = p.name 
+                     INNER JOIN product_images pi ON p.id = pi.product_id 
+                     WHERE oi.order_id = ? AND pi.is_primary = 1 AND pi.is_removed = 0
+                     LIMIT 3";
     $images_stmt = mysqli_prepare($conn, $images_query);
-    mysqli_stmt_bind_param($images_stmt, "i", $order['order_id']);
-    mysqli_stmt_execute($images_stmt);
-    $images_result = mysqli_stmt_get_result($images_stmt);
     
-    $order['product_images'] = [];
-    while ($img = mysqli_fetch_assoc($images_result)) {
-        $order['product_images'][] = $img['image_path'];
+    if ($images_stmt) {
+        mysqli_stmt_bind_param($images_stmt, "i", $order['order_id']);
+        mysqli_stmt_execute($images_stmt);
+        $images_result = mysqli_stmt_get_result($images_stmt);
+        
+        $order['product_images'] = [];
+        while ($img = mysqli_fetch_assoc($images_result)) {
+            // Prioritize Cloudinary URL over local image_url
+            if (!empty($img['cloud_url'])) {
+                $order['product_images'][] = $img['cloud_url'];
+            } elseif (!empty($img['image_url'])) {
+                $order['product_images'][] = $img['image_url'];
+            }
+        }
+        mysqli_stmt_close($images_stmt);
+    } else {
+        // Fallback: just set empty array if query fails
+        error_log("Failed to prepare images query for order {$order['order_id']}: " . mysqli_error($conn));
+        $order['product_images'] = [];
     }
-    mysqli_stmt_close($images_stmt);
     
     $all_orders[] = $order;
 }
@@ -439,7 +457,7 @@ if ($bulk_orders_stmt) {
                     </p>
                     <div style="display: flex; gap: 15px; justify-content: center;">
                         <button type="button" class="btn cancel-btn" onclick="closeRemovePictureModal()">Cancel</button>
-                        <button type="button" class="btn update-btn" id="confirmRemoveBtn" onclick="confirmRemoveProfilePicture()" style="background: var(--error);">Remove Picture</button>
+                        <button type="button" class="btn update-btn" id="confirmRemoveBtn" onclick="confirmRemoveProfilePicture()">Remove Picture</button>
                     </div>
                 </div>
             </div>
@@ -465,22 +483,27 @@ if ($bulk_orders_stmt) {
                             <div class="order-images">
                                 <?php 
                                 $image_count = count($order['product_images']);
-                                $images_to_show = min($image_count, 3);
-                                for ($i = 0; $i < $images_to_show; $i++): 
-                                    $img_path = $order['product_images'][$i];
-                                    // Handle image path
-                                    if (!empty($img_path)) {
-                                        if (strpos($img_path, 'http') === 0) {
-                                            $display_path = $img_path;
+                                
+                                if ($image_count > 0):
+                                    $images_to_show = min($image_count, 3);
+                                    for ($i = 0; $i < $images_to_show; $i++): 
+                                        $img_path = $order['product_images'][$i];
+                                        // Handle image path
+                                        if (!empty($img_path)) {
+                                            if (strpos($img_path, 'http') === 0) {
+                                                $display_path = $img_path;
+                                            } else {
+                                                $display_path = '/' . ltrim($img_path, '/');
+                                            }
                                         } else {
-                                            $display_path = '/' . ltrim($img_path, '/');
+                                            $display_path = '/assets/images/placeholder.jpg';
                                         }
-                                    } else {
-                                        $display_path = '/assets/images/placeholder.jpg';
-                                    }
-                                ?>
-                                    <img src="<?php echo htmlspecialchars($display_path); ?>" alt="Product" onerror="this.src='/assets/images/placeholder.jpg'">
-                                <?php endfor; ?>
+                                    ?>
+                                        <img src="<?php echo htmlspecialchars($display_path); ?>" alt="Product" onerror="this.src='/assets/images/placeholder.jpg'">
+                                    <?php endfor; 
+                                else: ?>
+                                    <img src="/assets/images/placeholder.jpg" alt="No product image" style="width: 100%; height: 100%; object-fit: cover;">
+                                <?php endif; ?>
                             </div>
                             
                             <!-- Order Info -->
@@ -826,19 +849,28 @@ function openRemovePictureModal(publicId) {
     }
     
     currentPublicId = publicId.trim();
-    document.getElementById('removePictureModal').classList.add('show');
+    const modal = document.getElementById('removePictureModal');
+    modal.style.display = 'flex';
+    setTimeout(() => {
+        modal.classList.add('show');
+    }, 10);
+    document.body.style.overflow = 'hidden';
 }
 
 function closeRemovePictureModal() {
-    document.getElementById('removePictureModal').classList.remove('show');
+    const modal = document.getElementById('removePictureModal');
+    modal.classList.remove('show');
+    setTimeout(() => {
+        modal.style.display = 'none';
+    }, 300);
     currentPublicId = '';
+    document.body.style.overflow = 'auto';
     
     // Reset the confirm button state
     const confirmBtn = document.getElementById('confirmRemoveBtn');
     if (confirmBtn) {
         confirmBtn.innerHTML = 'Remove Picture';
         confirmBtn.disabled = false;
-        confirmBtn.style.background = 'var(--error)';
     }
 }
 
@@ -898,8 +930,7 @@ function removeProfilePictureDirectly(publicId) {
 <!-- Include AJAX JavaScript for profile picture -->
 <script src="../account/js/profile-picture-ajax.js"></script>
 
-<div id="footer-container">
-    <?php require_once "../../user-includes/user-footer.php"; ?>
-</div>
+<?php require_once "../../user-includes/user-footer.php"; ?>
+
 </body>
 </html>

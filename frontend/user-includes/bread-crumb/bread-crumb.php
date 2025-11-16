@@ -34,11 +34,8 @@ $route_mappings = [
     'bulk-confirmation' => ['Order Confirmation', ''],
     
     // Blog routes
-    'blog-dashboard' => ['Blog Dashboard', '/frontend/pages/blog/blog-dashboard.php'],
     'blog-list' => ['Neo Cafe\' Corner', '/frontend/pages/blog/blog-list.php'],
-    'user-blog' => ['Customer Testimonials', '/frontend/pages/blog/user-blog.php'],
     'create-blog' => ['Create Post', '/frontend/pages/blog/create-blog.php'],
-    'edit-blog' => ['Edit Post', '/frontend/pages/blog/edit-blog.php'],
     'view-blog-admin' => ['View Post', ''],
     'view-blog' => ['View Post', ''],
     'blog-post' => ['Blog Post', ''],
@@ -96,7 +93,7 @@ $hierarchy = [
     'blog-dashboard' => ['user-dashboard'],
     'blog-list' => ['user-dashboard', 'blog-dashboard'],
     'user-blog' => ['user-dashboard'],
-    'create-blog' => ['user-dashboard', 'user-blog'],
+    'create-blog' => ['user-dashboard'],
     'edit-blog' => ['user-dashboard', 'user-blog-post'],
     'view-blog-admin' => ['user-dashboard',  'blog-list'],
     'view-blog' => ['user-dashboard', 'user-blog'],
@@ -179,8 +176,10 @@ function generateBreadcrumb($current_page, $route_mappings, $hierarchy, $context
         $breadcrumb[] = ['Home', '/frontend/pages/home/user-dashboard.php', false];
     }
     
-    // Special handling for blog pages based on referrer
-    if ($current_page === 'create-blog' || $current_page === 'edit-blog') {
+    // Special handling for create-blog page - link back to testimonials section
+    if ($current_page === 'create-blog') {
+        $breadcrumb[] = ['Testimonials', '/frontend/pages/profile/user-profile.php#testimonials', false];
+    } elseif ($current_page === 'edit-blog') {
         $referrer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
         
         if (strpos($referrer, 'user-blog-post.php') !== false) {

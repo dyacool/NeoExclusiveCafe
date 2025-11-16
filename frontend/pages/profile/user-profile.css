@@ -38,7 +38,7 @@ body {
 .profile-wrapper {
   display: flex;
   max-width: 1400px;
-  margin: 2rem auto;
+  margin: 0 auto;
   gap: 2rem;
   padding: 0 1rem;
   min-height: calc(100vh - 200px);
@@ -501,19 +501,18 @@ body {
   background: var(--bg-white);
   border-radius: 12px;
   box-shadow: var(--shadow-md);
-  margin-bottom: 2rem;
 }
 
 .avatar-upload-container {
   position: relative;
-  width: 120px;
-  height: 120px;
+  width: 120px !important;
+  height: 120px !important;
   cursor: pointer;
 }
 
 .avatar {
-  width: 120px;
-  height: 120px;
+  width: 120px !important;
+  height: 120px !important;
   border-radius: 50%;
   background: var(--primary);
   display: flex;
@@ -646,14 +645,9 @@ body {
 }
 
 /* Password Modal Styles */
-#passwordModal.modal,
-#removePictureModal.modal {
-  display: none;
-}
-
 #passwordModal.modal.show,
 #removePictureModal.modal.show {
-  display: flex;
+  display: flex !important;
 }
 
 #passwordModal .modal-content,
@@ -694,6 +688,7 @@ body {
   color: white;
   margin: 0;
   font-size: 1.5rem;
+  text-align: center;
 }
 
 #passwordModal form {
@@ -783,7 +778,26 @@ body {
 
 /* Remove Picture Modal */
 #removePictureModal .modal-content p {
-  padding: 0 1.5rem;
+  padding: 1rem 1.5rem;
+  margin-bottom: 2rem;
+}
+
+#removePictureModal .modal-content > div {
+  margin-bottom: 0 !important;
+  padding: 1rem 1.5rem 1.5rem 1.5rem;
+}
+
+#confirmRemoveBtn {
+  background: #ef4444 !important;
+}
+
+#confirmRemoveBtn:hover {
+  background: #dc2626 !important;
+}
+
+#confirmRemoveBtn:disabled {
+  background: #9ca3af !important;
+  cursor: not-allowed;
 }
 
 /* Confirmation Popup */
