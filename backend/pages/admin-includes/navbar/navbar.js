@@ -187,6 +187,8 @@ document.addEventListener("DOMContentLoaded", () => {
       "reset-password.php": "Reset Password",
       "blog-details.php": "Blog Post Details",
       "admin-blog-createpost.php": "Create Blog Post",
+      "expense.php": "Expense Tracker",
+      "bulk-payment-setup.php": "Bulk Payments",
     };
 
     const pageTitle = pageTitles[currentPage] || "Neo Cafe Admin";

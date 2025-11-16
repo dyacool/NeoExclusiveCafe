@@ -279,6 +279,9 @@ $error_message = '';
     </style>
 </head>
 <body>
+
+<?php include __DIR__ . '/../admin-includes/breadcrumbs/admin-breadcrumb.php'; ?>
+
     <div class="loading-overlay" id="loadingOverlay">
         <div class="spinner"></div>
     </div>
@@ -448,14 +451,6 @@ $error_message = '';
                             </div>
                         </div>
                     <?php endif; ?>
-
-                    <a href="../account/admin-profile.php" class="btn" style="background-color: var(--gray-600); margin-top: 1rem;">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="19" y1="12" x2="5" y2="12"></line>
-                            <polyline points="12 19 5 12 12 5"></polyline>
-                        </svg>
-                        Back to Profile
-                    </a>
                 </div>
             </div>
             

@@ -930,7 +930,7 @@ $order_id_display = $order['unique_order_id'] ? $order['unique_order_id'] : str_
         </div>
 
         <!-- Success/Error Notifications -->
-        <?php if (isset($success_message)): ?>
+        <?php if (isset($success_message) && !empty(trim($success_message))): ?>
             <div class="alert alert-success" style="margin-bottom: 20px;">
                 <i class="fas fa-check-circle"></i> <?php echo htmlspecialchars($success_message); ?>
             </div>

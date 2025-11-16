@@ -58,6 +58,7 @@ $route_mappings = [
     'admin-account' => ['Admin Account', ''],
     'activity-logs' => ['Activity Logs', ''],
     'archive' => ['Archive', ''],
+    'bulk-payment-setup' => ['Bulk Payment Setup', ''],
 ];
 
 // Define parent relationships
@@ -101,6 +102,7 @@ $hierarchy = [
     'admin-account' => ['Profile'],
     'activity-logs' => ['Profile'],
     'archive' => ['Profile'],
+    'bulk-payment-setup' => ['Profile'],
 ];
 
 /**

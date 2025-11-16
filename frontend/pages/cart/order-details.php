@@ -598,8 +598,24 @@ if ($pod_stmt) {
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="3"><strong>Total Amount:</strong></td>
+                            <td colspan="3"><strong>Subtotal:</strong></td>
                             <td><strong>₱<?php echo number_format($subtotal, 2); ?></strong></td>
+                        </tr>
+                        <?php if (!empty($order['discount_amount']) && $order['discount_amount'] > 0): ?>
+                        <tr>
+                            <td colspan="3"><strong>Discount:</strong></td>
+                            <td><strong>-₱<?php echo number_format($order['discount_amount'], 2); ?></strong></td>
+                        </tr>
+                        <?php endif; ?>
+                        <?php if (!empty($order['shipping_fee']) && $order['shipping_fee'] > 0): ?>
+                        <tr>
+                            <td colspan="3"><strong>Delivery Fee:</strong></td>
+                            <td><strong>₱<?php echo number_format($order['shipping_fee'], 2); ?></strong></td>
+                        </tr>
+                        <?php endif; ?>
+                        <tr>
+                            <td colspan="3"><strong>Total Amount:</strong></td>
+                            <td><strong>₱<?php echo number_format($order['total_amount'], 2); ?></strong></td>
                         </tr>
                     </tfoot>
                 </table>
@@ -663,7 +679,7 @@ if ($pod_stmt) {
             
             if ($can_write_review): ?>
             <button onclick="openReviewModal()" class="btn btn-primary" style="background-color: #1a4a28; margin-right: 10px;">
-                <i class="fas fa-star"></i> Write a Review
+                Write a Review
             </button>
             <?php endif; ?>
             
@@ -955,16 +971,23 @@ if ($pod_stmt) {
             try {
                 const response = await fetch('../../../backend/pages/cart/submit-refund.php', {
                     method: 'POST',
+                    credentials: 'same-origin', // Important: Include cookies in the request
                     body: formData
                 });
                 
-                const result = await response.json();
+                console.log('Response status:', response.status);
+                const responseText = await response.text();
+                console.log('Response text:', responseText);
+                
+                const result = JSON.parse(responseText);
+                console.log('Parsed result:', result);
                 
                 if (result.success) {
                     alert('Refund request submitted successfully! We will review your request and get back to you soon.');
                     window.location.reload();
                 } else {
-                    alert('Error: ' + result.message);
+                    console.error('Error from server:', result);
+                    alert('Error: ' + result.message + (result.debug ? '\n\nDebug info: ' + JSON.stringify(result.debug) : ''));
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = 'Submit Refund Request';
                 }
@@ -1197,7 +1220,7 @@ if ($pod_stmt) {
                                 
                                 <?php if ($existing_review): ?>
                                 <span style="margin-left: 10px; color: #6b7280; font-size: 12px;">
-                                    <i class="fas fa-check-circle"></i> You've already reviewed this product
+                                     You've already reviewed this product
                                 </span>
                                 <?php endif; ?>
                             </div>
@@ -1298,6 +1321,7 @@ if ($pod_stmt) {
                     headers: {
                         'Content-Type': 'application/json'
                     },
+                    credentials: 'same-origin', // Important: Include cookies in the request
                     body: JSON.stringify({
                         product_id: productId,
                         rating: rating,

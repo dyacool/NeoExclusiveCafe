@@ -595,6 +595,18 @@ mysqli_stmt_close($items_stmt);
                                     <td colspan="4" class="total-label">Subtotal</td>
                                     <td class="total-value">₱<?php echo number_format($subtotal, 2); ?></td>
                                 </tr>
+                                <?php if (!empty($order['discount_amount']) && $order['discount_amount'] > 0): ?>
+                                <tr>
+                                    <td colspan="4" class="total-label">Discount</td>
+                                    <td class="total-value">-₱<?php echo number_format($order['discount_amount'], 2); ?></td>
+                                </tr>
+                                <?php endif; ?>
+                                <?php if (!empty($order['shipping_fee']) && $order['shipping_fee'] > 0): ?>
+                                <tr>
+                                    <td colspan="4" class="total-label">Delivery Fee</td>
+                                    <td class="total-value">₱<?php echo number_format($order['shipping_fee'], 2); ?></td>
+                                </tr>
+                                <?php endif; ?>
                                 <tr>
                                     <td colspan="4" class="total-label">Total</td>
                                     <td class="total-value">₱<?php echo number_format($order['total_amount'], 2); ?></td>

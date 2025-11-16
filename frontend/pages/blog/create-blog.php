@@ -314,7 +314,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <p>Are you sure you want to discard post creation?</p>
             <div class="controls">
                 <input type="button" class="cancel-btn" id="cancel-btn" value="Cancel">
-                <input type="button" class="confirm-btn" id="confirm-btn" onclick="location='user-blog.php'" value="Confirm">
+                <input type="button" class="confirm-btn" id="confirm-btn" onclick="location='/profile/user-profile.php#testimonials'" value="Confirm">
             </div>
         </div>
     </div>

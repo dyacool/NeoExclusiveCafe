@@ -47,7 +47,7 @@ $route_mappings = [
     'about' => ['About', '/frontend/pages/about/about-page.php'],
     
     // Profile routes
-    'profile' => ['Profile', '/frontend/pages/profile/profile.php'],
+    'profile' => ['Profile', '/frontend/pages/profile/user-profile.php'],
     'account-settings' => ['Account Settings', '/frontend/pages/profile/account-settings.php'],
     'my-orders' => ['My Orders', '/frontend/pages/profile/my-orders.php'],
     'saved-posts' => ['Saved Posts', '/frontend/pages/profile/saved-posts.php'],

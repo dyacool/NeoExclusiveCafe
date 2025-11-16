@@ -685,6 +685,10 @@ body {
   color: var(--blue-800);
 }
 
+.status-completed {
+  background-color: var(--gray-100);
+  color: var(--gray-800);
+}
 /* Action Buttons */
 .view-btn {
   display: inline-flex;

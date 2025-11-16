@@ -568,7 +568,7 @@ function sendBulkOrderApprovalEmail($bulkOrderId, $conn) {
         $subject = "Your Bulk Order Has Been Approved - Order #" . $orderIdDisplay;
         
         // Generate email body
-        $emailBody = createBulkOrderApprovalEmailBody($bulkOrder);
+        $emailBody = createBulkOrderApprovalEmailBody($bulkOrder, $conn);
         
         // Send email
         $result = sendEmail($customerEmail, $subject, $emailBody, true);
@@ -908,7 +908,7 @@ function createBulkOrderRequestEmailBody($bulkOrder) {
 }
 
 // Function to create bulk order approval email body (sent to customer)
-function createBulkOrderApprovalEmailBody($bulkOrder) {
+function createBulkOrderApprovalEmailBody($bulkOrder, $conn) {
     $baseUrl = getBaseUrl();
     $orderIdDisplay = !empty($bulkOrder['unique_order_id']) ? $bulkOrder['unique_order_id'] : 'BO' . str_pad($bulkOrder['id'], 6, '0', STR_PAD_LEFT);
     

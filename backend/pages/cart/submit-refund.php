@@ -1,28 +1,62 @@
 <?php
+// Start session first before any output
+if (session_status() === PHP_SESSION_NONE) {
+    // Fix Windows session path permission issues (same as admin database.php)
+    $session_path = sys_get_temp_dir();
+    if (is_writable($session_path)) {
+        session_save_path($session_path);
+    }
+    session_start();
+}
+
 // Load database first (it starts session)
 require_once '../admin-includes/database.php';
 
 // Then load SessionManager
 require_once __DIR__ . '/../../../includes/session-manager.php';
 
+// Set JSON header early but after session
 header('Content-Type: application/json');
 
+// Suppress errors to prevent breaking JSON
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+
+// Debug session state
+error_log("Refund API - Session ID: " . session_id());
+error_log("Refund API - Session data: " . print_r($_SESSION, true));
+error_log("Refund API - User logged in check: " . (SessionManager::isUserLoggedIn() ? 'true' : 'false'));
+error_log("Refund API - POST data: " . print_r($_POST, true));
+error_log("Refund API - FILES data: " . print_r($_FILES, true));
+
 if (!SessionManager::isUserLoggedIn()) {
-    echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+    http_response_code(401);
+    echo json_encode([
+        'success' => false, 
+        'message' => 'Unauthorized',
+        'debug' => [
+            'session_id' => session_id(),
+            'has_user_id' => isset($_SESSION['user_id']),
+            'has_user_role' => isset($_SESSION['user_role']),
+            'user_role_value' => $_SESSION['user_role'] ?? 'not set'
+        ]
+    ]);
     exit();
 }
 
-$user_id = SessionManager::getUserId();
-$order_id = isset($_POST['order_id']) ? intval($_POST['order_id']) : 0;
-$refund_reason = isset($_POST['refund_reason']) ? trim($_POST['refund_reason']) : '';
-$refund_items = isset($_POST['refund_items']) ? $_POST['refund_items'] : '';
-$refund_note = isset($_POST['refund_note']) ? trim($_POST['refund_note']) : '';
+try {
+    $user_id = SessionManager::getUserId();
+    $order_id = isset($_POST['order_id']) ? intval($_POST['order_id']) : 0;
+    $refund_reason = isset($_POST['refund_reason']) ? trim($_POST['refund_reason']) : '';
+    $refund_items = isset($_POST['refund_items']) ? $_POST['refund_items'] : '';
+    $refund_note = isset($_POST['refund_note']) ? trim($_POST['refund_note']) : '';
 
-// Validation
-if ($order_id <= 0) {
-    echo json_encode(['success' => false, 'message' => 'Invalid order ID']);
-    exit();
-}
+    // Validation
+    if ($order_id <= 0) {
+        echo json_encode(['success' => false, 'message' => 'Invalid order ID']);
+        exit();
+    }
 
 if (!in_array($refund_reason, ['spoiled', 'wrong_item', 'damaged', 'other'])) {
     echo json_encode(['success' => false, 'message' => 'Invalid refund reason']);
@@ -73,7 +107,13 @@ $cloud_url = '';
 $cloud_public_id = '';
 if (isset($_FILES['proof_image']) && $_FILES['proof_image']['error'] === UPLOAD_ERR_OK) {
     // Load Cloudinary helper
-    require_once __DIR__ . '/../../includes/cloudinary-helper.php';
+    try {
+        require_once __DIR__ . '/../../includes/cloudinary-helper.php';
+    } catch (Exception $e) {
+        error_log("Failed to load cloudinary-helper: " . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => 'Failed to load upload handler: ' . $e->getMessage()]);
+        exit();
+    }
     
     $file_extension = strtolower(pathinfo($_FILES['proof_image']['name'], PATHINFO_EXTENSION));
     $allowed_extensions = ['jpg', 'jpeg', 'png', 'gif'];
@@ -124,7 +164,7 @@ foreach ($items_array as $item) {
 $insert_sql = "INSERT INTO order_refunds (order_id, user_id, refund_reason, refund_items, refund_note, proof_image, cloud_url, cloud_public_id, cloud_provider, refund_amount, refund_status) 
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'cloudinary', ?, 'pending')";
 $stmt = $conn->prepare($insert_sql);
-$stmt->bind_param('iisssssd', $order_id, $user_id, $refund_reason, $refund_items, $refund_note, $proof_image, $cloud_url, $cloud_public_id, $refund_amount);
+$stmt->bind_param('iissssssd', $order_id, $user_id, $refund_reason, $refund_items, $refund_note, $proof_image, $cloud_url, $cloud_public_id, $refund_amount);
 
 if ($stmt->execute()) {
     $refund_id = $stmt->insert_id;
@@ -170,9 +210,28 @@ if ($stmt->execute()) {
         'refund_id' => $refund_id
     ]);
 } else {
-    echo json_encode(['success' => false, 'message' => 'Failed to submit refund request']);
+    error_log("Refund insert failed: " . $stmt->error);
+    echo json_encode(['success' => false, 'message' => 'Failed to submit refund request: ' . $stmt->error]);
 }
 
 $stmt->close();
 $conn->close();
+
+} catch (Exception $e) {
+    error_log("Refund submission exception: " . $e->getMessage());
+    error_log("Stack trace: " . $e->getTraceAsString());
+    echo json_encode([
+        'success' => false, 
+        'message' => 'Error: ' . $e->getMessage(),
+        'error_type' => 'Exception'
+    ]);
+} catch (Error $e) {
+    error_log("Refund submission fatal error: " . $e->getMessage());
+    error_log("Stack trace: " . $e->getTraceAsString());
+    echo json_encode([
+        'success' => false, 
+        'message' => 'System error: ' . $e->getMessage(),
+        'error_type' => 'FatalError'
+    ]);
+}
 ?>

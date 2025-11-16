@@ -28,13 +28,14 @@ function formatDashboardDates($datesString) {
 
 // Initialize stats array with default values
 $stats = [
-    'today_income' => 0,
-    'net_income' => 0,
-    'total_products' => 0,
+    'active_orders' => 0,
     'pending_orders' => 0,
-    'total_orders' => 0,
-    'total_users' => 0,
-    'bulk_orders' => 0
+    'active_bulk_orders' => 0,
+    'pending_bulk_orders' => 0,
+    'total_products' => 0,
+    'active_refund_requests' => 0,
+    'today_sales' => 0,
+    'month_net_profit' => 0
 ];
 
 // Initialize arrays
@@ -53,35 +54,53 @@ $last_month_start = date('Y-m-d', strtotime('-30 days'));
 // ======================
 
 try {
-    // Today's Income
-    $today_income_query = "SELECT SUM(total_amount) as today_income FROM orders 
-                          WHERE DATE(order_date) = ? AND status NOT IN ('Cancelled')";
-    $stmt = mysqli_prepare($conn, $today_income_query);
+    // Active Orders (all orders that are not completed/cancelled)
+    $active_orders_query = "SELECT COUNT(*) as active_orders FROM orders 
+                           WHERE status NOT IN ('Delivered', 'Picked-up', 'Cancelled', 'Completed')";
+    $result = mysqli_query($conn, $active_orders_query);
+    $row = mysqli_fetch_assoc($result);
+    $stats['active_orders'] = $row['active_orders'] ?? 0;
+    
+    // Pending Orders count (confirmed status in database)
+    $pending_orders_query = "SELECT COUNT(*) as pending_orders FROM orders 
+                            WHERE status = 'confirmed'";
+    $result = mysqli_query($conn, $pending_orders_query);
+    $row = mysqli_fetch_assoc($result);
+    $stats['pending_orders'] = $row['pending_orders'] ?? 0;
+    
+    // Active Bulk Orders
+    $active_bulk_query = "SELECT COUNT(*) as active_bulk FROM bulk_orders 
+                         WHERE status NOT IN ('completed', 'cancelled', 'delivered')";
+    $result = mysqli_query($conn, $active_bulk_query);
+    $row = mysqli_fetch_assoc($result);
+    $stats['active_bulk_orders'] = $row['active_bulk'] ?? 0;
+    
+    // Pending Bulk Orders count
+    $pending_bulk_query = "SELECT COUNT(*) as pending_bulk FROM bulk_orders 
+                          WHERE status = 'pending'";
+    $result = mysqli_query($conn, $pending_bulk_query);
+    $row = mysqli_fetch_assoc($result);
+    $stats['pending_bulk_orders'] = $row['pending_bulk'] ?? 0;
+    
+    // Today's Sales
+    $today_sales_query = "SELECT SUM(total_amount) as today_sales FROM orders 
+                         WHERE DATE(order_date) = ? AND status NOT IN ('Cancelled')";
+    $stmt = mysqli_prepare($conn, $today_sales_query);
     mysqli_stmt_bind_param($stmt, "s", $today);
     mysqli_stmt_execute($stmt);
     $result = mysqli_stmt_get_result($stmt);
     $row = mysqli_fetch_assoc($result);
-    $stats['today_income'] = $row['today_income'] ?? 0;
+    $stats['today_sales'] = $row['today_sales'] ?? 0;
     
-    // Yesterday's Income for comparison
-    $yesterday_income_query = "SELECT SUM(total_amount) as yesterday_income FROM orders 
-                              WHERE DATE(order_date) = ? AND status NOT IN ('Cancelled')";
-    $stmt = mysqli_prepare($conn, $yesterday_income_query);
+    // Yesterday's Sales for comparison
+    $yesterday_sales_query = "SELECT SUM(total_amount) as yesterday_sales FROM orders 
+                             WHERE DATE(order_date) = ? AND status NOT IN ('Cancelled')";
+    $stmt = mysqli_prepare($conn, $yesterday_sales_query);
     mysqli_stmt_bind_param($stmt, "s", $yesterday);
     mysqli_stmt_execute($stmt);
     $result = mysqli_stmt_get_result($stmt);
     $row = mysqli_fetch_assoc($result);
-    $yesterday_income = $row['yesterday_income'] ?? 0;
-    
-    // Net Income (last 30 days)
-    $net_income_query = "SELECT SUM(total_amount) as net_income FROM orders 
-                        WHERE DATE(order_date) >= ? AND status NOT IN ('Cancelled')";
-    $stmt = mysqli_prepare($conn, $net_income_query);
-    mysqli_stmt_bind_param($stmt, "s", $last_month_start);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-    $row = mysqli_fetch_assoc($result);
-    $stats['net_income'] = $row['net_income'] ?? 0;
+    $yesterday_sales = $row['yesterday_sales'] ?? 0;
     
     // Total Products
     $products_query = "SELECT COUNT(*) as total_products FROM products WHERE deleted_at IS NULL";
@@ -89,34 +108,52 @@ try {
     $row = mysqli_fetch_assoc($result);
     $stats['total_products'] = $row['total_products'] ?? 0;
     
-    // Pending Orders
-    $pending_query = "SELECT COUNT(*) as pending_orders FROM orders 
-                     WHERE status NOT IN ('Delivered', 'Picked-up')";
-    $result = mysqli_query($conn, $pending_query);
-    $row = mysqli_fetch_assoc($result);
-    $stats['pending_orders'] = $row['pending_orders'] ?? 0;
-    
-    // Total Orders
-    $total_orders_query = "SELECT COUNT(*) as total_orders FROM orders";
-    $result = mysqli_query($conn, $total_orders_query);
-    $row = mysqli_fetch_assoc($result);
-    $stats['total_orders'] = $row['total_orders'] ?? 0;
-    
-    // Total Users
-    $users_query = "SELECT COUNT(*) as total_users FROM users";
-    $result = mysqli_query($conn, $users_query);
+    // Active Refund Requests (pending status)
+    $refund_query = "SELECT COUNT(*) as active_refunds FROM order_refunds 
+                    WHERE refund_status = 'pending'";
+    $result = mysqli_query($conn, $refund_query);
     if ($result) {
         $row = mysqli_fetch_assoc($result);
-        $stats['total_users'] = $row['total_users'] ?? 0;
+        $stats['active_refund_requests'] = $row['active_refunds'] ?? 0;
     }
     
-    // Bulk Orders
-    $bulk_orders_query = "SELECT COUNT(*) as bulk_orders FROM bulk_orders";
-    $result = mysqli_query($conn, $bulk_orders_query);
-    if ($result) {
-        $row = mysqli_fetch_assoc($result);
-        $stats['bulk_orders'] = $row['bulk_orders'] ?? 0;
-    }
+    // Month Net Profit calculation
+    $month_start = date('Y-m-01'); // First day of current month
+    
+    // Total Revenue this month
+    $month_revenue_query = "SELECT SUM(total_amount) as month_revenue FROM orders 
+                           WHERE DATE(order_date) >= ? AND status NOT IN ('Cancelled')";
+    $stmt = mysqli_prepare($conn, $month_revenue_query);
+    mysqli_stmt_bind_param($stmt, "s", $month_start);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    $row = mysqli_fetch_assoc($result);
+    $month_revenue = $row['month_revenue'] ?? 0;
+    
+    // Total Discounts this month
+    $month_discounts_query = "SELECT SUM(discount_amount) as month_discounts FROM orders 
+                             WHERE DATE(order_date) >= ? AND status NOT IN ('Cancelled') 
+                             AND discount_amount > 0";
+    $stmt = mysqli_prepare($conn, $month_discounts_query);
+    mysqli_stmt_bind_param($stmt, "s", $month_start);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    $row = mysqli_fetch_assoc($result);
+    $month_discounts = $row['month_discounts'] ?? 0;
+    
+    // Total Refunds this month (approved refunds)
+    $month_refunds_query = "SELECT SUM(refund_amount) as month_refunds FROM order_refunds 
+                           WHERE DATE(created_at) >= ? AND refund_status IN ('approved', 'completed')";
+    $stmt = mysqli_prepare($conn, $month_refunds_query);
+    mysqli_stmt_bind_param($stmt, "s", $month_start);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    $row = mysqli_fetch_assoc($result);
+    $month_refunds = $row['month_refunds'] ?? 0;
+    
+    // Calculate Net Profit (Revenue - Discounts - Refunds)
+    // Note: Expenses would need a separate expenses table to track
+    $stats['month_net_profit'] = $month_revenue - $month_discounts - $month_refunds;
     
 } catch (Exception $e) {
     error_log("Dashboard stats error: " . $e->getMessage());
@@ -280,35 +317,68 @@ try {
     error_log("Availtoday products query error: " . $e->getMessage());
 }
 
-// Today vs Yesterday income change
-if ($yesterday_income > 0) {
-    $today_change_percent = round((($stats['today_income'] - $yesterday_income) / $yesterday_income) * 100, 1);
+// Today vs Yesterday sales change
+if ($yesterday_sales > 0) {
+    $today_change_percent = round((($stats['today_sales'] - $yesterday_sales) / $yesterday_sales) * 100, 1);
     $stats['today_change'] = ($today_change_percent >= 0 ? '+' : '') . $today_change_percent . '% from yesterday';
 } else {
-    $stats['today_change'] = $stats['today_income'] > 0 ? 'New income today' : 'No income yet';
+    $stats['today_change'] = $stats['today_sales'] > 0 ? 'New sales today' : 'No sales yet';
 }
 
-// Get last month's income for comparison
+// Active Orders change info
+$stats['active_orders_change'] = $stats['pending_orders'] . ' pending';
+
+// Active Bulk Orders change info
+$stats['active_bulk_change'] = $stats['pending_bulk_orders'] . ' pending';
+
+// Get last month's net profit for comparison
 try {
-    $last_month_income_query = "SELECT SUM(total_amount) as last_month_income FROM orders 
-                               WHERE DATE(order_date) >= ? AND DATE(order_date) < ? 
-                               AND status NOT IN ('Cancelled')";
-    $two_months_ago = date('Y-m-d', strtotime('-60 days'));
-    $stmt = mysqli_prepare($conn, $last_month_income_query);
-    mysqli_stmt_bind_param($stmt, "ss", $two_months_ago, $last_month_start);
+    $last_month_start = date('Y-m-01', strtotime('-1 month'));
+    $last_month_end = date('Y-m-t', strtotime('-1 month'));
+    
+    // Last month revenue
+    $last_month_revenue_query = "SELECT SUM(total_amount) as last_revenue FROM orders 
+                                WHERE DATE(order_date) >= ? AND DATE(order_date) <= ? 
+                                AND status NOT IN ('Cancelled')";
+    $stmt = mysqli_prepare($conn, $last_month_revenue_query);
+    mysqli_stmt_bind_param($stmt, "ss", $last_month_start, $last_month_end);
     mysqli_stmt_execute($stmt);
     $result = mysqli_stmt_get_result($stmt);
     $row = mysqli_fetch_assoc($result);
-    $last_month_income = $row['last_month_income'] ?? 0;
+    $last_revenue = $row['last_revenue'] ?? 0;
     
-    if ($last_month_income > 0) {
-        $net_change_percent = round((($stats['net_income'] - $last_month_income) / $last_month_income) * 100, 1);
-        $stats['net_change'] = ($net_change_percent >= 0 ? '+' : '') . $net_change_percent . '% from last month';
+    // Last month discounts
+    $last_month_discounts_query = "SELECT SUM(discount_amount) as last_discounts FROM orders 
+                                  WHERE DATE(order_date) >= ? AND DATE(order_date) <= ? 
+                                  AND status NOT IN ('Cancelled')";
+    $stmt = mysqli_prepare($conn, $last_month_discounts_query);
+    mysqli_stmt_bind_param($stmt, "ss", $last_month_start, $last_month_end);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    $row = mysqli_fetch_assoc($result);
+    $last_discounts = $row['last_discounts'] ?? 0;
+    
+    // Last month refunds
+    $last_month_refunds_query = "SELECT SUM(refund_amount) as last_refunds FROM order_refunds 
+                                WHERE DATE(created_at) >= ? AND DATE(created_at) <= ? 
+                                AND refund_status IN ('approved', 'completed')";
+    $stmt = mysqli_prepare($conn, $last_month_refunds_query);
+    mysqli_stmt_bind_param($stmt, "ss", $last_month_start, $last_month_end);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    $row = mysqli_fetch_assoc($result);
+    $last_refunds = $row['last_refunds'] ?? 0;
+    
+    $last_month_profit = $last_revenue - $last_discounts - $last_refunds;
+    
+    if ($last_month_profit > 0) {
+        $profit_change_percent = round((($stats['month_net_profit'] - $last_month_profit) / $last_month_profit) * 100, 1);
+        $stats['profit_change'] = ($profit_change_percent >= 0 ? '+' : '') . $profit_change_percent . '% from last month';
     } else {
-        $stats['net_change'] = 'First month data';
+        $stats['profit_change'] = 'First month data';
     }
 } catch (Exception $e) {
-    $stats['net_change'] = 'Data unavailable';
+    $stats['profit_change'] = 'Data unavailable';
 }
 
 // Get products added this week
@@ -327,66 +397,20 @@ try {
     $stats['products_change'] = 'Data unavailable';
 }
 
-// Get pending orders change from last week
+// Get refund requests this week for comparison
 try {
     $week_ago = date('Y-m-d', strtotime('-7 days'));
-    $last_week_pending_query = "SELECT COUNT(*) as last_week_pending FROM orders 
-                               WHERE DATE(order_date) >= ? AND DATE(order_date) < ?
-                               AND status IN ('Pending', 'Processing', 'Preparing')";
-    $two_weeks_ago = date('Y-m-d', strtotime('-14 days'));
-    $stmt = mysqli_prepare($conn, $last_week_pending_query);
-    mysqli_stmt_bind_param($stmt, "ss", $two_weeks_ago, $week_ago);
+    $week_refunds_query = "SELECT COUNT(*) as week_refunds FROM order_refunds 
+                          WHERE DATE(created_at) >= ? AND refund_status = 'pending'";
+    $stmt = mysqli_prepare($conn, $week_refunds_query);
+    mysqli_stmt_bind_param($stmt, "s", $week_ago);
     mysqli_stmt_execute($stmt);
     $result = mysqli_stmt_get_result($stmt);
     $row = mysqli_fetch_assoc($result);
-    $last_week_pending = $row['last_week_pending'] ?? 0;
-    
-    if ($last_week_pending > 0) {
-        $pending_change_percent = round((($stats['pending_orders'] - $last_week_pending) / $last_week_pending) * 100, 1);
-        $stats['pending_change'] = ($pending_change_percent >= 0 ? '+' : '') . $pending_change_percent . '% from last week';
-    } else {
-        $stats['pending_change'] = 'New orders this week';
-    }
+    $week_refunds = $row['week_refunds'] ?? 0;
+    $stats['refund_change'] = $week_refunds . ' new this week';
 } catch (Exception $e) {
-    $stats['pending_change'] = 'Data unavailable';
-}
-
-// Get orders change from last week
-try {
-    $week_ago = date('Y-m-d', strtotime('-7 days'));
-    $last_week_orders_query = "SELECT COUNT(*) as last_week_orders FROM orders 
-                              WHERE DATE(order_date) >= ? AND DATE(order_date) < ?";
-    $two_weeks_ago = date('Y-m-d', strtotime('-14 days'));
-    $stmt = mysqli_prepare($conn, $last_week_orders_query);
-    mysqli_stmt_bind_param($stmt, "ss", $two_weeks_ago, $week_ago);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-    $row = mysqli_fetch_assoc($result);
-    $last_week_orders = $row['last_week_orders'] ?? 0;
-    
-    if ($last_week_orders > 0) {
-        $orders_change_percent = round((($stats['total_orders'] - $last_week_orders) / $last_week_orders) * 100, 1);
-        $stats['orders_change'] = ($orders_change_percent >= 0 ? '+' : '') . $orders_change_percent . '% from last week';
-    } else {
-        $stats['orders_change'] = 'First week data';
-    }
-} catch (Exception $e) {
-    $stats['orders_change'] = 'Data unavailable';
-}
-
-// Get bulk orders pending approval
-try {
-    $pending_bulk_query = "SELECT COUNT(*) as pending_bulk FROM bulk_orders WHERE status = 'pending'";
-    $result = mysqli_query($conn, $pending_bulk_query);
-    if ($result) {
-        $row = mysqli_fetch_assoc($result);
-        $pending_bulk = $row['pending_bulk'] ?? 0;
-        $stats['bulk_change'] = $pending_bulk . ' pending approval';
-    } else {
-        $stats['bulk_change'] = '0 pending approval';
-    }
-} catch (Exception $e) {
-    $stats['bulk_change'] = 'Data unavailable';
+    $stats['refund_change'] = 'Data unavailable';
 }
 ?>
 <!DOCTYPE html>
@@ -420,24 +444,25 @@ try {
         <div class="dashboard-container">
             <div class="dashboard-section-1">
                 <div class="service-cards-grid">
-                    <!-- Today Income -->
-                    <div class="service-card" data-stat="today_income">
+
+                    <!-- Sales Today -->
+                    <div class="service-card" data-stat="today_sales">
                         <div class="card-header">
-                            <span class="card-title">Total Sales Today</span>
+                            <span class="card-title">Sales Today</span>
                             <div class="card-loading-spinner"></div>
                         </div>
-                        <div class="card-value fas fa-peso-sign"> <?php echo number_format((double)$stats['today_income'], 2, '.', ','); ?></div>
+                        <div class="card-value fas fa-peso-sign"> <?php echo number_format((double)$stats['today_sales'], 2, '.', ','); ?></div>
                         <div class="card-change positive"><?php echo $stats['today_change']; ?></div>
                     </div>
 
-                    <!-- Net Income -->
-                    <div class="service-card" data-stat="net_income">
+                    <!-- Month Net Profit -->
+                    <div class="service-card" data-stat="month_net_profit">
                         <div class="card-header">
-                            <span class="card-title">Total Revenue (All Time)</span>
+                            <span class="card-title">Month Net Profit</span>
                             <div class="card-loading-spinner"></div>
                         </div>
-                        <div class="card-value fas fa-peso-sign"> <?php echo number_format((double)$stats['net_income'], 2, '.', ','); ?></div>
-                        <div class="card-change positive"><?php echo $stats['net_change']; ?></div>
+                        <div class="card-value fas fa-peso-sign"> <?php echo number_format((double)$stats['month_net_profit'], 2, '.', ','); ?></div>
+                        <div class="card-change positive"><?php echo $stats['profit_change']; ?></div>
                     </div>
 
                     <!-- Total Products -->
@@ -450,34 +475,34 @@ try {
                         <div class="card-change positive"><?php echo $stats['products_change']; ?></div>
                     </div>
 
-                    <!-- Pending Orders -->
-                    <div class="service-card" data-stat="pending_orders">
+                    <!-- Active Orders -->
+                    <div class="service-card" data-stat="active_orders">
                         <div class="card-header">
-                            <span class="card-title">Pending Orders</span>
+                            <span class="card-title">Active Orders</span>
                             <div class="card-loading-spinner"></div>
                         </div>
-                        <div class="card-value"><?php echo number_format($stats['pending_orders'], 0); ?></div>
-                        <div class="card-change positive"><?php echo $stats['pending_change']; ?></div>
+                        <div class="card-value"><?php echo number_format($stats['active_orders'], 0); ?></div>
+                        <div class="card-change"><?php echo $stats['active_orders_change']; ?></div>
                     </div>
 
-                    <!-- Total Orders -->
-                    <div class="service-card" data-stat="total_orders">
+                    <!-- Active Bulk Orders -->
+                    <div class="service-card" data-stat="active_bulk_orders">
                         <div class="card-header">
-                            <span class="card-title">Total Orders</span>
+                            <span class="card-title">Active Bulk Orders</span>
                             <div class="card-loading-spinner"></div>
                         </div>
-                        <div class="card-value"><?php echo number_format($stats['total_orders'], 0); ?></div>
-                        <div class="card-change positive"><?php echo $stats['orders_change']; ?></div>
+                        <div class="card-value"><?php echo number_format($stats['active_bulk_orders'], 0); ?></div>
+                        <div class="card-change"><?php echo $stats['active_bulk_change']; ?></div>
                     </div>
 
-                    <!-- Bulk Orders -->
-                    <div class="service-card" data-stat="bulk_orders">
+                    <!-- Active Refund Requests -->
+                    <div class="service-card" data-stat="active_refund_requests">
                         <div class="card-header">
-                            <span class="card-title">Total Bulk Orders</span>
+                            <span class="card-title">Active Refund Requests</span>
                             <div class="card-loading-spinner"></div>
                         </div>
-                        <div class="card-value"><?php echo number_format($stats['bulk_orders'], 0); ?></div>
-                        <div class="card-change"><?php echo $stats['bulk_change']; ?></div>
+                        <div class="card-value"><?php echo number_format($stats['active_refund_requests'], 0); ?></div>
+                        <div class="card-change"><?php echo $stats['refund_change']; ?></div>
                     </div>
                 </div>
 

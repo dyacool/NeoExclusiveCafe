@@ -1,21 +1,28 @@
 <?php
+// Start session first before any output
+if (session_status() === PHP_SESSION_NONE) {
+    // Fix Windows session path permission issues (same as admin database.php)
+    $session_path = sys_get_temp_dir();
+    if (is_writable($session_path)) {
+        session_save_path($session_path);
+    }
+    session_start();
+}
 
 // Suppress error display and ensure clean JSON output
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 
-// Set JSON header first, before any output
-header('Content-Type: application/json');
-
 // Start output buffering to catch any accidental output
 ob_start();
 
 try {
     require_once __DIR__ . '/../../includes/session-manager.php';
-    require_once __DIR__ . '/../../config/database-config.php';
+    require_once __DIR__ . '/../../backend/pages/admin-includes/database.php';
 } catch (Exception $e) {
     ob_end_clean();
+    header('Content-Type: application/json');
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'System error: ' . $e->getMessage()]);
     exit;
@@ -24,17 +31,36 @@ try {
 // Clear any output that might have been generated
 ob_end_clean();
 
+// Set JSON header after clearing output buffer
+header('Content-Type: application/json');
+
 // Wrap everything in try-catch for error handling
 try {
+    // Debug session state
+    error_log("Review API - Session ID: " . session_id());
+    error_log("Review API - Session data: " . print_r($_SESSION, true));
+    error_log("Review API - User logged in check: " . (SessionManager::isUserLoggedIn() ? 'true' : 'false'));
+    
     // Check if user is logged in
     if (!SessionManager::isUserLoggedIn()) {
         http_response_code(401);
-        echo json_encode(['success' => false, 'message' => 'Please log in to submit a review']);
+        echo json_encode([
+            'success' => false, 
+            'message' => 'Please log in to submit a review',
+            'debug' => [
+                'session_id' => session_id(),
+                'has_user_id' => isset($_SESSION['user_id']),
+                'has_user_role' => isset($_SESSION['user_role']),
+                'user_role_value' => $_SESSION['user_role'] ?? 'not set'
+            ]
+        ]);
         exit;
     }
 
     $user_id = SessionManager::getUserId();
-    $conn = getDatabaseConnection();
+    
+    // Get database connection from admin-includes (already loaded)
+    global $conn;
     
     if (!$conn) {
         throw new Exception('Database connection failed');

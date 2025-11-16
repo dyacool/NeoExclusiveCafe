@@ -218,6 +218,88 @@
         }
     }
     
+    // Get Top 3 Best-Selling Products by Bulk Order Category
+    $bulk_category_products = [];
+    
+    // First, get ALL unique purposes from the database with actual data (completed orders only)
+    $purposes_sql = "SELECT DISTINCT TRIM(bo.purpose) as purpose, COUNT(*) as count
+                     FROM bulk_orders bo
+                     INNER JOIN bulk_order_items boi ON bo.id = boi.bulk_order_id
+                     WHERE bo.purpose IS NOT NULL AND bo.purpose != ''
+                     AND bo.status = 'completed'
+                     GROUP BY TRIM(bo.purpose)";
+    $purposes_result = mysqli_query($conn, $purposes_sql);
+    $existing_purposes = [];
+    if ($purposes_result) {
+        while ($purpose_row = mysqli_fetch_assoc($purposes_result)) {
+            $existing_purposes[] = [
+                'purpose' => $purpose_row['purpose'],
+                'count' => $purpose_row['count']
+            ];
+        }
+    }
+    
+    error_log("=== BULK ORDER DEBUG ===");
+    error_log("Existing purposes with counts (completed only): " . json_encode($existing_purposes));
+    
+    // Use the actual purposes from database instead of predefined categories
+    $categories_to_use = [];
+    foreach ($existing_purposes as $purpose_data) {
+        $categories_to_use[] = $purpose_data['purpose'];
+    }
+    
+    // If no purposes found, log and return empty
+    if (empty($categories_to_use)) {
+        error_log("WARNING: No completed bulk orders found with purposes!");
+        $bulk_category_products = [];
+    } else {
+        foreach ($categories_to_use as $category) {
+            // Query to get ALL bulk order products by category (completed orders only)
+            // Note: Using product_price column as per database schema
+            $bulk_products_sql = "SELECT 
+                                    boi.product_name,
+                                    SUM(boi.quantity) as total_quantity,
+                                    SUM(boi.quantity * boi.product_price) as total_revenue,
+                                    COUNT(DISTINCT bo.id) as order_count
+                                FROM bulk_order_items boi
+                                INNER JOIN bulk_orders bo ON boi.bulk_order_id = bo.id
+                                WHERE TRIM(bo.purpose) = ?
+                                AND bo.status = 'completed'
+                                GROUP BY boi.product_name
+                                ORDER BY total_quantity DESC
+                                LIMIT 3";
+            
+            $bulk_products_stmt = mysqli_prepare($conn, $bulk_products_sql);
+            if ($bulk_products_stmt) {
+                mysqli_stmt_bind_param($bulk_products_stmt, "s", $category);
+                mysqli_stmt_execute($bulk_products_stmt);
+                $bulk_products_result = mysqli_stmt_get_result($bulk_products_stmt);
+                
+                $products = [];
+                while ($product_row = mysqli_fetch_assoc($bulk_products_result)) {
+                    $products[] = [
+                        'product_name' => $product_row['product_name'],
+                        'quantity' => (int)$product_row['total_quantity'],
+                        'revenue' => (float)$product_row['total_revenue'],
+                        'order_count' => (int)$product_row['order_count']
+                    ];
+                }
+                
+                error_log("Category '$category' (completed) found " . count($products) . " products: " . json_encode($products));
+                
+                // Only add category to chart if it has products
+                if (count($products) > 0) {
+                    $bulk_category_products[$category] = $products;
+                }
+                
+                mysqli_stmt_close($bulk_products_stmt);
+            }
+        }
+    }
+    
+    error_log("Final bulk_category_products (completed): " . json_encode($bulk_category_products));
+    error_log("=== END BULK ORDER DEBUG ===");
+    
     // Calculate total discounts applied
     $total_discounts = 0;
     $discount_sql = "SELECT SUM(discount_amount) as total_discounts 
@@ -530,6 +612,16 @@
                         <canvas id="topProductsChart"></canvas>
                     </div>
                 </div>
+
+                <div class="charts-grid">
+                    <div class="chart-card full-width">
+                        <div class="chart-header">
+                            <span class="chart-title">Top 3 Products by Bulk Order Category</span>
+                            <span class="chart-subtitle">Best-selling products across Corporate Event, Wedding, Birthday Party, Business Supply, and Others</span>
+                        </div>
+                        <canvas id="bulkCategoryProductsChart" style="max-height: 600px;"></canvas>
+                    </div>
+                </div>
             </div>
 
             <!-- Filter Controls -->
@@ -595,7 +687,7 @@
                         <tbody id="transactions-tbody">
                             <?php if (count($transactions) > 0): ?>
                                 <?php foreach ($transactions as $transaction): ?>
-                                    <tr onclick="viewTransaction(<?php echo $transaction['order_id']; ?>)" style="cursor: pointer;">
+                                    <tr onclick="viewTransaction('<?php echo addslashes($transaction['order_id']); ?>')" style="cursor: pointer;">
                                         <td>
                                             <?php echo htmlspecialchars($transaction['order_id']); ?>
                                             <?php if ($transaction['order_source'] === 'bulk'): ?>
@@ -758,7 +850,7 @@
             transactions.forEach(transaction => {
                 const statusClass = transaction.status.toLowerCase().replace(/[ -]/g, '_');
                 html += `
-                    <tr onclick="viewTransaction(${transaction.order_id})" style="cursor: pointer;">
+                    <tr onclick="viewTransaction('${transaction.order_id}')" style="cursor: pointer;">
                         <td>${escapeHtml(transaction.order_id)}</td>
                         <td>${formatDate(transaction.order_date)}</td>
                         <td>${escapeHtml(transaction.customer_name)}</td>
@@ -958,22 +1050,47 @@
 
         // Transaction modal functions
         function viewTransaction(orderId) {
-            fetch(`../homepage/get-order-details.php?id=${orderId}`)
+            // Detect if this is a bulk order (IDs starting with "BO")
+            const isBulkOrder = orderId.toString().startsWith('BO');
+            const endpoint = isBulkOrder 
+                ? `../homepage/get-bulk-order-details.php?id=${orderId}`
+                : `../homepage/get-order-details.php?id=${orderId}`;
+            
+            fetch(endpoint)
                 .then(response => response.json())
                 .then(order => {
                     const modal = document.getElementById('transactionModal');
                     const details = document.getElementById('transactionDetails');
                     
                     // Format display date based on order type
-                    const displayDate = order.order_type === 'Pick-up' ? 
-                        `<div class="detail-row">
-                            <div class="detail-label">Pickup Date:</div>
-                            <div class="detail-value">${order.pickup_date || 'N/A'}</div>
-                        </div>` : 
-                        `<div class="detail-row">
-                            <div class="detail-label">Delivery Date:</div>
-                            <div class="detail-value">${order.delivery_date || 'N/A'}</div>
-                        </div>`;
+                    let displayDate = '';
+                    if (isBulkOrder) {
+                        // Bulk orders use purpose and date_needed fields
+                        displayDate = `
+                            <div class="detail-row">
+                                <div class="detail-label">Purpose:</div>
+                                <div class="detail-value">${order.purpose || 'N/A'}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Date Needed:</div>
+                                <div class="detail-value">${order.pickup_date || 'N/A'}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Time Needed:</div>
+                                <div class="detail-value">${order.pickup_time || 'N/A'}</div>
+                            </div>`;
+                    } else {
+                        // Regular orders use pickup/delivery date
+                        displayDate = order.order_type === 'Pick-up' ? 
+                            `<div class="detail-row">
+                                <div class="detail-label">Pickup Date:</div>
+                                <div class="detail-value">${order.pickup_date || 'N/A'}</div>
+                            </div>` : 
+                            `<div class="detail-row">
+                                <div class="detail-label">Delivery Date:</div>
+                                <div class="detail-value">${order.delivery_date || 'N/A'}</div>
+                            </div>`;
+                    }
                     
                     // Build order items HTML
                     let itemsHtml = '';
@@ -1015,6 +1132,11 @@
                         `;
                     }
                     
+                    // Build delivery address for bulk orders
+                    const addressDisplay = isBulkOrder && order.delivery_address 
+                        ? order.delivery_address 
+                        : (order.customer_address || 'N/A');
+                    
                     details.innerHTML = `
                         <div class="detail-row">
                             <div class="detail-label">Order #:</div>
@@ -1034,11 +1156,11 @@
                         </div>
                         <div class="detail-row">
                             <div class="detail-label">Address:</div>
-                            <div class="detail-value">${order.customer_address || 'N/A'}</div>
+                            <div class="detail-value">${addressDisplay}</div>
                         </div>
                         <div class="detail-row">
                             <div class="detail-label">Delivery Method:</div>
-                            <div class="detail-value">${order.order_type}</div>
+                            <div class="detail-value">${order.delivery_method || order.order_type || 'N/A'}</div>
                         </div>
                         ${displayDate}
                         <div class="detail-row">
@@ -1092,6 +1214,7 @@
                     renderDeliveryMethodsChart(data.data.delivery_methods);
                     renderExpenseCategoriesChart();
                     renderTopProductsChart(data.data.top_products);
+                    renderBulkCategoryProductsChart();
                 } else {
                     console.error('Error fetching chart data:', data.error);
                 }
@@ -1486,6 +1609,278 @@
                                     size: window.innerWidth <= 1440 ? 11 : 12
                                 }
                             }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Render Bulk Category Products Chart
+        let bulkCategoryProductsChart = null;
+        function renderBulkCategoryProductsChart() {
+            const ctx = document.getElementById('bulkCategoryProductsChart').getContext('2d');
+            
+            if (bulkCategoryProductsChart) {
+                bulkCategoryProductsChart.destroy();
+            }
+            
+            // Prepare data for the chart
+            const bulkData = <?php echo json_encode($bulk_category_products); ?>;
+            
+            console.log('Bulk Data:', bulkData); // Debug log
+            
+            // Check if we have any data at all
+            if (!bulkData || Object.keys(bulkData).length === 0) {
+                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                ctx.fillStyle = '#6b7280';
+                ctx.font = '16px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('No bulk order data available', ctx.canvas.width / 2, ctx.canvas.height / 2);
+                return;
+            }
+            
+            // Build labels and datasets
+            const labels = [];
+            const quantityData = [];
+            const revenueData = [];
+            
+            // Define colors for each category (with fallback for unknown categories)
+            const categoryColors = {
+                'Corporate Event': { quantity: 'rgba(59, 130, 246, 0.8)', revenue: 'rgba(96, 165, 250, 0.8)' },
+                'Wedding': { quantity: 'rgba(236, 72, 153, 0.8)', revenue: 'rgba(244, 114, 182, 0.8)' },
+                'Birthday Party': { quantity: 'rgba(168, 85, 247, 0.8)', revenue: 'rgba(192, 132, 252, 0.8)' },
+                'Business Supply': { quantity: 'rgba(34, 197, 94, 0.8)', revenue: 'rgba(74, 222, 128, 0.8)' },
+                'Others': { quantity: 'rgba(251, 146, 60, 0.8)', revenue: 'rgba(253, 186, 116, 0.8)' }
+            };
+            
+            // Fallback colors for categories not in predefined list
+            const fallbackColors = [
+                { quantity: 'rgba(99, 102, 241, 0.8)', revenue: 'rgba(129, 140, 248, 0.8)' },
+                { quantity: 'rgba(239, 68, 68, 0.8)', revenue: 'rgba(248, 113, 113, 0.8)' },
+                { quantity: 'rgba(59, 130, 246, 0.8)', revenue: 'rgba(96, 165, 250, 0.8)' },
+                { quantity: 'rgba(16, 185, 129, 0.8)', revenue: 'rgba(52, 211, 153, 0.8)' },
+                { quantity: 'rgba(245, 158, 11, 0.8)', revenue: 'rgba(251, 191, 36, 0.8)' }
+            ];
+            
+            let fallbackIndex = 0;
+            
+            // Create arrays to store background colors
+            const quantityColors = [];
+            const revenueColors = [];
+            
+            // Process each category
+            Object.keys(bulkData).forEach(category => {
+                const products = bulkData[category];
+                
+                // Get colors for this category (use predefined or fallback)
+                let colors = categoryColors[category];
+                if (!colors) {
+                    colors = fallbackColors[fallbackIndex % fallbackColors.length];
+                    fallbackIndex++;
+                }
+                
+                // Add category separator label
+                labels.push(`━━ ${category} ━━`);
+                quantityData.push(null);
+                revenueData.push(null);
+                quantityColors.push('transparent');
+                revenueColors.push('transparent');
+                
+                // Add products for this category (all products since we removed 'No Data' filtering)
+                products.forEach(product => {
+                    labels.push(`   ${product.product_name}`);
+                    quantityData.push(product.quantity);
+                    revenueData.push(product.revenue);
+                    quantityColors.push(colors.quantity);
+                    revenueColors.push(colors.revenue);
+                });
+            });
+            
+            bulkCategoryProductsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Quantity Sold',
+                            data: quantityData,
+                            backgroundColor: quantityColors,
+                            borderColor: quantityColors.map(c => c.replace('0.8', '1')),
+                            borderWidth: 1,
+                            xAxisID: 'x1',
+                            barPercentage: 0.7,
+                            categoryPercentage: 0.8
+                        },
+                        {
+                            label: 'Revenue (₱)',
+                            data: revenueData,
+                            backgroundColor: revenueColors,
+                            borderColor: revenueColors.map(c => c.replace('0.8', '1')),
+                            borderWidth: 1,
+                            xAxisID: 'x',
+                            barPercentage: 0.7,
+                            categoryPercentage: 0.8
+                        }
+                    ]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    size: 13,
+                                    weight: '600'
+                                },
+                                padding: 15,
+                                usePointStyle: true,
+                                pointStyle: 'rect'
+                            }
+                        },
+                        tooltip: {
+                            enabled: true,
+                            callbacks: {
+                                title: function(context) {
+                                    const label = context[0].label;
+                                    // Don't show tooltip for category separators
+                                    if (label.includes('━━')) {
+                                        return '';
+                                    }
+                                    return label.trim();
+                                },
+                                label: function(context) {
+                                    // Don't show tooltip for category separators
+                                    if (context.label.includes('━━')) {
+                                        return '';
+                                    }
+                                    
+                                    if (context.datasetIndex === 0) {
+                                        return `Quantity: ${context.parsed.x} units`;
+                                    } else {
+                                        return `Revenue: ₱${context.parsed.x.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                                    }
+                                },
+                                beforeBody: function(context) {
+                                    // Don't show tooltip for category separators
+                                    if (context[0].label.includes('━━')) {
+                                        return '';
+                                    }
+                                }
+                            },
+                            filter: function(tooltipItem) {
+                                // Hide tooltip for category separators
+                                return !tooltipItem.label.includes('━━');
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            display: true,
+                            position: 'bottom',
+                            title: {
+                                display: true,
+                                text: 'Revenue (₱)',
+                                font: {
+                                    size: 12,
+                                    weight: '600'
+                                }
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '₱' + value.toLocaleString();
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'top',
+                            title: {
+                                display: true,
+                                text: 'Quantity Sold',
+                                font: {
+                                    size: 12,
+                                    weight: '600'
+                                }
+                            },
+                            grid: {
+                                drawOnChartArea: false
+                            },
+                            ticks: {
+                                stepSize: 1
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Products by Category',
+                                font: {
+                                    size: 12,
+                                    weight: '600'
+                                }
+                            },
+                            ticks: {
+                                callback: function(value, index) {
+                                    const label = this.getLabelForValue(value);
+                                    
+                                    // Style category separators differently
+                                    if (label.includes('━━')) {
+                                        return label;
+                                    }
+                                    
+                                    // Truncate long product names on smaller screens
+                                    if (window.innerWidth <= 1440) {
+                                        const maxLength = 20;
+                                        if (label.length > maxLength) {
+                                            return label.substr(0, maxLength) + '...';
+                                        }
+                                    }
+                                    return label;
+                                },
+                                font: function(context) {
+                                    const label = context.tick.label;
+                                    // Bold and larger font for category separators
+                                    if (typeof label === 'string' && label.includes('━━')) {
+                                        return {
+                                            size: 13,
+                                            weight: '700',
+                                            family: 'Inter, sans-serif'
+                                        };
+                                    }
+                                    return {
+                                        size: 11,
+                                        weight: '500'
+                                    };
+                                },
+                                color: function(context) {
+                                    const label = context.tick.label;
+                                    // Different color for category separators
+                                    if (typeof label === 'string' && label.includes('━━')) {
+                                        return '#1f2937';
+                                    }
+                                    return '#6b7280';
+                                },
+                                padding: 8
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    layout: {
+                        padding: {
+                            left: 10,
+                            right: 10,
+                            top: 10,
+                            bottom: 10
                         }
                     }
                 }
