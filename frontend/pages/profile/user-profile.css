@@ -324,7 +324,7 @@ body {
 .btn-view-order,
 .btn-view-details {
   flex: 1;
-  padding: 0.75rem 1.5rem;
+  padding: 0.75rem 1rem;
   background: transparent;
   color: var(--primary);
   border: 2px solid var(--primary);
@@ -345,9 +345,10 @@ body {
   color: white;
 }
 
+.btn-review,
 .btn-refund {
   flex: 1;
-  padding: 0.75rem 1.5rem;
+  padding: 0.75rem 1rem;
   background: transparent;
   color: var(--text-medium);
   border: 2px solid var(--border-color);
@@ -360,12 +361,14 @@ body {
   letter-spacing: 0.5px;
 }
 
+.btn-review:not([disabled]):hover,
 .btn-refund:not([disabled]):hover {
   background: var(--primary);
   color: white;
   border-color: var(--primary);
 }
 
+.btn-review[disabled],
 .btn-refund[disabled] {
   opacity: 0.4;
   cursor: not-allowed;
@@ -1061,6 +1064,7 @@ body {
 
   .btn-view-order,
   .btn-view-details,
+  .btn-review,
   .btn-refund {
     width: 100%;
   }
@@ -1172,6 +1176,7 @@ body {
 
   .btn-view-order,
   .btn-view-details,
+  .btn-review,
   .btn-refund {
     padding: 0.625rem 1rem;
     font-size: 0.813rem;
@@ -1349,6 +1354,7 @@ body {
 
   .btn-view-order,
   .btn-view-details,
+  .btn-review,
   .btn-refund {
     padding: 0.563rem 0.875rem;
     font-size: 0.75rem;
@@ -1561,6 +1567,7 @@ body {
 
   .btn-view-order,
   .btn-view-details,
+  .btn-review,
   .btn-refund {
     width: 100%;
   }

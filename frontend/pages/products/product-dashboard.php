@@ -513,13 +513,19 @@ if ($cart_truncated) {
                             // Add unavailable class if product is unavailable
                             $unavailableClass = $is_unavailable ? 'unavailable-product' : '';
                             
+                            // Build product details URL with category parameter if present
+                            $product_url = "product-details.php?id=" . $row['id'];
+                            if ($selected_category) {
+                                $product_url .= "&category=" . urlencode($selected_category);
+                            }
+                            
                             echo "<div class='product-card {$featuredClass} {$unavailableClass}' 
                                   data-product-id='" . $row['id'] . "'
                                   data-status='" . htmlspecialchars($row['status_name']) . "' 
                                   data-available-dates='" . htmlspecialchars($available_dates ?? '') . "'
                                   data-product='" . $productDataJson . "' 
                                   data-unavailable='" . ($is_unavailable ? 'true' : 'false') . "'
-                                  onclick='openProductModalFromData(this)'>";
+                                  onclick='window.location.href=\"" . $product_url . "\"' style='cursor: pointer;'>";
                             
                             // Display badges: Show capabilities based on product configuration AND stock availability AND date availability
                             if ($is_unavailable) {
@@ -698,35 +704,6 @@ if ($cart_truncated) {
     </div>
 </div>
 
-<!-- Product Modal -->
-<div id="productModal" class="modal" style="display: none;">
-    <div class="modal-content fade-in-pop">
-        <span class="close" onclick="closeProductModal()">&times;</span>
-        <div class="modal-body">
-            <div class="product-images">
-                <div class="main-image">
-                    <img id="modalMainImage" src="../../../assets/images/no-image.jpg" alt="Product Image">
-                </div>
-                <div class="thumbnail-container" id="thumbnailContainer">
-                    <!-- Thumbnails will be added here dynamically -->
-                </div>
-            </div>
-            <div class="product-details">
-                <h2 class="modal-title" id="modalProductName"></h2>
-                <p class="modal-price" id="modalProductPrice"></p>
-                <div class="prdct-qty">
-                    <span class="status-badge" id="modalProductStatus"></span>
-                    <p class="stock" id="modalProductStock"></p>
-                    <p class="available-days" id="modalProductAvailableDays" style="display: none;"></p>
-                </div>
-                <h3>Description:</h3>
-                <div class="description" id="modalProductDescription"></div>
-                <button class="add-to-cart" id="modalAddToCart" onclick="addToCartFromModal()">Add to Cart</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- Available Today Cart JavaScript -->
 <script src="availtoday-cart.js"></script>
 
@@ -745,8 +722,6 @@ if ($cart_truncated) {
         return true;
     }
     
-    // Remove console.log
-    let productModalOpen = false;
     let totalProducts = 0;
     const itemsPerRow = 4;
 
@@ -850,151 +825,6 @@ if ($cart_truncated) {
         }, 3000);
     }
 
-    function openProductModal(product) {
-        try {
-            if (!product || typeof product !== 'object') {
-                console.error('Invalid product data:', product);
-                return;
-            }
-
-            currentProductModalData = product; // Store for later use
-            const modal = document.getElementById('productModal');
-            const mainImage = document.getElementById('modalMainImage');
-            const thumbnails = document.getElementById('thumbnailContainer');
-            const productName = document.getElementById('modalProductName');
-            const productPrice = document.getElementById('modalProductPrice');
-            const productStatus = document.getElementById('modalProductStatus');
-            const productDescription = document.getElementById('modalProductDescription');
-            const productStock = document.getElementById('modalProductStock');
-            const productAvailableDays = document.getElementById('modalProductAvailableDays');
-            // const quantityInput = document.getElementById('modalQuantity'); // Removed - using quantity modal
-            const addToCartBtn = document.getElementById('modalAddToCart');
-
-            // Set main content
-            productName.textContent = product.name || 'Unknown Product';
-            productPrice.textContent = '₱' + (parseFloat(product.price) || 0).toFixed(2);
-            productStatus.textContent = product.status || 'Available Today';
-            productStatus.className = 'status-badge status-' + (product.status || '').toLowerCase().replace(' ', '-');
-            productDescription.textContent = product.description || 'No description available';
-            productStock.textContent = 'Stock: ' + (product.quantity || 0);
-
-            // Handle available dates in modal
-            // Status 4 = Same Day Order (changed from 3)
-            const availableDates = product.status_id == 4 ? product.todays_product_dates : product.regular_today_dates;
-            if (availableDates && availableDates.length > 0) {
-                // Format dates for display (e.g., "8/27, 8/28, 8/29")
-                const formattedDates = availableDates.map(date => {
-                    const dateObj = new Date(date + 'T00:00:00'); // Add time to avoid timezone issues
-                    return (dateObj.getMonth() + 1) + '/' + dateObj.getDate(); // Format as M/D
-                });
-                productAvailableDays.textContent = 'Available: ' + formattedDates.join(', ');
-                productAvailableDays.style.display = 'block';
-            } else {
-                productAvailableDays.style.display = 'none';
-            }
-
-            // Set up images - handle both Cloudinary URLs and local paths
-            if (product.images && Array.isArray(product.images) && product.images.length > 0) {
-                // Helper function to get proper image path
-                const getImagePath = (img) => {
-                    if (img.startsWith('http://') || img.startsWith('https://')) {
-                        return img; // It's a full URL (Cloudinary)
-                    }
-                    return '../../../assets/' + img; // It's a local path
-                };
-                
-                mainImage.src = getImagePath(product.images[0]);
-                thumbnails.innerHTML = '';
-                product.images.forEach((image, index) => {
-                    if (image) {
-                        const thumb = document.createElement('img');
-                        thumb.src = getImagePath(image);
-                        thumb.alt = `${product.name || 'Product'} view ${index + 1}`;
-                        thumb.onclick = () => mainImage.src = thumb.src;
-                        thumbnails.appendChild(thumb);
-                    }
-                });
-            } else {
-                mainImage.src = '../../../assets/images/no-image.jpg';
-                thumbnails.innerHTML = '';
-            }
-
-            // Check if product is unavailable
-            let isUnavailable = false;
-            let unavailableReason = '';
-            
-            const preorderStock = product.quantity || 0;
-            const samedayStock = product.sameday_stock_today || 0;
-            const hasAvailtoday = product.availtoday_status_id != null && product.availtoday_status_id != '';
-            const todayDate = new Date().toISOString().split('T')[0]; // Get today's date in Y-m-d format
-            
-            // Check stock based on product type
-            let stockUnavailable = false;
-            
-            if (product.status_id == 4) {
-                // Status 4: Same Day ONLY product
-                stockUnavailable = (samedayStock == 0 || samedayStock === null);
-            } else if ([1, 2, 3].includes(product.status_id)) {
-                if (hasAvailtoday) {
-                    // DUAL capability: unavailable if BOTH stocks are 0
-                    stockUnavailable = (preorderStock == 0 && (samedayStock == 0 || samedayStock === null));
-                } else {
-                    // Pre-order ONLY
-                    stockUnavailable = (preorderStock == 0);
-                }
-            }
-            
-            // Check date availability
-            let dateUnavailable = false;
-            
-            if (product.status_id == 4) {
-                // Same-day ONLY: must have date in todays_product_dates
-                const todaysDates = product.todays_product_dates || [];
-                dateUnavailable = !todaysDates.includes(todayDate);
-            }
-            // Note: DUAL capability products (status 1/2/3 with availtoday) are not date-restricted for display
-            
-            // Determine overall unavailability
-            isUnavailable = stockUnavailable || dateUnavailable;
-            
-            if (stockUnavailable) {
-                unavailableReason = 'Out of Stock';
-            } else if (dateUnavailable) {
-                unavailableReason = 'Not Available Today';
-            }
-            
-            // Set up Add to Cart button
-            if (isUnavailable) {
-                addToCartBtn.disabled = true;
-                addToCartBtn.textContent = 'Unavailable - ' + unavailableReason;
-                addToCartBtn.classList.add('unavailable-btn');
-                addToCartBtn.onclick = null;
-            } else {
-                addToCartBtn.disabled = false;
-                addToCartBtn.textContent = 'Add to Cart';
-                addToCartBtn.classList.remove('unavailable-btn');
-                addToCartBtn.onclick = () => addToCartFromModal();
-            }
-
-            modal.classList.add('show');
-        } catch (error) {
-            console.error('Error in openProductModal:', error);
-            showConfirmation('An error occurred while opening the product details', true);
-        }
-    }
-
-function closeProductModal() {
-    productModalOpen = false;
-    const modal = document.getElementById('productModal');
-    modal.classList.remove('show');
-}    // Close modal when clicking outside
-    window.onclick = function(event) {
-        const modal = document.getElementById('productModal');
-        if (event.target == modal) {
-            closeProductModal();
-        }
-    }
-
     // Add touch/swipe support for mobile
     // Enhanced touch/swipe support for smooth scrolling
     let isScrolling = false;
@@ -1052,12 +882,6 @@ function closeProductModal() {
             });
     }
 
-    // Open product modal from data attribute
-    window.openProductModalFromData = function(element) {
-        const productData = JSON.parse(element.getAttribute('data-product'));
-        openProductModal(productData);
-    };
-    
     // Add loading state handling for images with performance optimizations
     document.addEventListener('DOMContentLoaded', function() {
         const productImages = document.querySelectorAll('.product-dashboard-image');
@@ -1152,43 +976,6 @@ function closeProductModal() {
             availtodayStatusId: availtodayStatusId,
             selectedOrderType: 'preorder' // Default
         };
-        
-        // Open quantity modal with order type options
-        openQuantityModalWithOrderType(productName, productPrice, productStock, statusId, availtodayStatusId);
-    }
-
-    // Add to cart from modal - Opens quantity modal
-    function addToCartFromModal() {
-        // Check if user is logged in
-        if (!checkLoginAndRedirect()) {
-            return;
-        }
-        
-        if (!currentProductModalData) {
-            console.error('No product data available');
-            return;
-        }
-        
-        const productName = currentProductModalData.name;
-        const productPrice = '₱' + parseFloat(currentProductModalData.price).toFixed(2);
-        const productStock = currentProductModalData.quantity;
-        const statusId = currentProductModalData.status_id;
-        const availtodayStatusId = currentProductModalData.availtoday_status_id;
-        
-        // Store product info for later
-        pendingCartProduct = {
-            id: currentProductModalData.id,
-            name: productName,
-            price: productPrice,
-            stock: productStock,
-            button: null,
-            statusId: statusId,
-            availtodayStatusId: availtodayStatusId,
-            selectedOrderType: 'preorder' // Default
-        };
-        
-        // Close product modal first
-        closeProductModal();
         
         // Open quantity modal with order type options
         openQuantityModalWithOrderType(productName, productPrice, productStock, statusId, availtodayStatusId);

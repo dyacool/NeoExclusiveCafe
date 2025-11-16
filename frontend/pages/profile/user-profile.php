@@ -542,7 +542,11 @@ if ($bulk_orders_stmt) {
                             
                             <!-- Action Buttons -->
                             <div class="order-actions">
-                                <a href="../cart/order-details.php?order_id=<?php echo $order['order_id']; ?>" class="btn-view-order">VIEW ORDER</a>
+                                <a href="../cart/order-details.php?order_id=<?php echo $order['order_id']; ?>" class="btn-view-order">View Order</a>
+                                <button class="btn-review" <?php echo !$is_delivered ? 'disabled' : ''; ?> 
+                                        <?php if ($is_delivered): ?>onclick="window.location.href='../cart/order-details.php?order_id=<?php echo $order['order_id']; ?>#review'"<?php endif; ?>>
+                                    Submit Review
+                                </button>
                                 <button class="btn-refund" <?php echo !$is_delivered ? 'disabled' : ''; ?> 
                                         <?php if ($is_delivered): ?>onclick="window.location.href='../cart/order-details.php?order_id=<?php echo $order['order_id']; ?>#refund'"<?php endif; ?>>
                                     Refund

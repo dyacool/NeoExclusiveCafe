@@ -456,10 +456,13 @@ require_once __DIR__ . "/../user-includes/navbar/customer-navigation.php";
                             // Add unavailable class if product is unavailable
                             $unavailableClass = $is_unavailable ? 'unavailable-product' : '';
                             
+                            // Build product details URL
+                            $product_url = "/frontend/pages/products/product-details.php?id=" . $row['id'];
+                            
                             echo "<div class='product-card {$featuredClass} {$unavailableClass}' data-status='" . htmlspecialchars($row['status_name']) . "' 
                                   data-product='" . $productDataJson . "' 
                                   data-unavailable='" . ($is_unavailable ? 'true' : 'false') . "'
-                                  onclick='openProductModalFromData(this)'>";
+                                  onclick='window.location.href=\"" . $product_url . "\"' style='cursor: pointer;'>";
                             
                             // Display badges: Show capabilities based on product configuration
                             if ($is_unavailable) {

@@ -26,6 +26,7 @@ $route_mappings = [
     'weekly-product' => ['For Delivery', '/frontend/pages/products/weekly-product.php'],
     'user-products' => ['For Pick Up', '/frontend/pages/products/user-products.php'],
     'product' => ['Product Details', ''],
+    'product-details' => ['Product Details', ''],
     
     // Bulk order routes
     'bulk-form' => ['Bulk Order', '/frontend/pages/bulk/bulk-form.php'],
@@ -82,6 +83,7 @@ $hierarchy = [
     'weekly-product' => ['user-dashboard', 'products-categories'],
     'user-products' => ['user-dashboard', 'products-categories'],
     'product' => ['user-dashboard', 'products-categories'],
+    'product-details' => ['user-dashboard'], // Dynamic parent handled separately
     
     // Bulk order hierarchy
     'bulk-form' => ['user-dashboard'],
@@ -188,6 +190,37 @@ function generateBreadcrumb($current_page, $route_mappings, $hierarchy, $context
         } else {
             // Default or came from Customer Testimonials
             $breadcrumb[] = ['Customer Testimonials', '/frontend/pages/blog/user-blog.php', false];
+        }
+    } elseif ($current_page === 'product-details') {
+        // Dynamic back location for product details based on referrer
+        $referrer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
+        
+        if (strpos($referrer, 'search-results.php') !== false) {
+            // Came from search results
+            $breadcrumb[] = ['Search Results', '/frontend/search/search-results.php', false];
+        } elseif (strpos($referrer, 'product-dashboard.php') !== false) {
+            // Came from product dashboard with category
+            if (isset($_GET['category'])) {
+                // Get category name from database
+                $category_slug = $_GET['category'];
+                $cat_query = "SELECT name FROM categories WHERE slug = ? AND is_active = 1";
+                $cat_stmt = $conn->prepare($cat_query);
+                $cat_stmt->bind_param("s", $category_slug);
+                $cat_stmt->execute();
+                $cat_result = $cat_stmt->get_result();
+                
+                if ($cat_result->num_rows > 0) {
+                    $cat_row = $cat_result->fetch_assoc();
+                    $breadcrumb[] = [$cat_row['name'], '/frontend/pages/products/product-dashboard.php?category=' . urlencode($category_slug), false];
+                } else {
+                    $breadcrumb[] = ['Products', '/frontend/pages/products/product-dashboard.php', false];
+                }
+            } else {
+                $breadcrumb[] = ['Products', '/frontend/pages/products/product-dashboard.php', false];
+            }
+        } else {
+            // Default to user dashboard (came from home or other location)
+            // No additional breadcrumb item needed, just Home -> Product Details
         }
     } else {
         // Add contextual parents based on URL structure

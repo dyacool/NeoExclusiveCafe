@@ -47,6 +47,14 @@ if ($conn) {
             once: true
         });
 
+        // Check if user just logged in (from session)
+        <?php if (isset($_SESSION['just_logged_in']) && $_SESSION['just_logged_in']): ?>
+        sessionStorage.setItem('justLoggedIn', 'true');
+        <?php 
+        unset($_SESSION['just_logged_in']); // Clear the flag
+        endif; 
+        ?>
+
         // Hero carousel simple slide transition
         let heroSlideIndex = 0;
         const heroSlides = document.querySelectorAll('.hero-slide');
@@ -537,6 +545,9 @@ $total_images = mysqli_num_rows($images_result);
                             
                             // Add unavailable class if product is unavailable
                             $unavailableClass = $is_unavailable ? 'unavailable-product' : '';
+                            
+                            // Build product details URL
+                            $product_url = "/frontend/pages/products/product-details.php?id=" . $row['id'];
                         ?>
                             <div class="product-card <?php echo $unavailableClass; ?>" 
                                 data-product-id="<?php echo $row['id']; ?>"
@@ -544,7 +555,7 @@ $total_images = mysqli_num_rows($images_result);
                                 data-available-dates="<?php echo htmlspecialchars($available_dates ?? ''); ?>"
                                 data-product="<?php echo $productDataJson; ?>" 
                                 data-unavailable="<?php echo $is_unavailable ? 'true' : 'false'; ?>"
-                                onclick="openProductModalFromData(this)">
+                                onclick="window.location.href='<?php echo $product_url; ?>'" style="cursor: pointer;">
                                 
                                 <?php
                                 // Display badges: Show capabilities based on product configuration AND stock availability
