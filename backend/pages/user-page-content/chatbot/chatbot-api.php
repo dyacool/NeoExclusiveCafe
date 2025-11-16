@@ -59,13 +59,37 @@ class CafeChatbot {
 
     private $responses = [];
 
-    public function getResponse($userInput) {
+    public function getResponse($userInput, $conversationHistory = []) {
         // Always log this request
         error_log("CHATBOT REQUEST: " . $userInput);
-        $userInput = "Based on this info:\n" . $this->getKnowledgeBaseContent() . "\n\nUser: " . $userInput;
+        
+        // Build context-aware prompt
+        $knowledgeBase = $this->getKnowledgeBaseContent();
+        
+        $systemPrompt = "You are a helpful AI assistant for NeoCafe, a coffee shop and cafe. ";
+        $systemPrompt .= "Your role is to answer customer questions about products, orders, promotions, business hours, and general inquiries. ";
+        $systemPrompt .= "IMPORTANT CONTEXT RULES:\n";
+        $systemPrompt .= "1. When customers say 'yes', 'sure', 'okay', 'please' - they're agreeing to your previous question. Provide what they asked for.\n";
+        $systemPrompt .= "2. When customers refer to 'number X', 'the Xth one', 'item X' - they mean item X from your previous list. Look back at what you just sent.\n";
+        $systemPrompt .= "3. When customers say 'that one', 'it', 'the one you mentioned' - they mean the last product/item you mentioned.\n";
+        $systemPrompt .= "4. Always maintain context from previous messages. Read the RECENT CONVERSATION carefully before responding.\n";
+        $systemPrompt .= "5. Be conversational, friendly, and helpful. Format lists clearly with numbers.\n\n";
+        $systemPrompt .= "KNOWLEDGE BASE:\n" . $knowledgeBase . "\n\n";
+        
+        // Add conversation history context if available
+        if (!empty($conversationHistory)) {
+            $systemPrompt .= "RECENT CONVERSATION:\n";
+            foreach ($conversationHistory as $msg) {
+                $role = $msg['role'] === 'user' ? 'Customer' : 'You';
+                $systemPrompt .= "$role: " . $msg['message'] . "\n";
+            }
+            $systemPrompt .= "\n";
+        }
+        
+        $systemPrompt .= "Customer's current question: " . $userInput;
 
         try {
-            $response = $this->getCohereResponse($userInput);
+            $response = $this->getCohereResponse($systemPrompt, $conversationHistory);
             if (!empty($response)) {
                 error_log("COHERE RESPONSE: " . substr($response, 0, 100) . "...");
             } else {
@@ -74,12 +98,12 @@ class CafeChatbot {
             return $response;
         } catch (Exception $e) {
             error_log("COHERE ERROR: " . $e->getMessage());
-            return "Error connecting to my knowledge base: " . $e->getMessage();
+            return "I'm having trouble connecting to my knowledge base right now. Please try again in a moment.";
         }
     }
 
-    private function getCohereResponse($userInput) {
-        error_log('Starting getCohereResponse with input: ' . $userInput);
+    private function getCohereResponse($userInput, $conversationHistory = []) {
+        error_log('Starting getCohereResponse with input length: ' . strlen($userInput));
         
         if (empty($this->cohereApiKey)) {
             error_log('ERROR: No API key configured');
@@ -88,16 +112,25 @@ class CafeChatbot {
 
         $url = 'https://api.cohere.ai/v1/chat';
         
-        error_log('API URL: ' . $url);
+        // Convert conversation history to Cohere format
+        $chatHistory = [];
+        foreach ($conversationHistory as $msg) {
+            $chatHistory[] = [
+                'role' => $msg['role'] === 'user' ? 'USER' : 'CHATBOT',
+                'message' => $msg['message']
+            ];
+        }
         
         // Format the input for chat completion
         $data = [
             'message' => $userInput,
-            'chat_history' => [],
-            'model' => $this->cohereModel
+            'chat_history' => $chatHistory,
+            'model' => $this->cohereModel,
+            'temperature' => 0.7,
+            'max_tokens' => 500
         ];
 
-        error_log('Request data: ' . json_encode($data));
+        error_log('Request with history count: ' . count($chatHistory));
 
         try {
             $ch = curl_init($url);
@@ -384,16 +417,30 @@ class CafeChatbot {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $chatbot = new CafeChatbot();
-        $message = $_POST['message'] ?? '';
+        
+        // Get message from either POST data or JSON
+        $input = json_decode(file_get_contents('php://input'), true);
+        $message = $input['message'] ?? $_POST['message'] ?? '';
+        $conversationHistory = $input['history'] ?? [];
+        
+        // Debug logging
+        error_log('=== CHATBOT REQUEST ===');
+        error_log('Message: ' . $message);
+        error_log('History count: ' . count($conversationHistory));
+        error_log('History: ' . json_encode($conversationHistory));
         
         if (empty($message)) {
             throw new Exception('No message provided');
         }
         
-        $response = $chatbot->getResponse($message);
+        // Limit history to last 5 exchanges (10 messages) to avoid token limits
+        $conversationHistory = array_slice($conversationHistory, -10);
+        
+        $response = $chatbot->getResponse($message, $conversationHistory);
         echo json_encode(['response' => $response]);
         exit;
     } catch (Exception $e) {
+        error_log('Chatbot error: ' . $e->getMessage());
         echo json_encode(['error' => $e->getMessage()]);
         exit;
     }

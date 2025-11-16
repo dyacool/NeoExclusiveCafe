@@ -662,6 +662,27 @@ $error_message = '';
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        
+        .db-info-grid::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        .db-info-grid::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+        
+        .db-info-grid::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+        
+        .db-info-grid::-webkit-scrollbar-thumb:hover {
+            background: #555;
         }
 
         .db-info-item {

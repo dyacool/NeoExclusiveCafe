@@ -177,6 +177,9 @@ $is_admin_logged_in = SessionManager::isAdminLoggedIn();
             return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
 
+        // Store conversation history
+        let conversationHistory = [];
+
         function sendMessage() {
             const input = document.getElementById('chatInput');
             const message = input.value.trim();
@@ -184,6 +187,14 @@ $is_admin_logged_in = SessionManager::isAdminLoggedIn();
             if (message) {
                 addUserMessage(message);
                 input.value = '';
+                
+                // Add to conversation history
+                conversationHistory.push({
+                    role: 'user',
+                    message: message
+                });
+                
+                console.log('Conversation history after user message:', conversationHistory);
                 
                 // Show typing indicator
                 const chatMessages = document.getElementById('chatMessages');
@@ -194,16 +205,17 @@ $is_admin_logged_in = SessionManager::isAdminLoggedIn();
                 chatMessages.appendChild(typingIndicator);
                 chatMessages.scrollTop = chatMessages.scrollHeight;
                 
-                // Send message to chatbot
-                const formData = new FormData();
-                formData.append('message', message);
-                
+                // Send message with conversation history
                 fetch('/backend/pages/user-page-content/chatbot/chatbot-api.php', {
                     method: 'POST',
-                    body: formData,
                     headers: {
+                        'Content-Type': 'application/json',
                         'Accept': 'application/json'
-                    }
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        history: conversationHistory.slice(-10) // Send last 10 messages
+                    })
                 })
                 .then(response => {
                     if (!response.ok) {
@@ -235,9 +247,20 @@ $is_admin_logged_in = SessionManager::isAdminLoggedIn();
                     }
                     
                     if (data.error) {
-                        addBotMessage('Error: ' + data.error);
+                        const errorMsg = 'Error: ' + data.error;
+                        addBotMessage(errorMsg);
+                        conversationHistory.push({
+                            role: 'bot',
+                            message: errorMsg
+                        });
                     } else if (data.response) {
                         addBotMessage(data.response);
+                        // Add bot response to conversation history
+                        conversationHistory.push({
+                            role: 'bot',
+                            message: data.response
+                        });
+                        console.log('Conversation history after bot message:', conversationHistory);
                     } else {
                         throw new Error('Invalid response format from server');
                     }

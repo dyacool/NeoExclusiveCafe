@@ -146,8 +146,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_settings'])) {
 
                     <div class="tables-grid">
                         <?php 
-                        // Define table categories and descriptions with related tables
-                        $tableInfo = [
+                        // Define default table information for common tables
+                        $defaultTableInfo = [
                             'products' => [
                                 'icon' => 'fa-box', 
                                 'desc' => 'Product information, prices, descriptions, and inventory', 
@@ -192,11 +192,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_settings'])) {
                             ],
                         ];
                         
-                        // Filter to only show allowed tables
-                        $allowedTables = ['products', 'orders', 'categories', 'users', 'promotions', 'business_hours', 'bulk_orders'];
+                        // Generate info for all tables from database
+                        $tableInfo = [];
+                        foreach ($tables as $table) {
+                            if (isset($defaultTableInfo[$table])) {
+                                // Use predefined info
+                                $tableInfo[$table] = $defaultTableInfo[$table];
+                            } else {
+                                // Generate generic info
+                                $tableInfo[$table] = [
+                                    'icon' => 'fa-database',
+                                    'desc' => 'Database table: ' . $table,
+                                    'color' => '#607D8B',
+                                    'related_tables' => []
+                                ];
+                            }
+                        }
                         
-                        foreach ($allowedTables as $table):
-                            if (!in_array($table, $tables)) continue; // Skip if table doesn't exist in database
+                        // Show all tables from the database
+                        foreach ($tables as $table):
                             
                             $isSelected = in_array($table, $selectedTables);
                             $info = $tableInfo[$table];
@@ -409,6 +423,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_settings'])) {
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 20px;
             margin-bottom: 30px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        
+        .tables-grid::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .tables-grid::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        .tables-grid::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        
+        .tables-grid::-webkit-scrollbar-thumb:hover {
+            background: #555;
         }
 
         .table-card {
@@ -521,6 +556,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_settings'])) {
             display: flex;
             flex-direction: column;
             gap: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        
+        .preview-list::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .preview-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        .preview-list::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        
+        .preview-list::-webkit-scrollbar-thumb:hover {
+            background: #555;
         }
 
         .preview-empty {
