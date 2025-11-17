@@ -977,11 +977,28 @@ body {
 /* Tablet (768px - 1024px) */
 @media (max-width: 1024px) {
   .profile-wrapper {
+    flex-direction: column;
     gap: 1.5rem;
   }
+  .chevron {
+    display: none;
+  }
 
+  .sidebar-nav {
+    flex-direction: row;
+  }
+
+  .nav-item {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .section-title {
+    text-align: center;
+  }
   .profile-sidebar {
-    width: 240px;
+    width: 100%;
+    position: static;
   }
 
   .orders-grid {
@@ -1130,9 +1147,40 @@ body {
     padding: 0.875rem;
   }
 
+  .sidebar-nav {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.5rem;
+  }
+
+  .sidebar-nav .nav-item:nth-child(1),
+  .sidebar-nav .nav-item:nth-child(2),
+  .sidebar-nav .nav-item:nth-child(3) {
+    grid-column: span 2;
+  }
+
+  .sidebar-nav .nav-item:nth-child(4) {
+    grid-column: 2 / span 2;
+  }
+
+  .sidebar-nav .nav-item:nth-child(5) {
+    grid-column: 4 / span 2;
+  }
+
   .nav-item {
-    padding: 0.625rem 0.75rem;
-    font-size: 0.875rem;
+    padding: 0.625rem 0.5rem;
+    font-size: 0.75rem;
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+
+  .nav-item span {
+    font-size: 0.75rem;
+  }
+
+  .chevron {
+    display: none;
   }
 
   .nav-item i:first-child {
@@ -1140,7 +1188,7 @@ body {
   }
 
   .section-title {
-    font-size: 1.375rem;
+    font-size: 1.75rem;
   }
 
   .order-card {

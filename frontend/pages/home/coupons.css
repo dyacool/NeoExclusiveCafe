@@ -1,4 +1,4 @@
-/* Promotions/Coupons Section */
+/* Promotions/Coupons Section - Updated Version 2.0 */
 .promotions-section {
   padding: 60px 0;
   margin: 0 auto;
@@ -176,7 +176,7 @@
   }
 }
 
-/* 1024px and below - 3 coupons per row with adjusted width */
+/* 1024px and below - 3 coupons per row */
 @media (max-width: 1024px) {
   .coupon-card {
     width: calc((100vw - 40px - 2rem) / 3);
@@ -191,6 +191,11 @@
     width: calc((100vw - 40px - 1rem) / 2);
     max-width: 350px;
     min-width: 250px;
+  }
+
+  .coupon-card::before,
+  .coupon-card::after {
+    left: 70px;
   }
 
   .coupon-left {
@@ -215,23 +220,26 @@
   }
 }
 
-/* 425px and below - 2 coupons per row */
+/* 425px and below - 1 coupon per row */
 @media (max-width: 425px) {
   .coupon-card {
-    width: calc((100vw - 40px - 1rem) / 2);
-    max-width: 180px;
-    min-width: 150px;
-    flex-direction: column;
-    min-height: auto;
+    width: calc((100vw - 40px) / 1);
+    max-width: 100%;
+    min-width: unset;
   }
 
   .coupon-left {
-    width: 100%;
-    height: 60px;
+    width: 80px;
+  }
+
+  .coupon-card::before,
+  .coupon-card::after {
+    left: 70px;
   }
 
   .coupon-icon {
     font-size: 1.5rem;
+    padding: 8px;
   }
 
   .coupon-icon svg {
@@ -240,7 +248,7 @@
   }
 
   .coupon-right {
-    padding: 12px 15px;
+    padding: 12px;
   }
 
   .coupon-code {
@@ -252,55 +260,11 @@
     font-size: 0.65rem;
   }
 
-  .coupon-min-spend,
-  .coupon-validity {
+  .coupon-min-spend {
     font-size: 0.6rem;
   }
-}
 
-/* 375px and below - 1 coupon per row */
-@media (max-width: 375px) {
-  .promotion-grid {
-    flex-direction: column;
-    padding: 0 15px;
-  }
-
-  .coupon-card {
-    width: 100%;
-    max-width: 320px;
-    flex-direction: column;
-    min-height: auto;
-  }
-
-  .coupon-left {
-    width: 100%;
-    height: 70px;
-  }
-
-  .coupon-icon {
-    font-size: 1.8rem;
-  }
-
-  .coupon-icon svg {
-    width: 35px;
-    height: 35px;
-  }
-
-  .coupon-right {
-    padding: 15px 20px;
-  }
-
-  .coupon-code {
-    font-size: 0.95rem;
-    letter-spacing: 1px;
-  }
-
-  .coupon-type {
-    font-size: 0.75rem;
-  }
-
-  .coupon-min-spend,
   .coupon-validity {
-    font-size: 0.65rem;
+    font-size: 0.55rem;
   }
-} /* */
+}

@@ -2079,6 +2079,10 @@ window.addEventListener('click', function(event) {
 }
 
 @media (max-width: 768px) {
+
+        .testimonial-title {
+        FONT-SIZE: 2em;
+    }
     .testimonial-card {
         min-width: 280px;
         max-width: 280px;
@@ -2087,6 +2091,15 @@ window.addEventListener('click', function(event) {
     
     .testimonials-track {
         animation-duration: 15s;
+    }
+}
+
+@media (max-width: 480px) {
+    .testimonial-title {
+        FONT-SIZE: 1.5em;
+    }
+    .testimonials-track {
+        animation-duration: 12s;
     }
 }
 </style>
