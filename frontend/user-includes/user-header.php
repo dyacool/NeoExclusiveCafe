@@ -65,9 +65,51 @@ $is_admin_logged_in = SessionManager::isAdminLoggedIn();
         <div class="chat-messages" id="chatMessages">
             <!-- Messages will be added here -->
         </div>
-        <div class="chat-input-container">
-            <input type="text" class="chat-input" id="chatInput" placeholder="Type your message..." onkeypress="handleKeyPress(event)">
-            <button class="send-button" onclick="sendMessage()">Send</button>
+        <div class="chat-input-wrapper">
+            <div class="chat-faq-container" id="chatFaqContainer">
+                <div class="faq-header" onclick="toggleFaqSection()">
+                    <div class="faq-label">Frequently Asked Questions:</div>
+                    <button class="faq-toggle-btn" id="faqToggleBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="18 15 12 9 6 15"></polyline>
+                        </svg>
+                    </button>
+                </div>
+                <div class="faq-buttons" id="faqButtons">
+                    <button class="faq-button" onclick="fillChatInput('What are your best products?')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
+                        Best Products
+                    </button>
+                    <button class="faq-button" onclick="fillChatInput('What are your business hours?')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        Operating Hours
+                    </button>
+                    <button class="faq-button" onclick="fillChatInput('How do I place an order?')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="9" cy="21" r="1"></circle>
+                            <circle cx="20" cy="21" r="1"></circle>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                        </svg>
+                        Place Order
+                    </button>
+                    <button class="faq-button" onclick="fillChatInput('What payment methods do you accept?')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                            <line x1="1" y1="10" x2="23" y2="10"></line>
+                        </svg>
+                        Payment Methods
+                    </button>
+                </div>
+            </div>
+            <div class="chat-input-container">
+                <textarea class="chat-input" id="chatInput" placeholder="Type your message..." rows="1" onkeydown="handleKeyPress(event)" oninput="handleInputChange(this)"></textarea>
+                <button class="send-button" onclick="sendMessage()">Send</button>
+            </div>
         </div>
     </div>
 
@@ -187,6 +229,16 @@ $is_admin_logged_in = SessionManager::isAdminLoggedIn();
             if (message) {
                 addUserMessage(message);
                 input.value = '';
+                input.style.height = '44px';
+                
+                // Expand FAQ section after sending message
+                const faqContainer = document.getElementById('chatFaqContainer');
+                const chatWindow = document.getElementById('chatWindow');
+                faqContainer.classList.remove('minimized');
+                chatWindow.classList.remove('faq-minimized');
+                
+                // Scroll to bottom after expanding FAQ
+                scrollChatToBottom();
                 
                 // Add to conversation history
                 conversationHistory.push({
@@ -279,9 +331,75 @@ $is_admin_logged_in = SessionManager::isAdminLoggedIn();
         }
 
         function handleKeyPress(event) {
-            if (event.key === 'Enter') {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
                 sendMessage();
             }
+        }
+
+        function autoResizeTextarea(textarea) {
+            // Reset height to get accurate scrollHeight
+            textarea.style.height = '44px';
+            
+            // Calculate new height (min 44px, max 90px)
+            const newHeight = Math.min(Math.max(textarea.scrollHeight, 44), 90);
+            textarea.style.height = newHeight + 'px';
+        }
+
+        function scrollChatToBottom() {
+            const chatMessages = document.getElementById('chatMessages');
+            if (chatMessages) {
+                setTimeout(() => {
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }, 100);
+            }
+        }
+
+        function handleInputChange(textarea) {
+            autoResizeTextarea(textarea);
+            
+            // Check if input has text
+            const hasText = textarea.value.trim().length > 0;
+            const faqContainer = document.getElementById('chatFaqContainer');
+            const chatWindow = document.getElementById('chatWindow');
+            
+            if (hasText) {
+                // Minimize FAQ section when user types
+                faqContainer.classList.add('minimized');
+                chatWindow.classList.add('faq-minimized');
+            } else {
+                // Expand FAQ section when input is empty
+                faqContainer.classList.remove('minimized');
+                chatWindow.classList.remove('faq-minimized');
+            }
+            
+            // Scroll to bottom after FAQ state change
+            scrollChatToBottom();
+        }
+
+        function toggleFaqSection() {
+            const faqContainer = document.getElementById('chatFaqContainer');
+            const chatWindow = document.getElementById('chatWindow');
+            const input = document.getElementById('chatInput');
+            
+            // Only allow manual toggle if input is not empty
+            if (input.value.trim().length > 0) {
+                faqContainer.classList.toggle('minimized');
+                chatWindow.classList.toggle('faq-minimized');
+                
+                // Scroll to bottom after toggle
+                scrollChatToBottom();
+            }
+        }
+
+        function fillChatInput(text) {
+            const input = document.getElementById('chatInput');
+            input.value = text;
+            handleInputChange(input);
+            input.focus();
+            
+            // Optional: Auto-send after filling (remove if you want users to click Send manually)
+            // sendMessage();
         }
     </script>
     <!-- Responsive Fixes -->
