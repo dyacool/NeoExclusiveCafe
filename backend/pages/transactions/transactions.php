@@ -146,6 +146,25 @@
     // Calculate average order value
     $average_order_value = $total_orders > 0 ? $total_revenue / $total_orders : 0;
     
+    // Calculate ACTUAL total revenue from regular orders (not just paginated results)
+    $order_revenue = 0;
+    $order_count = 0;
+    $order_revenue_sql = "SELECT COUNT(*) as count, SUM(total_amount) as total
+                          FROM orders
+                          WHERE status IN ('Delivered', 'Picked-up', 'Completed')
+                          AND DATE(order_date) BETWEEN ? AND ?";
+    $order_revenue_stmt = mysqli_prepare($conn, $order_revenue_sql);
+    if ($order_revenue_stmt) {
+        mysqli_stmt_bind_param($order_revenue_stmt, "ss", $start_date, $end_date);
+        mysqli_stmt_execute($order_revenue_stmt);
+        $order_revenue_result = mysqli_stmt_get_result($order_revenue_stmt);
+        if ($order_revenue_row = mysqli_fetch_assoc($order_revenue_result)) {
+            $order_count = $order_revenue_row['count'] ?? 0;
+            $order_revenue = $order_revenue_row['total'] ?? 0;
+        }
+        mysqli_stmt_close($order_revenue_stmt);
+    }
+    
     // Calculate bulk order specific totals
     $bulk_revenue = 0;
     $bulk_orders_count = 0;
@@ -337,7 +356,7 @@
     }
     
     // Calculate Net Profit: Revenue - Expenses - Refunds - Discounts
-    $gross_revenue = $total_revenue + $bulk_revenue;
+    $gross_revenue = $order_revenue + $bulk_revenue;
     $net_profit = $gross_revenue - $total_expenses - $total_refunded - $total_discounts;
     
     // Get summary card sort parameters
@@ -420,14 +439,14 @@
                             </svg>
                         </div>
                         <h3>Gross Revenue</h3>
-                        <p class="amount" id="gross-revenue">₱<?php echo number_format($total_revenue + $bulk_revenue, 2); ?></p>
+                        <p class="amount" id="gross-revenue">₱<?php echo number_format($gross_revenue, 2); ?></p>
                         <p class="period"><?php echo date('M d, Y', strtotime($start_date)); ?> - <?php echo date('M d, Y', strtotime($end_date)); ?></p>
                         <div class="trend positive">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polyline points="23,6 13.5,15.5 8.5,10.5 1,18"></polyline>
                                 <polyline points="17,6 23,6 23,12"></polyline>
                             </svg>
-                            Total sales revenue
+                            Order Sales + Bulk Sales
                         </div>
                     </div>
 
@@ -441,14 +460,14 @@
                         <h3 onclick="sortSummary('revenue')" class="<?php echo $summary_sort === 'revenue' ? 'sorted ' . $summary_direction : ''; ?>">
                             Order Sales
                         </h3>
-                        <p class="amount" id="total-revenue">₱<?php echo number_format($total_revenue, 2); ?></p>
+                        <p class="amount" id="total-revenue">₱<?php echo number_format($order_revenue, 2); ?></p>
                         <p class="period"><?php echo date('M d, Y', strtotime($start_date)); ?> - <?php echo date('M d, Y', strtotime($end_date)); ?></p>
                         <div class="trend positive">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polyline points="23,6 13.5,15.5 8.5,10.5 1,18"></polyline>
                                 <polyline points="17,6 23,6 23,12"></polyline>
                             </svg>
-                            Order Sales
+                            Regular order sales
                         </div>
                     </div>
 
@@ -564,6 +583,15 @@
             <!-- Charts Section -->
             <div class="charts-section">
                 <div class="charts-grid">
+                    <div class="chart-card full-width">
+                        <div class="chart-header">
+                            <span class="chart-title">Products Sales</span>
+                            <span class="chart-subtitle">Best-selling products by quantity and revenue</span>
+                        </div>
+                        <canvas id="topProductsChart"></canvas>
+                    </div>
+                </div>
+                <div class="charts-grid">
                     <div class="chart-card wide">
                         <div class="chart-header">
                             <span class="chart-title">Revenue Trend</span>
@@ -600,16 +628,6 @@
                             <span class="chart-subtitle">Breakdown by category type</span>
                         </div>
                         <canvas id="expenseCategoriesChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="charts-grid">
-                    <div class="chart-card full-width">
-                        <div class="chart-header">
-                            <span class="chart-title">Products Sales</span>
-                            <span class="chart-subtitle">Best-selling products by quantity and revenue</span>
-                        </div>
-                        <canvas id="topProductsChart"></canvas>
                     </div>
                 </div>
 
