@@ -157,6 +157,9 @@ $today_date = date('Y-m-d');
             <div class="reviews-list" id="reviewsList">
                 <p class="loading-reviews">Loading reviews...</p>
             </div>
+            <button id="viewMoreReviewsBtn" class="view-more-reviews-btn" style="display: none;" onclick="toggleReviews()">
+                View More Reviews
+            </button>
         </div>
 
         <!-- Related Products Section -->
@@ -369,6 +372,11 @@ function showConfirmation(message, isError = false) {
     }, 3000);
 }
 
+// Global variable to store all reviews
+let allReviews = [];
+let showingAllReviews = false;
+const INITIAL_REVIEWS_COUNT = 2;
+
 // Load reviews on page load
 document.addEventListener('DOMContentLoaded', function() {
     loadProductReviews(<?php echo $product_id; ?>);
@@ -383,6 +391,7 @@ function loadProductReviews(productId) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                allReviews = data.reviews;
                 displayReviews(data.reviews, data.statistics);
             } else {
                 reviewsList.innerHTML = '<p class="no-reviews">No reviews yet.</p>';
@@ -399,6 +408,7 @@ function displayReviews(reviews, stats) {
     const averageRating = document.getElementById('averageRating');
     const averageStars = document.getElementById('averageStars');
     const reviewCount = document.getElementById('reviewCount');
+    const viewMoreBtn = document.getElementById('viewMoreReviewsBtn');
     
     if (stats.total_reviews > 0) {
         averageRating.querySelector('.rating-number').textContent = stats.average_rating.toFixed(1);
@@ -412,10 +422,14 @@ function displayReviews(reviews, stats) {
     
     if (reviews.length === 0) {
         reviewsList.innerHTML = '<p class="no-reviews">No reviews yet. Be the first to review this product!</p>';
+        viewMoreBtn.style.display = 'none';
         return;
     }
     
-    reviewsList.innerHTML = reviews.map(review => `
+    // Determine which reviews to show
+    const reviewsToShow = showingAllReviews ? reviews : reviews.slice(0, INITIAL_REVIEWS_COUNT);
+    
+    reviewsList.innerHTML = reviewsToShow.map(review => `
         <div class="review-item ${review.is_featured ? 'featured' : ''}">
             <div class="review-header">
                 <span class="review-user">${review.user_name}</span>
@@ -423,8 +437,41 @@ function displayReviews(reviews, stats) {
             </div>
             <div class="review-rating">${renderStars(review.rating)}</div>
             ${review.review_text ? `<div class="review-text">${escapeHtml(review.review_text)}</div>` : ''}
+            ${review.media && review.media.length > 0 ? `
+                <div class="review-media" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; margin-top: 12px;">
+                    ${review.media.map(media => {
+                        if (media.type === 'image') {
+                            return `<img src="${media.url}" alt="Review image" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px; cursor: pointer;" onclick="openMediaModal('${media.url}', 'image')">`;
+                        } else {
+                            return `<video src="${media.url}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px; cursor: pointer;" onclick="openMediaModal('${media.url}', 'video')"></video>`;
+                        }
+                    }).join('')}
+                </div>
+            ` : ''}
         </div>
     `).join('');
+    
+    // Show/hide the "View More" button
+    if (reviews.length > INITIAL_REVIEWS_COUNT) {
+        viewMoreBtn.style.display = 'block';
+        viewMoreBtn.textContent = showingAllReviews ? 'Show Less' : `View More Reviews (${reviews.length - INITIAL_REVIEWS_COUNT} more)`;
+    } else {
+        viewMoreBtn.style.display = 'none';
+    }
+}
+
+function toggleReviews() {
+    showingAllReviews = !showingAllReviews;
+    const stats = {
+        total_reviews: allReviews.length,
+        average_rating: allReviews.reduce((sum, r) => sum + parseFloat(r.rating), 0) / allReviews.length
+    };
+    displayReviews(allReviews, stats);
+    
+    // Scroll to reviews section if showing less
+    if (!showingAllReviews) {
+        document.querySelector('.reviews-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 }
 
 function renderStars(rating) {
@@ -458,6 +505,40 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+function openMediaModal(url, type) {
+    // Create modal overlay
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px;';
+    
+    // Create close button
+    const closeBtn = document.createElement('button');
+    closeBtn.innerHTML = '&times;';
+    closeBtn.style.cssText = 'position: absolute; top: 20px; right: 20px; background: white; border: none; font-size: 32px; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; color: #333;';
+    closeBtn.onclick = () => document.body.removeChild(modal);
+    
+    // Create media element
+    let mediaElement;
+    if (type === 'image') {
+        mediaElement = document.createElement('img');
+        mediaElement.src = url;
+        mediaElement.style.cssText = 'max-width: 90%; max-height: 90%; border-radius: 8px;';
+    } else {
+        mediaElement = document.createElement('video');
+        mediaElement.src = url;
+        mediaElement.controls = true;
+        mediaElement.autoplay = true;
+        mediaElement.style.cssText = 'max-width: 90%; max-height: 90%; border-radius: 8px;';
+    }
+    
+    modal.appendChild(closeBtn);
+    modal.appendChild(mediaElement);
+    modal.onclick = (e) => {
+        if (e.target === modal) document.body.removeChild(modal);
+    };
+    
+    document.body.appendChild(modal);
 }
 
 // Quantity modal functions (copied from product-dashboard.php)

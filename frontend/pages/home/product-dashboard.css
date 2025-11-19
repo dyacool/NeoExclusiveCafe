@@ -37,6 +37,11 @@
   padding: 20px 0;
 }
 
+.most-rated-section {
+  margin: 50px 0 20px 0;
+  padding: 20px 0;
+}
+
 .featured-section h2 {
   color: #256035;
   font-size: 24px;
@@ -536,6 +541,81 @@
   padding: 3px 10px;
   border-radius: 15px;
   z-index: 1;
+}
+
+/* Rating Badge (Top Right) - For Most Rated Products */
+.rating-badge-right {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  color: #333;
+  padding: 6px 12px;
+  border-radius: 20px;
+  z-index: 2;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.4);
+  border: 2px solid #fff;
+}
+
+.rating-badge-right .rating-star {
+  color: #ff6b00;
+  font-size: 14px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.rating-badge-right .rating-value {
+  font-size: 13px;
+  font-weight: 800;
+  color: #333;
+}
+
+.rating-badge-right .rating-count {
+  font-size: 10px;
+  color: #555;
+  font-weight: 600;
+}
+
+/* Product Rating Stars - Display under Add to Cart button */
+.product-rating-stars {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.product-rating-stars .star {
+  font-size: 16px;
+  color: #000;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.product-rating-stars .star.filled {
+  color: #000;
+}
+
+.product-rating-stars .star.half {
+  color: #000;
+  opacity: 0.5;
+}
+
+.product-rating-stars .star.empty {
+  color: #000;
+  opacity: 0.2;
+}
+
+.product-rating-stars .rating-text {
+  margin-left: 6px;
+  font-size: 12px;
+  color: #666;
+  font-weight: 600;
 }
 
 /* Responsive adjustments */

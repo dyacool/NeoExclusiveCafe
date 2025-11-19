@@ -47,6 +47,25 @@ while ($row = $result->fetch_assoc()) {
     // Mask user name for privacy (show only first letter of first name)
     $display_name = substr($row['firstname'], 0, 1) . '. ' . $row['lastname'];
     
+    // Fetch media for this review
+    $media_query = "SELECT media_type, cloud_url, width, height, duration FROM review_media WHERE review_id = ? ORDER BY display_order ASC";
+    $media_stmt = $conn->prepare($media_query);
+    $media_stmt->bind_param("i", $row['id']);
+    $media_stmt->execute();
+    $media_result = $media_stmt->get_result();
+    
+    $media = [];
+    while ($media_row = $media_result->fetch_assoc()) {
+        $media[] = [
+            'type' => $media_row['media_type'],
+            'url' => $media_row['cloud_url'],
+            'width' => $media_row['width'],
+            'height' => $media_row['height'],
+            'duration' => $media_row['duration']
+        ];
+    }
+    $media_stmt->close();
+    
     $reviews[] = [
         'id' => $row['id'],
         'rating' => intval($row['rating']),
@@ -54,7 +73,8 @@ while ($row = $result->fetch_assoc()) {
         'created_at' => $row['created_at'],
         'is_featured' => (bool)$row['is_featured'],
         'user_name' => $display_name,
-        'user_id' => $row['user_id']
+        'user_id' => $row['user_id'],
+        'media' => $media
     ];
 }
 

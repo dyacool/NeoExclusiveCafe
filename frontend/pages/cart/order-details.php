@@ -1214,6 +1214,21 @@ if ($pod_stmt) {
                                     </span>
                                 </div>
                                 
+                                <div class="review-media-input" style="margin-bottom: 15px;">
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Add Photos/Videos (optional, max 5):</label>
+                                    <div class="media-upload-container" style="border: 2px dashed #e5e7eb; border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.3s; background: #f9fafb;" onclick="document.querySelector('.review-form[data-product-id=&quot;<?php echo $item['product_id']; ?>&quot;] .review-media-input-field').click()">
+                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin: 0 auto 12px; display: block;">
+                                            <path d="M7 18C5.17107 18.4117 4 19.0443 4 19.7537C4 20.9943 7.58172 22 12 22C16.4183 22 20 20.9943 20 19.7537C20 19.0443 18.8289 18.4117 17 18" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round"/>
+                                            <path d="M12 15L12 2M12 2L15 5.5M12 2L9 5.5" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                        <p style="margin: 0; color: #6b7280; font-size: 14px; font-weight: 500;">Click to upload images or videos</p>
+                                        <p style="margin: 4px 0 0 0; font-size: 12px; color: #9ca3af;">JPG, PNG, GIF, MP4, MOV (Max 10MB each, up to 5 files)</p>
+                                    </div>
+                                    <input type="file" class="review-media-input-field" accept="image/jpeg,image/png,image/gif,video/mp4,video/quicktime" multiple style="display: none;">
+                                    <div class="media-preview-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; margin-top: 16px;"></div>
+                                    <p class="media-count" style="font-size: 12px; color: #6b7280; margin-top: 8px; display: none; text-align: center; font-weight: 500;">0/5 files selected</p>
+                                </div>
+                                
                                 <button type="button" class="submit-review-btn" onclick="submitProductReview(<?php echo $item['product_id']; ?>, <?php echo $order_id; ?>)" style="background-color: #1a4a28; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background-color 0.3s;">
                                     <?php echo $existing_review ? 'Update Review' : 'Submit Review'; ?>
                                 </button>
@@ -1281,6 +1296,13 @@ if ($pod_stmt) {
                     updateCharCount(this, charCount);
                 });
             });
+            
+            // Initialize media upload handlers
+            document.querySelectorAll('.review-media-input-field').forEach(input => {
+                input.addEventListener('change', function(e) {
+                    handleMediaSelection(this, e);
+                });
+            });
         }
 
         function updateStarDisplay(stars, rating) {
@@ -1298,12 +1320,136 @@ if ($pod_stmt) {
         function updateCharCount(textarea, charCountElement) {
             charCountElement.textContent = textarea.value.length;
         }
+        
+        function handleMediaSelection(input, event) {
+            const files = Array.from(event.target.files);
+            const reviewForm = input.closest('.review-form');
+            const previewContainer = reviewForm.querySelector('.media-preview-container');
+            const mediaCount = reviewForm.querySelector('.media-count');
+            const uploadContainer = reviewForm.querySelector('.media-upload-container');
+            
+            // Limit to 5 files
+            const maxFiles = 5;
+            const currentFiles = previewContainer.querySelectorAll('.media-preview-item').length;
+            const allowedFiles = Math.min(files.length, maxFiles - currentFiles);
+            
+            if (currentFiles >= maxFiles) {
+                alert('Maximum 5 files allowed');
+                input.value = '';
+                return;
+            }
+            
+            // Validate file types and sizes
+            const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/quicktime'];
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            
+            for (let i = 0; i < allowedFiles; i++) {
+                const file = files[i];
+                
+                if (!validTypes.includes(file.type)) {
+                    alert(`Invalid file type: ${file.name}. Only JPG, PNG, GIF, MP4, MOV allowed.`);
+                    continue;
+                }
+                
+                if (file.size > maxSize) {
+                    alert(`File too large: ${file.name}. Maximum size is 10MB.`);
+                    continue;
+                }
+                
+                // Create preview
+                const previewItem = document.createElement('div');
+                previewItem.className = 'media-preview-item';
+                previewItem.style.cssText = 'position: relative; border-radius: 8px; overflow: hidden; border: 2px solid #e5e7eb; background: #f9fafb;';
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if (file.type.startsWith('image/')) {
+                        previewItem.innerHTML = `
+                            <div style="position: relative; width: 100%; height: 120px; background: #f3f4f6; border-radius: 6px; overflow: hidden;">
+                                <img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+                                <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.6), transparent); padding: 6px 8px;">
+                                    <div style="display: flex; align-items: center; gap: 4px;">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M2 12C2 7.28595 2 4.92893 3.46447 3.46447C4.92893 2 7.28595 2 12 2C16.714 2 19.0711 2 20.5355 3.46447C22 4.92893 22 7.28595 22 12C22 16.714 22 19.0711 20.5355 20.5355C19.0711 22 16.714 22 12 22C7.28595 22 4.92893 22 3.46447 20.5355C2 19.0711 2 16.714 2 12Z" stroke="white" stroke-width="1.5"/>
+                                            <circle cx="16" cy="8" r="2" stroke="white" stroke-width="1.5"/>
+                                            <path d="M2 10.1185C2.61902 9.77514 3.24484 9.45043 3.87171 9.1456C6.52365 7.74681 9.19071 6.37013 11.8912 5.05766C12.4374 4.77916 12.8854 4.77916 13.4316 5.05766C16.132 6.37013 18.7991 7.74681 21.4511 9.1456C22.0778 9.45043 22.7038 9.77514 23.3228 10.1185" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+                                        </svg>
+                                        <span style="font-size: 10px; color: white; font-weight: 500;">${(file.size / 1024).toFixed(0)} KB</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="remove-media-btn" onclick="removeMediaPreview(this)" style="position: absolute; top: 6px; right: 6px; background: rgba(239, 68, 68, 0.95); color: white; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: all 0.2s;" onmouseover="this.style.background='rgba(220, 38, 38, 1)'; this.style.transform='scale(1.1)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.95)'; this.style.transform='scale(1)'">&times;</button>
+                        `;
+                    } else {
+                        previewItem.innerHTML = `
+                            <div style="position: relative; width: 100%; height: 120px; background: linear-gradient(135deg, #1f2937 0%, #374151 100%); border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px;">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" fill="white" fill-opacity="0.2" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M14 2V8H20" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M10 15L12 13L14 15" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M12 13V18" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <span style="font-size: 11px; color: white; font-weight: 500; text-align: center; padding: 0 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">${file.name.length > 18 ? file.name.substring(0, 15) + '...' : file.name}</span>
+                                <span style="font-size: 10px; color: rgba(255,255,255,0.7);">${(file.size / (1024 * 1024)).toFixed(2)} MB</span>
+                            </div>
+                            <button type="button" class="remove-media-btn" onclick="removeMediaPreview(this)" style="position: absolute; top: 6px; right: 6px; background: rgba(239, 68, 68, 0.95); color: white; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: all 0.2s;" onmouseover="this.style.background='rgba(220, 38, 38, 1)'; this.style.transform='scale(1.1)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.95)'; this.style.transform='scale(1)'">&times;</button>
+                        `;
+                    }
+                    
+                    // Store file data
+                    previewItem.dataset.file = JSON.stringify({
+                        name: file.name,
+                        type: file.type,
+                        size: file.size
+                    });
+                    previewItem.dataset.fileData = e.target.result;
+                    
+                    previewContainer.appendChild(previewItem);
+                    
+                    // Update count
+                    const totalFiles = previewContainer.querySelectorAll('.media-preview-item').length;
+                    mediaCount.textContent = `${totalFiles}/5 files selected`;
+                    mediaCount.style.display = totalFiles > 0 ? 'block' : 'none';
+                    
+                    // Update upload container appearance
+                    if (totalFiles >= maxFiles) {
+                        uploadContainer.style.opacity = '0.5';
+                        uploadContainer.style.pointerEvents = 'none';
+                    }
+                };
+                
+                reader.readAsDataURL(file);
+            }
+            
+            // Reset input
+            input.value = '';
+        }
+        
+        function removeMediaPreview(button) {
+            const previewItem = button.closest('.media-preview-item');
+            const reviewForm = button.closest('.review-form');
+            const previewContainer = reviewForm.querySelector('.media-preview-container');
+            const mediaCount = reviewForm.querySelector('.media-count');
+            const uploadContainer = reviewForm.querySelector('.media-upload-container');
+            
+            previewItem.remove();
+            
+            // Update count
+            const totalFiles = previewContainer.querySelectorAll('.media-preview-item').length;
+            mediaCount.textContent = `${totalFiles}/5 files selected`;
+            mediaCount.style.display = totalFiles > 0 ? 'block' : 'none';
+            
+            // Re-enable upload if under limit
+            uploadContainer.style.opacity = '1';
+            uploadContainer.style.pointerEvents = 'auto';
+        }
 
         async function submitProductReview(productId, orderId) {
             const reviewForm = document.querySelector(`.review-form[data-product-id="${productId}"]`);
             const ratingInput = reviewForm.querySelector('.review-rating-input');
             const reviewText = reviewForm.querySelector('.review-text-input-field').value.trim();
             const submitBtn = reviewForm.querySelector('.submit-review-btn');
+            const previewContainer = reviewForm.querySelector('.media-preview-container');
             
             const rating = parseInt(ratingInput.value);
             
@@ -1314,6 +1460,20 @@ if ($pod_stmt) {
             
             submitBtn.disabled = true;
             submitBtn.textContent = 'Submitting...';
+            
+            // Collect media files
+            const mediaFiles = [];
+            const mediaItems = previewContainer.querySelectorAll('.media-preview-item');
+            mediaItems.forEach(item => {
+                const fileData = item.dataset.fileData;
+                const fileInfo = JSON.parse(item.dataset.file);
+                mediaFiles.push({
+                    data: fileData,
+                    name: fileInfo.name,
+                    type: fileInfo.type,
+                    size: fileInfo.size
+                });
+            });
             
             try {
                 const response = await fetch('../../api/submit-review.php', {
@@ -1326,7 +1486,8 @@ if ($pod_stmt) {
                         product_id: productId,
                         rating: rating,
                         review_text: reviewText,
-                        order_id: orderId
+                        order_id: orderId,
+                        media_files: mediaFiles
                     })
                 });
                 

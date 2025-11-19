@@ -795,11 +795,37 @@ html.homepage-animation .main-nav {
   border-radius: 10px !important;
   border: none !important;
   border-bottom: 1px solid rgba(203, 213, 192, 0.15) !important;
+  position: relative !important;
 }
 
 .mobile-notification-dropdown .notification-item:last-child {
   border-bottom: none !important;
   margin-bottom: 0 !important;
+}
+
+/* Unread notification indicator for mobile */
+.mobile-notification-dropdown .notification-item.unread {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 81, 50, 0.03) 0%,
+    rgba(203, 213, 192, 0.08) 100%
+  ) !important;
+  border-left: 3px solid #0f5132 !important;
+  margin-left: 3px !important;
+  padding-left: 13px !important;
+}
+
+.mobile-notification-dropdown .notification-item.unread::after {
+  content: "" !important;
+  position: absolute !important;
+  right: 14px !important;
+  top: 18px !important;
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 50% !important;
+  background: linear-gradient(135deg, #a68a64 0%, #c49060 100%) !important;
+  box-shadow: 0 0 6px rgba(166, 138, 100, 0.4) !important;
+  animation: pulse-notification 2s infinite !important;
 }
 
 .mobile-notification-dropdown .notification-title {

@@ -20,12 +20,73 @@ ob_start();
 try {
     require_once __DIR__ . '/../../includes/session-manager.php';
     require_once __DIR__ . '/../../backend/pages/admin-includes/database.php';
+    require_once __DIR__ . '/../../config/cloudinary-config.php';
 } catch (Exception $e) {
     ob_end_clean();
     header('Content-Type: application/json');
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'System error: ' . $e->getMessage()]);
     exit;
+}
+
+// Function to upload review media to Cloudinary
+function uploadReviewMedia($conn, $review_id, $media_files) {
+    if (empty($media_files)) {
+        return true;
+    }
+    
+    try {
+        $cloudinary = CloudinaryConfig::getInstance()->getCloudinary();
+        $uploaded_count = 0;
+        
+        foreach ($media_files as $index => $media) {
+            // Decode base64 data
+            $file_data = $media['data'];
+            $file_type = $media['type'];
+            $file_name = $media['name'];
+            
+            // Determine resource type (image or video)
+            $resource_type = strpos($file_type, 'video') !== false ? 'video' : 'image';
+            
+            // Upload to Cloudinary
+            $upload_result = $cloudinary->uploadApi()->upload($file_data, [
+                'folder' => 'reviews',
+                'resource_type' => $resource_type,
+                'transformation' => $resource_type === 'image' ? [
+                    'quality' => 'auto',
+                    'fetch_format' => 'auto'
+                ] : []
+            ]);
+            
+            // Insert into review_media table
+            // Note: review_id is the foreign key column name, pointing to product_reviews.id
+            $stmt = $conn->prepare("INSERT INTO review_media (review_id, media_type, cloud_url, public_id, original_filename, file_size, width, height, duration, display_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            
+            $media_type = $resource_type;
+            $cloud_url = $upload_result['secure_url'];
+            $public_id = $upload_result['public_id'];
+            $file_size = $upload_result['bytes'];
+            $width = isset($upload_result['width']) ? $upload_result['width'] : null;
+            $height = isset($upload_result['height']) ? $upload_result['height'] : null;
+            $duration = isset($upload_result['duration']) ? $upload_result['duration'] : null;
+            $display_order = $index;
+            
+            // $review_id parameter is the id from product_reviews table
+            $stmt->bind_param("issssiidii", $review_id, $media_type, $cloud_url, $public_id, $file_name, $file_size, $width, $height, $duration, $display_order);
+            
+            if ($stmt->execute()) {
+                $uploaded_count++;
+            }
+            
+            $stmt->close();
+        }
+        
+        return $uploaded_count === count($media_files);
+        
+    } catch (Exception $e) {
+        error_log("Media upload error: " . $e->getMessage());
+        return false;
+    }
 }
 
 // Clear any output that might have been generated
@@ -97,6 +158,14 @@ try {
         echo json_encode(['success' => false, 'message' => 'Review text is too long (max 2000 characters)']);
         exit;
     }
+    
+    // Handle media files if provided
+    $media_files = isset($input['media_files']) ? $input['media_files'] : [];
+    if (count($media_files) > 5) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Maximum 5 media files allowed']);
+        exit;
+    }
 
     // Check if product exists
     $product_check = $conn->prepare("SELECT id FROM products WHERE id = ? AND deleted_at IS NULL");
@@ -154,16 +223,23 @@ try {
 
     if ($existing_result->num_rows > 0) {
         $existing_review_data = $existing_result->fetch_assoc();
-        $review_id = $existing_review_data['id'];
+        $review_id = $existing_review_data['id']; // Get the primary key 'id' from product_reviews
         
         $update_stmt = $conn->prepare("UPDATE product_reviews SET rating = ?, review_text = ?, order_id = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ? AND product_id = ?");
         $update_stmt->bind_param("isiii", $rating, $review_text, $order_id, $user_id, $product_id);
         
         if ($update_stmt->execute()) {
+            // Delete existing media and upload new ones
+            $conn->query("DELETE FROM review_media WHERE review_id = $review_id");
+            
+            // Upload new media files (review_id is the id from product_reviews table)
+            $media_upload_success = uploadReviewMedia($conn, $review_id, $media_files);
+            
             echo json_encode([
                 'success' => true,
                 'message' => 'Review updated successfully',
-                'review_id' => $review_id
+                'review_id' => $review_id,
+                'media_uploaded' => $media_upload_success
             ]);
         } else {
             http_response_code(500);
@@ -200,11 +276,16 @@ try {
         
         try {
             if ($insert_stmt->execute()) {
-                $review_id = $conn->insert_id;
+                $review_id = $conn->insert_id; // Get the auto-increment id from product_reviews
+                
+                // Upload media files if provided (review_id is the id from product_reviews table)
+                $media_upload_success = uploadReviewMedia($conn, $review_id, $media_files);
+                
                 echo json_encode([
                     'success' => true,
                     'message' => 'Review submitted successfully',
-                    'review_id' => $review_id
+                    'review_id' => $review_id,
+                    'media_uploaded' => $media_upload_success
                 ]);
             } else {
                 http_response_code(500);

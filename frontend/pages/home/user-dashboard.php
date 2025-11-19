@@ -319,6 +319,90 @@ $total_featured = count($featured_products_data);
 // Debug information
 error_log("Total featured products found: " . $total_featured);
 
+// Get most rated products (products with reviews, sorted by average rating and review count)
+$most_rated_query = "SELECT 
+                        p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.category_id,
+                        ps.name AS status_name, 
+                        COALESCE(pi.cloud_url, pi.image_url) as image_url,
+                        p.quantity, p.show_when_unavailable, p.hide_when_unavailable,
+                        p.availtoday_status_id, ats.name AS availtoday_status_name,
+                        c.name AS category_name,
+                        GROUP_CONCAT(DISTINCT tpd.available_date ORDER BY tpd.available_date SEPARATOR ', ') as todays_product_dates,
+                        GROUP_CONCAT(DISTINCT rptd.available_date ORDER BY rptd.available_date SEPARATOR ', ') as regular_today_dates,
+                        qpd.quantity as sameday_stock_today,
+                        COUNT(DISTINCT pr.id) as review_count,
+                        AVG(pr.rating) as average_rating
+                    FROM products p
+                    LEFT JOIN product_statuses ps ON p.status_id = ps.id
+                    LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
+                    LEFT JOIN availtoday_status ats ON p.availtoday_status_id = ats.id
+                    LEFT JOIN categories c ON p.category_id = c.id
+                    LEFT JOIN todays_products_dates tpd ON p.id = tpd.product_id
+                    LEFT JOIN regular_products_today_dates rptd ON p.id = rptd.product_id
+                    LEFT JOIN quantity_per_day_sdo qpd ON p.id = qpd.product_id AND qpd.date = CURDATE()
+                    LEFT JOIN product_reviews pr ON p.id = pr.product_id
+                    WHERE p.deleted_at IS NULL 
+                    AND p.id > 0 
+                    AND p.status_id IN (1, 2, 3, 4)
+                    GROUP BY p.id, p.name, p.price, p.description, p.status_id, p.is_featured, p.category_id, ps.name, pi.cloud_url, pi.image_url, p.quantity, p.show_when_unavailable, p.hide_when_unavailable, p.availtoday_status_id, ats.name, c.name, qpd.quantity
+                    HAVING review_count > 0
+                    ORDER BY average_rating DESC, review_count DESC
+                    LIMIT 8";
+
+$most_rated_stmt = mysqli_prepare($conn, $most_rated_query);
+mysqli_stmt_execute($most_rated_stmt);
+$most_rated_result = mysqli_stmt_get_result($most_rated_stmt);
+
+// Process most rated products with availability checks
+$all_most_rated_products = [];
+while ($row = mysqli_fetch_assoc($most_rated_result)) {
+    // Only include products with 3+ star rating
+    if (($row['average_rating'] ?? 0) < 3) {
+        continue;
+    }
+    
+    $availability = determineProductAvailability($row, $today_date);
+    
+    if (!$availability['should_display']) {
+        continue;
+    }
+    
+    $row['is_unavailable'] = $availability['is_unavailable'];
+    $row['unavailable_reason'] = $availability['unavailable_reason'];
+    
+    $all_most_rated_products[] = $row;
+}
+
+// Sort most rated products: Available > Unavailable, then by rating tier (5 > 4 > 3)
+usort($all_most_rated_products, function($a, $b) use ($today_date) {
+    $a_unavailable = $a['is_unavailable'] ?? false;
+    $b_unavailable = $b['is_unavailable'] ?? false;
+    
+    // Priority 1: Available products first
+    if ($a_unavailable && !$b_unavailable) return 1;
+    if (!$a_unavailable && $b_unavailable) return -1;
+    
+    // Priority 2: Sort by rating tier (5 stars, then 4 stars, then 3 stars)
+    $a_rating = $a['average_rating'] ?? 0;
+    $b_rating = $b['average_rating'] ?? 0;
+    
+    $a_tier = floor($a_rating); // 5.x -> 5, 4.x -> 4, 3.x -> 3
+    $b_tier = floor($b_rating);
+    
+    if ($a_tier != $b_tier) {
+        return $b_tier - $a_tier; // Higher tier first
+    }
+    
+    // Priority 3: Within same tier, sort by exact rating
+    $rating_diff = $b_rating - $a_rating;
+    if (abs($rating_diff) > 0.01) return $rating_diff > 0 ? 1 : -1;
+    
+    // Priority 4: Sort by review count
+    return ($b['review_count'] ?? 0) - ($a['review_count'] ?? 0);
+});
+
+$most_rated_products_data = $all_most_rated_products;
+
 // Get active promotions/coupons
 $today = date('Y-m-d');
 $promotions_query = "SELECT 
@@ -652,6 +736,191 @@ $total_images = mysqli_num_rows($images_result);
                 <?php else: ?>
                     <div class="no-products" role="alert">
                         <p>No featured products available at the moment.</p>
+                    </div>
+                <?php endif; ?>
+            </section>
+
+            <!-- Most Rated Products Section -->
+            <section class="most-rated-section">
+                <header class="section-header" data-aos="fade-up">
+                    <h1 class="titles">Most Rated Products</h1>
+                    <p class="service-subtitle">Top picks based on customer reviews and ratings</p>
+                </header>
+                
+                <?php if (count($most_rated_products_data) > 0): ?>
+                    <div class="featured-grid">
+                        <?php 
+                        // Display only the first 4 products
+                        $count = 0;
+                        foreach ($most_rated_products_data as $row): 
+                            if ($count >= 4) break;
+                            $count++;
+                            
+                            // Get all images for this product
+                            $images_sql = "SELECT COALESCE(cloud_url, image_url) as image_url FROM product_images WHERE product_id = ?";
+                            $images_stmt = mysqli_prepare($conn, $images_sql);
+                            mysqli_stmt_bind_param($images_stmt, "i", $row['id']);
+                            mysqli_stmt_execute($images_stmt);
+                            $images_result = mysqli_stmt_get_result($images_stmt);
+                            $images = [];
+                            while ($image = mysqli_fetch_assoc($images_result)) {
+                                $images[] = $image['image_url'];
+                            }
+                            
+                            $productData = [
+                                'id' => $row['id'],
+                                'name' => $row['name'],
+                                'price' => $row['price'],
+                                'description' => $row['description'],
+                                'status' => $row['status_name'],
+                                'status_id' => $row['status_id'],
+                                'images' => $images,
+                                'is_featured' => (bool)$row['is_featured'],
+                                'quantity' => $row['quantity'],
+                                'sameday_stock_today' => $row['sameday_stock_today'] ?? 0,
+                                'show_when_unavailable' => (bool)$row['show_when_unavailable'],
+                                'hide_when_unavailable' => (bool)($row['hide_when_unavailable'] ?? 0),
+                                'availtoday_status_id' => $row['availtoday_status_id'],
+                                'availtoday_status_name' => $row['availtoday_status_name'],
+                                'todays_product_dates' => $row['todays_product_dates'] ? explode(', ', $row['todays_product_dates']) : [],
+                                'regular_today_dates' => $row['regular_today_dates'] ? explode(', ', $row['regular_today_dates']) : []
+                            ];
+                            
+                            $statusClass = strtolower(str_replace(' ', '-', $row['status_name']));
+                            $productDataJson = htmlspecialchars(json_encode($productData), ENT_QUOTES, 'UTF-8');
+                            
+                            $available_dates = $row['status_id'] == 4 ? $row['todays_product_dates'] : $row['regular_today_dates'];
+                            $is_unavailable = $row['is_unavailable'];
+                            $unavailable_reason = $row['unavailable_reason'];
+                            
+                            // Check if product is available TODAY
+                            $is_available_today = false;
+                            
+                            if (!empty($row['todays_product_dates'])) {
+                                $todays_dates = explode(', ', $row['todays_product_dates']);
+                                if (in_array($today_date, $todays_dates)) {
+                                    $is_available_today = true;
+                                }
+                            }
+                            
+                            if (!$is_available_today && !empty($row['regular_today_dates'])) {
+                                $regular_dates = explode(', ', $row['regular_today_dates']);
+                                if (in_array($today_date, $regular_dates)) {
+                                    $is_available_today = true;
+                                }
+                            }
+                            
+                            $unavailableClass = $is_unavailable ? 'unavailable-product' : '';
+                            $product_url = "/frontend/pages/products/product-details.php?id=" . $row['id'];
+                            
+                            // Calculate rating display
+                            $average_rating = round($row['average_rating'], 1);
+                            $review_count = $row['review_count'];
+                        ?>
+                            <div class="product-card <?php echo $unavailableClass; ?>" 
+                                data-product-id="<?php echo $row['id']; ?>"
+                                data-status="<?php echo htmlspecialchars($row['status_name']); ?>"
+                                data-available-dates="<?php echo htmlspecialchars($available_dates ?? ''); ?>"
+                                data-product="<?php echo $productDataJson; ?>" 
+                                data-unavailable="<?php echo $is_unavailable ? 'true' : 'false'; ?>"
+                                onclick="window.location.href='<?php echo $product_url; ?>'" style="cursor: pointer;">
+                                
+                                <?php
+                                // Display badges
+                                if ($is_unavailable) {
+                                    echo "<div class='unavailable-badge-left'>" . htmlspecialchars($unavailable_reason) . "</div>";
+                                } else {
+                                    $has_preorder = in_array($row['status_id'], [1, 2, 3]) && $row['quantity'] > 0;
+                                    $sameday_stock = $row['sameday_stock_today'] ?? 0;
+                                    $has_sameday = false;
+                                    
+                                    if ($row['status_id'] == 4) {
+                                        $has_sameday = ($sameday_stock > 0) && $is_available_today;
+                                    } elseif (!empty($row['availtoday_status_id'])) {
+                                        $has_sameday = ($sameday_stock > 0) && $is_available_today;
+                                    }
+                                    
+                                    if ($has_sameday && $has_preorder) {
+                                        echo "<div class='today-badge-left'>Same Day & Pre-Order</div>";
+                                    } elseif ($has_sameday) {
+                                        echo "<div class='today-badge-left'>Same Day Order</div>";
+                                    } elseif ($has_preorder) {
+                                        echo "<div class='preorder-badge-left'>Pre-Order</div>";
+                                    }
+                                }
+                                ?>
+                                
+                                <div class="product-image">
+                                    <?php
+                                    if ($is_unavailable) {
+                                        echo "<div class='unavailable-overlay'>
+                                                <span class='unavailable-text'>UNAVAILABLE</span>
+                                                <span class='unavailable-reason'>" . htmlspecialchars($unavailable_reason) . "</span>
+                                              </div>";
+                                    }
+                                    
+                                    $image_src = $row['image_url'] ?: 'images/no-image.jpg';
+                                    if (strpos($image_src, 'http://') === 0 || strpos($image_src, 'https://') === 0) {
+                                        $image_path = htmlspecialchars($image_src);
+                                    } else {
+                                        $image_path = '/assets/' . htmlspecialchars($image_src);
+                                    }
+                                    ?>
+                                    <img src="<?php echo $image_path; ?>" 
+                                        alt="<?php echo htmlspecialchars($row['name']); ?>"
+                                        loading="lazy"
+                                        onerror="this.onerror=null; this.src='/assets/images/no-image.jpg';">
+                                </div>
+                                
+                                <div class="product-info">
+                                    <h3 class="productname"><?php echo htmlspecialchars($row['name']); ?></h3>
+                                    <p class="price">₱<?php echo number_format($row['price'], 2); ?></p>
+                                    
+                                    <?php if ($is_unavailable): ?>
+                                        <button class="add-to-cart unavailable-btn" disabled>Unavailable</button>
+                                    <?php else: ?>
+                                        <button class="add-to-cart" onclick="event.stopPropagation(); addToCart(<?php echo $row['id']; ?>, this)">Add to Cart</button>
+                                    <?php endif; ?>
+                                    
+                                    <!-- Star Rating Display -->
+                                    <div class="product-rating-stars">
+                                        <?php 
+                                        $full_stars = floor($average_rating);
+                                        $has_half = ($average_rating - $full_stars) >= 0.5;
+                                        
+                                        for ($i = 1; $i <= 5; $i++) {
+                                            if ($i <= $full_stars) {
+                                                echo '<span class="star filled">★</span>';
+                                            } elseif ($i == $full_stars + 1 && $has_half) {
+                                                echo '<span class="star half">★</span>';
+                                            } else {
+                                                echo '<span class="star empty">★</span>';
+                                            }
+                                        }
+                                        ?>
+                                        <span class="rating-text"><?php echo $average_rating; ?> (<?php echo $review_count; ?>)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                    
+                    <?php if (count($most_rated_products_data) > 4): ?>
+                        <button class="learn-more" data-aos="fade-up">
+                            <span class="circle" aria-hidden="true">
+                            <span class="icon arrow"></span>
+                            </span>
+                            <span class="button-text"> 
+                                <a href="/frontend/pages/products/product-dashboard.php">
+                                View More
+                                </a>
+                            </span>
+                        </button>                
+                    <?php endif; ?>
+                    
+                <?php else: ?>
+                    <div class="no-products" role="alert">
+                        <p>No rated products available at the moment.</p>
                     </div>
                 <?php endif; ?>
             </section>
