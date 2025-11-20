@@ -42,77 +42,6 @@ $is_admin_logged_in = SessionManager::isAdminLoggedIn();
     <?php if (isset($head_extra)): ?>
         <?php echo $head_extra; ?>
     <?php endif; ?>
-</head>
-<body>
-    <?php include_once __DIR__ . "/navbar/customer-navigation.php"; ?>
-    <!-- Page content will be inserted here -->
-    
-    <!-- Chat Button -->
-    <button class="chat-button" onclick="toggleChat()" title="Chat with us" aria-label="Open chat support">
-        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-            <line x1="9" y1="10" x2="15" y2="10"></line>
-            <line x1="9" y1="14" x2="13" y2="14"></line>
-        </svg>
-    </button>
-
-    <!-- Chat Window -->
-    <div class="chat-window" id="chatWindow">
-        <div class="chat-header">
-            <h3>Neo Cafe Support</h3>
-            <button class="close-chat" onclick="toggleChat()">×</button>
-        </div>
-        <div class="chat-messages" id="chatMessages">
-            <!-- Messages will be added here -->
-        </div>
-        <div class="chat-input-wrapper">
-            <div class="chat-faq-container" id="chatFaqContainer">
-                <div class="faq-header" onclick="toggleFaqSection()">
-                    <div class="faq-label">Frequently Asked Questions:</div>
-                    <button class="faq-toggle-btn" id="faqToggleBtn">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="18 15 12 9 6 15"></polyline>
-                        </svg>
-                    </button>
-                </div>
-                <div class="faq-buttons" id="faqButtons">
-                    <button class="faq-button" onclick="fillChatInput('What are your best products?')">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                        </svg>
-                        Best Products
-                    </button>
-                    <button class="faq-button" onclick="fillChatInput('What are your business hours?')">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <polyline points="12 6 12 12 16 14"></polyline>
-                        </svg>
-                        Operating Hours
-                    </button>
-                    <button class="faq-button" onclick="fillChatInput('How do I place an order?')">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="9" cy="21" r="1"></circle>
-                            <circle cx="20" cy="21" r="1"></circle>
-                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                        </svg>
-                        Place Order
-                    </button>
-                    <button class="faq-button" onclick="fillChatInput('What payment methods do you accept?')">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
-                            <line x1="1" y1="10" x2="23" y2="10"></line>
-                        </svg>
-                        Payment Methods
-                    </button>
-                </div>
-            </div>
-            <div class="chat-input-container">
-                <textarea class="chat-input" id="chatInput" placeholder="Type your message..." rows="1" onkeydown="handleKeyPress(event)" oninput="handleInputChange(this)"></textarea>
-                <button class="send-button" onclick="sendMessage()">Send</button>
-            </div>
-        </div>
-    </div>
-
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         // Function to format chatbot response text
@@ -156,33 +85,25 @@ $is_admin_logged_in = SessionManager::isAdminLoggedIn();
 
         function toggleChat() {
             const chatWindow = document.getElementById('chatWindow');
-            const isActive = chatWindow.classList.contains('active');
+            if (!chatWindow) return;
             
-            if (isActive) {
-                chatWindow.classList.remove('active');
-                setTimeout(() => {
-                    chatWindow.style.display = 'none';
-                }, 400); // Match transition duration
-            } else {
-                chatWindow.style.display = 'block';
-                setTimeout(() => {
-                    chatWindow.classList.add('active');
-                }, 10);
+            chatWindow.classList.toggle('active');
+            
+            // Add welcome message when chat is opened for the first time
+            const chatMessages = document.getElementById('chatMessages');
+            if (!chatMessages) return;
+            
+            if (chatWindow.classList.contains('active') && chatMessages.children.length === 0) {
+                // Add welcome badge
+                const welcomeDiv = document.createElement('div');
+                welcomeDiv.className = 'chat-welcome';
+                welcomeDiv.textContent = 'Welcome to Neo Cafe Support';
+                chatMessages.appendChild(welcomeDiv);
                 
-                // Add welcome message when chat is opened for the first time
-                const chatMessages = document.getElementById('chatMessages');
-                if (chatMessages.children.length === 0) {
-                    // Add welcome badge
-                    const welcomeDiv = document.createElement('div');
-                    welcomeDiv.className = 'chat-welcome';
-                    welcomeDiv.textContent = 'Welcome to Neo Cafe Support';
-                    chatMessages.appendChild(welcomeDiv);
-                    
-                    // Add bot welcome message
-                    setTimeout(() => {
-                        addBotMessage('Hello! Welcome to Neo Cafe. How can I help you today?');
-                    }, 300);
-                }
+                // Add bot welcome message
+                setTimeout(() => {
+                    addBotMessage('Hello! Welcome to Neo Cafe. How can I help you today?');
+                }, 300);
             }
         }
 
@@ -231,14 +152,9 @@ $is_admin_logged_in = SessionManager::isAdminLoggedIn();
                 input.value = '';
                 input.style.height = '44px';
                 
-                // Expand FAQ section after sending message
-                const faqContainer = document.getElementById('chatFaqContainer');
-                const chatWindow = document.getElementById('chatWindow');
-                faqContainer.classList.remove('minimized');
-                chatWindow.classList.remove('faq-minimized');
-                
-                // Scroll to bottom after expanding FAQ
-                scrollChatToBottom();
+                // Auto-scroll to bottom
+                const chatMessages = document.getElementById('chatMessages');
+                chatMessages.scrollTop = chatMessages.scrollHeight;
                 
                 // Add to conversation history
                 conversationHistory.push({
@@ -249,13 +165,16 @@ $is_admin_logged_in = SessionManager::isAdminLoggedIn();
                 console.log('Conversation history after user message:', conversationHistory);
                 
                 // Show typing indicator
-                const chatMessages = document.getElementById('chatMessages');
                 const typingIndicator = document.createElement('div');
                 typingIndicator.className = 'message bot-message typing-indicator';
                 typingIndicator.id = 'typing-indicator';
                 typingIndicator.innerHTML = '<span></span><span></span><span></span>';
                 chatMessages.appendChild(typingIndicator);
-                chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+                // Auto-scroll to show typing indicator
+                setTimeout(() => {
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }, 0);
                 
                 // Send message with conversation history
                 fetch('/backend/pages/user-page-content/chatbot/chatbot-api.php', {
@@ -346,50 +265,25 @@ $is_admin_logged_in = SessionManager::isAdminLoggedIn();
             textarea.style.height = newHeight + 'px';
         }
 
-        function scrollChatToBottom() {
-            const chatMessages = document.getElementById('chatMessages');
-            if (chatMessages) {
-                setTimeout(() => {
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                }, 100);
-            }
-        }
-
         function handleInputChange(textarea) {
             autoResizeTextarea(textarea);
             
             // Check if input has text
             const hasText = textarea.value.trim().length > 0;
             const faqContainer = document.getElementById('chatFaqContainer');
-            const chatWindow = document.getElementById('chatWindow');
             
             if (hasText) {
                 // Minimize FAQ section when user types
                 faqContainer.classList.add('minimized');
-                chatWindow.classList.add('faq-minimized');
             } else {
                 // Expand FAQ section when input is empty
                 faqContainer.classList.remove('minimized');
-                chatWindow.classList.remove('faq-minimized');
             }
-            
-            // Scroll to bottom after FAQ state change
-            scrollChatToBottom();
         }
 
         function toggleFaqSection() {
             const faqContainer = document.getElementById('chatFaqContainer');
-            const chatWindow = document.getElementById('chatWindow');
-            const input = document.getElementById('chatInput');
-            
-            // Only allow manual toggle if input is not empty
-            if (input.value.trim().length > 0) {
-                faqContainer.classList.toggle('minimized');
-                chatWindow.classList.toggle('faq-minimized');
-                
-                // Scroll to bottom after toggle
-                scrollChatToBottom();
-            }
+            faqContainer.classList.toggle('minimized');
         }
 
         function fillChatInput(text) {
@@ -397,11 +291,79 @@ $is_admin_logged_in = SessionManager::isAdminLoggedIn();
             input.value = text;
             handleInputChange(input);
             input.focus();
-            
-            // Optional: Auto-send after filling (remove if you want users to click Send manually)
-            // sendMessage();
         }
     </script>
+</head>
+<body>
+    <?php include_once __DIR__ . "/navbar/customer-navigation.php"; ?>
+    <!-- Page content will be inserted here -->
+    
+    <!-- Chat Button -->
+    <button class="chat-button" onclick="toggleChat()" title="Chat with us" aria-label="Open chat support">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            <line x1="9" y1="10" x2="15" y2="10"></line>
+            <line x1="9" y1="14" x2="13" y2="14"></line>
+        </svg>
+    </button>
+
+    <!-- Chat Window -->
+    <div class="chat-window" id="chatWindow">
+        <div class="chat-header">
+            <h3>Neo Cafe Support</h3>
+            <button class="close-chat" onclick="toggleChat()">×</button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <!-- Messages will be added here -->
+        </div>
+        <div class="chat-input-wrapper">
+            <div class="chat-faq-container" id="chatFaqContainer">
+                <div class="faq-header" onclick="toggleFaqSection()">
+                    <div class="faq-label">Frequently Asked Questions:</div>
+                    <button class="faq-toggle-btn" id="faqToggleBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="18 15 12 9 6 15"></polyline>
+                        </svg>
+                    </button>
+                </div>
+                <div class="faq-buttons" id="faqButtons">
+                    <button class="faq-button" onclick="fillChatInput('What are your best-selling products?')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
+                        Best Selling Products
+                    </button>
+                    <button class="faq-button" onclick="fillChatInput('What time do you open and close??')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        Operating Hours
+                    </button>
+                    <button class="faq-button" onclick="fillChatInput('Where are you located?')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="9" cy="21" r="1"></circle>
+                            <circle cx="20" cy="21" r="1"></circle>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                        </svg>
+                        Location
+                    </button>
+                    <button class="faq-button" onclick="fillChatInput('What payment methods do you accept?')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                            <line x1="1" y1="10" x2="23" y2="10"></line>
+                        </svg>
+                        Payment Methods
+                    </button>
+                </div>
+            </div>
+            <div class="chat-input-container">
+                <textarea class="chat-input" id="chatInput" placeholder="Type your message..." rows="1" onkeydown="handleKeyPress(event)" oninput="handleInputChange(this)"></textarea>
+                <button class="send-button" onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Responsive Fixes -->
     <script src="/frontend/assets/js/responsive-fixes.js"></script>
 </body>

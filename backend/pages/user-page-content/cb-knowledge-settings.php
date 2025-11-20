@@ -687,7 +687,6 @@ $error_message = '';
 
         .db-info-item {
             display: flex;
-            align-items: center;
             gap: 12px;
             padding: 15px;
             background: #f8f9fa;
