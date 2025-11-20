@@ -293,7 +293,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <div class="ddescription">
                 <label class="lbl-title">Description:</label>
-                <textarea class="description" id="content" name="content" maxlength="500" required></textarea>
+                <textarea class="description" id="content" name="content" maxlength="500" placeholder="Describe your experience with Neo Café…" required></textarea>
             </div>
         </div>
 
@@ -314,7 +314,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <p>Are you sure you want to discard post creation?</p>
             <div class="controls">
                 <input type="button" class="cancel-btn" id="cancel-btn" value="Cancel">
-                <input type="button" class="confirm-btn" id="confirm-btn" onclick="location='/profile/user-profile.php#testimonials'" value="Confirm">
+                <input type="button" class="confirm-btn" id="confirm-btn" onclick="location='/frontend/pages/profile/user-profile.php#testimonials'" value="Confirm">
             </div>
         </div>
     </div>

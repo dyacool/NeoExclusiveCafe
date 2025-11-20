@@ -163,6 +163,7 @@ $today_date = date('Y-m-d');
         </div>
 
         <!-- Related Products Section -->
+        <?php if ($related_result->num_rows > 0): ?>
         <div class="related-products-section">
             <h2>You May Also Like</h2>
             <div class="related-products-grid" id="relatedProducts">
@@ -253,12 +254,10 @@ $today_date = date('Y-m-d');
                         </div>
                 <?php
                     endwhile;
-                else:
-                ?>
-                    <p class="no-related-products">No related products found.</p>
-                <?php endif; ?>
+                endif; ?>
             </div>
         </div>
+        <?php endif; ?>
     </div>
 </div>
 

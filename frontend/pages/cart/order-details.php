@@ -354,7 +354,6 @@ if ($pod_stmt) {
             display: flex;
             gap: 12px;
             justify-content: flex-end;
-            margin: 24px 0;
         }
 
         .btn {
@@ -467,16 +466,6 @@ if ($pod_stmt) {
             font-size: 16px;
         }
 
-        @media (max-width: 768px) {
-            .action-buttons {
-                flex-direction: column;
-            }
-
-            .btn {
-                width: 100%;
-                justify-content: center;
-            }
-        }
     </style>
 </head>
 <body>
@@ -484,15 +473,129 @@ if ($pod_stmt) {
     <?php include __DIR__ . "/../../user-includes/bread-crumb/bread-crumb.php"; ?>
 
     <div class="container">
-        <div class="header">
-            <h1>Order Details</h1>
-            <div class="order-info">
+        <div class="header" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; padding: 15px 0;">
+            <h1 style="width: 100%; margin: 0 0 10px 0; font-size: 28px;">Order Details</h1>
+            <div class="order-info" style="display: flex; justify-content: center; align-items: center; gap: 15px; flex: 1; min-width: 300px;">
                 <span class="order-id">Order #<?php echo htmlspecialchars($order['order_id']); ?></span>
                 <span class="order-status status-<?php echo strtolower(htmlspecialchars($order['status'])); ?>">
                     <?php echo htmlspecialchars(ucfirst($order['status'])); ?>
                 </span>
             </div>
+            <!-- Action Buttons -->
+            <div class="action-buttons" style="display: flex; gap: 8px; justify-content: flex-end; ">
+                <?php 
+                if ($can_write_review): ?>
+                <button onclick="openReviewModal()" class="btn btn-primary" style="background-color: #1a4a28; white-space: nowrap;">
+                    Write a Review
+                </button>
+                <?php endif; ?>
+                
+                <?php if ($refund): ?>
+                <button onclick="openRefundDetailsModal()" class="btn btn-primary" style="white-space: nowrap;">
+                    View Refund Request
+                </button>
+                <?php elseif ($can_request_refund): ?>
+                <button onclick="openRefundModal()" class="btn btn-primary" style="white-space: nowrap;">
+                    Request Refund
+                </button>
+                <?php endif; ?>
+            </div>
         </div>
+        
+        <style>
+            .order-info {
+                margin: 0;
+            }
+
+            .header h1 {
+                margin: 0;
+            }
+                
+            @media (max-width: 1440px) {
+                .header {
+                    flex-direction: column;
+                    align-items: stretch;
+                    gap: 8px;
+                    margin-bottom: 0;
+                }
+                
+                .header h1 {
+                    text-align: center;
+                    margin-bottom: 8px;
+                }
+                
+                .order-info {
+                    justify-content: center;
+                    width: 100%;
+                }
+                
+                .action-buttons {
+                    justify-content: center;
+                    width: 100%;
+                }
+            }
+            
+            @media (max-width: 768px) {
+                .header {
+                    gap: 8px;
+                }
+                
+                .header h1 {
+                    font-size: 24px;
+                    margin-bottom: 8px;
+                }
+                
+                .order-info {
+                    gap: 12px;
+                    font-size: 14px;
+                }
+                
+                .action-buttons {
+                    display: flex;
+                    flex-direction: row!important;
+                    gap: 6px;
+                    
+                }
+                
+                .btn {
+                    padding: 8px 12px !important;
+                    font-size: 12px !important;
+                }
+            }
+            
+            @media (max-width: 480px) {
+                .header {
+                    gap: 6px;
+                    padding: 10px 0;
+                }
+                
+                .header h1 {
+                    font-size: 20px;
+                    margin-bottom: 6px;
+                }
+                
+                .order-info {
+                    gap: 8px;
+                    font-size: 13px;
+                }
+                
+                .order-id, .order-status {
+                    padding: 6px 10px;
+                }
+                
+                .action-buttons {
+                    gap: 4px;
+                    width: 100%;
+                }
+                
+                .action-buttons button {
+                    flex: 1;
+                    min-width: 120px;
+                    padding: 8px 10px !important;
+                    font-size: 11px !important;
+                }
+            }
+        </style>
 
         <div class="details-grid">
             <!-- Order Information -->
@@ -667,32 +770,6 @@ if ($pod_stmt) {
         </div>
         <?php endif; ?>
 
-        <!-- Action Buttons -->
-        <div class="action-buttons">
-            
-            <?php 
-            // Debug: Check status values (view page source to see)
-            echo "<!-- Debug: Order Status = " . htmlspecialchars($order['status']) . " -->";
-            echo "<!-- Debug: Status Lower = " . htmlspecialchars($status_lower) . " -->";
-            echo "<!-- Debug: Status Normalized = " . htmlspecialchars($status_normalized) . " -->";
-            echo "<!-- Debug: Can Write Review = " . ($can_write_review ? 'true' : 'false') . " -->";
-            
-            if ($can_write_review): ?>
-            <button onclick="openReviewModal()" class="btn btn-primary" style="background-color: #1a4a28; margin-right: 10px;">
-                Write a Review
-            </button>
-            <?php endif; ?>
-            
-            <?php if ($refund): ?>
-            <button onclick="openRefundDetailsModal()" class="btn btn-primary">
-                View Refund Request
-            </button>
-            <?php elseif ($can_request_refund): ?>
-            <button onclick="openRefundModal()" class="btn btn-primary">
-                Request Refund
-            </button>
-            <?php endif; ?>
-        </div>
     </div>
 
     <!-- Refund Modal -->
