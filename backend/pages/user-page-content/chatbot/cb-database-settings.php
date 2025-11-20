@@ -2,8 +2,7 @@
 // Use admin-auth for authentication
 require_once __DIR__ . '/../../../login/admin/admin-auth.php';
 
-// Include the navbar and database
-require_once __DIR__ . "/../../admin-includes/navbar/navbar.php";
+// Include database
 require_once __DIR__ . "/../../admin-includes/database.php";
 
 // Check for valid access token
@@ -94,13 +93,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_settings'])) {
     <title>Chatbot Database Settings - NeoCafe Admin</title>
     <link rel="icon" type="image/x-icon" href="../../../../assets/images/favicon.ico">
     
-    <!-- CSS files -->
-    <link rel="stylesheet" href="../../admin-includes/navbar/navbar.css">
+    <!-- CSS files with absolute paths -->
+    <link rel="stylesheet" href="/backend/pages/admin-includes/navbar/reset.css">
+    <link rel="stylesheet" href="/backend/pages/admin-includes/navbar/navbar.css">
+    <link rel="stylesheet" href="/backend/pages/admin-includes/notifications/notifications.css">
     <link rel="stylesheet" href="chatbot-knowledge.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="/backend/pages/admin-includes/navbar/navbar.js" defer></script>
+    <script src="/backend/pages/admin-includes/notifications/notifications.js" defer></script>
 </head>
 <body>
+<?php include __DIR__ . "/../../admin-includes/navbar/navbar.php"; ?>
 
 <?php include __DIR__ . "/../../admin-includes/breadcrumbs/admin-breadcrumb.php"; ?>
 

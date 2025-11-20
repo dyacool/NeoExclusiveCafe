@@ -41,11 +41,11 @@ if (isset($conn) && $conn instanceof mysqli) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../admin-includes/navbar/reset.css">
-    <link rel="stylesheet" href="../admin-includes/navbar/navbar.css">
-    <link rel="stylesheet" href="../admin-includes/notifications/notifications.css">
-    <script src="../admin-includes/navbar/navbar.js" defer></script>
-    <script src="../admin-includes/notifications/notifications.js" defer></script>
+    <link rel="stylesheet" href="/backend/pages/admin-includes/navbar/reset.css">
+    <link rel="stylesheet" href="/backend/pages/admin-includes/navbar/navbar.css">
+    <link rel="stylesheet" href="/backend/pages/admin-includes/notifications/notifications.css">
+    <script src="/backend/pages/admin-includes/navbar/navbar.js" defer></script>
+    <script src="/backend/pages/admin-includes/notifications/notifications.js" defer></script>
     <title>Neo Cafe Admin</title>
 </head>
 <body>
@@ -62,7 +62,7 @@ if (isset($conn) && $conn instanceof mysqli) {
             </button>
             <div class="mobile-logo">
                 <div class="logo-circle">
-                    <img src="../../assets/images/user-logo.png" alt="Neo Cafe Logo">
+                    <img src="/backend/assets/images/user-logo.png" alt="Neo Cafe Logo">
                 </div>
                 <span class="mobile-logo-text">Admin</span>
             </div>
@@ -88,7 +88,7 @@ if (isset($conn) && $conn instanceof mysqli) {
         <div class="sidebar-header">
             <div class="logo-container">
                 <div class="logo-circle">
-                    <img src="../../assets/images/user-logo.png" alt="Neo Cafe Logo">
+                    <img src="/backend/assets/images/user-logo.png" alt="Neo Cafe Logo">
                 </div>
                 <span class="admin-text">Admin</span>
             </div>
@@ -99,7 +99,7 @@ if (isset($conn) && $conn instanceof mysqli) {
             <nav class="sidebar-nav">
                 <ul class="nav-menu">
                     <li class="nav-item">
-                        <a href="../dashboard/dashboard.php" class="nav-link">
+                        <a href="/backend/pages/dashboard/dashboard.php" class="nav-link">
                             <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="3" y="3" width="7" height="7"></rect>
                                 <rect x="14" y="3" width="7" height="7"></rect>
@@ -124,7 +124,7 @@ if (isset($conn) && $conn instanceof mysqli) {
                             </svg>
                         </div>
                         <ul class="dropdown-menu products-dropdown">
-                            <li><span class="dropdown-link" data-href="../products/product-list.php">
+                            <li><span class="dropdown-link" data-href="/backend/pages/products/product-list.php">
                                 <svg class="dropdown-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <line x1="8" y1="6" x2="21" y2="6"></line>
                                     <line x1="8" y1="12" x2="21" y2="12"></line>
@@ -135,7 +135,7 @@ if (isset($conn) && $conn instanceof mysqli) {
                                 </svg>
                                 Product List
                             </span></li>
-                            <li><span class="dropdown-link" data-href="../products/add-product.php">
+                            <li><span class="dropdown-link" data-href="/backend/pages/products/add-product.php">
                                 <svg class="dropdown-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <line x1="12" y1="5" x2="12" y2="19"></line>
                                     <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -146,7 +146,7 @@ if (isset($conn) && $conn instanceof mysqli) {
                     </li>
                     
                     <li class="nav-item">
-                        <a href="../calendar/calendar.php" class="nav-link">
+                        <a href="/backend/pages/calendar/calendar.php" class="nav-link">
                             <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                             </svg>
@@ -155,7 +155,7 @@ if (isset($conn) && $conn instanceof mysqli) {
                     </li>
 
                     <li class="nav-item">
-                        <a href="../orders/order-list.php" class="nav-link">
+                        <a href="/backend/pages/orders/order-list.php" class="nav-link">
                             <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="9" cy="21" r="1"></circle>
                                 <circle cx="20" cy="21" r="1"></circle>
@@ -169,7 +169,7 @@ if (isset($conn) && $conn instanceof mysqli) {
                     </li>
 
                     <li class="nav-item">
-                        <a href="../bulks/bulk-order-lists.php" class="nav-link">
+                        <a href="/backend/pages/bulks/bulk-order-lists.php" class="nav-link">
                             <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
                                 <polyline points="14,2 14,8 20,8"></polyline>
@@ -185,7 +185,7 @@ if (isset($conn) && $conn instanceof mysqli) {
                     </li>
 
                     <li class="nav-item">
-                        <a href="../refund/refund-request-lists.php" class="nav-link">
+                        <a href="/backend/pages/refund/refund-request-lists.php" class="nav-link">
                             <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polyline points="9 14 4 9 9 4"></polyline>
                                 <path d="M20 20v-7a4 4 0 0 0-4-4H4"></path>
@@ -198,7 +198,7 @@ if (isset($conn) && $conn instanceof mysqli) {
                     </li>
 
                     <li class="nav-item">
-                        <a href="../expenses/expense.php" class="nav-link">
+                        <a href="/backend/pages/expenses/expense.php" class="nav-link">
                             <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <line x1="12" y1="1" x2="12" y2="23"></line>
                                 <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
@@ -208,7 +208,7 @@ if (isset($conn) && $conn instanceof mysqli) {
                     </li>
 
                     <li class="nav-item">
-                        <a href="../transactions/transactions.php" class="nav-link">
+                        <a href="/backend/pages/transactions/transactions.php" class="nav-link">
                             <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
                                 <line x1="1" y1="10" x2="23" y2="10"></line>
@@ -218,7 +218,7 @@ if (isset($conn) && $conn instanceof mysqli) {
                     </li>
 
                     <li class="nav-item">
-                        <a href="../blog/admin-blog.php" class="nav-link">
+                        <a href="/backend/pages/blog/admin-blog.php" class="nav-link">
                             <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="m12 19 7-7 3 3-7 7-3-3z"></path>
                                 <path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
@@ -230,7 +230,7 @@ if (isset($conn) && $conn instanceof mysqli) {
                     </li>
 
                     <li class="nav-item">
-                        <a href="../user-page-content/user-content-settings.php" class="nav-link">
+                        <a href="/backend/pages/user-page-content/user-content-settings.php" class="nav-link">
                             <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="12" cy="12" r="3"/>
                                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
@@ -246,7 +246,7 @@ if (isset($conn) && $conn instanceof mysqli) {
             <div class="mobile-footer-content">
                 <ul class="mobile-footer-menu">
                     <li class="mobile-footer-item">
-                        <a href="../account/admin-profile.php" class="mobile-footer-link">
+                        <a href="/backend/pages/account/admin-profile.php" class="mobile-footer-link">
                             <svg class="mobile-footer-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                                 <circle cx="12" cy="7" r="4"></circle>
@@ -273,7 +273,7 @@ if (isset($conn) && $conn instanceof mysqli) {
         <div class="sidebar-footer">
             <ul class="footer-menu">
                 <li class="footer-item">
-                    <a href="../account/admin-profile.php" class="footer-link">
+                    <a href="/backend/pages/account/admin-profile.php" class="footer-link">
                         <svg class="footer-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                             <circle cx="12" cy="7" r="4"></circle>
@@ -318,7 +318,7 @@ if (isset($conn) && $conn instanceof mysqli) {
             <h1 id="page-title">Neo Cafe Admin</h1>
             <div class="header-actions">
                 <?php if ($isAdmin): ?>
-                    <a href="../../pages/admin/admin-homepage.php" class="admin-home-btn">
+                    <a href="/backend/pages/admin/admin-homepage.php" class="admin-home-btn">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="3" y="3" width="7" height="7"></rect>
                             <rect x="14" y="3" width="7" height="7"></rect>
@@ -369,7 +369,7 @@ function hideLogoutModal() {
 }
 
 function confirmLogout() {
-    window.location.href = '../../login/admin/logout.php';
+    window.location.href = '/backend/login/admin/logout.php';
 }
 
 // Close modal when clicking outside of it
