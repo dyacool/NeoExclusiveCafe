@@ -1,0 +1,24 @@
+# Development files
+.git
+.gitignore
+*.md
+*.txt
+
+# Test files
+test/
+test_*.php
+debug_*.php
+
+# SQL files
+sql_configs/
+sql_exported_files/
+*.sql
+
+# Logs
+logs/
+
+# XAMPP specific
+XAMPP_VIRTUAL_HOSTS_CONFIG.txt
+
+# Root index.php (we use api/index.php instead)
+/index.php

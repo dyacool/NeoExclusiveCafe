@@ -38,6 +38,12 @@ $domain_config = [
 function getEnvironment() {
     $host = $_SERVER['HTTP_HOST'] ?? '';
     
+    // Check for Vercel deployment
+    if (isset($_ENV['VERCEL']) || isset($_SERVER['VERCEL']) || 
+        strpos($host, '.vercel.app') !== false) {
+        return 'production';
+    }
+    
     // Check for localhost or local development
     if (strpos($host, 'localhost') !== false || strpos($host, '127.0.0.1') !== false) {
         return 'development';
