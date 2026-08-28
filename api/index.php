@@ -1,10 +1,13 @@
 <?php
+// Vercel Serverless Function Entry Point
+// This file handles all incoming requests and routes them appropriately
+
 // Include domain configuration
 $config = require_once __DIR__ . '/../config/domain-config.php';
 
 // Domain-based routing system
-$current_domain = $_SERVER['HTTP_HOST'];
-$request_uri = $_SERVER['REQUEST_URI'];
+$current_domain = $_SERVER['HTTP_HOST'] ?? '';
+$request_uri = $_SERVER['REQUEST_URI'] ?? '/';
 
 // Function to redirect with proper error handling
 function safeRedirect($url) {
