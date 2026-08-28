@@ -18,7 +18,7 @@ function safeRedirect($url) {
     }
 }
 
-// Main routing logic
+// Main routing logics
 if (isAdminDomain($current_domain)) {
     // Admin domain - redirect to admin login
     safeRedirect($config['admin_path']);
