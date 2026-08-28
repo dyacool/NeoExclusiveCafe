@@ -1,57 +1,28 @@
 <?php
-// Vercel Serverless Function Entry Point
-// Enable error reporting for debugging
-error_reporting(E_ALL);
-ini_set('display_errors', '1');
+// Simple test to verify Vercel PHP is working
+header('Content-Type: text/html; charset=utf-8');
 
-// Check if config file exists
+echo "<!DOCTYPE html>";
+echo "<html><head><title>NeoCafe Test</title></head><body>";
+echo "<h1>Vercel PHP is working!</h1>";
+echo "<p>Host: " . ($_SERVER['HTTP_HOST'] ?? 'unknown') . "</p>";
+echo "<p>URI: " . ($_SERVER['REQUEST_URI'] ?? 'unknown') . "</p>";
+echo "<p>Time: " . date('Y-m-d H:i:s') . "</p>";
+
+// Test if config file exists
 $config_path = __DIR__ . '/../config/domain-config.php';
-if (!file_exists($config_path)) {
-    http_response_code(500);
-    die("Error: Configuration file not found at: " . $config_path);
+if (file_exists($config_path)) {
+    echo "<p style='color: green;'>✓ Config file found</p>";
+} else {
+    echo "<p style='color: red;'>✗ Config file NOT found at: $config_path</p>";
 }
 
-// Include domain configuration
-try {
-    $config = require_once $config_path;
-} catch (Exception $e) {
-    http_response_code(500);
-    die("Error loading configuration: " . $e->getMessage());
-}
+// List directory contents
+echo "<h2>Directory Structure:</h2>";
+echo "<pre>";
+echo "Current dir: " . __DIR__ . "\n";
+echo "Parent dir exists: " . (is_dir(__DIR__ . '/..') ? 'YES' : 'NO') . "\n";
+echo "</pre>";
 
-// Domain-based routing system
-$current_domain = $_SERVER['HTTP_HOST'] ?? '';
-$request_uri = $_SERVER['REQUEST_URI'] ?? '/';
-
-// Function to redirect with proper error handling
-function safeRedirect($url) {
-    if (!headers_sent()) {
-        header("Location: " . $url);
-        exit;
-    } else {
-        echo '<script>window.location.href = "' . $url . '";</script>';
-        echo '<meta http-equiv="refresh" content="0;url=' . $url . '">';
-        exit;
-    }
-}
-
-// Check if required functions exist
-if (!function_exists('isAdminDomain')) {
-    http_response_code(500);
-    die("Error: isAdminDomain() function not found in config");
-}
-
-// Main routing logic
-try {
-    if (isAdminDomain($current_domain)) {
-        // Admin domain - redirect to admin login
-        safeRedirect($config['admin_path']);
-    } else {
-        // User/main domain - redirect to user dashboard
-        safeRedirect($config['user_path']);
-    }
-} catch (Exception $e) {
-    http_response_code(500);
-    die("Routing error: " . $e->getMessage());
-}
+echo "</body></html>";
 ?>
